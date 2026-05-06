@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HR Employee Portal | HRFlow</title>
+  <meta name="description" content="Manage attendance and leave requests with HRFlow." />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👥</text></svg>">
+  <script>
+    // Auth Guard: Secure Dashboard Access
+    const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+    const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+
+    if (!isLoggedIn) {
+      window.location.href = 'employee-login.html';
+    } else if (userRole !== 'employee') {
+      alert('Access Restricted: This dashboard is for Employees only.');
+      window.location.href = userRole === 'admin' ? 'admin-dashboard.html' : 'manager-auth.html';
+    }
+  </script>
+  <style>
+    :root {
+      --primary: #0ea5e9; /* Light Blue */
+      --primary-dark: #0369a1;
+      --primary-light: #f0f9ff;
+      --primary-soft: #e0f2fe;
+      --sidebar-bg: #ffffff;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+    }
+
+    body { background-color: #f8fafc; color: var(--text-main); font-family: 'Inter', sans-serif; }
+    
+    /* Light Sidebar Styling */
+    .sidebar { background: var(--sidebar-bg); border-right: 1px solid var(--border-color); color: var(--text-main); }
+    .sidebar .logo-text, .sidebar .nav-label { color: var(--text-muted); }
+    .sidebar .nav-item { 
+      color: var(--text-muted); 
+      margin: 0.25rem 1rem; 
+      padding: 0.75rem 1rem; 
+      border-radius: 12px; 
+      display: flex; 
+      align-items: center; 
+      gap: 0.75rem; 
+      text-decoration: none; 
+      transition: all 0.2s ease;
+    }
+    .sidebar .nav-item:hover { background: var(--primary-light); color: var(--primary); }
+    .sidebar .nav-item.active { 
+      background: var(--primary-soft); 
+      color: var(--primary-dark); 
+      font-weight: 600;
+    }
+    .sidebar .nav-item.active i { color: var(--primary); }
+
+    /* Stat Cards */
+    .stat-card.hr-sky { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid #bae6fd; }
+    .stat-card .stat-icon { background: #fff; color: var(--primary); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+
+    /* Attendance Table */
+    .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .status-present { background: #dcfce7; color: #15803d; }
+    .status-late { background: #fef3c7; color: #b45309; }
+    .status-absent { background: #fee2e2; color: #b91c1c; }
+
+    /* Leave Buttons */
+    .btn-approve { background: var(--success); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; }
+    .btn-reject { background: #fff; color: var(--danger); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; }
+    .btn-approve:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-reject:hover { background: var(--danger); color: #fff; transform: translateY(-1px); }
+
+    /* Search Bar Override for HR */
+    .search-box { border-radius: 12px; border: 1px solid var(--border-color); background: #fdfdfd; width: 100%; max-width: 450px; }
+    .search-box input { width: 100% !important; font-size: 0.9rem; }
+
+    /* Pages */
+    .page { display: none; }
+    .page.active { display: block; animation: slideUp 0.4s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+    .chart-card { background: #fff; border-radius: 20px; padding: 1.5rem; border: 1px solid var(--border-color); height: 350px; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <a href="index.html" style="display:flex; align-items:center; gap:.75rem; text-decoration:none; color:inherit;">
+        <div class="logo-icon" style="background:var(--primary); color:#fff;"><i data-lucide="users"></i></div>
+        <span class="logo-text">HRFlow <span style="color:var(--primary);">Team</span></span>
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Management</div>
+      <a href="#" class="nav-item active" data-page="dashboard">
+        <i data-lucide="layout-dashboard" size="18"></i><span>Overview</span>
+      </a>
+      <a href="#" class="nav-item" data-page="attendance">
+        <i data-lucide="calendar-check" size="18"></i><span>Attendance</span>
+      </a>
+      <a href="#" class="nav-item" data-page="leaves">
+        <i data-lucide="send" size="18"></i><span>Leave Requests</span>
+      </a>
+      <a href="#" class="nav-item" data-page="tasks">
+        <i data-lucide="check-square" size="18"></i><span>My Tasks</span>
+      </a>
+      <a href="#" class="nav-item" data-page="messages">
+        <i data-lucide="message-square" size="18"></i><span>Messages</span>
+      </a>
+      <a href="#" class="nav-item" data-page="notifications">
+        <i data-lucide="bell" size="18"></i><span>Notifications</span>
+      </a>
+      <a href="tvc-dashboard.html" class="nav-item">
+        <i data-lucide="monitor-play" size="18"></i><span>TVC Monitor</span>
+      </a>
+      <div class="nav-label">Employees</div>
+      <a href="#" class="nav-item" data-page="directory">
+        <i data-lucide="contact-2" size="18"></i><span>Directory</span>
+      </a>
+      <a href="#" class="nav-item" data-page="hiring">
+        <i data-lucide="user-plus" size="18"></i><span>Recruitment</span>
+      </a>
+      <a href="#" class="nav-item" data-page="settings" style="margin-top: auto;">
+        <i data-lucide="settings-2" size="18"></i><span>Portal Settings</span>
+      </a>
+    </nav>
+    <div class="sidebar-user" style="border-top:1px solid var(--border-color);">
+      <div class="user-avatar" style="background: var(--primary); color:#fff;">SA</div>
+      <div class="user-info">
+        <div class="user-name" style="color:var(--text-main);">Sarah Adams</div>
+        <div class="user-role">HR Coordinator</div>
+      </div>
+      <button id="btnLogout" class="icon-btn" title="Logout" style="color:var(--danger);">
+        <i data-lucide="log-out" size="18"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Wrapper -->
+  <div class="main-wrapper" id="mainWrapper">
+    <!-- Topbar -->
+    <header class="topbar" style="background:#fff; border-bottom:1px solid var(--border-color);">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle"><i data-lucide="menu"></i></button>
+        <div class="page-title" id="pageTitle" style="color:var(--text-main);">HR Operations</div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-box">
+          <i data-lucide="search" size="18" stroke-width="2.5"></i>
+          <input type="text" placeholder="Search employees by name or ID..." id="employeeSearch" />
+        </div>
+        <div class="notif-wrapper">
+          <button class="icon-btn" id="btnNotif">
+            <i data-lucide="bell" size="20"></i>
+            <span class="notif-dot" id="notifDot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <h3>Notifications</h3>
+              <button class="mark-read" onclick="markAllAsRead()">Mark all as read</button>
+            </div>
+            <div class="notif-list" id="notifList">
+              <div class="notif-empty" style="padding:1rem; text-align:center; color:var(--text-muted);">Loading...</div>
+            </div>
+            <div class="notif-footer">
+              <a href="#">View all notifications</a>
+            </div>
+          </div>
+        </div>
+        <div class="topbar-avatar" style="background: var(--primary); color:#fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; width: 36px; height: 36px;">SA</div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="content" id="mainContent">
+      
+      <!-- ===== DASHBOARD PAGE ===== -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <h1>Workforce Status</h1>
+          <p>Real-time attendance and leave monitoring for today.</p>
+        </div>
+
+        <div class="dashboard-grid-3">
+          <div class="card stat-card hr-sky">
+            <div class="stat-icon"><i data-lucide="users-2"></i></div>
+            <div class="stat-value">248</div>
+            <div class="stat-label">Total Employees</div>
+          </div>
+          <div class="card stat-card hr-sky">
+            <div class="stat-icon" style="color:var(--success);"><i data-lucide="user-check"></i></div>
+            <div class="stat-value">215</div>
+            <div class="stat-label">Present Today</div>
+          </div>
+          <div class="card stat-card hr-sky">
+            <div class="stat-icon" style="color:var(--warning);"><i data-lucide="user-minus"></i></div>
+            <div class="stat-value">14</div>
+            <div class="stat-label">On Leave</div>
+          </div>
+          <div class="card stat-card" style="cursor:pointer; background:var(--primary); color:white;" onclick="openApplyLeaveModal()">
+            <div class="stat-icon" style="color:white;"><i data-lucide="plus-circle"></i></div>
+            <div class="stat-value" style="font-size:1.2rem;">Apply Leave</div>
+            <div class="stat-label" style="color:rgba(255,255,255,0.8);">Request Time Off</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Attendance Chart -->
+          <div class="chart-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+              <h3 style="margin:0;">Attendance Trend</h3>
+              <span style="font-size:0.8rem; color:var(--text-muted);">Past 7 Days</span>
+            </div>
+            <canvas id="attendanceTrendChart"></canvas>
+          </div>
+
+          <!-- Leave Requests -->
+          <div class="card">
+            <div class="card-header">
+              <h3>My Leave Requests</h3>
+              <a href="#" class="see-all">View All</a>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:1.25rem;" id="myLeaveList">
+              <div style="text-align:center; padding:2rem; color:var(--text-muted);">Loading your requests...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="card" style="margin-top:1.5rem;">
+          <div class="card-header">
+            <h3>Employee Attendance List</h3>
+            <button class="btn-outline" style="padding:0.5rem 1rem; border-radius:8px; font-size:0.8rem;"><i data-lucide="download" size="14" style="margin-right:4px;"></i> Export Report</button>
+          </div>
+          <div class="table-wrapper">
+            <table class="hr-table">
+              <thead>
+                <tr>
+                  <th>Employee Name</th>
+                  <th>Employee ID</th>
+                  <th>Status</th>
+                  <th>Check-in Time</th>
+                  <th>Location</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><b>Johnathan Doe</b></td>
+                  <td>#EMP-8421</td>
+                  <td><span class="status-pill status-present">Present</span></td>
+                  <td>09:05 AM</td>
+                  <td>Remote (London)</td>
+                </tr>
+                <tr>
+                  <td><b>Alice Smith</b></td>
+                  <td>#EMP-8422</td>
+                  <td><span class="status-pill status-late">Late</span></td>
+                  <td>10:15 AM</td>
+                  <td>On-site (New York)</td>
+                </tr>
+                <tr>
+                  <td><b>Robert Brown</b></td>
+                  <td>#EMP-8425</td>
+                  <td><span class="status-pill status-absent">Absent</span></td>
+                  <td>-- : --</td>
+                  <td>--</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TASKS PAGE ===== -->
+      <div class="page" id="page-tasks">
+        <div class="page-header">
+          <h1>My Assigned Tasks</h1>
+          <p>Update your task status and track upcoming deadlines.</p>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="hr-table">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Manager</th>
+                  <th>Deadline</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="employeeTaskList">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MESSAGES PAGE ===== -->
+      <div class="page" id="page-messages">
+        <div class="page-header">
+          <h1>Messages</h1>
+          <p>Employee relations and team communication.</p>
+        </div>
+        <div class="card" style="min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+          <div>
+            <i data-lucide="message-square" size="48" style="color: var(--primary); margin-bottom: 1rem; opacity: 0.5;"></i>
+            <h3>No Chat Activity</h3>
+            <p style="color: var(--text-muted);">Start a conversation with colleagues or managers.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== NOTIFICATIONS PAGE ===== -->
+      <div class="page" id="page-notifications">
+        <div class="page-header">
+          <h1>Notifications</h1>
+          <p>Policy updates, leave approvals, and system alerts.</p>
+        </div>
+        <div class="card" style="min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
+          <div>
+            <i data-lucide="bell" size="48" style="color: var(--primary); margin-bottom: 1rem; opacity: 0.5;"></i>
+            <h3>No New Alerts</h3>
+            <p style="color: var(--text-muted);">Check back later for updates.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page Placeholders -->
+      <div class="page" id="page-leaves">
+        <div class="page-header">
+          <h1>Leave Management</h1>
+          <p>Review and process employee leave applications.</p>
+        </div>
+        <div class="card">
+          <p>Leave request processing module...</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      // Initialize Lucide
+      if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
+
+      // Navigation Logic
+      const navItems = document.querySelectorAll('.nav-item[data-page]');
+      const pages = document.querySelectorAll('.page');
+      const pageTitle = document.getElementById('pageTitle');
+
+      function navigateTo(pageId) {
+        pages.forEach(p => p.classList.remove('active'));
+        navItems.forEach(n => n.classList.remove('active'));
+
+        const targetPage = document.getElementById('page-' + pageId);
+        const targetNav = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+
+        if (targetPage) targetPage.classList.add('active');
+        if (targetNav) targetNav.classList.add('active');
+
+        const titles = {
+          'dashboard': 'HR Operations',
+          'attendance': 'Attendance Monitor',
+          'leaves': 'Leave Approvals',
+          'tasks': 'My Assignments',
+          'messages': 'Messages',
+          'notifications': 'System Notifications',
+          'directory': 'Employee Directory',
+          'hiring': 'Recruitment Hub',
+          'settings': 'Portal Settings'
+        };
+        if (pageTitle) pageTitle.textContent = titles[pageId] || 'HR Console';
+      }
+
+      navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          navigateTo(item.getAttribute('data-page'));
+        });
+      });
+
+      // Chart.js - Attendance Trend
+      const ctx = document.getElementById('attendanceTrendChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [{
+            label: 'Present %',
+            data: [92, 95, 88, 94, 91, 45, 38],
+            borderColor: '#0ea5e9',
+            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#0ea5e9',
+            pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { 
+              beginAtZero: true, 
+              max: 100,
+              grid: { color: '#f1f5f9' },
+              ticks: { callback: value => value + '%' }
+            },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // Mobile Toggle
+      const menuToggle = document.getElementById('menuToggle');
+      const sidebar = document.getElementById('sidebar');
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+      });
+
+      // Logout
+      document.getElementById('btnLogout').addEventListener('click', () => {
+        localStorage.removeItem('hr_logged_in');
+        window.location.href = 'index.html';
+      });
+      
+      window.closeLeaveModal = () => {
+        document.getElementById('leaveModal').style.display = 'none';
+      };
+      
+      document.getElementById('btnSubmitLeave').addEventListener('click', () => {
+        const data = {
+          reason: document.getElementById('leaveReason').value,
+          start: document.getElementById('leaveStart').value,
+          end: document.getElementById('leaveEnd').value,
+          type: document.getElementById('leaveType').value
+        };
+        console.log('Leave Request Submitted:', data);
+        closeLeaveModal();
+      });
+    });
+  </script>
+  <div class="modal-overlay" id="leaveModal">
+    <div class="modal" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3>Request Leave</h3>
+        <button class="close-modal" onclick="closeLeaveModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-form">
+          <div class="form-row">
+            <label>Leave Reason</label>
+            <input type="text" id="leaveReason" class="form-input" placeholder="e.g. Family Function, Vacation">
+          </div>
+          <div class="form-row">
+            <label>Start Date</label>
+            <input type="date" id="leaveStart" class="form-input">
+          </div>
+          <div class="form-row">
+            <label>End Date</label>
+            <input type="date" id="leaveEnd" class="form-input">
+          </div>
+          <div class="form-row">
+            <label>Leave Type</label>
+            <select id="leaveType" class="form-input">
+              <option value="Sick Leave">Sick Leave</option>
+              <option value="Vacation">Vacation</option>
+              <option value="Personal Leave">Personal Leave</option>
+              <option value="Maternity/Paternity">Maternity/Paternity</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeLeaveModal()">Cancel</button>
+        <button class="btn btn-primary" id="btnSubmitLeave">Submit Request</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="notification-app.js"></script>
+  <script type="module" src="employee-app.js"></script>
+    <script type="module" src="activity-tracker.js"></script>
+  <script src="status-widget.js"></script>
+</body>
+</html>
+

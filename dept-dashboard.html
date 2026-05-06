@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Department Hub | HRFlow Pro</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-light: #f0f7ff;
+      --primary-soft: #dbeafe;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --bg: #ffffff;
+      --border: #f1f5f9;
+      --radius: 16px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); min-height: 100vh; }
+
+    .layout {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 2.5rem;
+    }
+
+    /* Header Section */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      transition: var(--transition);
+    }
+    .back-link:hover { color: var(--primary); }
+
+    .dept-title h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -0.025em; }
+    .dept-title p { color: var(--text-muted); font-size: 1.1rem; margin-top: 0.5rem; }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .kpi-card {
+      background: white;
+      padding: 1.75rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+    
+    .kpi-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.75rem; }
+    .kpi-value { font-size: 2rem; font-weight: 800; display: flex; align-items: baseline; gap: 0.5rem; }
+    .kpi-trend { font-size: 0.8rem; font-weight: 700; color: #10b981; }
+
+    /* Main Dashboard Content */
+    .dashboard-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .card-title { font-size: 1.2rem; font-weight: 700; }
+
+    /* Table Component */
+    .table-wrapper { overflow-x: auto; margin: -2rem; margin-top: 0; padding: 2rem; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 1.25rem 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    td { padding: 1.25rem 1rem; font-size: 0.95rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    
+    .status-badge {
+      padding: 0.35rem 0.85rem;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .badge-active { background: #eff6ff; color: #3b82f6; }
+    .badge-alert { background: #fff1f2; color: #e11d48; }
+
+    /* Activity List */
+    .activity-list { display: flex; flex-direction: column; gap: 1.5rem; }
+    .activity-item { display: flex; gap: 1rem; position: relative; }
+    .activity-item::before {
+      content: '';
+      position: absolute;
+      left: 11px; top: 24px; bottom: -12px;
+      width: 2px; background: var(--border);
+    }
+    .activity-item:last-child::before { display: none; }
+    
+    .activity-icon {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      border: 2px solid white;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1;
+    }
+    .activity-body h5 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .activity-body p { font-size: 0.8rem; color: var(--text-muted); }
+    .activity-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-top: 0.4rem; }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .dashboard-content { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .layout { padding: 1.5rem; }
+      header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .dept-title h1 { font-size: 1.75rem; }
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="layout">
+    <header>
+      <div class="dept-title">
+        <a href="admin-dashboard.html" class="back-link"><i data-lucide="chevron-left" size="14"></i> Dashboard Overview</a>
+        <h1 id="deptName">Department Dashboard</h1>
+        <p id="deptDescription">Performance tracking and resource management hub.</p>
+      </div>
+      <div class="actions">
+        <!-- Reusable action slot -->
+      </div>
+    </header>
+
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-label">Active Employees</span>
+        <div class="kpi-value"><span id="kpiCount">--</span> <span class="kpi-trend">+2</span></div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Performance Index</span>
+        <div class="kpi-value"><span id="kpiPerformance">--%</span> <span class="kpi-trend">↑ 4%</span></div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Critical Alerts</span>
+        <div class="kpi-value" id="kpiAlerts" style="color: #e11d48;">0</div>
+      </div>
+    </section>
+
+    <div class="dashboard-content">
+      <div class="main-column" style="display: flex; flex-direction: column; gap: 2rem;">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title" id="mainChartTitle">Production Trend</h3>
+          </div>
+          <canvas id="deptChart" height="120"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title" id="tableTitle">Personnel Roster</h3>
+          </div>
+          <div class="table-wrapper">
+            <table id="mainTable">
+              <thead id="tableHead">
+                <tr>
+                  <th>Employee</th>
+                  <th>Position</th>
+                  <th>Status</th>
+                  <th>Retention</th>
+                </tr>
+              </thead>
+              <tbody id="rosterBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side-column">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+          </div>
+          <div class="activity-list" id="activityList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const department = urlParams.get('dept') || 'Engineering';
+      
+      document.getElementById('deptName').textContent = department;
+      document.getElementById('deptDescription').textContent = `Real-time analytics for the ${department} division.`;
+
+      // Mock Data Setup
+      const mockData = {
+        'Engineering': { 
+          count: 24, perf: 850, alerts: 12, color: '#3b82f6',
+          kpis: ['Active Projects', 'Tasks Completed', 'Bugs Open'],
+          chartLabel: 'Project Progress',
+          tableTitle: 'Sprint Tasks',
+          tableCols: ['Task Name', 'Assignee', 'Status', 'Priority'],
+          tableData: [
+            { c1: 'Auth Module V2', c2: 'Bruce Wayne', c3: 'Active', c4: 'High' },
+            { c1: 'Database Migration', c2: 'Diana Prince', c3: 'Active', c4: 'Critical' },
+            { c1: 'UI Refactoring', c2: 'Barry Allen', c3: 'Alert', c4: 'Medium' }
+          ],
+          activities: [
+            { title: 'High Bug Count', desc: 'Critical bugs in the Auth module reached 12.', time: '30 mins ago' },
+            { title: 'Task Delayed', desc: 'UI Refactoring is 2 days behind schedule.', time: '2 hours ago' },
+            { title: 'Deployment Success', desc: 'API Gateway updated to v1.2.4.', time: 'Yesterday' }
+          ]
+        },
+        'Marketing': { 
+          count: 12, perf: 4200, alerts: '14.2%', color: '#ec4899',
+          kpis: ['Total Campaigns', 'Leads Generated', 'Conversion %'],
+          chartLabel: 'Campaign Reach',
+          tableTitle: 'Active Campaigns',
+          tableCols: ['Campaign Name', 'Budget Spent', 'Status', 'ROI'],
+          tableData: [
+            { c1: 'Summer Blast 2024', c2: '₹450k', c3: 'Active', c4: '4.2x' },
+            { c1: 'Q2 Newsletter', c2: '₹12k', c3: 'Alert', c4: '0.8x' },
+            { c1: 'Social Blitz', c2: '₹120k', c3: 'Active', c4: '2.5x' }
+          ],
+          activities: [
+            { title: 'Low ROI Alert', desc: 'Q2 Newsletter campaign is underperforming (0.8x ROI).', time: '1 hour ago' },
+            { title: 'Lead Spike', desc: 'Summer Blast 2024 generated 450 new leads today.', time: '4 hours ago' },
+            { title: 'Budget Update', desc: 'Allocated ₹50k extra to Social Blitz.', time: 'Yesterday' }
+          ]
+        },
+        'Finance': { 
+          count: '₹1.2M', perf: '₹450k', alerts: '₹3.4M', color: '#10b981',
+          kpis: ['Total Payroll', 'Total Expenses', 'Estimated Revenue'],
+          chartLabel: 'Monthly Cashflow',
+          tableTitle: 'Recent Transactions',
+          tableCols: ['Entity', 'Category', 'Amount', 'Status'],
+          tableData: [
+            { c1: 'Amazon Web Services', c2: 'Infrastructure', c3: 'Active', c4: '₹85,000' },
+            { c1: 'Global Payroll Q2', c2: 'Salaries', c3: 'Alert', c4: '₹1,240,000' },
+            { c1: 'Office Lease', c2: 'Fixed Cost', c3: 'Active', c4: '₹220,000' }
+          ],
+          activities: [
+            { title: 'Budget Exceeded', desc: 'Infrastructure costs are 15% above Q2 estimates.', time: '1 hour ago' },
+            { title: 'Pending Payment', desc: 'Vendor payment for Global Payroll is awaiting approval.', time: '3 hours ago' },
+            { title: 'Audit Completed', desc: 'Internal financial audit passed with zero discrepancies.', time: '2 days ago' }
+          ]
+        }
+      };
+
+      const data = mockData[department] || mockData['Engineering'];
+      
+      // Update KPI Labels
+      const kpiLabels = document.querySelectorAll('.kpi-label');
+      kpiLabels[0].textContent = data.kpis[0];
+      kpiLabels[1].textContent = data.kpis[1];
+      kpiLabels[2].textContent = data.kpis[2];
+
+      document.getElementById('kpiCount').textContent = data.count;
+      document.getElementById('kpiPerformance').textContent = (department === 'Marketing' || department === 'Finance') ? data.perf : data.perf + '%';
+      document.getElementById('kpiAlerts').textContent = data.alerts;
+      document.getElementById('mainChartTitle').textContent = data.chartLabel + ' Overview';
+      document.getElementById('tableTitle').textContent = data.tableTitle;
+
+      // Update Table Headers
+      document.getElementById('tableHead').innerHTML = `
+        <tr>
+          ${data.tableCols.map(col => `<th>${col}</th>`).join('')}
+        </tr>
+      `;
+
+      // Render Table Data
+      document.getElementById('rosterBody').innerHTML = data.tableData.map(e => `
+        <tr>
+          <td style="font-weight: 600;">${e.c1}</td>
+          <td style="color: var(--text-muted);">${e.c2}</td>
+          <td><span class="status-badge ${e.c3 === 'Active' ? 'badge-active' : 'badge-alert'}">${e.c3}</span></td>
+          <td style="font-weight: 700;">${e.c4}</td>
+        </tr>
+      `).join('');
+
+      // Render Chart
+      const ctx = document.getElementById('deptChart');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+          datasets: [{
+            label: data.chartLabel,
+            data: department === 'Marketing' ? [1200, 2400, 1800, 3200, 4500, data.perf] : [65, 72, 68, 85, 91, data.perf],
+            borderColor: data.color,
+            backgroundColor: `${data.color}15`,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: department === 'Marketing' ? true : false, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // Render Activity / Alerts
+      const activities = data.activities || [
+        { title: 'Project Zenith Deployed', desc: 'Main engineering module updated.', time: '2 hours ago' },
+        { title: 'New Hire Onboarded', desc: 'Added junior developer to the roster.', time: '5 hours ago' },
+        { title: 'Compliance Check', desc: 'Quarterly audit completed successfully.', time: 'Yesterday' }
+      ];
+
+      document.getElementById('activityList').innerHTML = activities.map(a => `
+        <div class="activity-item">
+          <div class="activity-icon"><div style="width:8px; height:8px; border-radius:50%; background:${data.color}"></div></div>
+          <div class="activity-body">
+            <h5>${a.title}</h5>
+            <p>${a.desc}</p>
+            <div class="activity-time">${a.time}</div>
+          </div>
+        </div>
+      `).join('');
+    });
+  </script>
+  <script src="status-widget.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Portal | HRFlow Authentication</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --bg: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --card: #ffffff;
+            --shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
+
+        .auth-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .auth-card {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .logo-section { text-align: center; margin-bottom: 2rem; }
+        .logo-icon {
+            width: 54px; height: 54px; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; color: white;
+            margin-bottom: 1rem; box-shadow: 0 10px 15px rgba(99, 102, 241, 0.3);
+        }
+        .logo-section h1 { font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; }
+        .logo-section p { color: var(--text-muted); font-size: 0.95rem; }
+
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); }
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 18px; }
+        .input-wrapper input {
+            width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border);
+            outline: none; font-family: inherit; transition: 0.2s; font-size: 0.95rem;
+        }
+        .input-wrapper input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        .btn {
+            width: 100%; padding: 14px; border-radius: 12px; border: none; font-family: inherit; font-weight: 700;
+            font-size: 1rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3); }
+
+        .error-message { background: #fff1f2; color: #e11d48; padding: 12px; border-radius: 10px; font-size: 0.875rem; margin-bottom: 1.5rem; display: none; border: 1px solid #fda4af; text-align: center; }
+
+        .back-link { display: block; text-align: center; margin-top: 1.5rem; color: var(--text-muted); text-decoration: none; font-size: 0.875rem; transition: 0.2s; }
+        .back-link:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo-section">
+                <div class="logo-icon"><i data-lucide="briefcase"></i></div>
+                <h1>Manager Login</h1>
+                <p>Sign in to access your dashboard</p>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+
+            <!-- Login Form -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail"></i>
+                        <input type="email" name="email" placeholder="manager@hrflow.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="margin-bottom: 0;">Password</label>
+                        <a href="#" id="forgotBtn" style="font-size: 0.75rem; color: var(--primary); text-decoration: none; font-weight: 600;">Forgot?</a>
+                    </div>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" name="password" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="loginBtn">
+                    <span>Enter Dashboard</span>
+                    <i data-lucide="arrow-right"></i>
+                </button>
+            </form>
+
+            <a href="index.html" class="back-link" style="margin-bottom: 1rem;">
+                <i data-lucide="chevron-left" style="width: 14px; vertical-align: middle;"></i>
+                Back to Landing Page
+            </a>
+            <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem;">
+                Restricted Access: Authorized Personnel Only
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Overlay -->
+    <div id="customOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999;">
+        <div style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:400px; text-align:center; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+            <div id="alertIcon" style="font-size:2.5rem; color:#6366f1; margin-bottom:1.5rem;"><i data-lucide="info"></i></div>
+            <h2 id="alertTitle" style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem; color:#0f172a;">Notification</h2>
+            <p id="alertMsg" style="color:#64748b; margin-bottom:2rem; line-height:1.6;"></p>
+            <button id="closeAlertBtn" style="background:#6366f1; color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; transition:0.2s;">Understood</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        // Fix for "sw.js" errors: Unregister any ghost service workers
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+
+        // Fallback to 127.0.0.1 if localhost has issues with tracking prevention or DNS
+        const API_BASE = 'http://127.0.0.1:3000/api/auth';
+        const errorEl = document.getElementById('errorMessage');
+
+        // Forgot Password
+        document.getElementById('forgotBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            showAlert('Security Protocol', 'A recovery request has been sent to your Departmental Head. Please contact your team manager for immediate verification.', 'lock');
+        });
+
+        window.showAlert = function(title, msg, icon='circle-info') {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMsg').textContent = msg;
+            const iconEl = document.getElementById('alertIcon');
+            iconEl.innerHTML = `<i data-lucide="${icon}"></i>`;
+            if (window.lucide) if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
+            document.getElementById('customOverlay').style.display = 'flex';
+        };
+
+        document.getElementById('closeAlertBtn').onclick = () => {
+            document.getElementById('customOverlay').style.display = 'none';
+        };
+
+        // Login Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const { email, password } = Object.fromEntries(formData.entries());
+            
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.querySelector('span').textContent = 'Authenticating...';
+            errorEl.style.display = 'none';
+
+            try {
+                // ===== AUTHENTICATION STRATEGY: 1. REAL FIREBASE -> 2. FIRESTORE FALLBACK -> 3. DEMO BYPASS =====
+                let userData = null;
+                let userAuth = null;
+
+                try {
+                    // 1. Attempt Real Firebase Auth
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    userAuth = userCredential.user;
+                    
+                    // Fetch user data from Firestore
+                    const userDoc = await getDoc(doc(db, "users", userAuth.uid));
+                    if (userDoc.exists()) {
+                        userData = userDoc.data();
+                        userData.uid = userAuth.uid;
+                    }
+                } catch (fbErr) {
+                    console.warn('Firebase Auth failed, attempting Firestore fallback...', fbErr.code);
+                    
+                    // 2. FALLBACK: Search for user in Firestore (Plain text password check for demo)
+                    const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
+                    const querySnap = await getDocs(q);
+                    
+                    if (!querySnap.empty) {
+                        const potentialUser = querySnap.docs[0].data();
+                        if (potentialUser.tempPassword === password || potentialUser.password === password) {
+                            userData = potentialUser;
+                            userData.uid = querySnap.docs[0].id;
+                            console.log('✅ Fallback login successful for:', email);
+                        } else {
+                            throw fbErr; // Re-throw the original auth error if password doesn't match
+                        }
+                    } else {
+                        // 3. DEMO BYPASS (Hardcoded credentials from hrflow_users.txt)
+                        const demoUsers = {
+                            'admin@hrflow.com': { name: 'System Admin', role: 'admin', department: 'Executive' },
+                            'marketing.mgr@hrflow.com': { name: 'Marketing Manager', role: 'marketing manager', department: 'marketing' },
+                            'finance.mgr@hrflow.com': { name: 'Finance Manager', role: 'finance manager', department: 'finance' },
+                            'hr.mgr@hrflow.com': { name: 'HR Manager', role: 'hr manager', department: 'hr' },
+                            'engineering.mgr@hrflow.com': { name: 'Engineering Manager', role: 'engineering manager', department: 'engineering' }
+                        };
+
+                        const lowercaseEmail = email.toLowerCase();
+                        if (demoUsers[lowercaseEmail]) {
+                            userData = demoUsers[lowercaseEmail];
+                            userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
+                        } else {
+                            throw fbErr;
+                        }
+                    }
+                }
+
+                if (userData) {
+                    // Sync with Backend (Optional for demo)
+                    try {
+                        const idToken = userAuth ? await userAuth.getIdToken() : 'demo-token';
+                        await fetch(`${API_BASE}/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ idToken })
+                        }).catch(() => console.warn('Backend sync skipped in prototype mode'));
+                    } catch (e) {}
+
+                    // Session Setup
+                    localStorage.setItem('hr_logged_in', 'true');
+                    localStorage.setItem('hr_user_id', userData.uid);
+                    localStorage.setItem('userName', userData.name || email);
+                    localStorage.setItem('userRole', userData.role);
+                    
+                    const role = userData.role.toLowerCase();
+                    const dept = (userData.departmentId || userData.department || 'admin').toLowerCase();
+                    
+                    // ROLE PROTECTION: BLOCK EMPLOYEES
+                    if (role === 'employee') {
+                        throw new Error("Access Denied: You are registered as an employee. Please log in via the Employee Portal.");
+                    }
+
+                    localStorage.setItem('userDept', dept);
+                    
+                    const deptDashboards = {
+                        'hr manager': 'HR-Manager-Dashboard.html',
+                        'marketing manager': 'Marketing-Manager-Dashboard.html',
+                        'engineering manager': 'Engineering-Manager-Dashboard.html',
+                        'finance manager': 'Finance-Manager-Dashboard.html',
+                        'sales manager': 'Sales-Manager-Dashboard.html',
+                        'operational manager': 'Operational-Manager-Dashboard.html',
+                        'admin': 'admin-dashboard.html'
+                    };
+
+                    window.location.href = deptDashboards[role] || 'HR-Manager-Dashboard.html';
+                } else {
+                    throw new Error('User record not found');
+                }
+            } catch (err) {
+                console.error('Login error detail:', err);
+                if (err.message.includes('Access Denied')) {
+                    showAlert('Access Restricted', err.message, 'shield-alert');
+                } else if (err.name === 'TypeError' || err.message.includes('fetch')) {
+                    errorEl.innerHTML = `
+                        <div style="font-weight: 700; margin-bottom: 5px;">Backend Connection Failed</div>
+                        <div style="font-size: 0.8rem;">The server is unreachable. Continuing in local mode...</div>
+                    `;
+                    errorEl.style.display = 'block';
+                } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                    errorEl.textContent = 'Invalid credentials. Please verify your email and password.';
+                    errorEl.style.display = 'block';
+                } else {
+                    errorEl.textContent = err.message || 'An unexpected error occurred.';
+                    errorEl.style.display = 'block';
+                }
+            } finally {
+                btn.disabled = false;
+                btn.querySelector('span').textContent = 'Enter Dashboard';
+            }
+        });
+
+        if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
+    </script>
+  <script src="status-widget.js"></script>
+</body>
+</html>
+

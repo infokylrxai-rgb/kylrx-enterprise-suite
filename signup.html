@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Registration | HRFlow</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==">
+  <link rel="stylesheet" href="login.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <style>
+    body { font-family: 'Outfit', sans-serif; }
+    .badge-admin {
+      background: #fef2f2;
+      color: #991b1b;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: inline-block;
+      margin-bottom: 1rem;
+      border: 1px solid #fecaca;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <a href="index.html" class="logo">
+          <div class="logo-icon" style="background: linear-gradient(135deg, #ef4444, #991b1b);"><i class="fa-solid fa-shield-halved"></i></div>
+          <span class="logo-text">HRFlow</span>
+        </a>
+        <div class="badge-admin">RESTRICTED: ADMIN REGISTRATION</div>
+        <h1>Create Admin Account</h1>
+        <p>Establish high-level management credentials</p>
+      </div>
+
+      <form id="signupForm">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-user"></i>
+            <input type="text" id="name" placeholder="System Administrator" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div class="input-wrapper">
+            <i class="fa-regular fa-envelope"></i>
+            <input type="email" id="email" placeholder="admin@hrflow.com" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Security Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="password" placeholder="••••••••" required>
+          </div>
+        </div>
+
+        <div id="errorMessage" class="error-msg">Registration failed. Contact support.</div>
+
+        <button type="submit" class="login-btn" id="signupBtn" style="background: #ef4444;">
+          <span>Register Admin Portal</span>
+          <i class="fa-solid fa-shield-check"></i>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p>Already have an account? <a href="login.html">Login here</a></p>
+      </div>
+    </div>
+    
+    <div class="bg-shape shape-1" style="background: rgba(239, 68, 68, 0.1);"></div>
+    <div class="bg-shape shape-2" style="background: rgba(153, 27, 27, 0.1);"></div>
+  </div>
+
+  <!-- Custom Alert Overlay -->
+  <div id="customOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999;">
+    <div style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:400px; text-align:center; border:1px solid #fee2e2; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+      <div id="alertIcon" style="font-size:2.5rem; color:#ef4444; margin-bottom:1.5rem;"><i class="fa-solid fa-circle-info"></i></div>
+      <h2 id="alertTitle" style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem;">Notification</h2>
+      <p id="alertMsg" style="color:#64748b; margin-bottom:2rem; line-height:1.6;"></p>
+      <button id="closeAlertBtn" style="background:#ef4444; color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer;">Understood</button>
+    </div>
+  </div>
+
+  <script>
+    function showAlert(title, msg, icon='circle-info') {
+      document.getElementById('alertTitle').textContent = title;
+      document.getElementById('alertMsg').textContent = msg;
+      document.getElementById('alertIcon').innerHTML = `<i class="fa-solid fa-${icon}"></i>`;
+      document.getElementById('customOverlay').style.display = 'flex';
+    }
+
+    function closeAlert() {
+      document.getElementById('customOverlay').style.display = 'none';
+    }
+    
+    document.getElementById('closeAlertBtn').onclick = closeAlert;
+  </script>
+
+  <script type="module" src="signup.js"></script>
+  <script src="status-widget.js"></script>
+</body>
+</html>
+
