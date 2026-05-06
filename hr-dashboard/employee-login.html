@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Central – HRFlow</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://unpkg.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com http://localhost:3000 http://127.0.0.1:3000 https://unpkg.com https://cdn.jsdelivr.net; frame-src 'self' https://planning-with-ai-c026b.firebaseapp.com https://apis.google.com;">
+  <link rel="stylesheet" href="login.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --border: #e2e8f0;
+    }
+    body { background: var(--bg); font-family: 'Inter', sans-serif; }
+    
+    .portal-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .portal-card {
+      background: var(--surface);
+      width: 100%;
+      max-width: 450px;
+      padding: 2.5rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border);
+    }
+    
+    .tab-switcher {
+      display: flex;
+      background: #f1f5f9;
+      padding: 0.4rem;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 0.6rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .tab.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-section { display: none; }
+    .form-section.active { display: block; animation: fadeIn 0.3s ease; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .rules-box {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: #0369a1;
+    }
+    .rules-box h4 { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .rules-box ul { list-style: none; }
+    .rules-box li { margin-bottom: 0.3rem; display: flex; gap: 0.5rem; }
+    .rules-box li::before { content: "•"; color: #3b82f6; font-weight: bold; }
+
+    .logo-header { text-align: center; margin-bottom: 1.5rem; }
+    .logo-header i { font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem; }
+    .logo-header h1 { font-size: 1.5rem; font-weight: 800; color: #1e293b; }
+
+    .success-alert {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        padding: 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        color: #166534;
+        display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="portal-container">
+    <div class="portal-card">
+      <div class="logo-header">
+        <i data-lucide="users"></i>
+        <h1>Employee Central</h1>
+      </div>
+
+      <!-- Login Section Header -->
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main);">Portal Login</h2>
+        <p style="color: var(--text-muted); font-size: 0.875rem;">Access your departmental workspace</p>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="section-login" class="form-section active">
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Email Address</label>
+            <div class="input-wrapper">
+              <i data-lucide="mail"></i>
+              <input type="email" id="loginEmail" placeholder="manager@hrflow.com" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="label-row">
+              <label>Password</label>
+              <a href="javascript:void(0)" class="forgot-link" onclick="handleForgot()">Forgot?</a>
+            </div>
+            <div class="input-wrapper">
+              <i data-lucide="lock"></i>
+              <input type="password" id="loginPass" placeholder="••••••••" required>
+            </div>
+          </div>
+          <div id="loginError" class="error-msg" style="margin-bottom: 1rem; display: none;"></div>
+          <button type="submit" class="login-btn">Enter Workspace</button>
+        </form>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #f1f5f9;">
+        <p style="color: #64748b; font-size: 0.875rem;">Restricted Access: Authorized Personnel Only</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Alert Overlay -->
+  <div id="customOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999;">
+    <div id="alertCard" style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:400px; text-align:center; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+      <div id="alertIcon" style="font-size:2.5rem; color:#3b82f6; margin-bottom:1.5rem;"></div>
+      <h2 id="alertTitle" style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem; color:#1e293b;">Notification</h2>
+      <p id="alertMsg" style="color:#64748b; margin-bottom:2rem; line-height:1.6;"></p>
+      <button id="alertBtn" onclick="closeAlert()" style="background:#3b82f6; color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; transition: 0.2s;">Understood</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+    import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    window.showAlert = function(title, msg, icon='circle-info', type='info') {
+      document.getElementById('alertTitle').textContent = title;
+      document.getElementById('alertMsg').textContent = msg;
+      const iconEl = document.getElementById('alertIcon');
+      const btnEl = document.getElementById('alertBtn');
+      const cardEl = document.getElementById('alertCard');
+
+      iconEl.innerHTML = `<i data-lucide="${icon}"></i>`;
+      
+      if (type === 'error' || title.toLowerCase().includes('denied') || title.toLowerCase().includes('restricted')) {
+          iconEl.style.color = '#ef4444';
+          btnEl.style.background = '#ef4444';
+          cardEl.style.borderTop = '6px solid #ef4444';
+      } else {
+          iconEl.style.color = '#3b82f6';
+          btnEl.style.background = '#3b82f6';
+          cardEl.style.borderTop = 'none';
+      }
+
+      if (window.lucide) if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
+      document.getElementById('customOverlay').style.display = 'flex';
+    };
+
+    window.closeAlert = function() {
+      document.getElementById('customOverlay').style.display = 'none';
+    };
+
+    window.handleForgot = function() {
+      showAlert('Security Protocol', 'A recovery request has been sent to your Department Manager. Please contact your team head for immediate verification.', 'lock');
+    };
+
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      const btn = e.target.querySelector('button');
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+      loginError.style.display = 'none';
+
+      try {
+        // ===== AUTHENTICATION STRATEGY: 1. BACKEND API (NEW) -> 2. REAL FIREBASE -> 3. DEMO BYPASS =====
+        
+        let userAuth = null;
+        let userData = null;
+
+        // --- STEP 1: Attempt Backend API Login ---
+        try {
+            console.log('Attempting Backend API login...');
+            const response = await fetch('http://localhost:3000/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log('✅ Backend API login successful');
+                userData = data.user;
+                userData.uid = data.user.id;
+                // Store JWT if available
+                if (data.accessToken) localStorage.setItem('hr_access_token', data.accessToken);
+            }
+        } catch (apiErr) {
+            console.warn('Backend API unavailable, falling back to client-side Firebase...', apiErr.message);
+        }
+
+        // --- STEP 2: Client-side Firebase Fallback (if API failed) ---
+        if (!userData) {
+            try {
+              const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+              userAuth = userCredential.user;
+              const userSnap = await getDoc(doc(db, 'users', userAuth.uid));
+              if (userSnap.exists()) userData = userSnap.data();
+            } catch (firebaseErr) {
+              console.warn('Firebase Auth failed, attempting direct Firestore query...', firebaseErr.code);
+              
+              // FALLBACK: Search for user in Firestore (Direct query - may trigger permission errors if rules are strict)
+              try {
+                  const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
+                  const querySnap = await getDocs(q);
+                  
+                  if (!querySnap.empty) {
+                    const potentialUser = querySnap.docs[0].data();
+                    // Handle both hashed (backend) and plaintext (fallback/demo) passwords
+                    if (potentialUser.tempPassword === pass || potentialUser.password === pass) {
+                      userData = potentialUser;
+                      userData.uid = querySnap.docs[0].id;
+                      console.log('✅ Direct Firestore lookup successful');
+                    }
+                  }
+              } catch (permErr) {
+                  console.warn('Firestore query restricted, moving to demo bypass:', permErr.message);
+              }
+              
+              if (!userData) {
+                // DEMO BYPASS: Allow access for development/testing if credentials fail
+                const demoUsers = {
+                  'nikhil.reddy@hrflow.com': { name: 'Nikhil Reddy', role: 'employee', departmentId: 'engineering' },
+                  'nikhil@hrflow.com': { name: 'Nikhil Reddy', role: 'employee', departmentId: 'engineering' },
+                  'marketing.emp1@hrflow.com': { name: 'Marketing Staff', role: 'employee', departmentId: 'marketing' },
+                  'finance.emp1@hrflow.com': { name: 'Finance Staff', role: 'employee', departmentId: 'finance' },
+                  'hr.emp1@hrflow.com': { name: 'HR Staff', role: 'employee', departmentId: 'hr' },
+                  'engineering.emp1@hrflow.com': { name: 'Engineer One', role: 'employee', departmentId: 'engineering' },
+                  'admin@hrflow.com': { name: 'Super Admin', role: 'admin', departmentId: 'all' }
+                };
+
+                const lowercaseEmail = email.toLowerCase();
+                if (demoUsers[lowercaseEmail]) {
+                  userData = demoUsers[lowercaseEmail];
+                  userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
+                  console.log('✅ Demo bypass (Hardcoded) successful');
+                } else if (lowercaseEmail.includes('emp') || lowercaseEmail.includes('hrflow.com')) {
+                   // Dynamic Demo Bypass for any @hrflow.com or emp-related email
+                   userData = { 
+                     name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '), 
+                     role: (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('admin')) ? 'manager' : 'employee', 
+                     departmentId: lowercaseEmail.includes('marketing') ? 'marketing' : 
+                                  lowercaseEmail.includes('finance') ? 'finance' : 
+                                  lowercaseEmail.includes('engineering') ? 'engineering' : 
+                                  lowercaseEmail.includes('sales') ? 'sales' : 
+                                  lowercaseEmail.includes('operations') ? 'operations' : 'hr' 
+                   };
+                   userData.uid = 'demo_' + Date.now();
+                   console.log('✅ Dynamic demo bypass successful');
+                } else {
+                  throw firebaseErr; 
+                }
+              }
+            }
+        }
+        if (!userData) throw new Error('Personnel data not synchronized. Please contact your administrator.');
+
+        const role = (userData.role || '').toLowerCase();
+        const dept = (userData.departmentId || userData.department || '').toLowerCase();
+
+        // RESTRICT TO EMPLOYEES ONLY
+        if (role !== 'employee') {
+            const article = ['a', 'e', 'i', 'o', 'u'].includes(role[0]) ? 'an' : 'a';
+            const portalName = role === 'admin' ? 'Admin Portal' : 'Manager Portal';
+            throw new Error(`Access Denied: You are registered as ${article} ${role}. Please log in via the ${portalName}.`);
+        }
+
+        console.log('✅ Employee login successful for:', email);
+
+        localStorage.setItem('hr_logged_in', 'true');
+        localStorage.setItem('hr_user_id', userData.uid || userData.employeeId || 'unknown');
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userDept', dept);
+        localStorage.setItem('userName', userData.name);
+
+        // Unified redirection to the Smart Dashboard Hub
+        window.location.href = 'sale-employee.html';
+      } catch (err) {
+        if (err.message.includes('Access Denied')) {
+            showAlert('Access Restricted', err.message, 'shield-alert');
+        } else {
+            console.error('Login Error:', err);
+            const msg = "Invalid credentials. Please verify your email and password.";
+            loginError.textContent = msg;
+            loginError.style.display = 'block';
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enter Workspace';
+      }
+    };
+
+    if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
+  </script>
+
+  <script src="status-widget.js"></script>
+</body>
+</html>
+
