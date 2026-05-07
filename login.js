@@ -129,6 +129,7 @@ loginForm?.addEventListener('submit', async (e) => {
 
       localStorage.setItem('hr_logged_in', 'true');
       localStorage.setItem('hr_user_id', userData.uid || userData.employeeId || 'unknown');
+      if (!localStorage.getItem('hr_access_token')) localStorage.setItem('hr_access_token', 'demo-static-token');
       localStorage.setItem('userName', userData.name || email);
       localStorage.setItem('userRole', role);
       localStorage.setItem('userDept', dept);

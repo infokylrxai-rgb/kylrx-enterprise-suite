@@ -18,6 +18,8 @@ const dataRoutes = require("./routes/data");
 const notificationRoutes = require("./routes/notifications");
 const adminRoutes = require("./routes/admin");
 const employeeRoutes = require("./routes/employeeRoutes");
+const messageRoutes = require("./routes/messages");
+const aiRoutes = require("./routes/ai");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -81,6 +83,8 @@ app.use("/api/data", dataRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Unhandled Route Fallback
 app.use((req, res, next) => {

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notifications | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+        const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+        if (!isLoggedIn || userRole !== 'admin') window.location.href = 'index.html';
+    </script>
+    <style>
+        :root {
+            --primary: #6366f1; --primary-dark: #4f46e5; --bg: #f8fafc; --sidebar: #ffffff;
+            --card: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+            --radius: 16px; --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text-main); }
+        .dashboard-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: fixed; height: 100vh; }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; }
+        .nav-menu { flex: 1; list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-muted); border-radius: 12px; font-weight: 500; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.08); color: var(--primary); }
+        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
+        .header { margin-bottom: 2.5rem; }
+        .header h1 { font-size: 2rem; font-weight: 700; }
+        .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
+        .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif-content { flex: 1; }
+        .notif-title { font-weight: 600; margin-bottom: 4px; }
+        .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+        .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="layout-dashboard"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor-play"></i><span>TVC Monitor</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link active"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="header">
+                <h1>System Notifications</h1>
+                <p style="color: var(--text-muted);">Manage and view all administrative alerts</p>
+            </header>
+            <div class="card">
+                <div class="notif-item">
+                    <div class="notif-icon"><i data-lucide="info"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">System Update Successful</div>
+                        <div class="notif-desc">The HRFlow enterprise core has been updated to version 3.0.1. All systems are stable.</div>
+                        <div class="notif-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i data-lucide="user-plus"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">New Manager Registered</div>
+                        <div class="notif-desc">Sarah Wilson has been registered as the new Marketing Manager.</div>
+                        <div class="notif-time">5 hours ago</div>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">Critical: System Lock Active</div>
+                        <div class="notif-desc">The global system lock was enabled for maintenance by an administrator.</div>
+                        <div class="notif-time">1 day ago</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

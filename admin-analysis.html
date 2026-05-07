@@ -159,6 +159,18 @@
                         <span>TVC Monitor</span>
                     </a>
                 </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Messages</span>
+                    </a>
+                </div>
             </nav>
 
             <div class="sidebar-bottom">
@@ -285,28 +297,69 @@
                     window.location.href = 'login.html';
                 });
 
-                // Fetch real data from Firestore
-                const [empSnap, deptSnap] = await Promise.all([
-                    getDocs(collection(db, 'users')),
-                    getDocs(collection(db, 'departments'))
-                ]);
+                const API_BASE = 'http://localhost:3000/api';
+                const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('hr_access_token');
+                
+                let data;
+                try {
+                    const response = await fetch(`${API_BASE}/admin/analytics`, {
+                        headers: {
+                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        }
+                    });
+                    
+                    if (!response.ok) throw new Error('Backend unreachable');
+                    const result = await response.json();
+                    data = result.data;
+                    console.log('✅ Analytics fetched from Backend API');
+                } catch (apiErr) {
+                    console.warn('Backend API failed, falling back to direct Firestore fetch:', apiErr.message);
+                    // FALLBACK: Direct Firestore fetch (same as before)
+                    const [empSnap, deptSnap] = await Promise.all([
+                        getDocs(collection(db, 'users')),
+                        getDocs(collection(db, 'departments'))
+                    ]);
 
-                const employees = empSnap.docs.map(doc => doc.data()).filter(u => u.role !== 'admin');
-                const departments = deptSnap.docs.map(doc => doc.data());
+                    const employees = empSnap.docs.map(doc => doc.data()).filter(u => u.role !== 'admin');
+                    const departments = deptSnap.docs.map(doc => doc.data());
+                    
+                    // Manual Calculation for Fallback
+                    const deptCounts = {};
+                    const deptSalaries = {};
+                    departments.forEach(d => {
+                        const empsInDept = employees.filter(e => e.departmentId === d.departmentId);
+                        deptCounts[d.departmentName] = empsInDept.length;
+                        deptSalaries[d.departmentName] = empsInDept.length > 0 ? empsInDept.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) / empsInDept.length : 0;
+                    });
 
-                // Update Stats
-                document.getElementById('stat-total').textContent = employees.length;
-                const avgSalary = employees.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) / (employees.length || 1);
-                document.getElementById('stat-salary').textContent = '₹' + avgSalary.toLocaleString(undefined, {maximumFractionDigits: 0});
+                    data = {
+                        stats: {
+                            totalWorkforce: employees.length,
+                            avgSalary: employees.length > 0 ? employees.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) / employees.length : 0,
+                            growthRate: "+12.5%",
+                            retentionRate: "94.2%"
+                        },
+                        charts: {
+                            departmentDistribution: deptCounts,
+                            salaryByDepartment: deptSalaries,
+                            performance: [85, 90, 78, 82, 75, 88],
+                            hiringSources: [12, 19, 7, 5, 3]
+                        }
+                    };
+                }
 
-                // 1. Employee Growth
+                // Update Stats UI
+                document.getElementById('stat-total').textContent = data.stats.totalWorkforce;
+                document.getElementById('stat-salary').textContent = '₹' + Math.round(data.stats.avgSalary).toLocaleString();
+
+                // 1. Employee Growth (Trend)
                 new Chart(document.getElementById('growthChart'), {
                     type: 'line',
                     data: {
                         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                         datasets: [{
                             label: 'Workforce Size',
-                            data: [42, 48, 55, 61, 68, employees.length + 65],
+                            data: [42, 48, 55, 61, 68, data.stats.totalWorkforce + 65],
                             borderColor: '#6366f1',
                             backgroundColor: 'rgba(99, 102, 241, 0.1)',
                             fill: true,
@@ -317,18 +370,12 @@
                 });
 
                 // 2. Department Distribution
-                const deptCounts = {};
-                departments.forEach(d => {
-                    const count = employees.filter(e => e.departmentId === d.departmentId).length;
-                    deptCounts[d.departmentName] = count;
-                });
-
                 new Chart(document.getElementById('deptChart'), {
                     type: 'doughnut',
                     data: {
-                        labels: Object.keys(deptCounts),
+                        labels: Object.keys(data.charts.departmentDistribution),
                         datasets: [{
-                            data: Object.values(deptCounts),
+                            data: Object.values(data.charts.departmentDistribution),
                             backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
                             borderWidth: 0
                         }]
@@ -337,20 +384,13 @@
                 });
 
                 // 3. Salary Insights
-                const deptSalaries = {};
-                departments.forEach(d => {
-                    const empsInDept = employees.filter(e => e.departmentId === d.departmentId);
-                    const avg = empsInDept.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) / (empsInDept.length || 1);
-                    deptSalaries[d.departmentName] = avg;
-                });
-
                 new Chart(document.getElementById('salaryChart'), {
                     type: 'bar',
                     data: {
-                        labels: Object.keys(deptSalaries),
+                        labels: Object.keys(data.charts.salaryByDepartment),
                         datasets: [{
                             label: 'Average Annual Salary (₹)',
-                            data: Object.values(deptSalaries),
+                            data: Object.values(data.charts.salaryByDepartment),
                             backgroundColor: 'rgba(245, 158, 11, 0.8)',
                             borderRadius: 8
                         }]
@@ -365,7 +405,7 @@
                         labels: ['Efficiency', 'Reliability', 'Technical', 'Soft Skills', 'Leadership', 'Teamwork'],
                         datasets: [{
                             label: 'Company Average',
-                            data: [85, 90, 78, 82, 75, 88],
+                            data: data.charts.performance,
                             borderColor: '#ef4444',
                             backgroundColor: 'rgba(239, 68, 68, 0.2)'
                         }]
@@ -380,7 +420,7 @@
                         labels: ['Referral', 'LinkedIn', 'Indeed', 'Internal', 'Others'],
                         datasets: [{
                             label: 'Hires',
-                            data: [12, 19, 7, 5, 3],
+                            data: data.charts.hiringSources,
                             backgroundColor: '#10b981',
                             borderRadius: 4
                         }]
@@ -388,7 +428,7 @@
                     options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
                 });
 
-                if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
+                if (window.lucide) { lucide.createIcons(); }
             } catch (err) {
                 console.error('Analytics Error:', err);
             }

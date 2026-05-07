@@ -537,13 +537,127 @@
           <h1>Messages</h1>
           <p>Direct communication with your team and employees.</p>
         </div>
-        <div class="card" style="min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
-          <div>
-            <i data-lucide="message-square" size="48" style="color: var(--primary); margin-bottom: 1rem; opacity: 0.5;"></i>
-            <h3>No Messages</h3>
-            <p style="color: var(--text-muted);">Your chat history will appear here.</p>
+        
+        <style>
+            .chat-container { height: 600px; display: grid; grid-template-columns: 280px 1fr; background: #fff; border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; }
+            .contacts-list { border-right: 1px solid var(--border-color); background: #f8fafc; overflow-y: auto; }
+            .contact-item { padding: 1rem; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; display: flex; gap: 10px; align-items: center; }
+            .contact-item:hover { background: #f1f5f9; }
+            .contact-item.active { background: #e0f2fe; border-left: 4px solid var(--primary); }
+            .contact-avatar { width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; }
+            .chat-window { display: flex; flex-direction: column; }
+            .chat-messages { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+            .msg { max-width: 75%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; }
+            .msg.sent { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 2px; }
+            .msg.received { align-self: flex-start; background: #f1f5f9; border-bottom-left-radius: 2px; }
+            .chat-input-area { padding: 1.25rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.75rem; position: relative; }
+            .chat-input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); outline: none; font-size: 0.9rem; }
+            .ai-magic-btn { background: #fef2f2; color: #e11d48; border: 1px solid #fecaca; padding: 0 12px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+            .ai-magic-btn:hover { background: #ffe4e6; transform: scale(1.05); }
+            .mentions-box { position: absolute; bottom: 100%; left: 1.25rem; width: 220px; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 100; margin-bottom: 8px; }
+            .mentions-box.active { display: flex; }
+            .mention-opt { padding: 8px 12px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+            .mention-opt:hover { background: #f1f5f9; }
+        </style>
+
+        <div class="chat-container">
+          <div class="contacts-list">
+            <div class="contact-item active">
+                <div class="contact-avatar">AD</div>
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:0.9rem;">Admin Support</div>
+                    <div style="font-size:0.75rem; color:var(--text-2);">Connected</div>
+                </div>
+            </div>
+            <div class="contact-item">
+                <div class="contact-avatar" style="background:#10b981;">JD</div>
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:0.9rem;">John Doe</div>
+                    <div style="font-size:0.75rem; color:var(--text-2);">Last seen 5m ago</div>
+                </div>
+            </div>
+          </div>
+          <div class="chat-window">
+            <div class="chat-messages" id="mgrChatBox">
+                <div class="msg received">Hello Alex, how is the hiring progress for the Engineering department?</div>
+                <div class="msg sent">Hi Admin, we've shortlisted 5 candidates and interviews are scheduled for next week.</div>
+            </div>
+            <div class="chat-input-area">
+                <div class="mentions-box" id="mgrMentions">
+                    <div class="mention-opt" onclick="insertMgrMention('Admin')"><b>@Admin</b> (Support)</div>
+                    <div class="mention-opt" onclick="insertMgrMention('John Doe')"><b>@John Doe</b> (Engineer)</div>
+                    <div class="mention-opt" onclick="insertMgrMention('Sarah Adams')"><b>@Sarah Adams</b> (HR)</div>
+                </div>
+                <input type="text" class="chat-input" id="mgrMsgInput" placeholder="Type @ to mention...">
+                <button class="ai-magic-btn" onclick="applyMgrAICorrection()">
+                    <i data-lucide="sparkles" size="14"></i> AI Fix
+                </button>
+                <button class="btn-primary" style="padding:0 1.5rem; border-radius:10px;" onclick="sendMgrMessage()">Send</button>
+            </div>
           </div>
         </div>
+
+        <script>
+            function applyMgrAICorrection() {
+                const input = document.getElementById('mgrMsgInput');
+                const text = input.value;
+                if (!text) return;
+
+                const corrections = {
+                    "can u": "could you",
+                    "i am": "I am",
+                    "thx": "thank you",
+                    "pls": "please",
+                    "hire process": "hiring process",
+                    "done": "finalized"
+                };
+
+                let corrected = text;
+                Object.keys(corrections).forEach(key => {
+                    const re = new RegExp(key, 'gi');
+                    corrected = corrected.replace(re, corrections[key]);
+                });
+
+                if (corrected === text && text.length > 2) {
+                    corrected = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
+                }
+
+                input.value = corrected;
+                input.style.borderColor = "#e11d48";
+                setTimeout(() => input.style.borderColor = "var(--border-color)", 800);
+            }
+
+            const mgrInput = document.getElementById('mgrMsgInput');
+            const mgrMentions = document.getElementById('mgrMentions');
+
+            mgrInput.addEventListener('input', (e) => {
+                if (e.target.value.endsWith('@')) {
+                    mgrMentions.classList.add('active');
+                } else if (!e.target.value.includes('@') || e.target.value.endsWith(' ')) {
+                    mgrMentions.classList.remove('active');
+                }
+            });
+
+            window.insertMgrMention = (name) => {
+                const val = mgrInput.value;
+                mgrInput.value = val.slice(0, val.lastIndexOf('@')) + '@' + name + ' ';
+                mgrMentions.classList.remove('active');
+                mgrInput.focus();
+            };
+
+            window.sendMgrMessage = () => {
+                const box = document.getElementById('mgrChatBox');
+                const text = mgrInput.value.trim();
+                if (!text) return;
+
+                const div = document.createElement('div');
+                div.className = 'msg sent';
+                div.innerHTML = text.replace(/@(\w+)/g, '<b style="color:#e0f2fe;">@$1</b>');
+                box.appendChild(div);
+                mgrInput.value = '';
+                box.scrollTop = box.scrollHeight;
+            };
+        </script>
       </div>
 
       <!-- ===== NOTIFICATIONS PAGE ===== -->

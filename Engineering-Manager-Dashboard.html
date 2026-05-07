@@ -578,13 +578,127 @@
           <h1>Team Messages</h1>
           <p>Direct communication with your engineering team.</p>
         </div>
-        <div class="card" style="min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
-          <div>
-            <i data-lucide="message-square" size="48" style="color: var(--tech-blue); margin-bottom: 1rem; opacity: 0.5;"></i>
-            <h3>No Active Conversations</h3>
-            <p style="color: var(--text-muted);">Your messages will appear here once you start a chat.</p>
+        
+        <style>
+            .eng-chat-container { height: 550px; display: grid; grid-template-columns: 280px 1fr; background: #fff; border-radius: 16px; border: 1px solid var(--primary-soft); overflow: hidden; }
+            .eng-contacts { border-right: 1px solid var(--primary-soft); background: var(--primary-light); overflow-y: auto; }
+            .eng-contact { padding: 1rem; border-bottom: 1px solid var(--primary-soft); cursor: pointer; transition: 0.2s; display: flex; gap: 10px; align-items: center; }
+            .eng-contact:hover { background: var(--primary-soft); }
+            .eng-contact.active { background: #e0f2fe; border-left: 4px solid var(--tech-blue); }
+            .eng-avatar { width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; }
+            .eng-chat-win { display: flex; flex-direction: column; }
+            .eng-msgs { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+            .eng-msg { max-width: 75%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; }
+            .eng-msg.sent { align-self: flex-end; background: var(--tech-blue); color: #fff; border-bottom-right-radius: 2px; }
+            .eng-msg.received { align-self: flex-start; background: #f1f5f9; border-bottom-left-radius: 2px; }
+            .eng-input-area { padding: 1.25rem; border-top: 1px solid var(--primary-soft); display: flex; gap: 0.75rem; position: relative; }
+            .eng-input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--primary-soft); outline: none; font-size: 0.9rem; }
+            .ai-eng-btn { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 0 12px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+            .ai-eng-btn:hover { background: #dcfce7; transform: scale(1.05); }
+            .eng-mentions { position: absolute; bottom: 100%; left: 1.25rem; width: 220px; background: #fff; border: 1px solid var(--primary-soft); border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 100; margin-bottom: 8px; }
+            .eng-mentions.active { display: flex; }
+            .eng-mention-opt { padding: 8px 12px; cursor: pointer; font-size: 0.85rem; }
+            .eng-mention-opt:hover { background: #f1f5f9; }
+        </style>
+
+        <div class="eng-chat-container">
+          <div class="eng-contacts">
+            <div class="eng-contact active">
+                <div class="eng-avatar">AD</div>
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:0.9rem;">Admin Office</div>
+                    <div style="font-size:0.75rem; color:var(--text-2);">Online</div>
+                </div>
+            </div>
+            <div class="eng-contact">
+                <div class="eng-avatar" style="background:var(--tech-blue);">LM</div>
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:0.9rem;">Leo Mars (Lead)</div>
+                    <div style="font-size:0.75rem; color:var(--text-2);">Connected</div>
+                </div>
+            </div>
+          </div>
+          <div class="eng-chat-win">
+            <div class="eng-msgs" id="engChatBox">
+                <div class="eng-msg received">Hello David, can we review the deployment logs for the production server?</div>
+                <div class="eng-msg sent">Hi Admin, I am currently checking the logs and will update you shortly.</div>
+            </div>
+            <div class="eng-input-area">
+                <div class="eng-mentions" id="engMentions">
+                    <div class="eng-mention-opt" onclick="insertEngMention('Admin')"><b>@Admin</b></div>
+                    <div class="eng-mention-opt" onclick="insertEngMention('Leo Mars')"><b>@Leo Mars</b></div>
+                    <div class="eng-mention-opt" onclick="insertEngMention('Jane Doe')"><b>@Jane Doe</b></div>
+                </div>
+                <input type="text" class="eng-input" id="engMsgInput" placeholder="Type @ to mention...">
+                <button class="ai-eng-btn" onclick="applyEngAICorrection()">
+                    <i data-lucide="sparkles" size="14"></i> AI Fix
+                </button>
+                <button class="btn-primary" style="padding:0 1.5rem; border-radius:10px;" onclick="sendEngMessage()">Send</button>
+            </div>
           </div>
         </div>
+
+        <script>
+            function applyEngAICorrection() {
+                const input = document.getElementById('engMsgInput');
+                const text = input.value;
+                if (!text) return;
+
+                const corrections = {
+                    "can u": "could you",
+                    "i m": "I am",
+                    "thx": "thank you",
+                    "pls": "please",
+                    "deploy done": "deployment has been finalized",
+                    "check it": "please review it"
+                };
+
+                let corrected = text;
+                Object.keys(corrections).forEach(key => {
+                    const re = new RegExp(key, 'gi');
+                    corrected = corrected.replace(re, corrections[key]);
+                });
+
+                if (corrected === text && text.length > 2) {
+                    corrected = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
+                }
+
+                input.value = corrected;
+                input.style.borderColor = "#16a34a";
+                setTimeout(() => input.style.borderColor = "var(--primary-soft)", 800);
+            }
+
+            const engInput = document.getElementById('engMsgInput');
+            const engMentions = document.getElementById('engMentions');
+
+            engInput.addEventListener('input', (e) => {
+                if (e.target.value.endsWith('@')) {
+                    engMentions.classList.add('active');
+                } else if (!e.target.value.includes('@') || e.target.value.endsWith(' ')) {
+                    engMentions.classList.remove('active');
+                }
+            });
+
+            window.insertEngMention = (name) => {
+                const val = engInput.value;
+                engInput.value = val.slice(0, val.lastIndexOf('@')) + '@' + name + ' ';
+                engMentions.classList.remove('active');
+                engInput.focus();
+            };
+
+            window.sendEngMessage = () => {
+                const box = document.getElementById('engChatBox');
+                const text = engInput.value.trim();
+                if (!text) return;
+
+                const div = document.createElement('div');
+                div.className = 'eng-msg sent';
+                div.innerHTML = text.replace(/@(\w+\s\w+|\w+)/g, '<b style="color:#e0f2fe;">@$1</b>');
+                box.appendChild(div);
+                engInput.value = '';
+                box.scrollTop = box.scrollHeight;
+            };
+        </script>
       </div>
 
       <!-- ===== NOTIFICATIONS PAGE ===== -->

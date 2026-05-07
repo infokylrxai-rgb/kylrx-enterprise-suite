@@ -16,8 +16,10 @@ router.get("/departments", adminController.getAllDepartments);
 router.post("/create-employee", validateEmployee, adminController.createEmployee);
 router.post("/create-manager", validateEmployee, adminController.createManager);
 router.get("/employees", adminController.getAllEmployees);
+router.get("/analytics", adminController.getAnalytics);
+router.post("/sync-database", adminController.syncDatabase);
 
-// RESTful Aliases
+// RESTFUL Aliases
 router.post("/departments", validateDepartment, adminController.createDepartment);
 router.post("/employees", validateEmployee, adminController.createEmployee);
 router.put("/employees/:id", adminController.updateEmployee);

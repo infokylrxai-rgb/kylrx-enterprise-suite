@@ -309,15 +309,130 @@
       <div class="page" id="page-messages">
         <div class="page-header">
           <h1>Messages</h1>
-          <p>Employee relations and team communication.</p>
+          <p>Direct communication with HR and team members.</p>
         </div>
-        <div class="card" style="min-height: 400px; display: flex; align-items: center; justify-content: center; text-align: center;">
-          <div>
-            <i data-lucide="message-square" size="48" style="color: var(--primary); margin-bottom: 1rem; opacity: 0.5;"></i>
-            <h3>No Chat Activity</h3>
-            <p style="color: var(--text-muted);">Start a conversation with colleagues or managers.</p>
+
+        <style>
+            .emp-chat-container { height: 500px; display: grid; grid-template-columns: 260px 1fr; background: #fff; border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; }
+            .emp-contacts { border-right: 1px solid var(--border-color); background: #f8fafc; overflow-y: auto; }
+            .emp-contact { padding: 1rem; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; gap: 10px; align-items: center; transition: 0.2s; }
+            .emp-contact:hover { background: #f1f5f9; }
+            .emp-contact.active { background: var(--primary-soft); border-left: 4px solid var(--primary); }
+            .emp-avatar { width: 32px; height: 32px; border-radius: 8px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; }
+            .emp-chat-win { display: flex; flex-direction: column; }
+            .emp-msgs { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+            .emp-msg { max-width: 80%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.85rem; line-height: 1.4; }
+            .emp-msg.sent { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 2px; }
+            .emp-msg.received { align-self: flex-start; background: #f1f5f9; border-bottom-left-radius: 2px; }
+            .emp-input-area { padding: 1rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.75rem; position: relative; }
+            .emp-input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color); outline: none; font-size: 0.85rem; }
+            .ai-emp-btn { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 0 12px; border-radius: 10px; cursor: pointer; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+            .ai-emp-btn:hover { background: #d1fae5; transform: scale(1.05); }
+            .emp-mentions { position: absolute; bottom: 100%; left: 1rem; width: 200px; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--shadow); display: none; flex-direction: column; z-index: 100; margin-bottom: 8px; }
+            .emp-mentions.active { display: flex; }
+            .emp-mention-opt { padding: 8px 12px; cursor: pointer; font-size: 0.8rem; border-bottom: 1px solid #f1f5f9; }
+            .emp-mention-opt:last-child { border-bottom: none; }
+            .emp-mention-opt:hover { background: #f1f5f9; }
+        </style>
+
+        <div class="emp-chat-container">
+          <div class="emp-contacts">
+            <div class="emp-contact active">
+                <div class="emp-avatar">AM</div>
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:0.85rem;">Alex Morgan (Mgr)</div>
+                    <div style="font-size:0.7rem; color:var(--text-muted);">Online</div>
+                </div>
+            </div>
+            <div class="emp-contact">
+                <div class="emp-avatar" style="background:#8b5cf6;">HR</div>
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:0.85rem;">HR Support</div>
+                    <div style="font-size:0.7rem; color:var(--text-muted);">Available</div>
+                </div>
+            </div>
+          </div>
+          <div class="emp-chat-win">
+            <div class="emp-msgs" id="empChatBox">
+                <div class="emp-msg received">Hi Sarah, did you finish the payroll documentation?</div>
+                <div class="emp-msg sent">Yes Alex, I've just uploaded it to the portal.</div>
+            </div>
+            <div class="emp-input-area">
+                <div class="emp-mentions" id="empMentions">
+                    <div class="emp-mention-opt" onclick="insertEmpMention('Alex Morgan')"><b>@Alex Morgan</b> (Manager)</div>
+                    <div class="emp-mention-opt" onclick="insertEmpMention('HR Support')"><b>@HR Support</b></div>
+                    <div class="emp-mention-opt" onclick="insertEmpMention('Admin')"><b>@Admin</b></div>
+                </div>
+                <input type="text" class="emp-input" id="empMsgInput" placeholder="Type @ to mention someone...">
+                <button class="ai-emp-btn" onclick="applyEmpAICorrection()">
+                    <i data-lucide="sparkles" size="14"></i> AI Correct
+                </button>
+                <button class="btn-primary" style="padding:0 1.25rem; border-radius:10px; font-size:0.8rem;" onclick="sendEmpMessage()">Send</button>
+            </div>
           </div>
         </div>
+
+        <script>
+            function applyEmpAICorrection() {
+                const input = document.getElementById('empMsgInput');
+                const text = input.value;
+                if (!text) return;
+
+                const corrections = {
+                    "can u": "could you",
+                    "i m": "I am",
+                    "pls": "please",
+                    "thx": "thank you",
+                    "docs done": "documents have been completed",
+                    "check it": "please review it"
+                };
+
+                let corrected = text;
+                Object.keys(corrections).forEach(key => {
+                    const re = new RegExp(key, 'gi');
+                    corrected = corrected.replace(re, corrections[key]);
+                });
+
+                if (corrected === text && text.length > 2) {
+                    corrected = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
+                }
+
+                input.value = corrected;
+                input.style.borderColor = "#059669";
+                setTimeout(() => input.style.borderColor = "var(--border-color)", 800);
+            }
+
+            const empInput = document.getElementById('empMsgInput');
+            const empMentions = document.getElementById('empMentions');
+
+            empInput.addEventListener('input', (e) => {
+                if (e.target.value.endsWith('@')) {
+                    empMentions.classList.add('active');
+                } else if (!e.target.value.includes('@') || e.target.value.endsWith(' ')) {
+                    empMentions.classList.remove('active');
+                }
+            });
+
+            window.insertEmpMention = (name) => {
+                const val = empInput.value;
+                empInput.value = val.slice(0, val.lastIndexOf('@')) + '@' + name + ' ';
+                empMentions.classList.remove('active');
+                empInput.focus();
+            };
+
+            window.sendEmpMessage = () => {
+                const box = document.getElementById('empChatBox');
+                const text = empInput.value.trim();
+                if (!text) return;
+
+                const div = document.createElement('div');
+                div.className = 'emp-msg sent';
+                div.innerHTML = text.replace(/@(\w+\s\w+|\w+)/g, '<b style="color:#f0f9ff;">@$1</b>');
+                box.appendChild(div);
+                empInput.value = '';
+                box.scrollTop = box.scrollHeight;
+            };
+        </script>
       </div>
 
       <!-- ===== NOTIFICATIONS PAGE ===== -->

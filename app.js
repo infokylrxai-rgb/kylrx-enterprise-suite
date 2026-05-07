@@ -1904,71 +1904,48 @@ if (btnSaveSettings) {
 // ===== CLOUD SYNC: SEED DATABASE =====
 async function seedDatabase() {
   const btn = document.getElementById('btnSyncCloud');
+  const originalHTML = btn ? btn.innerHTML : '';
+  
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
   }
   
-  showToast('Initializing...', 'Seeding your Firebase Cloud with demo data...', 'info');
+  if (window.showToast) window.showToast('Initializing...', 'Synchronizing Enterprise Cloud via Backend API...', 'info');
 
   try {
-    // 0. Seed Departments
-    const depts = [
-      { departmentId: 'Marketing', departmentName: 'Marketing', departmentCode: 'MKT' },
-      { departmentId: 'Finance', departmentName: 'Finance', departmentCode: 'FIN' },
-      { departmentId: 'HR', departmentName: 'Human Resources', departmentCode: 'HR' },
-      { departmentId: 'Engineering', departmentName: 'Engineering', departmentCode: 'ENG' }
-    ];
-    for (const d of depts) {
-      await setDoc(doc(db, 'departments', d.departmentId), d);
-    }
-
-    // 1. Employees (Seed into 'users' collection)
-    // Note: These are Firestore documents only. Real auth users must be created via signup or admin console.
-    const employees = [
-      { name: 'Marketing Manager', email: 'marketing.mgr@hrflow.com', departmentId: 'Marketing', role: 'manager' },
-      { name: 'Finance Manager', email: 'finance.mgr@hrflow.com', departmentId: 'Finance', role: 'manager' },
-      { name: 'HR Manager', email: 'hr.mgr@hrflow.com', departmentId: 'HR', role: 'manager' },
-      { name: 'Engineering Manager', email: 'engineering.mgr@hrflow.com', departmentId: 'Engineering', role: 'manager' },
-      { name: 'Alice Johnson', email: 'alice@hrflow.com', departmentId: 'HR', role: 'employee' },
-      { name: 'Bob Martinez', email: 'bob@hrflow.com', departmentId: 'HR', role: 'employee' }
-    ];
-    for (const e of employees) {
-      // In a real scenario, we'd use setDoc with a UID, but for demo seeding, we'll just add documents.
-      await addDoc(collection(db, 'users'), { ...e, createdAt: new Date().toISOString() });
-    }
-
-    // 2. Attendance
-    const attendance = [
-      { id: 'EMP001', name: 'Alice Johnson', loginTime: '09:05 AM', status: 'present', color: '#3b82f6', initials: 'AJ' },
-      { id: 'EMP002', name: 'Bob Martinez', loginTime: '09:45 AM', status: 'late', color: '#8b5cf6', initials: 'BM' },
-      { id: 'EMP003', name: 'Carol White', loginTime: '--:--', status: 'absent', color: '#10b981', initials: 'CW' }
-    ];
-    for (const a of attendance) await addDoc(collection(db, 'attendance'), a);
-
-    // 3. Payroll (Initial Set)
-    for (const p of payrollData) {
-      await addDoc(collection(db, 'payroll'), { ...p, processedAt: new Date().toISOString() });
-    }
-
-    // 4. Bank Details
-    await addDoc(collection(db, 'bank_details'), { 
-      account: '•••• •••• •••• 8842', 
-      name: 'HDFC Business Plus', 
-      routing: '021000021', 
-      updatedAt: new Date().toISOString() 
+    const API_BASE = 'http://localhost:3000/api';
+    const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('hr_access_token');
+    
+    const response = await fetch(`${API_BASE}/admin/sync-database`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
     });
 
-    showToast('Success!', 'Cloud database initialized. Reloading data...', 'success');
-    setTimeout(() => loadDashboardData(), 1500);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Backend synchronization failed');
+    }
+
+    const result = await response.json();
+    console.log('✅ Backend Sync Result:', result);
+
+    if (window.showToast) window.showToast('Success!', 'Enterprise cloud synchronized. Refreshing local state...', 'success');
+    
+    // Reload local dashboard data
+    setTimeout(() => loadDashboardData(), 1000);
 
   } catch (err) {
     console.error('Seeding Error:', err);
-    showToast('Sync Failed', err.message, 'error');
+    if (window.showToast) window.showToast('Sync Failed', err.message, 'error');
+    else alert('Sync Failed: ' + err.message);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i>';
+      btn.innerHTML = originalHTML;
     }
   }
 }

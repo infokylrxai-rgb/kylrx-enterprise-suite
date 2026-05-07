@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Messages | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+        const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+        if (!isLoggedIn || userRole !== 'admin') window.location.href = 'index.html';
+    </script>
+    <style>
+        :root {
+            --primary: #6366f1; --primary-dark: #4f46e5; --bg: #f8fafc; --sidebar: #ffffff;
+            --card: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
+            --radius: 16px; --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text-main); }
+        .dashboard-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: fixed; height: 100vh; }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; }
+        .nav-menu { flex: 1; list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-muted); border-radius: 12px; font-weight: 500; transition: 0.2s; }
+        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.08); color: var(--primary); }
+        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; display: flex; flex-direction: column; }
+        .header { margin-bottom: 2.5rem; }
+        .header h1 { font-size: 2rem; font-weight: 700; }
+        .chat-container { flex: 1; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: grid; grid-template-columns: 320px 1fr; overflow: hidden; }
+        .contacts-list { border-right: 1px solid var(--border); background: #fcfdfe; overflow-y: auto; }
+        .contact-item { padding: 1.25rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; display: flex; gap: 12px; align-items: center; }
+        .contact-item:hover { background: #f1f5f9; }
+        .contact-item.active { background: #eff6ff; border-left: 4px solid var(--primary); }
+        .contact-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .contact-info { flex: 1; overflow: hidden; }
+        .contact-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
+        .contact-last { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-window { display: flex; flex-direction: column; background: white; }
+        .chat-header { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .chat-messages { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+        .message { max-width: 70%; padding: 1rem; border-radius: 16px; font-size: 0.95rem; line-height: 1.5; }
+        .message.received { background: #f1f5f9; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message.sent { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-input { padding: 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; position: relative; }
+        .input-box { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; }
+        .ai-btn { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; }
+        .ai-btn:hover { background: #fce7f3; transform: scale(1.05); }
+        .send-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .send-btn:hover { background: var(--primary-dark); }
+
+        /* Mentions Dropdown */
+        .mentions-dropdown {
+            position: absolute; bottom: 100%; left: 1.5rem; width: 240px; background: white;
+            border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
+            display: none; flex-direction: column; overflow: hidden; z-index: 1000; margin-bottom: 8px;
+        }
+        .mentions-dropdown.active { display: flex; }
+        .mention-item { padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .mention-item:hover { background: #f1f5f9; }
+        .mention-avatar { width: 24px; height: 24px; border-radius: 6px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
+
+        /* New Filter & Selection Styles */
+        .contacts-header { padding: 1.5rem; border-bottom: 1px solid var(--border); background: white; }
+        .bulk-options { display: flex; gap: 8px; margin-bottom: 1rem; }
+        .bulk-btn { flex: 1; padding: 10px 4px; border-radius: 10px; border: 1px solid var(--border); background: #f8fafc; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.2s; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .bulk-btn i { width: 16px; height: 16px; }
+        .bulk-btn:hover, .bulk-btn.active { background: #eff6ff; color: var(--primary); border-color: var(--primary); }
+        
+        .search-filter { position: relative; margin-top: 1rem; }
+        .search-filter input { width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; transition: 0.2s; }
+        .search-filter input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        .search-filter i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); }
+        
+        .selection-info { padding: 10px 1.5rem; background: #eff6ff; border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.85rem; animation: slideDown 0.3s ease; }
+        .selection-info.active { display: flex; }
+        .clear-selection { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
+        
+        .contact-checkbox { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border); margin-right: 12px; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
+        .contact-item.selected .contact-checkbox { background: var(--primary); border-color: var(--primary); color: white; }
+        .contact-item.selected .contact-checkbox::after { content: '✓'; font-size: 12px; font-weight: 900; }
+        
+        .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-top: 4px; display: inline-block; }
+        .badge.manager { background: #fee2e2; color: #ef4444; }
+        .badge.employee { background: #dcfce7; color: #16a34a; }
+        
+        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="layout-dashboard"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor-play"></i><span>TVC Monitor</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link active"><i data-lucide="mail"></i><span>Messages</span></a></div>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="header">
+                <h1>Admin Communications</h1>
+                <p style="color: var(--text-muted);">Secure messaging with managers and personnel</p>
+            </header>
+            <div class="chat-container">
+                <div class="contacts-list">
+                    <div class="contacts-header">
+                        <div class="bulk-options">
+                            <button class="bulk-btn" onclick="selectByRole('all')" id="btnAllDept">
+                                <i data-lucide="layers"></i>
+                                <span>All Depts</span>
+                            </button>
+                            <button class="bulk-btn" onclick="selectByRole('manager')" id="btnManagers">
+                                <i data-lucide="shield-check"></i>
+                                <span>Managers</span>
+                            </button>
+                            <button class="bulk-btn" onclick="selectByRole('employee')" id="btnEmployees">
+                                <i data-lucide="users"></i>
+                                <span>Employees</span>
+                            </button>
+                        </div>
+                        <div class="search-filter">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="contactSearch" placeholder="Search people or depts..." oninput="filterContacts()">
+                        </div>
+                    </div>
+                    <div class="selection-info" id="selectionInfo">
+                        <span id="selectionCount">0 people selected</span>
+                        <span class="clear-selection" onclick="clearSelection()">Clear All</span>
+                    </div>
+                    <div id="contactsContainer">
+                        <!-- Dynamic contacts will be injected here -->
+                    </div>
+                </div>
+                <div class="chat-window">
+                    <div class="chat-header">
+                        <div class="contact-avatar">SW</div>
+                        <div>
+                            <div class="contact-name">Sarah Wilson</div>
+                            <div style="font-size: 0.75rem; color: #10b981; font-weight: 600;">Online</div>
+                        </div>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message received">Hi Admin, I've just sent over the revised marketing budget for Q3. Could you please review and approve it when you have a moment?</div>
+                        <div class="message sent">Hi Sarah, thanks for the update. I'll take a look at it right away. Any specific changes I should be aware of?</div>
+                        <div class="message received">Yes, we've allocated a bit more to social media advertising as the ROI there has been increasing.</div>
+                    </div>
+                    <div class="chat-input">
+                        <div class="mentions-dropdown" id="mentionsDropdown">
+                            <div class="mention-item" onclick="insertMention('Sarah Wilson')">
+                                <div class="mention-avatar">SW</div>
+                                <span>Sarah Wilson (Manager)</span>
+                            </div>
+                            <div class="mention-item" onclick="insertMention('James Miller')">
+                                <div class="mention-avatar" style="background:#10b981;">JM</div>
+                                <span>James Miller (Finance)</span>
+                            </div>
+                            <div class="mention-item" onclick="insertMention('Alice Lee')">
+                                <div class="mention-avatar" style="background:#f59e0b;">AL</div>
+                                <span>Alice Lee (HR)</span>
+                            </div>
+                            <div class="mention-item" onclick="insertMention('John Doe')">
+                                <div class="mention-avatar" style="background:#6366f1;">JD</div>
+                                <span>John Doe (Employee)</span>
+                            </div>
+                        </div>
+                        <input type="text" class="input-box" id="messageInput" placeholder="Type @ to mention someone...">
+                        <button class="ai-btn" id="aiCorrectBtn" title="AI Sentence Correction">
+                            <i data-lucide="sparkles" size="16"></i>
+                            AI Fix
+                        </button>
+                        <button class="send-btn" id="sendBtn"><i data-lucide="send"></i></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        lucide.createIcons();
+
+        const input = document.getElementById('messageInput');
+        const mentions = document.getElementById('mentionsDropdown');
+        const chatMessages = document.getElementById('chatMessages');
+        const contactsContainer = document.getElementById('contactsContainer');
+        const selectionInfo = document.getElementById('selectionInfo');
+        const selectionCount = document.getElementById('selectionCount');
+        const contactSearch = document.getElementById('contactSearch');
+
+        const API_BASE = 'http://localhost:3000/api';
+        let rawToken = localStorage.getItem('hr_access_token');
+        // Clean up 'null' or 'undefined' strings that might come from localStorage
+        if (rawToken === 'null' || rawToken === 'undefined' || !rawToken) {
+            rawToken = 'demo-static-token';
+        }
+        const token = rawToken;
+
+        let users = [];
+        let selectedUserIds = new Set();
+        let currentFilter = '';
+
+        async function fetchUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/employees`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    users = data.data.map(u => ({
+                        id: u.uid || u.employeeId,
+                        name: u.name,
+                        role: u.role || 'employee',
+                        dept: u.department || u.departmentId || 'Operations',
+                        initials: u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+                        color: stringToColor(u.name)
+                    }));
+                    renderContacts();
+                    lucide.createIcons();
+                } else {
+                    throw new Error(data.error || 'Unauthorized access');
+                }
+            } catch (error) {
+                console.error('API Fetch Failed:', error.message);
+                // Fallback to local mock data if API is unauthorized or missing
+                users = [
+                    { id: 'mock1', name: 'Sarah Wilson', role: 'manager', dept: 'Marketing', initials: 'SW', color: '#6366f1' },
+                    { id: 'mock2', name: 'James Miller', role: 'manager', dept: 'Finance', initials: 'JM', color: '#10b981' },
+                    { id: 'mock3', name: 'Alice Lee', role: 'manager', dept: 'HR', initials: 'AL', color: '#f59e0b' }
+                ];
+                renderContacts();
+            }
+        }
+
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const colors = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        function renderContacts() {
+            contactsContainer.innerHTML = '';
+            const filtered = users.filter(u => 
+                u.name.toLowerCase().includes(currentFilter.toLowerCase()) || 
+                u.dept.toLowerCase().includes(currentFilter.toLowerCase())
+            );
+
+            filtered.forEach(user => {
+                const isSelected = selectedUserIds.has(user.id);
+                const div = document.createElement('div');
+                div.className = `contact-item ${isSelected ? 'selected' : ''}`;
+                div.onclick = () => toggleSelection(user.id);
+                
+                div.innerHTML = `
+                    <div class="contact-checkbox"></div>
+                    <div class="contact-avatar" style="background: ${user.color}">${user.initials}</div>
+                    <div class="contact-info">
+                        <div class="contact-name">${user.name}</div>
+                        <div class="contact-last">${user.dept}</div>
+                        <span class="badge ${user.role}">${user.role}</span>
+                    </div>
+                `;
+                contactsContainer.appendChild(div);
+            });
+        }
+
+        window.toggleSelection = (id) => {
+            if (selectedUserIds.has(id)) {
+                selectedUserIds.delete(id);
+            } else {
+                selectedUserIds.add(id);
+            }
+            updateSelectionUI();
+        };
+
+        window.selectByRole = (role) => {
+            const roleUsers = role === 'all' ? users : users.filter(u => u.role === role);
+            const allOfRoleSelected = roleUsers.every(u => selectedUserIds.has(u.id));
+
+            if (allOfRoleSelected) {
+                roleUsers.forEach(u => selectedUserIds.delete(u.id));
+            } else {
+                roleUsers.forEach(u => selectedUserIds.add(u.id));
+            }
+            updateSelectionUI();
+        };
+
+        window.clearSelection = () => {
+            selectedUserIds.clear();
+            updateSelectionUI();
+        };
+
+        function updateSelectionUI() {
+            renderContacts();
+            if (selectedUserIds.size > 0) {
+                selectionInfo.classList.add('active');
+                selectionCount.innerText = `${selectedUserIds.size} people selected`;
+                
+                const chatHeader = document.querySelector('.chat-header');
+                if (selectedUserIds.size === 1) {
+                    const userId = Array.from(selectedUserIds)[0];
+                    const user = users.find(u => u.id === userId);
+                    chatHeader.innerHTML = `
+                        <div class="contact-avatar" style="background: ${user.color}">${user.initials}</div>
+                        <div>
+                            <div class="contact-name">${user.name}</div>
+                            <div style="font-size: 0.75rem; color: #10b981; font-weight: 600;">Direct Message</div>
+                        </div>
+                    `;
+                    fetchMessages(userId);
+                } else {
+                    chatHeader.innerHTML = `
+                        <div class="contact-avatar" style="background: var(--primary)"><i data-lucide="megaphone"></i></div>
+                        <div>
+                            <div class="contact-name">Broadcast Message</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Sending to ${selectedUserIds.size} recipients</div>
+                        </div>
+                    `;
+                    chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">Ready to send broadcast...</div>';
+                    lucide.createIcons();
+                }
+            } else {
+                selectionInfo.classList.remove('active');
+                const chatHeader = document.querySelector('.chat-header');
+                chatHeader.innerHTML = `<p style="color: var(--text-muted)">Select a person to start messaging</p>`;
+                chatMessages.innerHTML = '';
+            }
+        }
+
+        async function fetchMessages(recipientId) {
+            try {
+                chatMessages.innerHTML = '<div style="text-align:center; padding:20px;">Loading history...</div>';
+                const response = await fetch(`${API_BASE}/messages/${recipientId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    chatMessages.innerHTML = '';
+                    if (data.data.length === 0) {
+                        chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">No messages yet. Start the conversation!</div>';
+                        return;
+                    }
+                    data.data.forEach(msg => {
+                        const msgDiv = document.createElement('div');
+                        const isSent = msg.senderId === localStorage.getItem('hr_user_id');
+                        msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+                        msgDiv.innerHTML = msg.text;
+                        chatMessages.appendChild(msgDiv);
+                    });
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            } catch (error) {
+                console.error('Error fetching messages:', error);
+                chatMessages.innerHTML = '<div style="text-align:center; color:#ef4444; margin-top:20px;">Failed to load messages.</div>';
+            }
+        }
+
+        window.filterContacts = () => {
+            currentFilter = contactSearch.value;
+            renderContacts();
+        };
+
+        // Initialize
+        fetchUsers();
+
+        // AI Correction Logic
+        document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const btn = document.getElementById('aiCorrectBtn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<div class="spinner" style="width:14px; height:14px; border:2px solid #db2777; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div> Updating...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/ai/correct`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ text })
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    input.value = data.corrected;
+                    input.style.border = "2px solid #db2777";
+                    input.style.background = "#fff1f2";
+                    setTimeout(() => {
+                        input.style.border = "1px solid var(--border)";
+                        input.style.background = "white";
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('AI Correction failed:', error);
+                // Fallback to local logic if backend fails
+                let corrected = text.charAt(0).toUpperCase() + text.slice(1);
+                if (!/[.!?]$/.test(corrected)) corrected += '.';
+                input.value = corrected;
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        });
+
+        // Mentions Logic
+        input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            const lastChar = val[val.length - 1];
+            if (lastChar === '@') {
+                mentions.classList.add('active');
+            } else if (!val.includes('@') || val.endsWith(' ')) {
+                mentions.classList.remove('active');
+            }
+        });
+
+        window.insertMention = (name) => {
+            const val = input.value;
+            const newVal = val.slice(0, val.lastIndexOf('@')) + '@' + name + ' ';
+            input.value = newVal;
+            mentions.classList.remove('active');
+            input.focus();
+        };
+
+        // Send Message
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            const text = input.value.trim();
+            if (!text || selectedUserIds.size === 0) return;
+
+            const originalBtn = document.getElementById('sendBtn').innerHTML;
+            document.getElementById('sendBtn').innerHTML = '<div class="spinner" style="width:16px; height:16px; border:2px solid white; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>';
+            document.getElementById('sendBtn').disabled = true;
+
+            try {
+                let success = false;
+                if (selectedUserIds.size === 1) {
+                    const recipientId = Array.from(selectedUserIds)[0];
+                    const response = await fetch(`${API_BASE}/messages`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ recipientId, text })
+                    });
+                    const data = await response.json();
+                    success = data.status === 'success';
+                } else {
+                    const recipientIds = Array.from(selectedUserIds);
+                    const response = await fetch(`${API_BASE}/messages/broadcast`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ recipientIds, text })
+                    });
+                    const data = await response.json();
+                    success = data.status === 'success';
+                }
+
+                if (success) {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'message sent';
+                    const highlightedText = text.replace(/@(\w+\s\w+)/g, '<b style="color:#e0e7ff; background:rgba(255,255,255,0.1); padding:2px 4px; border-radius:4px;">@$1</b>');
+                    msgDiv.innerHTML = highlightedText;
+                    chatMessages.appendChild(msgDiv);
+                    input.value = '';
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    if (selectedUserIds.size > 1) {
+                        const alertDiv = document.createElement('div');
+                        alertDiv.style = "text-align: center; font-size: 0.75rem; color: var(--text-muted); margin: 10px 0;";
+                        alertDiv.innerText = `Broadcast sent to ${selectedUserIds.size} people`;
+                        chatMessages.appendChild(alertDiv);
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please check your connection.');
+            } finally {
+                document.getElementById('sendBtn').innerHTML = originalBtn;
+                document.getElementById('sendBtn').disabled = false;
+            }
+        });
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('sendBtn').click();
+        });
+
+        // Initial Icon Load
+        lucide.createIcons();
+    </script>
+</body>
+</html>

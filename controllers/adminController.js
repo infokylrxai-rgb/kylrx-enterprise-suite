@@ -209,3 +209,120 @@ exports.getAllDepartments = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * GET /analytics
+ * Get aggregated workforce statistics
+ */
+exports.getAnalytics = async (req, res, next) => {
+    try {
+        const [empSnap, deptSnap] = await Promise.all([
+            db.collection('users').get(),
+            db.collection('departments').get()
+        ]);
+
+        const employees = empSnap.docs.map(doc => doc.data()).filter(u => (u.role || '').toLowerCase() !== 'admin');
+        const departments = deptSnap.docs.map(doc => doc.data());
+
+        // Calculate Stats
+        const totalWorkforce = employees.length;
+        const totalSalary = employees.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0);
+        const avgSalary = totalWorkforce > 0 ? totalSalary / totalWorkforce : 0;
+
+        // Department Distribution
+        const deptCounts = {};
+        departments.forEach(d => {
+            const count = employees.filter(e => e.departmentId === d.departmentId).length;
+            deptCounts[d.departmentName] = count;
+        });
+
+        // Salary by Department
+        const deptSalaries = {};
+        departments.forEach(d => {
+            const empsInDept = employees.filter(e => e.departmentId === d.departmentId);
+            const avg = empsInDept.length > 0 ? empsInDept.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) / empsInDept.length : 0;
+            deptSalaries[d.departmentName] = avg;
+        });
+
+        res.json({
+            status: 'success',
+            data: {
+                stats: {
+                    totalWorkforce,
+                    avgSalary: Math.round(avgSalary),
+                    growthRate: "+12.5%", // Mocked for now
+                    retentionRate: "94.2%" // Mocked for now
+                },
+                charts: {
+                    departmentDistribution: deptCounts,
+                    salaryByDepartment: deptSalaries,
+                    performance: [85, 90, 78, 82, 75, 88], // Mocked
+                    hiringSources: [12, 19, 7, 5, 3] // Mocked
+                }
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /sync-database
+ * Synchronize and initialize core database collections
+ */
+exports.syncDatabase = async (req, res, next) => {
+    try {
+        logger.info('Database synchronization initiated by admin');
+        
+        // 1. Initialize Departments if empty
+        const deptSnap = await db.collection('departments').get();
+        if (deptSnap.empty) {
+            const initialDepts = [
+                { departmentId: 'DEP001', departmentName: 'Engineering', departmentCode: 'ENG', createdAt: admin.firestore.FieldValue.serverTimestamp() },
+                { departmentId: 'DEP002', departmentName: 'Marketing', departmentCode: 'MKT', createdAt: admin.firestore.FieldValue.serverTimestamp() },
+                { departmentId: 'DEP003', departmentName: 'Finance', departmentCode: 'FIN', createdAt: admin.firestore.FieldValue.serverTimestamp() },
+                { departmentId: 'DEP004', departmentName: 'Human Resources', departmentCode: 'HR', createdAt: admin.firestore.FieldValue.serverTimestamp() }
+            ];
+            
+            const batch = db.batch();
+            initialDepts.forEach(d => {
+                const ref = db.collection('departments').doc(d.departmentId);
+                batch.set(ref, d);
+            });
+            await batch.commit();
+        }
+
+        // 2. Initialize Finance Metrics if empty
+        const finSnap = await db.collection('financeMetrics').get();
+        if (finSnap.empty) {
+            const metrics = [
+                { departmentId: 'engineering', payrollTotal: 450000, expenseTotal: 25000, revenue: 0, budgetLimit: 500000 },
+                { departmentId: 'marketing', payrollTotal: 280000, expenseTotal: 150000, revenue: 800000, budgetLimit: 300000 },
+                { departmentId: 'sales', payrollTotal: 320000, expenseTotal: 45000, revenue: 1200000, budgetLimit: 400000 }
+            ];
+            const batch = db.batch();
+            metrics.forEach(m => {
+                const ref = db.collection('financeMetrics').doc(m.departmentId);
+                batch.set(ref, m);
+            });
+            await batch.commit();
+        }
+
+        // 3. Log System Event
+        await db.collection('alertEvents').add({
+            type: 'system',
+            severity: 'info',
+            message: 'Enterprise Database Synchronized via Backend API',
+            departmentId: 'system',
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        res.json({
+            status: 'success',
+            message: 'Enterprise database synchronized successfully',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        next(error);
+    }
+};
