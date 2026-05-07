@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering TVC — HRFlow Employee Monitor</title>
+    <meta name="description" content="Real-time engineering employee performance and payroll monitor">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        :root {
+            --accent: #0ea5e9;
+            --accent-glow: rgba(14,165,233,0.15);
+            --accent-dark: #0284c7;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface2: #334155;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+        /* ── Top Bar ── */
+        .topbar { height:56px; background:var(--surface); border-bottom:2px solid var(--accent); display:flex; align-items:center; padding:0 1.5rem; flex-shrink:0; gap:1rem; }
+        .topbar-brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:1.1rem; letter-spacing:1px; text-transform:uppercase; }
+        .topbar-brand .icon { width:36px; height:36px; background:var(--accent-glow); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--accent); }
+        .topbar-brand span { color:var(--accent); }
+        .topbar-center { flex:1; display:flex; align-items:center; justify-content:center; gap:1.5rem; }
+        .topbar-user { display:flex; align-items:center; gap:8px; background:var(--surface2); padding:6px 14px; border-radius:20px; font-size:0.8rem; font-weight:600; }
+        .topbar-status { display:flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:700; text-transform:uppercase; }
+        .topbar-status .dot { width:8px; height:8px; border-radius:50%; }
+        .topbar-right { display:flex; align-items:center; gap:1.25rem; }
+        .topbar-clock { font-family:'Roboto Mono',monospace; font-size:1.15rem; font-weight:700; color:var(--accent); }
+        .topbar-dept { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; background:var(--accent-glow); color:var(--accent); padding:4px 12px; border-radius:6px; }
+
+        /* ── Main Grid ── */
+        .main { flex:1; display:grid; grid-template-columns:1fr 1fr 320px; grid-template-rows:1fr 1fr 100px; gap:1rem; padding:1rem; overflow:hidden; }
+
+        /* ── Panels ── */
+        .panel { background:var(--surface); border:1px solid var(--border); border-radius:16px; display:flex; flex-direction:column; overflow:hidden; }
+        .panel-head { padding:0.85rem 1.1rem; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-muted); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+        .panel-head i { color:var(--accent); }
+        .panel-body { padding:1.1rem; flex:1; display:flex; flex-direction:column; justify-content:center; overflow:hidden; }
+
+        /* ── Score Ring ── */
+        .score-ring-wrap { display:flex; align-items:center; justify-content:center; gap:1.5rem; }
+        .score-ring { width:130px; height:130px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:conic-gradient(var(--accent) 0deg, var(--surface2) 0deg); position:relative; }
+        .score-ring::after { content:''; position:absolute; width:100px; height:100px; border-radius:50%; background:var(--surface); }
+        .score-value { position:absolute; z-index:2; font-size:2.2rem; font-weight:800; font-family:'Roboto Mono',monospace; }
+        .score-meta { display:flex; flex-direction:column; gap:0.5rem; }
+        .score-meta-item { font-size:0.8rem; color:var(--text-muted); }
+        .score-meta-item strong { color:var(--text); font-size:1rem; }
+
+        /* ── Stat Cards ── */
+        .stat-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+        .stat-card { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:1rem; display:flex; flex-direction:column; gap:4px; }
+        .stat-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); font-weight:700; }
+        .stat-value { font-size:1.6rem; font-weight:800; font-family:'Roboto Mono',monospace; }
+
+        /* ── Progress Bar ── */
+        .prog-wrap { margin-top:0.5rem; }
+        .prog-label { font-size:0.7rem; color:var(--text-muted); margin-bottom:4px; font-weight:600; display:flex; justify-content:space-between; }
+        .prog-bg { height:8px; background:var(--bg); border-radius:4px; overflow:hidden; }
+        .prog-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),var(--success)); transition:width 0.5s ease; }
+
+        /* ── Focus Status ── */
+        .focus-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:20px; font-weight:700; font-size:0.85rem; }
+
+        /* ── Salary Panel ── */
+        .salary-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; }
+        .salary-item { background:var(--bg); border-radius:10px; padding:0.75rem; text-align:center; }
+        .salary-item .sl { font-size:0.6rem; text-transform:uppercase; color:var(--text-muted); font-weight:700; letter-spacing:1px; margin-bottom:2px; }
+        .salary-item .sv { font-size:1.3rem; font-weight:800; font-family:'Roboto Mono',monospace; }
+        .salary-verdict { text-align:center; margin-top:0.5rem; font-size:0.8rem; font-weight:700; }
+
+        /* ── AI Panel ── */
+        .ai-panel { grid-column:1/3; background:linear-gradient(135deg,#0c4a6e,#1e293b); border:1px solid #0ea5e930; }
+        .ai-content { display:flex; align-items:center; gap:1.25rem; height:100%; }
+        .ai-icon { width:50px; height:50px; background:var(--accent-glow); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; flex-shrink:0; animation:pulse 2s infinite alternate; }
+        @keyframes pulse { from{box-shadow:0 0 0 rgba(14,165,233,0)} to{box-shadow:0 0 20px rgba(14,165,233,0.4)} }
+        .ai-text { display:flex; flex-direction:column; gap:3px; }
+        .ai-label-tag { font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:var(--accent); }
+        .ai-msg { font-size:1rem; font-weight:600; line-height:1.5; }
+
+        /* ── Chart Area ── */
+        .chart-wrap { flex:1; position:relative; min-height:0; }
+
+        /* ── Right Sidebar ── */
+        .sidebar { grid-column:3/4; grid-row:1/4; display:flex; flex-direction:column; gap:1rem; }
+
+        /* ── Warning Overlay ── */
+        .etvc-warn-overlay { position:fixed; inset:0; background:rgba(15,23,42,0.75); backdrop-filter:blur(16px); display:none; align-items:center; justify-content:center; z-index:99999; }
+        .etvc-warn-box { background:#fff; color:#0f172a; padding:2.5rem; border-radius:24px; width:90%; max-width:460px; text-align:center; box-shadow:0 30px 60px rgba(0,0,0,0.4); animation:warnIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes warnIn { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
+        .etvc-warn-box .wi { font-size:3rem; margin-bottom:1rem; }
+        .etvc-warn-box h2 { font-size:1.5rem; font-weight:800; margin-bottom:0.5rem; }
+        .etvc-warn-box p { color:#64748b; font-size:0.95rem; line-height:1.6; margin-bottom:1rem; }
+        .etvc-warn-box .wm { font-family:'Roboto Mono',monospace; font-size:0.7rem; color:#94a3b8; background:#f8fafc; padding:8px 14px; border-radius:8px; margin-bottom:1.5rem; }
+        .etvc-warn-box button { background:#0f172a; color:#fff; border:none; padding:0.8rem 2.5rem; border-radius:14px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+        .etvc-warn-box button:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.3); }
+
+        /* ── Responsive ── */
+        @media(max-width:1200px) { .main { grid-template-columns:1fr 1fr; } .sidebar { grid-column:1/3; grid-row:auto; flex-direction:row; } }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <div class="topbar">
+        <div class="topbar-brand">
+            <div class="icon"><i data-lucide="cpu" size="18"></i></div>
+            HRFlow <span>TVC</span>
+        </div>
+        <div class="topbar-center">
+            <div class="topbar-user">
+                <i data-lucide="user" size="14"></i>
+                <span id="etvcUserName">Loading...</span>
+            </div>
+            <div class="topbar-status">
+                <div class="dot" id="etvcStatusDot" style="background:#10b981;box-shadow:0 0 8px #10b981;"></div>
+                <span id="etvcStatus">Active</span>
+            </div>
+            <div class="topbar-dept" id="etvcUserDept">ENGINEERING</div>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-clock" id="etvcClock">00:00:00</div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="main">
+
+        <!-- 1. Work Monitoring -->
+        <div class="panel">
+            <div class="panel-head"><i data-lucide="activity" size="14"></i> Work Monitoring</div>
+            <div class="panel-body">
+                <div class="stat-row">
+                    <div class="stat-card">
+                        <span class="stat-label">Active Time</span>
+                        <span class="stat-value" id="etvcActiveTime" style="color:var(--success);">0m</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Idle Time</span>
+                        <span class="stat-value" id="etvcIdleTime" style="color:var(--danger);">0m</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Break Time</span>
+                        <span class="stat-value" id="etvcBreakTime" style="color:var(--warning);">0m</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Session Duration</span>
+                        <span class="stat-value" id="etvcSessionTime" style="color:var(--accent);">0m</span>
+                    </div>
+                </div>
+                <div class="prog-wrap">
+                    <div class="prog-label"><span>Active Ratio</span><span id="etvcActivePct">0%</span></div>
+                    <div class="prog-bg"><div class="prog-fill" id="etvcActiveBar" style="width:0%"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Focus Monitoring -->
+        <div class="panel">
+            <div class="panel-head"><i data-lucide="eye" size="14"></i> Focus Monitoring</div>
+            <div class="panel-body" style="gap:1rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div>
+                        <div style="font-size:0.7rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Focus Status</div>
+                        <span class="focus-badge" id="etvcFocusStatus" style="background:var(--success);color:#fff;">Focused</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.7rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Warning Level</div>
+                        <span class="stat-value" id="etvcWarningLvl" style="font-size:1.4rem;color:var(--warning);">0</span>
+                    </div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-card" style="text-align:center;">
+                        <span class="stat-label">Tab Switches</span>
+                        <span class="stat-value" id="etvcSwitchCount" style="color:var(--success);">0</span>
+                    </div>
+                    <div class="stat-card" style="text-align:center;">
+                        <span class="stat-label">Free Remaining</span>
+                        <span class="stat-value" id="etvcFreeLeft" style="color:var(--accent);">3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Productivity Score -->
+        <div class="panel" style="grid-row:2/3;grid-column:1/2;">
+            <div class="panel-head"><i data-lucide="gauge" size="14"></i> Productivity Score</div>
+            <div class="panel-body">
+                <div class="score-ring-wrap">
+                    <div class="score-ring" id="etvcScoreRing">
+                        <span class="score-value" id="etvcScore">--</span>
+                    </div>
+                    <div class="score-meta">
+                        <div class="score-meta-item">Bonus Threshold<br><strong>80+</strong></div>
+                        <div class="score-meta-item">Max Bonus<br><strong>15%</strong></div>
+                        <div class="score-meta-item">Max Penalty<br><strong>20%</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Daily Trend -->
+        <div class="panel" style="grid-row:2/3;grid-column:2/3;">
+            <div class="panel-head"><i data-lucide="trending-up" size="14"></i> 7-Day Productivity Trend</div>
+            <div class="panel-body">
+                <div class="chart-wrap"><canvas id="etvcTrendChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- 5. AI Insight (Bottom) -->
+        <div class="panel ai-panel">
+            <div class="panel-body">
+                <div class="ai-content">
+                    <div class="ai-icon" id="etvcAiIcon">🤖</div>
+                    <div class="ai-text">
+                        <span class="ai-label-tag">AI Performance Engine — <span id="etvcAiLabel">Analyzing</span></span>
+                        <span class="ai-msg" id="etvcAiMsg">Initializing performance analysis...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Right Sidebar -->
+        <div class="sidebar">
+            <!-- Salary Impact -->
+            <div class="panel" style="flex:1;">
+                <div class="panel-head"><i data-lucide="wallet" size="14"></i> Salary Impact</div>
+                <div class="panel-body">
+                    <div class="salary-grid">
+                        <div class="salary-item"><div class="sl">Base Salary</div><div class="sv" id="etvcBaseSalary" style="color:var(--accent);">₹0</div></div>
+                        <div class="salary-item"><div class="sl">Final Salary</div><div class="sv" id="etvcFinalSalary" style="color:var(--success);">₹0</div></div>
+                        <div class="salary-item"><div class="sl">Penalty</div><div class="sv" id="etvcPenalty" style="color:var(--danger);">0%</div></div>
+                        <div class="salary-item"><div class="sl">Bonus</div><div class="sv" id="etvcBonus" style="color:var(--success);">0%</div></div>
+                    </div>
+                    <div class="salary-item" style="margin-top:0.6rem;background:var(--bg);border-radius:10px;padding:0.75rem;text-align:center;">
+                        <div class="sl">Net Impact</div>
+                        <div class="sv" id="etvcSalaryImpact" style="font-size:1.5rem;">₹0</div>
+                    </div>
+                    <div class="salary-verdict" id="etvcVerdict">No Impact</div>
+                </div>
+            </div>
+            <!-- Navigation -->
+            <div class="panel">
+                <div class="panel-body" style="padding:0.75rem;">
+                    <a href="engineering-employee.html" style="display:flex;align-items:center;gap:8px;background:var(--accent-glow);color:var(--accent);padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.85rem;">
+                        <i data-lucide="arrow-left" size="16"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Warning Overlay -->
+    <div class="etvc-warn-overlay" id="etvcWarnOverlay">
+        <div class="etvc-warn-box">
+            <div class="wi" id="etvcWarnIcon">⚠️</div>
+            <h2 id="etvcWarnTitle">Focus Warning</h2>
+            <p id="etvcWarnMsg">Please return to your workspace.</p>
+            <div class="wm" id="etvcWarnMeta"></div>
+            <button onclick="document.getElementById('etvcWarnOverlay').style.display='none'">I Understand</button>
+        </div>
+    </div>
+
+    <script type="module" src="employee-tvc-common.js"></script>
+    <script>if(window.lucide) lucide.createIcons();</script>
+</body>
+</html>
