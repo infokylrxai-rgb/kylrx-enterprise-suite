@@ -23,7 +23,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text-main); }
         .dashboard-container { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: fixed; height: 100vh; }
+        .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: fixed; height: 100vh; display: flex; flex-direction: column; }
+        .sidebar-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
         .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
         .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
         .logo-text { font-size: 1.5rem; font-weight: 800; }
@@ -79,6 +80,15 @@
         .search-filter input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
         .search-filter i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); }
         
+        .filter-btn { 
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
+            background: white; border: 1px solid var(--border); border-radius: 8px; 
+            padding: 6px; cursor: pointer; color: var(--text-muted); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .filter-btn:hover { color: var(--primary); border-color: var(--primary); background: #eff6ff; }
+        .filter-btn i { width: 16px; height: 16px; }
+        
         .selection-info { padding: 10px 1.5rem; background: #eff6ff; border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.85rem; animation: slideDown 0.3s ease; }
         .selection-info.active { display: flex; }
         .clear-selection { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
@@ -109,6 +119,15 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link active"><i data-lucide="mail"></i><span>Messages</span></a></div>
             </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: #ef4444;">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
         </aside>
         <main class="main-content">
             <header class="header">
@@ -131,10 +150,17 @@
                                 <i data-lucide="users"></i>
                                 <span>Employees</span>
                             </button>
+                            <button class="bulk-btn" onclick="selectByRole('team')" id="btnTeams">
+                                <i data-lucide="users-2"></i>
+                                <span>Teams</span>
+                            </button>
                         </div>
                         <div class="search-filter">
                             <i data-lucide="search"></i>
                             <input type="text" id="contactSearch" placeholder="Search people or depts..." oninput="filterContacts()">
+                            <button class="filter-btn" title="Filter options">
+                                <i data-lucide="sliders-horizontal"></i>
+                            </button>
                         </div>
                     </div>
                     <div class="selection-info" id="selectionInfo">
@@ -503,6 +529,13 @@
 
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') document.getElementById('sendBtn').click();
+        });
+
+        // Logout Functionality
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = 'index.html';
         });
 
         // Initial Icon Load

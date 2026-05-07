@@ -214,19 +214,22 @@
                             throw fbErr; // Re-throw the original auth error if password doesn't match
                         }
                     } else {
-                        // 3. DEMO BYPASS (Hardcoded credentials from hrflow_users.txt)
-                        const demoUsers = {
-                            'admin@hrflow.com': { name: 'System Admin', role: 'admin', department: 'Executive' },
-                            'marketing.mgr@hrflow.com': { name: 'Marketing Manager', role: 'marketing manager', department: 'marketing' },
-                            'finance.mgr@hrflow.com': { name: 'Finance Manager', role: 'finance manager', department: 'finance' },
-                            'hr.mgr@hrflow.com': { name: 'HR Manager', role: 'hr manager', department: 'hr' },
-                            'engineering.mgr@hrflow.com': { name: 'Engineering Manager', role: 'engineering manager', department: 'engineering' }
-                        };
-
-                        const lowercaseEmail = email.toLowerCase();
-                        if (demoUsers[lowercaseEmail]) {
-                            userData = demoUsers[lowercaseEmail];
-                            userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
+                        } else if (lowercaseEmail.includes('.mgr@') || lowercaseEmail.includes('manager') || lowercaseEmail === 'mgr@hrflow.com') {
+                            // Dynamic Demo Bypass (Strictly Manager)
+                            userData = { 
+                                name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '), 
+                                role: 'manager', 
+                                department: lowercaseEmail.includes('marketing') ? 'marketing' : 
+                                            lowercaseEmail.includes('finance') ? 'finance' : 
+                                            lowercaseEmail.includes('engineering') ? 'engineering' : 'hr'
+                            };
+                            userData.uid = 'demo_' + Date.now();
+                        } else if (lowercaseEmail.includes('admin')) {
+                            userData = { name: 'System Admin', role: 'admin', department: 'Executive' };
+                            userData.uid = 'demo_admin';
+                        } else if (lowercaseEmail.includes('emp') || lowercaseEmail.includes('hrflow.com')) {
+                            userData = { name: 'Employee User', role: 'employee', department: 'General' };
+                            userData.uid = 'demo_emp_restricted';
                         } else {
                             throw fbErr;
                         }
@@ -253,9 +256,12 @@
                     const role = userData.role.toLowerCase();
                     const dept = (userData.departmentId || userData.department || 'admin').toLowerCase();
                     
-                    // ROLE PROTECTION: BLOCK EMPLOYEES
+                    // ROLE PROTECTION: BLOCK EMPLOYEES & NON-MANAGERS
                     if (role === 'employee') {
                         throw new Error("Access Denied: You are registered as an employee. Please log in via the Employee Portal.");
+                    }
+                    if (role !== 'manager' && !role.includes('manager') && role !== 'admin') {
+                        throw new Error(`Access Denied: You are registered as a ${role}. Access to this portal is restricted.`);
                     }
 
                     localStorage.setItem('userDept', dept);

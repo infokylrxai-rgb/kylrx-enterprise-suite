@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Command Center (TVC)</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏢%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -31,10 +31,79 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-base);
             color: var(--text-main);
-            overflow: hidden; /* No scrolling for TV dashboard */
+            overflow: hidden; 
             height: 100vh;
+        }
+
+        .dashboard-container { display: flex; height: 100vh; width: 100vw; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid var(--surface-border);
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2.5rem;
+            text-decoration: none;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), #0284c7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2);
+        }
+
+        .logo-text { font-size: 1.25rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+
+        .nav-menu { flex: 1; list-style: none; }
+        .nav-item { margin-bottom: 0.4rem; }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            text-decoration: none;
+            color: var(--text-muted);
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(14, 165, 233, 0.08);
+            color: var(--primary);
+        }
+        .nav-link i { width: 18px; height: 18px; }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--surface-border);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
         }
 
         /* --- Ticker / Top Bar --- */
@@ -79,33 +148,26 @@
             margin: 8px 0;
         }
 
-        .ticker-wrap::before, .ticker-wrap::after {
-            content: ''; position: absolute; top: 0; width: 50px; height: 100%; z-index: 2;
-        }
-        .ticker-wrap::before { left: 0; background: linear-gradient(to right, #f8fafc, transparent); }
-        .ticker-wrap::after { right: 0; background: linear-gradient(to left, #f8fafc, transparent); }
-
         .ticker-move {
             display: flex;
             white-space: nowrap;
+            padding-left: 100%;
             animation: ticker 60s linear infinite;
         }
 
-        .ticker-move:hover { animation-play-state: paused; }
-
         @keyframes ticker {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
         }
 
         .ticker-item {
-            margin-right: 3rem;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 0.85rem;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-weight: 500;
+            gap: 8px;
+            padding: 0 2rem;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
         }
 
         .ticker-item.critical { color: var(--danger); }
@@ -116,52 +178,61 @@
             display: flex;
             align-items: center;
             gap: 1.5rem;
-            padding-left: 1.5rem;
+            margin-left: 2rem;
         }
-        
-        .clock {
-            font-family: 'Roboto Mono', monospace;
-            font-size: 1.2rem;
+
+        .cloud-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
             font-weight: 700;
-            color: var(--text-main);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cloud-status .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
         }
 
         .btn-sync {
-            background: var(--primary);
-            color: #fff;
-            border: none;
+            background: #f8fafc;
+            border: 1px solid var(--surface-border);
             padding: 6px 12px;
             border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-main);
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: 0.3s;
+            transition: 0.2s;
         }
-        .btn-sync:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-sync:disabled { background: var(--text-muted); cursor: not-allowed; }
-        
-        .cloud-status {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.75rem;
-            color: var(--success);
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .cloud-status .dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); }
 
-        /* --- Main Layout --- */
+        .btn-sync:hover { background: #f1f5f9; border-color: var(--primary); }
+
+        .clock {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            min-width: 85px;
+        }
+
+        /* --- Main Layout Grid --- */
         .main-layout {
-            display: grid;
-            grid-template-columns: 3fr 1fr;
-            grid-template-rows: 1fr 120px;
-            gap: 1.5rem;
-            padding: 1.5rem;
             flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            grid-template-rows: 1fr 100px;
+            gap: 1rem;
+            padding: 1rem;
             overflow: hidden;
         }
 
@@ -172,162 +243,161 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .panel-header {
+            padding: 0.75rem 1.25rem;
             background: #f8fafc;
-            padding: 1rem 1.25rem;
-            font-size: 0.9rem;
-            font-weight: 700;
+            border-bottom: 1px solid var(--surface-border);
+            font-size: 0.8rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-bottom: 1px solid var(--surface-border);
+            color: var(--text-muted);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: var(--text-main);
         }
 
         .panel-content {
-            padding: 1.25rem;
             flex: 1;
-            overflow: hidden;
+            padding: 1.25rem;
+            position: relative;
         }
 
-        /* --- Left: Main Rotating View --- */
+        /* --- Center Stage: Rotating Views --- */
         .center-stage {
             grid-column: 1 / 2;
             grid-row: 1 / 2;
         }
 
-        /* Views (Workforce, Finance, Alerts) */
         .view-section {
             display: none;
             height: 100%;
-            flex-direction: column;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        .view-section.active { display: flex; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
+            animation: fadeIn 0.4s ease-out;
         }
 
-        /* View: Workforce Grid */
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Workforce Grid */
         .workforce-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.25rem;
-            height: 100%;
-            align-content: start;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
         }
 
         .wf-card {
             background: #ffffff;
             border: 1px solid var(--surface-border);
-            border-left: 4px solid var(--offline);
-            border-radius: 8px;
-            padding: 1.25rem;
+            border-radius: 10px;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
+            gap: 0.75rem;
+            transition: all 0.3s;
         }
-        .wf-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .wf-card[data-status="Active"] { border-left-color: var(--success); }
-        .wf-card[data-status="Idle"] { border-left-color: var(--warning); }
-        .wf-card[data-status="Away"] { border-left-color: var(--danger); }
+
+        .wf-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
         .wf-head { display: flex; justify-content: space-between; align-items: flex-start; }
-        .wf-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; color: var(--text-main); }
-        .wf-role { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .wf-name { font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
+        .wf-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
         
         .wf-status-badge {
-            font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: 700; text-transform: uppercase;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
         }
-        .wf-card[data-status="Active"] .wf-status-badge { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-        .wf-card[data-status="Idle"] .wf-status-badge { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-        .wf-card[data-status="Away"] .wf-status-badge { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
-        .wf-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-family: 'Roboto Mono', monospace; font-size: 0.85rem; color: var(--text-main); font-weight: 500; }
-        .wf-metrics div { display: flex; flex-direction: column; }
-        .wf-metrics span { font-size: 0.65rem; color: var(--text-muted); font-family: 'Inter', sans-serif; text-transform: uppercase; font-weight: 600; margin-bottom: 2px;}
+        .wf-card[data-status="Active"] .wf-status-badge { background: #dcfce7; color: #16a34a; }
+        .wf-card[data-status="Away"] .wf-status-badge { background: #fef3c7; color: #d97706; }
+        .wf-card[data-status="Idle"] .wf-status-badge { background: #f1f5f9; color: #64748b; }
 
-        /* View: Finance */
+        .wf-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .wf-metrics div { font-size: 0.75rem; font-weight: 700; }
+        .wf-metrics span { display: block; font-size: 0.6rem; color: var(--text-muted); font-weight: 500; }
+
+        /* Finance View */
         .finance-view {
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto 1fr;
-            gap: 1.25rem;
+            gap: 1.5rem;
             height: 100%;
         }
-        
+
         .fin-stat-cards {
             grid-column: 1 / 3;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1.25rem;
+            gap: 1rem;
         }
 
         .fin-card {
             background: #f8fafc;
             border: 1px solid var(--surface-border);
-            padding: 1.5rem;
-            border-radius: 8px;
+            padding: 1.25rem;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 4px;
         }
-        
-        .fin-card-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;}
-        .fin-card-value { font-size: 2.2rem; font-weight: 700; font-family: 'Roboto Mono', monospace; color: var(--text-main); }
+
+        .fin-card-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .fin-card-value { font-size: 1.5rem; font-weight: 800; color: var(--text-main); font-family: 'Roboto Mono', monospace;}
 
         .fin-chart-container {
             background: #ffffff;
             border: 1px solid var(--surface-border);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 1.25rem;
             display: flex;
             flex-direction: column;
         }
 
-        /* View: Alerts Log */
+        /* Alerts View */
         .alerts-view {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 0.5rem;
             height: 100%;
-            overflow: hidden;
+            overflow-y: auto;
         }
 
         .alert-row {
-            display: flex;
-            gap: 1.25rem;
-            padding: 1.25rem;
-            background: #ffffff;
-            border: 1px solid var(--surface-border);
-            border-left: 4px solid var(--surface-border);
-            border-radius: 6px;
+            display: grid;
+            grid-template-columns: 100px 80px 1fr;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.8rem;
             align-items: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
-        .alert-row.critical { border-left-color: var(--danger); background: #fef2f2; border-color: #fecaca; border-left-width: 4px;}
-        .alert-row.warning { border-left-color: var(--warning); background: #fffbeb; border-color: #fde68a; border-left-width: 4px;}
-        
-        .al-time { font-family: 'Roboto Mono', monospace; font-size: 0.85rem; color: var(--text-muted); width: 80px; font-weight: 500;}
-        .al-type { font-size: 0.75rem; text-transform: uppercase; font-weight: 800; width: 100px; }
-        .alert-row.critical .al-type { color: var(--danger); }
-        .alert-row.warning .al-type { color: var(--warning); }
-        .al-msg { flex: 1; font-size: 1rem; font-weight: 600; color: var(--text-main); }
 
-        /* --- Right: Global Stats & Mini Charts --- */
+        .alert-row.critical { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+        .alert-row.warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+        .alert-row.info { background: #e0f2fe; border: 1px solid #bae6fd; color: #075985; }
+
+        .al-time { font-weight: 700; opacity: 0.7; }
+        .al-type { font-weight: 800; text-transform: uppercase; }
+        .al-msg { font-weight: 500; }
+
+        /* --- Right Panel: Dept Efficiency --- */
         .right-panel {
             grid-column: 2 / 3;
-            grid-row: 1 / 3;
+            grid-row: 1 / 2;
         }
 
         .dept-stats {
@@ -375,7 +445,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
+            color: white;
             box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1);
             animation: pulse-glow-light 2s infinite alternate;
         }
@@ -447,145 +517,205 @@
 
     <div class="screen-flash" id="screenFlash"></div>
 
-    <!-- Ticker Top Bar -->
-    <div class="top-bar">
-        <div class="brand">
-            <i data-lucide="server" size="20"></i> HRFlow <span>TVC</span>
-        </div>
-        <div class="ticker-wrap">
-            <div class="ticker-move" id="tickerContent">
-                <div class="ticker-item info"><i data-lucide="info" size="14"></i> System initializing...</div>
-            </div>
-        </div>
-        <div class="top-controls">
-            <div class="cloud-status"><div class="dot"></div> Firebase Connected</div>
-            <button id="btnSyncDatabase" class="btn-sync">
-                <i data-lucide="cloud-lightning" size="14"></i> Sync Cloud
-            </button>
-            <button id="btnFullscreen" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer;">
-                <i data-lucide="maximize" size="18"></i>
-            </button>
-            <div class="clock" id="sysClock">00:00:00</div>
-        </div>
-    </div>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i data-lucide="shield-check"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link active">
+                        <i data-lucide="monitor-play"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Messages</span>
+                    </a>
+                </div>
+            </nav>
 
-    <!-- Main Layout -->
-    <div class="main-layout">
-        
-        <!-- Center Stage (Rotating Views) -->
-        <div class="panel center-stage">
-            <div class="panel-header">
-                <span id="centerStageTitle"><i data-lucide="users" size="16" style="vertical-align:text-bottom;margin-right:6px;"></i> Live Workforce Monitor</span>
-                <div class="view-indicators">
-                    <div class="v-dot active" id="dot-0"></div>
-                    <div class="v-dot" id="dot-1"></div>
-                    <div class="v-dot" id="dot-2"></div>
-                    <div class="v-dot" id="dot-3"></div>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
                 </div>
             </div>
-            <div class="panel-content">
-                
-                <!-- View 0: Workforce -->
-                <div class="view-section active" id="view-workforce">
-                    <div class="workforce-grid" id="wfGrid">
-                        <!-- Populated by JS -->
-                        <div style="color:var(--text-muted); font-family:monospace;">Awaiting telemetry data...</div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Ticker Top Bar -->
+            <div class="top-bar">
+                <div class="brand">
+                    <i data-lucide="server" size="20"></i> HRFlow <span>TVC</span>
+                </div>
+                <div class="ticker-wrap">
+                    <div class="ticker-move" id="tickerContent">
+                        <div class="ticker-item info"><i data-lucide="info" size="14"></i> System initializing...</div>
                     </div>
                 </div>
+                <div class="top-controls">
+                    <div class="cloud-status"><div class="dot"></div> Firebase Connected</div>
+                    <button id="btnSyncDatabase" class="btn-sync">
+                        <i data-lucide="cloud-lightning" size="14"></i> Sync Cloud
+                    </button>
+                    <button id="btnFullscreen" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer;">
+                        <i data-lucide="maximize" size="18"></i>
+                    </button>
+                    <div class="clock" id="sysClock">00:00:00</div>
+                </div>
+            </div>
 
-                <!-- View: Marketing -->
-                <div class="view-section" id="view-marketing">
-                    <div class="finance-view">
-                        <div class="fin-stat-cards">
-                            <div class="fin-card">
-                                <span class="fin-card-label">Active Campaigns</span>
-                                <span class="fin-card-value" style="color:var(--primary)" id="mktStatCampaigns">0</span>
-                            </div>
-                            <div class="fin-card">
-                                <span class="fin-card-label">Total Leads</span>
-                                <span class="fin-card-value" style="color:var(--success)" id="mktStatLeads">0</span>
-                            </div>
-                            <div class="fin-card">
-                                <span class="fin-card-label">Conversion Rate</span>
-                                <span class="fin-card-value" style="color:var(--warning)" id="mktStatConv">0%</span>
-                            </div>
-                            <div class="fin-card">
-                                <span class="fin-card-label">Avg ROI</span>
-                                <span class="fin-card-value" style="color:var(--accent)" id="mktStatROI">0%</span>
+            <!-- Main Layout -->
+            <div class="main-layout">
+                
+                <!-- Center Stage (Rotating Views) -->
+                <div class="panel center-stage">
+                    <div class="panel-header">
+                        <span id="centerStageTitle"><i data-lucide="users" size="16" style="vertical-align:text-bottom;margin-right:6px;"></i> Live Workforce Monitor</span>
+                        <div class="view-indicators">
+                            <div class="v-dot active" id="dot-0"></div>
+                            <div class="v-dot" id="dot-1"></div>
+                            <div class="v-dot" id="dot-2"></div>
+                            <div class="v-dot" id="dot-3"></div>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        
+                        <!-- View 0: Workforce -->
+                        <div class="view-section active" id="view-workforce">
+                            <div class="workforce-grid" id="wfGrid">
+                                <!-- Populated by JS -->
+                                <div style="color:var(--text-muted); font-family:monospace;">Awaiting telemetry data...</div>
                             </div>
                         </div>
-                        <div class="fin-chart-container" style="grid-column: 1 / 3;">
-                            <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Active Pipeline</div>
-                            <div class="workforce-grid" id="mktCampaignsGrid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+
+                        <!-- View: Marketing -->
+                        <div class="view-section" id="view-marketing">
+                            <div class="finance-view">
+                                <div class="fin-stat-cards">
+                                    <div class="fin-card">
+                                        <span class="fin-card-label">Active Campaigns</span>
+                                        <span class="fin-card-value" style="color:var(--primary)" id="mktStatCampaigns">0</span>
+                                    </div>
+                                    <div class="fin-card">
+                                        <span class="fin-card-label">Total Leads</span>
+                                        <span class="fin-card-value" style="color:var(--success)" id="mktStatLeads">0</span>
+                                    </div>
+                                    <div class="fin-card">
+                                        <span class="fin-card-label">Conversion Rate</span>
+                                        <span class="fin-card-value" style="color:var(--warning)" id="mktStatConv">0%</span>
+                                    </div>
+                                    <div class="fin-card">
+                                        <span class="fin-card-label">Avg ROI</span>
+                                        <span class="fin-card-value" id="mktStatROI">0%</span>
+                                    </div>
+                                </div>
+                                <div class="fin-chart-container" style="grid-column: 1 / 3;">
+                                    <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Active Pipeline</div>
+                                    <div class="workforce-grid" id="mktCampaignsGrid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                                        <!-- Populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- View 1: Finance -->
+                        <div class="view-section" id="view-finance">
+                            <div class="finance-view">
+                                <div class="fin-stat-cards">
+                                    <div class="fin-card">
+                                        <span class="fin-card-label">Total Payroll (YTD)</span>
+                                        <span class="fin-card-value" style="color:var(--primary)" id="finPayroll">$0.00</span>
+                                    </div>
+                                    <div class="fin-card">
+                                        <span class="fin-card-label">OpEx (Monthly)</span>
+                                        <span class="fin-card-value" style="color:var(--warning)" id="finOpex">$0.00</span>
+                                    </div>
+                                    <div class="fin-card">
+                                        <span class="fin-card-label">Revenue (Q1)</span>
+                                        <span class="fin-card-value" style="color:var(--success)" id="finRev">$0.00</span>
+                                    </div>
+                                    <div class="fin-card">
+                                        <span class="fin-card-label">Budget Burn Rate</span>
+                                        <span class="fin-card-value" style="color:var(--danger)" id="finBurn">0%</span>
+                                    </div>
+                                </div>
+                                <div class="fin-chart-container">
+                                    <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Department Spend</div>
+                                    <div style="flex:1; position:relative;"><canvas id="spendChart"></canvas></div>
+                                </div>
+                                <div class="fin-chart-container">
+                                    <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Cash Flow Trend</div>
+                                    <div style="flex:1; position:relative;"><canvas id="trendChart"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- View 2: Alerts -->
+                        <div class="view-section" id="view-alerts">
+                            <div class="alerts-view" id="alertsGrid">
                                 <!-- Populated by JS -->
                             </div>
                         </div>
+
                     </div>
                 </div>
 
-                <!-- View 1: Finance -->
-                <div class="view-section" id="view-finance">
-                    <div class="finance-view">
-                        <div class="fin-stat-cards">
-                            <div class="fin-card">
-                                <span class="fin-card-label">Total Payroll (YTD)</span>
-                                <span class="fin-card-value" style="color:var(--primary)" id="finPayroll">$0.00</span>
-                            </div>
-                            <div class="fin-card">
-                                <span class="fin-card-label">OpEx (Monthly)</span>
-                                <span class="fin-card-value" style="color:var(--warning)" id="finOpex">$0.00</span>
-                            </div>
-                            <div class="fin-card">
-                                <span class="fin-card-label">Revenue (Q1)</span>
-                                <span class="fin-card-value" style="color:var(--success)" id="finRev">$0.00</span>
-                            </div>
-                            <div class="fin-card">
-                                <span class="fin-card-label">Budget Burn Rate</span>
-                                <span class="fin-card-value" style="color:var(--danger)" id="finBurn">0%</span>
-                            </div>
-                        </div>
-                        <div class="fin-chart-container">
-                            <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Department Spend</div>
-                            <div style="flex:1; position:relative;"><canvas id="spendChart"></canvas></div>
-                        </div>
-                        <div class="fin-chart-container">
-                            <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Cash Flow Trend</div>
-                            <div style="flex:1; position:relative;"><canvas id="trendChart"></canvas></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- View 2: Alerts -->
-                <div class="view-section" id="view-alerts">
-                    <div class="alerts-view" id="alertsGrid">
+                <!-- Right Panel: Dept Stats -->
+                <div class="panel right-panel">
+                    <div class="panel-header"><i data-lucide="bar-chart-2" size="16" style="vertical-align:text-bottom;margin-right:6px;"></i> Dept Efficiency</div>
+                    <div class="panel-content" style="overflow-y:auto;" id="deptStatsContainer">
                         <!-- Populated by JS -->
                     </div>
                 </div>
 
-            </div>
-        </div>
-
-        <!-- Right Panel: Dept Stats -->
-        <div class="panel right-panel">
-            <div class="panel-header"><i data-lucide="bar-chart-2" size="16" style="vertical-align:text-bottom;margin-right:6px;"></i> Dept Efficiency</div>
-            <div class="panel-content" style="overflow-y:auto;" id="deptStatsContainer">
-                <!-- Populated by JS -->
-            </div>
-        </div>
-
-        <!-- Bottom Panel: AI Insights -->
-        <div class="panel bottom-panel">
-            <div class="panel-content">
-                <div class="insight-container">
-                    <div class="insight-icon"><i data-lucide="brain-circuit" size="28"></i></div>
-                    <div class="insight-text">
-                        <span class="insight-label">AI Predictive Insight Engine</span>
-                        <span class="insight-msg" id="aiInsightText">Analyzing real-time organizational telemetry to generate insights...</span>
+                <!-- Bottom Panel: AI Insights -->
+                <div class="panel bottom-panel">
+                    <div class="panel-content">
+                        <div class="insight-container">
+                            <div class="insight-icon"><i data-lucide="brain-circuit" size="28"></i></div>
+                            <div class="insight-text">
+                                <span class="insight-label">AI Predictive Insight Engine</span>
+                                <span class="insight-msg" id="aiInsightText">Analyzing real-time organizational telemetry to generate insights...</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
+            </div>
+        </main>
     </div>
 
     <!-- Audio for critical alerts (optional) -->
@@ -606,4 +736,3 @@
     <script>if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }</script>
 </body>
 </html>
-

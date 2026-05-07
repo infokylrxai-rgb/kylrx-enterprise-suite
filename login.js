@@ -39,7 +39,7 @@ loginForm?.addEventListener('submit', async (e) => {
     // --- STEP 1: Attempt Backend API Login ---
     try {
         console.log('Attempting Backend API login...');
-        const response = await fetch('http://localhost:3000/api/auth/login', {
+        const response = await fetch('http://127.0.0.1:3000/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password: password })
@@ -99,8 +99,8 @@ loginForm?.addEventListener('submit', async (e) => {
               userData = demoUsers[lowercaseEmail];
               userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
               console.log('✅ Demo bypass (Hardcoded) successful');
-            } else if (lowercaseEmail === 'admin@hrflow.com' || lowercaseEmail === 'admin@demo.com' || lowercaseEmail.includes('hrflow.com')) {
-               // Dynamic Admin Demo Bypass
+            } else if (lowercaseEmail.startsWith('admin@') || lowercaseEmail.includes('sysadmin') || (lowercaseEmail.includes('hrflow.com') && lowercaseEmail.includes('admin'))) {
+               // Dynamic Admin Demo Bypass (Strict)
                userData = { 
                  name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '), 
                  role: 'admin', 
@@ -108,6 +108,14 @@ loginForm?.addEventListener('submit', async (e) => {
                };
                userData.uid = 'demo_' + Date.now();
                console.log('✅ Dynamic admin demo bypass successful');
+            } else if (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('emp') || lowercaseEmail.includes('hrflow.com')) {
+               // Manager or Employee identified in Admin Portal bypass
+               userData = { 
+                 name: email.split('@')[0], 
+                 role: lowercaseEmail.includes('mgr') ? 'manager' : 'employee',
+                 departmentId: 'restricted'
+               };
+               userData.uid = 'demo_restricted_admin_' + Date.now();
             } else {
               throw firebaseErr;
             }

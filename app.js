@@ -3,7 +3,7 @@ import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { collection, getDocs, addDoc, query, orderBy, limit, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { sendNotification } from "./notification-app.js";
 
-// ===== ZERO-CRASH ARCHITECTURE: GLOBAL FRONTEND ERROR HANDLER =====
+const API_BASE = 'http://127.0.0.1:3000/api';
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     console.error("Global Frontend Error:", msg, url, lineNo, columnNo, error);
     
@@ -269,29 +269,75 @@ async function loadDisbursements() {
 }
 
 async function loadDashboardData() {
-  if (!auth.currentUser) {
-    const userId = localStorage.getItem('hr_user_id');
-    if (!userId || !userId.startsWith('demo_')) {
-        console.log('ℹ️ Skipping Cloud Sync (No active Firebase session). Entering Local Mode.');
+  const token = localStorage.getItem('hr_access_token');
+  const userRole = localStorage.getItem('userRole');
+  const userDept = localStorage.getItem('userDept');
+
+  try {
+    // --- STEP 1: Attempt Backend API Fetch ---
+    const statsRes = await fetch(`${API_BASE}/data/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const stats = await statsRes.json();
+
+    if (stats.success) {
+      if (document.getElementById('stat-total-employees')) document.getElementById('stat-total-employees').textContent = stats.totalEmployees;
+      if (document.getElementById('stat-present-today')) document.getElementById('stat-present-today').textContent = stats.presentToday;
+      if (document.getElementById('stat-on-leave')) document.getElementById('stat-on-leave').textContent = stats.onLeave;
     }
-    
-    // Use Mock Data for Demo
+
+    // Fetch Employees
+    const empRes = await fetch(`${API_BASE}/data/fetch?collection=users`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const empResult = await empRes.json();
+    let employees = [];
+    if (empResult.success) {
+      employees = empResult.data.filter(u => u.role === 'employee');
+      if (userRole !== 'admin') {
+        employees = employees.filter(u => u.departmentId === userDept || u.dept === userDept);
+      }
+      renderTeamList(employees);
+      populateAssigneeDropdown(employees);
+    }
+
+    // Fetch Attendance
+    const attRes = await fetch(`${API_BASE}/data/fetch?collection=attendance`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const attResult = await attRes.json();
+    if (attResult.success) {
+      attendanceData = attResult.data;
+      renderAttendance();
+    }
+
+    // Fetch Payroll
+    const payRes = await fetch(`${API_BASE}/data/fetch?collection=payroll`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const payResult = await payRes.json();
+    if (payResult.success) {
+      payrollData = payResult.data;
+      renderPayroll();
+    }
+
+    await loadLeaveRequests();
+    loadTasks();
+    updateCharts();
+    loadActivities();
+    loadBankDetails();
+    loadDisbursements();
+    loadSettings();
+
+    console.log('✅ Dashboard synced via Backend API');
+    return; 
+  } catch (apiErr) {
+    console.warn('Backend API sync failed, falling back to Firestore...', apiErr.message);
+  }
+
+  // --- STEP 2: Firestore Fallback ---
+  if (!auth.currentUser) {
     attendanceData = mockAttendance;
-    
-    // Render Stats
-    const totalCount = document.getElementById('stat-total-employees');
-    if (totalCount) totalCount.textContent = mockEmployees.length;
-    
-    const presentCount = attendanceData.filter(e => e.status === 'present' || e.status === 'late').length;
-    const leaveCount = attendanceData.filter(e => e.status === 'absent' || e.status === 'leave').length;
-
-    const statPresent = document.getElementById('stat-present-today');
-    const statLeave = document.getElementById('stat-on-leave');
-    const statOpen = document.getElementById('stat-open-positions');
-    if (statPresent) statPresent.textContent = presentCount;
-    if (statLeave) statLeave.textContent = leaveCount;
-    if (statOpen) statOpen.textContent = '3'; // Mock open positions
-
     renderAttendance();
     renderPayroll();
     renderTeamList(mockEmployees);
@@ -301,54 +347,25 @@ async function loadDashboardData() {
   }
 
   try {
-    // 1. Employees (Using 'users' collection)
-    const userRole = localStorage.getItem('userRole');
-    const userDept = localStorage.getItem('userDept');
     const userId = auth.currentUser.uid;
-    
-    let empQuery;
-    if (userRole === 'admin') {
-      empQuery = collection(db, 'users');
-    } else {
-      // Managers see their department employees
-      empQuery = query(collection(db, 'users'), where('departmentId', '==', userDept));
-    }
-    
+    let empQuery = userRole === 'admin' ? collection(db, 'users') : query(collection(db, 'users'), where('departmentId', '==', userDept));
     const empSnap = await getDocs(empQuery);
     const employees = empSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => u.role === 'employee');
-    
-    const totalCount = document.getElementById('stat-total-employees');
-    if (totalCount) totalCount.textContent = employees.length;
+    if (document.getElementById('stat-total-employees')) document.getElementById('stat-total-employees').textContent = employees.length;
 
-    // 2. Attendance
     const attSnap = await getDocs(collection(db, 'attendance'));
-    if (!attSnap.empty) {
-      attendanceData = attSnap.docs.map(doc => doc.data());
-    } else {
-      attendanceData = [];
-    }
+    attendanceData = attSnap.empty ? [] : attSnap.docs.map(doc => doc.data());
     renderAttendance();
 
-    // 3. Payroll
     const paySnap = await getDocs(collection(db, 'payroll'));
-    if (!paySnap.empty) {
-      payrollData = paySnap.docs.map(doc => doc.data());
-    } else {
-      payrollData = [];
-    }
+    payrollData = paySnap.empty ? [] : paySnap.docs.map(doc => doc.data());
     renderPayroll();
 
-    // 4. Absence / Leave
     await loadLeaveRequests();
-
-    // 5. Global Stats
     const presentCount = attendanceData.filter(e => e.status === 'present' || e.status === 'late').length;
     const leaveCount = attendanceData.filter(e => e.status === 'absent' || e.status === 'leave').length;
-
-    const statPresent = document.getElementById('stat-present-today');
-    const statLeave = document.getElementById('stat-on-leave');
-    if (statPresent) statPresent.textContent = presentCount;
-    if (statLeave) statLeave.textContent = leaveCount;
+    if (document.getElementById('stat-present-today')) document.getElementById('stat-present-today').textContent = presentCount;
+    if (document.getElementById('stat-on-leave')) document.getElementById('stat-on-leave').textContent = leaveCount;
 
     renderTeamList(employees);
     loadTasks();
@@ -360,7 +377,6 @@ async function loadDashboardData() {
     loadSettings();
   } catch (error) {
     console.error('Firestore load error:', error);
-    showToast('Sync Warning', 'Could not sync with cloud. Using local cache.', 'warning');
   }
 }
 

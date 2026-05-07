@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { collection, query, where, onSnapshot, setDoc, doc, serverTimestamp, orderBy, limit, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 // --- DOM Elements ---
@@ -179,6 +179,7 @@ function renderWorkforce() {
         `;
     }).join('');
     if (window.lucide) { lucide.createIcons(); }
+}
 
 // --- Dept Efficiency ---
 function renderDeptStats() {
@@ -333,6 +334,7 @@ function renderTicker() {
 
     tickerContent.innerHTML = tickerItems;
     if (window.lucide) { lucide.createIcons(); }
+}
 
 // --- Marketing View ---
 function renderMarketing() {
@@ -539,3 +541,17 @@ document.getElementById('btnSyncDatabase')?.addEventListener('click', async (e) 
     }
 });
 
+// Logout logic for sidebar
+document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+        await signOut(auth);
+        localStorage.removeItem('hr_logged_in');
+        localStorage.removeItem('hr_user_id');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userDept');
+        window.location.href = 'index.html';
+    } catch (err) {
+        console.error('Logout failed:', err);
+    }
+});

@@ -3,7 +3,7 @@ import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { collection, getDocs, addDoc, query, orderBy, limit, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { sendNotification } from "./notification-app.js";
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = 'http://127.0.0.1:3000/api';
 
 let attendanceData = [];
 let activities = [];
@@ -228,35 +228,56 @@ async function loadDisbursements() {
 }
 
 async function loadDashboardData() {
+  const token = localStorage.getItem('hr_access_token');
+  const userDept = localStorage.getItem('userDept') || 'engineering';
+
+  try {
+    // --- STEP 1: Attempt Backend API Fetch ---
+    const statsRes = await fetch(`${API_BASE}/data/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const stats = await statsRes.json();
+
+    if (stats.success) {
+      if (document.getElementById('stat-active-projects')) document.getElementById('stat-active-projects').textContent = '9';
+      if (document.getElementById('stat-tasks')) document.getElementById('stat-tasks').textContent = '156';
+      if (document.getElementById('stat-bugs')) document.getElementById('stat-bugs').textContent = '14';
+      if (document.getElementById('stat-sprint-prog')) document.getElementById('stat-sprint-prog').textContent = '84%';
+    }
+
+    // Fetch Department Employees
+    const empRes = await fetch(`${API_BASE}/data/fetch?collection=users`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const empResult = await empRes.json();
+    let employees = [];
+    if (empResult.success) {
+      employees = empResult.data.filter(u => u.role === 'employee' && (u.departmentId === userDept || u.dept === userDept));
+      renderTeamList(employees);
+      populateAssigneeDropdown(employees);
+    }
+
+    loadTasks();
+    updateCharts();
+    loadActivities();
+    loadBankDetails();
+    loadSettings();
+
+    console.log('✅ Engineering Dashboard synced via Backend API');
+    return;
+  } catch (apiErr) {
+    console.warn('Backend API sync failed, falling back to Firestore...', apiErr.message);
+  }
+
+  // --- STEP 2: Firestore Fallback ---
   try {
     const userRole = localStorage.getItem('userRole');
-    const userDept = localStorage.getItem('userDept') || 'engineering';
     let employees = [];
 
-    // 1. Fetch Department Employees from Backend
-    try {
-      const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('hr_access_token');
-      const response = await fetch(`${API_BASE}/admin/employees`, {
-        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        employees = result.data.filter(e => e.departmentId === userDept || e.dept === userDept);
-      } else {
-        throw new Error('Backend fetch failed');
-      }
-    } catch (err) {
-      console.warn('Backend sync failed, using Firestore fallback');
-      if (auth.currentUser) {
-        try {
-          const empQuery = query(collection(db, 'users'), where('departmentId', '==', userDept));
-          const empSnap = await getDocs(empQuery);
-          employees = empSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => u.role === 'employee');
-        } catch (fsErr) {
-          console.warn('Firestore fallback restricted:', fsErr.message);
-        }
-      }
+    if (auth.currentUser) {
+      const empQuery = query(collection(db, 'users'), where('departmentId', '==', userDept));
+      const empSnap = await getDocs(empQuery);
+      employees = empSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => u.role === 'employee');
     }
 
     document.getElementById('stat-active-projects').textContent = '9';
@@ -267,7 +288,6 @@ async function loadDashboardData() {
     renderTeamList(employees);
     loadTasks();
     populateAssigneeDropdown(employees);
-
     updateCharts();
     loadActivities();
     loadBankDetails();

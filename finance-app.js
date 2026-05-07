@@ -3,7 +3,7 @@ import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { collection, getDocs, addDoc, query, orderBy, limit, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { sendNotification } from "./notification-app.js";
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = 'http://127.0.0.1:3000/api';
 
 // ===== NAVIGATION =====
 const navItems = document.querySelectorAll('.nav-item[data-page]');
@@ -221,70 +221,86 @@ async function loadDisbursements() {
 }
 
 async function loadDashboardData() {
-  try {
-    // 1. Finance Stats (Using 'users' collection)
-    const userId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('hr_user_id');
-    const userRole = localStorage.getItem('userRole');
-    const userDept = localStorage.getItem('userDept');
+  const token = localStorage.getItem('hr_access_token');
+  const userDept = localStorage.getItem('userDept') || 'finance';
 
-    let employees = [];
-    if (auth.currentUser) {
-      try {
-        let empQuery;
-        if (userRole === 'admin') {
-          empQuery = collection(db, 'users');
-        } else {
-          empQuery = query(collection(db, 'users'), where('departmentId', '==', userDept));
-        }
-        const empSnap = await getDocs(empQuery);
-        employees = empSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => u.role === 'employee');
-      } catch (fsErr) {
-        console.warn('Firestore fallback restricted:', fsErr.message);
-      }
+  try {
+    // --- STEP 1: Attempt Backend API Fetch ---
+    const statsRes = await fetch(`${API_BASE}/data/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const stats = await statsRes.json();
+
+    if (stats.success) {
+      if (document.getElementById('stat-revenue')) document.getElementById('stat-revenue').textContent = '₹4.2M';
+      if (document.getElementById('stat-expenses')) document.getElementById('stat-expenses').textContent = '₹1.8M';
+      if (document.getElementById('stat-profit')) document.getElementById('stat-profit').textContent = '₹2.4M';
+      if (document.getElementById('stat-pending')) document.getElementById('stat-pending').textContent = '₹420k';
     }
 
+    // Fetch Payroll & Sync Stats
+    const payrollRes = await fetch(`${API_BASE}/data/payroll`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (payrollRes.ok) {
+      const result = await payrollRes.json();
+      const payroll = result.data;
+      const totalAmount = payroll.reduce((acc, curr) => acc + (parseFloat(curr.net?.toString().replace(/[^\d.]/g, '')) || 0), 0);
+      const paidCount = payroll.filter(p => p.status === 'paid').length;
+      const pendingCount = payroll.filter(p => p.status === 'pending').length;
+
+      if (document.getElementById('stat-total-payroll')) document.getElementById('stat-total-payroll').textContent = `₹${(totalAmount/1000).toFixed(2)}K`;
+      if (document.getElementById('stat-paid-employees')) document.getElementById('stat-paid-employees').textContent = paidCount;
+      if (document.getElementById('stat-pending-payroll')) document.getElementById('stat-pending-payroll').textContent = pendingCount;
+        
+      payrollData = payroll;
+      renderPayroll();
+    }
+
+    // Fetch Employees
+    const empRes = await fetch(`${API_BASE}/data/fetch?collection=users`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const empResult = await empRes.json();
+    if (empResult.success) {
+      const employees = empResult.data.filter(u => u.role === 'employee' && (u.departmentId === userDept || u.dept === userDept));
+      renderTeamList(employees);
+      populateAssigneeDropdown(employees);
+      attendanceData = employees;
+      renderAttendance();
+    }
+
+    loadTasks();
+    updateCharts();
+    loadActivities();
+    loadBankDetails();
+    loadDisbursements();
+    loadSettings();
+
+    console.log('✅ Finance Dashboard synced via Backend API');
+    return;
+  } catch (apiErr) {
+    console.warn('Backend API sync failed, falling back to Firestore...', apiErr.message);
+  }
+
+  // --- STEP 2: Firestore Fallback ---
+  try {
+    const userRole = localStorage.getItem('userRole');
+    let employees = [];
+    if (auth.currentUser) {
+      const empQuery = query(collection(db, 'users'), where('departmentId', '==', userDept));
+      const empSnap = await getDocs(empQuery);
+      employees = empSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => u.role === 'employee');
+    }
     renderTeamList(employees);
     loadTasks();
     populateAssigneeDropdown(employees);
-
     document.getElementById('stat-revenue').textContent = '₹4.2M';
     document.getElementById('stat-expenses').textContent = '₹1.8M';
     document.getElementById('stat-profit').textContent = '₹2.4M';
     document.getElementById('stat-pending').textContent = '₹420k';
-    
-    // 2. Sync with Backend for Finance Stats
-    try {
-      const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('hr_access_token');
-      const payrollRes = await fetch(`${API_BASE}/data/payroll`, {
-        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
-      });
-      if (payrollRes.ok) {
-        const result = await payrollRes.json();
-        const payroll = result.data;
-        
-        // Calculate dynamic stats
-        const totalAmount = payroll.reduce((acc, curr) => acc + (parseFloat(curr.net?.toString().replace(/[^\d.]/g, '')) || 0), 0);
-        const paidCount = payroll.filter(p => p.status === 'paid').length;
-        const pendingCount = payroll.filter(p => p.status === 'pending').length;
-
-        if (document.getElementById('stat-total-payroll')) 
-          document.getElementById('stat-total-payroll').textContent = `₹${(totalAmount/1000).toFixed(2)}K`;
-        if (document.getElementById('stat-paid-employees')) 
-          document.getElementById('stat-paid-employees').textContent = paidCount;
-        if (document.getElementById('stat-pending-payroll')) 
-          document.getElementById('stat-pending-payroll').textContent = pendingCount;
-          
-        payrollData = payroll;
-        renderPayroll();
-      }
-    } catch (err) {
-      console.warn('Backend sync failed, using Firestore/Demo fallback');
-    }
-
-    // Update global attendance data for filtering
     attendanceData = employees; 
     renderAttendance();
-
     updateCharts();
     loadActivities();
     loadBankDetails();

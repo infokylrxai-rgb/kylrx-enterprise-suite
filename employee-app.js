@@ -3,7 +3,7 @@ import { collection, getDocs, doc, query, where, updateDoc, addDoc, getDoc, orde
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { sendNotification } from "./notification-app.js";
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = 'http://127.0.0.1:3000/api';
 
 // ===== MOCK DATA FALLBACKS =====
 let mockTasks = [
@@ -59,72 +59,114 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Load data based on department
         const userId = user ? user.uid : localStorage.getItem('hr_user_id');
+        loadDashboardStats();
         loadEmployeeTasks(userId);
         loadMyLeaveRequests(userId);
         
         const dept = (userData.departmentId || '').toLowerCase();
         if (dept === 'marketing') {
-            loadMyCampaigns();
-            loadMyLeads();
+            loadDepartmentData('campaigns', 'employeeCampaignList');
+            loadDepartmentData('leads', 'employeeLeadList');
         } else if (dept === 'sales') {
-            loadMyPipeline();
-            loadMyLeads();
+            loadDepartmentData('pipeline', 'employeePipelineList');
+            loadDepartmentData('leads', 'employeeLeadList');
         } else if (dept === 'operational' || dept === 'operations') {
-            loadMyProcesses();
-            loadMyInventory();
+            loadDepartmentData('processes', 'employeeProcessList');
+            loadDepartmentData('inventory', 'employeeInventoryList');
         }
     });
 });
 
-async function loadMyCampaigns() {
-    const list = document.getElementById('employeeCampaignList');
+async function loadDashboardStats() {
+    try {
+        const response = await fetch(`${API_BASE}/data/stats`);
+        const result = await response.json();
+        if (result.success) {
+            const totalEl = document.getElementById('totalEmployees');
+            const presentEl = document.getElementById('presentToday');
+            const onLeaveEl = document.getElementById('onLeave');
+            
+            if (totalEl) totalEl.textContent = result.totalEmployees || '0';
+            if (presentEl) presentEl.textContent = result.presentToday || '0';
+            if (onLeaveEl) onLeaveEl.textContent = result.onLeave || '0';
+
+            const statValues = document.querySelectorAll('.stat-value');
+            if (!totalEl && statValues.length >= 3) {
+                statValues[0].textContent = result.totalEmployees || '0';
+                statValues[1].textContent = result.presentToday || '0';
+                statValues[2].textContent = result.onLeave || '0';
+            }
+        }
+    } catch (err) { console.warn('Stats fetch failed:', err.message); }
+    loadAttendanceList();
+}
+
+async function loadAttendanceList() {
+    const list = document.getElementById('attendanceTableBody');
     if (!list) return;
     try {
-        const campaigns = [
-            { id: 'c1', name: 'Summer Blast 24', status: 'Live', budget: '50,000', endDate: '2026-05-30' },
-            { id: 'c2', name: 'Product Launch X', status: 'Draft', budget: '120,000', endDate: '2026-06-15' }
-        ];
-        list.innerHTML = campaigns.map(c => `
+        const response = await fetch(`${API_BASE}/data/attendance`);
+        const result = await response.json();
+        if (result.success && result.data.length > 0) {
+            list.innerHTML = result.data.map(a => `
+                <tr>
+                    <td><b>${a.name || a.employeeName}</b></td>
+                    <td>${a.employeeId || '#EMP-XXXX'}</td>
+                    <td><span class="status-pill ${a.status === 'Present' ? 'status-present' : 'status-absent'}">${a.status}</span></td>
+                    <td>${a.checkIn || '--:--'}</td>
+                    <td>${a.location || 'Remote'}</td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) { console.warn('Attendance list fetch failed:', err.message); }
+}
+
+async function loadDepartmentData(collection, listId) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    const token = localStorage.getItem('hr_access_token');
+    
+    try {
+        const response = await fetch(`${API_BASE}/data/fetch?collection=${collection}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            renderDepartmentList(collection, result.data, list);
+        } else {
+            // Fallback to mock if empty
+            renderMockData(collection, list);
+        }
+    } catch (err) {
+        console.warn(`API fetch for ${collection} failed:`, err.message);
+        renderMockData(collection, list);
+    }
+}
+
+function renderDepartmentList(type, data, list) {
+    if (type === 'campaigns') {
+        list.innerHTML = data.map(c => `
             <tr>
                 <td><b>${c.name}</b></td>
-                <td><span class="act-badge success">${c.status}</span></td>
-                <td>₹${c.budget}</td>
-                <td>${c.endDate}</td>
+                <td><span class="act-badge success">${c.status || 'Live'}</span></td>
+                <td>₹${c.budget || '0'}</td>
+                <td>${c.endDate || 'N/A'}</td>
                 <td><button class="update-status-btn">Details</button></td>
             </tr>
         `).join('');
-    } catch (err) { console.error('Error loading campaigns:', err); }
-}
-
-async function loadMyPipeline() {
-    const list = document.getElementById('employeePipelineList');
-    if (!list) return;
-    try {
-        const pipeline = [
-            { id: 'p1', client: 'Global Corp', value: '25,000', stage: 'Negotiation', probability: '75%' },
-            { id: 'p2', client: 'Tech StartUp', value: '10,000', stage: 'Discovery', probability: '20%' }
-        ];
-        list.innerHTML = pipeline.map(p => `
+    } else if (type === 'pipeline') {
+        list.innerHTML = data.map(p => `
             <tr>
-                <td><b>${p.client}</b></td>
-                <td>₹${p.value}</td>
-                <td><span class="act-badge info">${p.stage}</span></td>
-                <td>${p.probability}</td>
+                <td><b>${p.name || p.client}</b></td>
+                <td>₹${p.value || '0'}</td>
+                <td><span class="act-badge info">${p.stage || 'N/A'}</span></td>
+                <td>${p.probability || p.closeDate || 'N/A'}</td>
                 <td><button class="update-status-btn">Update</button></td>
             </tr>
         `).join('');
-    } catch (err) { console.error('Error loading pipeline:', err); }
-}
-
-async function loadMyLeads() {
-    const list = document.getElementById('employeeLeadList');
-    if (!list) return;
-    try {
-        const leads = [
-            { id: 'l1', name: 'Robert Fox', email: 'robert@foxtech.com', status: 'New' },
-            { id: 'l2', name: 'Sarah Connor', email: 'sarah@cyberdyne.io', status: 'Contacted' }
-        ];
-        list.innerHTML = leads.map(l => `
+    } else if (type === 'leads') {
+        list.innerHTML = data.map(l => `
             <tr>
                 <td><b>${l.name}</b></td>
                 <td>${l.email}</td>
@@ -138,7 +180,37 @@ async function loadMyLeads() {
                 <td><button class="update-status-btn">Note</button></td>
             </tr>
         `).join('');
-    } catch (err) { console.error('Error loading leads:', err); }
+    } else if (type === 'processes') {
+        list.innerHTML = data.map(c => `
+            <tr>
+                <td><b>${c.name}</b></td>
+                <td><span class="act-badge success">${c.type || 'N/A'}</span></td>
+                <td>${c.efficiency || '0'}%</td>
+                <td>${c.nextAudit || 'N/A'}</td>
+                <td><button class="update-status-btn">Log</button></td>
+            </tr>
+        `).join('');
+    } else if (type === 'inventory') {
+        list.innerHTML = data.map(c => `
+            <tr>
+                <td><b>${c.name}</b></td>
+                <td>${c.sku || 'N/A'}</td>
+                <td><span class="act-badge ${c.stock < 10 ? 'warn' : 'success'}">${c.stock < 10 ? 'Low' : 'OK'}</span></td>
+                <td><button class="update-status-btn">Update</button></td>
+            </tr>
+        `).join('');
+    }
+}
+
+function renderMockData(type, list) {
+    let data = [];
+    if (type === 'campaigns') data = [{ name: 'Summer Blast 24', status: 'Live', budget: '50,000', endDate: '2026-05-30' }];
+    else if (type === 'pipeline') data = [{ name: 'Global Corp', value: '25,000', stage: 'Negotiation', probability: '75%' }];
+    else if (type === 'leads') data = [{ name: 'Robert Fox', email: 'robert@foxtech.com', status: 'New' }];
+    else if (type === 'processes') data = [{ name: 'Q2 Fulfillment', type: 'Logistics', efficiency: '98.2', nextAudit: 'May 15' }];
+    else if (type === 'inventory') data = [{ name: 'Packaging Box', sku: 'PB-LRG', stock: 850 }];
+    
+    renderDepartmentList(type, data, list);
 }
 
 window.updateLeadStatus = async (id, status) => { console.log('Lead status updated'); };
@@ -230,6 +302,7 @@ async function loadEmployeeTasks(userId) {
         `).join('');
         if (window.lucide) lucide.createIcons();
     }
+}
 
 window.updateTaskStatus = async (taskId, newStatus) => {
     if (taskId.startsWith('t')) {
@@ -254,7 +327,6 @@ function getStatusClass(status) {
     }
 }
 
-window.updateTaskStatus = async (taskId, newStatus) => { console.log('Task status updated'); };
 
 window.loadEmployeeTasks = loadEmployeeTasks;
 
@@ -289,10 +361,31 @@ if (btnSubmitLeave) {
             btnSubmitLeave.disabled = true;
             btnSubmitLeave.textContent = 'Submitting...';
 
-            // Mock submission
-            mockLeaves.push({ type, startDate: start, endDate: end, status: 'pending' });
+            const token = localStorage.getItem('hr_access_token');
+            const response = await fetch(`${API_BASE}/data/add`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    collection: 'leave_requests',
+                    data: {
+                        userId,
+                        userName,
+                        departmentId: userDept,
+                        type,
+                        startDate: start,
+                        endDate: end,
+                        reason,
+                        status: 'pending'
+                    }
+                })
+            });
 
-            setTimeout(() => {
+            const result = await response.json();
+
+            if (result.success) {
                 closeLeaveModal();
                 const successModal = document.getElementById('successModal');
                 if (successModal) {
@@ -301,13 +394,17 @@ if (btnSubmitLeave) {
                     successModal.style.display = 'flex';
                     if (window.lucide) lucide.createIcons();
                 }
-                loadMyLeaveRequests();
-                btnSubmitLeave.disabled = false;
-                btnSubmitLeave.textContent = 'Submit Request';
-            }, 1000);
+                loadMyLeaveRequests(userId);
+            } else {
+                throw new Error(result.message);
+            }
             
         } catch (err) {
             console.error('Error submitting leave:', err);
+            alert('Submission failed: ' + err.message);
+        } finally {
+            btnSubmitLeave.disabled = false;
+            btnSubmitLeave.textContent = 'Submit Request';
         }
     });
 }
@@ -369,66 +466,7 @@ async function loadMyLeaveRequests(userId) {
     `).join('');
 }
 window.loadMyLeaveRequests = loadMyLeaveRequests;
-async function loadMyPipeline() {
-    const list = document.getElementById('employeePipelineList');
-    if (!list) return;
-    try {
-        const pipeline = [
-            { name: 'Enterprise Cloud', stage: 'Proposal', value: '1,200,000', closeDate: '2026-05-15' },
-            { name: 'SME Bundle', stage: 'Negotiation', value: '450,000', closeDate: '2026-05-20' }
-        ];
-        list.innerHTML = pipeline.map(c => `
-            <tr>
-                <td><b>${c.name}</b></td>
-                <td><span class="act-badge info">${c.stage}</span></td>
-                <td>₹${c.value}</td>
-                <td>${c.closeDate || 'N/A'}</td>
-                <td><button class="update-status-btn">Update</button></td>
-            </tr>
-        `).join('');
-    } catch (err) { console.error('Error loading pipeline:', err); }
-}
-
-async function loadMyProcesses() {
-    const list = document.getElementById('employeeProcessList');
-    if (!list) return;
-    try {
-        const processes = [
-            { name: 'Q2 Fulfillment', type: 'Logistics', efficiency: '98.2', nextAudit: 'May 15' },
-            { name: 'QC Check A-7', type: 'Quality', efficiency: '94.5', nextAudit: 'May 20' }
-        ];
-        list.innerHTML = processes.map(c => `
-            <tr>
-                <td><b>${c.name}</b></td>
-                <td><span class="act-badge success">${c.type}</span></td>
-                <td>${c.efficiency}%</td>
-                <td>${c.nextAudit}</td>
-                <td><button class="update-status-btn">Log</button></td>
-            </tr>
-        `).join('');
-    } catch (err) { console.error('Error loading processes:', err); }
-}
-
-async function loadMyInventory() {
-    const list = document.getElementById('employeeInventoryList');
-    if (!list) return;
-    try {
-        const items = [
-            { name: 'Packaging Box', sku: 'PB-LRG', stock: 850 },
-            { name: 'Bubble Wrap', sku: 'BW-100M', stock: 5 }
-        ];
-        list.innerHTML = items.map(c => `
-            <tr>
-                <td><b>${c.name}</b></td>
-                <td>${c.sku}</td>
-                <td><span class="act-badge ${c.stock < 10 ? 'warn' : 'success'}">${c.stock < 10 ? 'Low' : 'OK'}</span></td>
-                <td><button class="update-status-btn">Update</button></td>
-            </tr>
-        `).join('');
-    } catch (err) { console.error('Error loading inventory:', err); }
-}
-
-window.loadMyPipeline = loadMyPipeline;
-window.loadMyProcesses = loadMyProcesses;
-window.loadMyInventory = loadMyInventory;
+window.loadMyPipeline = () => loadDepartmentData('pipeline', 'employeePipelineList');
+window.loadMyProcesses = () => loadDepartmentData('processes', 'employeeProcessList');
+window.loadMyInventory = () => loadDepartmentData('inventory', 'employeeInventoryList');
 

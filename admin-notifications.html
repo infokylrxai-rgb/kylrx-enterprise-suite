@@ -23,7 +23,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text-main); }
         .dashboard-container { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: fixed; height: 100vh; }
+        .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: fixed; height: 100vh; display: flex; flex-direction: column; }
+        .sidebar-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
         .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
         .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
         .logo-text { font-size: 1.5rem; font-weight: 800; }
@@ -58,6 +59,15 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link active"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
             </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: #ef4444;">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
         </aside>
         <main class="main-content">
             <header class="header">
@@ -92,6 +102,14 @@
             </div>
         </main>
     </div>
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+        // Logout Functionality
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+    </script>
 </body>
 </html>

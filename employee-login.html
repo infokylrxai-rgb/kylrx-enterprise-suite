@@ -274,19 +274,27 @@
                   userData = demoUsers[lowercaseEmail];
                   userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
                   console.log('✅ Demo bypass (Hardcoded) successful');
-                } else if (lowercaseEmail.includes('emp') || lowercaseEmail.includes('hrflow.com')) {
-                   // Dynamic Demo Bypass for any @hrflow.com or emp-related email
+                } else if (lowercaseEmail.includes('emp') || (lowercaseEmail.includes('hrflow.com') && !lowercaseEmail.includes('mgr') && !lowercaseEmail.includes('admin'))) {
+                   // Dynamic Demo Bypass for any @hrflow.com or emp-related email (Strictly Employee)
                    userData = { 
                      name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '), 
-                     role: (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('admin')) ? 'manager' : 'employee', 
+                     role: 'employee', 
                      departmentId: lowercaseEmail.includes('marketing') ? 'marketing' : 
-                                  lowercaseEmail.includes('finance') ? 'finance' : 
-                                  lowercaseEmail.includes('engineering') ? 'engineering' : 
-                                  lowercaseEmail.includes('sales') ? 'sales' : 
-                                  lowercaseEmail.includes('operations') ? 'operations' : 'hr' 
+                                   lowercaseEmail.includes('finance') ? 'finance' : 
+                                   lowercaseEmail.includes('engineering') ? 'engineering' : 
+                                   lowercaseEmail.includes('sales') ? 'sales' : 
+                                   lowercaseEmail.includes('operations') ? 'operations' : 'hr' 
                    };
                    userData.uid = 'demo_' + Date.now();
-                   console.log('✅ Dynamic demo bypass successful');
+                   console.log('✅ Dynamic employee demo bypass successful');
+                } else if (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('admin')) {
+                   // Manager or Admin identified in Employee Portal bypass
+                   userData = { 
+                     name: email.split('@')[0], 
+                     role: lowercaseEmail.includes('admin') ? 'admin' : 'manager',
+                     departmentId: 'restricted'
+                   };
+                   userData.uid = 'demo_restricted_' + Date.now();
                 } else {
                   throw firebaseErr; 
                 }

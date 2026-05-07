@@ -51,7 +51,7 @@ router.get('/payroll', async (req, res) => {
   }
 });
 
-// Generic Fetch (Backup)
+// 4. Generic Fetch
 router.get('/fetch', async (req, res) => {
   try {
     const { collection } = req.query;
@@ -64,6 +64,43 @@ router.get('/fetch', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+});
+
+// 5. Generic Add (For Leave Requests, Task Updates, etc.)
+router.post('/add', async (req, res) => {
+  try {
+    const { collection, data } = req.body;
+    if (!collection || !data) {
+        return res.status(400).json({ success: false, message: 'Collection and data are required' });
+    }
+    
+    const docRef = await db.collection(collection).add({
+        ...data,
+        timestamp: new Date().toISOString()
+    });
+    
+    res.status(201).json({ success: true, id: docRef.id });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 6. Workforce Stats
+router.get('/stats', async (req, res) => {
+    try {
+        const empSnap = await db.collection('users').where('role', '==', 'employee').get();
+        const attendSnap = await db.collection('attendance').where('date', '==', new Date().toISOString().split('T')[0]).get();
+        const leaveSnap = await db.collection('leave_requests').where('status', '==', 'approved').get(); // Simplified
+
+        res.status(200).json({
+            success: true,
+            totalEmployees: empSnap.size,
+            presentToday: attendSnap.size,
+            onLeave: leaveSnap.size
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
 });
 
 module.exports = router;

@@ -244,17 +244,25 @@
                                 userData = demoData[lowercaseEmail];
                                 userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
                                 console.log('✅ Demo bypass (Hardcoded) successful');
-                            } else if (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('hrflow.com') || lowercaseEmail === 'admin@hrflow.com') {
-                                // Dynamic Demo Bypass
+                            } else if (lowercaseEmail.includes('.mgr@') || lowercaseEmail.includes('manager') || lowercaseEmail === 'mgr@hrflow.com') {
+                                // Dynamic Demo Bypass: ONLY for manager patterns
                                 userData = { 
                                     name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '), 
-                                    role: (lowercaseEmail === 'admin@hrflow.com') ? 'admin' : 'manager', 
+                                    role: 'manager', 
                                     departmentId: lowercaseEmail.includes('marketing') ? 'marketing' : 
                                                  lowercaseEmail.includes('finance') ? 'finance' : 
                                                  lowercaseEmail.includes('engineering') ? 'engineering' : 'hr'
                                 };
                                 userData.uid = 'demo_' + Date.now();
-                                console.log('✅ Dynamic demo bypass successful');
+                                console.log('✅ Dynamic manager demo bypass successful');
+                            } else if (lowercaseEmail === 'admin@hrflow.com') {
+                                // Admin Bypass in Manager Portal (Will be caught by role check below)
+                                userData = { name: 'System Admin', role: 'admin', departmentId: 'all' };
+                                userData.uid = 'demo_admin';
+                            } else if (lowercaseEmail.includes('emp') || (lowercaseEmail.includes('hrflow.com') && !lowercaseEmail.includes('mgr'))) {
+                                // Employee identified in Manager Portal bypass
+                                userData = { name: 'Employee User', role: 'employee', departmentId: 'general' };
+                                userData.uid = 'demo_emp_restricted';
                             } else {
                                 throw firebaseErr;
                             }
@@ -266,10 +274,10 @@
                 const role = (userData.role || '').toLowerCase();
                 const dept = (userData.departmentId || userData.department || '').toLowerCase();
 
-                // RESTRICT TO MANAGERS ONLY
+                // CRITICAL: RESTRICT TO MANAGERS ONLY
                 if (role !== 'manager') {
                     const article = ['a', 'e', 'i', 'o', 'u'].includes(role[0]) ? 'an' : 'a';
-                    const portalName = role === 'admin' ? 'Admin Portal' : 'Employee Portal';
+                    const portalName = (role === 'admin' || role === 'super admin') ? 'Admin Portal' : 'Employee Portal';
                     throw new Error(`Access Denied: You are registered as ${article} ${role}. Please log in via the ${portalName}.`);
                 }
 
