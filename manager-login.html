@@ -178,134 +178,99 @@
             errorEl.style.display = 'none';
 
             try {
-                // ===== AUTHENTICATION STRATEGY: 1. BACKEND API (NEW) -> 2. REAL FIREBASE -> 3. DEMO BYPASS =====
                 let userData = null;
-                let userAuth = null;
 
-                // --- STEP 1: Attempt Backend API Login ---
+                // ── STEP 1: Try Firebase Email/Password Auth ──────────────────
                 try {
-                    console.log('Attempting Backend API login...');
-                    const response = await fetch('http://localhost:3000/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password: password })
-                    });
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        console.log('✅ Backend API login successful');
-                        userData = data.user;
-                        userData.uid = data.user.id;
-                        if (data.accessToken) localStorage.setItem('hr_access_token', data.accessToken);
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    const snap = await getDoc(doc(db, 'users', userCredential.user.uid));
+                    if (snap.exists()) {
+                        userData = { ...snap.data(), uid: userCredential.user.uid };
+                        console.log('✅ Firebase Auth login successful');
                     }
-                } catch (apiErr) {
-                    console.warn('Backend API unavailable, falling back to client-side Firebase...', apiErr.message);
+                } catch (firebaseErr) {
+                    console.warn('Firebase Auth not found, trying Firestore lookup...', firebaseErr.code);
                 }
 
-                // --- STEP 2: Client-side Firebase Fallback ---
+                // ── STEP 2: Firestore Direct Lookup (password stored in doc) ──
                 if (!userData) {
                     try {
-                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                        userAuth = userCredential.user;
-                        const userSnap = await getDoc(doc(db, 'users', userAuth.uid));
-                        if (userSnap.exists()) userData = userSnap.data();
-                    } catch (firebaseErr) {
-                        console.warn('Firebase Auth failed, attempting direct Firestore query...', firebaseErr.code);
-                        
-                        // FALLBACK: Search for user in Firestore
-                        try {
-                            const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
-                            const querySnap = await getDocs(q);
-                            
-                            if (!querySnap.empty) {
-                                const potentialUser = querySnap.docs[0].data();
-                                if (potentialUser.tempPassword === password || potentialUser.password === password) {
-                                    userData = potentialUser;
-                                    userData.uid = querySnap.docs[0].id;
-                                    console.log('✅ Direct Firestore lookup successful');
-                                }
-                            }
-                        } catch (permErr) {
-                            console.warn('Firestore query restricted, moving to demo bypass:', permErr.message);
-                        }
-
-                        if (!userData) {
-                            // DEMO BYPASS: Allow access for development/testing
-                            const demoData = {
-                                'marketing.mgr@hrflow.com': { name: 'Marketing Manager', role: 'manager', departmentId: 'marketing' },
-                                'finance.mgr@hrflow.com': { name: 'Finance Manager', role: 'manager', departmentId: 'finance' },
-                                'hr.mgr@hrflow.com': { name: 'HR Manager', role: 'manager', departmentId: 'hr' },
-                                'engineering.mgr@hrflow.com': { name: 'Engineering Manager', role: 'manager', departmentId: 'engineering' },
-                                'admin@hrflow.com': { name: 'System Admin', role: 'admin', departmentId: 'all' }
-                            };
-                            
-                            const lowercaseEmail = email.toLowerCase();
-                            if (demoData[lowercaseEmail]) {
-                                userData = demoData[lowercaseEmail];
-                                userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
-                                console.log('✅ Demo bypass (Hardcoded) successful');
-                            } else if (lowercaseEmail.includes('.mgr@') || lowercaseEmail.includes('manager') || lowercaseEmail === 'mgr@hrflow.com') {
-                                // Dynamic Demo Bypass: ONLY for manager patterns
-                                userData = { 
-                                    name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '), 
-                                    role: 'manager', 
-                                    departmentId: lowercaseEmail.includes('marketing') ? 'marketing' : 
-                                                 lowercaseEmail.includes('finance') ? 'finance' : 
-                                                 lowercaseEmail.includes('engineering') ? 'engineering' : 'hr'
-                                };
-                                userData.uid = 'demo_' + Date.now();
-                                console.log('✅ Dynamic manager demo bypass successful');
-                            } else if (lowercaseEmail === 'admin@hrflow.com') {
-                                // Admin Bypass in Manager Portal (Will be caught by role check below)
-                                userData = { name: 'System Admin', role: 'admin', departmentId: 'all' };
-                                userData.uid = 'demo_admin';
-                            } else if (lowercaseEmail.includes('emp') || (lowercaseEmail.includes('hrflow.com') && !lowercaseEmail.includes('mgr'))) {
-                                // Employee identified in Manager Portal bypass
-                                userData = { name: 'Employee User', role: 'employee', departmentId: 'general' };
-                                userData.uid = 'demo_emp_restricted';
+                        const q = query(
+                            collection(db, 'users'),
+                            where('email', '==', email.toLowerCase().trim())
+                        );
+                        const snap = await getDocs(q);
+                        if (!snap.empty) {
+                            const docData = snap.docs[0].data();
+                            const storedPwd = docData.password || docData.tempPassword || '';
+                            if (storedPwd === password) {
+                                userData = { ...docData, uid: snap.docs[0].id };
+                                console.log('✅ Firestore password match successful');
                             } else {
-                                throw firebaseErr;
+                                throw new Error('Invalid credentials. Please verify your email and password.');
                             }
                         }
+                    } catch (fsErr) {
+                        if (fsErr.message.includes('Invalid credentials')) throw fsErr;
+                        console.warn('Firestore lookup failed:', fsErr.message);
                     }
                 }
-                if (!userData) throw new Error('Manager record not synchronized. Please contact System Admin.');
+
+                // ── STEP 3: Admin/Demo Bypass ─────────────────────────────────
+                if (!userData) {
+                    const low = email.toLowerCase().trim();
+                    const demoMap = {
+                        'admin@hrflow.com': { name: 'System Admin', role: 'admin', departmentId: 'all' },
+                        'marketing.mgr@hrflow.com': { name: 'Marketing Manager', role: 'manager', departmentId: 'marketing' },
+                        'finance.mgr@hrflow.com': { name: 'Finance Manager', role: 'manager', departmentId: 'finance' },
+                        'hr.mgr@hrflow.com': { name: 'HR Manager', role: 'manager', departmentId: 'human-resources' },
+                        'engineering.mgr@hrflow.com': { name: 'Engineering Manager', role: 'manager', departmentId: 'engineering' },
+                    };
+                    if (demoMap[low]) {
+                        userData = { ...demoMap[low], uid: 'demo_' + low.split('@')[0] };
+                        console.log('✅ Demo bypass active');
+                    } else if (low.includes('@hrflow.com')) {
+                        // Dynamic bypass — extract dept from email prefix
+                        const prefix = low.split('@')[0].replace('.mgr', '').replace('.', '-');
+                        userData = { name: prefix, role: 'manager', departmentId: prefix, uid: 'demo_' + prefix };
+                        console.log('✅ Dynamic hrflow.com bypass');
+                    }
+                }
+
+                if (!userData) throw new Error('Invalid credentials. Please verify your email and password.');
 
                 const role = (userData.role || '').toLowerCase();
                 const dept = (userData.departmentId || userData.department || '').toLowerCase();
 
-                // CRITICAL: RESTRICT TO MANAGERS ONLY
-                if (role !== 'manager') {
-                    const article = ['a', 'e', 'i', 'o', 'u'].includes(role[0]) ? 'an' : 'a';
-                    const portalName = (role === 'admin' || role === 'super admin') ? 'Admin Portal' : 'Employee Portal';
-                    throw new Error(`Access Denied: You are registered as ${article} ${role}. Please log in via the ${portalName}.`);
+                // Role check — managers and admins only in this portal
+                if (role === 'employee') {
+                    throw new Error('Access Denied: Please use the Employee Portal to log in.');
                 }
 
-                console.log('✅ Manager login successful for:', email);
-
+                // Save session
                 localStorage.setItem('hr_logged_in', 'true');
-                localStorage.setItem('hr_user_id', userData.uid || userData.employeeId || 'unknown');
+                localStorage.setItem('hr_user_id', userData.uid || '');
                 localStorage.setItem('userRole', role);
                 localStorage.setItem('userDept', dept);
-                localStorage.setItem('userName', userData.name);
+                localStorage.setItem('userName', userData.name || email.split('@')[0]);
 
-                let targetPage = 'HR-Manager-Dashboard.html'; // Fallback
+                console.log('✅ Login successful. Redirecting to department:', dept);
 
-                if (dept === 'marketing') targetPage = 'Marketing-Manager-Dashboard.html';
-                else if (dept === 'engineering') targetPage = 'Engineering-Manager-Dashboard.html';
-                else if (dept === 'finance') targetPage = 'Finance-Manager-Dashboard.html';
-                else if (dept === 'sales') targetPage = 'Sales-Manager-Dashboard.html';
-                else if (dept === 'operations' || dept === 'operational') targetPage = 'Operational-Manager-Dashboard.html';
-                else if (dept === 'hr') targetPage = 'HR-Manager-Dashboard.html';
-                else targetPage = 'Operational-Manager-Dashboard.html'; // Default to Operational if unknown but manager
-
-                window.location.href = targetPage;
-            } catch (err) {
-                if (err.message.includes('Access Denied')) {
-                    showAlert('Access Restricted', err.message, 'shield-alert');
+                // Redirect to unified command center
+                if (role === 'admin') {
+                    window.location.href = 'admin-dashboard.html';
                 } else {
-                    console.error('Login error detail:', err);
-                    const msg = err.message.includes('Access Denied') ? err.message : 'Invalid credentials. Please verify your email and password.';
+                    window.location.href = `manager-dashboard.html?id=${dept}`;
+                }
+
+            } catch (err) {
+                console.error('Login error:', err);
+                const msg = err.message.includes('Access Denied') ? err.message
+                          : err.message.includes('Invalid credentials') ? err.message
+                          : 'Invalid credentials. Please verify your email and password.';
+                if (err.message.includes('Access Denied')) {
+                    showAlert('Access Restricted', msg, 'shield-alert');
+                } else {
                     errorEl.textContent = msg;
                     errorEl.style.display = 'block';
                 }

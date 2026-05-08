@@ -2,18 +2,99 @@ import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { collection, getDocs, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-const FIREBASE_API_KEY = "AIzaSyDWD-g9jk7ybEhFx9kgA9ma9H7QJ4Axbl4";
-
 // State Management
 let state = {
     departments: [],
-    employees: []
+    employees: [],
+    activity: [],
+    config: {
+        widgets: ['stats', 'productivity', 'activity', 'payroll', 'ai-insights', 'tvc-monitor'],
+        layout: 'grid',
+        theme: 'light'
+    },
+    backendAlerted: false
 };
+
+const AVAILABLE_WIDGETS = [
+    { id: 'stats', title: 'System Overview', icon: 'activity', size: 'w-full' },
+    { id: 'productivity', title: 'Productivity Analytics', icon: 'trending-up', size: 'w-lg' },
+    { id: 'activity', title: 'Live Employee Activity', icon: 'users', size: 'w-lg' },
+    { id: 'payroll', title: 'Payroll Forecasting', icon: 'dollar-sign', size: 'w-md' },
+    { id: 'ai-insights', title: 'AI Workforce Insights', icon: 'sparkles', size: 'w-md' },
+    { id: 'tvc-monitor', title: 'TVC Alert Stream', icon: 'shield-alert', size: 'w-md' },
+    { id: 'dept-performance', title: 'Department Performance', icon: 'bar-chart', size: 'w-full' },
+    // Enterprise Analytics Widgets
+    { id: 'analytics-productivity-dept', title: 'Dept Productivity Comparison', icon: 'bar-chart-3', size: 'w-lg' },
+    { id: 'analytics-performance-trends', title: 'Employee Performance Trends', icon: 'line-chart', size: 'w-lg' },
+    { id: 'analytics-focus', title: 'Focus Consistency Analytics', icon: 'target', size: 'w-md' },
+    { id: 'analytics-payroll-impact', title: 'Payroll Impact Analysis', icon: 'pie-chart', size: 'w-md' },
+    { id: 'analytics-bonus-penalty', title: 'Bonus vs Penalty Reports', icon: 'alert-triangle', size: 'w-md' },
+    { id: 'analytics-salary-dist', title: 'Salary Distribution', icon: 'bar-chart', size: 'w-lg' },
+    { id: 'analytics-ai-predictions', title: 'Productivity Predictions', icon: 'zap', size: 'w-lg' },
+    { id: 'analytics-distraction-trends', title: 'Distraction Trends', icon: 'frown', size: 'w-md' },
+    { id: 'analytics-risk-analysis', title: 'Workforce Risk Analysis', icon: 'shield-alert', size: 'w-md' },
+    { id: 'command-center-directory', title: 'Active Command Centers', icon: 'monitor', size: 'w-full' }
+];
 
 // Initialize Dashboard
 document.addEventListener('DOMContentLoaded', () => {
+    loadConfig();
     setupEventListeners();
+    initDashboard();
 });
+
+function loadConfig() {
+    const isAnalysis = window.location.pathname.includes('admin-analysis.html');
+    const storageKey = isAnalysis ? 'hrflow_analytics_config' : 'hrflow_admin_config';
+    const saved = localStorage.getItem(storageKey);
+    
+    if (saved) {
+        state.config = JSON.parse(saved);
+    } else if (isAnalysis) {
+        // Default widgets for Analytics page
+        state.config.widgets = ['analytics-productivity-dept', 'analytics-performance-trends', 'analytics-payroll-impact', 'analytics-ai-predictions', 'analytics-focus', 'analytics-risk-analysis'];
+        state.config.layout = 'grid';
+    }
+}
+
+function initDashboard() {
+    renderWidgets();
+    renderConfigToggles();
+}
+
+function renderWidgets() {
+    const grid = document.getElementById('dashboardGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '';
+    state.config.widgets.forEach(id => {
+        const widget = AVAILABLE_WIDGETS.find(w => w.id === id);
+        if (widget) {
+            const card = document.createElement('div');
+            card.className = `widget-card ${widget.size}`;
+            card.innerHTML = `
+                <div class="widget-header">
+                    <div class="widget-title"><i data-lucide="${widget.icon}"></i> ${widget.title}</div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="icon-btn" onclick="removeWidget('${widget.id}')"><i data-lucide="x" size="14"></i></button>
+                    </div>
+                </div>
+                <div class="widget-content" id="widget-${widget.id}">
+                    <div class="notif-empty" style="padding:2rem; text-align:center;">
+                        <div class="stat-icon" style="margin: 0 auto 1rem; background: var(--primary-light); color: var(--primary);"><i data-lucide="loader"></i></div>
+                        <p style="color:var(--text-muted); font-size:0.85rem;">Connecting to real-time stream...</p>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+            populateWidgetContent(widget.id);
+        }
+    });
+    
+    if (window.lucide) lucide.createIcons();
+}
+
+const API_BASE = 'http://localhost:3000/api';
 
 // Auth Observer
 onAuthStateChanged(auth, async (user) => {
@@ -41,22 +122,356 @@ onAuthStateChanged(auth, async (user) => {
         
         loadDepartments();
         loadEmployees();
+        startWorkforceListener();
     } else {
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         if (isLoggedIn) {
-            console.log('✅ Authenticated via Local Session (API/Demo)');
             loadDepartments();
             loadEmployees();
+            startWorkforceListener();
         } else {
-            const currentFile = window.location.pathname.split('/').pop();
-            if (currentFile && currentFile !== 'index.html' && currentFile !== 'login.html') {
-                window.location.href = 'index.html';
-            }
+            window.location.href = 'index.html';
         }
     }
 });
 
-const API_BASE = 'http://localhost:3000/api';
+function populateWidgetContent(id) {
+    const container = document.getElementById(`widget-${id}`);
+    if (!container) return;
+
+    switch(id) {
+        case 'stats':
+            container.innerHTML = `
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 0;">
+                    <div class="stat-card" style="box-shadow: none; background: var(--bg-soft);">
+                        <div class="stat-icon blue"><i data-lucide="building"></i></div>
+                        <div class="stat-info"><h3>Depts</h3><p id="count-depts">0</p></div>
+                    </div>
+                    <div class="stat-card" style="box-shadow: none; background: var(--bg-soft);">
+                        <div class="stat-icon green"><i data-lucide="user-check"></i></div>
+                        <div class="stat-info"><h3>Staff</h3><p id="count-emps">0</p></div>
+                    </div>
+                    <div class="stat-card" style="box-shadow: none; background: var(--bg-soft);">
+                        <div class="stat-icon purple"><i data-lucide="shield"></i></div>
+                        <div class="stat-info"><h3>Managers</h3><p id="count-mgrs">0</p></div>
+                    </div>
+                </div>
+            `;
+            updateStats();
+            break;
+            
+        case 'activity':
+            container.innerHTML = `
+                <div class="notif-list" id="active-list" style="max-height: 250px;">
+                    <div style="padding: 1rem; text-align:center; color: var(--text-muted);">Monitoring active connections...</div>
+                </div>
+            `;
+            startActivityStream();
+            break;
+
+        case 'productivity':
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="height: 150px; background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%); border-radius: 12px; display: flex; align-items: flex-end; padding: 10px; gap: 8px;">
+                        ${[65, 80, 45, 90, 75, 85, 95].map(h => `<div style="flex:1; height:${h}%; background:var(--primary); border-radius:4px 4px 0 0;"></div>`).join('')}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                </div>
+            `;
+            break;
+
+        case 'ai-insights':
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="padding: 12px; background: var(--primary-light); border-radius: 12px; border-left: 4px solid var(--primary);">
+                        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: var(--primary);">Productivity Boost Detected</div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">Engineering team output is 12% higher than average this week.</p>
+                    </div>
+                    <div style="padding: 12px; background: rgba(245, 158, 11, 0.1); border-radius: 12px; border-left: 4px solid var(--accent);">
+                        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: var(--accent);">Focus Warning</div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">Marketing department shows a 15% increase in focus loss events.</p>
+                    </div>
+                </div>
+            `;
+            break;
+            
+        case 'tvc-monitor':
+            container.innerHTML = `
+                <div style="background: #0f172a; padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 0.75rem; color: #10b981; min-height: 120px;">
+                    <div style="margin-bottom: 5px;">[SYSTEM] Initializing TVC Data Stream...</div>
+                    <div style="margin-bottom: 5px;">[WARN] High idle time: Emp-102 (Sales)</div>
+                    <div style="margin-bottom: 5px; color: #ef4444;">[ALERT] Restricted access: User-88 (HR)</div>
+                    <div class="cursor" style="display: inline-block; width: 8px; height: 14px; background: #10b981; animation: blink 1s infinite;"></div>
+                </div>
+                <style>@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }</style>
+            `;
+            break;
+            
+        case 'analytics-productivity-dept':
+            container.innerHTML = `<canvas id="chart-${id}" style="max-height: 250px;"></canvas>`;
+            renderProductivityChart(`chart-${id}`);
+            break;
+            
+        case 'analytics-performance-trends':
+            container.innerHTML = `<canvas id="chart-${id}" style="max-height: 250px;"></canvas>`;
+            renderPerformanceTrendsChart(`chart-${id}`);
+            break;
+
+        case 'analytics-focus':
+            container.innerHTML = `<canvas id="chart-${id}" style="max-height: 250px;"></canvas>`;
+            renderFocusChart(`chart-${id}`);
+            break;
+
+        case 'analytics-payroll-impact':
+            container.innerHTML = `<canvas id="chart-${id}" style="max-height: 250px;"></canvas>`;
+            renderPayrollImpactChart(`chart-${id}`);
+            break;
+
+        case 'analytics-bonus-penalty':
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="padding:10px; background:rgba(16, 185, 129, 0.1); border-radius:8px; border-left:4px solid #10b981;">
+                        <div style="font-weight:700; font-size:0.8rem; color:#10b981;">Total Bonuses Paid</div>
+                        <div style="font-size:1.2rem; font-weight:800;">₹42,500</div>
+                    </div>
+                    <div style="padding:10px; background:rgba(239, 68, 68, 0.1); border-radius:8px; border-left:4px solid #ef4444;">
+                        <div style="font-weight:700; font-size:0.8rem; color:#ef4444;">Total Penalties Applied</div>
+                        <div style="font-size:1.2rem; font-weight:800;">₹12,800</div>
+                    </div>
+                </div>
+            `;
+            break;
+
+        case 'analytics-salary-dist':
+            container.innerHTML = `<canvas id="chart-${id}" style="max-height: 250px;"></canvas>`;
+            renderSalaryDistChart(`chart-${id}`);
+            break;
+
+        case 'analytics-ai-predictions':
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="ai-insight-item">
+                        <div class="ai-insight-title"><i data-lucide="trending-up" size="14"></i> Growth Prediction</div>
+                        <div class="ai-insight-desc">Based on current trends, workforce is projected to grow by 15% in Q3.</div>
+                    </div>
+                    <div class="ai-insight-item" style="border-left-color: var(--primary);">
+                        <div class="ai-insight-title" style="color:var(--primary);"><i data-lucide="zap" size="14"></i> Efficiency Forecast</div>
+                        <div class="ai-insight-desc">Productivity is expected to peak next month due to upcoming project milestones.</div>
+                    </div>
+                </div>
+            `;
+            break;
+
+        case 'analytics-distraction-trends':
+            container.innerHTML = `<canvas id="chart-${id}" style="max-height: 250px;"></canvas>`;
+            renderDistractionTrendsChart(`chart-${id}`);
+            break;
+
+        case 'analytics-risk-analysis':
+            container.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div class="ai-insight-item" style="border-left-color: var(--danger);">
+                        <div class="ai-insight-title" style="color:var(--danger);">Attrition Risk</div>
+                        <div class="ai-insight-desc">3 employees in Marketing show high risk of attrition based on engagement metrics.</div>
+                    </div>
+                    <div class="ai-insight-item" style="border-left-color: #f59e0b;">
+                        <div class="ai-insight-title" style="color:#f59e0b;">Burnout Warning</div>
+                        <div class="ai-insight-desc">Engineering team shows signs of potential burnout due to sustained overtime.</div>
+                    </div>
+                </div>
+            `;
+            break;
+
+        case 'command-center-directory':
+            if (!state.departments || state.departments.length === 0) {
+                container.innerHTML = '<div style="padding:3rem; text-align:center; color:var(--text-muted);">No Command Centers deployed yet.</div>';
+                break;
+            }
+            container.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; padding: 0.5rem;">
+                    ${state.departments.map(dept => {
+                        const name = dept.departmentName || dept.name || 'Unnamed Dept';
+                        const code = dept.departmentCode || 'UNIT';
+                        const icon = dept.icon || 'shield-check';
+                        const id = dept.departmentId || name.toLowerCase().replace(/\s+/g, '-');
+                        return `
+                        <div style="background: var(--bg-soft); padding: 1.5rem; border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1rem; transition: 0.3s; cursor: pointer;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 44px; height: 44px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid var(--border);">
+                                    <i data-lucide="${icon}"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; font-size: 0.95rem;">${name}</div>
+                                    <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">${code} UNIT</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 10px; font-size: 0.75rem; font-weight: 700;" onclick="window.open('manager-dashboard.html?id=${id}', '_blank')">
+                                    <i data-lucide="external-link" size="14"></i> View
+                                </button>
+                                <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 10px; font-size: 0.75rem; font-weight: 700; border-color: var(--primary); color: var(--primary);" onclick="window.location.href='manager-dashboard-builder.html?id=${id}'">
+                                    <i data-lucide="settings" size="14"></i> Edit
+                                </button>
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            break;
+            
+        default:
+            container.innerHTML = `<div style="padding: 2rem; text-align: center; color: var(--text-muted);">Content placeholder for ${id}</div>`;
+    }
+    
+    if (window.lucide) lucide.createIcons();
+}
+
+function renderConfigToggles() {
+    const container = document.getElementById('widgetToggles');
+    if (!container) return;
+    
+    container.innerHTML = AVAILABLE_WIDGETS.map(w => `
+        <div class="toggle-item ${state.config.widgets.includes(w.id) ? 'active' : ''}" onclick="toggleWidget('${w.id}', event)">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="${w.icon}" size="16"></i>
+                <span>${w.title}</span>
+            </div>
+            <label class="switch" onclick="event.stopPropagation()">
+                <input type="checkbox" ${state.config.widgets.includes(w.id) ? 'checked' : ''} onchange="toggleWidget('${w.id}', event)">
+                <span class="slider"></span>
+            </label>
+        </div>
+    `).join('');
+    
+    if (window.lucide) lucide.createIcons();
+}
+
+// Customization Actions
+window.toggleConfig = () => {
+    document.getElementById('configSidebar')?.classList.toggle('active');
+};
+
+window.toggleWidget = (id, event) => {
+    if (event) {
+        // If triggered by the checkbox change, we don't want to double toggle
+        // If triggered by the div click, we toggle
+        if (event.target.tagName === 'INPUT') {
+            // Checkbox already changed its 'checked' state
+            const isChecked = event.target.checked;
+            const index = state.config.widgets.indexOf(id);
+            if (isChecked && index === -1) {
+                state.config.widgets.push(id);
+            } else if (!isChecked && index !== -1) {
+                state.config.widgets.splice(index, 1);
+            }
+        } else {
+            // Div clicked
+            const index = state.config.widgets.indexOf(id);
+            if (index === -1) {
+                state.config.widgets.push(id);
+            } else {
+                state.config.widgets.splice(index, 1);
+            }
+        }
+    } else {
+        const index = state.config.widgets.indexOf(id);
+        if (index === -1) {
+            state.config.widgets.push(id);
+        } else {
+            state.config.widgets.splice(index, 1);
+        }
+    }
+    
+    renderWidgets();
+    renderConfigToggles();
+};
+
+window.removeWidget = (id) => {
+    state.config.widgets = state.config.widgets.filter(w => w !== id);
+    renderWidgets();
+    renderConfigToggles();
+};
+
+window.setLayout = (mode) => {
+    state.config.layout = mode;
+    const body = document.body;
+    body.classList.remove('layout-grid', 'layout-sidebar', 'layout-tv');
+    body.classList.add(`layout-${mode}`);
+    if (mode === 'tv') {
+        const welcome = document.querySelector('.welcome-text h1');
+        if (welcome) welcome.textContent = 'HRFLOW COMMAND CENTER';
+    }
+    renderWidgets();
+};
+
+window.setTheme = (theme) => {
+    state.config.theme = theme;
+    if (theme === 'glass') {
+        document.documentElement.style.setProperty('--card', 'rgba(255, 255, 255, 0.4)');
+        document.documentElement.style.setProperty('--bg', 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)');
+    } else {
+        document.documentElement.style.setProperty('--card', 'rgba(255, 255, 255, 0.8)');
+        document.documentElement.style.setProperty('--bg', '#ffffff');
+    }
+};
+
+window.togglePersonnelTable = () => {
+    const table = document.getElementById('employeeDataTable');
+    if (table) {
+        const isHidden = table.style.display === 'none';
+        table.style.display = isHidden ? 'block' : 'none';
+        if (isHidden) table.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
+window.saveDashboardConfig = () => {
+    const isAnalysis = window.location.pathname.includes('admin-analysis.html');
+    const storageKey = isAnalysis ? 'hrflow_analytics_config' : 'hrflow_admin_config';
+    localStorage.setItem(storageKey, JSON.stringify(state.config));
+    toggleConfig();
+    if (window.showSuccess) {
+        showSuccess('Layout Saved', 'Your custom configuration has been preserved.', {});
+    } else {
+        alert('Configuration Saved Successfully');
+    }
+};
+
+// Real-time Activity Stream
+function startActivityStream() {
+    const list = document.getElementById('active-list');
+    if (!list) return;
+
+    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
+        const q = query(collection(db, 'activity'), orderBy('timestamp', 'desc'), limit(10));
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                list.innerHTML = '<div style="padding: 1rem; text-align:center; color: var(--text-muted);">No recent activity detected.</div>';
+                return;
+            }
+            list.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return `
+                    <div class="notif-item">
+                        <div class="stat-icon" style="width:32px; height:32px; background:var(--primary-light); color:var(--primary); font-size: 0.7rem;">${data.userName ? data.userName[0] : 'U'}</div>
+                        <div class="notif-body">
+                            <div class="notif-text"><b>${data.userName || 'Unknown'}</b> - ${data.action || 'Active'}</div>
+                            <div class="notif-msg">${data.department || 'General'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        });
+    }).catch(err => {
+        console.warn('Firebase activity stream failed, using demo data:', err);
+        list.innerHTML = `
+            <div class="notif-item"><div class="stat-icon" style="width:32px; height:32px;">A</div><div class="notif-body"><div class="notif-text"><b>Aman Verma</b> - Coding</div><div class="notif-msg">Engineering</div></div></div>
+            <div class="notif-item"><div class="stat-icon" style="width:32px; height:32px;">P</div><div class="notif-body"><div class="notif-text"><b>Priya Sharma</b> - Meeting</div><div class="notif-msg">Marketing</div></div></div>
+        `;
+    });
+}
 
 async function loadDepartments() {
     try {
@@ -74,18 +489,51 @@ async function loadDepartments() {
             state.departments = result.data;
             updateDeptSelects();
             updateStats();
+            renderSidebarCommands();
         }
     } catch (error) {
-        console.warn('Backend unavailable, falling back to direct Firestore fetch:', error);
+        if (!state.backendAlerted) {
+            console.warn('Management API currently unreachable. Initializing decentralized cloud failover...');
+        }
         try {
             const snap = await getDocs(collection(db, 'departments'));
             state.departments = snap.docs.map(d => d.data());
             updateDeptSelects();
             updateStats();
+            renderSidebarCommands();
         } catch (fsError) {
             console.error('Failed to load departments from any source:', fsError);
         }
     }
+}
+
+function renderSidebarCommands() {
+    const container = document.getElementById('sidebar-active-commands');
+    if (!container) return;
+
+    if (!state.departments || state.departments.length === 0) {
+        container.innerHTML = '<div style="font-size:0.65rem; color:var(--text-muted); padding:0 20px; opacity:0.6;">Initializing units...</div>';
+        return;
+    }
+
+    container.innerHTML = state.departments.map(dept => {
+        const name = dept.departmentName || dept.name || 'Unnamed';
+        const id = dept.departmentId || name.toLowerCase().replace(/\s+/g, '-');
+        const icon = dept.icon || 'layout';
+        
+        return `
+            <div class="nav-item">
+                <a href="manager-dashboard.html?id=${id}" class="nav-link" style="padding: 10px 16px; font-size: 0.8rem; gap: 12px; margin: 0 4px; border-radius: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 20px; color: inherit;">
+                        <i data-lucide="${icon}" size="16"></i>
+                    </div>
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</span>
+                </a>
+            </div>
+        `;
+    }).join('');
+
+    if (window.lucide) lucide.createIcons();
 }
 
 async function loadEmployees() {
@@ -118,8 +566,11 @@ async function loadEmployees() {
             throw new Error(result.error || 'Failed to retrieve records');
         }
     } catch (error) {
-        console.warn('Backend unavailable, falling back to direct Firestore fetch:', error);
-        if (window.showAlert) window.showAlert('System Note', 'Using decentralized cloud storage as primary backend is offline.', 'info');
+        if (!state.backendAlerted) {
+            console.warn('Management API currently unreachable. Initializing decentralized cloud failover...');
+            if (window.showAlert) window.showAlert('System Note', 'Using decentralized cloud storage as primary backend is offline.', 'info');
+            state.backendAlerted = true;
+        }
         try {
             const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
             const snap = await getDocs(collection(db, 'users'));
@@ -164,10 +615,20 @@ function updateStats() {
     const deptCount = document.getElementById('count-depts');
     const empCount = document.getElementById('count-emps');
     const mgrCount = document.getElementById('count-mgrs');
+    
+    // Analytics Center specific
+    const totalWorkforce = document.getElementById('stat-total');
+    const totalPayroll = document.getElementById('stat-payroll');
 
     if (deptCount) deptCount.textContent = state.departments ? state.departments.length : 0;
     if (empCount) empCount.textContent = state.employees ? state.employees.filter(e => (e.role || '').toLowerCase() === 'employee').length : 0;
     if (mgrCount) mgrCount.textContent = state.employees ? state.employees.filter(e => (e.role || '').toLowerCase() === 'manager').length : 0;
+    
+    if (totalWorkforce) totalWorkforce.textContent = state.employees ? state.employees.length : 0;
+    if (totalPayroll) {
+        const total = state.employees ? state.employees.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) : 0;
+        totalPayroll.textContent = '₹' + Math.round(total / 12).toLocaleString(); // Monthly
+    }
 }
 
 function renderEmployeeTable(employees) {
@@ -175,49 +636,78 @@ function renderEmployeeTable(employees) {
     if (!tableBody) return;
 
     if (employees.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">No personnel found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:3rem; color:var(--text-muted);">No personnel found.</td></tr>';
         return;
     }
 
-    tableBody.innerHTML = employees.map(emp => `
+    tableBody.innerHTML = employees.map(emp => {
+        const isManager = (emp.role || '').toLowerCase() === 'manager';
+        const statusColor = emp.status === 'Suspended' ? '#ef4444' : '#10b981';
+        
+        return `
         <tr>
             <td>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; background: #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #4f46e5; font-size: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 38px; height: 38px; background: ${isManager ? 'var(--primary-light)' : '#f1f5f9'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: ${isManager ? 'var(--primary)' : '#64748b'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : '#e2e8f0'};">
                         ${emp.name ? emp.name.split(' ').map(n => n[0]).join('') : '??'}
                     </div>
                     <div>
-                        <div style="font-weight: 600;">${emp.name || 'N/A'}</div>
-                        <div style="font-size: 0.75rem; color: #64748b;">${emp.email || 'N/A'}</div>
+                        <div style="font-weight: 700; color: var(--text-main);">${emp.name || 'N/A'}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${emp.email || 'N/A'}</div>
                     </div>
                 </div>
             </td>
-            <td style="font-family: monospace; font-weight: 600;">${emp.employeeId || emp.uid || 'N/A'}</td>
-            <td><span class="badge badge-dept">${emp.departmentId || emp.department || 'N/A'}</span></td>
-            <td><span class="badge badge-role">${emp.role || 'employee'}</span></td>
-            <td style="position: relative;">
-                <div class="password-mask" style="font-family: monospace; color: var(--primary); font-size: 0.8rem; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.3s;" onmouseenter="this.innerText='${emp.tempPassword || emp.password || '••••••'}'" onmouseleave="this.innerText='••••••••'">
-                    ••••••••
+            <td style="font-family: monospace; font-weight: 700; color: var(--text-main);">${emp.employeeId || emp.uid?.substring(0,6) || 'N/A'}</td>
+            <td>
+                <div style="font-weight: 600; font-size: 0.85rem;">${emp.departmentName || emp.department || 'N/A'}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${emp.departmentId || '---'}</div>
+            </td>
+            <td>
+                <span class="badge" style="background: ${isManager ? '#fee2e2' : '#dcfce7'}; color: ${isManager ? '#ef4444' : '#10b981'}; font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">
+                    ${emp.role || 'employee'}
+                </span>
+            </td>
+            <td>
+                <div class="password-cell" style="font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; position: relative; overflow: hidden; width: fit-content; min-width: 80px; text-align: center;">
+                    <span class="masked-pwd">••••••••</span>
+                    <span class="real-pwd" style="display:none;">${emp.password || '---'}</span>
                 </div>
             </td>
-            <td style="color: #64748b;">${emp.joiningDate ? new Date(emp.joiningDate).toLocaleDateString() : 'N/A'}</td>
+            <td style="font-weight: 700; color: var(--text-main);">₹${Number(emp.salary || 0).toLocaleString()}</td>
+            <td style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                <i data-lucide="phone" size="12" style="vertical-align: middle; margin-right: 4px;"></i>
+                ${emp.phone || '---'}
+            </td>
+            <td style="color: var(--text-muted); font-size: 0.85rem;">${emp.joiningDate ? new Date(emp.joiningDate).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : '---'}</td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.75rem; color: ${statusColor};">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: ${statusColor}; display: inline-block;"></span>
+                    ${emp.status || 'Active'}
+                </div>
+            </td>
             <td>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-outline" style="padding: 6px; border-radius: 8px;" onclick="openEditModal('${emp.uid}')" title="Edit">
+                    <button class="btn btn-outline" style="padding: 8px; border-radius: 10px;" onclick="openEditModal('${emp.uid || emp.id}')" title="Edit Profile">
                         <i data-lucide="edit-3" size="14"></i>
                     </button>
-                    <button class="btn btn-outline" style="padding: 6px; border-radius: 8px; color: var(--danger); border-color: rgba(239, 68, 68, 0.2);" onclick="deleteEmployee('${emp.uid}', '${emp.name}')" title="Delete">
+                    <button class="btn btn-outline" style="padding: 8px; border-radius: 10px; color: var(--danger); border-color: rgba(239, 68, 68, 0.1);" onclick="deleteEmployee('${emp.uid || emp.id}', '${emp.name}')" title="Terminate">
                         <i data-lucide="trash-2" size="14"></i>
                     </button>
                 </div>
             </td>
         </tr>
-    `).join('');
-    
-    if (window.lucide) { lucide.createIcons(); }
+    `;}).join('');
+
+    if (window.lucide) lucide.createIcons();
 }
 
 function setupEventListeners() {
+    // Dashboard Customization
+    document.getElementById('btnCustom')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleConfig();
+    });
+
     const deptNameInput = document.getElementById('deptNameInput');
     const deptCodeInput = document.getElementById('deptCodeInput');
     
@@ -742,3 +1232,155 @@ document.querySelector('.btn-primary[onclick*="empModal"]')?.addEventListener('c
     if (form) form.reset();
 });
 
+// Real-time Workforce Listener
+function startWorkforceListener() {
+    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+        onSnapshot(collection(db, 'users'), (snapshot) => {
+            state.employees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => (u.role || '').toLowerCase() !== 'admin');
+            updateStats();
+        });
+    });
+}
+
+// Analytics Chart Rendering
+function renderProductivityChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Engineering', 'Marketing', 'Sales', 'Finance', 'HR', 'Operations'],
+            datasets: [{
+                label: 'Efficiency %',
+                data: [92, 85, 78, 94, 88, 90],
+                backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                borderRadius: 8
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+}
+
+function renderPerformanceTrendsChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
+            datasets: [{
+                label: 'Avg. Performance Score',
+                data: [82, 84, 81, 88, 90, 93],
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+function renderFocusChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Deep Work', 'Task Completion', 'App Focus', 'Consistency', 'Flow State'],
+            datasets: [{
+                label: 'Focus Consistency',
+                data: [85, 90, 75, 88, 82],
+                borderColor: '#06b6d4',
+                backgroundColor: 'rgba(6, 182, 212, 0.2)'
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+function renderPayrollImpactChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Base Salary', 'Performance Bonuses', 'Productivity Penalties'],
+            datasets: [{
+                data: [85, 10, 5],
+                backgroundColor: ['#2563eb', '#10b981', '#ef4444'],
+                borderWidth: 0
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+}
+
+function renderSalaryDistChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['₹0-25k', '₹25k-50k', '₹50k-75k', '₹75k-100k', '₹100k+'],
+            datasets: [{
+                label: 'Employees',
+                data: [12, 45, 30, 15, 5],
+                backgroundColor: 'rgba(14, 165, 233, 0.7)',
+                borderRadius: 4
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+function renderDistractionTrendsChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+            datasets: [{
+                label: 'Distraction Events',
+                data: [45, 32, 58, 24, 38],
+                borderColor: '#ef4444',
+                tension: 0.3
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+window.downloadAnalyticsCSV = () => {
+    const headers = "Metric,Value,Status,Trend";
+    const data = [
+        "Workforce Efficiency,88%,Active,Up",
+        "Payroll Utilization,92%,Stable,Neutral",
+        "Retention Rate,96.4%,Healthy,Up",
+        "Workforce Risk Index,12%,Low,Down"
+    ];
+    const csvContent = `${headers}\n${data.join('\n')}`;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `HRFlow_Enterprise_Analytics_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+// Expose internal functions needed by the widgets
+window.renderProductivityChart = renderProductivityChart;
+window.renderPerformanceTrendsChart = renderPerformanceTrendsChart;
+window.renderFocusChart = renderFocusChart;
+window.renderPayrollImpactChart = renderPayrollImpactChart;
+window.renderSalaryDistChart = renderSalaryDistChart;
+window.renderDistractionTrendsChart = renderDistractionTrendsChart;

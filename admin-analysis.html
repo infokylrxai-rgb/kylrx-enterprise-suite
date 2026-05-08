@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Analytics | HRFlow</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <title>Enterprise Analytics Center | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         // Immediate Auth Guard
         if (localStorage.getItem('hr_logged_in') !== 'true') {
@@ -18,26 +20,36 @@
     </script>
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --primary-dark: #4f46e5;
-            --secondary: #10b981;
-            --accent: #f59e0b;
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            --primary-dark: #1e40af;
+            --secondary: #0ea5e9;
+            --accent: #06b6d4;
             --danger: #ef4444;
-            --bg: #f8fafc;
+            --bg: #ffffff;
+            --bg-soft: #f8fafc;
             --sidebar: #ffffff;
-            --card: #ffffff;
+            --card: rgba(239, 246, 255, 0.7); /* Light blue analytics cards */
             --text-main: #0f172a;
             --text-muted: #64748b;
             --border: #e2e8f0;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            --radius: 16px;
+            --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --radius: 20px;
+            --glass: blur(12px);
+            --config-width: 340px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text-main); overflow-x: hidden; }
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+        }
 
         .dashboard-container { display: flex; min-height: 100vh; }
 
@@ -52,6 +64,7 @@
             position: fixed;
             height: 100vh;
             transition: all 0.3s ease;
+            z-index: 100;
         }
 
         .logo {
@@ -60,9 +73,9 @@
         }
 
         .logo-icon {
-            width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; color: var(--text-main); }
@@ -73,7 +86,7 @@
             display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none;
             color: var(--text-muted); border-radius: 12px; font-weight: 500; transition: all 0.2s ease;
         }
-        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.08); color: var(--primary); }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
 
         .sidebar-bottom {
             margin-top: auto;
@@ -82,61 +95,165 @@
         }
 
         /* Main Content Area */
-        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
+        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; transition: all 0.3s ease; }
 
         .header-actions {
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;
         }
 
-        .welcome-text h1 { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
-        .welcome-text p { color: var(--text-muted); }
+        .welcome-text h1 { 
+            font-size: 2.25rem; 
+            font-weight: 800; 
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .welcome-text p { color: var(--text-muted); font-size: 1.1rem; }
 
-        /* Stats Grid */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;
+        .btn-group { display: flex; gap: 12px; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px;
+            border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+            transition: all 0.2s; border: 1px solid transparent;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-outline { background: white; border-color: var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg-soft); border-color: var(--primary); }
+
+        /* Configuration Sidebar */
+        .config-sidebar {
+            width: var(--config-width);
+            background: white;
+            border-left: 1px solid var(--border);
+            position: fixed;
+            right: calc(-1 * var(--config-width));
+            top: 0;
+            height: 100vh;
+            z-index: 1001;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.05);
+        }
+        .config-sidebar.active { right: 0; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .config-section { margin-bottom: 2rem; }
+        .config-section h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .widget-toggle-list { display: flex; flex-direction: column; gap: 10px; }
+        .toggle-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; background: var(--bg-soft); border-radius: 12px;
+            cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+        }
+        .toggle-item:hover { border-color: var(--primary-soft); background: white; }
+        .toggle-item.active { border-color: var(--primary); background: var(--primary-light); }
+
+        .icon-btn { 
+            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+
+        /* Widget Grid */
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
         }
 
-        .stat-card {
-            background: var(--card); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 1.5rem;
+        .widget-card {
+            grid-column: span 12;
+            background: var(--card);
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+        .widget-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
 
-        .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-        .stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-        .stat-icon.green { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-        .stat-icon.purple { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
-        .stat-icon.orange { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .widget-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; color: var(--primary-dark); }
+        
+        .widget-content { flex: 1; min-height: 200px; }
 
-        .stat-info h3 { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; }
-        .stat-info p { font-size: 1.25rem; font-weight: 700; }
+        /* Widget Sizes */
+        .w-sm { grid-column: span 3; }
+        .w-md { grid-column: span 4; }
+        .w-lg { grid-column: span 6; }
+        .w-xl { grid-column: span 8; }
+        .w-full { grid-column: span 12; }
 
-        /* Chart Grid */
-        .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem; }
+        /* Stats Cards in Analytics */
+        .analytics-stats {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;
+        }
+        .stat-mini-card {
+            background: linear-gradient(135deg, #ffffff, var(--primary-light));
+            padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .stat-mini-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .stat-mini-value { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
+        .stat-mini-trend { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
 
-        .chart-card { background: var(--card); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        /* AI Insights Styling */
+        .ai-insight-item {
+            padding: 1rem; background: rgba(255, 255, 255, 0.5); border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 12px;
+        }
+        .ai-insight-title { font-weight: 700; font-size: 0.9rem; color: var(--accent); margin-bottom: 4px; }
+        .ai-insight-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; }
 
-        .chart-card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        /* TV Mode Adjustments */
+        body.layout-tv { background: #0f172a; color: white; }
+        .layout-tv .sidebar { display: none; }
+        .layout-tv .main-content { margin-left: 0; padding: 2rem; }
+        .layout-tv .widget-card { background: rgba(30, 41, 59, 0.7); border-color: rgba(255, 255, 255, 0.1); color: white; }
+        .layout-tv .widget-title { color: var(--secondary); }
+        .layout-tv .stat-mini-card { background: rgba(15, 23, 42, 0.8); border-color: rgba(255, 255, 255, 0.1); }
+        .layout-tv .stat-mini-value { color: white; }
 
-        .chart-container { position: relative; height: 300px; width: 100%; }
+        /* Switch Component */
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(18px); }
 
-        .full-width { grid-column: span 2; }
-
-        @media (max-width: 1200px) { .chart-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
-
-        @media (max-width: 1024px) {
-            .sidebar { width: 80px; padding: 1.5rem 1rem; }
+        @media (max-width: 1200px) {
+            .w-sm, .w-md, .w-lg, .w-xl { grid-column: span 6; }
+            .analytics-stats { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .w-sm, .w-md, .w-lg, .w-xl { grid-column: span 12; }
+            .analytics-stats { grid-template-columns: 1fr; }
+            .sidebar { width: 80px; padding: 1.5rem 0.75rem; }
             .logo-text, .nav-link span { display: none; }
             .main-content { margin-left: 80px; }
         }
     </style>
 </head>
-<body>
+<body class="layout-grid">
 
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
-                <div class="logo-icon"><i data-lucide="layout-dashboard"></i></div>
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
                 <span class="logo-text">HRFlow</span>
             </a>
             
@@ -150,7 +267,7 @@
                 <div class="nav-item">
                     <a href="admin-analysis.html" class="nav-link active">
                         <i data-lucide="pie-chart"></i>
-                        <span>Analytics</span>
+                        <span>Analytics Center</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -166,6 +283,12 @@
                     </a>
                 </div>
                 <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="window.location.href='admin-dashboard.html#personnel'">
+                        <i data-lucide="list"></i>
+                        <span>Personnel View</span>
+                    </a>
+                </div>
+                <div class="nav-item">
                     <a href="admin-message.html" class="nav-link">
                         <i data-lucide="mail"></i>
                         <span>Messages</span>
@@ -174,6 +297,12 @@
             </nav>
 
             <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
                 <div class="nav-item">
                     <a href="admin-settings.html" class="nav-link">
                         <i data-lucide="settings"></i>
@@ -189,252 +318,120 @@
             </div>
         </aside>
 
+        <!-- Configuration Sidebar -->
+        <aside class="config-sidebar" id="configSidebar">
+            <div class="config-header">
+                <h2>Analytics Config</h2>
+                <button class="icon-btn" onclick="toggleConfig()" style="background:none; border:none; cursor:pointer;"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="config-section">
+                <h3>Visible Widgets</h3>
+                <div class="widget-toggle-list" id="widgetToggles">
+                    <!-- Dynamic toggles from admin-app.js -->
+                </div>
+            </div>
+            
+            <div class="config-section">
+                <h3>View Mode</h3>
+                <div class="widget-toggle-list">
+                    <div class="toggle-item" onclick="setLayout('grid')">
+                        <span>Modern Grid</span>
+                        <i data-lucide="grid"></i>
+                    </div>
+                    <div class="toggle-item" onclick="setLayout('tv')">
+                        <span>TV Analytics</span>
+                        <i data-lucide="tv"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="margin-top: auto; width: 100%;" onclick="saveDashboardConfig()">
+                <i data-lucide="save"></i> Save Layout
+            </button>
+        </aside>
+
         <!-- Main Content -->
         <main class="main-content">
-            <header class="header-actions">
+            <header class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
                 <div class="welcome-text">
                     <h1>Enterprise Analytics</h1>
-                    <p>Real-time data insights and organizational trends</p>
+                    <p>Advanced organizational intelligence & productivity insights</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="icon-btn" onclick="window.location.href='admin-notifications.html'"><i data-lucide="bell"></i></button>
+                    <div class="btn-group">
+                        <button class="btn btn-outline" id="btnExportPdf">
+                            <i data-lucide="file-text"></i> PDF
+                        </button>
+                        <button class="btn btn-outline" onclick="downloadAnalyticsCSV()">
+                            <i data-lucide="download"></i> CSV
+                        </button>
+                    </div>
                 </div>
             </header>
 
-            <!-- Stats -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i data-lucide="users"></i></div>
-                    <div class="stat-info">
-                        <h3>Total Workforce</h3>
-                        <p id="stat-total">0</p>
-                    </div>
+            <!-- Real-time Stats -->
+            <div class="analytics-stats">
+                <div class="stat-mini-card">
+                    <span class="stat-mini-label">Total Workforce</span>
+                    <span class="stat-mini-value" id="stat-total">0</span>
+                    <span class="stat-mini-trend trend-up"><i data-lucide="trending-up" size="14"></i> +4.2%</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon green"><i data-lucide="banknote"></i></div>
-                    <div class="stat-info">
-                        <h3>Avg. Annual Salary</h3>
-                        <p id="stat-salary">₹0</p>
-                    </div>
+                <div class="stat-mini-card">
+                    <span class="stat-mini-label">Avg. Productivity</span>
+                    <span class="stat-mini-value" id="stat-productivity">88%</span>
+                    <span class="stat-mini-trend trend-up"><i data-lucide="trending-up" size="14"></i> +2.1%</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon purple"><i data-lucide="trending-up"></i></div>
-                    <div class="stat-info">
-                        <h3>Growth Rate</h3>
-                        <p>+12.5%</p>
-                    </div>
+                <div class="stat-mini-card">
+                    <span class="stat-mini-label">Monthly Payroll</span>
+                    <span class="stat-mini-value" id="stat-payroll">₹0</span>
+                    <span class="stat-mini-trend trend-down"><i data-lucide="trending-down" size="14"></i> -1.5%</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon orange"><i data-lucide="user-check"></i></div>
-                    <div class="stat-info">
-                        <h3>Retention Rate</h3>
-                        <p>94.2%</p>
-                    </div>
+                <div class="stat-mini-card">
+                    <span class="stat-mini-label">Retention Rate</span>
+                    <span class="stat-mini-value">96.4%</span>
+                    <span class="stat-mini-trend trend-up"><i data-lucide="trending-up" size="14"></i> +0.8%</span>
                 </div>
             </div>
 
-            <!-- Charts Row 1 -->
-            <div class="chart-grid">
-                <div class="chart-card">
-                    <h2><i data-lucide="line-chart" style="color: var(--primary);"></i> Employee Growth Trend</h2>
-                    <div class="chart-container">
-                        <canvas id="growthChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h2><i data-lucide="pie-chart" style="color: var(--secondary);"></i> Department Distribution</h2>
-                    <div class="chart-container">
-                        <canvas id="deptChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Row 2 -->
-            <div class="chart-grid">
-                <div class="chart-card full-width">
-                    <h2><i data-lucide="bar-chart-3" style="color: var(--accent);"></i> Salary Insights by Department</h2>
-                    <div class="chart-container" style="height: 400px;">
-                        <canvas id="salaryChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Row 3 -->
-            <div class="chart-grid">
-                <div class="chart-card">
-                    <h2><i data-lucide="target" style="color: var(--danger);"></i> Performance Overview</h2>
-                    <div class="chart-container">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h2><i data-lucide="briefcase" style="color: var(--primary);"></i> Hiring Sources</h2>
-                    <div class="chart-container">
-                        <canvas id="hiringChart"></canvas>
-                    </div>
-                </div>
+            <!-- Dynamic Widget Grid -->
+            <div class="widget-grid" id="dashboardGrid">
+                <!-- Widgets will be injected here by admin-app.js -->
             </div>
         </main>
     </div>
 
-    <script type="module">
-        import { auth, db } from "./firebase-config.js";
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                initAnalytics();
-            } else {
-                window.location.href = 'login.html';
-            }
-        });
-
-        async function initAnalytics() {
-            try {
-                // Logout Event Listener
-                document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    await signOut(auth);
-                    localStorage.removeItem('hr_logged_in');
-                    window.location.href = 'login.html';
-                });
-
-                const API_BASE = 'http://localhost:3000/api';
-                const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('hr_access_token');
+    <!-- Scripts -->
+    <script type="module" src="admin-app.js"></script>
+    <script>
+        // PDF Export Utility
+        window.exportAnalytics = async (type) => {
+            if (type === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const element = document.getElementById('dashboardGrid');
                 
-                let data;
-                try {
-                    const response = await fetch(`${API_BASE}/admin/analytics`, {
-                        headers: {
-                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                        }
-                    });
-                    
-                    if (!response.ok) throw new Error('Backend unreachable');
-                    const result = await response.json();
-                    data = result.data;
-                    console.log('✅ Analytics fetched from Backend API');
-                } catch (apiErr) {
-                    console.warn('Backend API failed, falling back to direct Firestore fetch:', apiErr.message);
-                    // FALLBACK: Direct Firestore fetch (same as before)
-                    const [empSnap, deptSnap] = await Promise.all([
-                        getDocs(collection(db, 'users')),
-                        getDocs(collection(db, 'departments'))
-                    ]);
-
-                    const employees = empSnap.docs.map(doc => doc.data()).filter(u => u.role !== 'admin');
-                    const departments = deptSnap.docs.map(doc => doc.data());
-                    
-                    // Manual Calculation for Fallback
-                    const deptCounts = {};
-                    const deptSalaries = {};
-                    departments.forEach(d => {
-                        const empsInDept = employees.filter(e => e.departmentId === d.departmentId);
-                        deptCounts[d.departmentName] = empsInDept.length;
-                        deptSalaries[d.departmentName] = empsInDept.length > 0 ? empsInDept.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) / empsInDept.length : 0;
-                    });
-
-                    data = {
-                        stats: {
-                            totalWorkforce: employees.length,
-                            avgSalary: employees.length > 0 ? employees.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) / employees.length : 0,
-                            growthRate: "+12.5%",
-                            retentionRate: "94.2%"
-                        },
-                        charts: {
-                            departmentDistribution: deptCounts,
-                            salaryByDepartment: deptSalaries,
-                            performance: [85, 90, 78, 82, 75, 88],
-                            hiringSources: [12, 19, 7, 5, 3]
-                        }
-                    };
-                }
-
-                // Update Stats UI
-                document.getElementById('stat-total').textContent = data.stats.totalWorkforce;
-                document.getElementById('stat-salary').textContent = '₹' + Math.round(data.stats.avgSalary).toLocaleString();
-
-                // 1. Employee Growth (Trend)
-                new Chart(document.getElementById('growthChart'), {
-                    type: 'line',
-                    data: {
-                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                        datasets: [{
-                            label: 'Workforce Size',
-                            data: [42, 48, 55, 61, 68, data.stats.totalWorkforce + 65],
-                            borderColor: '#6366f1',
-                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
+                await html2canvas(element).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps = doc.getImageProperties(imgData);
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    doc.save(`HRFlow_Analytics_Report_${new Date().toISOString().split('T')[0]}.pdf`);
                 });
-
-                // 2. Department Distribution
-                new Chart(document.getElementById('deptChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: Object.keys(data.charts.departmentDistribution),
-                        datasets: [{
-                            data: Object.values(data.charts.departmentDistribution),
-                            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-                });
-
-                // 3. Salary Insights
-                new Chart(document.getElementById('salaryChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: Object.keys(data.charts.salaryByDepartment),
-                        datasets: [{
-                            label: 'Average Annual Salary (₹)',
-                            data: Object.values(data.charts.salaryByDepartment),
-                            backgroundColor: 'rgba(245, 158, 11, 0.8)',
-                            borderRadius: 8
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                // 4. Performance Overview
-                new Chart(document.getElementById('performanceChart'), {
-                    type: 'radar',
-                    data: {
-                        labels: ['Efficiency', 'Reliability', 'Technical', 'Soft Skills', 'Leadership', 'Teamwork'],
-                        datasets: [{
-                            label: 'Company Average',
-                            data: data.charts.performance,
-                            borderColor: '#ef4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.2)'
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                // 5. Hiring Sources
-                new Chart(document.getElementById('hiringChart'), {
-                    type: 'bar',
-                    data: {
-                        labels: ['Referral', 'LinkedIn', 'Indeed', 'Internal', 'Others'],
-                        datasets: [{
-                            label: 'Hires',
-                            data: data.charts.hiringSources,
-                            backgroundColor: '#10b981',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
-                });
-
-                if (window.lucide) { lucide.createIcons(); }
-            } catch (err) {
-                console.error('Analytics Error:', err);
+            } else {
+                // CSV logic will be handled in admin-app.js for data consistency
+                if (window.downloadAnalyticsCSV) window.downloadAnalyticsCSV();
             }
-        }
+        };
+
+        // Initialize Lucide icons on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+        });
     </script>
-  <script src="status-widget.js"></script>
 </body>
 </html>
+
 

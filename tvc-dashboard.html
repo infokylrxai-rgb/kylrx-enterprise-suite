@@ -12,18 +12,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <style>
         :root {
-            --bg-base: #f1f5f9;
+            --bg-base: #f8fafc;
             --surface-bg: #ffffff;
             --surface-border: #e2e8f0;
-            --text-main: #1e293b;
+            --text-main: #0f172a;
             --text-muted: #64748b;
-            --primary: #0ea5e9;
-            --primary-glow: rgba(14, 165, 233, 0.2);
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.2);
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --offline: #cbd5e1;
-            --chart-grid: rgba(0, 0, 0, 0.05);
+            --accent: #6366f1;
+            --glass: rgba(255, 255, 255, 0.7);
+            --radius: 20px;
+        }
+
+        /* TV Mode / Dark Mode */
+        body.tv-mode {
+            --bg-base: #020617;
+            --surface-bg: rgba(15, 23, 42, 0.8);
+            --surface-border: rgba(30, 41, 59, 0.5);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass: rgba(15, 23, 42, 0.6);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.4);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,708 +44,462 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-base);
             color: var(--text-main);
-            overflow: hidden; 
+            overflow: hidden;
             height: 100vh;
+            transition: background 0.5s ease;
         }
 
-        .dashboard-container { display: flex; height: 100vh; width: 100vw; }
+        .dashboard-container { display: flex; height: 100vh; width: 100vw; position: relative; }
 
         /* Sidebar */
         .sidebar {
             width: 260px;
-            background: #ffffff;
+            background: var(--surface-bg);
             border-right: 1px solid var(--surface-border);
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
             z-index: 100;
+            backdrop-filter: blur(12px);
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 2.5rem;
-            text-decoration: none;
-            color: var(--primary);
-        }
-
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2.5rem; text-decoration: none; color: var(--primary); }
         .logo-icon {
-            width: 38px;
-            height: 38px;
-            background: linear-gradient(135deg, var(--primary), #0284c7);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2);
+            width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            color: white; box-shadow: 0 8px 16px var(--primary-glow);
         }
-
-        .logo-text { font-size: 1.25rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
 
         .nav-menu { flex: 1; list-style: none; }
-        .nav-item { margin-bottom: 0.4rem; }
+        .nav-item { margin-bottom: 0.5rem; }
         .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            text-decoration: none;
-            color: var(--text-muted);
-            border-radius: 10px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: 0.2s;
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+            text-decoration: none; color: var(--text-muted); border-radius: 12px;
+            font-weight: 600; font-size: 0.95rem; transition: 0.3s;
         }
         .nav-link:hover, .nav-link.active {
-            background: rgba(14, 165, 233, 0.08);
+            background: var(--primary-glow);
             color: var(--primary);
         }
-        .nav-link i { width: 18px; height: 18px; }
 
-        .sidebar-bottom {
-            margin-top: auto;
-            padding-top: 1rem;
-            border-top: 1px solid var(--surface-border);
+        /* Customization Sidebar (Right) */
+        .config-sidebar {
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            background: var(--surface-bg); border-left: 1px solid var(--surface-border);
+            z-index: 2000; padding: 0; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(25px); box-shadow: -15px 0 40px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column;
         }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* --- Ticker / Top Bar --- */
-        .top-bar {
-            background: #ffffff;
-            border-bottom: 2px solid var(--primary);
-            height: 54px;
-            display: flex;
-            align-items: center;
-            padding: 0 1.5rem;
-            flex-shrink: 0;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .brand {
-            font-weight: 800;
-            font-size: 1.25rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-right: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .brand span { color: var(--text-main); }
-
-        .ticker-wrap {
-            flex: 1;
-            overflow: hidden;
-            background: #f8fafc;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            position: relative;
-            border-left: 1px solid var(--surface-border);
-            border-right: 1px solid var(--surface-border);
-            border-radius: 8px;
-            margin: 8px 0;
-        }
-
-        .ticker-move {
-            display: flex;
-            white-space: nowrap;
-            padding-left: 100%;
-            animation: ticker 60s linear infinite;
-        }
-
-        @keyframes ticker {
-            0% { transform: translate3d(0, 0, 0); }
-            100% { transform: translate3d(-100%, 0, 0); }
-        }
-
-        .ticker-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0 2rem;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .ticker-item.critical { color: var(--danger); }
-        .ticker-item.warning { color: var(--warning); }
-        .ticker-item.info { color: var(--primary); }
-
-        .top-controls {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            margin-left: 2rem;
-        }
-
-        .cloud-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .cloud-status .dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--success);
-        }
-
-        .btn-sync {
-            background: #f8fafc;
-            border: 1px solid var(--surface-border);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-main);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.2s;
-        }
-
-        .btn-sync:hover { background: #f1f5f9; border-color: var(--primary); }
-
-        .clock {
-            font-family: 'Roboto Mono', monospace;
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--text-main);
-            min-width: 85px;
-        }
-
-        /* --- Main Layout Grid --- */
-        .main-layout {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            grid-template-rows: 1fr 100px;
-            gap: 1rem;
-            padding: 1rem;
-            overflow: hidden;
-        }
-
-        .panel {
+        .config-sidebar.active { right: 0; }
+        .config-inner { flex: 1; overflow-y: auto; padding: 2rem; }
+        .config-header { 
+            padding: 1.5rem 2rem; border-bottom: 1px solid var(--surface-border);
+            display: flex; justify-content: space-between; align-items: center; 
             background: var(--surface-bg);
+        }
+        .config-section { margin-bottom: 2.5rem; }
+        .config-section h3 { 
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; 
+            color: var(--primary); margin-bottom: 1.25rem; font-weight: 800;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .config-option { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 1.25rem; padding: 0.75rem; background: var(--bg-base);
+            border-radius: 12px; border: 1px solid var(--surface-border);
+        }
+        .config-option span { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+        
+        .range-slider { width: 100%; margin-top: 8px; }
+        .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .theme-btn { 
+            padding: 12px; border-radius: 10px; border: 1px solid var(--surface-border);
+            background: var(--surface-bg); cursor: pointer; font-size: 0.8rem; font-weight: 700;
+            transition: 0.3s; text-align: center;
+        }
+        .theme-btn.active { border-color: var(--primary); background: var(--primary-glow); color: var(--primary); }
+        
+        /* Main Layout */
+        .main-content {
+            flex: 1; display: flex; flex-direction: column; overflow: hidden;
+            position: relative; padding: 1.5rem; gap: 1.5rem;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 1rem; border-bottom: 1px solid var(--surface-border);
+        }
+        .ticker-wrap {
+            flex: 1; margin: 0 2rem; overflow: hidden; background: var(--surface-bg);
+            border-radius: 12px; height: 44px; display: flex; align-items: center;
             border: 1px solid var(--surface-border);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .ticker-move { display: flex; white-space: nowrap; animation: ticker 40s linear infinite; }
+        @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+        .ticker-item { padding: 0 2rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+        /* Widget Grid */
+        .widget-grid {
+            flex: 1; display: grid; grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(6, 1fr); gap: 1.5rem; overflow: hidden;
         }
 
-        .panel-header {
-            padding: 0.75rem 1.25rem;
-            background: #f8fafc;
-            border-bottom: 1px solid var(--surface-border);
-            font-size: 0.8rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .panel-content {
-            flex: 1;
-            padding: 1.25rem;
+        .widget {
+            background: var(--surface-bg); border: 1px solid var(--surface-border);
+            border-radius: var(--radius); padding: 1.5rem; display: flex;
+            flex-direction: column; backdrop-filter: blur(8px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             position: relative;
         }
+        .widget:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.05); }
+        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+        .widget-title { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+        .widget-content { flex: 1; position: relative; }
 
-        /* --- Center Stage: Rotating Views --- */
-        .center-stage {
-            grid-column: 1 / 2;
-            grid-row: 1 / 2;
+        /* Specific Widgets */
+        .w-large { grid-column: span 8; grid-row: span 4; }
+        .w-medium { grid-column: span 4; grid-row: span 3; }
+        .w-small { grid-column: span 4; grid-row: span 2; }
+        .w-wide { grid-column: span 8; grid-row: span 2; }
+        .w-full { grid-column: span 12; grid-row: span 2; }
+
+        /* AI Panels */
+        .ai-indicator {
+            width: 12px; height: 12px; border-radius: 50%;
+            background: var(--success); position: relative;
         }
-
-        .view-section {
-            display: none;
-            height: 100%;
-            animation: fadeIn 0.4s ease-out;
+        .ai-indicator::after {
+            content: ''; position: absolute; inset: -4px; border-radius: 50%;
+            border: 2px solid var(--success); animation: pulse 2s infinite;
         }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
 
-        .view-section.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Workforce Grid */
-        .workforce-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1rem;
+        /* TV Mode Overrides */
+        body.tv-mode .widget {
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.05);
         }
+        body.tv-mode .logo-icon { box-shadow: 0 0 20px var(--primary); }
 
-        .wf-card {
-            background: #ffffff;
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Alert Overlay */
+        .emergency-overlay {
+            position: fixed; inset: 0; background: rgba(239, 68, 68, 0.9);
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+            color: white; flex-direction: column; gap: 2rem;
+            backdrop-filter: blur(10px); animation: flash 1s infinite alternate;
+        }
+        @keyframes flash { from { opacity: 0.8; } to { opacity: 1; } }
+
+        .btn {
+            padding: 10px 20px; border-radius: 12px; border: none; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
+        }
+        .icon-btn { 
+            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+        .btn-outline { background: transparent; border: 1px solid var(--surface-border); color: var(--text-main); }
+        .btn-primary { background: var(--primary); color: white; }
+
+        /* Charts */
+        .chart-container { height: 100%; width: 100%; }
+        
+        /* Workforce Cards */
+        .wf-grid-mini { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+        .wf-card-mini {
+            padding: 1rem; border-radius: 12px; background: var(--bg-base);
             border: 1px solid var(--surface-border);
-            border-radius: 10px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            transition: all 0.3s;
         }
-
-        .wf-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-
-        .wf-head { display: flex; justify-content: space-between; align-items: flex-start; }
-        .wf-name { font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
-        .wf-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
-        
-        .wf-status-badge {
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-        }
-
-        .wf-card[data-status="Active"] .wf-status-badge { background: #dcfce7; color: #16a34a; }
-        .wf-card[data-status="Away"] .wf-status-badge { background: #fef3c7; color: #d97706; }
-        .wf-card[data-status="Idle"] .wf-status-badge { background: #f1f5f9; color: #64748b; }
-
-        .wf-metrics {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-            font-family: 'Roboto Mono', monospace;
-        }
-
-        .wf-metrics div { font-size: 0.75rem; font-weight: 700; }
-        .wf-metrics span { display: block; font-size: 0.6rem; color: var(--text-muted); font-weight: 500; }
-
-        /* Finance View */
-        .finance-view {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto 1fr;
-            gap: 1.5rem;
-            height: 100%;
-        }
-
-        .fin-stat-cards {
-            grid-column: 1 / 3;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-        }
-
-        .fin-card {
-            background: #f8fafc;
-            border: 1px solid var(--surface-border);
-            padding: 1.25rem;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .fin-card-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-        .fin-card-value { font-size: 1.5rem; font-weight: 800; color: var(--text-main); font-family: 'Roboto Mono', monospace;}
-
-        .fin-chart-container {
-            background: #ffffff;
-            border: 1px solid var(--surface-border);
-            border-radius: 12px;
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Alerts View */
-        .alerts-view {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            height: 100%;
-            overflow-y: auto;
-        }
-
-        .alert-row {
-            display: grid;
-            grid-template-columns: 100px 80px 1fr;
-            gap: 1rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 0.8rem;
-            align-items: center;
-        }
-
-        .alert-row.critical { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
-        .alert-row.warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
-        .alert-row.info { background: #e0f2fe; border: 1px solid #bae6fd; color: #075985; }
-
-        .al-time { font-weight: 700; opacity: 0.7; }
-        .al-type { font-weight: 800; text-transform: uppercase; }
-        .al-msg { font-weight: 500; }
-
-        /* --- Right Panel: Dept Efficiency --- */
-        .right-panel {
-            grid-column: 2 / 3;
-            grid-row: 1 / 2;
-        }
-
-        .dept-stats {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            height: 100%;
-        }
-
-        .dept-row {
-            background: #ffffff;
-            padding: 1.25rem;
-            border-radius: 8px;
-            border: 1px solid var(--surface-border);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-        }
-        .dept-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; color: var(--text-main);}
-        
-        .prod-bar-bg { width: 100%; height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; margin-bottom: 10px;}
-        .prod-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
-        
-        .dept-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); font-weight: 600;}
-
-        /* --- Bottom: AI Insights --- */
-        .bottom-panel {
-            grid-column: 1 / 2;
-            grid-row: 2 / 3;
-            border-color: #bae6fd;
-            background: #f0f9ff;
-        }
-
-        .insight-container {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-            height: 100%;
-        }
-
-        .insight-icon {
-            width: 54px;
-            height: 54px;
-            background: #ffffff;
-            color: var(--primary);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1);
-            animation: pulse-glow-light 2s infinite alternate;
-        }
-        
-        @keyframes pulse-glow-light {
-            from { box-shadow: 0 0 0 rgba(14, 165, 233, 0); }
-            to { box-shadow: 0 0 15px rgba(14, 165, 233, 0.3); }
-        }
-
-        .insight-text {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .insight-label { font-size: 0.8rem; text-transform: uppercase; color: #0284c7; font-weight: 800; letter-spacing: 1px; }
-        .insight-msg { font-size: 1.15rem; font-weight: 600; line-height: 1.4; color: #0f172a;}
-
-        /* Screen Flash for Critical Alerts */
-        .screen-flash {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(239, 68, 68, 0.05); pointer-events: none; z-index: 9999;
-            display: none; animation: flash 1s infinite alternate;
-            box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.2);
-        }
-
-        @keyframes flash { from { opacity: 0.2; } to { opacity: 1; } }
-        
-        /* View indicator */
-        .view-indicators { display: flex; gap: 8px; }
-        .v-dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; transition: 0.3s; }
-        .v-dot.active { background: var(--primary); box-shadow: 0 0 8px rgba(14,165,233,0.5); }
-
-        @keyframes anomaly-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-        .anomaly-pulse {
-            animation: anomaly-pulse 2s infinite;
-            border-color: var(--danger) !important;
-        }
-
-        /* Custom Access Denied Modal Styles */
-        .custom-modal-overlay {
-          position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
-          display: none; align-items: center; justify-content: center; z-index: 99999;
-        }
-        .custom-modal-box {
-          background: #ffffff; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 420px;
-          text-align: center; box-shadow: 0 25px 50px -12px rgba(239, 68, 68, 0.25);
-          border: 1px solid #fee2e2; animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes modalScaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .custom-modal-icon {
-          width: 64px; height: 64px; background: #fef2f2; color: #ef4444; border-radius: 20px;
-          display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.5rem;
-        }
-        .custom-modal-box h2 { color: #0f172a; font-size: 1.5rem; margin-bottom: 0.75rem; font-weight: 700; }
-        .custom-modal-box p { color: #64748b; font-size: 1rem; line-height: 1.6; margin-bottom: 2rem; }
-        .btn-confirm {
-          background: var(--danger); color: #fff; border: none; padding: 0.75rem 2rem;
-          border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
-        .btn-confirm:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .wf-card-mini .name { font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; }
+        .wf-card-mini .stat { font-size: 0.7rem; color: var(--text-muted); }
 
     </style>
 </head>
 <body>
-
-    <div class="screen-flash" id="screenFlash"></div>
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <i data-lucide="alert-octagon" size="80"></i>
+        <h1 style="font-size: 3rem; font-weight: 900;">EMERGENCY LOCKDOWN ACTIVE</h1>
+        <p style="font-size: 1.2rem;">All non-critical system access has been suspended by Administration.</p>
+        <button class="btn btn-outline" style="color: white; border-color: white;" onclick="toggleEmergency(false)">Dismiss (Admin Only)</button>
+    </div>
 
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <a href="index.html" class="logo">
-                <div class="logo-icon"><i data-lucide="shield-check"></i></div>
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
                 <span class="logo-text">HRFlow</span>
             </a>
             
             <nav class="nav-menu">
-                <div class="nav-item">
-                    <a href="admin-dashboard.html" class="nav-link">
-                        <i data-lucide="users"></i>
-                        <span>Admin Console</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-analysis.html" class="nav-link">
-                        <i data-lucide="pie-chart"></i>
-                        <span>Analytics</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="tvc-dashboard.html" class="nav-link active">
-                        <i data-lucide="monitor-play"></i>
-                        <span>TVC Monitor</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-notifications.html" class="nav-link">
-                        <i data-lucide="bell"></i>
-                        <span>Notifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-message.html" class="nav-link">
-                        <i data-lucide="mail"></i>
-                        <span>Messages</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link active"><i data-lucide="monitor-play"></i><span>TVC Monitor</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-dashboard.html#personnel'"><i data-lucide="list"></i><span>Personnel View</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
             </nav>
 
             <div class="sidebar-bottom">
-                <div class="nav-item">
-                    <a href="admin-settings.html" class="nav-link">
-                        <i data-lucide="settings"></i>
-                        <span>Settings</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
-                        <i data-lucide="log-out"></i>
-                        <span>Logout</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="#" class="nav-link" id="btnCustom"><i data-lucide="layout"></i><span>Customize Layout</span></a></div>
+                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);"><i data-lucide="log-out"></i><span>Logout</span></a></div>
             </div>
         </aside>
 
-        <main class="main-content">
-            <!-- Ticker Top Bar -->
-            <div class="top-bar">
-                <div class="brand">
-                    <i data-lucide="server" size="20"></i> HRFlow <span>TVC</span>
+        <!-- Configuration Sidebar -->
+        <div class="config-sidebar" id="configSidebar">
+            <div class="config-header">
+                <div>
+                    <h2 style="font-weight: 900; font-size: 1.25rem;">TVC Control Panel</h2>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">ENTERPRISE COMMAND CENTER v2.0</p>
                 </div>
-                <div class="ticker-wrap">
-                    <div class="ticker-move" id="tickerContent">
-                        <div class="ticker-item info"><i data-lucide="info" size="14"></i> System initializing...</div>
-                    </div>
-                </div>
-                <div class="top-controls">
-                    <div class="cloud-status"><div class="dot"></div> Firebase Connected</div>
-                    <button id="btnSyncDatabase" class="btn-sync">
-                        <i data-lucide="cloud-lightning" size="14"></i> Sync Cloud
-                    </button>
-                    <button id="btnFullscreen" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer;">
-                        <i data-lucide="maximize" size="18"></i>
-                    </button>
-                    <div class="clock" id="sysClock">00:00:00</div>
-                </div>
+                <button class="btn-outline" style="border:none; cursor:pointer; background:transparent;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
             </div>
 
-            <!-- Main Layout -->
-            <div class="main-layout">
-                
-                <!-- Center Stage (Rotating Views) -->
-                <div class="panel center-stage">
-                    <div class="panel-header">
-                        <span id="centerStageTitle"><i data-lucide="users" size="16" style="vertical-align:text-bottom;margin-right:6px;"></i> Live Workforce Monitor</span>
-                        <div class="view-indicators">
-                            <div class="v-dot active" id="dot-0"></div>
-                            <div class="v-dot" id="dot-1"></div>
-                            <div class="v-dot" id="dot-2"></div>
-                            <div class="v-dot" id="dot-3"></div>
-                        </div>
+            <div class="config-inner">
+                <div class="config-section">
+                    <h3><i data-lucide="palette" size="14"></i> Visual Interface</h3>
+                    <div class="theme-grid">
+                        <div class="theme-btn active" onclick="setTheme('default')">Enterprise Light</div>
+                        <div class="theme-btn" onclick="setTheme('tv-dark')">TV Dark Mode</div>
+                        <div class="theme-btn" onclick="setTheme('neon-glass')">Neon Glass</div>
+                        <div class="theme-btn" onclick="setTheme('minimal')">Minimal Pro</div>
                     </div>
-                    <div class="panel-content">
-                        
-                        <!-- View 0: Workforce -->
-                        <div class="view-section active" id="view-workforce">
-                            <div class="workforce-grid" id="wfGrid">
-                                <!-- Populated by JS -->
-                                <div style="color:var(--text-muted); font-family:monospace;">Awaiting telemetry data...</div>
-                            </div>
-                        </div>
-
-                        <!-- View: Marketing -->
-                        <div class="view-section" id="view-marketing">
-                            <div class="finance-view">
-                                <div class="fin-stat-cards">
-                                    <div class="fin-card">
-                                        <span class="fin-card-label">Active Campaigns</span>
-                                        <span class="fin-card-value" style="color:var(--primary)" id="mktStatCampaigns">0</span>
-                                    </div>
-                                    <div class="fin-card">
-                                        <span class="fin-card-label">Total Leads</span>
-                                        <span class="fin-card-value" style="color:var(--success)" id="mktStatLeads">0</span>
-                                    </div>
-                                    <div class="fin-card">
-                                        <span class="fin-card-label">Conversion Rate</span>
-                                        <span class="fin-card-value" style="color:var(--warning)" id="mktStatConv">0%</span>
-                                    </div>
-                                    <div class="fin-card">
-                                        <span class="fin-card-label">Avg ROI</span>
-                                        <span class="fin-card-value" id="mktStatROI">0%</span>
-                                    </div>
-                                </div>
-                                <div class="fin-chart-container" style="grid-column: 1 / 3;">
-                                    <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Active Pipeline</div>
-                                    <div class="workforce-grid" id="mktCampaignsGrid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
-                                        <!-- Populated by JS -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- View 1: Finance -->
-                        <div class="view-section" id="view-finance">
-                            <div class="finance-view">
-                                <div class="fin-stat-cards">
-                                    <div class="fin-card">
-                                        <span class="fin-card-label">Total Payroll (YTD)</span>
-                                        <span class="fin-card-value" style="color:var(--primary)" id="finPayroll">$0.00</span>
-                                    </div>
-                                    <div class="fin-card">
-                                        <span class="fin-card-label">OpEx (Monthly)</span>
-                                        <span class="fin-card-value" style="color:var(--warning)" id="finOpex">$0.00</span>
-                                    </div>
-                                    <div class="fin-card">
-                                        <span class="fin-card-label">Revenue (Q1)</span>
-                                        <span class="fin-card-value" style="color:var(--success)" id="finRev">$0.00</span>
-                                    </div>
-                                    <div class="fin-card">
-                                        <span class="fin-card-label">Budget Burn Rate</span>
-                                        <span class="fin-card-value" style="color:var(--danger)" id="finBurn">0%</span>
-                                    </div>
-                                </div>
-                                <div class="fin-chart-container">
-                                    <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Department Spend</div>
-                                    <div style="flex:1; position:relative;"><canvas id="spendChart"></canvas></div>
-                                </div>
-                                <div class="fin-chart-container">
-                                    <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; font-weight: 600;">Cash Flow Trend</div>
-                                    <div style="flex:1; position:relative;"><canvas id="trendChart"></canvas></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- View 2: Alerts -->
-                        <div class="view-section" id="view-alerts">
-                            <div class="alerts-view" id="alertsGrid">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-
+                    <div class="config-option" style="margin-top: 1rem;">
+                        <span>Glassmorphism Effects</span>
+                        <label class="switch"><input type="checkbox" id="checkGlass" checked><span class="slider"></span></label>
                     </div>
                 </div>
 
-                <!-- Right Panel: Dept Stats -->
-                <div class="panel right-panel">
-                    <div class="panel-header"><i data-lucide="bar-chart-2" size="16" style="vertical-align:text-bottom;margin-right:6px;"></i> Dept Efficiency</div>
-                    <div class="panel-content" style="overflow-y:auto;" id="deptStatsContainer">
-                        <!-- Populated by JS -->
+                <div class="config-section">
+                    <h3><i data-lucide="brain" size="14"></i> AI/ML Sensitivity</h3>
+                    <div style="padding: 1rem; background: var(--bg-base); border-radius: 12px; border: 1px solid var(--surface-border);">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;">
+                            <span>Risk Threshold</span>
+                            <span id="labelRisk">40%</span>
+                        </div>
+                        <input type="range" class="range-slider" min="10" max="90" value="40" oninput="updateLabel('labelRisk', this.value)">
+                        <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Determines when a workforce risk alert is triggered.</p>
+                    </div>
+                    <div style="padding: 1rem; background: var(--bg-base); border-radius: 12px; border: 1px solid var(--surface-border); margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;">
+                            <span>Burnout Detection</span>
+                            <span id="labelBurnout">70%</span>
+                        </div>
+                        <input type="range" class="range-slider" min="30" max="100" value="70" oninput="updateLabel('labelBurnout', this.value)">
                     </div>
                 </div>
 
-                <!-- Bottom Panel: AI Insights -->
-                <div class="panel bottom-panel">
-                    <div class="panel-content">
-                        <div class="insight-container">
-                            <div class="insight-icon"><i data-lucide="brain-circuit" size="28"></i></div>
-                            <div class="insight-text">
-                                <span class="insight-label">AI Predictive Insight Engine</span>
-                                <span class="insight-msg" id="aiInsightText">Analyzing real-time organizational telemetry to generate insights...</span>
-                            </div>
+                <div class="config-section">
+                    <h3><i data-lucide="layout" size="14"></i> Widget Management</h3>
+                    <div class="config-option"><span>Workforce Monitor</span><label class="switch"><input type="checkbox" checked data-widget="wf"><span class="slider"></span></label></div>
+                    <div class="config-option"><span>AI Prediction Node</span><label class="switch"><input type="checkbox" checked data-widget="ai"><span class="slider"></span></label></div>
+                    <div class="config-option"><span>Financial Intelligence</span><label class="switch"><input type="checkbox" checked data-widget="payroll"><span class="slider"></span></label></div>
+                    <div class="config-option"><span>Behavioral Security</span><label class="switch"><input type="checkbox" checked data-widget="alerts"><span class="slider"></span></label></div>
+                </div>
+
+                <div class="config-section">
+                    <h3><i data-lucide="refresh-cw" size="14"></i> Rotation Engine</h3>
+                    <div class="config-option">
+                        <span>Auto-Rotation</span>
+                        <label class="switch"><input type="checkbox" id="checkRotate" checked><span class="slider"></span></label>
+                    </div>
+                    <div style="padding: 1rem; background: var(--bg-base); border-radius: 12px; border: 1px solid var(--surface-border);">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;">
+                            <span>Cycle Interval</span>
+                            <span><span id="labelInterval">15</span>s</span>
+                        </div>
+                        <input type="range" class="range-slider" min="5" max="60" value="15" oninput="updateLabel('labelInterval', this.value)">
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3><i data-lucide="shield-check" size="14"></i> Security & Compliance</h3>
+                    <div class="config-option"><span>Audio Alerts</span><label class="switch"><input type="checkbox" checked id="checkAudio"><span class="slider"></span></label></div>
+                    <div class="config-option"><span>Screen Flash Warning</span><label class="switch"><input type="checkbox" checked id="checkFlash"><span class="slider"></span></label></div>
+                    <button class="btn btn-outline" style="width: 100%; color: var(--danger); border-color: var(--danger); margin-top: 1rem;" onclick="toggleEmergency(true)">
+                        <i data-lucide="alert-octagon"></i> ENABLE EMERGENCY LOCKDOWN
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="ai-indicator"></div>
+                    <div>
+                        <h1 style="font-size: 1.25rem; font-weight: 800;">Enterprise Command Center</h1>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;" id="aiInsightText">Analyzing real-time organizational telemetry...</p>
+                    </div>
+                </div>
+
+                <div class="ticker-wrap">
+                    <div class="ticker-move" id="tickerContent">
+                        <div class="ticker-item"><i data-lucide="info"></i> System Operational: All AI nodes connected.</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div style="text-align: right;">
+                        <div style="font-family: 'Roboto Mono', monospace; font-weight: 800; font-size: 1.1rem;" id="sysClock">00:00:00</div>
+                        <div style="font-size: 0.65rem; color: var(--success); font-weight: 800; text-transform: uppercase;">Cloud Verified</div>
+                    </div>
+                    <button class="icon-btn" onclick="window.location.href='admin-notifications.html'"><i data-lucide="bell"></i></button>
+                    <button class="btn btn-outline" id="btnFullscreen"><i data-lucide="maximize"></i></button>
+                </div>
+            </header>
+
+            <div class="widget-grid" id="mainWidgetGrid">
+                <!-- Workforce Monitor (W-LARGE) -->
+                <div class="widget w-large" data-id="wf">
+                    <div class="widget-header">
+                        <div class="widget-title">Live Workforce Telemetry</div>
+                        <div class="view-indicators" id="viewDots"></div>
+                    </div>
+                    <div class="widget-content" style="overflow-y: auto;">
+                        <div class="wf-grid-mini" id="wfGrid">
+                            <!-- Telemetry Data -->
                         </div>
                     </div>
                 </div>
 
+                <!-- AI Predictive Insights (W-MEDIUM) -->
+                <div class="widget w-medium" data-id="ai">
+                    <div class="widget-header">
+                        <div class="widget-title">AI Predictive Intelligence</div>
+                        <i data-lucide="brain-circuit" style="color: var(--accent)"></i>
+                    </div>
+                    <div class="widget-content">
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;">
+                                    <span>Burnout Probability</span>
+                                    <span id="burnoutVal">0%</span>
+                                </div>
+                                <div class="prod-bar-bg" style="height: 8px;"><div class="prod-bar-fill" id="burnoutBar" style="width: 0%; background: var(--warning);"></div></div>
+                            </div>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;">
+                                    <span>Workforce Risk Score</span>
+                                    <span id="riskVal">Low</span>
+                                </div>
+                                <div class="prod-bar-bg" style="height: 8px;"><div class="prod-bar-fill" id="riskBar" style="width: 20%; background: var(--success);"></div></div>
+                            </div>
+                            <div style="background: var(--bg-base); padding: 1rem; border-radius: 12px; border: 1px solid var(--surface-border);">
+                                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 4px;">ML PREDICTION</div>
+                                <p style="font-size: 0.85rem; font-weight: 600;" id="predictionText">Productivity trend is stable for the next 4 hours.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dept Efficiency (W-SMALL) -->
+                <div class="widget w-small" data-id="dept">
+                    <div class="widget-header">
+                        <div class="widget-title">Dept Efficiency</div>
+                        <i data-lucide="bar-chart-3" style="color: var(--primary)"></i>
+                    </div>
+                    <div class="widget-content" id="deptStatsContainer" style="overflow-y: auto;">
+                        <!-- Dept Rows -->
+                    </div>
+                </div>
+
+                <!-- Payroll Analytics (W-MEDIUM) -->
+                <div class="widget w-medium" data-id="payroll">
+                    <div class="widget-header">
+                        <div class="widget-title">Payroll Intelligence</div>
+                        <i data-lucide="banknote" style="color: var(--success)"></i>
+                    </div>
+                    <div class="widget-content">
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div style="font-size: 1.25rem; font-weight: 800;" id="finPayroll">$0k</div></div>
+                                <div style="text-align: right;"><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">BURN RATE</div><div style="font-size: 1.25rem; font-weight: 800; color: var(--danger);" id="finBurn">0%</div></div>
+                            </div>
+                            <div style="height: 100px; width: 100%;"><canvas id="spendChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts & Security (W-WIDE) -->
+                <div class="widget w-wide" data-id="alerts">
+                    <div class="widget-header">
+                        <div class="widget-title">Security & Behavior Logs</div>
+                        <span class="badge" style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.6rem;">LIVE</span>
+                    </div>
+                    <div class="widget-content" style="overflow-y: auto;" id="alertsGrid">
+                        <!-- Alert Rows -->
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- Audio for critical alerts (optional) -->
+    <div class="screen-flash" id="screenFlash"></div>
     <audio id="alertSound" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-back-2575.mp3" preload="auto"></audio>
 
-    <div id="accessDeniedModal" class="custom-modal-overlay">
-      <div class="custom-modal-box">
-        <div class="custom-modal-icon"><i data-lucide="shield-alert"></i></div>
-        <h2>Access Restricted</h2>
-        <p>Enterprise Command Center is restricted to operations personnel only. You are being redirected.</p>
-        <button id="btnConfirmAccessDenied" class="btn-confirm">Understood</button>
-      </div>
-    </div>
-
-    <script type="module" src="tvc-hrms-engine.js"></script>
-    <script type="module" src="tvc-hrms-ui.js"></script>
     <script type="module" src="tvc-app.js"></script>
-    <script>if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }</script>
+    <script>
+        window.toggleConfig = (show) => document.getElementById('configSidebar').classList.toggle('active', show);
+        window.toggleEmergency = (show) => document.getElementById('emergencyOverlay').style.display = show ? 'flex' : 'none';
+        window.updateLabel = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val + (id === 'labelInterval' ? '' : '%');
+            // Notify app logic of changes if needed
+            if (id === 'labelInterval') window.updateRotationInterval(val);
+        };
+        
+        window.setTheme = (theme) => {
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.body.className = ''; // Reset
+            if (theme === 'tv-dark') document.body.classList.add('tv-mode');
+            if (theme === 'neon-glass') {
+                document.body.classList.add('tv-mode');
+                document.documentElement.style.setProperty('--primary', '#22d3ee');
+                document.documentElement.style.setProperty('--accent', '#a855f7');
+            } else {
+                document.documentElement.style.removeProperty('--primary');
+                document.documentElement.style.removeProperty('--accent');
+            }
+        };
+
+        document.getElementById('btnCustom').onclick = () => toggleConfig(true);
+        
+        // Widget Visibility
+        document.querySelectorAll('.config-sidebar input[data-widget]').forEach(input => {
+            input.onchange = (e) => {
+                const id = e.target.getAttribute('data-widget');
+                const widget = document.querySelector(`.widget[data-id="${id}"]`);
+                if (widget) widget.style.display = e.target.checked ? 'flex' : 'none';
+            }
+        });
+
+        document.getElementById('checkGlass').onchange = (e) => {
+            document.querySelectorAll('.widget').forEach(w => {
+                w.style.backdropFilter = e.target.checked ? 'blur(8px)' : 'none';
+            });
+        };
+
+        if (window.lucide) lucide.createIcons();
+    </script>
 </body>
 </html>

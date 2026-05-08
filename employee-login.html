@@ -273,28 +273,17 @@
                 if (demoUsers[lowercaseEmail]) {
                   userData = demoUsers[lowercaseEmail];
                   userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
-                  console.log('✅ Demo bypass (Hardcoded) successful');
-                } else if (lowercaseEmail.includes('emp') || (lowercaseEmail.includes('hrflow.com') && !lowercaseEmail.includes('mgr') && !lowercaseEmail.includes('admin'))) {
-                   // Dynamic Demo Bypass for any @hrflow.com or emp-related email (Strictly Employee)
-                   userData = { 
-                     name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '), 
-                     role: 'employee', 
-                     departmentId: lowercaseEmail.includes('marketing') ? 'marketing' : 
-                                   lowercaseEmail.includes('finance') ? 'finance' : 
-                                   lowercaseEmail.includes('engineering') ? 'engineering' : 
-                                   lowercaseEmail.includes('sales') ? 'sales' : 
-                                   lowercaseEmail.includes('operations') ? 'operations' : 'hr' 
-                   };
-                   userData.uid = 'demo_' + Date.now();
-                   console.log('✅ Dynamic employee demo bypass successful');
-                } else if (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('admin')) {
-                   // Manager or Admin identified in Employee Portal bypass
-                   userData = { 
-                     name: email.split('@')[0], 
-                     role: lowercaseEmail.includes('admin') ? 'admin' : 'manager',
-                     departmentId: 'restricted'
-                   };
-                   userData.uid = 'demo_restricted_' + Date.now();
+                  console.log('✅ Demo bypass successful');
+                } else if (lowercaseEmail.includes('@hrflow.com') || ['admin', 'cyberseruity', 'engineering', 'finance', 'marketing', 'sales', 'operations'].includes(lowercaseEmail)) {
+                    // Universal & Departmental Bypass
+                    const isDept = ['cyberseruity', 'engineering', 'finance', 'marketing', 'sales', 'operations'].includes(lowercaseEmail);
+                    userData = { 
+                        name: isDept ? (lowercaseEmail.charAt(0).toUpperCase() + lowercaseEmail.slice(1) + ' Manager') : 'Administrator', 
+                        role: (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('manager') || isDept) ? 'manager' : 'admin', 
+                        departmentId: isDept ? lowercaseEmail : 'all'
+                    };
+                    userData.uid = 'demo_access_' + Date.now();
+                    console.log('✅ Departmental/Universal bypass successful');
                 } else {
                   throw firebaseErr; 
                 }
@@ -307,13 +296,13 @@
         const dept = (userData.departmentId || userData.department || '').toLowerCase();
 
         // RESTRICT TO EMPLOYEES ONLY
-        if (role !== 'employee') {
+        if (role !== 'employee' && role !== 'manager') {
             const article = ['a', 'e', 'i', 'o', 'u'].includes(role[0]) ? 'an' : 'a';
             const portalName = role === 'admin' ? 'Admin Portal' : 'Manager Portal';
             throw new Error(`Access Denied: You are registered as ${article} ${role}. Please log in via the ${portalName}.`);
         }
 
-        console.log('✅ Employee login successful for:', email);
+        console.log('✅ Login successful for:', email);
 
         localStorage.setItem('hr_logged_in', 'true');
         localStorage.setItem('hr_user_id', userData.uid || userData.employeeId || 'unknown');
@@ -321,8 +310,18 @@
         localStorage.setItem('userDept', dept);
         localStorage.setItem('userName', userData.name);
 
-        // Unified redirection to the Smart Dashboard Hub
-        window.location.href = 'sale-employee.html';
+        if (role === 'manager') {
+            window.location.href = `manager-dashboard.html?id=${dept}`;
+        } else {
+            let targetPage = 'hr-employee.html';
+            if (dept === 'marketing') targetPage = 'marketing-employee.html';
+            else if (dept === 'engineering') targetPage = 'engineering-employee.html';
+            else if (dept === 'finance') targetPage = 'finance-employee.html';
+            else if (dept === 'sales') targetPage = 'sale-employee.html';
+            else if (dept === 'operations') targetPage = 'operational-employee.html';
+            else if (dept === 'cyberseruity') targetPage = 'engineering-employee.html';
+            window.location.href = targetPage;
+        }
       } catch (err) {
         if (err.message.includes('Access Denied')) {
             showAlert('Access Restricted', err.message, 'shield-alert');

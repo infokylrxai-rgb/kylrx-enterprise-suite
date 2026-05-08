@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Builder | HRFlow</title>
+    <link rel="stylesheet" href="manager-dashboard-builder.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="builder-mode">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon"><i data-lucide="layout"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-label">ADMIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+
+                <div class="nav-label" style="margin-top: 1.5rem;">BUILDER CONTROLS</div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link active" id="linkStep1" onclick="switchStep(1)">
+                        <i data-lucide="plus-circle"></i>
+                        <span>Create Dept</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="linkStep2" onclick="switchStep(2)">
+                        <i data-lucide="layout"></i>
+                        <span>Widget Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="linkStep3" onclick="switchStep(3)">
+                        <i data-lucide="brain"></i>
+                        <span>AI Calibration</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="linkStep4" onclick="switchStep(4)">
+                        <i data-lucide="palette"></i>
+                        <span>Theme Engine</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1 id="builderTitle">Department Dashboard Builder</h1>
+                    <p id="builderSub">Design and deploy high-performance manager interfaces</p>
+                </div>
+                <div class="top-right-actions">
+                    <button class="btn btn-outline" id="btnPreview">
+                        <i data-lucide="eye"></i> Live Preview
+                    </button>
+                    <button class="btn btn-primary" id="btnDeploy">
+                        <i data-lucide="rocket"></i> Deploy Dashboard
+                    </button>
+                </div>
+            </header>
+
+            <!-- Step 1: Core Identity -->
+            <div id="step-1" class="builder-step active">
+                <div class="builder-grid" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 style="font-size: 1.1rem; font-weight: 800;">Department Core Identity</h2>
+                        </div>
+                        <div style="padding: 1.5rem;">
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display:block; margin-bottom: 8px; font-weight: 700;">Department Name</label>
+                                <input type="text" id="deptName" placeholder="e.g. Cybersecurity Research" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label style="display:block; margin-bottom: 8px; font-weight: 700;">Department Code</label>
+                                <input type="text" id="deptCode" placeholder="e.g. CYBER" maxlength="5" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                            </div>
+                            <div class="form-group">
+                                <label style="display:block; margin-bottom: 8px; font-weight: 700;">Operational Icon</label>
+                                <div class="icon-selector" id="iconSelector" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <div class="icon-opt active" data-icon="shield-check"><i data-lucide="shield-check"></i></div>
+                                    <div class="icon-opt" data-icon="users"><i data-lucide="users"></i></div>
+                                    <div class="icon-opt" data-icon="pie-chart"><i data-lucide="pie-chart"></i></div>
+                                    <div class="icon-opt" data-icon="monitor"><i data-lucide="monitor"></i></div>
+                                    <div class="icon-opt" data-icon="zap"><i data-lucide="zap"></i></div>
+                                    <div class="icon-opt" data-icon="target"><i data-lucide="target"></i></div>
+                                    <div class="icon-opt" data-icon="briefcase"><i data-lucide="briefcase"></i></div>
+                                    <div class="icon-opt" data-icon="code-2"><i data-lucide="code-2"></i></div>
+                                    <div class="icon-opt" data-icon="database"><i data-lucide="database"></i></div>
+                                    <div class="icon-opt" data-icon="message-square"><i data-lucide="message-square"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 style="font-size: 1.1rem; font-weight: 800;">Identity Preview</h2>
+                        </div>
+                        <div style="padding: 2rem; text-align: center;">
+                            <div class="dept-badge-preview" style="background: #eff6ff; padding: 2rem; border-radius: 24px; display: inline-block; border: 1px solid #dbeafe;">
+                                <div id="previewIcon" style="width: 64px; height: 64px; background: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--primary); box-shadow: 0 10px 15px rgba(0,0,0,0.05);">
+                                    <i data-lucide="shield-check" size="32"></i>
+                                </div>
+                                <h3 id="pName" style="font-weight: 800; font-size: 1.25rem;">Cybersecurity</h3>
+                                <p id="pCode" style="font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;">CYBER UNIT</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Widget Selection -->
+            <div id="step-2" class="builder-step" style="display: none;">
+                <div class="builder-grid" style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
+                    <div class="card toolbox">
+                        <div class="card-header"><h3>Widget Toolbox</h3></div>
+                        <div style="padding: 1rem;" id="widgetToolbox">
+                            <div class="draggable-widget" draggable="true" data-widget="productivity">
+                                <i data-lucide="bar-chart-2"></i> Productivity
+                            </div>
+                            <div class="draggable-widget" draggable="true" data-widget="telemetry">
+                                <i data-lucide="zap"></i> Telemetry
+                            </div>
+                            <div class="draggable-widget" draggable="true" data-widget="security">
+                                <i data-lucide="shield-alert"></i> Alerts
+                            </div>
+                            <div class="draggable-widget" draggable="true" data-widget="payroll">
+                                <i data-lucide="dollar-sign"></i> Payroll
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card canvas-area" style="min-height: 500px;">
+                        <div class="card-header"><h3>Dashboard Canvas</h3></div>
+                        <div id="layoutCanvas" style="padding: 2rem; height: 100%; position: relative;">
+                            <div class="canvas-placeholder" style="text-align:center; padding: 5rem; border: 2px dashed var(--border); border-radius: 20px; color: var(--text-muted);">
+                                Drag widgets here to build the layout
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: AI Calibration -->
+            <div id="step-3" class="builder-step" style="display: none;">
+                <div class="builder-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div class="card">
+                        <div class="card-header"><h3>Efficiency Thresholds</h3></div>
+                        <div style="padding: 1.5rem;">
+                            <div class="form-group" style="margin-bottom: 2rem;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                    <label style="font-weight:700;">Productivity Target</label>
+                                    <span id="valProd" style="color:var(--primary); font-weight:800;">70%</span>
+                                </div>
+                                <input type="range" id="rangeProd" min="0" max="100" value="70" style="width:100%; accent-color:var(--primary);">
+                                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">AI will flag managers if dept productivity falls below this limit.</p>
+                            </div>
+                            <div class="form-group">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                    <label style="font-weight:700;">Burnout Risk Alert</label>
+                                    <span id="valBurn" style="color:var(--danger); font-weight:800;">85%</span>
+                                </div>
+                                <input type="range" id="rangeBurn" min="0" max="100" value="85" style="width:100%; accent-color:var(--danger);">
+                                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">High focus combined with low activity triggers burnout alerts.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>AI Monitoring Modules</h3></div>
+                        <div style="padding: 1.5rem;">
+                            <label class="check-item" style="display:flex; align-items:center; gap:12px; padding:12px; background:#f8fafc; border-radius:12px; margin-bottom:10px; cursor:pointer;">
+                                <input type="checkbox" checked data-module="performance" style="width:18px; height:18px;">
+                                <div>
+                                    <div style="font-weight:700; font-size:0.9rem;">Predictive Performance</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted);">Forecasts weekly output based on current trends.</div>
+                                </div>
+                            </label>
+                            <label class="check-item" style="display:flex; align-items:center; gap:12px; padding:12px; background:#f8fafc; border-radius:12px; cursor:pointer;">
+                                <input type="checkbox" checked data-module="risk" style="width:18px; height:18px;">
+                                <div>
+                                    <div style="font-weight:700; font-size:0.9rem;">Behavioral Risk Analysis</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted);">Detects anomalous focus patterns or security risks.</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Theme Engine -->
+            <div id="step-4" class="builder-step" style="display: none;">
+                <div class="card">
+                    <div class="card-header"><h3>Select Department Theme</h3></div>
+                    <div style="padding: 1.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                        <div class="theme-card active" data-theme="enterprise-light">
+                            <div class="theme-preview" style="background:#f8fafc; border:1px solid #e2e8f0; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
+                                <div style="width:40px; height:10px; background:var(--primary); border-radius:4px;"></div>
+                            </div>
+                            <div style="font-weight:700; text-align:center;">Enterprise Light</div>
+                        </div>
+                        <div class="theme-card" data-theme="deep-space">
+                            <div class="theme-preview" style="background:#0f172a; border:1px solid #1e293b; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
+                                <div style="width:40px; height:10px; background:#3b82f6; border-radius:4px;"></div>
+                            </div>
+                            <div style="font-weight:700; text-align:center;">Deep Space</div>
+                        </div>
+                        <div class="theme-card" data-theme="glassmorphism">
+                            <div class="theme-preview" style="background:linear-gradient(135deg, #eff6ff, #dbeafe); border:1px solid #bfdbfe; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+                                <div style="width:40px; height:10px; background:white; border-radius:4px; box-shadow:0 4px 6px rgba(0,0,0,0.05);"></div>
+                            </div>
+                            <div style="font-weight:700; text-align:center;">Glassmorphism</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Command Centers Directory -->
+            <section class="directory-section" style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border);">
+                <div class="section-header" style="margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.5rem; font-weight: 800;">Active Command Centers</h2>
+                    <p style="color: var(--text-muted);">Manage and refine currently deployed department interfaces</p>
+                </div>
+                <div id="active-commands-grid" class="directory-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                    <!-- Active Command Cards will be injected here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center;">
+        <div class="card" style="width: 400px; padding: 2rem; text-align: center; animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <div style="width: 80px; height: 80px; background: #dcfce7; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
+                <i data-lucide="check-circle-2" size="40"></i>
+            </div>
+            <h2 id="modalTitle" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Deployment Successful</h2>
+            <p id="modalMsg" style="color: var(--text-muted); margin-bottom: 2rem; font-weight: 500;">Your new department dashboard is now live and ready for monitoring.</p>
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="window.location.href='admin-dashboard.html'">
+                Return to Dashboard
+            </button>
+        </div>
+    </div>
+
+    <style>
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .builder-step.active { display: block !important; }
+        
+        .icon-opt { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; background: white; }
+        .icon-opt:hover { border-color: var(--primary); background: #f8fafc; }
+        .icon-opt.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .draggable-widget { padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; cursor: grab; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.9rem; }
+        .draggable-widget:active { cursor: grabbing; }
+        
+        .canvas-widget { background: white; border-radius: 16px; border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+
+        .theme-card { padding: 1rem; border-radius: 16px; border: 2px solid transparent; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: white; }
+        .theme-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px rgba(0,0,0,0.05); }
+        .theme-card.active { border-color: var(--primary); background: #f0f7ff; }
+        .theme-preview { transition: 0.3s; }
+        .theme-card.active .theme-preview { transform: scale(1.05); }
+    </style>
+
+    <script type="module" src="manager-dashboard-builder.js"></script>
+</body>
+</html>

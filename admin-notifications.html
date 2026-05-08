@@ -43,23 +43,68 @@
         .notif-title { font-weight: 600; margin-bottom: 4px; }
         .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
         .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+
+        .icon-btn { 
+            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+
+        /* Customization Sidebar */
+        .config-sidebar {
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border);
+            z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+        }
+        .config-sidebar.active { right: 0; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .config-header h2 { font-weight: 800; font-size: 1.25rem; }
+        .config-section { margin-bottom: 2rem; }
+        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option span { font-size: 0.9rem; font-weight: 600; }
+
+        /* Switches */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+
+        /* Density Modes */
+        .tight .notif-item { padding: 1rem; }
+        .tight .notif-desc { display: none; }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
-                <div class="logo-icon"><i data-lucide="layout-dashboard"></i></div>
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
                 <span class="logo-text">HRFlow</span>
             </a>
             <nav class="nav-menu">
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor-play"></i><span>TVC Monitor</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link active"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-dashboard.html#personnel'"><i data-lucide="list"></i><span>Personnel View</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
             </nav>
             <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
                 <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
                 <div class="nav-item">
                     <a href="#" class="nav-link" id="logoutBtn" style="color: #ef4444;">
@@ -70,9 +115,12 @@
             </div>
         </aside>
         <main class="main-content">
-            <header class="header">
-                <h1>System Notifications</h1>
-                <p style="color: var(--text-muted);">Manage and view all administrative alerts</p>
+            <header class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1>System Notifications</h1>
+                    <p style="color: var(--text-muted);">Manage and view all administrative alerts</p>
+                </div>
+                <button class="icon-btn" onclick="window.location.href='admin-notifications.html'"><i data-lucide="bell"></i></button>
             </header>
             <div class="card">
                 <div class="notif-item">
@@ -101,9 +149,89 @@
                 </div>
             </div>
         </main>
+
+        <!-- Customization Sidebar -->
+        <aside class="config-sidebar" id="configSidebar">
+            <div class="config-header">
+                <div>
+                    <h2>Personalize</h2>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">INTERFACE CONTROL</p>
+                </div>
+                <button style="background:transparent; border:none; cursor:pointer;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="config-section">
+                <h3>Visual Theme</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="btn-theme active" onclick="setTheme('light', this)">Modern Light</div>
+                    <div class="btn-theme" onclick="setTheme('glass', this)">Enterprise Glass</div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>Notification Layout</h3>
+                <div class="config-option">
+                    <span>Compact Mode</span>
+                    <label class="switch"><input type="checkbox" id="checkTight"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Show Decriptions</span>
+                    <label class="switch"><input type="checkbox" checked id="checkDesc"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>AI Filters</h3>
+                <div class="config-option">
+                    <span>Hide Low Priority</span>
+                    <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Smart Grouping</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <button class="btn" style="background: var(--primary); color: white; margin-top: auto; width: 100%; justify-content: center;" onclick="toggleConfig(false)">
+                Save Preferences
+            </button>
+        </aside>
     </div>
     <script>
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
+        
+        const configSidebar = document.getElementById('configSidebar');
+        window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
+        document.getElementById('btnCustom').onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+
+        window.setTheme = (theme, el) => {
+            document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            if (theme === 'glass') {
+                document.body.style.background = "linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)";
+                document.querySelectorAll('.card').forEach(c => {
+                    c.style.background = "rgba(255,255,255,0.7)";
+                    c.style.backdropFilter = "blur(10px)";
+                });
+            } else {
+                document.body.style.background = "";
+                document.querySelectorAll('.card').forEach(c => {
+                    c.style.background = "";
+                    c.style.backdropFilter = "";
+                });
+            }
+        };
+
+        document.getElementById('checkTight').onchange = (e) => {
+            document.querySelector('.card').classList.toggle('tight', e.target.checked);
+        };
+
+        document.getElementById('checkDesc').onchange = (e) => {
+            document.querySelectorAll('.notif-desc').forEach(d => {
+                d.style.display = e.target.checked ? 'block' : 'none';
+            });
+        };
+
         // Logout Functionality
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();

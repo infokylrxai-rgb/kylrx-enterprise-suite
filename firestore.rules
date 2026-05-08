@@ -1,71 +1,47 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function getUserRole() {
-      // Assuming user role is stored in users collection
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-    }
 
-    function getUserDept() {
-      // Assuming user department is stored in users collection
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.departmentId;
-    }
-
-    // Default deny for unauthenticated, allow admin everything
-    match /{document=**} {
-      allow read, write: if isAuthenticated() && getUserRole() == 'admin';
-    }
-
-    // Activity Status Collection
-    match /activityStatus/{userId} {
-      // Employee can read/write their own activity
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
-      
-      // Managers can read activity of users in their department
-      allow read: if isAuthenticated() 
-                  && getUserRole() == 'manager' 
-                  && getUserDept() == resource.data.departmentId;
-    }
-
-    // Alert Events Collection
-    match /alertEvents/{alertId} {
-      // Managers can read alerts for their department
-      allow read: if isAuthenticated() 
-                  && getUserRole() == 'manager' 
-                  && getUserDept() == resource.data.departmentId;
-                  
-      // Frontend JS triggers alerts currently
-      allow write: if isAuthenticated() 
-                   && (getUserRole() == 'admin' || getUserRole() == 'manager');
-    }
-
-    // Finance Metrics Collection
-    match /financeMetrics/{departmentId} {
-      // Managers can read finance data for their department
-      allow read: if isAuthenticated() 
-                  && getUserRole() == 'manager' 
-                  && getUserDept() == departmentId;
-    }
-    
-    // Allow searching users for login fallback, and users reading their own profile
+    // ── Users Collection ─────────────────────────────────────────────
+    // Allow reading a user document for login (email+password lookup)
     match /users/{userId} {
-      allow read: if true; 
-      allow write: if isAuthenticated() && (request.auth.uid == userId || getUserRole() == 'admin');
+      allow read: if true;    // Needed for Firestore-based password login
+      allow write: if request.auth != null;
     }
 
-    // Notifications Collection
+    // ── Departments ───────────────────────────────────────────────────
+    match /departments/{deptId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // ── Manager Dashboards Config ─────────────────────────────────────
+    match /managerDashboards/{deptId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // ── Activity Logs ─────────────────────────────────────────────────
+    match /activityLogs/{logId} {
+      allow read: if request.auth != null;
+      allow write: if true;
+    }
+
+    // ── Notifications ─────────────────────────────────────────────────
     match /notifications/{notifId} {
-      allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid || 
-        (getUserRole() == 'manager' && resource.data.departmentId == getUserDept()) ||
-        (getUserRole() == 'admin' && resource.data.departmentId == 'admin')
-      );
-      allow write: if isAuthenticated(); // Allow system-generated notifications
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // ── System Config ─────────────────────────────────────────────────
+    match /system_config/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // ── Messages ──────────────────────────────────────────────────────
+    match /messages/{msgId} {
+      allow read, write: if request.auth != null;
     }
   }
 }

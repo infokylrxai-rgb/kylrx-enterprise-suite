@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Command Center | HRFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-light: #eff6ff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --glass: rgba(255, 255, 255, 0.7);
+        }
+        body { font-family: 'Outfit', sans-serif; background: #f8fafc; color: var(--text-main); margin: 0; }
+        
+        .dashboard-layout { display: flex; min-height: 100vh; }
+        
+        .manager-sidebar { width: 280px; background: white; border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; }
+        .dept-header { padding: 1.5rem; background: var(--primary-light); border-radius: 20px; border: 1px solid #dbeafe; text-align: center; margin-bottom: 2rem; }
+        .dept-icon { width: 50px; height: 50px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .dept-name { font-weight: 800; font-size: 1.1rem; margin: 0; }
+        .dept-code { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); letter-spacing: 2px; }
+
+        .main-stage { flex: 1; padding: 2.5rem; overflow-y: auto; }
+        .stage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        
+        .widget-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
+        .widget-item { background: white; border-radius: 24px; border: 1px solid var(--border); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .w-lg { grid-column: span 8; }
+        .w-md { grid-column: span 4; }
+        .w-full { grid-column: span 12; }
+
+        /* Themes */
+        body.deep-space { background: #020617; color: white; }
+        body.deep-space .manager-sidebar, body.deep-space .widget-item { background: #0f172a; border-color: #1e293b; color: white; }
+        body.deep-space .dept-header { background: #1e293b; border-color: #334155; }
+        
+        body.glassmorphism { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); }
+        body.glassmorphism .widget-item { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="manager-sidebar">
+            <div class="dept-header">
+                <div class="dept-icon" id="mainIcon"><i data-lucide="shield-check"></i></div>
+                <h2 class="dept-name" id="mainName">Department</h2>
+                <span class="dept-code" id="mainCode">UNIT</span>
+            </div>
+            
+            <nav style="flex: 1;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1.5px; margin-bottom: 1rem;">COMMAND</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <a href="#" class="nav-link active"><i data-lucide="layout"></i> Overview</a>
+                    <a href="#" class="nav-link"><i data-lucide="users"></i> Workforce</a>
+                    <a href="#" class="nav-link"><i data-lucide="shield-alert"></i> Security</a>
+                    <a href="#" class="nav-link"><i data-lucide="bar-chart-2"></i> Performance</a>
+                </div>
+            </nav>
+
+            <div style="padding-top: 2rem; border-top: 1px solid var(--border);">
+                <a href="index.html" class="nav-link" style="color: #ef4444;"><i data-lucide="log-out"></i> Sign Out</a>
+            </div>
+        </aside>
+
+        <main class="main-stage">
+            <header class="stage-header">
+                <div>
+                    <h1 style="font-weight: 800; font-size: 1.8rem; margin: 0;">Manager Command Center</h1>
+                    <p style="color: var(--text-muted); font-weight: 500;">Real-time operational intelligence & workforce monitoring</p>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="text-align: right;">
+                        <div id="aiStatus" style="display: flex; align-items: center; gap: 8px; color: #10b981; font-weight: 700; font-size: 0.8rem;">
+                            <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
+                            AI ENGINE ACTIVE
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Predictive Analysis Online</div>
+                    </div>
+                    <div style="width: 44px; height: 44px; background: white; border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="bell"></i>
+                    </div>
+                </div>
+            </header>
+
+            <div class="widget-grid" id="managerGrid">
+                <!-- Dynamic Widgets -->
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { ManagerWidgetEngine } from "./manager-widget-engine.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const deptId = urlParams.get('id') || 'engineering';
+
+        async function initDashboard() {
+            const deptRef = doc(db, "departments", deptId);
+            const configRef = doc(db, "managerDashboards", deptId);
+
+            onSnapshot(deptRef, (snap) => {
+                if (snap.exists()) {
+                    const data = snap.data();
+                    document.getElementById('mainName').innerText = data.departmentName;
+                    document.getElementById('mainCode').innerText = (data.departmentCode || 'UNIT').toUpperCase();
+                    document.getElementById('mainIcon').innerHTML = `<i data-lucide="${data.icon || 'shield-check'}"></i>`;
+                    
+                    if (data.theme) document.body.className = data.theme;
+                    lucide.createIcons();
+                }
+            });
+
+            onSnapshot(configRef, (snap) => {
+                if (snap.exists()) {
+                    const config = snap.data().config;
+                    const engine = new ManagerWidgetEngine('managerGrid');
+                    engine.render(config.layout);
+                }
+            });
+        }
+
+        initDashboard();
+        lucide.createIcons();
+    </script>
+</body>
+</html>

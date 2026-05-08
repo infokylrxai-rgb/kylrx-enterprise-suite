@@ -21,7 +21,17 @@ const CONFIG = {
     BONUS_THRESHOLD: 80,
     FREE_SWITCHES: 3,
     UPDATE_INTERVAL_MS: 30000,
-    WARNING_LEVELS: ['soft', 'strong', 'final', 'penalty']
+    WARNING_LEVELS: ['soft', 'strong', 'final', 'penalty'],
+    // Enterprise Command Center Config
+    AI_THRESHOLDS: {
+        risk: 40,
+        burnout: 70,
+        focus_critical: 5
+    },
+    ML_MODELS: {
+        productivity_regression: true,
+        behavioral_clustering: true
+    }
 };
 
 // ==================== STATE ====================
@@ -48,7 +58,14 @@ const state = {
     bonus: 0,
     finalSalary: 0,
     dailyResetDate: new Date().toDateString(),
-    initialized: false
+    initialized: false,
+    // AI/ML Predictive State
+    predictions: {
+        productivityTrend: 'stable',
+        burnoutProbability: 0,
+        performanceRisk: 'low'
+    },
+    behavioralLabel: 'Standard'
 };
 
 let _intervalId = null;
@@ -237,7 +254,23 @@ function calculateProductivity() {
     score -= switchPenalty;               // Focus loss penalty
 
     state.productivityScore = Math.max(0, Math.min(100, Math.round(score)));
-    emit('productivity:updated', { score: state.productivityScore });
+    
+    // AI ML Behavioral Classification
+    if (state.productivityScore > 90 && state.focusLossCount < 2) state.behavioralLabel = 'High Performer';
+    else if (state.productivityScore > 75) state.behavioralLabel = 'Focused';
+    else if (state.productivityScore > 50) state.behavioralLabel = 'Average';
+    else if (state.focusLossCount > 5) state.behavioralLabel = 'Distracted';
+    else state.behavioralLabel = 'Needs Attention';
+
+    // Predictive Analytics Mockup
+    state.predictions.burnoutProbability = Math.round((state.activeTime / (state.activeTime + state.idleTime + 1)) * (state.focusLossCount > 5 ? 80 : 20));
+    state.predictions.performanceRisk = (state.productivityScore < 40 || state.focusLossCount > 8) ? 'High' : 'Low';
+
+    emit('productivity:updated', { 
+        score: state.productivityScore, 
+        label: state.behavioralLabel,
+        predictions: state.predictions
+    });
 }
 
 // ==================== 6. DYNAMIC PAYROLL ====================
