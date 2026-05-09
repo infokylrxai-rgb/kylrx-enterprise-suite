@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Asset Management | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .asset-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;
+        }
+
+        .asset-stat-card {
+            background: white; border-radius: 20px; padding: 1.5rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            display: flex; align-items: center; gap: 1rem;
+        }
+
+        .asset-stat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .asset-item-card {
+            background: white; border-radius: 24px; padding: 1.5rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+
+        .asset-item-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .asset-tag {
+            position: absolute; top: 1.5rem; right: 1.5rem;
+            padding: 4px 10px; border-radius: 100px; font-size: 0.65rem; font-weight: 800;
+        }
+
+        .asset-type-badge {
+            background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px;
+            font-size: 0.65rem; font-weight: 700; display: inline-block; margin-bottom: 8px;
+        }
+
+        .allocation-history {
+            margin-top: 2rem; background: white; border-radius: 24px; padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 0; border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child { border-bottom: none; }
+
+        .qr-placeholder {
+            width: 40px; height: 40px; background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 6px; display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link active">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item">
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Enterprise Asset Inventory</h1>
+                    <p>Track hardware lifecycle, manage allocations, and orchestrate employee declarations.</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline"><i data-lucide="printer"></i> Print Labels</button>
+                    <button class="btn btn-primary"><i data-lucide="plus"></i> Add New Asset</button>
+                </div>
+            </header>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div class="asset-stat-card">
+                    <div class="asset-stat-icon" style="background: #eff6ff; color: #3b82f6;"><i data-lucide="cpu"></i></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Total Assets</p><h3 style="font-weight: 800;">1,242</h3></div>
+                </div>
+                <div class="asset-stat-card">
+                    <div class="asset-stat-icon" style="background: #f0fdf4; color: #22c55e;"><i data-lucide="user-check"></i></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Allocated</p><h3 style="font-weight: 800;">948</h3></div>
+                </div>
+                <div class="asset-stat-card">
+                    <div class="asset-stat-icon" style="background: #fff7ed; color: #f59e0b;"><i data-lucide="wrench"></i></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">In Repair</p><h3 style="font-weight: 800;">18</h3></div>
+                </div>
+                <div class="asset-stat-card">
+                    <div class="asset-stat-icon" style="background: #fef2f2; color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Missing/Lost</p><h3 style="font-weight: 800;">4</h3></div>
+                </div>
+            </div>
+
+            <div class="asset-grid">
+                <!-- Asset Card -->
+                <div class="asset-item-card">
+                    <span class="asset-tag" style="background: #ecfdf5; color: #059669;">Allocated</span>
+                    <div class="asset-type-badge">Laptop</div>
+                    <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">MacBook Pro M2</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: HRF-LP-2026-084</p>
+                    
+                    <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0;"></div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 0.8rem; font-weight: 700;">Arjun Mehta</p>
+                            <p style="font-size: 0.65rem; color: var(--text-muted);">Engineering • Since Oct 01</p>
+                        </div>
+                        <div class="qr-placeholder"><i data-lucide="qr-code" size="20"></i></div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
+                        <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;">Re-Allocate</button>
+                        <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;">Retire</button>
+                    </div>
+                </div>
+
+                <div class="asset-item-card">
+                    <span class="asset-tag" style="background: #eff6ff; color: #3b82f6;">In Stock</span>
+                    <div class="asset-type-badge">Mobile</div>
+                    <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">iPhone 15 Pro</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: HRF-MB-2026-112</p>
+                    
+                    <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i data-lucide="user" size="16"></i></div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Unassigned</p>
+                            <p style="font-size: 0.65rem; color: var(--text-muted);">Location: Warehouse A</p>
+                        </div>
+                        <div class="qr-placeholder"><i data-lucide="qr-code" size="20"></i></div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
+                        <button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;">Assign to Employee</button>
+                    </div>
+                </div>
+
+                <div class="asset-item-card">
+                    <span class="asset-tag" style="background: #fff7ed; color: #f59e0b;">Verification</span>
+                    <div class="asset-type-badge">Peripheral</div>
+                    <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">Dell 4K Monitor</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: HRF-MN-2026-245</p>
+                    
+                    <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0;"></div>
+                        <div style="flex: 1;">
+                            <p style="font-size: 0.8rem; font-weight: 700;">Sarah Jenkins</p>
+                            <p style="font-size: 0.65rem; color: #f59e0b; font-weight: 600;">Pending Declaration</p>
+                        </div>
+                        <div class="qr-placeholder"><i data-lucide="qr-code" size="20"></i></div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
+                        <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;">Send Reminder</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="allocation-history">
+                <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Recent Asset Transactions</h3>
+                <div class="history-item">
+                    <div><p style="font-weight: 700; font-size: 0.9rem;">MacBook Pro M2 Allocated</p><p style="font-size: 0.75rem; color: var(--text-muted);">To Arjun Mehta • Tag: HRF-LP-084</p></div>
+                    <div style="text-align: right;"><p style="font-weight: 800; color: #10b981;">SUCCESS</p><p style="font-size: 0.65rem; color: var(--text-muted);">Oct 01, 2026 • 10:15 AM</p></div>
+                </div>
+                <div class="history-item">
+                    <div><p style="font-weight: 700; font-size: 0.9rem;">Asset Return Initiated</p><p style="font-size: 0.75rem; color: var(--text-muted);">From Michael Scott • Tag: HRF-MB-112</p></div>
+                    <div style="text-align: right;"><p style="font-weight: 800; color: #3b82f6;">IN PROGRESS</p><p style="font-size: 0.65rem; color: var(--text-muted);">Oct 05, 2026 • 02:30 PM</p></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

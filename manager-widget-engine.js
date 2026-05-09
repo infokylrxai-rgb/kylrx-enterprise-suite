@@ -28,10 +28,14 @@ export class ManagerWidgetEngine {
         div.dataset.id = id;
         
         const content = this.getWidgetContent(id, isDashboard);
+        const actionHtml = isDashboard 
+            ? `<i data-lucide="more-horizontal" size="14"></i>`
+            : `<button onclick="window.removeWidget('${id}')" style="background:none; border:none; cursor:pointer; color:#ef4444;"><i data-lucide="trash-2" size="14"></i></button>`;
+
         div.innerHTML = `
             <div class="widget-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                 <h4 style="font-size:0.8rem; font-weight:800; text-transform:uppercase; color: var(--text-muted);">${id} Insights</h4>
-                <div class="widget-actions"><i data-lucide="more-horizontal" size="14"></i></div>
+                <div class="widget-actions">${actionHtml}</div>
             </div>
             <div class="widget-body">${content}</div>
         `;

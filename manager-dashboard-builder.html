@@ -15,13 +15,13 @@
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo-icon"><i data-lucide="layout"></i></div>
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
                 <span class="logo-text">HRFlow</span>
-            </div>
+            </a>
             
             <nav class="sidebar-nav">
-                <div class="nav-label">ADMIN MENU</div>
+                <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item">
                     <a href="admin-dashboard.html" class="nav-link">
                         <i data-lucide="users"></i>
@@ -46,30 +46,42 @@
                         <span>Notifications</span>
                     </a>
                 </div>
+                <div class="nav-item">
+                    <a href="manager-dashboard-builder.html" class="nav-link active">
+                        <i data-lucide="plus-circle"></i>
+                        <span>Dashboard Builder</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-upload.html" class="nav-link">
+                        <i data-lucide="upload-cloud"></i>
+                        <span>Bulk Onboarding</span>
+                    </a>
+                </div>
 
-                <div class="nav-label" style="margin-top: 1.5rem;">BUILDER CONTROLS</div>
+                <div class="nav-label" style="margin-top: 1.5rem;">BUILDER STEPS</div>
                 <div class="nav-item">
                     <a href="#" class="nav-link active" id="linkStep1" onclick="switchStep(1)">
-                        <i data-lucide="plus-circle"></i>
-                        <span>Create Dept</span>
+                        <i data-lucide="layers"></i>
+                        <span>1. Core Identity</span>
                     </a>
                 </div>
                 <div class="nav-item">
                     <a href="#" class="nav-link" id="linkStep2" onclick="switchStep(2)">
                         <i data-lucide="layout"></i>
-                        <span>Widget Layout</span>
+                        <span>2. Widget Layout</span>
                     </a>
                 </div>
                 <div class="nav-item">
                     <a href="#" class="nav-link" id="linkStep3" onclick="switchStep(3)">
                         <i data-lucide="brain"></i>
-                        <span>AI Calibration</span>
+                        <span>3. AI Calibration</span>
                     </a>
                 </div>
                 <div class="nav-item">
                     <a href="#" class="nav-link" id="linkStep4" onclick="switchStep(4)">
                         <i data-lucide="palette"></i>
-                        <span>Theme Engine</span>
+                        <span>4. Theme Engine</span>
                     </a>
                 </div>
             </nav>
@@ -179,7 +191,14 @@
                         </div>
                     </div>
                     <div class="card canvas-area" style="min-height: 500px;">
-                        <div class="card-header"><h3>Dashboard Canvas</h3></div>
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>Dashboard Canvas</h3>
+                            <div class="canvas-controls" style="display: flex; gap: 8px;">
+                                <button class="btn btn-outline btn-sm active" data-grid="standard" onclick="setGridDensity('standard')">Standard</button>
+                                <button class="btn btn-outline btn-sm" data-grid="compact" onclick="setGridDensity('compact')">Compact</button>
+                                <button class="btn btn-outline btn-sm" data-grid="spacious" onclick="setGridDensity('spacious')">Spacious</button>
+                            </div>
+                        </div>
                         <div id="layoutCanvas" style="padding: 2rem; height: 100%; position: relative;">
                             <div class="canvas-placeholder" style="text-align:center; padding: 5rem; border: 2px dashed var(--border); border-radius: 20px; color: var(--text-muted);">
                                 Drag widgets here to build the layout
@@ -237,26 +256,56 @@
 
             <!-- Step 4: Theme Engine -->
             <div id="step-4" class="builder-step" style="display: none;">
-                <div class="card">
-                    <div class="card-header"><h3>Select Department Theme</h3></div>
-                    <div style="padding: 1.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-                        <div class="theme-card active" data-theme="enterprise-light">
-                            <div class="theme-preview" style="background:#f8fafc; border:1px solid #e2e8f0; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
-                                <div style="width:40px; height:10px; background:var(--primary); border-radius:4px;"></div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                    <div class="card">
+                        <div class="card-header"><h3>Select Department Theme</h3></div>
+                        <div style="padding: 1.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                            <div class="theme-card active" data-theme="enterprise-light">
+                                <div class="theme-preview" style="background:#f8fafc; border:1px solid #e2e8f0; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
+                                    <div style="width:40px; height:10px; background:var(--primary); border-radius:4px;"></div>
+                                </div>
+                                <div style="font-weight:700; text-align:center;">Enterprise Light</div>
                             </div>
-                            <div style="font-weight:700; text-align:center;">Enterprise Light</div>
+                            <div class="theme-card" data-theme="deep-space">
+                                <div class="theme-preview" style="background:#0f172a; border:1px solid #1e293b; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
+                                    <div style="width:40px; height:10px; background:#3b82f6; border-radius:4px;"></div>
+                                </div>
+                                <div style="font-weight:700; text-align:center;">Deep Space</div>
+                            </div>
+                            <div class="theme-card" data-theme="glassmorphism">
+                                <div class="theme-preview" style="background:linear-gradient(135deg, #eff6ff, #dbeafe); border:1px solid #bfdbfe; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+                                    <div style="width:40px; height:10px; background:white; border-radius:4px; box-shadow:0 4px 6px rgba(0,0,0,0.05);"></div>
+                                </div>
+                                <div style="font-weight:700; text-align:center;">Glassmorphism</div>
+                            </div>
                         </div>
-                        <div class="theme-card" data-theme="deep-space">
-                            <div class="theme-preview" style="background:#0f172a; border:1px solid #1e293b; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
-                                <div style="width:40px; height:10px; background:#3b82f6; border-radius:4px;"></div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><h3>Branding Color</h3></div>
+                        <div style="padding: 1.5rem;">
+                            <div class="form-group">
+                                <label style="display:block; margin-bottom:12px; font-weight:700;">Primary Accent Color</label>
+                                <div style="display:flex; align-items:center; gap:15px;">
+                                    <input type="color" id="primaryColor" value="#3b82f6" style="width:60px; height:60px; border:none; padding:0; background:none; cursor:pointer;">
+                                    <div style="flex:1;">
+                                        <div id="hexVal" style="font-family:monospace; font-weight:700; font-size:1.1rem;">#3b82f6</div>
+                                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">This color will define your department's visual identity.</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div style="font-weight:700; text-align:center;">Deep Space</div>
-                        </div>
-                        <div class="theme-card" data-theme="glassmorphism">
-                            <div class="theme-preview" style="background:linear-gradient(135deg, #eff6ff, #dbeafe); border:1px solid #bfdbfe; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-                                <div style="width:40px; height:10px; background:white; border-radius:4px; box-shadow:0 4px 6px rgba(0,0,0,0.05);"></div>
+                            
+                            <div style="margin-top: 2rem;">
+                                <label style="display:block; margin-bottom:12px; font-weight:700;">Preset Palettes</label>
+                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                    <div class="color-preset" style="background:#3b82f6;" data-color="#3b82f6"></div>
+                                    <div class="color-preset" style="background:#10b981;" data-color="#10b981"></div>
+                                    <div class="color-preset" style="background:#8b5cf6;" data-color="#8b5cf6"></div>
+                                    <div class="color-preset" style="background:#f59e0b;" data-color="#f59e0b"></div>
+                                    <div class="color-preset" style="background:#ef4444;" data-color="#ef4444"></div>
+                                    <div class="color-preset" style="background:#ec4899;" data-color="#ec4899"></div>
+                                </div>
                             </div>
-                            <div style="font-weight:700; text-align:center;">Glassmorphism</div>
                         </div>
                     </div>
                 </div>
@@ -264,9 +313,15 @@
 
             <!-- Active Command Centers Directory -->
             <section class="directory-section" style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border);">
-                <div class="section-header" style="margin-bottom: 2rem;">
-                    <h2 style="font-size: 1.5rem; font-weight: 800;">Active Command Centers</h2>
-                    <p style="color: var(--text-muted);">Manage and refine currently deployed department interfaces</p>
+                <div class="section-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800;">Active Command Centers</h2>
+                        <p style="color: var(--text-muted);">Manage and refine currently deployed department interfaces</p>
+                    </div>
+                    <div class="directory-filter" style="position: relative;">
+                        <i data-lucide="filter" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 16px; height: 16px;"></i>
+                        <input type="text" id="directorySearch" placeholder="Filter command centers..." style="padding: 10px 15px 10px 40px; border-radius: 12px; border: 1px solid var(--border); width: 260px; font-weight: 600; font-size: 0.9rem;">
+                    </div>
                 </div>
                 <div id="active-commands-grid" class="directory-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
                     <!-- Active Command Cards will be injected here -->
@@ -310,6 +365,12 @@
         .theme-card.active { border-color: var(--primary); background: #f0f7ff; }
         .theme-preview { transition: 0.3s; }
         .theme-card.active .theme-preview { transform: scale(1.05); }
+
+        .color-preset { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
+        .color-preset:hover { transform: scale(1.1); }
+        .color-preset.active { border-color: white; box-shadow: 0 0 0 2px var(--primary); }
+        
+        .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
     </style>
 
     <script type="module" src="manager-dashboard-builder.js"></script>

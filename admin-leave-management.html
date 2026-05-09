@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Leave Management | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .leave-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        .calendar-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .leave-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-box h3 { font-size: 1.75rem; font-weight: 800; margin-bottom: 4px; }
+        .stat-box p { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Heatmap Simulation */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .heatmap-day {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .heatmap-day:hover { transform: scale(1.1); box-shadow: var(--shadow-sm); }
+        .day-low { background: #dbeafe; color: var(--primary); }
+        .day-med { background: #93c5fd; color: white; }
+        .day-high { background: var(--primary); color: white; }
+
+        .policy-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .policy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .leave-type-badge {
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .approval-queue-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .approval-queue-item:last-child { border-bottom: none; }
+
+        .emp-avatar {
+            width: 40px; height: 40px; border-radius: 10px; background: var(--bg-soft);
+            display: flex; align-items: center; justify-content: center; font-weight: 700;
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link active">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item">
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Enterprise Leave Command</h1>
+                    <p>Configure policies, manage holiday calendars, and orchestrate approvals.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'"><i data-lucide="message-square"></i></button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'"><i data-lucide="bell"></i></button>
+                </div>
+            </header>
+
+            <div class="leave-stats">
+                <div class="stat-box">
+                    <p>On Leave Today</p>
+                    <h3>12</h3>
+                    <p style="color: var(--primary);">+2 from yesterday</p>
+                </div>
+                <div class="stat-box">
+                    <p>Pending Approvals</p>
+                    <h3>08</h3>
+                    <p style="color: var(--danger);">4 Overdue SLA</p>
+                </div>
+                <div class="stat-box">
+                    <p>Work From Home</p>
+                    <h3>45</h3>
+                    <p style="color: var(--secondary);">Remote First</p>
+                </div>
+                <div class="stat-box">
+                    <p>Monthly Accrual</p>
+                    <h3>1.75</h3>
+                    <p>Days / Month</p>
+                </div>
+            </div>
+
+            <div class="leave-grid">
+                <div class="leave-left">
+                    <div class="calendar-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <h3 style="font-weight: 800;">Monthly Leave Heatmap</h3>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;">Previous</button>
+                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;">October 2026</button>
+                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;">Next</button>
+                            </div>
+                        </div>
+                        
+                        <div class="heatmap-grid" id="heatmap">
+                            <!-- JS Generated Heatmap -->
+                        </div>
+
+                        <div style="margin-top: 2rem; display: flex; gap: 1.5rem; font-size: 0.75rem; color: var(--text-muted);">
+                            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #f1f5f9; border-radius: 3px;"></div> No Leaves</div>
+                            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #dbeafe; border-radius: 3px;"></div> 1-2 Leaves</div>
+                            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: #93c5fd; border-radius: 3px;"></div> 3-5 Leaves</div>
+                            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 12px; height: 12px; background: var(--primary); border-radius: 3px;"></div> 5+ Critical</div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 24px; border: 1px solid var(--border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <h3 style="font-weight: 800;">Global Leave Policies</h3>
+                            <button class="btn btn-primary" style="font-size: 0.75rem;"><i data-lucide="plus"></i> New Policy</button>
+                        </div>
+                        
+                        <div class="policy-card">
+                            <div class="policy-header">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="leave-type-badge">Earned Leave</span>
+                                    <h4 style="font-weight: 700;">Corporate Standard Plan</h4>
+                                </div>
+                                <i data-lucide="more-horizontal" style="cursor: pointer;"></i>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Accrual: 1.75 days per month • Max Carry Forward: 45 days • Sandwich Logic: Active</p>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">Auto-Approved < 2 Days</span>
+                                <span class="badge" style="background: #fef2f2; color: #ef4444; font-size: 0.65rem;">LOP on Breach</span>
+                            </div>
+                        </div>
+
+                        <div class="policy-card">
+                            <div class="policy-header">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="leave-type-badge" style="background: #fff7ed; color: #f97316;">Sick Leave</span>
+                                    <h4 style="font-weight: 700;">Health & Wellness Policy</h4>
+                                </div>
+                                <i data-lucide="more-horizontal" style="cursor: pointer;"></i>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Annual Limit: 12 days • Medical Certificate: Required > 3 days • Half-day support: Yes</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leave-right">
+                    <div class="ai-glass-card" style="margin-bottom: 2rem; background: white; border: 1px solid var(--border);">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Approval Queue</h3>
+                        <div class="approval-queue">
+                            <div class="approval-queue-item">
+                                <div class="emp-avatar">JD</div>
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 0.85rem; font-weight: 700;">Jane Doe</h4>
+                                    <p style="font-size: 0.75rem; color: var(--text-muted);">Sick Leave (Oct 14-16)</p>
+                                </div>
+                                <div style="display: flex; gap: 4px;">
+                                    <button class="btn btn-outline" style="padding: 6px; border-radius: 8px; color: #ef4444;"><i data-lucide="x" size="14"></i></button>
+                                    <button class="btn btn-primary" style="padding: 6px; border-radius: 8px;"><i data-lucide="check" size="14"></i></button>
+                                </div>
+                            </div>
+                            <div class="approval-queue-item">
+                                <div class="emp-avatar">RB</div>
+                                <div style="flex: 1;">
+                                    <h4 style="font-size: 0.85rem; font-weight: 700;">Robert Brown</h4>
+                                    <p style="font-size: 0.75rem; color: var(--text-muted);">Earned Leave (Oct 20-25)</p>
+                                </div>
+                                <div style="display: flex; gap: 4px;">
+                                    <button class="btn btn-outline" style="padding: 6px; border-radius: 8px; color: #ef4444;"><i data-lucide="x" size="14"></i></button>
+                                    <button class="btn btn-primary" style="padding: 6px; border-radius: 8px;"><i data-lucide="check" size="14"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%; margin-top: 1rem; font-size: 0.75rem;">View Full Queue</button>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border);">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Holiday Calendar</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                                <div>
+                                    <p style="font-weight: 700;">Diwali Festival</p>
+                                    <p style="font-size: 0.75rem; color: var(--text-muted);">Oct 24 • National</p>
+                                </div>
+                                <span class="badge" style="background: var(--primary-light); color: var(--primary);">Upcoming</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                                <div>
+                                    <p style="font-weight: 700;">Karnataka Rajyotsava</p>
+                                    <p style="font-size: 0.75rem; color: var(--text-muted);">Nov 01 • Regional (KA)</p>
+                                </div>
+                                <span class="badge" style="background: var(--bg-soft); color: var(--text-muted);">Regional</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%; margin-top: 1.5rem; font-size: 0.75rem;">Configure Holidays</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            generateHeatmap();
+        });
+
+        function generateHeatmap() {
+            const heatmap = document.getElementById('heatmap');
+            const days = 31;
+            for (let i = 1; i <= days; i++) {
+                const day = document.createElement('div');
+                day.className = 'heatmap-day';
+                if (i % 7 === 0 || i % 7 === 6) {
+                    day.style.background = '#f8fafc';
+                    day.style.color = '#cbd5e1';
+                } else {
+                    const leaves = Math.floor(Math.random() * 8);
+                    if (leaves > 5) day.classList.add('day-high');
+                    else if (leaves > 3) day.classList.add('day-med');
+                    else if (leaves > 1) day.classList.add('day-low');
+                }
+                day.textContent = i;
+                day.title = `Oct ${i}: ${Math.floor(Math.random()*10)} employees on leave`;
+                heatmap.appendChild(day);
+            }
+        }
+    </script>
+</body>
+</html>

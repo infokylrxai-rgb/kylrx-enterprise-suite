@@ -14,31 +14,25 @@
         const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
         if (!isLoggedIn || userRole !== 'admin') window.location.href = 'index.html';
     </script>
+    <link rel="stylesheet" href="admin-dashboard.css">
     <style>
-        :root {
-            --primary: #6366f1; --primary-dark: #4f46e5; --bg: #f8fafc; --sidebar: #ffffff;
-            --card: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
-            --radius: 16px; --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        .sidebar {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text-main); }
-        .dashboard-container { display: flex; min-height: 100vh; }
-        .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: fixed; height: 100vh; display: flex; flex-direction: column; }
-        .sidebar-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
-        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
-        .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
-        .logo-text { font-size: 1.5rem; font-weight: 800; }
-        .nav-menu { flex: 1; list-style: none; }
-        .nav-item { margin-bottom: 0.5rem; }
-        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-muted); border-radius: 12px; font-weight: 500; transition: 0.2s; }
-        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.08); color: var(--primary); }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
+
         .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
         .header { margin-bottom: 2.5rem; }
         .header h1 { font-size: 2rem; font-weight: 700; }
         .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
         .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
         .notif-item:last-child { border-bottom: none; }
-        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .notif-content { flex: 1; }
         .notif-title { font-weight: 600; margin-bottom: 4px; }
         .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
@@ -50,6 +44,35 @@
             color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
         }
         .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .action-icon:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--border);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-icon i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2px;
+        }
 
         /* Customization Sidebar */
         .config-sidebar {
@@ -91,12 +114,115 @@
                 <span class="logo-text">HRFlow</span>
             </a>
             <nav class="nav-menu">
-                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor-play"></i><span>TVC Monitor</span></a></div>
-                <div class="nav-item"><a href="admin-notifications.html" class="nav-link active"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-dashboard.html#personnel'"><i data-lucide="list"></i><span>Personnel View</span></a></div>
-                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item">
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link active">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
             </nav>
             <div class="sidebar-bottom">
                 <div class="nav-item">
@@ -105,9 +231,14 @@
                         <span>Customize Layout</span>
                     </a>
                 </div>
-                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" style="color: #ef4444;">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
                         <i data-lucide="log-out"></i>
                         <span>Logout</span>
                     </a>
@@ -115,12 +246,20 @@
             </div>
         </aside>
         <main class="main-content">
-            <header class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <div>
-                    <h1>System Notifications</h1>
-                    <p style="color: var(--text-muted);">Manage and view all administrative alerts</p>
+            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
+                <div style="flex: 1;">
+                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">System Notifications</h1>
+                    <p style="color: var(--text-muted); font-weight: 500;">Manage and view all administrative alerts</p>
                 </div>
-                <button class="icon-btn" onclick="window.location.href='admin-notifications.html'"><i data-lucide="bell"></i></button>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                        <i data-lucide="message-square"></i>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
+                        <i data-lucide="bell"></i>
+                    </button>
+                </div>
             </header>
             <div class="card">
                 <div class="notif-item">

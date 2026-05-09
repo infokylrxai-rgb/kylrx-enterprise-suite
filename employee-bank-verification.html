@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Verification | HRFlow Employee Portal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏦</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="employee-wizard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .workflow-timeline {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+            padding: 0 1rem;
+        }
+
+        .workflow-timeline::before {
+            content: '';
+            position: absolute;
+            top: 15px; left: 0; right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 1;
+        }
+
+        .timeline-step {
+            position: relative;
+            z-index: 2;
+            background: var(--bg);
+            padding: 0 10px;
+            text-align: center;
+        }
+
+        .step-dot {
+            width: 32px; height: 32px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 800; color: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        .timeline-step.active .step-dot {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .timeline-step.completed .step-dot {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .step-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        .timeline-step.active .step-label { color: var(--primary); }
+
+        .verification-status-banner {
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            border: 1px solid transparent;
+        }
+
+        .status-pending { background: #fefce8; border-color: #fef08a; color: #854d0e; }
+        .status-review { background: #eff6ff; border-color: #dbeafe; color: #1e40af; }
+        .status-approved { background: #ecfdf5; border-color: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fef2f2; border-color: #fee2e2; color: #991b1b; }
+
+        .bank-details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .audit-log-card {
+            margin-top: 3rem;
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .log-item {
+            display: flex;
+            gap: 15px;
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .log-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+        .log-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; min-width: 80px; }
+        .log-content h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
+        .log-content p { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .comment-bubble {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <header class="wizard-header">
+            <div class="wizard-logo" style="display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem;">
+                <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
+                    <i data-lucide="shield-check" size="18"></i>
+                </div>
+                <span>Bank Verification</span>
+            </div>
+            
+            <div id="verificationStatus" class="status-pill status-review" style="font-size: 0.8rem; padding: 6px 12px; border-radius: 100px; font-weight: 700;">
+                <i data-lucide="clock" size="14"></i> UNDER REVIEW
+            </div>
+        </header>
+
+        <div class="workflow-timeline">
+            <div class="timeline-step completed">
+                <div class="step-dot"><i data-lucide="check" size="14"></i></div>
+                <div class="step-label">Submitted</div>
+            </div>
+            <div class="timeline-step active">
+                <div class="step-dot">2</div>
+                <div class="step-label">HR Review</div>
+            </div>
+            <div class="timeline-step">
+                <div class="step-dot">3</div>
+                <div class="step-label">Payroll Sync</div>
+            </div>
+            <div class="timeline-step">
+                <div class="step-dot">4</div>
+                <div class="step-label">Approved</div>
+            </div>
+        </div>
+
+        <main class="wizard-card step-fade-in">
+            <div class="verification-status-banner status-review" id="statusBanner">
+                <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.5); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="info" size="24"></i>
+                </div>
+                <div>
+                    <h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 2px;">Verification in Progress</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.8;">Your details were submitted on Oct 12. HR typically reviews within 24 hours.</p>
+                </div>
+            </div>
+
+            <div class="card-header">
+                <h2>Account Information</h2>
+                <p>Ensure your bank details match your official documents to avoid payroll delays.</p>
+            </div>
+
+            <div class="card-body">
+                <form id="bankForm" class="bank-details-grid">
+                    <div class="form-group">
+                        <label>Account Holder Name</label>
+                        <input type="text" id="holderName" value="John Doe" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Bank Name</label>
+                        <input type="text" id="bankName" value="JP Morgan Chase" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Number</label>
+                        <input type="password" id="accountNum" value="********4567" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Routing / SWIFT Code</label>
+                        <input type="text" id="routingCode" value="CHASEUS33" readonly>
+                    </div>
+                    <div class="form-group full">
+                        <label>Branch Address</label>
+                        <textarea id="branchAddr" rows="2" readonly>270 Park Ave, New York, NY 10017, USA</textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-footer">
+                <button class="btn btn-outline" id="btnEditBank">
+                    <i data-lucide="edit-3"></i> Edit Details
+                </button>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" id="btnSubmitBank" disabled>
+                        Submit for Approval
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <section class="audit-log-card">
+            <h3 style="font-size: 0.9rem; font-weight: 800; color: var(--text-main); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px;">Verification History</h3>
+            <div id="auditLogs">
+                <div class="log-item">
+                    <div class="log-time">10 Oct, 14:20</div>
+                    <div class="log-content">
+                        <h4>Details Submitted</h4>
+                        <p>Initial bank details provided during onboarding phase.</p>
+                    </div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">11 Oct, 09:15</div>
+                    <div class="log-content">
+                        <h4>Rejected by HR</h4>
+                        <p>Administrative review failed due to mismatched IFSC/Routing code.</p>
+                        <div class="comment-bubble">"The routing code provided doesn't match the branch address. Please verify and resubmit." — Sarah (HR Ops)</div>
+                    </div>
+                </div>
+                <div class="log-item">
+                    <div class="log-time">12 Oct, 11:30</div>
+                    <div class="log-content">
+                        <h4>Resubmitted</h4>
+                        <p>Corrected routing code updated and sent for re-approval.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        if (window.lucide) lucide.createIcons();
+
+        const btnEdit = document.getElementById('btnEditBank');
+        const btnSubmit = document.getElementById('btnSubmitBank');
+        const inputs = document.querySelectorAll('#bankForm input, #bankForm textarea');
+
+        btnEdit.addEventListener('click', () => {
+            const isEditing = btnEdit.textContent.includes('Cancel');
+            if (isEditing) {
+                btnEdit.innerHTML = '<i data-lucide="edit-3"></i> Edit Details';
+                btnSubmit.disabled = true;
+                inputs.forEach(i => i.readOnly = true);
+            } else {
+                btnEdit.innerHTML = '<i data-lucide="x"></i> Cancel Edit';
+                btnSubmit.disabled = false;
+                inputs.forEach(i => i.readOnly = false);
+                inputs[0].focus();
+            }
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

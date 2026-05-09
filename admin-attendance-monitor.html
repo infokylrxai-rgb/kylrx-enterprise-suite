@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Regularization | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏱️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .attendance-grid {
+            display: grid; grid-template-columns: 1fr 350px; gap: 2rem;
+        }
+
+        .timeline-card {
+            background: white; border-radius: 24px; padding: 2rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+        }
+
+        .attendance-timeline {
+            display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;
+        }
+
+        .log-row {
+            display: grid; grid-template-columns: 100px 1fr 120px 100px;
+            padding: 1.25rem; background: #f8fafc; border-radius: 16px;
+            align-items: center; border: 1px solid transparent; transition: 0.2s;
+        }
+
+        .log-row:hover { border-color: var(--primary-soft); background: white; }
+
+        .time-badge { font-weight: 800; font-size: 0.9rem; color: var(--primary); }
+
+        .status-badge {
+            padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; text-align: center;
+        }
+
+        .status-present { background: #ecfdf5; color: #059669; }
+        .status-late { background: #fff7ed; color: #f97316; }
+        .status-missing { background: #fef2f2; color: #ef4444; }
+
+        .request-card {
+            background: #f8fafc; border: 1px solid var(--border); border-radius: 16px;
+            padding: 1.25rem; margin-bottom: 1rem;
+        }
+
+        .reason-box {
+            font-size: 0.75rem; color: var(--text-muted); background: white;
+            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+            margin-top: 10px; line-height: 1.4;
+        }
+
+        .tvc-mini-stat {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem; background: white; border-radius: 14px; border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link active">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item">
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Attendance Command Center</h1>
+                    <p>Track workforce punctuality, missing punches, and regularization requests.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'"><i data-lucide="message-square"></i></button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'"><i data-lucide="bell"></i></button>
+                </div>
+            </header>
+
+            <div class="tvc-stat-row" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="tvc-mini-stat">
+                    <div><p class="nav-label" style="margin:0">Active Login</p><h3>842</h3></div>
+                    <i data-lucide="log-in" style="color: #10b981;"></i>
+                </div>
+                <div class="tvc-mini-stat">
+                    <div><p class="nav-label" style="margin:0">Late Login</p><h3>42</h3></div>
+                    <i data-lucide="clock" style="color: #f59e0b;"></i>
+                </div>
+                <div class="tvc-mini-stat">
+                    <div><p class="nav-label" style="margin:0">Missing Punch</p><h3>12</h3></div>
+                    <i data-lucide="alert-circle" style="color: #ef4444;"></i>
+                </div>
+                <div class="tvc-mini-stat">
+                    <div><p class="nav-label" style="margin:0">On Field/WFH</p><h3>125</h3></div>
+                    <i data-lucide="map-pin" style="color: var(--primary);"></i>
+                </div>
+            </div>
+
+            <div class="attendance-grid">
+                <div class="attendance-left">
+                    <div class="timeline-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3 style="font-weight: 800;">Real-time Attendance Timeline</h3>
+                            <div class="btn-group">
+                                <button class="btn btn-outline" style="font-size: 0.75rem;"><i data-lucide="filter"></i> Filters</button>
+                                <button class="btn btn-primary" style="font-size: 0.75rem;"><i data-lucide="download"></i> Export Logs</button>
+                            </div>
+                        </div>
+
+                        <div class="attendance-timeline">
+                            <div class="log-row">
+                                <span class="time-badge">09:02 AM</span>
+                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">Arjun Mehta</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Engineering • Shift A</p></div>
+                                <span class="status-badge status-present">On-Time</span>
+                                <i data-lucide="map-pin" size="16" style="color: var(--text-muted); justify-self: end;"></i>
+                            </div>
+                            <div class="log-row">
+                                <span class="time-badge" style="color: #f59e0b;">09:45 AM</span>
+                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">Sarah Jenkins</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Marketing • Shift A</p></div>
+                                <span class="status-badge status-late">Late (45m)</span>
+                                <i data-lucide="map-pin" size="16" style="color: var(--text-muted); justify-self: end;"></i>
+                            </div>
+                            <div class="log-row" style="background: #fff1f2; border-color: #fecaca;">
+                                <span class="time-badge" style="color: #ef4444;">--:--</span>
+                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">David Vane</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Sales • Shift B</p></div>
+                                <span class="status-badge status-missing">Missing</span>
+                                <i data-lucide="alert-triangle" size="16" style="color: #ef4444; justify-self: end;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attendance-right">
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Regularization Queue</h3>
+                        
+                        <div class="request-card">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h4 style="font-size: 0.85rem; font-weight: 700;">Michael Scott</h4>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted);">Oct 12 • Late Login</p>
+                                </div>
+                                <span class="badge" style="background: #fef2f2; color: #ef4444; font-size: 0.6rem;">SLA BREACH</span>
+                            </div>
+                            <div class="reason-box">"Internet outage in the area. Logged in via mobile hotspot initially."</div>
+                            <div style="display: flex; gap: 8px; margin-top: 1rem;">
+                                <button class="btn btn-outline" style="flex:1; padding: 6px; font-size: 0.75rem;">Reject</button>
+                                <button class="btn btn-primary" style="flex:1; padding: 6px; font-size: 0.75rem;">Approve</button>
+                            </div>
+                        </div>
+
+                        <div class="request-card">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h4 style="font-size: 0.85rem; font-weight: 700;">Pam Beesly</h4>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted);">Oct 14 • Missing Punch</p>
+                                </div>
+                                <span class="badge" style="background: var(--bg-soft); color: var(--text-muted); font-size: 0.6rem;">Pending</span>
+                            </div>
+                            <div class="reason-box">"Forgot to punch out while leaving for client meeting."</div>
+                            <div style="display: flex; gap: 8px; margin-top: 1rem;">
+                                <button class="btn btn-outline" style="flex:1; padding: 6px; font-size: 0.75rem;">Reject</button>
+                                <button class="btn btn-primary" style="flex:1; padding: 6px; font-size: 0.75rem;">Approve</button>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-outline" style="width:100%; margin-top: 1rem; font-size: 0.75rem;">View All (12)</button>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Shift Settings</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.85rem; font-weight: 600;">Shift A (General)</span>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">09:00 - 18:00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.85rem; font-weight: 600;">Shift B (Evening)</span>
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">14:00 - 23:00</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" style="width:100%; margin-top: 1.5rem; font-size: 0.75rem;">Manage Shifts</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Document Center | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .doc-center-grid {
+            display: grid; grid-template-columns: 1fr 380px; gap: 2rem;
+        }
+
+        .doc-card {
+            background: white; border-radius: 24px; padding: 2rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+
+        .doc-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .doc-category-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-top: 2rem;
+        }
+
+        .category-item {
+            padding: 1.5rem; background: #f8fafc; border-radius: 20px;
+            text-align: center; border: 1px solid transparent; transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .category-item:hover { background: white; border-color: var(--primary-soft); box-shadow: var(--shadow-sm); }
+        .category-item i { color: var(--primary); margin-bottom: 12px; }
+
+        .doc-table {
+            width: 100%; border-collapse: collapse; margin-top: 2rem;
+        }
+
+        .doc-table th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .doc-table td { padding: 1.25rem 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+
+        .security-badge {
+            background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 100px;
+            font-size: 0.65rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        .archive-list {
+            display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;
+        }
+
+        .archive-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link active">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item">
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Payroll Document Center</h1>
+                    <p>Generate, encrypt, and archive employee financial and professional records.</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline"><i data-lucide="settings"></i> Config Engine</button>
+                    <button class="btn btn-primary"><i data-lucide="play"></i> Auto-Generate Batch</button>
+                </div>
+            </header>
+
+            <div class="doc-center-grid">
+                <div class="doc-left">
+                    <div class="doc-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-weight: 800;">Batch Generation Command</h3>
+                            <div class="security-badge"><i data-lucide="shield" size="12"></i> AES-256 Encrypted</div>
+                        </div>
+                        
+                        <div class="doc-category-grid">
+                            <div class="category-item">
+                                <i data-lucide="file-spreadsheet" size="32"></i>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">Monthly Payslips</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Full-Time Employees</p>
+                            </div>
+                            <div class="category-item">
+                                <i data-lucide="invoice" size="32"></i>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">Service Invoices</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Interns & Consultants</p>
+                            </div>
+                            <div class="category-item">
+                                <i data-lucide="award" size="32"></i>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">Experience Letters</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Service Certification</p>
+                            </div>
+                            <div class="category-item">
+                                <i data-lucide="trending-up" size="32"></i>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">Revision Letters</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Salary Hike Addendums</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="doc-card" style="margin-top: 2rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Recent Generations</h3>
+                        <table class="doc-table">
+                            <thead>
+                                <tr>
+                                    <th>EMPLOYEE</th>
+                                    <th>TYPE</th>
+                                    <th>ID / NO.</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: 700;">Arjun Mehta</td>
+                                    <td>Payslip (Oct 2026)</td>
+                                    <td>PS-2026-1042</td>
+                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">Generated</span></td>
+                                    <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 700;">Sarah Jenkins</td>
+                                    <td>Invoice (Oct 2026)</td>
+                                    <td>INV-2026-882</td>
+                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">Generated</span></td>
+                                    <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 700;">Michael Scott</td>
+                                    <td>F&F Settlement</td>
+                                    <td>FF-2026-012</td>
+                                    <td><span class="badge" style="background: #fff7ed; color: #f97316; font-size: 0.65rem;">Draft</span></td>
+                                    <td><i data-lucide="edit" size="16" style="cursor: pointer; color: var(--text-muted);"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="doc-right">
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Payroll Distribution</h3>
+                        <canvas id="payrollChart" height="250"></canvas>
+                        <div style="margin-top: 1.5rem; display: grid; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                                <span style="color: var(--text-muted);">Total Disbursed</span>
+                                <span style="font-weight: 800;">₹42.8L</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                                <span style="color: var(--text-muted);">Tax Deductions (TDS)</span>
+                                <span style="font-weight: 800; color: #ef4444;">₹4.2L</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1rem;">Automated Archives</h3>
+                        <div class="archive-list">
+                            <div class="archive-item">
+                                <div><p style="font-weight: 700; font-size: 0.8rem;">September 2026</p><p style="font-size: 0.7rem; color: var(--text-muted);">842 Documents</p></div>
+                                <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
+                            </div>
+                            <div class="archive-item">
+                                <div><p style="font-weight: 700; font-size: 0.8rem;">August 2026</p><p style="font-size: 0.7rem; color: var(--text-muted);">838 Documents</p></div>
+                                <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" style="width: 100%; margin-top: 1.5rem; font-size: 0.75rem;">Access Vault</button>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: #eff6ff; border: 1px solid #dbeafe; padding: 1rem; margin-top: 2rem; display: flex; gap: 12px; align-items: center;">
+                        <i data-lucide="info" style="color: var(--primary);"></i>
+                        <p style="font-size: 0.75rem; color: var(--primary-dark); line-height: 1.4;"><strong>SLA:</strong> Document generation for the current cycle is <strong>98% complete</strong>. 12 invoices pending approval.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            initCharts();
+        });
+
+        function initCharts() {
+            const ctx = document.getElementById('payrollChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Basic', 'HRA', 'Variable', 'PF/Tax'],
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#ef4444'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

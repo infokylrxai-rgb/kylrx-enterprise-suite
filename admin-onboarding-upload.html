@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Employee Onboarding | HRFlow Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="admin-onboarding-upload.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item">
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <nav class="top-menu-bar">
+                <div class="top-nav-left">
+                    <div class="breadcrumbs">
+                        <span class="breadcrumb-item">HRFlow</span>
+                        <span class="breadcrumb-sep">/</span>
+                        <span class="breadcrumb-item" style="color: var(--text-main); font-weight: 700;">Bulk Onboarding</span>
+                    </div>
+                    <div class="search-bar-container">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" class="top-search-input" placeholder="Search records...">
+                    </div>
+                </div>
+
+                <div class="top-nav-right">
+                    <div class="btn-group">
+                        <button class="btn btn-outline" id="downloadTemplate">
+                            <i data-lucide="download"></i>
+                            <span>Template</span>
+                        </button>
+                        <button class="btn btn-primary" id="finalizeBtn" disabled>
+                            <i data-lucide="check-circle"></i>
+                            <span>Finalize Import</span>
+                        </button>
+                    </div>
+
+                    <div class="header-actions">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                        <i data-lucide="message-square"></i>
+                    </button>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
+                        <i data-lucide="bell"></i>
+                    </button>
+                    
+                    <div class="profile-trigger">
+                        <div class="profile-info">
+                            <span class="p-name">System Admin</span>
+                            <span class="p-role">Master Control</span>
+                        </div>
+                        <div class="p-avatar">AD</div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-wrapper">
+                <!-- Header -->
+                <header class="animate-fade-in" style="margin-bottom: 2.5rem;">
+                    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Bulk Employee Onboarding</h1>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Streamline enterprise workforce growth with mass data ingestion.</p>
+                </header>
+
+                <!-- Upload Section -->
+                <section class="glass-card animate-fade-in" style="animation-delay: 0.1s;">
+                    <div class="upload-zone" id="dropZone">
+                        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" style="display: none;">
+                        <div class="upload-icon">
+                            <i data-lucide="upload-cloud" size="32"></i>
+                        </div>
+                        <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem; font-weight: 700;">Upload Onboarding Manifest</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Drag and drop your Excel file here, or click to browse</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.6;">Supports .xlsx, .xls, .csv (Max 5MB)</p>
+                    </div>
+
+                    <!-- Progress Tracker -->
+                    <div class="progress-container" id="progressContainer" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <div>
+                                <span id="progressStatus" style="font-weight: 700;">Processing records...</span>
+                                <span id="progressCount" style="color: var(--text-muted); margin-left: 8px;">0/0</span>
+                            </div>
+                            <span id="progressPercent" style="font-weight: 700; color: var(--primary);">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progressBar"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Results Section -->
+                <section class="animate-fade-in" id="resultsSection" style="display: none; animation-delay: 0.2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <h2 style="font-size: 1.25rem; font-weight: 700;">Upload Summary</h2>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">Review and validate records before finalizing import.</p>
+                        </div>
+                        <button class="btn btn-outline" id="clearBtn" style="border-radius: 10px; padding: 8px 16px; font-size: 0.8rem;">Clear All</button>
+                    </div>
+
+                    <div class="glass-card" style="padding: 0; overflow: hidden;">
+                        <div class="data-table-wrapper">
+                            <table id="resultsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Employee Details</th>
+                                        <th>Dept / Designation</th>
+                                        <th>Reporting Manager</th>
+                                        <th>Joining Date</th>
+                                        <th>Validation Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsBody">
+                                    <!-- Data rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Overlay -->
+    <div id="successOverlay" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.8); backdrop-filter:blur(12px); z-index:200; align-items:center; justify-content:center;">
+        <div class="glass-card" style="max-width:400px; text-align:center; padding:3rem; background: white;">
+            <div style="width:80px; height:80px; background:var(--secondary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 2rem; box-shadow:0 0 40px rgba(16, 185, 129, 0.4);">
+                <i data-lucide="check" size="40"></i>
+            </div>
+            <h2 style="font-size:1.5rem; margin-bottom:1rem; font-weight: 800;">Onboarding Complete</h2>
+            <p style="color:var(--text-muted); margin-bottom:2rem; font-size: 0.95rem;">All validated records have been successfully synchronized with the HRFlow Enterprise cloud.</p>
+            <button class="btn btn-primary" onclick="window.location.reload()" style="width:100%; justify-content:center;">Return to Dashboard</button>
+        </div>
+    </div>
+
+    <script type="module" src="admin-onboarding-upload.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

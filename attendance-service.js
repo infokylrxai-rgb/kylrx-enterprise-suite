@@ -1,0 +1,128 @@
+import { db } from "./firebase-config.js";
+import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+/**
+ * Attendance Regularization Service
+ * Handles Correction Requests, Approvals, and SLA Monitoring.
+ */
+
+export async function submitRegularization(employeeId, data) {
+    console.log(`[ATTENDANCE] Submitting regularization for ${employeeId}...`);
+    try {
+        const requestId = `REG-${Date.now()}`;
+        const regRef = doc(db, 'attendance_regularizations', requestId);
+        
+        // Threshold check: Is it within 2 days?
+        const logDate = new Date(data.date);
+        const now = new Date();
+        const diffDays = Math.ceil((now - logDate) / (1000 * 60 * 60 * 24));
+        
+        const payload = {
+            ...data,
+            employeeId,
+            status: 'Pending',
+            isAfterThreshold: diffDays > 2,
+            requestedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            history: [{
+                event: 'Requested',
+                by: employeeId,
+                timestamp: new Date().toISOString()
+            }]
+        };
+
+        await setDoc(regRef, payload);
+        
+        // Notify Manager
+        await createNotification(data.managerId, `Attendance regularization request from ${data.employeeName} for ${data.date}.`, 'normal');
+        
+        return { success: true, requestId };
+    } catch (err) {
+        console.error('[ATTENDANCE] Submission failed:', err);
+        throw err;
+    }
+}
+
+export async function processRegularization(requestId, actorId, action, comment = '') {
+    console.log(`[ATTENDANCE] Processing ${action} for ${requestId}...`);
+    try {
+        const docRef = doc(db, 'attendance_regularizations', requestId);
+        const snap = await getDoc(docRef);
+        
+        if (!snap.exists()) throw new Error('Request not found');
+        const data = snap.data();
+
+        if (action === 'approve') {
+            // Update the primary attendance log
+            await syncAttendanceLog(data.employeeId, data.date, data.correctedTime, data.type);
+            
+            await updateDoc(docRef, {
+                status: 'Approved',
+                approverId: actorId,
+                approvedAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+            
+            await createNotification(data.employeeId, `Your attendance regularization for ${data.date} has been approved.`, 'high');
+        } else {
+            await updateDoc(docRef, {
+                status: 'Rejected',
+                rejectionComment: comment,
+                updatedAt: serverTimestamp()
+            });
+            
+            await createNotification(data.employeeId, `Your attendance regularization for ${data.date} was rejected.`, 'high');
+        }
+
+        return { success: true };
+    } catch (err) {
+        console.error('[ATTENDANCE] Approval failed:', err);
+        throw err;
+    }
+}
+
+async function syncAttendanceLog(employeeId, date, time, type) {
+    console.log(`[ATTENDANCE] Syncing log: ${employeeId} | ${date} | ${time}`);
+    // Simulated log sync
+    const logId = `${employeeId}_${date.replace(/-/g, '')}`;
+    const logRef = doc(db, 'attendance_logs', logId);
+    
+    await setDoc(logRef, {
+        employeeId,
+        date,
+        [type === 'Punch In' ? 'clockIn' : 'clockOut']: time,
+        regularized: true,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+}
+
+async function createNotification(target, message, priority) {
+    await addDoc(collection(db, 'notifications'), {
+        target,
+        message,
+        priority,
+        read: false,
+        timestamp: serverTimestamp()
+    });
+}
+
+export async function checkRegularizationSLA() {
+    console.log("[ATTENDANCE] Scanning for SLA breaches...");
+    const q = query(collection(db, 'attendance_regularizations'), where('status', '==', 'Pending'));
+    const snap = await getDocs(q);
+    
+    const now = new Date();
+    for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        const requestedAt = data.requestedAt.toDate();
+        const diffHours = (now - requestedAt) / (1000 * 60 * 60);
+        
+        if (diffHours > 48 && data.status !== 'Escalated') {
+            await updateDoc(doc(db, 'attendance_regularizations', docSnap.id), {
+                status: 'Escalated',
+                updatedAt: serverTimestamp()
+            });
+            await createNotification('admin_hr', `CRITICAL: Attendance regularization for ${data.employeeName} has breached 48h SLA.`, 'high');
+        }
+    }
+}

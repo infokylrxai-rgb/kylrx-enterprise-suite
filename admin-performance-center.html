@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Performance Center | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .pms-admin-grid {
+            display: grid; grid-template-columns: 1fr 380px; gap: 2rem;
+        }
+
+        .leaderboard-card {
+            background: white; border-radius: 24px; padding: 2rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+        }
+
+        .leader-item {
+            display: flex; align-items: center; gap: 1rem; padding: 1rem;
+            border-bottom: 1px solid var(--border); transition: 0.2s;
+        }
+
+        .leader-item:hover { background: #f8fafc; }
+        .leader-item:last-child { border-bottom: none; }
+
+        .rank-circle {
+            width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 0.8rem; color: var(--text-muted);
+        }
+
+        .rank-top { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+
+        .score-badge {
+            background: #eff6ff; color: var(--primary); padding: 4px 12px;
+            border-radius: 100px; font-weight: 800; font-size: 0.8rem;
+        }
+
+        .heatmap-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 1.5rem;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1; border-radius: 4px; background: #f1f5f9;
+            cursor: pointer; position: relative;
+        }
+
+        .heatmap-cell:hover::after {
+            content: attr(data-val); position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%); background: #1e293b; color: white;
+            padding: 4px 8px; border-radius: 4px; font-size: 0.6rem; white-space: nowrap;
+        }
+
+        .level-1 { background: #dbeafe; }
+        .level-2 { background: #93c5fd; }
+        .level-3 { background: #3b82f6; }
+        .level-4 { background: #1e40af; }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link active">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item">
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Performance Command Center</h1>
+                    <p>Analyze workforce productivity, review EOD summaries, and score departmental KPIs.</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline"><i data-lucide="file-text"></i> Export Reports</button>
+                    <button class="btn btn-primary"><i data-lucide="award"></i> Finalize Monthly Scores</button>
+                </div>
+            </header>
+
+            <div class="pms-admin-grid">
+                <div class="portal-left">
+                    <div class="leaderboard-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <h3 style="font-weight: 800;">Department Leaderboard</h3>
+                            <select class="input-box" style="width: 150px; font-size: 0.75rem;">
+                                <option>Engineering</option>
+                                <option>Marketing</option>
+                                <option>Sales</option>
+                            </select>
+                        </div>
+
+                        <div class="leader-list">
+                            <div class="leader-item">
+                                <div class="rank-circle rank-top">1</div>
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0;"></div>
+                                <div style="flex: 1;">
+                                    <h5 style="font-weight: 700; font-size: 0.9rem;">Arjun Mehta</h5>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted);">Engineering • Sr. Developer</p>
+                                </div>
+                                <div class="score-badge">98.4</div>
+                            </div>
+                            <div class="leader-item">
+                                <div class="rank-circle">2</div>
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0;"></div>
+                                <div style="flex: 1;">
+                                    <h5 style="font-weight: 700; font-size: 0.9rem;">Sarah Jenkins</h5>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted);">Engineering • Lead Architect</p>
+                                </div>
+                                <div class="score-badge">96.2</div>
+                            </div>
+                            <div class="leader-item">
+                                <div class="rank-circle">3</div>
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0;"></div>
+                                <div style="flex: 1;">
+                                    <h5 style="font-weight: 700; font-size: 0.9rem;">David Vane</h5>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted);">Engineering • QA Specialist</p>
+                                </div>
+                                <div class="score-badge">92.8</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 2rem; padding: 2rem; border-radius: 24px; background: white; border: 1px solid var(--border);">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Review Queue</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="padding: 1.25rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <p style="font-weight: 700; font-size: 0.85rem;">Jane Doe • EOD Summary</p>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted);">"Finalized UI mockups for the new payroll dashboard..."</p>
+                                </div>
+                                <button class="btn btn-primary" style="font-size: 0.75rem; padding: 8px 16px;">Score Now</button>
+                            </div>
+                            <div style="padding: 1.25rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <p style="font-weight: 700; font-size: 0.85rem;">Michael Scott • Task Update</p>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted);">Asset Audit: Warehouse A (100% Completed)</p>
+                                </div>
+                                <button class="btn btn-primary" style="font-size: 0.75rem; padding: 8px 16px;">Score Now</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portal-right">
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Productivity Heatmap</h3>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted);">
+                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                        </div>
+                        <div class="heatmap-grid">
+                            <div class="heatmap-cell level-4" data-val="High (98%)"></div>
+                            <div class="heatmap-cell level-3" data-val="Med (82%)"></div>
+                            <div class="heatmap-cell level-4" data-val="High (95%)"></div>
+                            <div class="heatmap-cell level-2" data-val="Low (45%)"></div>
+                            <div class="heatmap-cell level-4" data-val="High (92%)"></div>
+                            <div class="heatmap-cell" data-val="N/A"></div>
+                            <div class="heatmap-cell" data-val="N/A"></div>
+                            <!-- More cells... -->
+                             <script>
+                                for(let i=0; i<21; i++) {
+                                    document.write('<div class="heatmap-cell level-' + (Math.floor(Math.random()*4)+1) + '" data-val="' + (Math.floor(Math.random()*100)) + '%"></div>');
+                                }
+                             </script>
+                        </div>
+                        <div style="margin-top: 1rem; display: flex; gap: 8px; align-items: center; font-size: 0.6rem; color: var(--text-muted);">
+                            <span>Less</span>
+                            <div style="width:10px; height:10px; border-radius:2px; background:#f1f5f9;"></div>
+                            <div style="width:10px; height:10px; border-radius:2px; background:#dbeafe;"></div>
+                            <div style="width:10px; height:10px; border-radius:2px; background:#93c5fd;"></div>
+                            <div style="width:10px; height:10px; border-radius:2px; background:#3b82f6;"></div>
+                            <div style="width:10px; height:10px; border-radius:2px; background:#1e40af;"></div>
+                            <span>More</span>
+                        </div>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.25rem;">KPI Goal Tracking</h3>
+                        <canvas id="goalChart" height="200"></canvas>
+                        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                                <span style="color: var(--text-muted);">Org. Target</span>
+                                <span style="font-weight: 800;">₹500M ARR</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                                <span style="color: var(--text-muted);">Current Progress</span>
+                                <span style="font-weight: 800; color: var(--primary);">₹412M (82%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            initGoalChart();
+        });
+
+        function initGoalChart() {
+            const ctx = document.getElementById('goalChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Productivity Trend',
+                        data: [65, 78, 72, 85, 88, 92],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

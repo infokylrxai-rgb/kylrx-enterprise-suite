@@ -14,7 +14,9 @@ const state = {
             thresholds: { productivity: 70, burnout: 85 },
             activeModules: ['performance', 'risk']
         },
-        theme: 'enterprise-light'
+        theme: 'enterprise-light',
+        primaryColor: '#3b82f6',
+        gridDensity: 'standard'
     },
     activeDepartments: []
 };
@@ -238,6 +240,56 @@ canvas.addEventListener('drop', (e) => {
     }
 });
 
+window.removeWidget = (id) => {
+    state.deptData.layout = state.deptData.layout.filter(w => w !== id);
+    widgetEngine.render(state.deptData.layout);
+    if (state.deptData.layout.length === 0 && placeholder) {
+        placeholder.style.display = 'block';
+    }
+};
+
+// Grid Density Logic
+window.setGridDensity = (density) => {
+    state.deptData.gridDensity = density;
+    document.querySelectorAll('.canvas-controls .btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.grid === density);
+    });
+    
+    const canvas = document.getElementById('layoutCanvas');
+    canvas.classList.remove('density-compact', 'density-spacious');
+    if (density !== 'standard') canvas.classList.add(`density-${density}`);
+};
+
+// Branding Color Logic
+const colorInput = document.getElementById('primaryColor');
+const hexVal = document.getElementById('hexVal');
+
+const updatePrimaryColor = (color) => {
+    state.deptData.primaryColor = color;
+    hexVal.innerText = color.toUpperCase();
+    colorInput.value = color;
+    
+    // Update live CSS variables for preview
+    document.documentElement.style.setProperty('--primary', color);
+    
+    // Update theme previews
+    document.querySelectorAll('.theme-preview div').forEach(div => {
+        if (div.style.background.includes('var(--primary)') || div.style.background === 'rgb(59, 130, 246)') {
+            div.style.background = color;
+        }
+    });
+};
+
+colorInput.oninput = (e) => updatePrimaryColor(e.target.value);
+
+document.querySelectorAll('.color-preset').forEach(preset => {
+    preset.onclick = () => {
+        document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('active'));
+        preset.classList.add('active');
+        updatePrimaryColor(preset.dataset.color);
+    };
+});
+
 // AI Calibration Logic
 const rangeProd = document.getElementById('rangeProd');
 const rangeBurn = document.getElementById('rangeBurn');
@@ -291,7 +343,7 @@ document.querySelectorAll('.theme-card').forEach(card => {
 // Edit Mode Initialization
 async function initEditMode() {
     const urlParams = new URLSearchParams(window.location.search);
-    const editId = urlParams.get('id');
+    const editId = urlParams.get('id') || urlParams.get('edit');
     
     if (editId) {
         console.log("Loading Department for Edit:", editId);
@@ -353,45 +405,88 @@ function loadActiveCommands() {
     const container = document.getElementById('active-commands-grid');
     if (!container) return;
 
+    // Listen for users to get employee counts
+    onSnapshot(collection(db, "users"), (userSnap) => {
+        state.employees = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (state.activeDepartments.length > 0) renderCommands(container);
+    });
+
     onSnapshot(collection(db, "departments"), (snapshot) => {
         state.activeDepartments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        if (state.activeDepartments.length === 0) {
-            container.innerHTML = '<div style="padding:4rem; text-align:center; color:var(--text-muted); background: #f8fafc; border-radius: 20px; border: 2px dashed var(--border); grid-column: 1/-1;">No Command Centers deployed yet. Use the builder above to launch your first unit.</div>';
-            return;
-        }
+        renderCommands(container);
+    });
 
-        container.innerHTML = state.activeDepartments.map(dept => {
-            const name = dept.departmentName || dept.name || 'Unnamed Dept';
-            const code = dept.departmentCode || 'UNIT';
-            const icon = dept.icon || 'layout';
-            const id = dept.id;
+    // Add Search Listener
+    document.getElementById('directorySearch')?.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        renderCommands(container, query);
+    });
+}
 
-            return `
-                <div class="card" style="padding: 1.5rem; transition: 0.3s; border: 1px solid var(--border); border-radius: 20px; background: white;">
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
-                        <div style="width: 48px; height: 48px; background: #eff6ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid #dbeafe;">
-                            <i data-lucide="${icon}"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 800; font-size: 1rem;">${name}</div>
-                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">${code} UNIT</div>
-                        </div>
+function renderCommands(container, query = '') {
+    if (!container) return;
+    
+    let filteredDepts = state.activeDepartments;
+    if (query) {
+        filteredDepts = state.activeDepartments.filter(dept => 
+            (dept.departmentName || '').toLowerCase().includes(query) || 
+            (dept.departmentCode || '').toLowerCase().includes(query)
+        );
+    }
+    
+    if (filteredDepts.length === 0) {
+        container.innerHTML = `<div style="padding:4rem; text-align:center; color:var(--text-muted); background: #f8fafc; border-radius: 20px; border: 2px dashed var(--border); grid-column: 1/-1;">${query ? 'No matching command centers found.' : 'No Command Centers deployed yet.'}</div>`;
+        return;
+    }
+
+    const EMP_VIEW_MAP = {
+        'engineering': 'engineering-employee.html',
+        'finance': 'finance-employee.html',
+        'marketing': 'marketing-employee.html',
+        'sales': 'sales-employee.html',
+        'hr': 'hr-employee.html',
+        'operations': 'operational-employee.html'
+    };
+
+    container.innerHTML = filteredDepts.map(dept => {
+        const name = dept.departmentName || dept.name || 'Unnamed Dept';
+        const code = dept.departmentCode || 'UNIT';
+        const icon = dept.icon || 'layout';
+        const id = dept.id;
+        const empCount = state.employees ? state.employees.filter(e => e.departmentId === id).length : 0;
+        const empLink = EMP_VIEW_MAP[id] || 'employee-login.html';
+
+        return `
+            <div class="card" style="padding: 1.5rem; transition: 0.3s; border: 1px solid var(--border); border-radius: 20px; background: white; position: relative;">
+                <div style="position: absolute; top: 15px; right: 15px; background: var(--primary-light); color: var(--primary); font-size: 0.6rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Manager Console</div>
+                
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 1.5rem;">
+                    <div style="width: 48px; height: 48px; background: #eff6ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid #dbeafe;">
+                        <i data-lucide="${icon}"></i>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <a href="manager-dashboard.html?id=${id}" target="_blank" class="btn btn-outline" style="flex: 1; justify-content: center; padding: 12px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="external-link" size="14"></i> View
-                        </a>
-                        <a href="manager-dashboard-builder.html?edit=${id}" class="btn btn-outline" style="flex: 1; justify-content: center; padding: 12px; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="edit-3" size="14"></i> Edit
-                        </a>
+                    <div>
+                        <div style="font-weight: 800; font-size: 1rem;">${name}</div>
+                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">${code} UNIT • ${empCount} Personnel</div>
                     </div>
                 </div>
-            `;
-        }).join('');
+                <div style="display: flex; gap: 10px;">
+                    <a href="manager-dashboard.html?id=${id}" target="_blank" class="btn btn-outline" style="flex: 1; justify-content: center; padding: 12px; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="external-link" size="14"></i> View
+                    </a>
+                    <a href="manager-dashboard-builder.html?id=${id}" class="btn btn-outline" style="flex: 1; justify-content: center; padding: 12px; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="edit-3" size="14"></i> Edit
+                    </a>
+                </div>
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center;">
+                    <a href="${empLink}" target="_blank" style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                        <i data-lucide="users" size="12"></i> Switch to Employee View
+                    </a>
+                </div>
+            </div>
+        `;
+    }).join('');
 
-        if (window.lucide) lucide.createIcons();
-    });
+    if (window.lucide) lucide.createIcons();
 }
 
 // Start Listeners

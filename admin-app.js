@@ -708,6 +708,35 @@ function setupEventListeners() {
         toggleConfig();
     });
 
+    // Global Search Functionality
+    const topSearch = document.querySelector('.top-search-input');
+    if (topSearch) {
+        topSearch.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = state.employees.filter(emp => 
+                emp.name?.toLowerCase().includes(query) || 
+                emp.email?.toLowerCase().includes(query) || 
+                emp.employeeId?.toLowerCase().includes(query) ||
+                emp.departmentName?.toLowerCase().includes(query)
+            );
+            renderEmployeeTable(filtered);
+            
+            // Auto-open personnel table if searching
+            const table = document.getElementById('employeeDataTable');
+            if (table && table.style.display === 'none' && query.length > 0) {
+                table.style.display = 'block';
+            }
+        });
+
+        // Command + K Shortcut
+        window.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                topSearch.focus();
+            }
+        });
+    }
+
     const deptNameInput = document.getElementById('deptNameInput');
     const deptCodeInput = document.getElementById('deptCodeInput');
     

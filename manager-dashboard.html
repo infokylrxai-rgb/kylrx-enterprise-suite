@@ -44,6 +44,34 @@
         
         body.glassmorphism { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); }
         body.glassmorphism .widget-item { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+
+        /* Customization Sidebar */
+        .custom-panel {
+            position: fixed; right: -320px; top: 0; bottom: 0; width: 320px;
+            background: white; border-left: 1px solid var(--border);
+            z-index: 2000; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            padding: 2rem; box-shadow: -10px 0 30px rgba(0,0,0,0.05);
+        }
+        .custom-panel.active { right: 0; }
+        .custom-trigger {
+            position: fixed; right: 20px; bottom: 20px; width: 56px; height: 56px;
+            background: var(--primary); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); cursor: pointer;
+            z-index: 1999; transition: 0.3s;
+        }
+        .custom-trigger:hover { transform: scale(1.1) rotate(15deg); }
+        
+        .option-group { margin-bottom: 2rem; }
+        .option-group h3 { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
+        
+        .theme-toggle-btn {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+            background: #f8fafc; cursor: pointer; text-align: left; font-weight: 700;
+            margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+        }
+        .theme-toggle-btn:hover { background: white; border-color: var(--primary); }
+        .theme-toggle-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
     </style>
 </head>
 <body>
@@ -94,6 +122,52 @@
                 <!-- Dynamic Widgets -->
             </div>
         </main>
+
+        <!-- Customization Panel -->
+        <div class="custom-trigger" onclick="toggleCustomPanel()"><i data-lucide="palette"></i></div>
+        <aside class="custom-panel" id="customPanel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800;">Customization</h2>
+                <button onclick="toggleCustomPanel()" style="background: none; border: none; cursor: pointer;"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="option-group">
+                <h3>Interface Theme</h3>
+                <button class="theme-toggle-btn active" data-theme="standard" onclick="applyTheme('standard')">
+                    <i data-lucide="sun"></i> Enterprise Light
+                </button>
+                <button class="theme-toggle-btn" data-theme="deep-space" onclick="applyTheme('deep-space')">
+                    <i data-lucide="moon"></i> Deep Space
+                </button>
+                <button class="theme-toggle-btn" data-theme="glassmorphism" onclick="applyTheme('glassmorphism')">
+                    <i data-lucide="layers"></i> Glassmorphism
+                </button>
+            </div>
+
+            <div class="option-group">
+                <h3>Branding Color</h3>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <div class="color-dot" style="background:#3b82f6; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#3b82f6')"></div>
+                    <div class="color-dot" style="background:#10b981; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#10b981')"></div>
+                    <div class="color-dot" style="background:#8b5cf6; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#8b5cf6')"></div>
+                    <div class="color-dot" style="background:#f59e0b; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#f59e0b')"></div>
+                    <div class="color-dot" style="background:#ef4444; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#ef4444')"></div>
+                    <input type="color" oninput="applyColor(this.value)" style="width:36px; height:36px; border-radius:50%; border:none; padding:0; background:none; cursor:pointer;">
+                </div>
+            </div>
+
+            <div class="option-group">
+                <h3>Grid Layout</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <button class="theme-toggle-btn" style="justify-content:center; text-align:center;" onclick="updateLayoutDensity('standard')">Standard</button>
+                    <button class="theme-toggle-btn" style="justify-content:center; text-align:center;" onclick="updateLayoutDensity('compact')">Compact</button>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 2rem; border-radius: 12px; padding: 14px; font-weight: 800; background: var(--primary); color: white; border: none; cursor: pointer;" onclick="savePreferences()">
+                Save Preferences
+            </button>
+        </aside>
     </div>
 
     <script type="module">
@@ -115,7 +189,8 @@
                     document.getElementById('mainCode').innerText = (data.departmentCode || 'UNIT').toUpperCase();
                     document.getElementById('mainIcon').innerHTML = `<i data-lucide="${data.icon || 'shield-check'}"></i>`;
                     
-                    if (data.theme) document.body.className = data.theme;
+                    if (data.theme) applyTheme(data.theme);
+                    if (data.primaryColor) applyColor(data.primaryColor);
                     lucide.createIcons();
                 }
             });
@@ -128,6 +203,49 @@
                 }
             });
         }
+
+        window.toggleCustomPanel = () => {
+            document.getElementById('customPanel').classList.toggle('active');
+        };
+
+        window.applyTheme = (theme) => {
+            document.body.className = theme === 'standard' ? '' : theme;
+            document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+        };
+
+        window.applyColor = (color) => {
+            document.documentElement.style.setProperty('--primary', color);
+            document.documentElement.style.setProperty('--primary-light', color + '15'); // Add transparency
+        };
+
+        window.updateLayoutDensity = (density) => {
+            const grid = document.getElementById('managerGrid');
+            grid.style.gap = density === 'compact' ? '0.75rem' : '1.5rem';
+        };
+
+        window.savePreferences = async () => {
+            const color = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+            const theme = document.body.className || 'standard';
+            
+            // In a real app, we would write back to Firestore here
+            const deptRef = doc(db, "departments", deptId);
+            try {
+                // Update specific fields
+                await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(async ({ updateDoc }) => {
+                    await updateDoc(deptRef, {
+                        primaryColor: color,
+                        theme: theme
+                    });
+                    alert("Preferences saved successfully!");
+                    toggleCustomPanel();
+                });
+            } catch (err) {
+                console.warn("Save failed, but applied locally:", err);
+                alert("Saved locally for this session.");
+            }
+        };
 
         initDashboard();
         lucide.createIcons();

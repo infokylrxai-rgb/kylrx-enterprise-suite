@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding Configurator | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css"> <!-- Reusing dashboard base styles -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .config-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .section-picker {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .section-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-soft);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .section-item:hover {
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .section-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .builder-canvas {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            min-height: 600px;
+        }
+
+        .flow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .assigned-tag {
+            padding: 6px 12px;
+            background: #f1f5f9;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            position: relative;
+            border: 1px solid transparent;
+            transition: 0.3s;
+        }
+
+        .workflow-step:hover {
+            border-color: var(--primary-soft);
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .step-details { flex: 1; }
+        .step-details h4 { font-weight: 800; margin-bottom: 4px; font-size: 1rem; }
+        .step-details p { font-size: 0.8rem; color: var(--text-muted); }
+
+        .step-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            background: white;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+
+        .btn-icon:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+            background: #fff1f2;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 5rem;
+            color: var(--text-muted);
+        }
+
+        .assignment-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--primary-light);
+            border-radius: 16px;
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="users"></i>
+                        <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="pie-chart"></i>
+                        <span>Analytics Center</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item">
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-notifications.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-message.html" class="nav-link">
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link active">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Dynamic Onboarding Workflow</h1>
+                    <p>Design multi-step onboarding journeys for different departments.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                        <i data-lucide="message-square"></i>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
+                        <i data-lucide="bell"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-outline" id="btnPreviewFlow">
+                        <i data-lucide="eye"></i> Preview Flow
+                    </button>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="btnSaveWorkflow">
+                        <i data-lucide="save"></i> Publish Workflow
+                    </button>
+                </div>
+            </div>
+
+            <div class="assignment-panel" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="form-group">
+                    <label>Target Department</label>
+                    <select id="targetDept" class="filter-select" style="width: 100%;">
+                        <option value="all">All Departments</option>
+                        <option value="engineering">Engineering</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="sales">Sales</option>
+                        <option value="hr">Human Resources</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Employee Type</label>
+                    <select id="targetType" class="filter-select" style="width: 100%;">
+                        <option value="all">All Types</option>
+                        <option value="full-time">Full-Time</option>
+                        <option value="contractor">Contractor</option>
+                        <option value="intern">Intern</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Employee Code Format</label>
+                    <input type="text" id="codeFormat" placeholder="{TYPE}-{DEPT}-{YEAR}-{SEQ}" value="{TYPE}-{DEPT}-{YEAR}-{SEQ}" class="filter-select" style="width: 100%; border: 1px solid var(--border); padding: 10px; border-radius: 12px;">
+                    <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">Preview: <span id="codePreview" style="font-weight: 800; color: var(--primary);">FT-ENG-2026-0001</span></p>
+                </div>
+            </div>
+
+            <div class="config-container">
+                <aside class="section-picker">
+                    <h3 style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 1.5rem;">Available Sections</h3>
+                    <div class="section-item" data-id="personal" data-title="Personal Information" data-desc="Name, Gender, DOB, Nationality">
+                        <i data-lucide="user"></i> <span>Personal Information</span>
+                    </div>
+                    <div class="section-item" data-id="address" data-title="Address Details" data-desc="Current and permanent address verification">
+                        <i data-lucide="map-pin"></i> <span>Address Details</span>
+                    </div>
+                    <div class="section-item" data-id="emergency" data-title="Emergency Contacts" data-desc="Primary and secondary contact persons">
+                        <i data-lucide="phone-call"></i> <span>Emergency Contacts</span>
+                    </div>
+                    <div class="section-item" data-id="education" data-title="Education" data-desc="Degrees, Certifications, Institutions">
+                        <i data-lucide="graduation-cap"></i> <span>Education</span>
+                    </div>
+                    <div class="section-item" data-id="experience" data-title="Work Experience" data-desc="Previous roles, companies, durations">
+                        <i data-lucide="briefcase"></i> <span>Experience</span>
+                    </div>
+                    <div class="section-item" data-id="government" data-title="Government IDs" data-desc="PAN, Aadhaar, SSN, Passport">
+                        <i data-lucide="contact-2"></i> <span>Government IDs</span>
+                    </div>
+                    <div class="section-item" data-id="tax" data-title="Tax Information" data-desc="Tax residence, declarations">
+                        <i data-lucide="calculator"></i> <span>Tax Information</span>
+                    </div>
+                    <div class="section-item" data-id="assets" data-title="Asset Allocation" data-desc="Hardware, software, access cards">
+                        <i data-lucide="laptop"></i> <span>Asset Allocation</span>
+                    </div>
+                    <div class="section-item" data-id="nda" data-title="NDA Agreements" data-desc="Confidentiality and IP agreements">
+                        <i data-lucide="file-signature"></i> <span>NDA Agreements</span>
+                    </div>
+                    <div class="section-item" data-id="compliance" data-title="Compliance Documents" data-desc="Policy acknowledgments, ethics">
+                        <i data-lucide="shield-check"></i> <span>Compliance Documents</span>
+                    </div>
+                    <div class="section-item" data-id="bank" data-title="Bank Details" data-desc="Account info for payroll processing">
+                        <i data-lucide="banknote"></i> <span>Bank Details</span>
+                    </div>
+                </aside>
+
+                <div class="builder-canvas">
+                    <div class="flow-header">
+                        <div>
+                            <h2 id="flowTitle">New Onboarding Flow</h2>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">Drafting workflow for <span id="displayDept">All Departments</span></p>
+                        </div>
+                        <div class="assigned-tag" id="displayType">FULL-TIME</div>
+                    </div>
+
+                    <div id="workflowStepsList">
+                        <!-- Dynamic steps will be added here -->
+                        <div class="empty-state">
+                            <i data-lucide="plus-circle" size="48" style="margin-bottom: 1rem; opacity: 0.3;"></i>
+                            <p>Click on sections from the left to build your onboarding workflow.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        if (window.lucide) lucide.createIcons();
+
+        let workflowSteps = [];
+
+        // UI Event Listeners
+        document.querySelectorAll('.section-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const id = item.dataset.id;
+                const title = item.dataset.title;
+                const desc = item.dataset.desc;
+                
+                if (workflowSteps.find(s => s.id === id)) {
+                    alert('This section is already added to the workflow.');
+                    return;
+                }
+
+                workflowSteps.push({ id, title, desc });
+                renderWorkflow();
+            });
+        });
+
+        function renderWorkflow() {
+            const list = document.getElementById('workflowStepsList');
+            if (workflowSteps.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="plus-circle" size="48" style="margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>Click on sections from the left to build your onboarding workflow.</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            list.innerHTML = workflowSteps.map((step, index) => `
+                <div class="workflow-step" data-index="${index}">
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-details">
+                        <h4>${step.title}</h4>
+                        <p>${step.desc}</p>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn-icon" onclick="removeStep(${index})"><i data-lucide="trash-2" size="16"></i></button>
+                    </div>
+                </div>
+            `).join('');
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        window.removeStep = (index) => {
+            workflowSteps.splice(index, 1);
+            renderWorkflow();
+        };
+
+        // Save Workflow to Firebase
+        document.getElementById('btnSaveWorkflow').addEventListener('click', async () => {
+            if (workflowSteps.length === 0) {
+                alert('Please add at least one section to the workflow.');
+                return;
+            }
+
+            const dept = document.getElementById('targetDept').value;
+            const type = document.getElementById('targetType').value;
+            const flowId = `flow_${dept}_${type}`;
+
+            try {
+                const btn = document.getElementById('btnSaveWorkflow');
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Publishing...';
+                if (window.lucide) lucide.createIcons();
+
+                await setDoc(doc(db, 'onboarding_configs', flowId), {
+                    department: dept,
+                    employeeType: type,
+                    codeFormat: document.getElementById('codeFormat').value,
+                    steps: workflowSteps,
+                    updatedAt: serverTimestamp(),
+                    active: true
+                });
+
+                alert('Onboarding workflow published successfully!');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="save"></i> Publish Workflow';
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error('Save failed:', err);
+                alert('Failed to publish workflow. Check console for details.');
+            }
+        });
+
+        // Code Generation Preview Logic
+        const formatInput = document.getElementById('codeFormat');
+        const previewSpan = document.getElementById('codePreview');
+
+        function updatePreview() {
+            const format = formatInput.value || "{TYPE}-{DEPT}-{YEAR}-{SEQ}";
+            const dept = document.getElementById('targetDept').value.substring(0,3).toUpperCase();
+            const typeMap = { 'full-time': 'FT', 'contractor': 'CON', 'intern': 'INT', 'consultant': 'CSL', 'all': 'EMP' };
+            const type = typeMap[document.getElementById('targetType').value] || 'EMP';
+            const year = new Date().getFullYear();
+            
+            let preview = format
+                .replace('{TYPE}', type)
+                .replace('{DEPT}', dept === 'ALL' ? 'GEN' : dept)
+                .replace('{YEAR}', year)
+                .replace('{SEQ}', '0001');
+            
+            previewSpan.textContent = preview;
+        }
+
+        formatInput.addEventListener('input', updatePreview);
+        document.getElementById('targetDept').addEventListener('change', updatePreview);
+        document.getElementById('targetType').addEventListener('change', updatePreview);
+
+        // Sync Display
+        document.getElementById('targetDept').addEventListener('change', (e) => {
+            document.getElementById('displayDept').textContent = e.target.options[e.target.selectedIndex].text;
+        });
+        document.getElementById('targetType').addEventListener('change', (e) => {
+            document.getElementById('displayType').textContent = e.target.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>

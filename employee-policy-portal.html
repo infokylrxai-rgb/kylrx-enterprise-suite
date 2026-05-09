@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Compliance Portal | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .policy-portal-grid {
+            display: grid; grid-template-columns: 1fr 400px; gap: 2rem;
+        }
+
+        .document-viewer {
+            background: white; border-radius: 24px; padding: 3rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            min-height: 600px; position: relative;
+        }
+
+        .policy-header {
+            border-bottom: 2px solid #f1f5f9; padding-bottom: 2rem; margin-bottom: 2rem;
+        }
+
+        .policy-content {
+            font-size: 0.95rem; line-height: 1.8; color: #334155;
+            max-height: 500px; overflow-y: auto; padding-right: 1.5rem;
+        }
+
+        .policy-content h5 { font-size: 1.1rem; font-weight: 800; margin: 1.5rem 0 0.75rem 0; color: var(--primary-dark); }
+
+        .signature-area {
+            margin-top: 2rem; padding: 2rem; background: #f8fafc; border-radius: 20px;
+            border: 2px dashed #cbd5e1; text-align: center;
+        }
+
+        .pending-badge {
+            background: #fff7ed; color: #f97316; padding: 4px 10px; border-radius: 100px;
+            font-size: 0.65rem; font-weight: 800;
+        }
+
+        .signed-badge {
+            background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 100px;
+            font-size: 0.65rem; font-weight: 800;
+        }
+
+        .policy-nav-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.25rem; background: #f8fafc; border-radius: 16px; margin-bottom: 1rem;
+            border: 1px solid transparent; cursor: pointer; transition: 0.2s;
+        }
+
+        .policy-nav-item:hover { border-color: var(--primary-soft); background: white; }
+        .policy-nav-item.active { border-color: var(--primary); background: #eff6ff; }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="employee-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="employee-dashboard.html" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Overview</span></a></div>
+                <div class="nav-item"><a href="employee-policy-portal.html" class="nav-link active"><i data-lucide="file-check"></i><span>Compliance Center</span></a></div>
+                <div class="nav-item"><a href="employee-onboarding.html" class="nav-link"><i data-lucide="user-check"></i><span>Onboarding</span></a></div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Governance & Compliance</h1>
+                    <p>Review and acknowledge organizational policies and legal agreements.</p>
+                </div>
+            </header>
+
+            <div class="policy-portal-grid">
+                <div class="portal-left">
+                    <div class="document-viewer">
+                        <div class="policy-header">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h2 style="font-size: 1.5rem; font-weight: 800;">IT Asset & Data Privacy Policy</h2>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);">Effective Date: Oct 01, 2026 • Version 1.2</p>
+                                </div>
+                                <span class="pending-badge">PENDING ACTION</span>
+                            </div>
+                        </div>
+
+                        <div class="policy-content">
+                            <p>This policy outlines the guidelines and requirements for the proper use and security of IT assets and data within HRFlow. All employees are required to adhere to these standards to protect organizational integrity and data privacy.</p>
+                            
+                            <h5>1. Hardware Usage</h5>
+                            <p>Employees are provided with laptops and peripherals for business purposes only. Maintenance and physical security of these assets are the responsibility of the assigned employee.</p>
+                            
+                            <h5>2. Data Security & Encryption</h5>
+                            <p>All organizational data must be stored on approved cloud platforms. Local storage of sensitive information is strictly prohibited without explicit AES-256 encryption approval.</p>
+                            
+                            <h5>3. Software Installation</h5>
+                            <p>Installation of unauthorized third-party software is prohibited. All software must be vetted by the IT Compliance team.</p>
+
+                            <h5>4. Digital Privacy</h5>
+                            <p>HRFlow reserves the right to monitor organizational assets for compliance and security purposes. Personal use of assets should be kept to a minimum.</p>
+                        </div>
+
+                        <div class="signature-area">
+                            <p style="font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem;">DIGITAL SIGNATURE INITIALS</p>
+                            <input type="text" class="input-box" placeholder="Type your full name to sign" style="width: 250px; text-align: center; font-family: 'Outfit', sans-serif; font-weight: 600;">
+                            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center;">
+                                <button class="btn btn-outline">Reject</button>
+                                <button class="btn btn-primary" style="padding: 10px 40px;">Sign & Accept Policy</button>
+                            </div>
+                            <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 15px;">By signing, you acknowledge that you have read and understood the terms of this policy.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portal-right">
+                    <div class="card" style="padding: 2rem; border-radius: 24px; background: white; border: 1px solid var(--border);">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">My Policy Inventory</h3>
+                        <div class="policy-nav-list">
+                            <div class="policy-nav-item active">
+                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">IT Asset Policy</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Due in 2 days</p></div>
+                                <span class="pending-badge">Pending</span>
+                            </div>
+                            <div class="policy-nav-item">
+                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">Code of Conduct</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Signed Oct 05</p></div>
+                                <span class="signed-badge">Signed</span>
+                            </div>
+                            <div class="policy-nav-item">
+                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">Remote Work v3</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Signed Oct 02</p></div>
+                                <span class="signed-badge">Signed</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 2rem; padding: 1rem; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border); display: flex; gap: 12px; align-items: start;">
+                            <i data-lucide="shield-check" size="20" style="color: var(--primary);"></i>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;"><strong>Compliance Score:</strong> Your current compliance status is <strong>66%</strong>. Complete the pending IT policy to restore full system access.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

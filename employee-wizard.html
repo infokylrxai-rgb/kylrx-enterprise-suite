@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Onboarding Wizard | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="employee-wizard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+    <div class="wizard-container">
+        <header class="wizard-header">
+            <div class="wizard-logo" style="display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem;">
+                <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
+                    <i data-lucide="bar-chart-2" size="18"></i>
+                </div>
+                <span>HRFlow</span>
+            </div>
+            
+            <div class="wizard-progress">
+                <div class="progress-labels">
+                    <span id="stepIndicator">Step 1 of 5</span>
+                    <span id="percentLabel">20% Complete</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+
+            <div class="auto-save-status" id="saveStatus">
+                <i data-lucide="cloud-check" size="16"></i>
+                <span>Data Auto-saved</span>
+            </div>
+        </header>
+
+        <main class="wizard-card step-fade-in" id="wizardContent">
+            <div id="loadingState" style="padding: 5rem; text-align: center;">
+                <i data-lucide="loader" class="animate-spin" size="48" style="color: var(--primary); margin-bottom: 1rem;"></i>
+                <p>Initializing your personalized onboarding journey...</p>
+            </div>
+
+            <div id="formContainer" style="display: none;">
+                <div class="card-header">
+                    <h2 id="currentStepTitle">Personal Information</h2>
+                    <p id="currentStepDesc">Let's start with your basic identification details.</p>
+                </div>
+                <div class="card-body">
+                    <form id="wizardForm" class="form-grid">
+                        <!-- Dynamic fields will be injected here -->
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-outline" id="btnPrev" disabled>
+                        <i data-lucide="arrow-left"></i> Previous
+                    </button>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-outline" id="btnSaveDraft">Save Draft</button>
+                        <button class="btn btn-primary" id="btnNext">
+                            Next Step <i data-lucide="arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="employee-wizard.js"></script>
+</body>
+</html>

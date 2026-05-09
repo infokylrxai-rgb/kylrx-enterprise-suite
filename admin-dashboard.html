@@ -22,46 +22,20 @@
             window.location.href = 'index.html';
         }
     </script>
+    <link rel="stylesheet" href="admin-dashboard.css">
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-light: #eff6ff;
-            --primary-soft: #dbeafe;
-            --primary-dark: #2563eb;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --danger: #ef4444;
-            --bg: #ffffff;
-            --bg-soft: #f8fafc;
-            --sidebar: #ffffff;
-            --card: rgba(255, 255, 255, 0.8);
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            --radius: 20px;
             --glass: blur(12px);
-            --sidebar-width: 260px;
             --config-width: 320px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text-main); overflow-x: hidden; }
+        body { overflow-x: hidden; }
 
-        .dashboard-container { display: flex; min-height: 100vh; }
-
-        /* Sidebar Styling */
         .sidebar {
-            width: 280px;
-            background: var(--sidebar);
-            border-right: 1px solid var(--border);
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
             transition: all 0.3s ease;
         }
 
@@ -284,8 +258,156 @@
         .notif-footer { padding: 0.75rem; text-align: center; border-top: 1px solid var(--border); background: #fcfdfe; }
         .notif-footer a { font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
 
-        .welcome-text h1 { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
-        .welcome-text p { color: var(--text-muted); }
+        .welcome-text h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 2px; }
+        .welcome-text p { color: var(--text-muted); font-size: 0.95rem; }
+
+        /* Top Menu Bar Implementation */
+        .top-menu-bar {
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2.5rem;
+            z-index: 999;
+            margin: -2.5rem -2.5rem 2.5rem -2.5rem;
+        }
+
+        .top-nav-left { display: flex; align-items: center; gap: 2rem; }
+        .breadcrumbs { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; }
+        .breadcrumb-item { cursor: pointer; transition: color 0.2s; }
+        .breadcrumb-item:hover { color: var(--primary); }
+        .breadcrumb-sep { opacity: 0.5; }
+
+        .search-bar-container {
+            position: relative;
+            width: 380px;
+        }
+        .search-bar-container i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 16px;
+        }
+        .top-search-input {
+            width: 100%;
+            padding: 12px 12px 12px 42px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .top-search-input:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05);
+        }
+        .search-hint {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .top-nav-right { display: flex; align-items: center; gap: 0.75rem; }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .action-icon:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--border);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-icon i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2px;
+        }
+
+        .action-icon .badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 2px solid white;
+            padding: 0;
+        }
+
+        .action-icon .badge.red {
+            background: var(--danger);
+        }
+
+        .action-divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px;
+            padding-right: 12px;
+            background: var(--bg-soft);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .user-profile-trigger:hover {
+            background: white;
+            border-color: var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .user-avatar-sm {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .user-info-text { display: flex; flex-direction: column; }
+        .user-name-text { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+        .user-role-text { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
 
         .btn-group { display: flex; gap: 12px; }
 
@@ -504,10 +626,69 @@
             </a>
             
             <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item">
                     <a href="admin-dashboard.html" class="nav-link active">
                         <i data-lucide="users"></i>
                         <span>Admin Console</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-performance-center.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-policy-center.html" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Policy Center</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>Asset Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-exit-management.html" class="nav-link">
+                        <i data-lucide="log-out"></i>
+                        <span>Exit Mgmt</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="calendar"></i>
+                        <span>Leave Mgmt</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-payroll-documents.html" class="nav-link">
+                        <i data-lucide="file-text"></i>
+                        <span>Payroll Docs</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-inactivity-monitor.html" class="nav-link">
+                        <i data-lucide="radar"></i>
+                        <span>Inactivity Radar</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="brain"></i>
+                        <span>AI Command Center</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -516,10 +697,18 @@
                         <span>Analytics Center</span>
                     </a>
                 </div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item">
-                    <a href="tvc-dashboard.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>TVC Monitor</span>
+                    <a href="admin-manager-change.html" class="nav-link">
+                        <i data-lucide="git-pull-request"></i>
+                        <span>Manager Change</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-bank-approvals.html" class="nav-link">
+                        <i data-lucide="check-square"></i>
+                        <span>Bank Verifications</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -529,23 +718,21 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="manager-dashboard-builder.html" class="nav-link" style="color: var(--primary); font-weight: 700; margin-bottom: 0.5rem;">
-                        <i data-lucide="plus-circle"></i>
-                        <span>Dashboard Builder</span>
-                    </a>
-                </div>
-
-                <div class="nav-label">ORGANIZATION</div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" onclick="togglePersonnelTable()">
-                        <i data-lucide="list"></i>
-                        <span>Personnel View</span>
-                    </a>
-                </div>
-                <div class="nav-item">
                     <a href="admin-message.html" class="nav-link">
-                        <i data-lucide="message-square"></i>
-                        <span>Messages</span>
+                        <i data-lucide="mail"></i>
+                        <span>Admin Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-config.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Onboarding Config</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="tvc-dashboard.html" class="nav-link">
+                        <i data-lucide="monitor"></i>
+                        <span>TVC Monitor</span>
                     </a>
                 </div>
             </nav>
@@ -615,47 +802,65 @@
             <button class="btn btn-primary" style="margin-top: auto; width: 100%;" onclick="saveDashboardConfig()">
                 <i data-lucide="save"></i> Save Configuration
             </button>
-        </aside>
-
-        <!-- Main Content -->
+        </aside>        <!-- Main Content -->
         <main class="main-content">
-            <header class="header-actions">
-                <div class="welcome-text">
-                    <h1>Management Console</h1>
-                    <p>Configure departments and personnel</p>
-                </div>
-                <div class="top-right-actions">
-                    <div class="notif-wrapper">
-                        <button class="icon-btn" id="btnNotif" title="Notifications">
-                            <i data-lucide="bell" size="20"></i>
-                            <span class="notif-dot" id="notifDot"></span>
-                        </button>
-                        <div class="notif-dropdown" id="notifDropdown">
-                            <div class="notif-header">
-                                <h3>Notifications</h3>
-                                <button class="mark-read" onclick="markAllAsRead()">Mark all as read</button>
-                            </div>
-                            <div class="notif-list" id="notifList">
-                                <div class="notif-empty" style="padding:1rem; text-align:center; color:var(--text-muted);">Loading...</div>
-                            </div>
-                            <div class="notif-footer">
-                                <a href="#">View all notifications</a>
-                            </div>
-                        </div>
+            <nav class="top-menu-bar">
+                <div class="top-nav-left">
+                    <div class="breadcrumbs">
+                        <span class="breadcrumb-item">HRFlow</span>
+                        <span class="breadcrumb-sep">/</span>
+                        <span class="breadcrumb-item" style="color: var(--text-main); font-weight: 700;">Admin Console</span>
                     </div>
+                    <div class="search-bar-container">
+                        <i data-lucide="search" class="search-icon" onclick="document.querySelector('.top-search-input').focus()"></i>
+                        <input type="text" class="top-search-input" placeholder="Search commands or personnel...">
+                        <span class="search-hint">⌘K</span>
+                    </div>
+                </div>
+
+                <div class="top-nav-right">
                     <div class="btn-group">
-                        <button class="btn btn-outline" onclick="openModal('csvModal')">
-                            <i data-lucide="upload-cloud"></i> Bulk CSV Upload
-                        </button>
-                        <button class="btn btn-outline" onclick="openModal('deptModal')">
-                            <i data-lucide="plus-circle"></i> Add Dept
+                        <button class="btn btn-outline" onclick="window.location.href='admin-onboarding-upload.html'" title="Bulk Onboarding">
+                            <i data-lucide="upload-cloud"></i>
                         </button>
                         <button class="btn btn-primary" onclick="openModal('empModal')">
-                            <i data-lucide="user-plus"></i> Add Employee
+                            <i data-lucide="user-plus"></i>
+                            <span>Add Employee</span>
                         </button>
                     </div>
+
+                    <div class="action-divider"></div>
+
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                        <i data-lucide="message-square"></i>
+                        <span class="badge"></span>
+                    </button>
+                    <button class="action-icon" title="Notifications" onclick="alert('System Notifications: All services operational.')">
+                        <i data-lucide="bell"></i>
+                        <span class="badge red"></span>
+                    </button>
+                    <div class="profile-trigger" onclick="toggleConfig()">
+                        <div class="profile-info">
+                            <span class="p-name">System Admin</span>
+                            <span class="p-role">Master Control</span>
+                        </div>
+                        <div class="p-avatar">AD</div>
+                    </div>
                 </div>
-            </header>            <div class="widget-grid" id="dashboardGrid">
+            </nav>
+
+            <div class="header-actions" style="margin-top: 1rem;">
+                <div class="welcome-text">
+                    <h1>Management Console</h1>
+                    <p>Live workforce overview and administrative controls</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline" onclick="openModal('deptModal')">
+                        <i data-lucide="layers"></i> Configure Departments
+                    </button>
+                </div>
+            </div>
+            <div class="widget-grid" id="dashboardGrid">
                 <!-- Widgets will be dynamically injected here -->
             </div>
 
