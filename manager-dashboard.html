@@ -4,251 +4,321 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Command Center | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <style>
         :root {
             --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
             --primary-light: #eff6ff;
+            --bg: #f0f7ff; /* Slightly bluer bg as seen in screenshot */
+            --card: #ffffff;
+            --border: #e2e8f0;
             --text-main: #0f172a;
             --text-muted: #64748b;
-            --border: #e2e8f0;
-            --glass: rgba(255, 255, 255, 0.7);
+            --sidebar-width: 260px;
+            --radius: 24px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --danger: #ef4444;
+            --success: #10b981;
         }
-        body { font-family: 'Outfit', sans-serif; background: #f8fafc; color: var(--text-main); margin: 0; }
-        
-        .dashboard-layout { display: flex; min-height: 100vh; }
-        
-        .manager-sidebar { width: 280px; background: white; border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; }
-        .dept-header { padding: 1.5rem; background: var(--primary-light); border-radius: 20px; border: 1px solid #dbeafe; text-align: center; margin-bottom: 2rem; }
-        .dept-icon { width: 50px; height: 50px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .dept-name { font-weight: 800; font-size: 1.1rem; margin: 0; }
-        .dept-code { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); letter-spacing: 2px; }
 
-        .main-stage { flex: 1; padding: 2.5rem; overflow-y: auto; }
-        .stage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
-        
-        .widget-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
-        .widget-item { background: white; border-radius: 24px; border: 1px solid var(--border); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .w-lg { grid-column: span 8; }
-        .w-md { grid-column: span 4; }
-        .w-full { grid-column: span 12; }
-
-        /* Themes */
-        body.deep-space { background: #020617; color: white; }
-        body.deep-space .manager-sidebar, body.deep-space .widget-item { background: #0f172a; border-color: #1e293b; color: white; }
-        body.deep-space .dept-header { background: #1e293b; border-color: #334155; }
-        
-        body.glassmorphism { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); }
-        body.glassmorphism .widget-item { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
-
-        /* Customization Sidebar */
-        .custom-panel {
-            position: fixed; right: -320px; top: 0; bottom: 0; width: 320px;
-            background: white; border-left: 1px solid var(--border);
-            z-index: 2000; transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            padding: 2rem; box-shadow: -10px 0 30px rgba(0,0,0,0.05);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
         }
-        .custom-panel.active { right: 0; }
-        .custom-trigger {
-            position: fixed; right: 20px; bottom: 20px; width: 56px; height: 56px;
-            background: var(--primary); color: white; border-radius: 50%;
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 2.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dept-branding {
+            background: var(--primary-light);
+            border-radius: 20px;
+            padding: 2rem 1rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        .dept-icon-box {
+            width: 50px; height: 50px; background: white; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1); cursor: pointer;
-            z-index: 1999; transition: 0.3s;
+            margin: 0 auto 1rem; color: var(--primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
         }
-        .custom-trigger:hover { transform: scale(1.1) rotate(15deg); }
-        
-        .option-group { margin-bottom: 2rem; }
-        .option-group h3 { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
-        
-        .theme-toggle-btn {
-            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border);
-            background: #f8fafc; cursor: pointer; text-align: left; font-weight: 700;
-            margin-bottom: 8px; display: flex; align-items: center; gap: 10px;
+        .dept-name { font-weight: 800; font-size: 1rem; margin-bottom: 4px; }
+        .dept-code { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px;
         }
-        .theme-toggle-btn:hover { background: white; border-color: var(--primary); }
-        .theme-toggle-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+
+        .sidebar-footer { margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--border); }
+
+        /* Main Content */
+        .main-content { padding: 3rem; overflow-y: auto; }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
+        h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+        .sub-header { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+
+        .ai-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 800; color: var(--success); }
+        .ai-pulse { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* Widget Grid */
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .card-header h2 { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .more-btn { color: var(--text-muted); cursor: pointer; }
+
+        /* Insight Contents */
+        .insight-placeholder {
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .prod-stream {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary);
+        }
+        .stream-bars { display: flex; gap: 4px; align-items: flex-end; height: 30px; }
+        .bar { width: 4px; background: var(--primary); border-radius: 2px; animation: bar-grow 1s infinite alternate; }
+        @keyframes bar-grow { from { height: 10px; } to { height: 30px; } }
+
+        .telemetry-row { display: flex; gap: 1rem; width: 100%; }
+        .tele-box {
+            flex: 1; padding: 1.5rem; border-radius: 20px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .tele-box.active { background: var(--primary-light); color: var(--primary); }
+        .tele-box.idle { background: #fff1f2; color: #e11d48; }
+        .tele-val { font-size: 1.5rem; font-weight: 800; }
+        .tele-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+
+        .alert-box {
+            background: #fff1f2;
+            border: 1px solid #fecaca;
+            border-radius: 16px;
+            padding: 1rem;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .alert-icon { color: var(--danger); margin-top: 2px; }
+        .alert-title { font-size: 0.85rem; font-weight: 800; color: #991b1b; margin-bottom: 4px; }
+        .alert-msg { font-size: 0.75rem; color: #b91c1c; font-weight: 500; }
+
+        .payroll-card {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+        .burn-label { font-size: 0.7rem; font-weight: 800; color: var(--success); text-transform: uppercase; margin-bottom: 8px; }
+        .burn-val { font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+        .burn-trend { font-size: 0.75rem; font-weight: 700; color: var(--success); }
+
+        .btn-ghost { padding: 8px; border-radius: 50%; background: #f1f5f9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
-    <div class="dashboard-layout">
-        <aside class="manager-sidebar">
-            <div class="dept-header">
-                <div class="dept-icon" id="mainIcon"><i data-lucide="shield-check"></i></div>
-                <h2 class="dept-name" id="mainName">Department</h2>
-                <span class="dept-code" id="mainCode">UNIT</span>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="dept-branding">
+                <div class="dept-icon-box" id="deptIcon"><i data-lucide="shield"></i></div>
+                <div class="dept-name" id="sideDeptName">Cyberseruity</div>
+                <div class="dept-code" id="sideDeptCode">CYB</div>
             </div>
             
-            <nav style="flex: 1;">
-                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1.5px; margin-bottom: 1rem;">COMMAND</div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <a href="#" class="nav-link active"><i data-lucide="layout"></i> Overview</a>
-                    <a href="#" class="nav-link"><i data-lucide="users"></i> Workforce</a>
-                    <a href="#" class="nav-link"><i data-lucide="shield-alert"></i> Security</a>
-                    <a href="#" class="nav-link"><i data-lucide="bar-chart-2"></i> Performance</a>
-                </div>
+            <nav class="nav-menu">
+                <div class="nav-label">COMMAND</div>
+                <div class="nav-item"><a href="#" class="nav-link active"><i data-lucide="layout"></i><span>Overview</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
             </nav>
 
-            <div style="padding-top: 2rem; border-top: 1px solid var(--border);">
-                <a href="index.html" class="nav-link" style="color: #ef4444;"><i data-lucide="log-out"></i> Sign Out</a>
+            <div class="sidebar-footer">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i><span>Sign Out</span>
+                    </a>
+                </div>
             </div>
         </aside>
 
-        <main class="main-stage">
-            <header class="stage-header">
+        <main class="main-content">
+            <header class="header">
                 <div>
-                    <h1 style="font-weight: 800; font-size: 1.8rem; margin: 0;">Manager Command Center</h1>
-                    <p style="color: var(--text-muted); font-weight: 500;">Real-time operational intelligence & workforce monitoring</p>
+                    <h1>Manager Command Center</h1>
+                    <p class="sub-header">Real-time operational intelligence & workforce monitoring</p>
                 </div>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <div style="text-align: right;">
-                        <div id="aiStatus" style="display: flex; align-items: center; gap: 8px; color: #10b981; font-weight: 700; font-size: 0.8rem;">
-                            <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
-                            AI ENGINE ACTIVE
-                        </div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Predictive Analysis Online</div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                    <div class="ai-status">
+                        <div class="ai-pulse"></div>
+                        <span>AI ENGINE ACTIVE</span>
                     </div>
-                    <div style="width: 44px; height: 44px; background: white; border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="bell"></i>
-                    </div>
+                    <p style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">Predictive Analysis Online</p>
+                    <button class="btn-ghost" style="margin-top: 4px;"><i data-lucide="bell" size="18"></i></button>
                 </div>
             </header>
 
-            <div class="widget-grid" id="managerGrid">
-                <!-- Dynamic Widgets -->
+            <div class="widget-grid">
+                <!-- Productivity Insights -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Productivity Insights</h2>
+                        <i data-lucide="more-horizontal" class="more-btn"></i>
+                    </div>
+                    <div class="insight-placeholder">
+                        <div class="prod-stream">
+                            <div class="stream-bars">
+                                <div class="bar" style="animation-delay: 0.1s"></div>
+                                <div class="bar" style="animation-delay: 0.3s"></div>
+                                <div class="bar" style="animation-delay: 0.2s"></div>
+                                <div class="bar" style="animation-delay: 0.4s"></div>
+                                <div class="bar" style="animation-delay: 0.5s"></div>
+                            </div>
+                            <p style="font-size: 0.75rem; font-weight: 700;">Productivity Stream Active</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Telemetry Insights -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Telemetry Insights</h2>
+                        <i data-lucide="more-horizontal" class="more-btn"></i>
+                    </div>
+                    <div class="insight-placeholder">
+                        <div class="telemetry-row">
+                            <div class="tele-box active">
+                                <div class="tele-label">Active</div>
+                                <div class="tele-val" id="valActive">24</div>
+                            </div>
+                            <div class="tele-box idle">
+                                <div class="tele-label">Idle</div>
+                                <div class="tele-val" id="valIdle">3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Insights -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Security Insights</h2>
+                        <i data-lucide="more-horizontal" class="more-btn"></i>
+                    </div>
+                    <div class="insight-placeholder" style="justify-content: flex-start; padding-top: 1rem;">
+                        <div class="alert-box">
+                            <i data-lucide="alert-circle" class="alert-icon" size="20"></i>
+                            <div style="text-align: left;">
+                                <div class="alert-title">Critical Alerts</div>
+                                <div class="alert-msg">2 Unprivileged access attempts detected in segment B-4.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Row -->
+            <div class="widget-grid" style="grid-template-columns: 1fr 2fr;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Payroll Insights</h2>
+                        <i data-lucide="more-horizontal" class="more-btn"></i>
+                    </div>
+                    <div class="insight-placeholder" style="justify-content: flex-start; padding-top: 1rem;">
+                        <div class="payroll-card">
+                            <div class="burn-label">Monthly Burn</div>
+                            <div class="burn-val">₹4.2M</div>
+                            <div class="burn-trend">↑ 12.5% vs Prev Month</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="padding: 0; overflow: hidden;">
+                     <!-- Placeholder for something else or just spacing as seen in screenshot -->
+                </div>
             </div>
         </main>
-
-        <!-- Customization Panel -->
-        <div class="custom-trigger" onclick="toggleCustomPanel()"><i data-lucide="palette"></i></div>
-        <aside class="custom-panel" id="customPanel">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800;">Customization</h2>
-                <button onclick="toggleCustomPanel()" style="background: none; border: none; cursor: pointer;"><i data-lucide="x"></i></button>
-            </div>
-            
-            <div class="option-group">
-                <h3>Interface Theme</h3>
-                <button class="theme-toggle-btn active" data-theme="standard" onclick="applyTheme('standard')">
-                    <i data-lucide="sun"></i> Enterprise Light
-                </button>
-                <button class="theme-toggle-btn" data-theme="deep-space" onclick="applyTheme('deep-space')">
-                    <i data-lucide="moon"></i> Deep Space
-                </button>
-                <button class="theme-toggle-btn" data-theme="glassmorphism" onclick="applyTheme('glassmorphism')">
-                    <i data-lucide="layers"></i> Glassmorphism
-                </button>
-            </div>
-
-            <div class="option-group">
-                <h3>Branding Color</h3>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <div class="color-dot" style="background:#3b82f6; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#3b82f6')"></div>
-                    <div class="color-dot" style="background:#10b981; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#10b981')"></div>
-                    <div class="color-dot" style="background:#8b5cf6; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#8b5cf6')"></div>
-                    <div class="color-dot" style="background:#f59e0b; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#f59e0b')"></div>
-                    <div class="color-dot" style="background:#ef4444; width:36px; height:36px; border-radius:50%; cursor:pointer; border:2px solid white; box-shadow:0 0 0 1px #e2e8f0;" onclick="applyColor('#ef4444')"></div>
-                    <input type="color" oninput="applyColor(this.value)" style="width:36px; height:36px; border-radius:50%; border:none; padding:0; background:none; cursor:pointer;">
-                </div>
-            </div>
-
-            <div class="option-group">
-                <h3>Grid Layout</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button class="theme-toggle-btn" style="justify-content:center; text-align:center;" onclick="updateLayoutDensity('standard')">Standard</button>
-                    <button class="theme-toggle-btn" style="justify-content:center; text-align:center;" onclick="updateLayoutDensity('compact')">Compact</button>
-                </div>
-            </div>
-
-            <button class="btn btn-primary" style="width: 100%; margin-top: 2rem; border-radius: 12px; padding: 14px; font-weight: 800; background: var(--primary); color: white; border: none; cursor: pointer;" onclick="savePreferences()">
-                Save Preferences
-            </button>
-        </aside>
     </div>
 
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-        import { ManagerWidgetEngine } from "./manager-widget-engine.js";
+        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const deptId = urlParams.get('id') || 'engineering';
+        const deptId = urlParams.get('id');
 
-        async function initDashboard() {
-            const deptRef = doc(db, "departments", deptId);
-            const configRef = doc(db, "managerDashboards", deptId);
-
-            onSnapshot(deptRef, (snap) => {
-                if (snap.exists()) {
-                    const data = snap.data();
-                    document.getElementById('mainName').innerText = data.departmentName;
-                    document.getElementById('mainCode').innerText = (data.departmentCode || 'UNIT').toUpperCase();
-                    document.getElementById('mainIcon').innerHTML = `<i data-lucide="${data.icon || 'shield-check'}"></i>`;
-                    
-                    if (data.theme) applyTheme(data.theme);
-                    if (data.primaryColor) applyColor(data.primaryColor);
-                    lucide.createIcons();
-                }
-            });
-
-            onSnapshot(configRef, (snap) => {
-                if (snap.exists()) {
-                    const config = snap.data().config;
-                    const engine = new ManagerWidgetEngine('managerGrid');
-                    engine.render(config.layout);
-                }
-            });
+        async function loadDept() {
+            if (!deptId) return;
+            const docRef = doc(db, 'departments', deptId);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                document.getElementById('sideDeptName').textContent = data.departmentName;
+                document.getElementById('sideDeptCode').textContent = data.departmentCode;
+                
+                // Set icon
+                const iconMap = {
+                    'shield': 'shield',
+                    'users': 'users',
+                    'monitor': 'monitor',
+                    'code': 'code',
+                    'database': 'database'
+                };
+                const iconName = data.icon || 'shield';
+                document.getElementById('deptIcon').innerHTML = `<i data-lucide="${iconName}"></i>`;
+                lucide.createIcons();
+            }
         }
 
-        window.toggleCustomPanel = () => {
-            document.getElementById('customPanel').classList.toggle('active');
-        };
-
-        window.applyTheme = (theme) => {
-            document.body.className = theme === 'standard' ? '' : theme;
-            document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === theme);
-            });
-        };
-
-        window.applyColor = (color) => {
-            document.documentElement.style.setProperty('--primary', color);
-            document.documentElement.style.setProperty('--primary-light', color + '15'); // Add transparency
-        };
-
-        window.updateLayoutDensity = (density) => {
-            const grid = document.getElementById('managerGrid');
-            grid.style.gap = density === 'compact' ? '0.75rem' : '1.5rem';
-        };
-
-        window.savePreferences = async () => {
-            const color = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-            const theme = document.body.className || 'standard';
-            
-            // In a real app, we would write back to Firestore here
-            const deptRef = doc(db, "departments", deptId);
-            try {
-                // Update specific fields
-                await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(async ({ updateDoc }) => {
-                    await updateDoc(deptRef, {
-                        primaryColor: color,
-                        theme: theme
-                    });
-                    alert("Preferences saved successfully!");
-                    toggleCustomPanel();
-                });
-            } catch (err) {
-                console.warn("Save failed, but applied locally:", err);
-                alert("Saved locally for this session.");
-            }
-        };
-
-        initDashboard();
-        lucide.createIcons();
+        loadDept();
     </script>
 </body>
 </html>

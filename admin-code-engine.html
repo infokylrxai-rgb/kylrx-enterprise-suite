@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Code Engine | HRFlow Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --sidebar-width: 280px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            background-image: radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.1) 0%, transparent 40%);
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; min-height: 100vh; }
+
+        .sidebar {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            width: var(--sidebar-width);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2.5rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.25rem; font-weight: 800; letter-spacing: -1px; }
+
+        .nav-menu { flex: 1; overflow-y: auto; padding-right: 0.5rem; }
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.5rem 0.5rem; }
+        .nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 0.75rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.85rem; border-radius: 12px; transition: 0.2s; margin-bottom: 4px; }
+        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+
+        .sidebar-bottom { margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--glass-border); }
+
+        .main-content { margin-left: var(--sidebar-width); padding: 3rem; }
+
+        .header { margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: flex-start; }
+        h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 0.5rem; }
+        .header p { color: var(--text-muted); font-size: 1rem; }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .config-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: 0.3s;
+        }
+
+        .config-card:hover { border-color: var(--primary); transform: translateY(-4px); }
+
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        .form-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            color: white;
+            font-family: inherit;
+        }
+
+        .preview-box {
+            background: rgba(0,0,0,0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px dashed var(--glass-border);
+            margin-top: 1rem;
+        }
+
+        .preview-code {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5); }
+        .btn-primary:hover { transform: translateY(-2px); }
+
+        /* Audit Logs */
+        .audit-section { margin-top: 4rem; }
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            background: var(--glass);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .audit-table th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--glass-border); }
+        .audit-table td { padding: 1rem; border-bottom: 1px solid var(--glass-border); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link active"><i data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-text">
+                    <h1>Employee Code Engine</h1>
+                    <p>Configure automated identification standards across different workforces.</p>
+                </div>
+                <button class="btn btn-primary" id="btnSaveAll"><i data-lucide="save"></i> Save All Configurations</button>
+            </header>
+
+            <div class="config-grid">
+                <!-- Full Time -->
+                <div class="config-card" data-type="full-time">
+                    <span class="type-badge">Full-Time (FT)</span>
+                    <div class="form-group">
+                        <label>Prefix Identifier</label>
+                        <input type="text" value="FT" class="input-prefix">
+                    </div>
+                    <div class="form-group">
+                        <label>Department Code Inclusion</label>
+                        <select class="input-dept" style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--glass-border); border-radius:12px; padding:12px; color:white;">
+                            <option value="enabled">Enabled (e.g. -ENG-)</option>
+                            <option value="disabled">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sequence Counter Start</label>
+                        <input type="number" value="1" class="input-seq">
+                    </div>
+                    <div class="preview-box">
+                        <p style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 8px;">REAL-TIME PREVIEW</p>
+                        <div class="preview-code">FT-ENG-2026-0001</div>
+                    </div>
+                </div>
+
+                <!-- Intern -->
+                <div class="config-card" data-type="intern">
+                    <span class="type-badge" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">Intern (INT)</span>
+                    <div class="form-group">
+                        <label>Prefix Identifier</label>
+                        <input type="text" value="INT" class="input-prefix">
+                    </div>
+                    <div class="form-group">
+                        <label>Sequence Counter Start</label>
+                        <input type="number" value="100" class="input-seq">
+                    </div>
+                    <div class="preview-box">
+                        <div class="preview-code">INT-HR-2026-0100</div>
+                    </div>
+                </div>
+
+                <!-- Consultant -->
+                <div class="config-card" data-type="consultant">
+                    <span class="type-badge" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">Consultant (CON)</span>
+                    <div class="form-group">
+                        <label>Prefix Identifier</label>
+                        <input type="text" value="CON" class="input-prefix">
+                    </div>
+                    <div class="form-group">
+                        <label>Legal Entity ID</label>
+                        <input type="text" value="GLOBAL" class="input-entity">
+                    </div>
+                    <div class="preview-box">
+                        <div class="preview-code">CON-GLOBAL-2026-0001</div>
+                    </div>
+                </div>
+
+                <!-- Contractor -->
+                <div class="config-card" data-type="contractor">
+                    <span class="type-badge" style="color: #ec4899; background: rgba(236, 72, 153, 0.1);">Contractor (CTR)</span>
+                    <div class="form-group">
+                        <label>Prefix Identifier</label>
+                        <input type="text" value="CTR" class="input-prefix">
+                    </div>
+                    <div class="preview-box">
+                        <div class="preview-code">CTR-ENG-2026-0001</div>
+                    </div>
+                </div>
+            </div>
+
+            <section class="audit-section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>Generation Audit Logs</h2>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Last 50 generations</span>
+                </div>
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Employee Name</th>
+                            <th>Target Type</th>
+                            <th>Generated Code</th>
+                            <th>Operator</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditLogsBody">
+                        <tr>
+                            <td>Today, 12:05 PM</td>
+                            <td>Rohan Sharma</td>
+                            <td>Full-Time</td>
+                            <td style="font-weight: 800; color: var(--primary);">FT-ENG-2026-0012</td>
+                            <td>System (Onboarding)</td>
+                        </tr>
+                        <tr>
+                            <td>Yesterday, 04:30 PM</td>
+                            <td>Aditi Singh</td>
+                            <td>Intern</td>
+                            <td style="font-weight: 800; color: var(--primary);">INT-HR-2026-0008</td>
+                            <td>HR Admin (Manual)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        function updatePreviews() {
+            document.querySelectorAll('.config-card').forEach(card => {
+                const type = card.dataset.type;
+                const prefix = card.querySelector('.input-prefix').value || 'EMP';
+                const seq = card.querySelector('.input-seq')?.value || '1';
+                const entity = card.querySelector('.input-entity')?.value || '';
+                const dept = card.querySelector('.input-dept')?.value === 'disabled' ? '' : 'ENG';
+                
+                const year = new Date().getFullYear();
+                const paddedSeq = String(seq).padStart(4, '0');
+                
+                let code = prefix;
+                if (dept) code += `-${dept}`;
+                if (entity) code += `-${entity}`;
+                code += `-${year}-${paddedSeq}`;
+                
+                card.querySelector('.preview-code').innerText = code;
+            });
+        }
+
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', updatePreviews);
+        });
+
+        document.getElementById('btnSaveAll').onclick = async () => {
+            const configs = {};
+            document.querySelectorAll('.config-card').forEach(card => {
+                const type = card.dataset.type;
+                configs[type] = {
+                    prefix: card.querySelector('.input-prefix').value,
+                    deptEnabled: card.querySelector('.input-dept')?.value === 'enabled',
+                    seqStart: parseInt(card.querySelector('.input-seq')?.value || '1'),
+                    entity: card.querySelector('.input-entity')?.value || null
+                };
+            });
+
+            try {
+                await setDoc(doc(db, 'system_configs', 'employee_code_engine'), {
+                    configs,
+                    updatedAt: serverTimestamp()
+                });
+                alert("Generation Engine Configured Successfully!");
+            } catch (err) {
+                console.error(err);
+                alert("Failed to save configuration.");
+            }
+        };
+
+        updatePreviews();
+    </script>
+</body>
+</html>

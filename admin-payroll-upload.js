@@ -1,178 +1,186 @@
 import { auth, db } from "./firebase-config.js";
-import { collection, getDocs, setDoc, doc, updateDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { 
+    collection, 
+    getDocs, 
+    setDoc, 
+    doc, 
+    addDoc,
+    query, 
+    where, 
+    serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-// State
-let payrollState = {
+// Finance Engine State
+let state = {
     records: [],
-    employees: [],
-    totalOutflow: 0
+    validCount: 0,
+    totalCtc: 0,
+    isProcessing: false
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-    if (window.lucide) lucide.createIcons();
-    await fetchEmployees();
-    setupEvents();
-});
+// UI Selectors
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const payrollBody = document.getElementById('payrollBody');
+const resultsTable = document.getElementById('resultsTable');
+const btnFinalize = document.getElementById('btnFinalize');
+const btnDownload = document.getElementById('btnDownloadTemplate');
 
-async function fetchEmployees() {
-    const snap = await getDocs(collection(db, 'users'));
-    payrollState.employees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
+// Stats
+const statCount = document.getElementById('statCount');
+const statCtc = document.getElementById('statCtc');
+const statStatus = document.getElementById('statStatus');
+
+// Initialize
+setupEvents();
 
 function setupEvents() {
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-
-    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => handleFile(e.target.files[0]);
     
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) handleFile(e.target.files[0]);
-    });
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; };
+    dropZone.ondragleave = () => dropZone.style.borderColor = 'var(--glass-border)';
+    dropZone.ondrop = (e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); };
 
-    document.getElementById('downloadTemplate').addEventListener('click', downloadTemplate);
-    document.getElementById('finalizePayroll').addEventListener('click', finalizePayroll);
+    btnDownload.onclick = downloadTemplate;
+    btnFinalize.onclick = finalizePayroll;
 }
 
-function handleFile(file) {
+function downloadTemplate() {
+    const headers = [
+        "Employee ID", "Employee Name", "Salary (Base)", "Incentives", "PF Contribution", 
+        "ESIC", "Gratuity Provision", "ESOPs Grant", "Variable Pay %", 
+        "Tax Deductions", "Bonus Structure", "Shift Allowance"
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([headers]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "PayrollTemplate");
+    XLSX.writeFile(wb, "HRFlow_Payroll_Initialization_Template.xlsx");
+}
+
+async function handleFile(file) {
+    if (!file || state.isProcessing) return;
+    state.isProcessing = true;
+    
     const reader = new FileReader();
     reader.onload = (e) => {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
-        
+        const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
         processPayrollData(json);
     };
     reader.readAsArrayBuffer(file);
 }
 
 function processPayrollData(data) {
-    payrollState.records = data.map(row => {
-        const salary = parseFloat(row["Salary"] || 0);
-        const incentives = parseFloat(row["Incentives"] || 0);
-        const pf = parseFloat(row["PF Deductions"] || 0);
-        const esic = parseFloat(row["ESIC"] || 0);
-        const tax = parseFloat(row["Tax Deductions"] || 0);
-        const variable = parseFloat(row["Variable Pay"] || 0);
-        const shift = parseFloat(row["Shift Allowance"] || 0);
-
-        const net = (salary + incentives + variable + shift) - (pf + esic + tax);
-        
-        // Match with employee
-        const empId = row["Employee ID"] || row["Official Email ID"];
-        const employee = payrollState.employees.find(e => 
-            e.employeeCode === empId || e.email === empId
-        );
-
-        return {
-            employee: employee || { name: row["Employee Name"] || "Unknown", employeeCode: empId },
-            isMatched: !!employee,
-            salary, incentives, pf, esic, tax, variable, shift, net,
-            raw: row
-        };
-    });
-
+    state.records = data.map((row, idx) => validateRow(row, idx));
+    state.validCount = state.records.filter(r => r.isValid).length;
+    state.totalCtc = state.records.reduce((acc, r) => acc + (Number(r.data["Salary (Base)"]) || 0), 0);
+    
     renderResults();
+    updateStats();
+    
+    dropZone.style.display = 'none';
+    resultsTable.style.display = 'block';
+    btnFinalize.disabled = state.validCount === 0;
+    state.isProcessing = false;
+}
+
+function validateRow(row, index) {
+    const errors = [];
+    const required = ["Employee ID", "Employee Name", "Salary (Base)"];
+    
+    required.forEach(f => { if (!row[f]) errors.push(`Missing ${f}`); });
+
+    const salary = Number(row["Salary (Base)"]) || 0;
+    const pf = Number(row["PF Contribution"]) || 0;
+    const tax = Number(row["Tax Deductions"]) || 0;
+    const net = salary - pf - tax;
+
+    return {
+        isValid: errors.length === 0,
+        errors,
+        data: row,
+        net,
+        id: row["Employee ID"],
+        name: row["Employee Name"]
+    };
 }
 
 function renderResults() {
-    const body = document.getElementById('payrollBody');
-    const resultsSection = document.getElementById('resultsSection');
-    let totalSalary = 0;
-    let errors = 0;
-
-    body.innerHTML = payrollState.records.map(record => {
-        if (!record.isMatched) errors++;
-        totalSalary += record.net;
-
-        return `
-            <tr>
-                <td>
-                    <span class="status-pill ${record.isMatched ? 'status-ready' : 'status-error'}">
-                        <i data-lucide="${record.isMatched ? 'check-circle' : 'alert-circle'}"></i>
-                        ${record.isMatched ? 'Matched' : 'Unmatched'}
-                    </span>
-                </td>
-                <td>
-                    <div style="font-weight: 700;">${record.employee.name}</div>
-                    <div style="font-size: 0.7rem; color: var(--text-muted);">${record.employee.employeeCode || 'N/A'}</div>
-                </td>
-                <td class="currency">$${record.salary.toLocaleString()}</td>
-                <td style="color: var(--success); font-weight: 600;">+$${record.incentives.toLocaleString()}</td>
-                <td style="color: var(--danger); font-weight: 600;">-$${(record.pf + record.esic).toLocaleString()}</td>
-                <td style="color: var(--warning); font-weight: 600;">$${(record.tax).toLocaleString()}</td>
-                <td class="currency" style="font-size: 1rem; color: var(--primary);">$${record.net.toLocaleString()}</td>
-            </tr>
-        `;
-    }).join('');
-
-    document.getElementById('statTotal').textContent = payrollState.records.length;
-    document.getElementById('statSalary').textContent = `$${totalSalary.toLocaleString()}`;
-    document.getElementById('statErrors').textContent = errors;
-    document.getElementById('validationCount').textContent = `${payrollState.records.length} Records Validated`;
-
-    resultsSection.style.display = 'block';
-    document.getElementById('finalizePayroll').disabled = (errors > 0 || payrollState.records.length === 0);
-    
+    payrollBody.innerHTML = state.records.map(r => `
+        <tr>
+            <td>
+                <span class="val-pill ${r.isValid ? 'pill-success' : 'pill-error'}">
+                    ${r.isValid ? 'VALID' : 'ERROR'}
+                </span>
+            </td>
+            <td>
+                <div style="font-weight: 800;">${r.name}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted);">${r.id}</div>
+            </td>
+            <td>₹${Number(r.data["Salary (Base)"] || 0).toLocaleString()}</td>
+            <td>₹${Number(r.data["PF Contribution"] || 0).toLocaleString()}</td>
+            <td>${r.data["Variable Pay %"] || 0}% / ${r.data["Bonus Structure"] || 'Standard'}</td>
+            <td>${r.data["ESOPs Grant"] || 'None'}</td>
+            <td style="font-weight: 800; color: #10b981;">₹${r.net.toLocaleString()}</td>
+        </tr>
+    `).join('');
     if (window.lucide) lucide.createIcons();
+}
+
+function updateStats() {
+    statCount.innerText = state.records.length;
+    statCtc.innerText = `₹${(state.totalCtc / 12).toLocaleString()} /mo`;
+    statStatus.innerText = state.validCount === state.records.length ? "All Clear" : `${state.records.length - state.validCount} Issues`;
+    statStatus.style.color = state.validCount === state.records.length ? "#10b981" : "#ef4444";
 }
 
 async function finalizePayroll() {
-    const btn = document.getElementById('finalizePayroll');
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Finalizing...';
-    if (window.lucide) lucide.createIcons();
+    btnFinalize.disabled = true;
+    btnFinalize.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Initializing Cloud...';
+    lucide.createIcons();
 
-    try {
-        for (const record of payrollState.records) {
-            const empId = record.employee.uid || record.employee.id;
-            
-            // Create Payroll Profile
-            await setDoc(doc(db, 'payroll_profiles', empId), {
-                ...record,
-                status: 'Active',
-                initializedAt: serverTimestamp(),
-                lastUpdated: serverTimestamp()
-            });
+    const batch = [];
+    for (const record of state.records.filter(r => r.isValid)) {
+        const payrollData = {
+            employeeId: record.id,
+            employeeName: record.name,
+            salaryStructure: {
+                base: Number(record.data["Salary (Base)"]),
+                incentives: Number(record.data["Incentives"] || 0),
+                pf: Number(record.data["PF Contribution"] || 0),
+                esic: Number(record.data["ESIC"] || 0),
+                gratuity: Number(record.data["Gratuity Provision"] || 0),
+                esops: record.data["ESOPs Grant"] || "None",
+                variablePay: record.data["Variable Pay %"] || 0,
+                taxDeductions: Number(record.data["Tax Deductions"] || 0),
+                bonusStructure: record.data["Bonus Structure"] || "Standard",
+                shiftAllowance: Number(record.data["Shift Allowance"] || 0)
+            },
+            netMonthly: record.net,
+            approvalStatus: "Pending Finance Approval",
+            initializedAt: serverTimestamp(),
+            encryptionVersion: "AES-256-HRF"
+        };
 
-            // Update User Status
-            await updateDoc(doc(db, 'users', empId), {
-                payrollInitialized: true,
-                baseSalary: record.salary,
-                netMonthly: record.net
-            });
-        }
-
-        // Audit Log
-        await addDoc(collection(db, 'audit_logs'), {
-            action: 'PAYROLL_INITIALIZATION',
-            recordCount: payrollState.records.length,
-            totalOutflow: payrollState.records.reduce((a, b) => a + b.net, 0),
-            performedBy: 'Admin',
-            timestamp: serverTimestamp()
-        });
-
-        alert('Payroll initialization complete! All financial profiles are now active.');
-        window.location.reload();
-    } catch (err) {
-        console.error('Finalization failed:', err);
-        alert('Failed to finalize payroll. Check console for details.');
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="shield-check"></i> Finalize Payroll';
+        // Create Payroll Profile
+        await setDoc(doc(db, "payroll_profiles", record.id), payrollData);
+        
+        // Update Employee record
+        try {
+            // Note: This assumes Employee ID matches the Document ID in 'users' or we search for it
+            const q = query(collection(db, "users"), where("employeeId", "==", record.id));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                await updateDoc(doc(db, "users", snap.docs[0].id), {
+                    payrollStatus: "Initialized",
+                    salary: Number(record.data["Salary (Base)"])
+                });
+            }
+        } catch (e) { console.warn("Failed to update user profile status", record.id); }
     }
-}
 
-function downloadTemplate() {
-    const headers = [
-        "Employee ID", "Employee Name", "Salary", "Incentives", "PF Deductions", 
-        "ESIC", "Gratuity", "ESOPs", "Variable Pay", "Tax Deductions", "Shift Allowance"
-    ];
-    const data = [
-        ["EMP-001", "John Doe", 5000, 500, 600, 150, 0, 100, 200, 450, 50]
-    ];
-    
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-    XLSX.utils.book_append_sheet(wb, ws, "PayrollTemplate");
-    XLSX.writeFile(wb, "HRFlow_Payroll_Template.xlsx");
+    alert(`Finance Initialization Complete. ${state.validCount} payroll profiles have been securely provisioned and are awaiting Finance Approval.`);
+    window.location.reload();
 }

@@ -18,7 +18,7 @@
             --text-main: #0f172a;
             --text-muted: #64748b;
             --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.2);
+            --primary-glow: rgba(59, 130, 246, 0.1);
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
@@ -27,16 +27,14 @@
             --radius: 20px;
         }
 
-        /* TV Mode / Dark Mode */
         body.tv-mode {
             --bg-base: #020617;
             --surface-bg: rgba(15, 23, 42, 0.8);
             --surface-border: rgba(30, 41, 59, 0.5);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --glass: rgba(15, 23, 42, 0.6);
             --primary: #38bdf8;
-            --primary-glow: rgba(56, 189, 248, 0.4);
+            --primary-glow: rgba(56, 189, 248, 0.3);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -46,230 +44,120 @@
             color: var(--text-main);
             overflow: hidden;
             height: 100vh;
-            transition: background 0.5s ease;
         }
 
-        .dashboard-container { display: flex; height: 100vh; width: 100vw; position: relative; }
+        .dashboard-container { display: flex; height: 100vh; }
 
         /* Sidebar */
         .sidebar {
             width: 260px;
             background: var(--surface-bg);
             border-right: 1px solid var(--surface-border);
-            padding: 1.5rem;
+            padding: 2rem 1.5rem;
             display: flex;
             flex-direction: column;
-            flex-shrink: 0;
             z-index: 100;
-            backdrop-filter: blur(12px);
         }
 
-        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2.5rem; text-decoration: none; color: var(--primary); }
-        .logo-icon {
-            width: 42px; height: 42px; background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            color: white; box-shadow: 0 8px 16px var(--primary-glow);
-        }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
+        .logo-icon { width: 42px; height: 42px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
         .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
 
-        .nav-menu { flex: 1; list-style: none; }
-        .nav-item { margin-bottom: 0.5rem; }
         .nav-link {
-            display: flex; align-items: center; gap: 12px; padding: 12px 16px;
-            text-decoration: none; color: var(--text-muted); border-radius: 12px;
-            font-weight: 600; font-size: 0.95rem; transition: 0.3s;
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem;
+            text-decoration: none; color: var(--text-muted); border-radius: 14px;
+            font-weight: 600; font-size: 0.9rem; transition: 0.2s; margin-bottom: 4px;
         }
-        .nav-link:hover, .nav-link.active {
-            background: var(--primary-glow);
-            color: var(--primary);
-        }
-        .nav-label { 
-            color: var(--text-muted); font-size: 0.65rem; font-weight: 800; 
-            text-transform: uppercase; letter-spacing: 0.08em; padding: 1.5rem 1rem 0.75rem; 
-            opacity: 0.8; 
-        }
+        .nav-link:hover, .nav-link.active { background: var(--primary-glow); color: var(--primary); }
 
-        /* Customization Sidebar (Right) */
+        /* Config Sidebar (Right) */
         .config-sidebar {
-            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            position: fixed; right: -380px; top: 0; bottom: 0; width: 380px;
             background: var(--surface-bg); border-left: 1px solid var(--surface-border);
-            z-index: 2000; padding: 0; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(25px); box-shadow: -15px 0 40px rgba(0,0,0,0.15);
-            display: flex; flex-direction: column;
+            z-index: 2000; padding: 2.5rem; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -15px 0 40px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; overflow-y: auto;
         }
         .config-sidebar.active { right: 0; }
-        .config-inner { flex: 1; overflow-y: auto; padding: 2rem; }
-        .config-header { 
-            padding: 1.5rem 2rem; border-bottom: 1px solid var(--surface-border);
-            display: flex; justify-content: space-between; align-items: center; 
-            background: var(--surface-bg);
-        }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .config-header h2 { font-size: 1.25rem; font-weight: 800; }
+        .close-config { cursor: pointer; color: var(--text-muted); }
+
         .config-section { margin-bottom: 2.5rem; }
-        .config-section h3 { 
-            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; 
-            color: var(--primary); margin-bottom: 1.25rem; font-weight: 800;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .config-option { 
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 1.25rem; padding: 0.75rem; background: var(--bg-base);
-            border-radius: 12px; border: 1px solid var(--surface-border);
-        }
-        .config-option span { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
-        
-        .range-slider { width: 100%; margin-top: 8px; }
-        .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .theme-btn { 
-            padding: 12px; border-radius: 10px; border: 1px solid var(--surface-border);
-            background: var(--surface-bg); cursor: pointer; font-size: 0.8rem; font-weight: 700;
-            transition: 0.3s; text-align: center;
-        }
-        .theme-btn.active { border-color: var(--primary); background: var(--primary-glow); color: var(--primary); }
-        
-        /* Main Layout */
-        .main-content {
-            flex: 1; display: flex; flex-direction: column; overflow: hidden;
-            position: relative; padding: 1.5rem; gap: 1.5rem;
-        }
+        .config-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; display: block; }
 
-        /* Top Bar */
+        /* Theme Grid */
+        .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+        .theme-btn {
+            padding: 12px; border-radius: 12px; border: 1px solid var(--surface-border);
+            background: var(--bg-base); font-size: 0.75rem; font-weight: 700; cursor: pointer;
+            transition: 0.2s; text-align: center;
+        }
+        .theme-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-glow); }
+
+        /* Range Slider */
+        .range-container { margin-bottom: 1.5rem; }
+        .range-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .range-header span { font-size: 0.8rem; font-weight: 700; }
+        .range-val { color: var(--primary); }
+        input[type="range"] { width: 100%; accent-color: var(--primary); }
+
+        /* Toggle Item */
+        .toggle-item {
+            display: flex; justify-content: space-between; align-items: center; padding: 12px 1rem;
+            background: var(--bg-base); border-radius: 14px; margin-bottom: 8px;
+        }
+        .toggle-item span { font-size: 0.85rem; font-weight: 700; }
+
+        /* Main Area */
+        .main-content { flex: 1; padding: 2rem; display: flex; flex-direction: column; gap: 2rem; overflow: hidden; }
+
         .top-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: 1rem; border-bottom: 1px solid var(--surface-border);
+            display: flex; align-items: center; gap: 1.5rem; padding: 1rem 1.5rem;
+            background: var(--surface-bg); border: 1px solid var(--surface-border);
+            border-radius: 100px; font-size: 0.8rem; font-weight: 700;
         }
-        .ticker-wrap {
-            flex: 1; margin: 0 2rem; overflow: hidden; background: var(--surface-bg);
-            border-radius: 12px; height: 44px; display: flex; align-items: center;
-            border: 1px solid var(--surface-border);
-        }
-        .ticker-move { display: flex; white-space: nowrap; animation: ticker 40s linear infinite; }
-        @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
-        .ticker-item { padding: 0 2rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .ai-status { display: flex; align-items: center; gap: 8px; color: var(--success); }
+        .ai-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
 
-        /* Widget Grid */
-        .widget-grid {
-            flex: 1; display: grid; grid-template-columns: repeat(12, 1fr);
-            grid-template-rows: repeat(6, 1fr); gap: 1.5rem; overflow: hidden;
-        }
-
+        /* Layout Grid */
+        .tvc-grid { display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(6, 1fr); gap: 1.5rem; flex: 1; overflow: hidden; }
         .widget {
             background: var(--surface-bg); border: 1px solid var(--surface-border);
-            border-radius: var(--radius); padding: 1.5rem; display: flex;
-            flex-direction: column; backdrop-filter: blur(8px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
+            border-radius: var(--radius); padding: 2rem; display: flex; flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
         }
-        .widget:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.05); }
-        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-        .widget-title { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
-        .widget-content { flex: 1; position: relative; }
+        .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .widget-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Specific Widgets */
-        .w-large { grid-column: span 8; grid-row: span 4; }
-        .w-medium { grid-column: span 4; grid-row: span 3; }
-        .w-small { grid-column: span 4; grid-row: span 2; }
-        .w-wide { grid-column: span 8; grid-row: span 2; }
-        .w-full { grid-column: span 12; grid-row: span 2; }
+        /* Specific Sizes */
+        .w-8 { grid-column: span 8; }
+        .w-4 { grid-column: span 4; }
+        .r-4 { grid-row: span 4; }
+        .r-2 { grid-row: span 2; }
+        .r-3 { grid-row: span 3; }
 
-        /* AI Panels */
-        .ai-indicator {
-            width: 12px; height: 12px; border-radius: 50%;
-            background: var(--success); position: relative;
+        /* Telemetry Cards */
+        .tele-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+        .tele-card {
+            background: var(--bg-base); padding: 1.25rem; border-radius: 16px; border: 1px solid var(--surface-border);
+            display: flex; flex-direction: column; gap: 8px;
         }
-        .ai-indicator::after {
-            content: ''; position: absolute; inset: -4px; border-radius: 50%;
-            border: 2px solid var(--success); animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        .tele-name { font-weight: 800; font-size: 0.85rem; }
+        .tele-status { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; }
+        .tele-metrics { font-size: 0.7rem; font-weight: 800; color: var(--primary); }
 
-        /* TV Mode Overrides */
-        body.tv-mode .widget {
-            background: rgba(15, 23, 42, 0.4);
-            border-color: rgba(56, 189, 248, 0.2);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.05);
-        }
-        body.tv-mode .logo-icon { box-shadow: 0 0 20px var(--primary); }
-
-        /* Toggle Switch */
+        /* Switch */
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
-
-        /* Alert Overlay */
-        .emergency-overlay {
-            position: fixed; inset: 0; background: rgba(239, 68, 68, 0.9);
-            z-index: 2000; display: none; align-items: center; justify-content: center;
-            color: white; flex-direction: column; gap: 2rem;
-            backdrop-filter: blur(10px); animation: flash 1s infinite alternate;
-        }
-        @keyframes flash { from { opacity: 0.8; } to { opacity: 1; } }
-
-        .btn {
-            padding: 10px 20px; border-radius: 12px; border: none; font-weight: 700;
-            cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s;
-        }
-        .icon-btn { 
-            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
-            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
-            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
-        }
-        .icon-btn:hover { background: var(--bg-soft); transform: scale(1.05); }
-
-        .action-icon {
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 12px;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-
-        .action-icon:hover {
-            background: var(--surface);
-            color: var(--primary);
-            border-color: var(--surface-border);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .action-icon i {
-            width: 20px;
-            height: 20px;
-            stroke-width: 2px;
-        }
-        .btn-outline { background: transparent; border: 1px solid var(--surface-border); color: var(--text-main); }
-        .btn-primary { background: var(--primary); color: white; }
-
-        /* Charts */
-        .chart-container { height: 100%; width: 100%; }
-        
-        /* Workforce Cards */
-        .wf-grid-mini { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
-        .wf-card-mini {
-            padding: 1rem; border-radius: 12px; background: var(--bg-base);
-            border: 1px solid var(--surface-border);
-        }
-        .wf-card-mini .name { font-weight: 700; font-size: 0.8rem; margin-bottom: 4px; }
-        .wf-card-mini .stat { font-size: 0.7rem; color: var(--text-muted); }
-
     </style>
 </head>
 <body>
-    <div class="emergency-overlay" id="emergencyOverlay">
-        <i data-lucide="alert-octagon" size="80"></i>
-        <h1 style="font-size: 3rem; font-weight: 900;">EMERGENCY LOCKDOWN ACTIVE</h1>
-        <p style="font-size: 1.2rem;">All non-critical system access has been suspended by Administration.</p>
-        <button class="btn btn-outline" style="color: white; border-color: white;" onclick="toggleEmergency(false)">Dismiss (Admin Only)</button>
-    </div>
 
     <div class="dashboard-container">
         <aside class="sidebar">
@@ -279,116 +167,34 @@
             </a>
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
-                <div class="nav-item">
-                    <a href="admin-dashboard.html" class="nav-link">
-                        <i data-lucide="users"></i>
-                        <span>Admin Console</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-performance-center.html" class="nav-link">
-                        <i data-lucide="trending-up"></i>
-                        <span>Performance Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-policy-center.html" class="nav-link">
-                        <i data-lucide="shield-check"></i>
-                        <span>Policy Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-asset-management.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>Asset Mgmt</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-exit-management.html" class="nav-link">
-                        <i data-lucide="log-out"></i>
-                        <span>Exit Mgmt</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
 
                 <div class="nav-label">OPERATIONS</div>
-                <div class="nav-item">
-                    <a href="admin-leave-management.html" class="nav-link">
-                        <i data-lucide="calendar"></i>
-                        <span>Leave Mgmt</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-attendance-monitor.html" class="nav-link">
-                        <i data-lucide="clock"></i>
-                        <span>Attendance Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-payroll-documents.html" class="nav-link">
-                        <i data-lucide="file-text"></i>
-                        <span>Payroll Docs</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-inactivity-monitor.html" class="nav-link">
-                        <i data-lucide="radar"></i>
-                        <span>Inactivity Radar</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-ai.html" class="nav-link">
-                        <i data-lucide="brain"></i>
-                        <span>AI Command Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-analysis.html" class="nav-link">
-                        <i data-lucide="pie-chart"></i>
-                        <span>Analytics Center</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
-                <div class="nav-item">
-                    <a href="admin-manager-change.html" class="nav-link">
-                        <i data-lucide="git-pull-request"></i>
-                        <span>Manager Change</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-bank-approvals.html" class="nav-link">
-                        <i data-lucide="check-square"></i>
-                        <span>Bank Verifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-notifications.html" class="nav-link">
-                        <i data-lucide="bell"></i>
-                        <span>Notifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-message.html" class="nav-link">
-                        <i data-lucide="mail"></i>
-                        <span>Admin Messages</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-config.html" class="nav-link">
-                        <i data-lucide="settings"></i>
-                        <span>Onboarding Config</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="tvc-dashboard.html" class="nav-link active">
-                        <i data-lucide="monitor"></i>
-                        <span>TVC Monitor</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link active"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
-            <div class="sidebar-bottom">
+            <div class="sidebar-bottom" style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--surface-border);">
                 <div class="nav-item">
                     <a href="#" class="nav-link" id="btnCustom">
                         <i data-lucide="layout"></i>
@@ -410,250 +216,138 @@
             </div>
         </aside>
 
-        <!-- Configuration Sidebar -->
-        <div class="config-sidebar" id="configSidebar">
-            <div class="config-header">
-                <div>
-                    <h2 style="font-weight: 900; font-size: 1.25rem;">TVC Control Panel</h2>
-                    <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">ENTERPRISE COMMAND CENTER v2.0</p>
-                </div>
-                <button class="btn-outline" style="border:none; cursor:pointer; background:transparent;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
-            </div>
-
-            <div class="config-inner">
-                <div class="config-section">
-                    <h3><i data-lucide="palette" size="14"></i> Visual Interface</h3>
-                    <div class="theme-grid">
-                        <div class="theme-btn active" onclick="setTheme('default')">Enterprise Light</div>
-                        <div class="theme-btn" onclick="setTheme('tv-dark')">TV Dark Mode</div>
-                        <div class="theme-btn" onclick="setTheme('neon-glass')">Neon Glass</div>
-                        <div class="theme-btn" onclick="setTheme('minimal')">Minimal Pro</div>
-                    </div>
-                    <div class="config-option" style="margin-top: 1rem;">
-                        <span>Glassmorphism Effects</span>
-                        <label class="switch"><input type="checkbox" id="checkGlass" checked><span class="slider"></span></label>
-                    </div>
-                </div>
-
-                <div class="config-section">
-                    <h3><i data-lucide="brain" size="14"></i> AI/ML Sensitivity</h3>
-                    <div style="padding: 1rem; background: var(--bg-base); border-radius: 12px; border: 1px solid var(--surface-border);">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;">
-                            <span>Risk Threshold</span>
-                            <span id="labelRisk">40%</span>
-                        </div>
-                        <input type="range" class="range-slider" min="10" max="90" value="40" oninput="updateLabel('labelRisk', this.value)">
-                        <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 8px;">Determines when a workforce risk alert is triggered.</p>
-                    </div>
-                    <div style="padding: 1rem; background: var(--bg-base); border-radius: 12px; border: 1px solid var(--surface-border); margin-top: 10px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;">
-                            <span>Burnout Detection</span>
-                            <span id="labelBurnout">70%</span>
-                        </div>
-                        <input type="range" class="range-slider" min="30" max="100" value="70" oninput="updateLabel('labelBurnout', this.value)">
-                    </div>
-                </div>
-
-                <div class="config-section">
-                    <h3><i data-lucide="layout" size="14"></i> Widget Management</h3>
-                    <div class="config-option"><span>Workforce Monitor</span><label class="switch"><input type="checkbox" checked data-widget="wf"><span class="slider"></span></label></div>
-                    <div class="config-option"><span>AI Prediction Node</span><label class="switch"><input type="checkbox" checked data-widget="ai"><span class="slider"></span></label></div>
-                    <div class="config-option"><span>Financial Intelligence</span><label class="switch"><input type="checkbox" checked data-widget="payroll"><span class="slider"></span></label></div>
-                    <div class="config-option"><span>Behavioral Security</span><label class="switch"><input type="checkbox" checked data-widget="alerts"><span class="slider"></span></label></div>
-                </div>
-
-                <div class="config-section">
-                    <h3><i data-lucide="refresh-cw" size="14"></i> Rotation Engine</h3>
-                    <div class="config-option">
-                        <span>Auto-Rotation</span>
-                        <label class="switch"><input type="checkbox" id="checkRotate" checked><span class="slider"></span></label>
-                    </div>
-                    <div style="padding: 1rem; background: var(--bg-base); border-radius: 12px; border: 1px solid var(--surface-border);">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;">
-                            <span>Cycle Interval</span>
-                            <span><span id="labelInterval">15</span>s</span>
-                        </div>
-                        <input type="range" class="range-slider" min="5" max="60" value="15" oninput="updateLabel('labelInterval', this.value)">
-                    </div>
-                </div>
-
-                <div class="config-section">
-                    <h3><i data-lucide="shield-check" size="14"></i> Security & Compliance</h3>
-                    <div class="config-option"><span>Audio Alerts</span><label class="switch"><input type="checkbox" checked id="checkAudio"><span class="slider"></span></label></div>
-                    <div class="config-option"><span>Screen Flash Warning</span><label class="switch"><input type="checkbox" checked id="checkFlash"><span class="slider"></span></label></div>
-                    <button class="btn btn-outline" style="width: 100%; color: var(--danger); border-color: var(--danger); margin-top: 1rem;" onclick="toggleEmergency(true)">
-                        <i data-lucide="alert-octagon"></i> ENABLE EMERGENCY LOCKDOWN
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Content -->
         <main class="main-content">
-            <header class="top-bar">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div class="ai-indicator"></div>
-                    <div>
-                        <h1 style="font-size: 1.25rem; font-weight: 800;">Enterprise Command Center</h1>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;" id="aiInsightText">Analyzing real-time organizational telemetry...</p>
-                    </div>
+            <div class="top-bar">
+                <div class="ai-status">
+                    <div class="ai-dot"></div>
+                    <span>Enterprise Command Center</span>
                 </div>
-
-                <div class="ticker-wrap">
-                    <div class="ticker-move" id="tickerContent">
-                        <div class="ticker-item"><i data-lucide="info"></i> System Operational: All AI nodes connected.</div>
-                    </div>
+                <div style="width: 1px; height: 16px; background: var(--surface-border);"></div>
+                <div style="color: var(--text-muted); font-weight: 500;">AI Command Node: Monitoring 6 entities. Risk level: <span style="color: var(--success);">LOW</span>.</div>
+                <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
+                   <i data-lucide="info" size="16"></i>
+                   <i data-lucide="maximize" size="16"></i>
                 </div>
+            </div>
 
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <div style="text-align: right; margin-right: 1rem;">
-                        <div style="font-family: 'Roboto Mono', monospace; font-weight: 800; font-size: 1.1rem;" id="sysClock">00:00:00</div>
-                        <div style="font-size: 0.65rem; color: var(--success); font-weight: 800; text-transform: uppercase;">Cloud Verified</div>
-                    </div>
-                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
-                        <i data-lucide="message-square"></i>
-                    </button>
-                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
-                        <i data-lucide="bell"></i>
-                    </button>
-                    <button class="btn btn-outline" id="btnFullscreen" title="Fullscreen"><i data-lucide="maximize"></i></button>
-                </div>
-            </header>
-
-            <div class="widget-grid" id="mainWidgetGrid">
-                <!-- Workforce Monitor (W-LARGE) -->
-                <div class="widget w-large" data-id="wf">
+            <div class="tvc-grid">
+                <!-- Workforce Telemetry (W8 R4) -->
+                <div class="widget w-8 r-4">
                     <div class="widget-header">
                         <div class="widget-title">Live Workforce Telemetry</div>
-                        <div class="view-indicators" id="viewDots"></div>
+                        <i data-lucide="cpu" style="color: var(--primary)"></i>
                     </div>
-                    <div class="widget-content" style="overflow-y: auto;">
-                        <div class="wf-grid-mini" id="wfGrid">
-                            <!-- Telemetry Data -->
-                        </div>
+                    <div class="tele-grid">
+                        <div class="tele-card"><div class="tele-name">Arvind Kumar</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // finance</div></div>
+                        <div class="tele-card"><div class="tele-name">Deepak Shetty</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // operations</div></div>
+                        <div class="tele-card"><div class="tele-name">Rhhit</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // General</div></div>
+                        <div class="tele-card"><div class="tele-name">Sneha Joshi</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // marketing</div></div>
+                        <div class="tele-card"><div class="tele-name">Arvind Kumar</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // General</div></div>
+                        <div class="tele-card" style="border-color: var(--primary);"><div class="tele-name">System Admin</div><div class="tele-status" style="color: var(--primary);">Needs Attention</div><div class="tele-metrics">42% EFF // executive</div></div>
                     </div>
                 </div>
 
-                <!-- AI Predictive Insights (W-MEDIUM) -->
-                <div class="widget w-medium" data-id="ai">
+                <!-- AI Predictions (W4 R3) -->
+                <div class="widget w-4 r-3">
                     <div class="widget-header">
-                        <div class="widget-title">AI Predictive Intelligence</div>
+                        <div class="widget-title">AI Predictive Insights</div>
                         <i data-lucide="brain-circuit" style="color: var(--accent)"></i>
                     </div>
-                    <div class="widget-content">
-                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;">
-                                    <span>Burnout Probability</span>
-                                    <span id="burnoutVal">0%</span>
-                                </div>
-                                <div class="prod-bar-bg" style="height: 8px;"><div class="prod-bar-fill" id="burnoutBar" style="width: 0%; background: var(--warning);"></div></div>
-                            </div>
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;">
-                                    <span>Workforce Risk Score</span>
-                                    <span id="riskVal">Low</span>
-                                </div>
-                                <div class="prod-bar-bg" style="height: 8px;"><div class="prod-bar-fill" id="riskBar" style="width: 20%; background: var(--success);"></div></div>
-                            </div>
-                            <div style="background: var(--bg-base); padding: 1rem; border-radius: 12px; border: 1px solid var(--surface-border);">
-                                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 4px;">ML PREDICTION</div>
-                                <p style="font-size: 0.85rem; font-weight: 600;" id="predictionText">Productivity trend is stable for the next 4 hours.</p>
-                            </div>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;"><span>Burnout Probability</span><span>12%</span></div>
+                            <div style="height: 6px; background: var(--bg-base); border-radius: 10px; overflow: hidden;"><div style="width: 12%; height: 100%; background: var(--success);"></div></div>
                         </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;"><span>Workforce Risk</span><span>Low</span></div>
+                            <div style="height: 6px; background: var(--bg-base); border-radius: 10px; overflow: hidden;"><div style="width: 20%; height: 100%; background: var(--success);"></div></div>
+                        </div>
+                        <div style="background: var(--bg-base); padding: 1rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">Productivity trend is stable for the next 4 hours.</div>
                     </div>
                 </div>
 
-                <!-- Dept Efficiency (W-SMALL) -->
-                <div class="widget w-small" data-id="dept">
-                    <div class="widget-header">
-                        <div class="widget-title">Dept Efficiency</div>
-                        <i data-lucide="bar-chart-3" style="color: var(--primary)"></i>
-                    </div>
-                    <div class="widget-content" id="deptStatsContainer" style="overflow-y: auto;">
-                        <!-- Dept Rows -->
-                    </div>
-                </div>
-
-                <!-- Payroll Analytics (W-MEDIUM) -->
-                <div class="widget w-medium" data-id="payroll">
+                <!-- Payroll Intel (W8 R2) -->
+                <div class="widget w-8 r-2">
                     <div class="widget-header">
                         <div class="widget-title">Payroll Intelligence</div>
-                        <i data-lucide="banknote" style="color: var(--success)"></i>
+                        <i data-lucide="wallet" style="color: var(--success)"></i>
                     </div>
-                    <div class="widget-content">
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div style="font-size: 1.25rem; font-weight: 800;" id="finPayroll">$0k</div></div>
-                                <div style="text-align: right;"><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">BURN RATE</div><div style="font-size: 1.25rem; font-weight: 800; color: var(--danger);" id="finBurn">0%</div></div>
-                            </div>
-                            <div style="height: 100px; width: 100%;"><canvas id="spendChart"></canvas></div>
-                        </div>
+                    <div style="display: flex; align-items: center; gap: 3rem;">
+                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div style="font-size: 1.5rem; font-weight: 800;">$1050.0k</div></div>
+                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">BURN RATE</div><div style="font-size: 1.5rem; font-weight: 800; color: var(--danger);">105%</div></div>
+                        <div style="flex: 1; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-muted);">[ Payroll Impact Chart Placeholder ]</div>
                     </div>
                 </div>
 
-                <!-- Alerts & Security (W-WIDE) -->
-                <div class="widget w-wide" data-id="alerts">
+                <!-- Security Logs (W4 R3) -->
+                <div class="widget w-4 r-3">
                     <div class="widget-header">
                         <div class="widget-title">Security & Behavior Logs</div>
-                        <span class="badge" style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.6rem;">LIVE</span>
+                        <i data-lucide="shield-alert" style="color: var(--danger)"></i>
                     </div>
-                    <div class="widget-content" style="overflow-y: auto;" id="alertsGrid">
-                        <!-- Alert Rows -->
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                        <p>Suspicious Activity: Sneha Joshi recorded high context switching (7 tabs).</p>
                     </div>
                 </div>
             </div>
         </main>
+
+        <!-- Config Sidebar -->
+        <div class="config-sidebar" id="configSidebar">
+            <div class="config-header">
+                <h2>TVC Control Panel</h2>
+                <div class="close-config" id="closeConfig"><i data-lucide="x"></i></div>
+            </div>
+            <p style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2rem;">ENTERPRISE COMMAND CENTER v2.0</p>
+
+            <div class="config-section">
+                <span class="config-label"><i data-lucide="palette" size="14" style="vertical-align: middle; margin-right: 6px;"></i> VISUAL INTERFACE</span>
+                <div class="theme-grid">
+                    <button class="theme-btn active" onclick="setTheme('light')">Enterprise Light</button>
+                    <button class="theme-btn" onclick="setTheme('dark')">TV Dark Mode</button>
+                    <button class="theme-btn" onclick="setTheme('neon')">Neon Glass</button>
+                    <button class="theme-btn" onclick="setTheme('minimal')">Minimal Pro</button>
+                </div>
+                <div class="toggle-item">
+                    <span>Glassmorphism Effects</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <span class="config-label"><i data-lucide="zap" size="14" style="vertical-align: middle; margin-right: 6px;"></i> AI/ML SENSITIVITY</span>
+                <div class="range-container">
+                    <div class="range-header"><span>Risk Threshold</span><span class="range-val">41%</span></div>
+                    <input type="range" min="0" max="100" value="41">
+                </div>
+                <div class="range-container">
+                    <div class="range-header"><span>Burnout Detection</span><span class="range-val">70%</span></div>
+                    <input type="range" min="0" max="100" value="70">
+                </div>
+            </div>
+
+            <div class="config-section">
+                <span class="config-label"><i data-lucide="grid" size="14" style="vertical-align: middle; margin-right: 6px;"></i> WIDGET MANAGEMENT</span>
+                <div class="toggle-item">
+                    <span>Workforce Monitor</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="screen-flash" id="screenFlash"></div>
-    <audio id="alertSound" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-back-2575.mp3" preload="auto"></audio>
-
-    <script type="module" src="tvc-app.js"></script>
     <script>
-        window.toggleConfig = (show) => document.getElementById('configSidebar').classList.toggle('active', show);
-        window.toggleEmergency = (show) => document.getElementById('emergencyOverlay').style.display = show ? 'flex' : 'none';
-        window.updateLabel = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = val + (id === 'labelInterval' ? '' : '%');
-            // Notify app logic of changes if needed
-            if (id === 'labelInterval') window.updateRotationInterval(val);
-        };
-        
-        window.setTheme = (theme) => {
+        lucide.createIcons();
+        const configSidebar = document.getElementById('configSidebar');
+        document.getElementById('btnCustom').onclick = () => configSidebar.classList.add('active');
+        document.getElementById('closeConfig').onclick = () => configSidebar.classList.remove('active');
+
+        function setTheme(theme) {
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
-            
-            document.body.className = ''; // Reset
-            if (theme === 'tv-dark') document.body.classList.add('tv-mode');
-            if (theme === 'neon-glass') {
-                document.body.classList.add('tv-mode');
-                document.documentElement.style.setProperty('--primary', '#22d3ee');
-                document.documentElement.style.setProperty('--accent', '#a855f7');
-            } else {
-                document.documentElement.style.removeProperty('--primary');
-                document.documentElement.style.removeProperty('--accent');
-            }
-        };
-
-        document.getElementById('btnCustom').onclick = () => toggleConfig(true);
-        
-        // Widget Visibility
-        document.querySelectorAll('.config-sidebar input[data-widget]').forEach(input => {
-            input.onchange = (e) => {
-                const id = e.target.getAttribute('data-widget');
-                const widget = document.querySelector(`.widget[data-id="${id}"]`);
-                if (widget) widget.style.display = e.target.checked ? 'flex' : 'none';
-            }
-        });
-
-        document.getElementById('checkGlass').onchange = (e) => {
-            document.querySelectorAll('.widget').forEach(w => {
-                w.style.backdropFilter = e.target.checked ? 'blur(8px)' : 'none';
-            });
-        };
-
-        if (window.lucide) lucide.createIcons();
+            if (theme === 'dark' || theme === 'neon') document.body.classList.add('tv-mode');
+            else document.body.classList.remove('tv-mode');
+        }
     </script>
 </body>
 </html>

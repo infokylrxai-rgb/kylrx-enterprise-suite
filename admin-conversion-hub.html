@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifecycle Conversion Hub | HRFlow Enterprise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --sidebar-width: 280px;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; min-height: 100vh; }
+
+        .sidebar {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            width: var(--sidebar-width);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2.5rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.25rem; font-weight: 800; letter-spacing: -1px; }
+
+        .nav-menu { flex: 1; overflow-y: auto; padding-right: 0.5rem; }
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.5rem 0.5rem; }
+        .nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 0.75rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.85rem; border-radius: 12px; transition: 0.2s; margin-bottom: 4px; }
+        .nav-link:hover, .nav-link.active { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+
+        .sidebar-bottom { margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--glass-border); }
+
+        .main-content { margin-left: var(--sidebar-width); padding: 3rem; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; }
+
+        /* Conversion Dashboard Grid */
+        .conversion-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        /* Employee Selection */
+        .search-container {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-box {
+            display: flex; gap: 12px; align-items: center;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 12px 1rem;
+        }
+
+        .search-box input {
+            background: transparent; border: none; color: white; width: 100%; outline: none; font-family: inherit;
+        }
+
+        /* Conversion Form */
+        .conversion-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 2.5rem;
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-title { font-size: 0.75rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.5rem; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+        .form-group input, .form-group select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            color: white;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .current-profile {
+            display: flex; align-items: center; gap: 1.5rem;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 1.5rem;
+            border-radius: 20px;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .avatar { width: 60px; height: 60px; background: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.5rem; }
+
+        /* Recent Conversions */
+        .recent-conversions {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .conversion-log-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .conversion-log-item:last-child { border-bottom: none; }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5); }
+        .btn-primary:hover { transform: translateY(-2px); }
+
+        .indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+        .type-pill {
+            padding: 2px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+        }
+        .pill-old { background: rgba(255,255,255,0.1); color: var(--text-muted); }
+        .pill-new { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link active"><i data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1>Lifecycle Conversion Hub</h1>
+                    <p style="color: var(--text-muted);">Manage employment transitions and role migrations.</p>
+                </div>
+            </header>
+
+            <div class="conversion-grid">
+                <div class="left-panel">
+                    <div class="search-container">
+                        <div class="section-title">Select Employee for Conversion</div>
+                        <div class="search-box">
+                            <i data-lucide="search" size="18" style="color: var(--text-muted);"></i>
+                            <input type="text" id="empSearch" placeholder="Search by Name or Employee ID (e.g. INT-HR-2026-0008)">
+                        </div>
+                        <div id="searchResults" style="margin-top: 1rem;"></div>
+                    </div>
+
+                    <div class="conversion-card" id="conversionForm">
+                        <div class="current-profile">
+                            <div class="avatar" id="dispAvatar">??</div>
+                            <div style="flex: 1;">
+                                <h3 id="dispName" style="font-size: 1.5rem; font-weight: 800;">John Doe</h3>
+                                <p id="dispCurrent" style="color: var(--text-muted); font-weight: 600;">Current: Intern (Engineering)</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span class="type-pill pill-old" id="dispOldType">Intern</span>
+                                <div style="margin-top: 8px; font-size: 0.75rem; color: var(--text-muted);" id="dispId">ID: INT-ENG-2026-0001</div>
+                            </div>
+                        </div>
+
+                        <div class="section-title">Conversion Parameters</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Target Employment Type</label>
+                                <select id="targetType">
+                                    <option value="full-time">Full-Time (Permanent)</option>
+                                    <option value="consultant">Consultant</option>
+                                    <option value="contractor">Contractor</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Effective Conversion Date</label>
+                                <input type="date" id="effectiveDate">
+                            </div>
+                            <div class="form-group">
+                                <label>New Designation / Promotion</label>
+                                <input type="text" id="targetRole" placeholder="e.g. Software Engineer">
+                            </div>
+                            <div class="form-group">
+                                <label>Department Transfer</label>
+                                <select id="targetDept">
+                                    <option value="engineering">Engineering</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="sales">Sales</option>
+                                    <option value="hr">Human Resources</option>
+                                    <option value="finance">Finance</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Revised Salary (Per Annum)</label>
+                                <input type="number" id="targetSalary" placeholder="₹0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Reporting Manager</label>
+                                <input type="text" id="targetManager" placeholder="Select Manager">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+                            <button class="btn btn-outline" onclick="location.reload()">Cancel</button>
+                            <button class="btn btn-primary" id="btnInitiate"><i data-lucide="zap"></i> Initiate Conversion</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-panel">
+                    <div class="recent-conversions">
+                        <div class="section-title">Audit Log</div>
+                        <div id="conversionLogs">
+                            <div class="conversion-log-item">
+                                <div style="width: 4px; height: 24px; background: var(--success); border-radius: 2px;"></div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.85rem; font-weight: 700;">Rohan Sharma</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">INT → FT • May 10</div>
+                                </div>
+                                <i data-lucide="external-link" size="14" style="color: var(--text-muted);"></i>
+                            </div>
+                            <!-- More logs -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, query, where, getDocs, updateDoc, doc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { codeEngine } from "./code-engine-service.js";
+
+        lucide.createIcons();
+
+        let activeEmployee = null;
+
+        const empSearch = document.getElementById('empSearch');
+        const searchResults = document.getElementById('searchResults');
+        const conversionForm = document.getElementById('conversionForm');
+
+        empSearch.oninput = async () => {
+            const val = empSearch.value;
+            if (val.length < 3) return;
+
+            const q = query(collection(db, 'users'), where('employeeId', '==', val));
+            const snap = await getDocs(q);
+            
+            if (!snap.empty) {
+                searchResults.innerHTML = snap.docs.map(d => {
+                    const data = d.data();
+                    return `<div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; margin-bottom: 8px;" onclick="selectEmployee('${d.id}', '${data.name}', '${data.employeeId}', '${data.employmentType}', '${data.role}', '${data.department}')">
+                        <div style="font-weight: 800;">${data.name}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">${data.employeeId} • ${data.role}</div>
+                    </div>`;
+                }).join('');
+            } else {
+                searchResults.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted);">No matches found.</p>';
+            }
+        };
+
+        window.selectEmployee = (id, name, empId, type, role, dept) => {
+            activeEmployee = { id, name, empId, type, role, dept };
+            searchResults.innerHTML = '';
+            empSearch.value = name;
+            
+            document.getElementById('dispName').innerText = name;
+            document.getElementById('dispAvatar').innerText = name.split(' ').map(n => n[0]).join('');
+            document.getElementById('dispCurrent').innerText = `Current: ${type.toUpperCase()} (${role})`;
+            document.getElementById('dispOldType').innerText = type;
+            document.getElementById('dispId').innerText = `ID: ${empId}`;
+            
+            document.getElementById('targetRole').value = role;
+            document.getElementById('targetDept').value = dept.toLowerCase();
+            
+            conversionForm.style.display = 'block';
+        };
+
+        document.getElementById('btnInitiate').onclick = async () => {
+            const targetType = document.getElementById('targetType').value;
+            const targetRole = document.getElementById('targetRole').value;
+            const targetDept = document.getElementById('targetDept').value;
+            const targetSalary = document.getElementById('targetSalary').value;
+            const effectiveDate = document.getElementById('effectiveDate').value;
+
+            if (!confirm(`Are you sure you want to convert ${activeEmployee.name} to ${targetType}? This will regenerate their Employee ID.`)) return;
+
+            try {
+                // 1. Generate New Employee ID using the Code Engine
+                const newEmpId = await codeEngine.generateCode(activeEmployee.id, targetType, targetDept);
+                
+                // 2. Log conversion history
+                await addDoc(collection(db, 'conversion_audit'), {
+                    employeeId: activeEmployee.id,
+                    name: activeEmployee.name,
+                    oldId: activeEmployee.empId,
+                    newId: newEmpId,
+                    oldType: activeEmployee.type,
+                    newType: targetType,
+                    effectiveDate,
+                    revisedSalary: targetSalary,
+                    timestamp: serverTimestamp()
+                });
+
+                // 3. Update Employee Record
+                await updateDoc(doc(db, 'users', activeEmployee.id), {
+                    employmentType: targetType,
+                    role: targetRole,
+                    department: targetDept,
+                    employeeId: newEmpId,
+                    salary: targetSalary,
+                    conversionHistory: [{
+                        from: activeEmployee.type,
+                        to: targetType,
+                        date: effectiveDate,
+                        revisedSalary: targetSalary
+                    }]
+                });
+
+                // 4. Update Payroll Profile (if exists)
+                try {
+                    await updateDoc(doc(db, 'payroll_profiles', activeEmployee.empId), {
+                        employeeId: newEmpId,
+                        "salaryStructure.base": Number(targetSalary)
+                    });
+                } catch(e) { console.warn("No payroll profile found to sync."); }
+
+                alert(`Conversion Successful! ${activeEmployee.name} is now a ${targetType}. New ID: ${newEmpId}`);
+                location.reload();
+            } catch (err) {
+                console.error(err);
+                alert("Conversion failed. Check console for details.");
+            }
+        };
+
+    </script>
+</body>
+</html>

@@ -36,11 +36,17 @@ const AVAILABLE_WIDGETS = [
     { id: 'command-center-directory', title: 'Active Command Centers', icon: 'monitor', size: 'w-full' }
 ];
 
+import { onboardingAutomation } from "./onboarding-automation.js";
+
 // Initialize Dashboard
 document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     setupEventListeners();
     initDashboard();
+
+    // Start Onboarding Automation Background Cycle
+    onboardingAutomation.runAutomationCycle();
+    setInterval(() => onboardingAutomation.runAutomationCycle(), 15 * 60 * 1000); // Every 15 mins
 });
 
 function loadConfig() {
@@ -641,11 +647,22 @@ function renderEmployeeTable(employees) {
     }
 
     tableBody.innerHTML = employees.map(emp => {
+        const getStatusColor = (status) => {
+            switch(status) {
+                case 'Suspended': return '#ef4444';
+                case 'Trash': return '#64748b';
+                case 'Invitation Sent': return '#f59e0b';
+                case 'Onboarding Started': return '#3b82f6';
+                case 'Completed': return '#10b981';
+                default: return '#10b981';
+            }
+        };
+        const statusColor = getStatusColor(emp.status);
+        const isTrashed = emp.status === 'Trash';
         const isManager = (emp.role || '').toLowerCase() === 'manager';
-        const statusColor = emp.status === 'Suspended' ? '#ef4444' : '#10b981';
         
         return `
-        <tr>
+        <tr style="${isTrashed ? 'opacity: 0.6; background: rgba(239, 68, 68, 0.02);' : ''}">
             <td>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 38px; height: 38px; background: ${isManager ? 'var(--primary-light)' : '#f1f5f9'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: ${isManager ? 'var(--primary)' : '#64748b'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : '#e2e8f0'};">
@@ -687,11 +704,17 @@ function renderEmployeeTable(employees) {
             </td>
             <td>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-outline" style="padding: 8px; border-radius: 10px;" onclick="openEditModal('${emp.uid || emp.id}')" title="Edit Profile">
-                        <i data-lucide="edit-3" size="14"></i>
-                    </button>
-                    <button class="btn btn-outline" style="padding: 8px; border-radius: 10px; color: var(--danger); border-color: rgba(239, 68, 68, 0.1);" onclick="deleteEmployee('${emp.uid || emp.id}', '${emp.name}')" title="Terminate">
-                        <i data-lucide="trash-2" size="14"></i>
+                    ${isTrashed ? `
+                        <button class="btn btn-outline" style="padding: 8px; border-radius: 10px; color: var(--secondary);" onclick="restoreEmployee('${emp.uid || emp.id}')" title="Restore Profile">
+                            <i data-lucide="rotate-ccw" size="14"></i>
+                        </button>
+                    ` : `
+                        <button class="btn btn-outline" style="padding: 8px; border-radius: 10px;" onclick="openEditModal('${emp.uid || emp.id}')" title="Edit Profile">
+                            <i data-lucide="edit-3" size="14"></i>
+                        </button>
+                    `}
+                    <button class="btn btn-outline" style="padding: 8px; border-radius: 10px; color: var(--danger); border-color: rgba(239, 68, 68, 0.1);" onclick="deleteEmployee('${emp.uid || emp.id}', '${emp.name}')" title="${isTrashed ? 'Permanent Delete' : 'Terminate'}">
+                        <i data-lucide="${isTrashed ? 'user-minus' : 'trash-2'}" size="14"></i>
                     </button>
                 </div>
             </td>

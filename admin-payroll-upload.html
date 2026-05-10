@@ -3,107 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance & Payroll Initialization | HRFlow</title>
+    <title>Finance Command Center | HRFlow Enterprise</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="admin-dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary: #3b82f6; --primary-dark: #2563eb; --primary-light: #eff6ff; 
-            --bg: #f8fafc; --sidebar: #ffffff;
-            --card: #ffffff; --text-main: #0f172a; --text-muted: #64748b; --border: #e2e8f0;
-            --radius: 20px; --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-width: 280px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        .payroll-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
         }
 
-        .stat-card {
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; min-height: 100vh; }
+
+        /* Full Admin Sidebar */
+        .sidebar {
             background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            width: var(--sidebar-width);
+            z-index: 100;
             display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            transition: 0.3s;
+            flex-direction: column;
+            overflow-y: auto;
         }
 
-        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2.5rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
 
-        .stat-icon {
-            width: 54px; height: 54px;
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem;
+        .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px;
+        }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+
+        .sidebar-bottom { margin-top: auto; padding-top: 2rem; }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); padding: 3rem; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; }
+
+        /* Finance Widgets */
+        .finance-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
         }
 
-        .stat-icon.blue { background: #eff6ff; color: #3b82f6; }
-        .stat-icon.green { background: #ecfdf5; color: #10b981; }
-        .stat-icon.orange { background: #fff7ed; color: #f97316; }
-
-        .stat-info h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 2px; }
-        .stat-info p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-
-        .upload-section {
+        .f-card {
             background: white;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
             border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .f-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--primary);
+        }
+
+        .f-card h3 { font-size: 1.5rem; font-weight: 800; margin-top: 8px; }
+        .f-card p { font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Upload Zone */
+        .upload-zone {
+            background: white;
             border: 2px dashed var(--border);
-            padding: 4rem 2rem;
+            border-radius: 32px;
+            padding: 5rem 2rem;
             text-align: center;
-            margin-bottom: 2.5rem;
-            transition: 0.3s;
             cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 3rem;
         }
 
-        .upload-section:hover, .upload-section.dragover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
+        .upload-zone:hover { border-color: var(--primary); background: var(--primary-light); }
 
-        .upload-icon {
-            width: 80px; height: 80px;
+        .icon-box {
+            width: 70px; height: 70px;
             background: var(--primary-light);
             color: var(--primary);
-            border-radius: 50%;
+            border-radius: 20px;
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem;
         }
 
-        .data-table-wrapper {
+        /* Results Table */
+        .table-container {
             background: white;
-            border-radius: var(--radius);
             border: 1px solid var(--border);
+            border-radius: 24px;
             overflow: hidden;
-            margin-top: 2rem;
+            display: none;
+            box-shadow: var(--shadow);
         }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { background: #f8fafc; padding: 1.25rem 1rem; text-align: left; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; }
-        td { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); }
-        tr:last-child td { border-bottom: none; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 1.25rem 1rem; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--bg); font-weight: 800; }
+        td { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        
+        .val-pill { padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; }
+        .pill-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .pill-error { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
-        .currency { font-weight: 700; color: var(--text-main); }
-        .status-pill { padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
-        .status-ready { background: #ecfdf5; color: #10b981; }
-        .status-error { background: #fef2f2; color: #ef4444; }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
 
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
     </style>
 </head>
-<body class="admin-dashboard">
-    <div class="dashboard-container">
-        <!-- Sidebar -->
+<body>
+
+    <div class="layout">
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
@@ -111,116 +159,46 @@
             </a>
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
-                <div class="nav-item">
-                    <a href="admin-dashboard.html" class="nav-link">
-                        <i data-lucide="users"></i>
-                        <span>Admin Console</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-performance-center.html" class="nav-link">
-                        <i data-lucide="trending-up"></i>
-                        <span>Performance Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-policy-center.html" class="nav-link">
-                        <i data-lucide="shield-check"></i>
-                        <span>Policy Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-asset-management.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>Asset Mgmt</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-exit-management.html" class="nav-link">
-                        <i data-lucide="log-out"></i>
-                        <span>Exit Mgmt</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
 
                 <div class="nav-label">OPERATIONS</div>
-                <div class="nav-item">
-                    <a href="admin-leave-management.html" class="nav-link">
-                        <i data-lucide="calendar"></i>
-                        <span>Leave Mgmt</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-attendance-monitor.html" class="nav-link">
-                        <i data-lucide="clock"></i>
-                        <span>Attendance Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-payroll-documents.html" class="nav-link">
-                        <i data-lucide="file-text"></i>
-                        <span>Payroll Docs</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-inactivity-monitor.html" class="nav-link">
-                        <i data-lucide="radar"></i>
-                        <span>Inactivity Radar</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link active"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-ai.html" class="nav-link">
-                        <i data-lucide="brain"></i>
-                        <span>AI Command Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-analysis.html" class="nav-link">
-                        <i data-lucide="pie-chart"></i>
-                        <span>Analytics Center</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
-                <div class="nav-item">
-                    <a href="admin-manager-change.html" class="nav-link">
-                        <i data-lucide="git-pull-request"></i>
-                        <span>Manager Change</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-bank-approvals.html" class="nav-link">
-                        <i data-lucide="check-square"></i>
-                        <span>Bank Verifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-notifications.html" class="nav-link">
-                        <i data-lucide="bell"></i>
-                        <span>Notifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-message.html" class="nav-link">
-                        <i data-lucide="mail"></i>
-                        <span>Admin Messages</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-config.html" class="nav-link">
-                        <i data-lucide="settings"></i>
-                        <span>Onboarding Config</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="tvc-dashboard.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>TVC Monitor</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
                 <div class="nav-item">
                     <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
                         <i data-lucide="log-out"></i>
@@ -231,94 +209,54 @@
         </aside>
 
         <main class="main-content">
-            <header class="header-actions">
-                <div class="welcome-text">
-                    <h1>Finance & Payroll Initialization</h1>
-                    <p>Initialize salary structures and financial profiles for your workforce.</p>
+            <header class="header">
+                <div>
+                    <h1>Finance Initialization</h1>
+                    <p style="color: var(--text-muted);">Secure payroll onboarding and salary component management.</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
-                        <i data-lucide="message-square"></i>
-                    </button>
-                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
-                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
-                        <i data-lucide="bell"></i>
-                    </button>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-outline" id="btnDownloadTemplate"><i data-lucide="download"></i> Get Template</button>
+                    <button class="btn btn-primary" id="btnFinalize" disabled><i data-lucide="shield-check"></i> Initialize Payroll</button>
                 </div>
             </header>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-outline" id="downloadTemplate">
-                        <i data-lucide="download"></i> Template
-                    </button>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-primary" id="finalizePayroll" disabled>
-                        <i data-lucide="shield-check"></i> Finalize Payroll
-                    </button>
-                </div>
+            <div class="finance-grid">
+                <div class="f-card"><p>Total Provisioning</p><h3 id="statCount">0</h3></div>
+                <div class="f-card"><p>Monthly CTC (Est)</p><h3 id="statCtc">₹0</h3></div>
+                <div class="f-card"><p>Validation Status</p><h3 id="statStatus">No Data</h3></div>
+                <div class="f-card"><p>Security Key</p><h3 style="font-family: monospace; font-size: 1rem;">FIN-AES-256</h3></div>
             </div>
 
-            <div class="payroll-grid">
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i data-lucide="users"></i></div>
-                    <div class="stat-info">
-                        <h3 id="statTotal">0</h3>
-                        <p>Employees Pending</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon green"><i data-lucide="credit-card"></i></div>
-                    <div class="stat-info">
-                        <h3 id="statSalary">$0.00</h3>
-                        <p>Est. Monthly Outflow</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon orange"><i data-lucide="alert-triangle"></i></div>
-                    <div class="stat-info">
-                        <h3 id="statErrors">0</h3>
-                        <p>Validation Issues</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="upload-section" id="dropZone">
+            <div class="upload-zone" id="dropZone">
                 <input type="file" id="fileInput" hidden accept=".xlsx, .xls, .csv">
-                <div class="upload-icon"><i data-lucide="upload-cloud" size="40"></i></div>
-                <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Drop Payroll Manifest Here</h2>
-                <p style="color: var(--text-muted); font-weight: 500;">or click to browse your computer (Excel/CSV supported)</p>
+                <div class="icon-box"><i data-lucide="file-up" size="32"></i></div>
+                <h2>Drop Finance Manifest</h2>
+                <p style="color: var(--text-muted); margin-top: 8px;">Excel or CSV files with salary components.</p>
             </div>
 
-            <div id="resultsSection" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 1.25rem; font-weight: 800;">Validation Results</h2>
-                    <span id="validationCount" style="font-weight: 700; color: var(--primary);">0 Records Found</span>
+            <div class="table-container" id="resultsTable">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border);">
+                    <h2 style="font-size: 1.1rem; font-weight: 800;">Payroll Validation Stream</h2>
                 </div>
-
-                <div class="data-table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Status</th>
-                                <th>Employee / ID</th>
-                                <th>Base Salary</th>
-                                <th>Incentives</th>
-                                <th>Deductions (PF/ESIC)</th>
-                                <th>Tax / ESOPs</th>
-                                <th>Net Monthly</th>
-                            </tr>
-                        </thead>
-                        <tbody id="payrollBody">
-                            <!-- Rows injected here -->
-                        </tbody>
-                    </table>
-                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Employee ID / Name</th>
+                            <th>Base Salary</th>
+                            <th>Deductions</th>
+                            <th>Variable / Bonus</th>
+                            <th>Perks</th>
+                            <th>Monthly Net</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payrollBody"></tbody>
+                </table>
             </div>
         </main>
     </div>
 
     <script type="module" src="admin-payroll-upload.js"></script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

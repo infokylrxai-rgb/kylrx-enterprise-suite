@@ -30,6 +30,50 @@
             --config-width: 320px;
         }
 
+        /* Dashboard Settings Sidebar */
+        .settings-sidebar {
+            position: fixed;
+            top: 0; right: -360px;
+            width: 360px; height: 100vh;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.05);
+            z-index: 2000;
+            padding: 2.5rem;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        .settings-sidebar.active { right: 0; }
+
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .settings-header h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+        .close-settings { cursor: pointer; color: var(--text-muted); }
+
+        .settings-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; display: block; }
+
+        .widget-toggle-item {
+            display: flex; justify-content: space-between; align-items: center; padding: 12px 1rem;
+            background: var(--bg-soft); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 8px; transition: 0.2s;
+        }
+        .widget-toggle-item:hover { border-color: var(--primary-soft); }
+        .widget-info { display: flex; align-items: center; gap: 12px; }
+        .widget-info i { color: var(--primary); width: 18px; height: 18px; }
+        .widget-info span { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+
+        /* Switch Styling */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
         body { overflow-x: hidden; }
 
         .sidebar {
@@ -627,114 +671,32 @@
             
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
-                <div class="nav-item">
-                    <a href="admin-dashboard.html" class="nav-link active">
-                        <i data-lucide="users"></i>
-                        <span>Admin Console</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-performance-center.html" class="nav-link">
-                        <i data-lucide="trending-up"></i>
-                        <span>Performance Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-policy-center.html" class="nav-link">
-                        <i data-lucide="shield-check"></i>
-                        <span>Policy Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-asset-management.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>Asset Mgmt</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-exit-management.html" class="nav-link">
-                        <i data-lucide="log-out"></i>
-                        <span>Exit Mgmt</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link active"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
 
                 <div class="nav-label">OPERATIONS</div>
-                <div class="nav-item">
-                    <a href="admin-leave-management.html" class="nav-link">
-                        <i data-lucide="calendar"></i>
-                        <span>Leave Mgmt</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-attendance-monitor.html" class="nav-link">
-                        <i data-lucide="clock"></i>
-                        <span>Attendance Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-payroll-documents.html" class="nav-link">
-                        <i data-lucide="file-text"></i>
-                        <span>Payroll Docs</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-inactivity-monitor.html" class="nav-link">
-                        <i data-lucide="radar"></i>
-                        <span>Inactivity Radar</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-ai.html" class="nav-link">
-                        <i data-lucide="brain"></i>
-                        <span>AI Command Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-analysis.html" class="nav-link">
-                        <i data-lucide="pie-chart"></i>
-                        <span>Analytics Center</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
-                <div class="nav-item">
-                    <a href="admin-manager-change.html" class="nav-link">
-                        <i data-lucide="git-pull-request"></i>
-                        <span>Manager Change</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-bank-approvals.html" class="nav-link">
-                        <i data-lucide="check-square"></i>
-                        <span>Bank Verifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-notifications.html" class="nav-link">
-                        <i data-lucide="bell"></i>
-                        <span>Notifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-message.html" class="nav-link">
-                        <i data-lucide="mail"></i>
-                        <span>Admin Messages</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-config.html" class="nav-link">
-                        <i data-lucide="settings"></i>
-                        <span>Onboarding Config</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="tvc-dashboard.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>TVC Monitor</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
 
             <div class="sidebar-bottom">
@@ -1080,11 +1042,75 @@
         </div>
     </div>
 
+    <!-- Dashboard Settings Sidebar -->
+    <div class="settings-sidebar" id="settingsSidebar">
+        <div class="settings-header">
+            <h2>Dashboard Settings</h2>
+            <div class="close-settings" id="closeSettings"><i data-lucide="x"></i></div>
+        </div>
+        
+        <span class="settings-label">ACTIVE WIDGETS</span>
+        
+        <div class="widget-list">
+            <div class="widget-toggle-item">
+                <div class="widget-info"><i data-lucide="activity"></i><span>System Overview</span></div>
+                <label class="switch"><input type="checkbox" checked data-widget="system-overview"><span class="slider"></span></label>
+            </div>
+            <div class="widget-toggle-item">
+                <div class="widget-info"><i data-lucide="bar-chart-3"></i><span>Productivity Analytics</span></div>
+                <label class="switch"><input type="checkbox" checked data-widget="productivity-analytics"><span class="slider"></span></label>
+            </div>
+            <div class="widget-toggle-item">
+                <div class="widget-info"><i data-lucide="users"></i><span>Live Employee Activity</span></div>
+                <label class="switch"><input type="checkbox" checked data-widget="live-activity"><span class="slider"></span></label>
+            </div>
+            <div class="widget-toggle-item">
+                <div class="widget-info"><i data-lucide="dollar-sign"></i><span>Payroll Forecasting</span></div>
+                <label class="switch"><input type="checkbox" checked data-widget="payroll-forecast"><span class="slider"></span></label>
+            </div>
+            <div class="widget-toggle-item">
+                <div class="widget-info"><i data-lucide="brain"></i><span>AI Workforce Insights</span></div>
+                <label class="switch"><input type="checkbox" checked data-widget="ai-insights"><span class="slider"></span></label>
+            </div>
+            <div class="widget-toggle-item">
+                <div class="widget-info"><i data-lucide="shield"></i><span>TVC Alert Stream</span></div>
+                <label class="switch"><input type="checkbox" checked data-widget="tvc-alerts"><span class="slider"></span></label>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="admin-app.js"></script>
     <script type="module" src="notification-app.js"></script>
-    <script>if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }</script>
     <script type="module" src="activity-tracker.js"></script>
-  <script src="status-widget.js"></script>
+    <script src="status-widget.js"></script>
+    <script>
+        if (window.lucide) { lucide.createIcons(); }
+
+        // Settings Toggle Logic
+        const settingsSidebar = document.getElementById('settingsSidebar');
+        const openSettings = document.getElementById('btnCustom');
+        const closeSettings = document.getElementById('closeSettings');
+
+        openSettings?.addEventListener('click', (e) => {
+            e.preventDefault();
+            settingsSidebar.classList.add('active');
+        });
+
+        closeSettings?.addEventListener('click', () => {
+            settingsSidebar.classList.remove('active');
+        });
+
+        // Widget Toggling Logic
+        document.querySelectorAll('.settings-sidebar input[type="checkbox"]').forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                const widgetId = e.target.dataset.widget;
+                const widgetEl = document.getElementById(widgetId);
+                if (widgetEl) {
+                    widgetEl.style.display = e.target.checked ? 'block' : 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
 

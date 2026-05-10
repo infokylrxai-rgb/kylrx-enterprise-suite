@@ -3,133 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Change Approvals | HRFlow</title>
+    <title>Manager Hierarchy Governance | HRFlow Enterprise</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="admin-dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .bpm-workflow-card {
+        :root {
+            --primary: #3b82f6; /* Light Blue */
+            --primary-dark: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-width: 280px;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; min-height: 100vh; }
+
+        /* Full Admin Sidebar */
+        .sidebar {
             background: white;
-            border-radius: 24px;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            width: var(--sidebar-width);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2.5rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
+
+        .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px;
+        }
+        .nav-link:hover { background: var(--primary-light); color: var(--primary); }
+        .nav-link.active { background: var(--primary-light); color: var(--primary); }
+        .nav-link i { width: 20px; height: 20px; stroke-width: 2px; }
+
+        .sidebar-bottom { margin-top: auto; padding-top: 2rem; }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); padding: 3rem; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; }
+
+        /* BPM Workflow Card */
+        .bpm-container {
+            background: white;
             border: 1px solid var(--border);
-            padding: 2rem;
+            border-radius: 32px;
+            padding: 3rem;
             margin-bottom: 2rem;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow);
         }
 
         .workflow-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .transfer-details {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            gap: 3rem;
             margin-bottom: 3rem;
         }
 
-        .manager-box {
-            padding: 1.5rem;
-            background: var(--bg-soft);
-            border-radius: 20px;
+        .transfer-path {
+            display: grid;
+            grid-template-columns: 1fr 100px 1fr;
+            gap: 2rem;
+            align-items: center;
+            margin-bottom: 4rem;
+        }
+
+        .m-box {
+            background: var(--bg);
             border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
             text-align: center;
         }
+        .m-box.target { border-color: var(--primary); background: var(--primary-light); }
 
-        .manager-box.new { border-color: var(--primary); background: var(--primary-light); }
+        .m-box h4 { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; }
+        .m-box p { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
-        .arrow-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--primary);
-        }
-
-        /* BPM Visualization */
-        .bpm-viz {
+        .bpm-rail {
             display: flex;
             justify-content: space-between;
             position: relative;
-            margin-top: 2rem;
+            padding: 0 20px;
         }
 
-        .bpm-viz::before {
+        .bpm-rail::before {
             content: '';
             position: absolute;
-            top: 24px; left: 50px; right: 50px;
+            top: 25px; left: 50px; right: 50px;
             height: 2px;
             background: var(--border);
             z-index: 1;
         }
 
-        .bpm-step {
+        .bpm-node {
             position: relative;
             z-index: 2;
             text-align: center;
             flex: 1;
         }
 
-        .bpm-dot {
+        .bpm-circle {
             width: 50px; height: 50px;
             background: white;
             border: 2px solid var(--border);
             border-radius: 16px;
-            margin: 0 auto 12px;
+            margin: 0 auto 1rem;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem;
-            transition: 0.3s;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 800;
         }
 
-        .bpm-step.completed .bpm-dot { background: var(--primary); border-color: var(--primary); color: white; }
-        .bpm-step.active .bpm-dot { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 5px var(--primary-light); }
-        .bpm-step.pending .bpm-dot { color: var(--text-muted); opacity: 0.6; }
+        .bpm-node.completed .bpm-circle { background: var(--success); border-color: var(--success); color: white; }
+        .bpm-node.active .bpm-circle { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        .bpm-node.pending .bpm-circle { color: var(--text-muted); background: var(--bg); }
 
-        .bpm-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; }
-        .bpm-step.active .bpm-label { color: var(--primary); }
-        
-        .bpm-actor { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+        .node-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .bpm-node.active .node-label { color: var(--primary); }
+        .node-actor { font-size: 0.85rem; font-weight: 700; }
 
-        .approval-actions {
-            margin-top: 2.5rem;
-            display: flex;
-            justify-content: center;
-            gap: 1.5rem;
-        }
-
-        .badge { padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
-        .badge-blue { background: var(--primary-light); color: var(--primary); }
-
-        .timeline-mini {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: #fcfdfe;
-            border-radius: 16px;
+        /* Table */
+        .request-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
             border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
 
-        .timeline-event {
-            display: flex; gap: 1rem; padding-bottom: 1rem; border-left: 2px solid var(--border);
-            margin-left: 10px; padding-left: 20px; position: relative;
+        .request-table th { text-align: left; padding: 1.25rem 1rem; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--bg); }
+        .request-table td { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            display: inline-flex; align-items: center; gap: 8px;
         }
-        .timeline-event::before {
-            content: ''; position: absolute; left: -6px; top: 0; width: 10px; height: 10px;
-            background: var(--border); border-radius: 50%;
-        }
-        .timeline-event.latest::before { background: var(--primary); }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg); }
+        .btn-danger { background: var(--primary-light); color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
     </style>
 </head>
-<body class="admin-dashboard">
-    <div class="dashboard-container">
-        <!-- Sidebar -->
+<body>
+
+    <div class="layout">
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
@@ -137,114 +193,32 @@
             </a>
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
-                <div class="nav-item">
-                    <a href="admin-dashboard.html" class="nav-link">
-                        <i data-lucide="users"></i>
-                        <span>Admin Console</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-performance-center.html" class="nav-link">
-                        <i data-lucide="trending-up"></i>
-                        <span>Performance Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-policy-center.html" class="nav-link">
-                        <i data-lucide="shield-check"></i>
-                        <span>Policy Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-asset-management.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>Asset Mgmt</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-exit-management.html" class="nav-link">
-                        <i data-lucide="log-out"></i>
-                        <span>Exit Mgmt</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
 
                 <div class="nav-label">OPERATIONS</div>
-                <div class="nav-item">
-                    <a href="admin-leave-management.html" class="nav-link">
-                        <i data-lucide="calendar"></i>
-                        <span>Leave Mgmt</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-attendance-monitor.html" class="nav-link">
-                        <i data-lucide="clock"></i>
-                        <span>Attendance Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-payroll-documents.html" class="nav-link">
-                        <i data-lucide="file-text"></i>
-                        <span>Payroll Docs</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-inactivity-monitor.html" class="nav-link">
-                        <i data-lucide="radar"></i>
-                        <span>Inactivity Radar</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-ai.html" class="nav-link">
-                        <i data-lucide="brain"></i>
-                        <span>AI Command Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-analysis.html" class="nav-link">
-                        <i data-lucide="pie-chart"></i>
-                        <span>Analytics Center</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
-                <div class="nav-item">
-                    <a href="admin-manager-change.html" class="nav-link active">
-                        <i data-lucide="git-pull-request"></i>
-                        <span>Manager Change</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-bank-approvals.html" class="nav-link">
-                        <i data-lucide="check-square"></i>
-                        <span>Bank Verifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-notifications.html" class="nav-link">
-                        <i data-lucide="bell"></i>
-                        <span>Notifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-message.html" class="nav-link">
-                        <i data-lucide="mail"></i>
-                        <span>Admin Messages</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-config.html" class="nav-link">
-                        <i data-lucide="settings"></i>
-                        <span>Onboarding Config</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="tvc-dashboard.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>TVC Monitor</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link active"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
                 <div class="nav-item">
@@ -269,124 +243,86 @@
         </aside>
 
         <main class="main-content">
-            <header class="header-actions">
-                <div class="welcome-text">
-                    <h1>Manager Change Approvals</h1>
-                    <p>Orchestrate departmental transfers and reporting hierarchy updates.</p>
+            <header class="header">
+                <div>
+                    <h1>Reporting Hierarchy Governance</h1>
+                    <p style="color: var(--text-muted);">Execute multi-tier approval workflows for manager updates.</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
-                        <i data-lucide="message-square"></i>
-                    </button>
-                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
-                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
-                        <i data-lucide="bell"></i>
-                    </button>
-                </div>
+                <button class="btn btn-primary" id="btnInitiateChange"><i data-lucide="plus"></i> New Change Request</button>
             </header>
 
-            <!-- Active Request BPM Card -->
-            <div class="bpm-workflow-card">
+            <div class="bpm-container" id="activeRequest" style="display: none;">
                 <div class="workflow-header">
                     <div>
-                        <span class="badge badge-blue">Transfer Request #TR-9902</span>
-                        <h2 style="font-size: 1.5rem; font-weight: 800; margin-top: 8px;">Employee: Johnathan Smith</h2>
+                        <h2 id="reqTitle" style="font-size: 1.5rem; font-weight: 800;">Request #MGR-2201: Jonathan Smith</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Initiated by Admin • May 10, 2026</p>
                     </div>
                     <div style="text-align: right;">
-                        <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">SLA Time: 48 Hours</p>
-                        <p style="font-size: 0.9rem; font-weight: 700; color: var(--primary);">Due in 14h 20m</p>
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 4px;">PRIORITY</div>
+                        <span style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 800;">CRITICAL</span>
                     </div>
                 </div>
 
-                <div class="transfer-details">
-                    <div class="manager-box">
-                        <p style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 8px;">CURRENT MANAGER</p>
-                        <h4 style="font-weight: 700;">Sarah Wilson</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-muted);">Marketing Ops</p>
+                <div class="transfer-path">
+                    <div class="m-box">
+                        <p>Current Reporting</p>
+                        <h4 id="currMgr">Sarah Wilson</h4>
+                        <p style="font-size: 0.7rem;">Marketing Operations</p>
                     </div>
-                    <div class="arrow-indicator">
+                    <div style="text-align: center; color: var(--primary);">
                         <i data-lucide="arrow-right-circle" size="32"></i>
-                        <span style="font-size: 0.7rem; font-weight: 800; margin-top: 8px;">TRANSFER</span>
+                        <p style="font-size: 0.6rem; font-weight: 800; margin-top: 8px;">TRANSFER</p>
                     </div>
-                    <div class="manager-box new">
-                        <p style="font-size: 0.7rem; font-weight: 800; color: var(--primary); margin-bottom: 8px;">UPCOMING MANAGER</p>
-                        <h4 style="font-weight: 700;">Michael Chen</h4>
-                        <p style="font-size: 0.8rem; color: var(--text-muted);">Growth Engineering</p>
-                    </div>
-                </div>
-
-                <div class="bpm-viz">
-                    <div class="bpm-step completed">
-                        <div class="bpm-dot"><i data-lucide="check"></i></div>
-                        <div class="bpm-label">Business Head</div>
-                        <div class="bpm-actor">Robert Vance</div>
-                    </div>
-                    <div class="bpm-step active">
-                        <div class="bpm-dot"><i data-lucide="user-check"></i></div>
-                        <div class="bpm-label">HR Manager</div>
-                        <div class="bpm-actor">Jessica Lane</div>
-                    </div>
-                    <div class="bpm-step pending">
-                        <div class="bpm-dot">3</div>
-                        <div class="bpm-label">Prev. Manager</div>
-                        <div class="bpm-actor">Sarah Wilson</div>
-                    </div>
-                    <div class="bpm-step pending">
-                        <div class="bpm-dot">4</div>
-                        <div class="bpm-label">New Manager</div>
-                        <div class="bpm-actor">Michael Chen</div>
+                    <div class="m-box target">
+                        <p style="color: var(--primary);">Upcoming Reporting</p>
+                        <h4 id="nextMgr">Michael Chen</h4>
+                        <p style="font-size: 0.7rem;">Growth Engineering</p>
                     </div>
                 </div>
 
-                <div class="approval-actions">
-                    <button class="btn btn-outline" style="color: var(--danger); border-color: var(--danger);">
-                        <i data-lucide="x-circle"></i> Reject Request
-                    </button>
-                    <button class="btn btn-primary" style="padding: 12px 40px;">
-                        <i data-lucide="check-circle"></i> Approve Transfer
-                    </button>
+                <div class="bpm-rail" id="bpmRail">
+                    <div class="bpm-node completed">
+                        <div class="bpm-circle"><i data-lucide="check" size="20"></i></div>
+                        <div class="node-label">Business Head</div>
+                        <div class="node-actor">Robert Vance</div>
+                    </div>
+                    <div class="bpm-node active">
+                        <div class="bpm-circle"><i data-lucide="user-check" size="20"></i></div>
+                        <div class="node-label">HR Manager</div>
+                        <div class="node-actor">Jessica Lane</div>
+                    </div>
+                    <div class="bpm-node pending">
+                        <div class="bpm-circle">3</div>
+                        <div class="node-label">Prev. Manager</div>
+                        <div class="node-actor">Sarah Wilson</div>
+                    </div>
+                    <div class="bpm-node pending">
+                        <div class="bpm-circle">4</div>
+                        <div class="node-label">New Manager</div>
+                        <div class="node-actor">Michael Chen</div>
+                    </div>
                 </div>
 
-                <div class="timeline-mini">
-                    <h3 style="font-size: 0.85rem; font-weight: 800; margin-bottom: 1.5rem; text-transform: uppercase;">Approval History</h3>
-                    <div class="timeline-event">
-                        <div style="min-width: 100px; font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">OCT 12, 10:00</div>
-                        <div>
-                            <p style="font-weight: 700; font-size: 0.9rem;">Request Initiated</p>
-                            <p style="font-size: 0.8rem; color: var(--text-muted);">Admin initiated transfer from Marketing to Engineering.</p>
-                        </div>
-                    </div>
-                    <div class="timeline-event latest">
-                        <div style="min-width: 100px; font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">OCT 12, 14:30</div>
-                        <div>
-                            <p style="font-weight: 700; font-size: 0.9rem;">Business Head Approved</p>
-                            <p style="font-size: 0.8rem; color: var(--text-muted);">"Strategic alignment confirmed for growth initiatives." — Robert Vance</p>
-                        </div>
-                    </div>
+                <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 4rem;">
+                    <button class="btn btn-danger" onclick="processAction('reject')"><i data-lucide="x-circle"></i> Reject</button>
+                    <button class="btn btn-primary" style="padding: 12px 40px;" onclick="processAction('approve')"><i data-lucide="shield-check"></i> Approve & Forward</button>
                 </div>
             </div>
 
-            <!-- Queue Table -->
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: var(--radius); border: 1px solid var(--border);">
-                <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1.5rem;">Pending Approvals Queue</h3>
-                <table style="width: 100%; border-collapse: collapse;">
+            <div class="table-card">
+                <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1.5rem;">Governance Queue</h3>
+                <table class="request-table">
                     <thead>
-                        <tr style="text-align: left; border-bottom: 2px solid var(--bg-soft);">
-                            <th style="padding: 1rem; font-size: 0.7rem; color: var(--text-muted);">EMPLOYEE</th>
-                            <th style="padding: 1rem; font-size: 0.7rem; color: var(--text-muted);">FROM → TO</th>
-                            <th style="padding: 1rem; font-size: 0.7rem; color: var(--text-muted);">CURRENT STAGE</th>
-                            <th style="padding: 1rem; font-size: 0.7rem; color: var(--text-muted);">INITIATED</th>
-                            <th style="padding: 1rem; font-size: 0.7rem; color: var(--text-muted);">ACTIONS</th>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Current → Target</th>
+                            <th>Workflow Stage</th>
+                            <th>Time in Stage</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr style="border-bottom: 1px solid var(--bg-soft);">
-                            <td style="padding: 1rem; font-weight: 700;">Emily Blunt</td>
-                            <td style="padding: 1rem; font-size: 0.85rem;">Sales → Account Mgmt</td>
-                            <td style="padding: 1rem;"><span class="badge badge-blue">Prev. Manager Review</span></td>
-                            <td style="padding: 1rem; font-size: 0.8rem; color: var(--text-muted);">2 hours ago</td>
-                            <td style="padding: 1rem;"><button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;">View Details</button></td>
-                        </tr>
+                    <tbody id="queueBody">
+                        <!-- Dynamic rows -->
                     </tbody>
                 </table>
             </div>
@@ -394,7 +330,51 @@
     </div>
 
     <script type="module">
-        if (window.lucide) lucide.createIcons();
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        let activeRequestId = null;
+
+        async function loadQueue() {
+            const q = query(collection(db, 'manager_change_requests'), where('status', '==', 'Pending'));
+            const snap = await getDocs(q);
+            
+            const body = document.getElementById('queueBody');
+            if (snap.empty) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted);">No pending requests in the governance queue.</td></tr>';
+                return;
+            }
+
+            body.innerHTML = snap.docs.map(d => {
+                const data = d.data();
+                return `
+                    <tr>
+                        <td style="font-weight: 700;">${data.employeeName}</td>
+                        <td style="font-size: 0.75rem;">${data.currentManagerName} → ${data.newManagerName}</td>
+                        <td><span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">${data.currentStage}</span></td>
+                        <td style="color: var(--text-muted);">14 Hours</td>
+                        <td><button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;" onclick="viewRequest('${d.id}')">Review BPM</button></td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        window.viewRequest = async (id) => {
+            activeRequestId = id;
+            document.getElementById('activeRequest').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.processAction = async (action) => {
+            alert(`Request ${activeRequestId} has been ${action}ed.`);
+            document.getElementById('activeRequest').style.display = 'none';
+            loadQueue();
+        };
+
+        loadQueue();
     </script>
 </body>
 </html>

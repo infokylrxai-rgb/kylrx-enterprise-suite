@@ -4,89 +4,182 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Builder | HRFlow</title>
-    <link rel="stylesheet" href="manager-dashboard-builder.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-width: 280px;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2.5rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.25rem; font-weight: 800; letter-spacing: -1px; }
+
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.5rem 0.5rem; }
+        .nav-link {
+            display: flex; align-items: center; gap: 10px; padding: 10px 0.75rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.85rem; border-radius: 12px; transition: 0.2s; margin-bottom: 2px;
+        }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+
+        /* Main Content */
+        .main-content {
+            padding: 3rem;
+            overflow-y: auto;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .builder-header { margin-bottom: 3rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+
+        /* Form Section */
+        .config-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow);
+            max-width: 800px;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .form-group input {
+            width: 100%; padding: 12px 1rem; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); font-family: inherit; font-weight: 500;
+        }
+
+        .icon-picker { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .icon-opt {
+            width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center; color: var(--text-muted);
+            cursor: pointer; transition: 0.2s;
+        }
+        .icon-opt:hover { background: var(--primary-light); color: var(--primary); }
+        .icon-opt.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Grid */
+        .grid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .grid-header h2 { font-size: 1.25rem; font-weight: 800; }
+
+        .dept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .dept-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: 0.3s;
+            box-shadow: var(--shadow-sm);
+        }
+        .dept-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--primary); }
+
+        .dept-info { display: flex; align-items: center; gap: 16px; margin-bottom: 1.5rem; }
+        .dept-icon-box { width: 44px; height: 44px; background: var(--primary-light); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+
+        .dept-actions { display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px; }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg); border-color: var(--primary-light); }
+
+        .btn-lg { padding: 12px 24px; font-size: 0.9rem; width: 100%; margin-top: 1rem; }
+    </style>
 </head>
-<body class="builder-mode">
-    <div class="app-container">
-        <!-- Sidebar -->
+<body>
+
+    <div class="layout">
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
                 <span class="logo-text">HRFlow</span>
             </a>
             
-            <nav class="sidebar-nav">
+            <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
-                <div class="nav-item">
-                    <a href="admin-dashboard.html" class="nav-link">
-                        <i data-lucide="users"></i>
-                        <span>Admin Console</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-analysis.html" class="nav-link">
-                        <i data-lucide="pie-chart"></i>
-                        <span>Analytics Center</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="tvc-dashboard.html" class="nav-link">
-                        <i data-lucide="monitor"></i>
-                        <span>TVC Monitor</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-notifications.html" class="nav-link">
-                        <i data-lucide="bell"></i>
-                        <span>Notifications</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="manager-dashboard-builder.html" class="nav-link active">
-                        <i data-lucide="plus-circle"></i>
-                        <span>Dashboard Builder</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-onboarding-upload.html" class="nav-link">
-                        <i data-lucide="upload-cloud"></i>
-                        <span>Bulk Onboarding</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
 
-                <div class="nav-label" style="margin-top: 1.5rem;">BUILDER STEPS</div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link active" id="linkStep1" onclick="switchStep(1)">
-                        <i data-lucide="layers"></i>
-                        <span>1. Core Identity</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" id="linkStep2" onclick="switchStep(2)">
-                        <i data-lucide="layout"></i>
-                        <span>2. Widget Layout</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" id="linkStep3" onclick="switchStep(3)">
-                        <i data-lucide="brain"></i>
-                        <span>3. AI Calibration</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" id="linkStep4" onclick="switchStep(4)">
-                        <i data-lucide="palette"></i>
-                        <span>4. Theme Engine</span>
-                    </a>
-                </div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link active"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
+
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
 
-            <div class="sidebar-bottom">
+            <div class="sidebar-bottom" style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--border);">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
                 <div class="nav-item">
                     <a href="admin-settings.html" class="nav-link">
                         <i data-lucide="settings"></i>
@@ -94,7 +187,7 @@
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" style="color: var(--danger);">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
                         <i data-lucide="log-out"></i>
                         <span>Logout</span>
                     </a>
@@ -102,277 +195,135 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <header class="header-actions">
-                <div class="welcome-text">
-                    <h1 id="builderTitle">Department Dashboard Builder</h1>
-                    <p id="builderSub">Design and deploy high-performance manager interfaces</p>
-                </div>
-                <div class="top-right-actions">
-                    <button class="btn btn-outline" id="btnPreview">
-                        <i data-lucide="eye"></i> Live Preview
-                    </button>
-                    <button class="btn btn-primary" id="btnDeploy">
-                        <i data-lucide="rocket"></i> Deploy Dashboard
-                    </button>
-                </div>
-            </header>
+            <div class="builder-header">
+                <h1>Enterprise Builder</h1>
+                <p style="color: var(--text-muted);">Construct and deploy departmental command centers with real-time sync.</p>
+            </div>
 
-            <!-- Step 1: Core Identity -->
-            <div id="step-1" class="builder-step active">
-                <div class="builder-grid" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;">
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 style="font-size: 1.1rem; font-weight: 800;">Department Core Identity</h2>
-                        </div>
-                        <div style="padding: 1.5rem;">
-                            <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label style="display:block; margin-bottom: 8px; font-weight: 700;">Department Name</label>
-                                <input type="text" id="deptName" placeholder="e.g. Cybersecurity Research" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
-                            </div>
-                            <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label style="display:block; margin-bottom: 8px; font-weight: 700;">Department Code</label>
-                                <input type="text" id="deptCode" placeholder="e.g. CYBER" maxlength="5" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
-                            </div>
-                            <div class="form-group">
-                                <label style="display:block; margin-bottom: 8px; font-weight: 700;">Operational Icon</label>
-                                <div class="icon-selector" id="iconSelector" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <div class="icon-opt active" data-icon="shield-check"><i data-lucide="shield-check"></i></div>
-                                    <div class="icon-opt" data-icon="users"><i data-lucide="users"></i></div>
-                                    <div class="icon-opt" data-icon="pie-chart"><i data-lucide="pie-chart"></i></div>
-                                    <div class="icon-opt" data-icon="monitor"><i data-lucide="monitor"></i></div>
-                                    <div class="icon-opt" data-icon="zap"><i data-lucide="zap"></i></div>
-                                    <div class="icon-opt" data-icon="target"><i data-lucide="target"></i></div>
-                                    <div class="icon-opt" data-icon="briefcase"><i data-lucide="briefcase"></i></div>
-                                    <div class="icon-opt" data-icon="code-2"><i data-lucide="code-2"></i></div>
-                                    <div class="icon-opt" data-icon="database"><i data-lucide="database"></i></div>
-                                    <div class="icon-opt" data-icon="message-square"><i data-lucide="message-square"></i></div>
-                                </div>
-                            </div>
-                        </div>
+            <div class="config-card">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Department Name</label>
+                        <input type="text" id="deptName" placeholder="e.g. Cybersecurity">
                     </div>
+                    <div class="form-group">
+                        <label>Department Code</label>
+                        <input type="text" id="deptCode" placeholder="e.g. CYBER">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Operational Icon</label>
+                    <div class="icon-picker" id="iconPicker">
+                        <div class="icon-opt active" data-icon="shield"><i data-lucide="shield"></i></div>
+                        <div class="icon-opt" data-icon="users"><i data-lucide="users"></i></div>
+                        <div class="icon-opt" data-icon="clock"><i data-lucide="clock"></i></div>
+                        <div class="icon-opt" data-icon="monitor"><i data-lucide="monitor"></i></div>
+                        <div class="icon-opt" data-icon="zap"><i data-lucide="zap"></i></div>
+                        <div class="icon-opt" data-icon="target"><i data-lucide="target"></i></div>
+                        <div class="icon-opt" data-icon="briefcase"><i data-lucide="briefcase"></i></div>
+                        <div class="icon-opt" data-icon="code"><i data-lucide="code"></i></div>
+                        <div class="icon-opt" data-icon="database"><i data-lucide="database"></i></div>
+                        <div class="icon-opt" data-icon="message-square"><i data-lucide="message-square"></i></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-lg" id="btnCreate"><i data-lucide="plus"></i> Deploy Command Center</button>
+            </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <h2 style="font-size: 1.1rem; font-weight: 800;">Identity Preview</h2>
-                        </div>
-                        <div style="padding: 2rem; text-align: center;">
-                            <div class="dept-badge-preview" style="background: #eff6ff; padding: 2rem; border-radius: 24px; display: inline-block; border: 1px solid #dbeafe;">
-                                <div id="previewIcon" style="width: 64px; height: 64px; background: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--primary); box-shadow: 0 10px 15px rgba(0,0,0,0.05);">
-                                    <i data-lucide="shield-check" size="32"></i>
-                                </div>
-                                <h3 id="pName" style="font-weight: 800; font-size: 1.25rem;">Cybersecurity</h3>
-                                <p id="pCode" style="font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px;">CYBER UNIT</p>
-                            </div>
-                        </div>
-                    </div>
+            <div class="grid-header">
+                <div>
+                    <h2>Active Command Centers</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Manage and refine currently deployed department interfaces</p>
                 </div>
             </div>
 
-            <!-- Step 2: Widget Selection -->
-            <div id="step-2" class="builder-step" style="display: none;">
-                <div class="builder-grid" style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem;">
-                    <div class="card toolbox">
-                        <div class="card-header"><h3>Widget Toolbox</h3></div>
-                        <div style="padding: 1rem;" id="widgetToolbox">
-                            <div class="draggable-widget" draggable="true" data-widget="productivity">
-                                <i data-lucide="bar-chart-2"></i> Productivity
-                            </div>
-                            <div class="draggable-widget" draggable="true" data-widget="telemetry">
-                                <i data-lucide="zap"></i> Telemetry
-                            </div>
-                            <div class="draggable-widget" draggable="true" data-widget="security">
-                                <i data-lucide="shield-alert"></i> Alerts
-                            </div>
-                            <div class="draggable-widget" draggable="true" data-widget="payroll">
-                                <i data-lucide="dollar-sign"></i> Payroll
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card canvas-area" style="min-height: 500px;">
-                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3>Dashboard Canvas</h3>
-                            <div class="canvas-controls" style="display: flex; gap: 8px;">
-                                <button class="btn btn-outline btn-sm active" data-grid="standard" onclick="setGridDensity('standard')">Standard</button>
-                                <button class="btn btn-outline btn-sm" data-grid="compact" onclick="setGridDensity('compact')">Compact</button>
-                                <button class="btn btn-outline btn-sm" data-grid="spacious" onclick="setGridDensity('spacious')">Spacious</button>
-                            </div>
-                        </div>
-                        <div id="layoutCanvas" style="padding: 2rem; height: 100%; position: relative;">
-                            <div class="canvas-placeholder" style="text-align:center; padding: 5rem; border: 2px dashed var(--border); border-radius: 20px; color: var(--text-muted);">
-                                Drag widgets here to build the layout
-                            </div>
-                        </div>
-                    </div>
+            <div class="dept-grid" id="deptGrid">
+                <!-- Departments will be loaded here -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">
+                    <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem;"></i>
+                    <p>Connecting to enterprise grid...</p>
                 </div>
             </div>
-
-            <!-- Step 3: AI Calibration -->
-            <div id="step-3" class="builder-step" style="display: none;">
-                <div class="builder-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <div class="card">
-                        <div class="card-header"><h3>Efficiency Thresholds</h3></div>
-                        <div style="padding: 1.5rem;">
-                            <div class="form-group" style="margin-bottom: 2rem;">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                                    <label style="font-weight:700;">Productivity Target</label>
-                                    <span id="valProd" style="color:var(--primary); font-weight:800;">70%</span>
-                                </div>
-                                <input type="range" id="rangeProd" min="0" max="100" value="70" style="width:100%; accent-color:var(--primary);">
-                                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">AI will flag managers if dept productivity falls below this limit.</p>
-                            </div>
-                            <div class="form-group">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                                    <label style="font-weight:700;">Burnout Risk Alert</label>
-                                    <span id="valBurn" style="color:var(--danger); font-weight:800;">85%</span>
-                                </div>
-                                <input type="range" id="rangeBurn" min="0" max="100" value="85" style="width:100%; accent-color:var(--danger);">
-                                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">High focus combined with low activity triggers burnout alerts.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header"><h3>AI Monitoring Modules</h3></div>
-                        <div style="padding: 1.5rem;">
-                            <label class="check-item" style="display:flex; align-items:center; gap:12px; padding:12px; background:#f8fafc; border-radius:12px; margin-bottom:10px; cursor:pointer;">
-                                <input type="checkbox" checked data-module="performance" style="width:18px; height:18px;">
-                                <div>
-                                    <div style="font-weight:700; font-size:0.9rem;">Predictive Performance</div>
-                                    <div style="font-size:0.75rem; color:var(--text-muted);">Forecasts weekly output based on current trends.</div>
-                                </div>
-                            </label>
-                            <label class="check-item" style="display:flex; align-items:center; gap:12px; padding:12px; background:#f8fafc; border-radius:12px; cursor:pointer;">
-                                <input type="checkbox" checked data-module="risk" style="width:18px; height:18px;">
-                                <div>
-                                    <div style="font-weight:700; font-size:0.9rem;">Behavioral Risk Analysis</div>
-                                    <div style="font-size:0.75rem; color:var(--text-muted);">Detects anomalous focus patterns or security risks.</div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 4: Theme Engine -->
-            <div id="step-4" class="builder-step" style="display: none;">
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
-                    <div class="card">
-                        <div class="card-header"><h3>Select Department Theme</h3></div>
-                        <div style="padding: 1.5rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-                            <div class="theme-card active" data-theme="enterprise-light">
-                                <div class="theme-preview" style="background:#f8fafc; border:1px solid #e2e8f0; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
-                                    <div style="width:40px; height:10px; background:var(--primary); border-radius:4px;"></div>
-                                </div>
-                                <div style="font-weight:700; text-align:center;">Enterprise Light</div>
-                            </div>
-                            <div class="theme-card" data-theme="deep-space">
-                                <div class="theme-preview" style="background:#0f172a; border:1px solid #1e293b; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
-                                    <div style="width:40px; height:10px; background:#3b82f6; border-radius:4px;"></div>
-                                </div>
-                                <div style="font-weight:700; text-align:center;">Deep Space</div>
-                            </div>
-                            <div class="theme-card" data-theme="glassmorphism">
-                                <div class="theme-preview" style="background:linear-gradient(135deg, #eff6ff, #dbeafe); border:1px solid #bfdbfe; height:100px; border-radius:12px; margin-bottom:12px; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-                                    <div style="width:40px; height:10px; background:white; border-radius:4px; box-shadow:0 4px 6px rgba(0,0,0,0.05);"></div>
-                                </div>
-                                <div style="font-weight:700; text-align:center;">Glassmorphism</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header"><h3>Branding Color</h3></div>
-                        <div style="padding: 1.5rem;">
-                            <div class="form-group">
-                                <label style="display:block; margin-bottom:12px; font-weight:700;">Primary Accent Color</label>
-                                <div style="display:flex; align-items:center; gap:15px;">
-                                    <input type="color" id="primaryColor" value="#3b82f6" style="width:60px; height:60px; border:none; padding:0; background:none; cursor:pointer;">
-                                    <div style="flex:1;">
-                                        <div id="hexVal" style="font-family:monospace; font-weight:700; font-size:1.1rem;">#3b82f6</div>
-                                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">This color will define your department's visual identity.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div style="margin-top: 2rem;">
-                                <label style="display:block; margin-bottom:12px; font-weight:700;">Preset Palettes</label>
-                                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                    <div class="color-preset" style="background:#3b82f6;" data-color="#3b82f6"></div>
-                                    <div class="color-preset" style="background:#10b981;" data-color="#10b981"></div>
-                                    <div class="color-preset" style="background:#8b5cf6;" data-color="#8b5cf6"></div>
-                                    <div class="color-preset" style="background:#f59e0b;" data-color="#f59e0b"></div>
-                                    <div class="color-preset" style="background:#ef4444;" data-color="#ef4444"></div>
-                                    <div class="color-preset" style="background:#ec4899;" data-color="#ec4899"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Active Command Centers Directory -->
-            <section class="directory-section" style="margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--border);">
-                <div class="section-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
-                    <div>
-                        <h2 style="font-size: 1.5rem; font-weight: 800;">Active Command Centers</h2>
-                        <p style="color: var(--text-muted);">Manage and refine currently deployed department interfaces</p>
-                    </div>
-                    <div class="directory-filter" style="position: relative;">
-                        <i data-lucide="filter" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 16px; height: 16px;"></i>
-                        <input type="text" id="directorySearch" placeholder="Filter command centers..." style="padding: 10px 15px 10px 40px; border-radius: 12px; border: 1px solid var(--border); width: 260px; font-weight: 600; font-size: 0.9rem;">
-                    </div>
-                </div>
-                <div id="active-commands-grid" class="directory-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
-                    <!-- Active Command Cards will be injected here -->
-                </div>
-            </section>
         </main>
     </div>
 
-    <!-- Success Modal -->
-    <div id="successModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center;">
-        <div class="card" style="width: 400px; padding: 2rem; text-align: center; animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
-            <div style="width: 80px; height: 80px; background: #dcfce7; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem;">
-                <i data-lucide="check-circle-2" size="40"></i>
-            </div>
-            <h2 id="modalTitle" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">Deployment Successful</h2>
-            <p id="modalMsg" style="color: var(--text-muted); margin-bottom: 2rem; font-weight: 500;">Your new department dashboard is now live and ready for monitoring.</p>
-            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="window.location.href='admin-dashboard.html'">
-                Return to Dashboard
-            </button>
-        </div>
-    </div>
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-    <style>
-        @keyframes modalPop {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+        lucide.createIcons();
+
+        const deptGrid = document.getElementById('deptGrid');
+        const iconPicker = document.getElementById('iconPicker');
+        let selectedIcon = 'shield';
+
+        // Icon Picker Logic
+        iconPicker.addEventListener('click', (e) => {
+            const opt = e.target.closest('.icon-opt');
+            if (!opt) return;
+            document.querySelectorAll('.icon-opt').forEach(el => el.classList.remove('active'));
+            opt.classList.add('active');
+            selectedIcon = opt.dataset.icon;
+        });
+
+        async function loadDepartments() {
+            const q = query(collection(db, 'departments'), orderBy('createdAt', 'desc'));
+            const snap = await getDocs(q);
+
+            if (snap.empty) {
+                deptGrid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:4rem;">No command centers deployed.</div>';
+                return;
+            }
+
+            deptGrid.innerHTML = snap.docs.map(doc => {
+                const data = doc.data();
+                return `
+                    <div class="dept-card">
+                        <div class="dept-info">
+                            <div class="dept-icon-box"><i data-lucide="${data.icon || 'layout'}"></i></div>
+                            <div>
+                                <h4 style="font-weight: 800;">${data.departmentName}</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800;">${data.departmentCode} UNIT</p>
+                            </div>
+                        </div>
+                        <div class="dept-actions">
+                            <button class="btn btn-outline" onclick="window.location.href='manager-dashboard.html?id=${doc.id}'">
+                                <i data-lucide="external-link" size="14"></i> View
+                            </button>
+                            <button class="btn btn-primary" style="background: white; color: var(--primary); border: 1px solid var(--primary);">
+                                <i data-lucide="edit-3" size="14"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
         }
-        .builder-step.active { display: block !important; }
-        
-        .icon-opt { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; background: white; }
-        .icon-opt:hover { border-color: var(--primary); background: #f8fafc; }
-        .icon-opt.active { background: var(--primary); color: white; border-color: var(--primary); }
-        
-        .draggable-widget { padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; cursor: grab; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 0.9rem; }
-        .draggable-widget:active { cursor: grabbing; }
-        
-        .canvas-widget { background: white; border-radius: 16px; border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
 
-        .theme-card { padding: 1rem; border-radius: 16px; border: 2px solid transparent; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: white; }
-        .theme-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px rgba(0,0,0,0.05); }
-        .theme-card.active { border-color: var(--primary); background: #f0f7ff; }
-        .theme-preview { transition: 0.3s; }
-        .theme-card.active .theme-preview { transform: scale(1.05); }
+        document.getElementById('btnCreate').onclick = async () => {
+            const name = document.getElementById('deptName').value;
+            const code = document.getElementById('deptCode').value;
 
-        .color-preset { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
-        .color-preset:hover { transform: scale(1.1); }
-        .color-preset.active { border-color: white; box-shadow: 0 0 0 2px var(--primary); }
-        
-        .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
-    </style>
+            if (!name || !code) return alert("Please enter both Name and Code.");
 
-    <script type="module" src="manager-dashboard-builder.js"></script>
+            try {
+                await addDoc(collection(db, 'departments'), {
+                    departmentName: name,
+                    departmentCode: code,
+                    icon: selectedIcon,
+                    createdAt: serverTimestamp()
+                });
+                alert("Department Command Center Deployed!");
+                document.getElementById('deptName').value = '';
+                document.getElementById('deptCode').value = '';
+                loadDepartments();
+            } catch (err) {
+                console.error(err);
+                alert("Deployment failed. Check console.");
+            }
+        };
+
+        loadDepartments();
+    </script>
 </body>
 </html>
