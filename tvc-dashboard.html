@@ -184,7 +184,7 @@
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
@@ -223,10 +223,29 @@
                     <span>Enterprise Command Center</span>
                 </div>
                 <div style="width: 1px; height: 16px; background: var(--surface-border);"></div>
-                <div style="color: var(--text-muted); font-weight: 500;">AI Command Node: Monitoring 6 entities. Risk level: <span style="color: var(--success);">LOW</span>.</div>
+                
+                <!-- Security Controls -->
+                <div id="tvcStatus" style="display: flex; align-items: center; gap: 8px; padding: 4px 12px; background: var(--bg-base); border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); border: 1px solid var(--surface-border);">
+                    <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%;" id="tvcDot"></span>
+                    <span id="tvcStatusText">SECURE: IDLE</span>
+                    <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #cbd5e1; color: var(--primary); display: none;">00:00:00</span>
+                </div>
+
+                <div class="btn-group" style="display: flex; gap: 8px;">
+                    <button class="punch-btn-mini" id="btnPunchIn" onclick="adminPunchIn()" style="background: var(--success); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <i data-lucide="play" size="12"></i> Punch In
+                    </button>
+                    <button class="punch-btn-mini" id="btnBreak" onclick="adminBreak()" style="display: none; background: var(--warning); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <i data-lucide="coffee" size="12"></i> Break
+                    </button>
+                    <button class="punch-btn-mini" id="btnPunchOut" onclick="adminPunchOut()" style="display: none; background: var(--danger); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                        <i data-lucide="square" size="12"></i> Punch Out
+                    </button>
+                </div>
+
                 <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
-                   <i data-lucide="info" size="16"></i>
-                   <i data-lucide="maximize" size="16"></i>
+                   <i data-lucide="info" size="16" style="cursor: pointer;"></i>
+                   <i data-lucide="maximize" size="16" style="cursor: pointer;"></i>
                 </div>
             </div>
 
@@ -273,7 +292,7 @@
                         <i data-lucide="wallet" style="color: var(--success)"></i>
                     </div>
                     <div style="display: flex; align-items: center; gap: 3rem;">
-                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div style="font-size: 1.5rem; font-weight: 800;">$1050.0k</div></div>
+                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div style="font-size: 1.5rem; font-weight: 800;">?1050.0k</div></div>
                         <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">BURN RATE</div><div style="font-size: 1.5rem; font-weight: 800; color: var(--danger);">105%</div></div>
                         <div style="flex: 1; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-muted);">[ Payroll Impact Chart Placeholder ]</div>
                     </div>
@@ -336,18 +355,124 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { db, auth } from "./firebase-config.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
         lucide.createIcons();
         const configSidebar = document.getElementById('configSidebar');
         document.getElementById('btnCustom').onclick = () => configSidebar.classList.add('active');
         document.getElementById('closeConfig').onclick = () => configSidebar.classList.remove('active');
 
-        function setTheme(theme) {
+        window.setTheme = function(theme) {
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
             if (theme === 'dark' || theme === 'neon') document.body.classList.add('tv-mode');
             else document.body.classList.remove('tv-mode');
         }
+
+        // --- Admin Session & Backend Sync ---
+        let adminTimerInterval;
+        let adminStartTime;
+
+        async function syncStatus(status) {
+            const userId = auth.currentUser ? auth.currentUser.uid : 'admin_demo';
+            const today = new Date().toISOString().split('T')[0];
+            const statusRef = doc(db, "admin_sessions", `${userId}_${today}`);
+            
+            await setDoc(statusRef, {
+                status: status,
+                lastUpdated: serverTimestamp(),
+                userId: userId
+            }, { merge: true });
+        }
+
+        window.adminPunchIn = async () => {
+            const btnIn = document.getElementById('btnPunchIn');
+            const btnBreak = document.getElementById('btnBreak');
+            const btnOut = document.getElementById('btnPunchOut');
+            const tvcDot = document.getElementById('tvcDot');
+            const tvcText = document.getElementById('tvcStatusText');
+            const timerDisplay = document.getElementById('adminSessionTimer');
+
+            tvcText.textContent = "SECURE: CONNECTING...";
+            tvcDot.style.background = "#3b82f6";
+            
+            setTimeout(async () => {
+                tvcText.textContent = "SECURE: ACTIVE";
+                tvcDot.style.background = "#10b981";
+                tvcDot.style.boxShadow = "0 0 10px #10b981";
+                
+                adminStartTime = Date.now();
+                timerDisplay.style.display = 'inline';
+                startAdminTimer();
+
+                await syncStatus('Active');
+                
+                btnIn.style.display = 'none';
+                btnBreak.style.display = 'flex';
+                btnOut.style.display = 'flex';
+            }, 1000);
+        };
+
+        function startAdminTimer() {
+            const timerDisplay = document.getElementById('adminSessionTimer');
+            clearInterval(adminTimerInterval);
+            adminTimerInterval = setInterval(() => {
+                const diff = Date.now() - adminStartTime;
+                const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                timerDisplay.textContent = `${h}:${m}:${s}`;
+            }, 1000);
+        }
+
+        window.adminBreak = async () => {
+            const btnBreak = document.getElementById('btnBreak');
+            const tvcDot = document.getElementById('tvcDot');
+            const tvcText = document.getElementById('tvcStatusText');
+
+            if (btnBreak.textContent.includes('Break')) {
+                clearInterval(adminTimerInterval);
+                btnBreak.innerHTML = '<i data-lucide="play" size="12"></i> Resume';
+                btnBreak.style.background = "#3b82f6";
+                tvcText.textContent = "SECURE: PAUSED";
+                tvcDot.style.background = "#f59e0b";
+                await syncStatus('Break');
+            } else {
+                startAdminTimer();
+                btnBreak.innerHTML = '<i data-lucide="coffee" size="12"></i> Break';
+                btnBreak.style.background = "#f59e0b";
+                tvcText.textContent = "SECURE: ACTIVE";
+                tvcDot.style.background = "#10b981";
+                await syncStatus('Active');
+            }
+            lucide.createIcons();
+        };
+
+        window.adminPunchOut = async () => {
+            const btnIn = document.getElementById('btnPunchIn');
+            const btnBreak = document.getElementById('btnBreak');
+            const btnOut = document.getElementById('btnPunchOut');
+            const tvcDot = document.getElementById('tvcDot');
+            const tvcText = document.getElementById('tvcStatusText');
+            const timerDisplay = document.getElementById('adminSessionTimer');
+
+            clearInterval(adminTimerInterval);
+            tvcText.textContent = "SECURE: IDLE";
+            tvcDot.style.background = "#cbd5e1";
+            tvcDot.style.boxShadow = "none";
+            timerDisplay.style.display = 'none';
+
+            await syncStatus('Offline');
+
+            btnIn.style.display = 'flex';
+            btnBreak.style.display = 'none';
+            btnOut.style.display = 'none';
+            btnBreak.innerHTML = '<i data-lucide="coffee" size="12"></i> Break';
+            btnBreak.style.background = "#f59e0b";
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>

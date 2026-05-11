@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Management | HRFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2.5rem;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .back-btn { display: flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; }
+
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .card-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1.5rem; letter-spacing: 0.5px; }
+
+        .leave-balance { display: flex; flex-direction: column; gap: 1rem; }
+        .balance-item { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: var(--bg); border-radius: 14px; border: 1px solid var(--border); }
+        .balance-val { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 1rem; color: var(--text); font-family: inherit; outline: none; font-weight: 500;
+        }
+        .form-group input:focus { border-color: var(--primary); background: white; }
+
+        .btn { width: 100%; padding: 14px; border-radius: 14px; background: var(--primary); color: white; font-weight: 800; border: none; cursor: pointer; transition: 0.3s; font-size: 0.95rem; }
+        .btn:hover { transform: translateY(-2px); background: #1d4ed8; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th { text-align: left; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; padding: 1rem; letter-spacing: 0.5px; }
+        td { padding: 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; font-weight: 500; }
+        .status-pill { padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; }
+        .status-approved { background: #dcfce7; color: #15803d; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div>
+                <a href="employee-dashboard.html" class="back-btn"><i data-lucide="arrow-left" size="18"></i> Back to Dashboard</a>
+                <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Leave & Time Off</h1>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.8rem; font-weight: 800; color: var(--success); background: #dcfce7; padding: 6px 12px; border-radius: 100px;">ANNUAL QUOTA: 24 DAYS</div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="sidebar-cards">
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div class="card-title">Available Balances</div>
+                    <div class="leave-balance">
+                        <div class="balance-item">
+                            <span style="font-weight: 700;">Paid Leave</span>
+                            <span class="balance-val">12</span>
+                        </div>
+                        <div class="balance-item">
+                            <span style="font-weight: 700;">Sick Leave</span>
+                            <span class="balance-val">04</span>
+                        </div>
+                        <div class="balance-item">
+                            <span style="font-weight: 700;">Comp Off</span>
+                            <span class="balance-val">02</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">New Request</div>
+                    <form>
+                        <div class="form-group">
+                            <label>Leave Type</label>
+                            <select><option>Annual / Paid Leave</option><option>Sick Leave</option></select>
+                        </div>
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label>From Date</label>
+                                <input type="date">
+                            </div>
+                            <div class="form-group">
+                                <label>To Date</label>
+                                <input type="date">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Reason for Leave</label>
+                            <textarea rows="3" placeholder="Please provide a brief reason..."></textarea>
+                        </div>
+                        <button type="button" class="btn" onclick="alert('Leave request submitted!')">Submit for Approval</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Request History</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Annual Leave</td>
+                            <td>May 20 - May 22 (3 Days)</td>
+                            <td><span class="status-pill status-approved">APPROVED</span></td>
+                        </tr>
+                        <tr>
+                            <td>Sick Leave</td>
+                            <td>Apr 12 - Apr 13 (2 Days)</td>
+                            <td><span class="status-pill status-approved">APPROVED</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Portal | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👤</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --sidebar-width: 280px;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 2.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
+
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px;
+        }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+
+        .profile-mini {
+            margin-top: auto;
+            background: var(--primary-light);
+            padding: 1rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+
+        /* Main Content */
+        .main-content { padding: 3rem; overflow-y: auto; }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+        .sub-header { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+
+        .date-box { text-align: right; }
+        .date-today { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+        .date-status { font-size: 0.75rem; color: var(--success); font-weight: 800; margin-top: 4px; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+
+        /* Widget Grid */
+        .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
+        .col-8 { grid-column: span 8; }
+        .col-4 { grid-column: span 4; }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-2px); border-color: var(--primary-light); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .card-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Attendance Widget */
+        .attendance-hero { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+        .timer-display { font-size: 3.5rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--primary); letter-spacing: -2px; }
+        .punch-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1.25rem 2.5rem;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+        .punch-btn:hover { transform: translateY(-2px); background: var(--primary-dark); }
+        .punch-btn.active { background: var(--danger); box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3); }
+
+        /* Stats Row */
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; }
+        .stat-item { background: var(--bg); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px; text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+        .stat-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Task List */
+        .task-item { display: flex; align-items: center; gap: 16px; padding: 1rem; background: var(--bg); border-radius: 14px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .task-icon { width: 40px; height: 40px; border-radius: 10px; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+        .task-content { flex: 1; }
+        .task-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+        .task-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+        .task-action { color: var(--primary); cursor: pointer; }
+
+        /* Quick Actions */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .action-card {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .action-card:hover { border-color: var(--primary); background: var(--primary-light); }
+        .action-icon { width: 48px; height: 48px; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--primary); }
+        .action-card h3 { font-size: 0.85rem; font-weight: 700; }
+
+        .badge { background: #fee2e2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <a href="#" class="logo">
+                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link active"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="employee-leave.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="employee-docs.html" class="nav-link"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                
+                <div class="nav-label">RESOURCES</div>
+                <div class="nav-item"><a href="employee-policy.html" class="nav-link"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
+            </nav>
+
+            <div class="profile-mini">
+                <div class="avatar" id="userInitial">JD</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userNameDisplay">John Doe</div>
+                    <div class="profile-role" id="userRoleDisplay">Software Engineer</div>
+                </div>
+                <a href="index.html" style="color: var(--text-muted);"><i data-lucide="log-out" size="18"></i></a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1 id="greeting">Good Morning, John!</h1>
+                    <p class="sub-header">You have 3 tasks that need your attention today.</p>
+                </div>
+                <div class="date-box">
+                    <div class="date-today" id="currentDate">Monday, 11 May</div>
+                    <div class="date-status">
+                        <i data-lucide="check-circle" size="14"></i>
+                        <span>On Track for May</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid">
+                <!-- Attendance Card -->
+                <div class="card col-8">
+                    <div class="card-header">
+                        <div class="card-title">Attendance Tracking</div>
+                        <i data-lucide="info" class="text-muted" size="16"></i>
+                    </div>
+                    <div class="attendance-hero">
+                        <div class="timer-display" id="timer">00:00:00</div>
+                        <button class="punch-btn" id="punchBtn">
+                            <i data-lucide="log-in" id="punchIcon"></i>
+                            <span id="punchText">Punch In</span>
+                        </button>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-val" style="color: var(--primary);">08:30</div>
+                            <div class="stat-label">Shift Start</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-val" id="totalLoggedTime">--:--</div>
+                            <div class="stat-label">Logged Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-val" style="color: var(--success);">18</div>
+                            <div class="stat-label">Leave Bal.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Holidays -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div class="card-title">Upcoming Holidays</div>
+                        <i data-lucide="calendar" class="text-muted" size="16"></i>
+                    </div>
+                    <div class="task-list">
+                        <div class="task-item">
+                            <div class="task-icon" style="color: var(--warning);"><i data-lucide="sun" size="18"></i></div>
+                            <div class="task-content">
+                                <div class="task-name">Independence Day</div>
+                                <div class="task-meta">15 Aug • Saturday</div>
+                            </div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-icon"><i data-lucide="flag" size="18"></i></div>
+                            <div class="task-content">
+                                <div class="task-name">Republic Day</div>
+                                <div class="task-meta">26 Jan • Tuesday</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Tasks -->
+                <div class="card col-8">
+                    <div class="card-header">
+                        <div class="card-title">Pending Tasks</div>
+                        <span class="badge">3 URGENT</span>
+                    </div>
+                    <div class="task-list">
+                        <div class="task-item">
+                            <div class="task-icon"><i data-lucide="landmark" size="18"></i></div>
+                            <div class="task-content">
+                                <div class="task-name">Update Bank Details</div>
+                                <div class="task-meta">Required for May payroll processing</div>
+                            </div>
+                            <a href="employee-bank-task.html" class="task-action"><i data-lucide="chevron-right"></i></a>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-icon"><i data-lucide="shield-check" size="18"></i></div>
+                            <div class="task-content">
+                                <div class="task-name">Sign IT Security Policy</div>
+                                <div class="task-meta">Annual compliance update</div>
+                            </div>
+                            <a href="employee-policy.html" class="task-action"><i data-lucide="chevron-right"></i></a>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-icon"><i data-lucide="user-check" size="18"></i></div>
+                            <div class="task-content">
+                                <div class="task-name">Self-Appraisal Q2</div>
+                                <div class="task-meta">Performance review cycle</div>
+                            </div>
+                            <div class="task-action"><i data-lucide="chevron-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div class="card-title">Quick Actions</div>
+                    </div>
+                    <div class="action-grid">
+                        <a href="employee-leave.html" class="action-card">
+                            <div class="action-icon"><i data-lucide="plus-circle"></i></div>
+                            <h3>Apply Leave</h3>
+                        </a>
+                        <a href="employee-docs.html" class="action-card">
+                            <div class="action-icon"><i data-lucide="download"></i></div>
+                            <h3>Payslip</h3>
+                        </a>
+                        <a href="#" class="action-card">
+                            <div class="action-icon"><i data-lucide="message-circle"></i></div>
+                            <h3>HR Chat</h3>
+                        </a>
+                        <a href="employee-policy.html" class="action-card">
+                            <div class="action-icon"><i data-lucide="info"></i></div>
+                            <h3>Policy</h3>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { attendanceEngine } from "./attendance-engine.js";
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+        lucide.createIcons();
+
+        let currentUser = null;
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                loadDashboardData(user);
+            } else {
+                // Fallback for demo
+                const demoUser = { uid: localStorage.getItem('hr_user_id') || 'demo_user', displayName: localStorage.getItem('userName') || 'Employee' };
+                loadDashboardData(demoUser);
+            }
+        });
+
+        async function loadDashboardData(user) {
+            const userName = user.displayName || localStorage.getItem('userName') || 'Employee';
+            document.getElementById('greeting').textContent = `Good Morning, ${userName.split(' ')[0]}!`;
+            document.getElementById('userNameDisplay').textContent = userName;
+            document.getElementById('userInitial').textContent = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+
+            // Check Holiday Status
+            await attendanceEngine.initHolidays();
+            const isHoliday = await attendanceEngine.isTodayHoliday();
+            if (isHoliday) {
+                document.getElementById('punchBtn').disabled = true;
+                document.getElementById('punchText').textContent = "Public Holiday";
+                document.getElementById('punchBtn').style.opacity = "0.5";
+                document.getElementById('timer').textContent = "OFF DUTY";
+                document.querySelector('.sub-header').textContent = "Today is a public holiday. Enjoy your day off!";
+            }
+
+            // Load Upcoming Holidays
+            const holidays = await attendanceEngine.getUpcomingHolidays();
+            const holidayList = document.querySelector('.task-list');
+            if (holidays.length > 0) {
+                holidayList.innerHTML = holidays.map(h => `
+                    <div class="task-item">
+                        <div class="task-icon" style="color: var(--warning);"><i data-lucide="sun" size="18"></i></div>
+                        <div class="task-content">
+                            <div class="task-name">${h.name}</div>
+                            <div class="task-meta">${new Date(h.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'long' })}</div>
+                        </div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            }
+        }
+
+        // Punch In/Out Logic
+        const punchBtn = document.getElementById('punchBtn');
+        const punchText = document.getElementById('punchText');
+        const punchIcon = document.getElementById('punchIcon');
+        const timerDisplay = document.getElementById('timer');
+        
+        let isPunchedIn = false;
+        let timerInterval;
+        let startTime;
+
+        punchBtn.onclick = async () => {
+            const uid = currentUser ? currentUser.uid : (localStorage.getItem('hr_user_id') || 'demo_user');
+            
+            isPunchedIn = !isPunchedIn;
+            if (isPunchedIn) {
+                punchBtn.classList.add('active');
+                punchText.textContent = 'Punch Out';
+                punchIcon.setAttribute('data-lucide', 'log-out');
+                startTime = Date.now();
+                startTimer();
+                
+                // Sync with Firebase
+                await attendanceEngine.syncPunch(uid, 'in');
+            } else {
+                punchBtn.classList.remove('active');
+                punchText.textContent = 'Punch In';
+                punchIcon.setAttribute('data-lucide', 'log-in');
+                
+                const totalTime = Date.now() - startTime;
+                clearInterval(timerInterval);
+                
+                // Sync with Firebase
+                await attendanceEngine.syncPunch(uid, 'out');
+
+                // 8 Hour Quota Check
+                const eightHoursMs = 8 * 3600000;
+                if (totalTime < eightHoursMs) {
+                    const diff = eightHoursMs - totalTime;
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    alert(`Attention: You are punching out before completing your 8-hour shift. Remaining: ${h}h ${m}m.`);
+                }
+            }
+            lucide.createIcons();
+        };
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const diff = Date.now() - startTime;
+                const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                timerDisplay.textContent = `${h}:${m}:${s}`;
+                
+                // Dynamic Progress Update
+                const eightHoursMs = 8 * 3600000;
+                if (diff >= eightHoursMs) {
+                    timerDisplay.style.color = "var(--success)";
+                    document.getElementById('totalLoggedTime').textContent = "Quota Met";
+                } else {
+                    document.getElementById('totalLoggedTime').textContent = attendanceEngine.formatTime(diff);
+                }
+            }, 1000);
+        }
+
+        // Set Date
+        const now = new Date();
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+    </script>
+</body>
+</html>

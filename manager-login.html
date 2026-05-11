@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Login | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f0f7ff;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: 
+                linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, transparent 100%),
+                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.05) 0%, transparent 50%);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(37, 99, 235, 0.1);
+        }
+
+        .header { text-align: center; margin-bottom: 3rem; }
+        .logo-icon { width: 64px; height: 64px; background: var(--primary); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
+        h1 { font-size: 1.75rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .form-group input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid transparent;
+            border-radius: 16px;
+            padding: 16px 16px 16px 48px;
+            color: var(--text);
+            font-family: inherit;
+            outline: none;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+        .form-group input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.05); }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            background: var(--primary);
+            color: white;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.3s;
+            margin-top: 1.5rem;
+        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.4); }
+
+        .footer-links { text-align: center; margin-top: 3rem; font-size: 0.9rem; color: var(--text-muted); }
+        .footer-links a { color: var(--primary); text-decoration: none; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="header">
+            <div class="logo-icon"><i data-lucide="shield-check"></i></div>
+            <h1>Manager Access</h1>
+            <p class="subtitle">Operational Command Gateway</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Corporate ID</label>
+                <div class="input-wrapper">
+                    <i data-lucide="mail" size="18"></i>
+                    <input type="email" id="email" placeholder="manager@hrflow.com" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Secure Token</label>
+                <div class="input-wrapper">
+                    <i data-lucide="key" size="18"></i>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="loginBtn">Authenticate</button>
+        </form>
+
+        <div class="footer-links">
+            <p>System authorized users only. <a href="#">Help</a></p>
+            <p style="margin-top: 1.5rem;"><a href="index.html" style="color: var(--text-muted); font-weight: 600;">← Return to Gateway</a></p>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        document.getElementById('loginForm').onsubmit = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            localStorage.setItem('userName', email.split('@')[0].toUpperCase());
+            localStorage.setItem('userRole', 'manager');
+            window.location.href = 'manager-dashboard.html';
+        };
+    </script>
+</body>
+</html>

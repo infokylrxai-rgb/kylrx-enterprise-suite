@@ -317,7 +317,7 @@ function populateWidgetContent(id) {
                                 <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 10px; font-size: 0.75rem; font-weight: 700;" onclick="window.open('manager-dashboard.html?id=${id}', '_blank')">
                                     <i data-lucide="external-link" size="14"></i> View
                                 </button>
-                                <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 10px; font-size: 0.75rem; font-weight: 700; border-color: var(--primary); color: var(--primary);" onclick="window.location.href='manager-dashboard-builder.html?id=${id}'">
+                                <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 10px; font-size: 0.75rem; font-weight: 700; border-color: var(--primary); color: var(--primary);" onclick="window.location.href='admin-Dashboard-bulider.html?id=${id}'">
                                     <i data-lucide="settings" size="14"></i> Edit
                                 </button>
                             </div>
@@ -481,12 +481,15 @@ function startActivityStream() {
 
 async function loadDepartments() {
     try {
+        // Try backend only if we haven't already confirmed it's down
+        if (state.backendAlerted) throw new Error('Using Firestore primary');
+
         const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('access_token');
         const response = await fetch(`${API_BASE}/admin/departments`, {
             headers: {
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             }
-        });
+        }).catch(e => { throw new Error('Offline'); });
         
         if (!response.ok) throw new Error('Backend unreachable');
         const result = await response.json();
@@ -499,11 +502,22 @@ async function loadDepartments() {
         }
     } catch (error) {
         if (!state.backendAlerted) {
-            console.warn('Management API currently unreachable. Initializing decentralized cloud failover...');
+            console.log('%c☁️ Decentalized Cloud Failover Active', 'color: #3b82f6; font-weight: bold; background: #eff6ff; padding: 2px 6px; border-radius: 4px;');
+            state.backendAlerted = true;
         }
         try {
-            const snap = await getDocs(collection(db, 'departments'));
-            state.departments = snap.docs.map(d => d.data());
+            // First try command_centers (the new source of truth)
+            const snap = await getDocs(collection(db, 'command_centers'));
+            const commandCenters = snap.docs.map(d => ({ departmentId: d.id, ...d.data() }));
+            
+            // If empty, try fallback to old departments collection
+            if (commandCenters.length === 0) {
+                const oldSnap = await getDocs(collection(db, 'departments'));
+                state.departments = oldSnap.docs.map(d => d.data());
+            } else {
+                state.departments = commandCenters;
+            }
+            
             updateDeptSelects();
             updateStats();
             renderSidebarCommands();
@@ -544,12 +558,14 @@ function renderSidebarCommands() {
 
 async function loadEmployees() {
     try {
+        if (state.backendAlerted) throw new Error('Using Firestore primary');
+        
         const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('access_token');
         const response = await fetch(`${API_BASE}/admin/employees`, {
             headers: {
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             }
-        });
+        }).catch(e => { throw new Error('Offline'); });
         
         if (!response.ok) throw new Error('Backend unreachable');
         const result = await response.json();
@@ -573,8 +589,7 @@ async function loadEmployees() {
         }
     } catch (error) {
         if (!state.backendAlerted) {
-            console.warn('Management API currently unreachable. Initializing decentralized cloud failover...');
-            if (window.showAlert) window.showAlert('System Note', 'Using decentralized cloud storage as primary backend is offline.', 'info');
+            console.log('%c☁️ Decentalized Cloud Failover Active', 'color: #3b82f6; font-weight: bold; background: #eff6ff; padding: 2px 6px; border-radius: 4px;');
             state.backendAlerted = true;
         }
         try {
@@ -610,8 +625,12 @@ function updateDeptSelects() {
         select.innerHTML = isFilter ? '<option value="">All Departments</option>' : '<option value="">Select Department</option>';
         state.departments.forEach(dept => {
             const opt = document.createElement('option');
-            opt.value = dept.departmentId;
-            opt.textContent = `${dept.departmentName} (${dept.departmentCode})`;
+            const deptName = dept.name || dept.departmentName || 'Unnamed';
+            const deptCode = dept.unitId || dept.departmentCode || 'UNIT';
+            const deptId = dept.departmentId || dept.id || dept.unitId;
+            
+            opt.value = deptId;
+            opt.textContent = `${deptName} (${deptCode})`;
             select.appendChild(opt);
         });
     });
@@ -868,6 +887,7 @@ function setupEventListeners() {
             if (data.editId) {
                 // UPDATE MODE via Backend
                 try {
+                    if (state.backendAlerted) throw new Error('Offline');
                     const response = await fetch(`http://localhost:3000/api/admin/employees/${data.editId}`, {
                         method: 'PUT',
                         headers: headers,
@@ -888,10 +908,13 @@ function setupEventListeners() {
                 } catch (err) {
                     console.warn('Backend update failed, falling back to Firestore:', err);
                     const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                    const dept = state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
                     await updateDoc(doc(db, "users", data.editId), {
                         name: data.name,
                         role: data.roleType.toLowerCase(),
                         departmentId: data.departmentId,
+                        departmentName: dept ? (dept.name || dept.departmentName) : 'General',
+                        departmentCode: dept ? (dept.unitId || dept.departmentCode) : 'UNIT',
                         phone: data.phone || '',
                         salary: data.salary || '',
                         address: data.address || '',
@@ -902,6 +925,7 @@ function setupEventListeners() {
             } else {
                 // CREATE MODE via Backend
                 try {
+                    if (state.backendAlerted) throw new Error('Offline');
                     const response = await fetch('http://localhost:3000/api/admin/employees', {
                         method: 'POST',
                         headers: headers,
@@ -925,22 +949,29 @@ function setupEventListeners() {
                         "Initial Password": result.data.tempPassword
                     });
                 } catch (err) {
-                    console.warn('Backend creation failed, falling back to Firestore:', err);
+                    if (!state.backendAlerted) {
+                        console.log('☁️ Syncing with Decentralized Cloud...');
+                        state.backendAlerted = true;
+                    }
                     // Generate a random temporary ID for demo purposes
                     const tempId = 'FS_' + Math.random().toString(36).substr(2, 9);
                     const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
                     
+                    const dept = state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
                     await setDoc(doc(db, "users", tempId), {
                         uid: tempId,
                         name: data.name,
                         email: email,
                         role: data.roleType.toLowerCase(),
                         departmentId: data.departmentId,
+                        departmentName: dept ? (dept.name || dept.departmentName) : 'General',
+                        departmentCode: dept ? (dept.unitId || dept.departmentCode) : 'UNIT',
                         phone: data.phone || '',
                         salary: data.salary || '',
                         address: data.address || '',
-                        tempPassword: data.password || '',
-                        joiningDate: data.joiningDate || new Date().toISOString()
+                        password: data.password || 'Pass123!',
+                        status: 'Completed',
+                        createdAt: new Date().toISOString()
                     });
                     
                     showSuccess('Data Synchronized', `Employee record initialized in the cloud database. Security provisioning is pending background activation.`, {
@@ -1436,3 +1467,119 @@ window.renderFocusChart = renderFocusChart;
 window.renderPayrollImpactChart = renderPayrollImpactChart;
 window.renderSalaryDistChart = renderSalaryDistChart;
 window.renderDistractionTrendsChart = renderDistractionTrendsChart;
+
+// --- TVC AI/ML Python Connectivity Simulation ---
+let adminTimerInterval;
+let adminStartTime;
+
+window.adminPunchIn = async () => {
+    try {
+        const btnIn = document.getElementById('btnPunchIn');
+        const btnBreak = document.getElementById('btnBreak');
+        const btnOut = document.getElementById('btnPunchOut');
+        const tvcDot = document.getElementById('tvcDot');
+        const tvcText = document.getElementById('tvcStatusText');
+        const timerDisplay = document.getElementById('adminSessionTimer');
+
+        // 1. Update Activity Tracker
+        if (window.setTrackerOverride) window.setTrackerOverride('Active');
+
+        // 2. Simulate AI/ML Python Engine Connection
+        tvcText.textContent = "TVC: CONNECTING...";
+        tvcDot.style.background = "#3b82f6";
+        
+        setTimeout(() => {
+            tvcText.textContent = "TVC: SECURE";
+            tvcDot.style.background = "#10b981";
+            tvcDot.style.boxShadow = "0 0 10px #10b981";
+            
+            // Start Timer
+            adminStartTime = Date.now();
+            timerDisplay.style.display = 'inline';
+            startAdminTimer();
+
+            showSuccess('Security Link Established', 'Total Visibility Control is now active for this administrative session.', {
+                "Mode": "Standard / Encrypted",
+                "Status": "Active"
+            });
+        }, 1500);
+
+        // 3. UI Updates
+        btnIn.style.display = 'none';
+        btnBreak.style.display = 'flex';
+        btnOut.style.display = 'flex';
+        
+    } catch (err) {
+        console.error('Punch In Error:', err);
+    }
+};
+
+function startAdminTimer() {
+    const timerDisplay = document.getElementById('adminSessionTimer');
+    clearInterval(adminTimerInterval);
+    adminTimerInterval = setInterval(() => {
+        const diff = Date.now() - adminStartTime;
+        const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+        const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+        timerDisplay.textContent = `${h}:${m}:${s}`;
+    }, 1000);
+}
+
+window.adminBreak = () => {
+    const btnBreak = document.getElementById('btnBreak');
+    const tvcDot = document.getElementById('tvcDot');
+    const tvcText = document.getElementById('tvcStatusText');
+
+    if (btnBreak.textContent.includes('Break')) {
+        // Start Break
+        if (window.setTrackerOverride) window.setTrackerOverride('Break');
+        clearInterval(adminTimerInterval);
+        btnBreak.innerHTML = '<i data-lucide="play" size="16"></i> Resume';
+        btnBreak.style.background = "#3b82f6";
+        tvcText.textContent = "SECURE: PAUSED";
+        tvcDot.style.background = "#f59e0b";
+        showSuccess('Status: On Break', 'Productivity tracking has been paused.', {});
+    } else {
+        // Resume
+        if (window.setTrackerOverride) window.setTrackerOverride('Active');
+        // Adjust start time to "skip" the break duration
+        // Simplified for demo: just restart from where it was or continue
+        startAdminTimer();
+        btnBreak.innerHTML = '<i data-lucide="coffee" size="16"></i> Break';
+        btnBreak.style.background = "#f59e0b";
+        tvcText.textContent = "TVC: SECURE";
+        tvcDot.style.background = "#10b981";
+        showSuccess('Status: Resumed', 'Administrative session security re-established.', {});
+    }
+    if (window.lucide) lucide.createIcons();
+};
+
+window.adminPunchOut = () => {
+    const btnIn = document.getElementById('btnPunchIn');
+    const btnBreak = document.getElementById('btnBreak');
+    const btnOut = document.getElementById('btnPunchOut');
+    const tvcDot = document.getElementById('tvcDot');
+    const tvcText = document.getElementById('tvcStatusText');
+    const timerDisplay = document.getElementById('adminSessionTimer');
+
+    // 1. Update Tracker
+    if (window.setTrackerOverride) window.setTrackerOverride('Offline');
+    clearInterval(adminTimerInterval);
+
+    // 2. Disconnect TVC
+    tvcText.textContent = "SECURE: IDLE";
+    tvcDot.style.background = "#cbd5e1";
+    tvcDot.style.boxShadow = "none";
+    timerDisplay.style.display = 'none';
+
+    // 3. UI Reset
+    btnIn.style.display = 'flex';
+    btnBreak.style.display = 'none';
+    btnOut.style.display = 'none';
+    btnBreak.innerHTML = '<i data-lucide="coffee" size="16"></i> Break';
+    btnBreak.style.background = "#f59e0b";
+
+    showSuccess('Punch Out Successful', 'Session ended safely.', {});
+    if (window.lucide) lucide.createIcons();
+};

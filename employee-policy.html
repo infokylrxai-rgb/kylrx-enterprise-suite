@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Center | HRFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2.5rem;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .back-btn { display: flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+
+        .policy-layout { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; }
+        
+        .policy-nav { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; height: fit-content; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .nav-item { padding: 12px 1rem; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+        .nav-item:hover, .nav-item.active { background: var(--bg); color: var(--primary); }
+
+        .policy-content { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 3.5rem; line-height: 1.7; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--text); letter-spacing: -1px; }
+        h3 { font-size: 1.25rem; font-weight: 800; margin: 2.5rem 0 1rem; color: var(--text); }
+        p { margin-bottom: 1.25rem; color: var(--text-muted); font-weight: 500; }
+        ul { margin-bottom: 1.5rem; padding-left: 1.5rem; color: var(--text-muted); }
+        li { margin-bottom: 0.75rem; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div>
+                <a href="employee-dashboard.html" class="back-btn"><i data-lucide="arrow-left" size="18"></i> Back to Dashboard</a>
+                <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Policy Center</h1>
+            </div>
+            <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); background: white; padding: 6px 16px; border-radius: 100px; border: 1px solid var(--border);">v2.4 • MAY 2026</div>
+        </header>
+
+        <div class="policy-layout">
+            <div class="policy-nav">
+                <div class="nav-item active">Code of Conduct</div>
+                <div class="nav-item">IT Security Policy</div>
+                <div class="nav-item">Leave & Attendance</div>
+                <div class="nav-item">Remote Work Policy</div>
+                <div class="nav-item">Anti-Harassment</div>
+                <div class="nav-item">Travel & Expenses</div>
+            </div>
+
+            <div class="policy-content">
+                <h2>Code of Conduct</h2>
+                <p>The HRFlow Code of Conduct serves as our guide for professional behavior and ethics. We expect every team member to embody these values in their daily work and interactions.</p>
+                
+                <h3>1. Professional Ethics</h3>
+                <p>We believe in maintaining the highest standards of integrity. This includes:</p>
+                <ul>
+                    <li>Honesty and transparency in all business dealings.</li>
+                    <li>Respect for intellectual property and confidentiality.</li>
+                    <li>Avoiding personal interests that conflict with company goals.</li>
+                </ul>
+
+                <h3>2. Inclusive Culture</h3>
+                <p>HRFlow is a sanctuary for diversity. We strictly prohibit discrimination, bullying, or harassment. Our workplace is built on mutual respect and psychological safety for all employees.</p>
+
+                <h3>3. Resource Stewardship</h3>
+                <p>Employees are responsible for the careful use of company assets, including hardware, software, and intellectual resources. Misuse of company property for personal gain is a violation of this code.</p>
+
+                <div style="margin-top: 4rem; padding: 2rem; border-radius: 16px; background: var(--bg); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 0.9rem; font-weight: 800; color: var(--text);">Acknowledge Policy</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">By clicking, you confirm you've read the Code of Conduct.</div>
+                    </div>
+                    <button style="padding: 12px 28px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 800; cursor: pointer; transition: 0.3s;" onclick="this.innerHTML='Acknowledged ✓'; this.style.background='#10b981';">Confirm Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

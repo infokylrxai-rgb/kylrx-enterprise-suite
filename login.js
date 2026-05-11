@@ -82,8 +82,10 @@ loginForm?.addEventListener('submit', async (e) => {
           } catch (permErr) {
               console.warn('Firestore query restricted, moving to demo bypass:', permErr.message);
           }
+        }
 
-          if (!userData) {
+        // --- STEP 3: DEMO BYPASS (if everything else failed) ---
+        if (!userData) {
             // DEMO BYPASS: Allow access for development/testing
             const demoUsers = {
                 'admin@hrflow.com': { role: 'admin', departmentId: 'Executive', name: 'Super Admin' },
@@ -116,10 +118,7 @@ loginForm?.addEventListener('submit', async (e) => {
                  departmentId: 'restricted'
                };
                userData.uid = 'demo_restricted_admin_' + Date.now();
-            } else {
-              throw firebaseErr;
             }
-          }
         }
     }
     if (userData) {

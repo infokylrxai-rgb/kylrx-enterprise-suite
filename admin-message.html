@@ -193,7 +193,7 @@
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="manager-dashboard-builder.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
@@ -631,7 +631,7 @@
                 console.error('AI Correction failed:', error);
                 // Fallback to local logic if backend fails
                 let corrected = text.charAt(0).toUpperCase() + text.slice(1);
-                if (!/[.!?]$/.test(corrected)) corrected += '.';
+                if (!/[.!?]?/.test(corrected)) corrected += '.';
                 input.value = corrected;
             } finally {
                 btn.innerHTML = originalContent;
@@ -699,7 +699,7 @@
                 if (success) {
                     const msgDiv = document.createElement('div');
                     msgDiv.className = 'message sent';
-                    const highlightedText = text.replace(/@(\w+\s\w+)/g, '<b style="color:#e0e7ff; background:rgba(255,255,255,0.1); padding:2px 4px; border-radius:4px;">@$1</b>');
+                    const highlightedText = text.replace(/@(\w+\s\w+)/g, '<b style="color:#e0e7ff; background:rgba(255,255,255,0.1); padding:2px 4px; border-radius:4px;">@?1</b>');
                     msgDiv.innerHTML = highlightedText;
                     chatMessages.appendChild(msgDiv);
                     input.value = '';

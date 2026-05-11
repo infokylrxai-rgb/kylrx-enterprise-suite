@@ -8,21 +8,19 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-dark: #1d4ed8;
+            --primary: #2563eb;
             --primary-light: #eff6ff;
-            --bg: #f0f7ff; /* Slightly bluer bg as seen in screenshot */
+            --bg: #f0f7ff;
             --card: #ffffff;
             --border: #e2e8f0;
             --text-main: #0f172a;
             --text-muted: #64748b;
-            --sidebar-width: 260px;
-            --radius: 24px;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            --sidebar-width: 280px;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             --danger: #ef4444;
             --success: #10b981;
         }
@@ -53,15 +51,15 @@
             padding: 2rem 1rem;
             text-align: center;
             margin-bottom: 2.5rem;
-            border: 1px solid rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.1);
         }
         .dept-icon-box {
-            width: 50px; height: 50px; background: white; border-radius: 14px;
+            width: 52px; height: 52px; background: white; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1rem; color: var(--primary);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+            margin: 0 auto 1.25rem; color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
         }
-        .dept-name { font-weight: 800; font-size: 1rem; margin-bottom: 4px; }
+        .dept-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; letter-spacing: -0.5px; }
         .dept-code { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
 
         .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
@@ -75,11 +73,11 @@
         /* Main Content */
         .main-content { padding: 3rem; overflow-y: auto; }
 
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
-        h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
-        .sub-header { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3.5rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
+        .sub-header { color: var(--text-muted); font-size: 1rem; font-weight: 500; }
 
-        .ai-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 800; color: var(--success); }
+        .ai-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 800; color: var(--success); background: #dcfce7; padding: 6px 12px; border-radius: 100px; }
         .ai-pulse { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -102,49 +100,30 @@
 
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .card-header h2 { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .more-btn { color: var(--text-muted); cursor: pointer; }
 
         /* Insight Contents */
-        .insight-placeholder {
-            height: 180px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .prod-stream {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            color: var(--primary);
-        }
-        .stream-bars { display: flex; gap: 4px; align-items: flex-end; height: 30px; }
-        .bar { width: 4px; background: var(--primary); border-radius: 2px; animation: bar-grow 1s infinite alternate; }
-        @keyframes bar-grow { from { height: 10px; } to { height: 30px; } }
+        .insight-content { min-height: 140px; }
 
         .telemetry-row { display: flex; gap: 1rem; width: 100%; }
         .tele-box {
-            flex: 1; padding: 1.5rem; border-radius: 20px;
+            flex: 1; padding: 1.5rem; border-radius: 16px;
             display: flex; flex-direction: column; gap: 4px;
+            border: 1px solid var(--border); background: var(--bg);
         }
-        .tele-box.active { background: var(--primary-light); color: var(--primary); }
-        .tele-box.idle { background: #fff1f2; color: #e11d48; }
-        .tele-val { font-size: 1.5rem; font-weight: 800; }
+        .tele-box.active { border-color: var(--primary-light); color: var(--primary); }
+        .tele-val { font-size: 1.75rem; font-weight: 800; }
         .tele-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
 
         .alert-box {
             background: #fff1f2;
             border: 1px solid #fecaca;
             border-radius: 16px;
-            padding: 1rem;
+            padding: 1.25rem;
             display: flex;
             gap: 12px;
             align-items: flex-start;
         }
-        .alert-icon { color: var(--danger); margin-top: 2px; }
+        .alert-icon { color: var(--danger); }
         .alert-title { font-size: 0.85rem; font-weight: 800; color: #991b1b; margin-bottom: 4px; }
         .alert-msg { font-size: 0.75rem; color: #b91c1c; font-weight: 500; }
 
@@ -154,11 +133,25 @@
             border-radius: 16px;
             padding: 1.5rem;
         }
-        .burn-label { font-size: 0.7rem; font-weight: 800; color: var(--success); text-transform: uppercase; margin-bottom: 8px; }
-        .burn-val { font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+        .burn-val { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
         .burn-trend { font-size: 0.75rem; font-weight: 700; color: var(--success); }
 
-        .btn-ghost { padding: 8px; border-radius: 50%; background: #f1f5f9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 1rem; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 1rem; font-size: 0.85rem; font-weight: 600; border-bottom: 1px solid var(--border); }
+
+        .btn-ghost { padding: 8px; border-radius: 50%; background: var(--bg); border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+        
+        /* Icon Sizing */
+        i[data-lucide], svg[data-lucide] {
+            width: 20px;
+            height: 20px;
+        }
+        .dept-icon-box i, .dept-icon-box svg {
+            width: 24px;
+            height: 24px;
+        }
     </style>
 </head>
 <body>
@@ -167,8 +160,8 @@
         <aside class="sidebar">
             <div class="dept-branding">
                 <div class="dept-icon-box" id="deptIcon"><i data-lucide="shield"></i></div>
-                <div class="dept-name" id="sideDeptName">Cyberseruity</div>
-                <div class="dept-code" id="sideDeptCode">CYB</div>
+                <div class="dept-name" id="sideDeptName">Cybersecurity</div>
+                <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
             </div>
             
             <nav class="nav-menu">
@@ -177,11 +170,14 @@
                 <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="users"></i><span>Workforce</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="shield-check"></i><span>Security</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">BUILDER</div>
+                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
             </nav>
 
             <div class="sidebar-footer">
                 <div class="nav-item">
-                    <a href="#" class="nav-link" style="color: var(--danger);">
+                    <a href="index.html" class="nav-link" style="color: var(--danger);">
                         <i data-lucide="log-out"></i><span>Sign Out</span>
                     </a>
                 </div>
@@ -191,134 +187,229 @@
         <main class="main-content">
             <header class="header">
                 <div>
-                    <h1>Manager Command Center</h1>
-                    <p class="sub-header">Real-time operational intelligence & workforce monitoring</p>
+                    <h1>Command Center</h1>
+                    <p class="sub-header">Real-time operational intelligence & department oversight</p>
                 </div>
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <!-- Security Controls -->
+                    <div id="tvcStatus" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: white; border-radius: 100px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); border: 1px solid var(--border);">
+                        <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%;" id="tvcDot"></span>
+                        <span id="tvcStatusText">SECURE: IDLE</span>
+                        <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #cbd5e1; color: var(--primary); display: none;">00:00:00</span>
+                    </div>
+
+                    <div class="btn-group" style="display: flex; gap: 8px;">
+                        <button class="punch-btn-mini" id="btnPunchIn" onclick="managerPunchIn()" style="background: var(--success); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="play" size="14"></i> Punch In
+                        </button>
+                        <button class="punch-btn-mini" id="btnBreak" onclick="managerBreak()" style="display: none; background: var(--warning); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="coffee" size="14"></i> Break
+                        </button>
+                        <button class="punch-btn-mini" id="btnPunchOut" onclick="managerPunchOut()" style="display: none; background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="square" size="14"></i> Punch Out
+                        </button>
+                    </div>
+
                     <div class="ai-status">
                         <div class="ai-pulse"></div>
                         <span>AI ENGINE ACTIVE</span>
                     </div>
-                    <p style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">Predictive Analysis Online</p>
-                    <button class="btn-ghost" style="margin-top: 4px;"><i data-lucide="bell" size="18"></i></button>
+                    <button class="btn-ghost"><i data-lucide="bell" size="20"></i></button>
+                    <button class="btn-ghost"><i data-lucide="settings" size="20"></i></button>
                 </div>
             </header>
 
             <div class="widget-grid">
-                <!-- Productivity Insights -->
+                <!-- Productivity -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>Productivity Insights</h2>
-                        <i data-lucide="more-horizontal" class="more-btn"></i>
+                        <h2>Efficiency Rating</h2>
+                        <i data-lucide="zap" class="text-muted" size="16"></i>
                     </div>
-                    <div class="insight-placeholder">
-                        <div class="prod-stream">
-                            <div class="stream-bars">
-                                <div class="bar" style="animation-delay: 0.1s"></div>
-                                <div class="bar" style="animation-delay: 0.3s"></div>
-                                <div class="bar" style="animation-delay: 0.2s"></div>
-                                <div class="bar" style="animation-delay: 0.4s"></div>
-                                <div class="bar" style="animation-delay: 0.5s"></div>
-                            </div>
-                            <p style="font-size: 0.75rem; font-weight: 700;">Productivity Stream Active</p>
-                        </div>
+                    <div class="insight-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="font-size: 3.5rem; font-weight: 800; color: var(--primary);">94%</div>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--success);">↑ 4.2% from Yesterday</div>
                     </div>
                 </div>
 
-                <!-- Telemetry Insights -->
+                <!-- Telemetry -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>Telemetry Insights</h2>
-                        <i data-lucide="more-horizontal" class="more-btn"></i>
+                        <h2>Workforce Telemetry</h2>
+                        <i data-lucide="activity" class="text-muted" size="16"></i>
                     </div>
-                    <div class="insight-placeholder">
+                    <div class="insight-content">
                         <div class="telemetry-row">
                             <div class="tele-box active">
                                 <div class="tele-label">Active</div>
-                                <div class="tele-val" id="valActive">24</div>
+                                <div class="tele-val">24</div>
                             </div>
-                            <div class="tele-box idle">
-                                <div class="tele-label">Idle</div>
-                                <div class="tele-val" id="valIdle">3</div>
+                            <div class="tele-box">
+                                <div class="tele-label">On Leave</div>
+                                <div class="tele-val">02</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Security Insights -->
+                <!-- Security -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>Security Insights</h2>
-                        <i data-lucide="more-horizontal" class="more-btn"></i>
+                        <h2>Security Alerts</h2>
+                        <i data-lucide="shield-alert" class="text-muted" size="16"></i>
                     </div>
-                    <div class="insight-placeholder" style="justify-content: flex-start; padding-top: 1rem;">
+                    <div class="insight-content">
                         <div class="alert-box">
                             <i data-lucide="alert-circle" class="alert-icon" size="20"></i>
-                            <div style="text-align: left;">
-                                <div class="alert-title">Critical Alerts</div>
-                                <div class="alert-msg">2 Unprivileged access attempts detected in segment B-4.</div>
+                            <div>
+                                <div class="alert-title">Access Warning</div>
+                                <div class="alert-msg">Unusual login pattern detected in Region 4.</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Second Row -->
-            <div class="widget-grid" style="grid-template-columns: 1fr 2fr;">
+            <div class="widget-grid" style="grid-template-columns: 2fr 1fr;">
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div class="card-header" style="padding: 2rem 2rem 1rem 2rem;">
+                        <h2>Recent Activity</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>Employee</th><th>Activity</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Arvind Kumar</td><td>Code Review</td><td><span style="color:var(--success)">● Active</span></td></tr>
+                            <tr><td>Sneha Joshi</td><td>Client Meeting</td><td><span style="color:var(--warning)">● In Call</span></td></tr>
+                            <tr><td>Deepak Shetty</td><td>Documentation</td><td><span style="color:var(--success)">● Active</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
-                        <h2>Payroll Insights</h2>
-                        <i data-lucide="more-horizontal" class="more-btn"></i>
+                        <h2>Payroll Summary</h2>
                     </div>
-                    <div class="insight-placeholder" style="justify-content: flex-start; padding-top: 1rem;">
-                        <div class="payroll-card">
-                            <div class="burn-label">Monthly Burn</div>
-                            <div class="burn-val">₹4.2M</div>
-                            <div class="burn-trend">↑ 12.5% vs Prev Month</div>
-                        </div>
+                    <div class="payroll-card">
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--success); margin-bottom: 8px;">DEPARTMENT BURN</div>
+                        <div class="burn-val">₹42.5K</div>
+                        <div class="burn-trend">Within Budget Allocation</div>
                     </div>
-                </div>
-                
-                <div class="card" style="padding: 0; overflow: hidden;">
-                     <!-- Placeholder for something else or just spacing as seen in screenshot -->
                 </div>
             </div>
         </main>
     </div>
 
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, auth } from "./firebase-config.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         lucide.createIcons();
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const deptId = urlParams.get('id');
+        // --- Manager Session & Backend Sync ---
+        let managerTimerInterval;
+        let managerStartTime;
 
-        async function loadDept() {
-            if (!deptId) return;
-            const docRef = doc(db, 'departments', deptId);
-            const snap = await getDoc(docRef);
-            if (snap.exists()) {
-                const data = snap.data();
-                document.getElementById('sideDeptName').textContent = data.departmentName;
-                document.getElementById('sideDeptCode').textContent = data.departmentCode;
-                
-                // Set icon
-                const iconMap = {
-                    'shield': 'shield',
-                    'users': 'users',
-                    'monitor': 'monitor',
-                    'code': 'code',
-                    'database': 'database'
-                };
-                const iconName = data.icon || 'shield';
-                document.getElementById('deptIcon').innerHTML = `<i data-lucide="${iconName}"></i>`;
-                lucide.createIcons();
-            }
+        async function syncStatus(status) {
+            const userId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+            const today = new Date().toISOString().split('T')[0];
+            const statusRef = doc(db, "manager_sessions", `${userId}_${today}`);
+            
+            await setDoc(statusRef, {
+                status: status,
+                lastUpdated: serverTimestamp(),
+                userId: userId,
+                role: 'manager'
+            }, { merge: true });
         }
 
-        loadDept();
+        window.managerPunchIn = async () => {
+            const btnIn = document.getElementById('btnPunchIn');
+            const btnBreak = document.getElementById('btnBreak');
+            const btnOut = document.getElementById('btnPunchOut');
+            const tvcDot = document.getElementById('tvcDot');
+            const tvcText = document.getElementById('tvcStatusText');
+            const timerDisplay = document.getElementById('adminSessionTimer');
+
+            tvcText.textContent = "SECURE: CONNECTING...";
+            tvcDot.style.background = "#3b82f6";
+            
+            setTimeout(async () => {
+                tvcText.textContent = "SECURE: ACTIVE";
+                tvcDot.style.background = "var(--success)";
+                tvcDot.style.boxShadow = "0 0 10px var(--success)";
+                
+                managerStartTime = Date.now();
+                timerDisplay.style.display = 'inline';
+                startManagerTimer();
+
+                await syncStatus('Active');
+                
+                btnIn.style.display = 'none';
+                btnBreak.style.display = 'flex';
+                btnOut.style.display = 'flex';
+            }, 1000);
+        };
+
+        function startManagerTimer() {
+            const timerDisplay = document.getElementById('adminSessionTimer');
+            clearInterval(managerTimerInterval);
+            managerTimerInterval = setInterval(() => {
+                const diff = Date.now() - managerStartTime;
+                const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                timerDisplay.textContent = `${h}:${m}:${s}`;
+            }, 1000);
+        }
+
+        window.managerBreak = async () => {
+            const btnBreak = document.getElementById('btnBreak');
+            const tvcDot = document.getElementById('tvcDot');
+            const tvcText = document.getElementById('tvcStatusText');
+
+            if (btnBreak.textContent.includes('Break')) {
+                clearInterval(managerTimerInterval);
+                btnBreak.innerHTML = '<i data-lucide="play" size="14"></i> Resume';
+                btnBreak.style.background = "#3b82f6";
+                tvcText.textContent = "SECURE: PAUSED";
+                tvcDot.style.background = "var(--warning)";
+                await syncStatus('Break');
+            } else {
+                startManagerTimer();
+                btnBreak.innerHTML = '<i data-lucide="coffee" size="14"></i> Break';
+                btnBreak.style.background = "var(--warning)";
+                tvcText.textContent = "SECURE: ACTIVE";
+                tvcDot.style.background = "var(--success)";
+                await syncStatus('Active');
+            }
+            lucide.createIcons();
+        };
+
+        window.managerPunchOut = async () => {
+            const btnIn = document.getElementById('btnPunchIn');
+            const btnBreak = document.getElementById('btnBreak');
+            const btnOut = document.getElementById('btnPunchOut');
+            const tvcDot = document.getElementById('tvcDot');
+            const tvcText = document.getElementById('tvcStatusText');
+            const timerDisplay = document.getElementById('adminSessionTimer');
+
+            clearInterval(managerTimerInterval);
+            tvcText.textContent = "SECURE: IDLE";
+            tvcDot.style.background = "#cbd5e1";
+            tvcDot.style.boxShadow = "none";
+            timerDisplay.style.display = 'none';
+
+            await syncStatus('Offline');
+
+            btnIn.style.display = 'flex';
+            btnBreak.style.display = 'none';
+            btnOut.style.display = 'none';
+            btnBreak.innerHTML = '<i data-lucide="coffee" size="14"></i> Break';
+            btnBreak.style.background = "var(--warning)";
+            lucide.createIcons();
+        };
     </script>
 </body>
 </html>

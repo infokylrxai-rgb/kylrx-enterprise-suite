@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Documents | HRFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --radius: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2.5rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            letter-spacing: 0.5px;
+        }
+
+        .doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .doc-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .doc-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        .doc-icon {
+            width: 56px;
+            height: 56px;
+            background: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .doc-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .doc-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div>
+                <a href="employee-dashboard.html" class="back-btn"><i data-lucide="arrow-left" size="18"></i> Back to
+                    Dashboard</a>
+                <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Document Vault
+                </h1>
+            </div>
+            <button
+                style="padding: 12px 24px; border-radius: 12px; background: var(--primary); border: none; color: white; font-weight: 800; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);">
+                <i data-lucide="upload-cloud" size="18"></i> Upload Document
+            </button>
+        </header>
+
+        <div class="card">
+            <div class="card-title">
+                <span>Personal & Corporate Records</span>
+                <span
+                    style="color: var(--text-muted); font-size: 0.7rem; background: var(--bg); padding: 4px 10px; border-radius: 100px;">6
+                    FILES</span>
+            </div>
+
+            <div class="doc-grid">
+                <div class="doc-item">
+                    <div class="doc-icon"><i data-lucide="file-text"></i></div>
+                    <div class="doc-name">Offer Letter.pdf</div>
+                    <div class="doc-meta">Signed • Jan 12, 2026</div>
+                </div>
+                <div class="doc-item">
+                    <div class="doc-icon"><i data-lucide="shield-check"></i></div>
+                    <div class="doc-name">NDA Agreement.pdf</div>
+                    <div class="doc-meta">Signed • Jan 12, 2026</div>
+                </div>
+                <div class="doc-item">
+                    <div class="doc-icon" style="color: var(--danger);"><i data-lucide="file-minus"></i></div>
+                    <div class="doc-name">Payslip_Apr_2026.pdf</div>
+                    <div class="doc-meta">Generated • May 01, 2026</div>
+                </div>
+                <div class="doc-item">
+                    <div class="doc-icon"><i data-lucide="landmark"></i></div>
+                    <div class="doc-name">Bank Proof.jpg</div>
+                    <div class="doc-meta">Verified • May 10, 2026</div>
+                </div>
+                <div class="doc-item">
+                    <div class="doc-icon" style="color: var(--primary);"><i data-lucide="credit-card"></i></div>
+                    <div class="doc-name">PAN Card.pdf</div>
+                    <div class="doc-meta">Personal ID</div>
+                </div>
+                <div class="doc-item">
+                    <div class="doc-icon"><i data-lucide="user"></i></div>
+                    <div class="doc-name">Profile Pic.jpg</div>
+                    <div class="doc-meta">Updated 3m ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>
