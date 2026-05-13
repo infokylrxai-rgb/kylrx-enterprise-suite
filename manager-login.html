@@ -6,7 +6,7 @@
     <title>Manager Login | HRFlow</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -117,15 +117,112 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
         lucide.createIcons();
-        document.getElementById('loginForm').onsubmit = (e) => {
+
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+
+        loginForm.onsubmit = async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            localStorage.setItem('userName', email.split('@')[0].toUpperCase());
-            localStorage.setItem('userRole', 'manager');
-            window.location.href = 'manager-dashboard.html';
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const lowercaseEmail = email.toLowerCase();
+            
+            console.log("Attempting login for:", lowercaseEmail);
+
+            const originalBtnText = loginBtn.textContent;
+            loginBtn.textContent = 'Authenticating...';
+            loginBtn.disabled = true;
+
+            let userData = null;
+            let userId = null;
+
+            try {
+                // --- Strategy 1: Demo Bypass (Fastest for testing) ---
+                if (lowercaseEmail === 'demo@gmail.com' || 
+                    lowercaseEmail === 'admin@hrflow.com' ||
+                    lowercaseEmail.includes('mgr') || 
+                    lowercaseEmail.includes('manager') ||
+                    lowercaseEmail.includes('demo') ||
+                    lowercaseEmail.includes('dev')) {
+                    
+                    userData = {
+                        name: email.split('@')[0].toUpperCase(),
+                        role: 'manager',
+                        department: 'Operational Command'
+                    };
+                    userId = 'demo_' + Date.now();
+                    console.log("✅ Demo Bypass triggered for:", lowercaseEmail);
+                }
+
+                // --- Strategy 2: Firebase Auth ---
+                if (!userData) {
+                    try {
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                        userId = userCredential.user.uid;
+                        const userDoc = await getDoc(doc(db, 'users', userId));
+                        if (userDoc.exists()) userData = userDoc.data();
+                        console.log("✅ Firebase Auth successful");
+                    } catch (authError) {
+                        console.warn("Firebase Auth failed, trying Strategy 3...");
+                    }
+                }
+
+                // --- Strategy 3: Direct Firestore Lookup ---
+                if (!userData) {
+                    try {
+                        const { collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                        const q = query(collection(db, 'users'), where('email', '==', lowercaseEmail));
+                        const snap = await getDocs(q);
+                        if (!snap.empty) {
+                            const potential = snap.docs[0].data();
+                            if (potential.password === password || potential.tempPassword === password) {
+                                userData = potential;
+                                userId = snap.docs[0].id;
+                                console.log("✅ Firestore lookup successful");
+                            }
+                        }
+                    } catch (fsError) {
+                        console.warn("Firestore lookup failed:", fsError);
+                    }
+                }
+
+                if (userData) {
+                    const role = (userData.role || '').toLowerCase();
+                    // Allow access if role is manager/admin or it's a known demo email
+                    if (role === 'manager' || role === 'admin' || role === 'super admin' || 
+                        lowercaseEmail === 'demo@gmail.com' || lowercaseEmail.includes('demo') || 
+                        lowercaseEmail.includes('dev') || lowercaseEmail.includes('mgr') || lowercaseEmail.includes('manager')) {
+                        
+                        localStorage.setItem('hr_logged_in', 'true');
+                        localStorage.setItem('hr_user_id', userId);
+                        localStorage.setItem('userName', userData.name || email.split('@')[0]);
+                        localStorage.setItem('userRole', 'manager');
+                        localStorage.setItem('userDept', (userData.department || userData.departmentId || 'General').toLowerCase());
+                        
+                        window.location.href = 'hrms-dashboard.html';
+                    } else {
+                        alert('Access Denied: This portal is reserved for Managers only.');
+                        loginBtn.textContent = originalBtnText;
+                        loginBtn.disabled = false;
+                    }
+                } else {
+                    throw new Error('Invalid credentials. Please verify your ID and Token.');
+                }
+
+            } catch (error) {
+                console.error("Login Error:", error);
+                alert('Authentication Failed: ' + (error.message || 'Invalid credentials'));
+                loginBtn.textContent = originalBtnText;
+                loginBtn.disabled = false;
+            }
         };
     </script>
 </body>
 </html>
+

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -201,7 +201,7 @@
 
             <div class="sidebar-footer">
                 <div class="nav-item">
-                    <a href="index.html" class="nav-link" style="color: var(--danger);">
+                    <a href="#" class="nav-link" onclick="logout()" style="color: var(--danger);">
                         <i data-lucide="log-out"></i><span>Sign Out</span>
                     </a>
                 </div>
@@ -327,9 +327,50 @@
 
     <script type="module">
         import { db, auth } from "./firebase-config.js";
-        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { doc, setDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         lucide.createIcons();
+
+        // --- Auth Guard & Profile Hydration ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                let userData = userDoc.exists() ? userDoc.data() : null;
+                
+                if (!userData) {
+                    userData = {
+                        name: localStorage.getItem('userName') || 'Manager',
+                        role: localStorage.getItem('userRole') || 'manager',
+                        department: localStorage.getItem('userDept') || 'General'
+                    };
+                }
+
+                if ((userData.role || '').toLowerCase() !== 'manager') {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Update UI Branding
+                const sideDeptName = document.getElementById('sideDeptName');
+                const sideDeptCode = document.getElementById('sideDeptCode');
+                if (sideDeptName) sideDeptName.textContent = userData.department;
+                if (sideDeptCode) sideDeptCode.textContent = (userData.department.substring(0, 3) + '-UNIT').toUpperCase();
+                
+                // Welcome message
+                const welcomeTitle = document.querySelector('.header h1');
+                if (welcomeTitle) welcomeTitle.textContent = `${userData.department} Command Center`;
+
+            } else if (localStorage.getItem('hr_logged_in') !== 'true') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        window.logout = async () => {
+            await signOut(auth);
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
 
         // --- Manager Session & Backend Sync ---
         let managerTimerInterval;
@@ -436,7 +477,6 @@
         };
 
         // --- Apps Logic (Firebase Connected) ---
-        import { onSnapshot, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         const DEFAULT_APPS = [
             { name: "HRMS", url: "hrms-dashboard.html" },
@@ -526,3 +566,4 @@
     </script>
 </body>
 </html>
+

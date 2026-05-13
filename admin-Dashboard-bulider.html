@@ -801,12 +801,7 @@
                         <span>Dashboard</span>
                     </a>
                 </div>
-                <div class="nav-item">
-                    <a href="hrms-dashboard.html" class="nav-link">
-                        <i data-lucide="bar-chart-3"></i>
-                        <span>HRMS Dashboard</span>
-                    </a>
-                </div>
+
                 <div class="nav-item">
                     <a href="admin-Dashboard-bulider.html" class="nav-link active">
                         <i data-lucide="layout"></i>
@@ -853,18 +848,8 @@
                         <span>AI Analytics</span>
                     </a>
                 </div>
-                <div class="nav-item">
-                    <a href="admin-conversion-hub.html" class="nav-link">
-                        <i data-lucide="refresh-cw"></i>
-                        <span>Conversion Hub</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-code-engine.html" class="nav-link">
-                        <i data-lucide="code-2"></i>
-                        <span>Code Engine</span>
-                    </a>
-                </div>
+                
+                
                 <div class="nav-item">
                     <a href="admin-inactivity-monitor.html" class="nav-link">
                         <i data-lucide="monitor-off"></i>
@@ -941,7 +926,7 @@
                                 <i data-lucide="bar-chart-3"></i>
                             </div>
                             <div class="header-controls">
-                                <span class="status-badge" style="background: #e0e7ff; color: #4338ca;">Global Admin</span>
+                                <span class="status-badge" style="background: #fee2e2; color: #ef4444;">MANAGER</span>
                             </div>
                         </div>
                         <div class="dept-info">
@@ -950,12 +935,12 @@
                         </div>
                         <div class="card-stats">
                             <div class="stat-item">
-                                <span class="stat-label">Total Departments</span>
-                                <span class="stat-value">8 Active Units</span>
+                                <span class="stat-label">TOTAL DEPARTMENTS</span>
+                                <span class="stat-value" id="global-unit-count">Loading...</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">System Health</span>
-                                <span class="stat-value" style="color: #10b981;">Excellent</span>
+                                <span class="stat-label">SYSTEM HEALTH</span>
+                                <span class="stat-value" id="global-system-health" style="color: #10b981;">Excellent</span>
                             </div>
                         </div>
                         <div class="card-actions">
@@ -1351,8 +1336,40 @@
     </div>
 
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        // Auth Observer for Profile
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                let data;
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) data = userDoc.data();
+                } catch (e) { console.warn("Profile fetch error", e); }
+
+                if (!data) {
+                    data = {
+                        name: localStorage.getItem('userName') || 'Super Admin',
+                        role: localStorage.getItem('userRole') || 'ADMIN'
+                    };
+                }
+
+                // Update UI
+                const uName = document.querySelector('.user-name');
+                const uRole = document.querySelector('.user-role');
+                const uAvatar = document.querySelector('.user-avatar');
+
+                if (uName) uName.textContent = data.name;
+                if (uRole) uRole.textContent = (data.role || 'ADMIN').toUpperCase();
+                if (uAvatar && data.name) {
+                    uAvatar.textContent = data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                }
+            } else if (localStorage.getItem('hr_logged_in') !== 'true') {
+                window.location.href = 'index.html';
+            }
+        });
 
         // Initialize Lucide icons
         lucide.createIcons();
@@ -1604,9 +1621,9 @@
             }
         });
 
-        window.openBlueprintPreview = (id) => {
-            // Navigate to the manager dashboard with the unit ID
-            window.location.href = `manager-dashboard.html?id=${id}`;
+        window.openBlueprintPreview = (id, targetType) => {
+            const page = targetType === 'Employee Portal' ? 'employee-dashboard.html' : 'manager-dashboard.html';
+            window.location.href = `${page}?id=${id}`;
         };
 
         window.editCenter = async (id, data) => {
@@ -1615,6 +1632,10 @@
             unitIdInput.value = data.unitId;
             selectedIcon = data.icon || 'layers';
             selectedPrimaryColor = data.primaryColor || '#3b82f6';
+            targetDashboardType = data.targetType || 'Manager Suite';
+            
+            // Set Target UI
+            window.selectTarget(targetDashboardType === 'Manager Suite' ? 'Manager' : 'Employee');
             
             // Set Icon UI
             iconOptions.forEach(opt => {
@@ -1695,6 +1716,8 @@
                     hubGrid.appendChild(card);
                 });
                 unitCountBadge.textContent = `${snapshot.size} UNITS`;
+                const globalUnitCount = document.getElementById('global-unit-count');
+                if (globalUnitCount) globalUnitCount.textContent = `${snapshot.size} Active Unit${snapshot.size === 1 ? '' : 's'}`;
                 lucide.createIcons();
             },
             (error) => {
@@ -1725,12 +1748,17 @@
             div.className = 'hub-card';
             const statusClass = data.status === 'Live' ? 'status-active' : 'status-pending';
             
+            const isManager = (data.targetType || 'Manager Suite') === 'Manager Suite';
+            const targetLabel = isManager ? 'MANAGER' : 'EMPLOYEE';
+            const targetStyle = isManager ? 'background: rgba(59, 130, 246, 0.1); color: #3b82f6;' : 'background: rgba(16, 185, 129, 0.1); color: #10b981;';
+            
             div.innerHTML = `
                 <div class="card-header">
                     <div class="dept-icon-wrapper" style="background: ${data.primaryColor}15; color: ${data.primaryColor}">
                         <i data-lucide="${data.icon || 'terminal'}"></i>
                     </div>
                     <div class="header-controls">
+                        <span class="status-badge" style="${targetStyle} font-weight: 800; font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;">${targetLabel}</span>
                         <span class="status-badge ${statusClass}">${data.status || 'In Setup'}</span>
                         <div class="btn-delete" data-id="${id}"><i data-lucide="trash-2"></i></div>
                     </div>
@@ -1751,7 +1779,7 @@
                 </div>
                 <div class="card-actions">
                     ${data.status === 'Live' ? `
-                        <button class="action-btn btn-view" onclick="openBlueprintPreview('${id}')">
+                        <button class="action-btn btn-view" onclick="openBlueprintPreview('${id}', '${data.targetType || 'Manager Suite'}')">
                             <i data-lucide="layout-dashboard"></i> View
                         </button>
                     ` : `
@@ -1857,3 +1885,4 @@
 </body>
 
 </html>
+

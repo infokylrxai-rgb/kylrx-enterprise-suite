@@ -14,6 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="admin-dashboard.css">
     <style>
+        html { scroll-behavior: smooth; }
         :root {
             --glass: blur(12px);
             --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
@@ -392,24 +393,203 @@
         .user-name { font-size: 0.85rem; font-weight: 700; }
         .user-role { font-size: 0.75rem; color: var(--text-muted); }
 
-        .btn-view {
-            padding: 8px;
-            border-radius: 8px;
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            flex-wrap: nowrap;
+        }
+
+        .search-bar-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 10px;
             border: 1px solid var(--border);
+            width: 240px;
+            transition: 0.3s;
+        }
+
+        .search-bar-container:focus-within {
+            border-color: var(--primary);
             background: white;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .top-search-input {
+            border: none;
+            background: transparent;
+            font-size: 0.8rem;
+            width: 100%;
+            outline: none;
+            padding: 4px 8px;
+            color: var(--text-main);
+        }
+
+        .search-icon {
+            color: var(--text-muted);
+            width: 16px;
+            height: 16px;
+        }
+
+        .search-hint {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            padding: 2px 4px;
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .action-divider {
+            height: 24px;
+            width: 1px;
+            background: var(--border);
+            margin: 0 0.5rem;
+        }
+
+        /* Modal & Form Improvements */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
             cursor: pointer;
+            color: var(--text-muted);
             transition: 0.2s;
+        }
+
+        .close-modal:hover { color: var(--danger); }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        /* Table Action Buttons */
+        .btn-action {
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        .btn-view:hover {
-            background: var(--primary-light);
-            color: var(--primary);
-            border-color: var(--primary-soft);
+        .btn-action:hover {
+            background: #eff6ff;
+            color: #3b82f6;
+            border-color: #bfdbfe;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
         }
 
+        .btn-action.delete:hover {
+            background: #fef2f2;
+            color: #ef4444;
+            border-color: #fecaca;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+        }
+
+        .btn-action i, .btn-action svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.5px;
+        }
+
+        .password-cell {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            width: fit-content;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .password-cell:hover { 
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .badge-role {
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 
@@ -417,7 +597,7 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <a href="admin-dashboard.html" class="logo">
+            <a href="#" class="logo">
                 <div class="logo-icon">
                     <i data-lucide="layers"></i>
                 </div>
@@ -425,84 +605,89 @@
             </a>
 
             <nav class="nav-menu">
-                <div class="nav-label">Main Menu</div>
-                <div class="nav-item">
-                    <a href="admin-dashboard.html" class="nav-link">
-                        <i data-lucide="layout-dashboard"></i>
-                        <span>Admin Dashboard</span>
-                    </a>
-                </div>
+                <div class="nav-label">Strategic Hub</div>
                 <div class="nav-item">
                     <a href="hrms-dashboard.html" class="nav-link active">
-                        <i data-lucide="bar-chart-3"></i>
-                        <span>HRMS Dashboard</span>
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard Overview</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="admin-Dashboard-bulider.html" class="nav-link">
-                        <i data-lucide="layout-grid"></i>
-                        <span>Dashboard Builder</span>
+                    <a href="#bulk-onboarding" class="nav-link">
+                        <i data-lucide="user-plus"></i>
+                        <span>Onboarding Engine</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#compliance" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Compliance Tracker</span>
                     </a>
                 </div>
 
                 <div class="nav-label">Operations</div>
                 <div class="nav-item">
-                    <a href="admin-payroll-upload.html" class="nav-link">
-                        <i data-lucide="banknote"></i>
-                        <span>Payroll</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-attendance-monitor.html" class="nav-link">
+                    <a href="#leave-attendance" class="nav-link">
                         <i data-lucide="calendar-check"></i>
-                        <span>Attendance</span>
+                        <span>Leave & Attendance</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="admin-leave-management.html" class="nav-link">
-                        <i data-lucide="clock"></i>
-                        <span>Leaves</span>
+                    <a href="#payroll" class="nav-link">
+                        <i data-lucide="banknote"></i>
+                        <span>Payroll & Finances</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="admin-onboarding-ai.html" class="nav-link">
-                        <i data-lucide="user-plus"></i>
-                        <span>Onboarding AI</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-asset-management.html" class="nav-link">
-                        <i data-lucide="package"></i>
-                        <span>Asset Management</span>
+                    <a href="#pms" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance (PMS)</span>
                     </a>
                 </div>
 
                 <div class="nav-label">Intelligence</div>
                 <div class="nav-item">
-                    <a href="admin-analysis.html" class="nav-link">
-                        <i data-lucide="trending-up"></i>
-                        <span>AI Analytics</span>
+                    <a href="#recruitment" class="nav-link" onclick="setActive(this)">
+                        <i data-lucide="user-search"></i>
+                        <span>Recruitment (ATS)</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="admin-conversion-hub.html" class="nav-link">
-                        <i data-lucide="refresh-cw"></i>
-                        <span>Conversion Hub</span>
+                    <a href="#analytics" class="nav-link">
+                        <i data-lucide="brain-circuit"></i>
+                        <span>AI Insights</span>
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="admin-code-engine.html" class="nav-link">
-                        <i data-lucide="code-2"></i>
-                        <span>Code Engine</span>
+                    <a href="#expenses" class="nav-link">
+                        <i data-lucide="receipt"></i>
+                        <span>Expense Claims</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Lifecycle</div>
+                <div class="nav-item">
+                    <a href="#lifecycle" class="nav-link">
+                        <i data-lucide="briefcase"></i>
+                        <span>Employee Lifecycle</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#assets" class="nav-link">
+                        <i data-lucide="laptop"></i>
+                        <span>Asset Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#org-structure" class="nav-link">
+                        <i data-lucide="building-2"></i>
+                        <span>Org Structure</span>
                     </a>
                 </div>
             </nav>
 
             <div class="sidebar-bottom">
-                <a href="admin-settings.html" class="nav-link">
-                    <i data-lucide="settings"></i>
-                    <span>Settings</span>
-                </a>
+
                 <a href="#" class="nav-link" style="color: #ef4444;" onclick="logout()">
                     <i data-lucide="log-out"></i>
                     <span>Logout</span>
@@ -523,6 +708,30 @@
                 </div>
 
                 <div class="top-nav-right">
+                    <div class="search-bar-container">
+                        <i data-lucide="search" class="search-icon" onclick="document.querySelector('.top-search-input').focus()"></i>
+                        <input type="text" class="top-search-input" placeholder="Search personnel..." id="empSearch">
+                        <span class="search-hint">⌘K</span>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="openModal('empModal')">
+                            <i data-lucide="user-plus"></i>
+                            <span>Add Employee</span>
+                        </button>
+                    </div>
+
+                    <div class="action-divider"></div>
+
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                        <i data-lucide="message-square"></i>
+                        <span class="badge" style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></span>
+                    </button>
+                    <button class="action-icon" title="Notifications" onclick="alert('System Notifications: All services operational.')">
+                        <i data-lucide="bell"></i>
+                        <span class="badge red" style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
+                    </button>
+
                     <div class="user-profile">
                         <div class="user-avatar">HR</div>
                         <div class="user-info">
@@ -533,193 +742,1305 @@
                 </div>
             </header>
 
-            <!-- AI Insight Banner -->
-            <div class="ai-insight-banner">
-                <div class="ai-text">
-                    <span class="ai-badge">AI Strategy Insight</span>
-                    <h3>Organization Health is Excellent</h3>
-                    <p>Current workforce productivity is up by 12% across all 8 departments. The AI recommends prioritizing 'Engineering' for the next expansion phase based on skill gap analysis.</p>
+            <div class="header-actions" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div class="welcome-text">
+                    <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">Strategic Management Console</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Live workforce overview and administrative controls</p>
                 </div>
-                <a href="#" class="ai-action-btn">
-                    <i data-lucide="sparkles"></i>
-                    View Strategy Report
-                </a>
-            </div>
-
-            <!-- Stats Overview -->
-            <div class="stats-grid">
-                <div class="stat-card-premium">
-                    <div class="stat-icon-box" style="background: #eff6ff; color: #3b82f6;">
-                        <i data-lucide="users"></i>
+                <div class="btn-group" style="display: flex; gap: 10px; align-items: center;">
+                    <div id="tvcStatus" style="display: flex; align-items: center; gap: 8px; margin-right: 15px; padding: 6px 12px; background: #f1f5f9; border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: #64748b; border: 1px solid #e2e8f0;">
+                        <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%;" id="tvcDot"></span>
+                        <span id="tvcStatusText">SECURE: IDLE</span>
+                        <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid #cbd5e1; color: var(--primary); display: none;">00:00:00</span>
                     </div>
-                    <div class="stat-content">
-                        <h3>Total Workforce</h3>
-                        <div class="stat-value-large">1,284</div>
-                        <div class="stat-trend trend-up">
-                            <i data-lucide="arrow-up-right"></i> 4.2% from last month
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card-premium">
-                    <div class="stat-icon-box" style="background: #fdf2f2; color: #ef4444;">
-                        <i data-lucide="user-minus"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Attrition Rate</h3>
-                        <div class="stat-value-large">2.4%</div>
-                        <div class="stat-trend trend-down">
-                            <i data-lucide="arrow-down-right"></i> 0.8% decrease
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card-premium">
-                    <div class="stat-icon-box" style="background: #ecfdf5; color: #10b981;">
-                        <i data-lucide="zap"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Productivity</h3>
-                        <div class="stat-value-large">94.2%</div>
-                        <div class="stat-trend trend-up">
-                            <i data-lucide="arrow-up-right"></i> 2.1% improvement
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card-premium">
-                    <div class="stat-icon-box" style="background: #fffbeb; color: #f59e0b;">
-                        <i data-lucide="briefcase"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3>Open Roles</h3>
-                        <div class="stat-value-large">42</div>
-                        <div class="stat-trend" style="color: var(--text-muted);">
-                            Active recruitment live
-                        </div>
-                    </div>
+                    <button class="btn btn-punch-in" id="btnPunchIn" onclick="adminPunchIn()" style="background: #10b981; color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: 0.3s; cursor: pointer;">
+                        <i data-lucide="play" size="16"></i> Punch In
+                    </button>
+                    <button class="btn btn-break" id="btnBreak" onclick="adminBreak()" style="display: none; background: #f59e0b; color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; align-items: center; gap: 8px; transition: 0.3s;">
+                        <i data-lucide="coffee" size="16"></i> Break
+                    </button>
+                    <button class="btn btn-punch-out" id="btnPunchOut" onclick="adminPunchOut()" style="display: none; background: #ef4444; color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; align-items: center; gap: 8px; transition: 0.3s;">
+                        <i data-lucide="square" size="16"></i> Punch Out
+                    </button>
+                    <button class="btn btn-outline" onclick="openModal('deptModal')">
+                        <i data-lucide="layers"></i> Configure Departments
+                    </button>
                 </div>
             </div>
 
-            <div class="org-section">
-                <!-- Departmental Command Centers -->
-                <div class="premium-panel">
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            <div class="stat-icon-box" style="background: var(--primary-light); color: var(--primary);">
-                                <i data-lucide="building-2"></i>
+            <!-- Bulk Onboarding Section -->
+            <div class="premium-panel" id="bulk-onboarding" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #ecfdf5; color: #10b981;">
+                            <i data-lucide="users"></i>
+                        </div>
+                        <h2>Bulk Employee Onboarding</h2>
+                    </div>
+                    <button class="action-btn" onclick="downloadTemplate()" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; background: var(--primary); color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="download" size="16"></i> Download Template
+                    </button>
+                </div>
+                
+                <div style="background: #f8fafc; border: 1px dashed var(--border); border-radius: 16px; padding: 3rem; text-align: center; cursor: pointer; transition: 0.3s;" onmouseover="this.style.borderColor='var(--primary)'; this.style.background='white';" onmouseout="this.style.borderColor='var(--border)'; this.style.background='#f8fafc';" onclick="document.getElementById('bulkUploadInput').click()">
+                    <i data-lucide="upload-cloud" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Upload Employee Data</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Drag and drop or click to select Excel (.xlsx, .csv) file</p>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">official email id</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">department</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">sub-department</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">designation</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">reporting manager (Code)</span>
+                    </div>
+                    <input type="file" id="bulkUploadInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display: none;" onchange="handleBulkUpload(event)">
+                </div>
+                <div id="uploadStatus" style="margin-top: 1rem; text-align: center; font-size: 0.85rem; font-weight: 600; display: none;"></div>
+            </div>
+
+            <!-- Onboarding Compliance & Auto-Expiry Section -->
+            <div class="premium-panel" id="compliance" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #fff1f2; color: #e11d48;">
+                            <i data-lucide="shield-alert"></i>
+                        </div>
+                        <h2>Onboarding Compliance & Auto-Expiry</h2>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Automatic lifecycle management for onboarding links. 3h No-Response: Deactivate & Suspend. 3d Suspension: Move to Trash. Profiles in Trash are permanently deleted after 30 days unless retrieved.</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                    <!-- Suspended Profiles -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; border-left: 4px solid #fbbf24;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Suspended (3h Expiry)</div>
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #d97706; margin-top: 4px;">24</div>
                             </div>
-                            <h2>Departmental Command Centers</h2>
+                            <div style="background: #fffbeb; color: #d97706; padding: 8px; border-radius: 10px;"><i data-lucide="clock"></i></div>
                         </div>
-                        <button class="action-btn" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; background: white; border: 1px solid var(--border); cursor: pointer;">
-                            Export All
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Profiles suspended due to 3-hour inactivity on personal email links.</div>
+                        <button onclick="alert('Viewing 24 Suspended Profiles')" style="width: 100%; background: #fef3c7; color: #92400e; border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Review & Reactive</button>
+                    </div>
+
+                    <!-- Trash Queue -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; border-left: 4px solid #ef4444;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">In Trash (3d Post-Suspension)</div>
+                                <div style="font-size: 1.5rem; font-weight: 800; color: #ef4444; margin-top: 4px;">12</div>
+                            </div>
+                            <div style="background: #fdf2f2; color: #ef4444; padding: 8px; border-radius: 10px;"><i data-lucide="trash-2"></i></div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Profiles moved to trash after 3 days of suspension. Pending permanent deletion.</div>
+                        <button onclick="alert('Viewing 12 Profiles in Trash')" style="width: 100%; background: #fdf2f2; color: #b91c1c; border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Retrieve From Trash</button>
+                    </div>
+
+                    <!-- Permanent Deletion Config -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; border-left: 4px solid #6366f1;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Cleanup Settings</div>
+                                <div style="font-size: 1.25rem; font-weight: 800; color: #4f46e5; margin-top: 4px;">Auto-Purge ON</div>
+                            </div>
+                            <div style="background: #e0e7ff; color: #4f46e5; padding: 8px; border-radius: 10px;"><i data-lucide="settings"></i></div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                <span style="color: var(--text-muted);">Suspension Window</span>
+                                <span style="font-weight: 700;">3 Hours</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                <span style="color: var(--text-muted);">Trash Window</span>
+                                <span style="font-weight: 700;">3 Days</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                                <span style="color: var(--text-muted);">Permanent Deletion</span>
+                                <span style="font-weight: 700;">30 Days</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Onboarding Document & Chat Config Section -->
+            <div class="premium-panel" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #eff6ff; color: #3b82f6;">
+                            <i data-lucide="file-text"></i>
+                        </div>
+                        <h2>Welcome & Onboarding Flow</h2>
+                    </div>
+                    <button class="action-btn" onclick="saveOnboardingConfig()" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; background: var(--primary); color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="save" size="16"></i> Save Configuration
+                    </button>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Document Upload -->
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Onboarding Document (PDF/Docs)</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">This document will be automatically presented to new employees upon their first login.</p>
+                        <div style="background: #f8fafc; border: 1px dashed var(--border); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: 0.3s;" onclick="document.getElementById('obDocUpload').click()">
+                            <i data-lucide="file-up" style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                            <div style="font-size: 0.9rem; font-weight: 600;" id="obDocName">Upload Flow Document</div>
+                            <input type="file" id="obDocUpload" accept=".pdf,.doc,.docx" style="display: none;" onchange="document.getElementById('obDocName').textContent = this.files[0]?.name || 'Upload Flow Document'; document.getElementById('obDocName').style.color='var(--primary)'">
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Config -->
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Support Chat Configuration</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Enable direct support channels for new hires to ask questions during onboarding.</p>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid var(--border); border-radius: 10px; cursor: pointer;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 32px; height: 32px; background: #fdf2f2; color: #ef4444; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="user" size="16"></i></div>
+                                    <div>
+                                        <div style="font-size: 0.85rem; font-weight: 600;">HR Representative Chat</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">Direct messages to assigned HR</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="obHrChat" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+                            </label>
+                            
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid var(--border); border-radius: 10px; cursor: pointer;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 32px; height: 32px; background: #ecfdf5; color: #10b981; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i data-lucide="bot" size="16"></i></div>
+                                    <div>
+                                        <div style="font-size: 0.85rem; font-weight: 600;">AI Assistant Chat</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">Automated policy answers (24/7)</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="obAiChat" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Units & Legal Entity Config Section -->
+            <div class="premium-panel" id="org-structure" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #f3e8ff; color: #a855f7;">
+                            <i data-lucide="building-2"></i>
+                        </div>
+                        <h2>Organization Structure Configuration</h2>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Define the official Business Units and Legal Entities available for onboarding and payroll compliance.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Legal Entities -->
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+                            <span>Legal Entities</span>
+                            <button style="background: none; border: none; color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" size="14"></i> Add</button>
+                        </h4>
+                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                                <span>HRFlow Global LLC (US)</span>
+                                <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;"></i>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                                <span>HRFlow India Pvt Ltd (IN)</span>
+                                <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Business Units -->
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+                            <span>Business Units (BUs)</span>
+                            <button style="background: none; border: none; color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" size="14"></i> Add</button>
+                        </h4>
+                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                                <span>Cloud Engineering & Ops</span>
+                                <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;"></i>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
+                                <span>Enterprise Sales & Marketing</span>
+                                <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Code Format Config Section -->
+            <div class="premium-panel" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #fef3c7; color: #d97706;">
+                            <i data-lucide="hash"></i>
+                        </div>
+                        <h2>Employee Code Format Configurator</h2>
+                    </div>
+                    <button class="action-btn" onclick="saveCodeConfig()" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; background: var(--primary); color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="save" size="16"></i> Save Formats
+                    </button>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Define the automatic prefix and sequence formatting rules for newly onboarded personnel based on their employment type.</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                    <!-- Full Time -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></div>
+                            <h4 style="font-size: 0.95rem; font-weight: 700;">Full-Time Employee</h4>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div>
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block;">Prefix String</label>
+                                <input type="text" value="FTE-" oninput="document.getElementById('ftePreview').textContent = this.value + document.getElementById('fteSeq').value" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-family: inherit;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block;">Next Sequence Number</label>
+                                <input type="number" id="fteSeq" value="1050" oninput="document.getElementById('ftePreview').textContent = this.previousElementSibling.querySelector('input').value + this.value" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-family: inherit;">
+                            </div>
+                            <div style="margin-top: 8px; font-size: 0.8rem; background: #f8fafc; padding: 8px; border-radius: 6px; text-align: center; color: var(--text-muted);">
+                                Next Code: <strong style="color: var(--text-main);" id="ftePreview">FTE-1050</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interns -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></div>
+                            <h4 style="font-size: 0.95rem; font-weight: 700;">Intern</h4>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div>
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block;">Prefix String</label>
+                                <input type="text" value="INT-" oninput="document.getElementById('intPreview').textContent = this.value + document.getElementById('intSeq').value" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-family: inherit;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block;">Next Sequence Number</label>
+                                <input type="number" id="intSeq" value="205" oninput="document.getElementById('intPreview').textContent = this.previousElementSibling.querySelector('input').value + this.value" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-family: inherit;">
+                            </div>
+                            <div style="margin-top: 8px; font-size: 0.8rem; background: #f8fafc; padding: 8px; border-radius: 6px; text-align: center; color: var(--text-muted);">
+                                Next Code: <strong style="color: var(--text-main);" id="intPreview">INT-205</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consultants -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
+                            <div style="width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6;"></div>
+                            <h4 style="font-size: 0.95rem; font-weight: 700;">Consultant / Contract</h4>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div>
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block;">Prefix String</label>
+                                <input type="text" value="CON-" oninput="document.getElementById('conPreview').textContent = this.value + document.getElementById('conSeq').value" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-family: inherit;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block;">Next Sequence Number</label>
+                                <input type="number" id="conSeq" value="8012" oninput="document.getElementById('conPreview').textContent = this.previousElementSibling.querySelector('input').value + this.value" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-family: inherit;">
+                            </div>
+                            <div style="margin-top: 8px; font-size: 0.8rem; background: #f8fafc; padding: 8px; border-radius: 6px; text-align: center; color: var(--text-muted);">
+                                Next Code: <strong style="color: var(--text-main);" id="conPreview">CON-8012</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generated Profiles Section -->
+            <div class="premium-panel" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #fdf2f2; color: #ef4444;">
+                            <i data-lucide="contact"></i>
+                        </div>
+                        <h2>Generated Employee Profiles</h2>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">These profiles and employee codes are automatically generated after the employee completes the Onboarding Data Form.</p>
+                
+                <div style="background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid var(--border); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Employee</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Generated Code</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Department</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Status</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="generatedProfilesTable">
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 32px; height: 32px; background: var(--primary-light); color: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">AR</div>
+                                        <div>
+                                            <div style="font-size: 0.85rem; font-weight: 700;">Alice Roberts</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">alice.r@hrflow.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <span style="background: #eff6ff; color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; border: 1px solid #bfdbfe;">EMP-5092</span>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="font-size: 0.85rem; font-weight: 600;">Engineering</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">Frontend Dev</div>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <span style="background: #ecfdf5; color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" size="12"></i> Profile Created</span>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <button style="background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--text-main);">View Profile</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 32px; height: 32px; background: #fef3c7; color: #d97706; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">MC</div>
+                                        <div>
+                                            <div style="font-size: 0.85rem; font-weight: 700;">Michael Chen</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">michael.c@hrflow.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <span style="background: #eff6ff; color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; border: 1px solid #bfdbfe;">EMP-5093</span>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="font-size: 0.85rem; font-weight: 600;">Sales</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">Account Exec</div>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <span style="background: #ecfdf5; color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" size="12"></i> Profile Created</span>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <button style="background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--text-main);">View Profile</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Profile Conversion Engine -->
+            <div class="premium-panel" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #e0e7ff; color: #4f46e5;">
+                            <i data-lucide="refresh-cw"></i>
+                        </div>
+                        <h2>Profile Conversion Engine</h2>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Convert employment types (e.g., Intern to Full-Time, Consultant to Full-Time) seamlessly. This will automatically regenerate their Employee Code, assign a new Business Unit, and recalculate benefits.</p>
+                
+                <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem;">
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.5rem; align-items: center;">
+                        
+                        <!-- From State -->
+                        <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border);">
+                            <h4 style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem;">Select Profile</h4>
+                            
+                            <select style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.9rem; margin-bottom: 12px;">
+                                <option>Maria Torres (INT-204) - Intern</option>
+                                <option>David Kim (CON-8011) - Consultant</option>
+                            </select>
+                            
+                            <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px;">
+                                <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="hash" size="12"></i> Current Code: INT-204</span>
+                                <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="building" size="12"></i> Unit: Unassigned</span>
+                            </div>
+                        </div>
+
+                        <!-- Icon -->
+                        <div style="color: var(--primary);">
+                            <i data-lucide="arrow-right-circle" size="32"></i>
+                        </div>
+
+                        <!-- To State -->
+                        <div style="background: #eff6ff; padding: 1.5rem; border-radius: 12px; border: 1px solid #bfdbfe;">
+                            <h4 style="font-size: 0.85rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 1rem;">Target Configuration</h4>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <div>
+                                    <select style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #bfdbfe; outline: none; font-family: inherit; font-size: 0.85rem;">
+                                        <option>Convert to Full-Time Employee (FTE)</option>
+                                        <option>Convert to Consultant (CON)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <select style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #bfdbfe; outline: none; font-family: inherit; font-size: 0.85rem;">
+                                        <option>Assign BU: Cloud Engineering & Ops</option>
+                                        <option>Assign BU: Enterprise Sales</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <select style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #bfdbfe; outline: none; font-family: inherit; font-size: 0.85rem;">
+                                        <option>Assign Entity: HRFlow Global LLC (US)</option>
+                                        <option>Assign Entity: HRFlow India Pvt Ltd (IN)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem; text-align: right; border-top: 1px solid var(--border); padding-top: 1rem;">
+                        <button onclick="executeConversion(this)" style="background: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                            <i data-lucide="zap" size="16"></i> Execute Conversion
                         </button>
                     </div>
+                </div>
+            </div>
 
-                    <div class="department-list" id="dept-list-container">
-                        <!-- Loaded via JS -->
+            <!-- Bank Details Approval Section -->
+            <div class="premium-panel" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #fffbeb; color: #f59e0b;">
+                            <i data-lucide="landmark"></i>
+                        </div>
+                        <h2>Pending Approvals: Bank Details</h2>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Review and approve banking details submitted by employees (Task triggered 3 days post-onboarding). Once approved, data is synced directly to their payroll profile.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Approval Request 1 -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;" id="bankApproval-1">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 48px; height: 48px; background: #eff6ff; color: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">JS</div>
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <h4 style="font-size: 1rem; font-weight: 700;">John Smith</h4>
+                                    <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted);">EMP-5089</span>
+                                </div>
+                                <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="building" size="14"></i> Chase Bank</span>
+                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="credit-card" size="14"></i> Acct: **** 4092</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="approveBankDetails(1)" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="check" size="14"></i> Approve & Sync</button>
+                            <button onclick="document.getElementById('bankApproval-1').style.display='none'" style="background: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="x" size="14"></i> Reject</button>
+                        </div>
+                    </div>
+
+                    <!-- Approval Request 2 -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;" id="bankApproval-2">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 48px; height: 48px; background: #fdf2f2; color: #ef4444; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">MT</div>
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <h4 style="font-size: 1rem; font-weight: 700;">Maria Torres</h4>
+                                    <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted);">INT-204</span>
+                                </div>
+                                <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="building" size="14"></i> Bank of America</span>
+                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="credit-card" size="14"></i> Acct: **** 8812</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="approveBankDetails(2)" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="check" size="14"></i> Approve & Sync</button>
+                            <button onclick="document.getElementById('bankApproval-2').style.display='none'" style="background: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="x" size="14"></i> Reject</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reporting Manager Transfer Approval Section -->
+            <div class="premium-panel" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #e0f2fe; color: #0ea5e9;">
+                            <i data-lucide="git-pull-request"></i>
+                        </div>
+                        <h2>Reporting Manager Transfer Approvals</h2>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Multi-stage approval workflow for reporting line updates. Required approvals: Business Head > HR Manager > Previous & Upcoming Manager.</p>
+                
+                <div style="background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid var(--border); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Employee</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Transfer Details</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Approval Chain</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 32px; height: 32px; background: #dcfce7; color: #16a34a; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">SW</div>
+                                        <div>
+                                            <div style="font-size: 0.85rem; font-weight: 700;">Sarah Wilson</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">EMP-5042</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem;">
+                                        <span style="color: var(--text-muted);">David Chen</span>
+                                        <i data-lucide="chevrons-right" size="14" style="color: var(--primary);"></i>
+                                        <span style="font-weight: 700; color: var(--text-main);">Anita Desai</span>
+                                    </div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Team: Product Design</div>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="display: flex; gap: 4px;">
+                                        <div title="Business Head" style="width: 24px; height: 24px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.6rem;"><i data-lucide="check" size="10"></i></div>
+                                        <div title="HR Manager" style="width: 24px; height: 24px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.6rem;"><i data-lucide="check" size="10"></i></div>
+                                        <div title="Previous Manager" style="width: 24px; height: 24px; border-radius: 50%; background: #fbbf24; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.6rem;"><i data-lucide="clock" size="10"></i></div>
+                                        <div title="Upcoming Manager" style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.6rem;"><i data-lucide="minus" size="10"></i></div>
+                                    </div>
+                                    <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px;">Pending: Previous Manager</div>
+                                </td>
+                                <td style="padding: 1rem 1.5rem;">
+                                    <button onclick="approveTransfer(this)" style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">Final Approve</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payroll, Leave & PMS Enterprise Suite -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2.5rem;">
+                
+                <!-- Leave & Attendance Center -->
+                <div class="premium-panel" id="leave-attendance">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <div class="stat-icon-box" style="background: #ecfdf5; color: #10b981;">
+                                <i data-lucide="calendar"></i>
+                            </div>
+                            <h2>Leave & Attendance Center</h2>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
+                            <h4 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">Attendance Regularization</h4>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Employee Window: 2 Days | Manager/HR: Anytime</div>
+                            <button class="action-btn" style="width: 100%; justify-content: center; background: white; color: var(--text-main); border: 1px solid var(--border);">Review Regularization Requests (8)</button>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="background: white; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800;">Holiday Calendar</div>
+                                <div style="font-size: 0.9rem; font-weight: 700; margin-top: 4px;">Next: Memorial Day</div>
+                            </div>
+                            <div style="background: white; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
+                                <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800;">Custom Leave Plans</div>
+                                <div style="font-size: 0.9rem; font-weight: 700; margin-top: 4px;">4 Active Plans</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Recent Org Changes -->
-                <div class="premium-panel">
+                <!-- PMS & Performance Center -->
+                <div class="premium-panel" id="pms">
                     <div class="panel-header">
                         <div class="panel-title">
-                            <h2>Org Activity</h2>
+                            <div class="stat-icon-box" style="background: #eff6ff; color: #3b82f6;">
+                                <i data-lucide="trending-up"></i>
+                            </div>
+                            <h2>Performance Management (PMS)</h2>
                         </div>
                     </div>
-                    <div class="activity-feed">
-                        <div class="activity-item">
-                            <div class="activity-dot">
-                                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <span style="font-size: 0.85rem; font-weight: 700;">EOD Task Tracking</span>
+                            <span class="ai-badge" style="background: #ecfdf5; color: #10b981;">Live Sync</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: #f8fafc; border-radius: 8px;">
+                                <span>Sarah Wilson (Design)</span>
+                                <span style="font-weight: 800; color: var(--primary);">Score: 4.8/5.0</span>
                             </div>
-                            <div class="activity-info">
-                                <h5>New Department Created</h5>
-                                <p>'Quantum Research' added by Admin</p>
-                                <div class="activity-time">2 hours ago</div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: #f8fafc; border-radius: 8px;">
+                                <span>John Smith (Sales)</span>
+                                <span style="font-weight: 800; color: var(--primary);">Score: 4.2/5.0</span>
                             </div>
                         </div>
-                        <div class="activity-item">
-                            <div class="activity-dot" style="background: #fef3c7; color: #d97706;">
-                                <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
-                            </div>
-                            <div class="activity-info">
-                                <h5>Payroll Strategy Update</h5>
-                                <p>Sales commission structure revised</p>
-                                <div class="activity-time">5 hours ago</div>
-                            </div>
+                        <button style="width: 100%; margin-top: 1rem; background: var(--primary); color: white; border: none; padding: 8px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Audit EOD Updates</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payroll & Document Studio -->
+            <div class="premium-panel" id="payroll" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #fdf2f2; color: #ef4444;">
+                            <i data-lucide="file-check"></i>
                         </div>
-                        <div class="activity-item">
-                            <div class="activity-dot" style="background: #ecfdf5; color: #10b981;">
-                                <i data-lucide="user-check" style="width: 16px; height: 16px;"></i>
+                        <h2>Payroll & Document Studio</h2>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+                    <div class="doc-card" style="text-align: center; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); cursor: pointer;">
+                        <i data-lucide="file-text" style="color: var(--primary); margin-bottom: 10px;"></i>
+                        <div style="font-size: 0.85rem; font-weight: 700;">Payslips (FTE)</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Generate May 2026</div>
+                    </div>
+                    <div class="doc-card" style="text-align: center; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); cursor: pointer;">
+                        <i data-lucide="receipt" style="color: var(--primary); margin-bottom: 10px;"></i>
+                        <div style="font-size: 0.85rem; font-weight: 700;">Invoices (Contr.)</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Intern/Cons. Billing</div>
+                    </div>
+                    <div class="doc-card" style="text-align: center; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); cursor: pointer;">
+                        <i data-lucide="calculator" style="color: var(--primary); margin-bottom: 10px;"></i>
+                        <div style="font-size: 0.85rem; font-weight: 700;">F&F Settlements</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Full & Final Audit</div>
+                    </div>
+                    <div class="doc-card" style="text-align: center; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); cursor: pointer;">
+                        <i data-lucide="award" style="color: var(--primary); margin-bottom: 10px;"></i>
+                        <div style="font-size: 0.85rem; font-weight: 700;">Relieving Letters</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Exit Documentation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employee Lifecycle & Strategic Ops -->
+            <div class="premium-panel" id="lifecycle" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #f3e8ff; color: #a855f7;">
+                            <i data-lucide="briefcase"></i>
+                        </div>
+                        <h2>Employee Lifecycle & Strategic Ops</h2>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;">
+                    <!-- Exit Flow -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem;">
+                        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem;">Exit & Separation Workflow</h4>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #fff1f2; border: 1px solid #fecaca; border-radius: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></div>
+                                    <span style="font-size: 0.85rem; font-weight: 600;">David Kim (Resigned)</span>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <span class="ai-badge" style="background: #fdf2f2; color: #ef4444;">Pending HRBP</span>
+                                    <i data-lucide="video" size="16" style="color: var(--primary); cursor: pointer;" title="Google Meet Scheduled"></i>
+                                </div>
                             </div>
-                            <div class="activity-info">
-                                <h5>Bulk Onboarding</h5>
-                                <p>15 new engineers joined Cybersecurity</p>
-                                <div class="activity-time">Yesterday</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); background: #f8fafc; padding: 10px; border-radius: 8px;">
+                                <strong>Chain:</strong> Manager Init → Business Head (Ok) → HRBP (Active) → F&F Settlement
                             </div>
                         </div>
                     </div>
+                    <!-- Assets & Policies -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;" id="assets">
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: 16px; border: 1px solid var(--border);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <i data-lucide="laptop" size="18" style="color: var(--primary);"></i>
+                                <span style="font-size: 0.85rem; font-weight: 700;">Asset Allocation Tracking</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">142 Assets Linked | 12 Declarations Pending</div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: 16px; border: 1px solid var(--border);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <i data-lucide="shield-check" size="18" style="color: #10b981;"></i>
+                                <span style="font-size: 0.85rem; font-weight: 700;">Policy Rollout Hub</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Target: All Employees | Ack: 88%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Financial Details Upload Section -->
+            <div class="premium-panel" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #ecfdf5; color: #10b981;">
+                            <i data-lucide="banknote"></i>
+                        </div>
+                        <h2>Bulk Financial Data Upload</h2>
+                    </div>
+                    <button class="action-btn" onclick="downloadFinanceTemplate()" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; background: var(--primary); color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="download" size="16"></i> Download Finance Template
+                    </button>
+                </div>
+                
+                <div style="background: #f8fafc; border: 1px dashed var(--border); border-radius: 16px; padding: 3rem; text-align: center; cursor: pointer; transition: 0.3s;" onmouseover="this.style.borderColor='var(--primary)'; this.style.background='white';" onmouseout="this.style.borderColor='var(--border)'; this.style.background='#f8fafc';" onclick="document.getElementById('financeUploadInput').click()">
+                    <i data-lucide="upload-cloud" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Upload Employee Finances</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Drag and drop or click to select Finance Excel (.xlsx, .csv) file</p>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">Employee Code</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">Base Salary</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">Incentives</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">PF Deductions</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">ESIC</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">Gratuity</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">ESOPs</span>
+                    </div>
+                    <input type="file" id="financeUploadInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display: none;" onchange="handleFinanceUpload(event)">
+                </div>
+                <div id="financeUploadStatus" style="margin-top: 1rem; text-align: center; font-size: 0.85rem; font-weight: 600; display: none;"></div>
+            </div>
+
+            <!-- Intelligence & Growth Suite -->
+            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; margin-bottom: 2.5rem;">
+                
+                <!-- Recruitment (ATS) Hub -->
+                <div class="premium-panel" id="recruitment">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <div class="stat-icon-box" style="background: #eff6ff; color: #3b82f6;">
+                                <i data-lucide="user-search"></i>
+                            </div>
+                            <h2>Recruitment Pipeline (ATS)</h2>
+                        </div>
+                        <button class="action-btn" onclick="openRecruitmentGateway()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Post New Job</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
+                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
+                            <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">42</div>
+                            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Active Apps</div>
+                        </div>
+                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #f59e0b;">08</div>
+                            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Interviews Today</div>
+                        </div>
+                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #10b981;">03</div>
+                            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Offers Pending</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem;">Urgent Hiring Needs</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.8rem;">
+                                <span style="font-weight: 600;">Lead Cloud Architect</span>
+                                <span class="ai-badge" style="background: #fee2e2; color: #ef4444;">High Priority</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.8rem;">
+                                <span style="font-weight: 600;">HR Operations Manager</span>
+                                <span class="ai-badge" style="background: #fff7ed; color: #f59e0b;">In Progress</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Insights & Analytics -->
+                <div class="premium-panel" id="analytics">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <div class="stat-icon-box" style="background: #fdf2f2; color: #ef4444;">
+                                <i data-lucide="brain-circuit"></i>
+                            </div>
+                            <h2>Predictive Analytics</h2>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="font-size: 0.8rem; font-weight: 700;">Attrition Risk (Q3)</span>
+                                <span style="font-size: 0.8rem; font-weight: 800; color: #ef4444;">4.2% Risk</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden;">
+                                <div style="width: 42%; height: 100%; background: #ef4444;"></div>
+                            </div>
+                            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;">AI predicts turnover risk based on engagement scores.</p>
+                        </div>
+                        <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="font-size: 0.8rem; font-weight: 700;">Budget Utilization</span>
+                                <span style="font-size: 0.8rem; font-weight: 800; color: #10b981;">88% Used</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden;">
+                                <div style="width: 88%; height: 100%; background: #10b981;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense & Reimbursement Hub -->
+            <div class="premium-panel" id="expenses" style="margin-bottom: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #ecfdf5; color: #10b981;">
+                            <i data-lucide="receipt"></i>
+                        </div>
+                        <h2>Expense & Reimbursement Hub</h2>
+                    </div>
+                </div>
+                <div style="background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid var(--border); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Claimant</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Category</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Amount</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Status</th>
+                                <th style="padding: 1rem 1.5rem; font-weight: 800;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 1rem 1.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 32px; height: 32px; background: #eff6ff; color: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.7rem;">JD</div>
+                                        <div style="font-size: 0.85rem; font-weight: 700;">Jane Doe</div>
+                                    </div>
+                                </td>
+                                <td style="padding: 1rem 1.5rem; font-size: 0.8rem;">Travel (Client Meet)</td>
+                                <td style="padding: 1rem 1.5rem; font-size: 0.85rem; font-weight: 700;">₹12,450</td>
+                                <td style="padding: 1rem 1.5rem;"><span class="ai-badge" style="background: #fff7ed; color: #f59e0b;">Verification</span></td>
+                                <td style="padding: 1rem 1.5rem;"><button style="background: none; border: 1px solid var(--border); padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Audit</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Personnel Records Table -->
+            <div class="premium-panel" id="personnel-records" style="margin-top: 2.5rem;">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="stat-icon-box" style="background: #f1f5f9; color: #64748b;">
+                            <i data-lucide="database"></i>
+                        </div>
+                        <h2>Master Personnel Records</h2>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="filterDept" class="filter-select" style="padding: 8px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600;">
+                            <option value="">All Departments</option>
+                        </select>
+                        <select id="filterRole" class="filter-select" style="padding: 8px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600;">
+                            <option value="">All Roles</option>
+                            <option value="employee">Employee</option>
+                            <option value="manager">Manager</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
+                        <thead>
+                            <tr style="text-align: left; color: var(--text-muted); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">
+                                <th style="padding: 12px 20px;">Personnel</th>
+                                <th>ID</th>
+                                <th>Department</th>
+                                <th>Role</th>
+                                <th>Password</th>
+                                <th>Salary</th>
+                                <th>Contact</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th style="text-align: right; padding-right: 20px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employee-table-body">
+                            <!-- Rows will be injected here -->
+                            <tr><td colspan="10" style="text-align:center; padding:3rem; color:var(--text-muted);">Syncing with Cloud Database...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
     </div>
 
-    <script>
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, onSnapshot, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
         lucide.createIcons();
 
-        // Sample Department Data
-        const departments = [
-            { id: 'DEPT-CYB-01', name: 'Cybersecurity', icon: 'shield-check', personnel: 142, health: 98, budget: 85 },
-            { id: 'DEPT-ENG-02', name: 'Engineering', icon: 'cpu', personnel: 425, health: 92, budget: 94 },
-            { id: 'DEPT-SLS-03', name: 'Global Sales', icon: 'globe', personnel: 210, health: 85, budget: 70 },
-            { id: 'DEPT-MKT-04', name: 'Marketing', icon: 'megaphone', personnel: 84, health: 91, budget: 88 },
-            { id: 'DEPT-HR-05', name: 'Human Resources', icon: 'users', personnel: 32, health: 99, budget: 100 }
-        ];
 
-        function renderDepartments() {
-            const container = document.getElementById('dept-list-container');
-            container.innerHTML = departments.map(dept => `
-                <div class="dept-row">
-                    <div class="dept-icon-sm">
-                        <i data-lucide="${dept.icon}" style="width: 20px; height: 20px;"></i>
-                    </div>
-                    <div class="dept-name-box">
-                        <h4>${dept.name}</h4>
-                        <span class="dept-id">${dept.id}</span>
-                    </div>
-                    <div class="dept-progress-box">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted);">Health Index</span>
-                            <span style="font-size: 0.65rem; font-weight: 800; color: var(--primary);">${dept.health}%</span>
-                        </div>
-                        <div class="dept-progress">
-                            <div class="progress-fill" style="width: ${dept.health}%"></div>
-                        </div>
-                    </div>
-                    <div class="dept-metrics">
-                        <div class="metric-mini">
-                            <span>Personnel</span>
-                            <span>${dept.personnel}</span>
-                        </div>
-                        <div class="metric-mini">
-                            <span>Budget</span>
-                            <span>${dept.budget}%</span>
-                        </div>
-                    </div>
-                    <button class="btn-view" title="View Dashboard">
-                        <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
-                    </button>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
 
-        function logout() {
-            localStorage.removeItem('hr_logged_in');
-            localStorage.removeItem('userRole');
+        // Auth & Profile Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                let data;
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    if (userDoc.exists()) data = userDoc.data();
+                } catch (e) { console.warn("Profile fetch error", e); }
+
+                if (!data) {
+                    data = {
+                        name: localStorage.getItem('userName') || 'Super Admin',
+                        role: localStorage.getItem('userRole') || 'ADMIN'
+                    };
+                }
+
+                // Update Profile UI
+                const uName = document.querySelector('.user-name');
+                const uRole = document.querySelector('.user-role');
+                const uAvatar = document.querySelector('.user-avatar');
+
+                if (uName) uName.textContent = data.name;
+                if (uRole) uRole.textContent = (data.role || 'ADMIN').toUpperCase();
+                if (uAvatar && data.name) {
+                    uAvatar.textContent = data.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                }
+            } else if (localStorage.getItem('hr_logged_in') !== 'true') {
+                window.location.href = 'index.html';
+            }
+        });
+
+
+        window.logout = async () => {
+            const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js");
+            await signOut(auth);
+            localStorage.clear();
             window.location.href = 'index.html';
-        }
+        };
 
-        document.addEventListener('DOMContentLoaded', renderDepartments);
+        window.downloadTemplate = () => {
+            const headers = "official email id,department,sub-department,designation,reporting manager\n";
+            const sampleRow = "new.hire@hrflow.com,Engineering,Frontend,Senior Developer,EMP-5098\n";
+            const csvContent = "data:text/csv;charset=utf-8," + headers + sampleRow;
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "HRFlow_Bulk_Onboarding_Template.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.handleBulkUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('uploadStatus');
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--primary)';
+            statusEl.innerHTML = '<i data-lucide="loader" class="spin" style="animation: spin 2s linear infinite;" size="14"></i> Parsing template...';
+            if(window.lucide) lucide.createIcons();
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split('\n');
+                    const headers = lines[0].toLowerCase();
+                    
+                    if (!headers.includes('official email id') || !headers.includes('department')) {
+                        throw new Error("Invalid format. Please use the downloaded template.");
+                    }
+                    
+                    statusEl.innerHTML = '<i data-lucide="loader" class="spin" style="animation: spin 2s linear infinite;" size="14"></i> Syncing with Secure Cloud...';
+                    if(window.lucide) lucide.createIcons();
+                    
+                    setTimeout(() => {
+                        const count = Math.max(0, lines.filter(l => l.trim().length > 10).length - 1);
+                        statusEl.style.color = '#10b981';
+                        statusEl.innerHTML = `<i data-lucide="check-circle" size="14"></i> Successfully queued ${count} personnel records for onboarding.`;
+                        if(window.lucide) lucide.createIcons();
+                    }, 1800);
+
+                } catch (error) {
+                    statusEl.style.color = '#ef4444';
+                    statusEl.innerHTML = `<i data-lucide="alert-circle" size="14"></i> ${error.message}`;
+                    if(window.lucide) lucide.createIcons();
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        window.downloadFinanceTemplate = () => {
+            const headers = "Employee Code,Base Salary,Incentives,PF Deductions,ESIC,Gratuity,ESOPs\n";
+            const sampleRow = "FTE-1050,120000,15000,4500,1200,2000,500\n";
+            const csvContent = "data:text/csv;charset=utf-8," + headers + sampleRow;
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "HRFlow_Bulk_Finance_Template.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.handleFinanceUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('financeUploadStatus');
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--primary)';
+            statusEl.innerHTML = '<i data-lucide="loader" class="spin" style="animation: spin 2s linear infinite;" size="14"></i> Parsing finance ledger...';
+            if(window.lucide) lucide.createIcons();
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split('\n');
+                    const headers = lines[0].toLowerCase();
+                    
+                    if (!headers.includes('employee code') || !headers.includes('base salary')) {
+                        throw new Error("Invalid format. Please use the downloaded Finance template.");
+                    }
+                    
+                    statusEl.innerHTML = '<i data-lucide="loader" class="spin" style="animation: spin 2s linear infinite;" size="14"></i> Linking financial records to employee profiles...';
+                    if(window.lucide) lucide.createIcons();
+                    
+                    setTimeout(() => {
+                        const count = Math.max(0, lines.filter(l => l.trim().length > 10).length - 1);
+                        statusEl.style.color = '#10b981';
+                        statusEl.innerHTML = `<i data-lucide="check-circle" size="14"></i> Successfully synced financial and payroll data for ${count} employee codes.`;
+                        if(window.lucide) lucide.createIcons();
+                    }, 1800);
+
+                } catch (error) {
+                    statusEl.style.color = '#ef4444';
+                    statusEl.innerHTML = `<i data-lucide="alert-circle" size="14"></i> ${error.message}`;
+                    if(window.lucide) lucide.createIcons();
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        window.approveBankDetails = (id) => {
+            const el = document.getElementById(`bankApproval-${id}`);
+            if(!el) return;
+            el.style.transition = "0.3s";
+            el.style.opacity = "0.5";
+            el.style.pointerEvents = "none";
+            const btnContainer = el.querySelector('div:last-child');
+            btnContainer.innerHTML = `<span style="color: #10b981; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" size="14"></i> Synced to Payroll</span>`;
+            if(window.lucide) lucide.createIcons();
+            
+            setTimeout(() => {
+                el.style.display = "none";
+            }, 2500);
+        };
+
+        window.executeConversion = (btn) => {
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="spin" style="animation: spin 2s linear infinite;" size="16"></i> Processing...';
+            if(window.lucide) lucide.createIcons();
+
+            setTimeout(() => {
+                alert("Profile Conversion Successful! New Employee Code generated and Legal Entity/BU mapping updated.");
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+                if(window.lucide) lucide.createIcons();
+            }, 2000);
+        };
+
+        window.approveTransfer = (btn) => {
+            const row = btn.closest('tr');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="spin" size="14"></i>';
+            if(window.lucide) lucide.createIcons();
+
+            setTimeout(() => {
+                const chain = row.querySelector('.nav-link + div') || row.querySelectorAll('td')[2].querySelector('div');
+                chain.innerHTML = `
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center;"><i data-lucide="check" size="10"></i></div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center;"><i data-lucide="check" size="10"></i></div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center;"><i data-lucide="check" size="10"></i></div>
+                    <div style="width: 24px; height: 24px; border-radius: 50%; background: #22c55e; color: white; display: flex; align-items: center; justify-content: center;"><i data-lucide="check" size="10"></i></div>
+                `;
+                row.querySelectorAll('td')[2].querySelector('div + div').textContent = "Status: Fully Approved";
+                btn.parentElement.innerHTML = '<span style="color: #10b981; font-weight: 700; font-size: 0.75rem;">Transfer Complete</span>';
+                if(window.lucide) lucide.createIcons();
+            }, 1500);
+        };
+        window.setActive = (el) => {
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            el.classList.add('active');
+        };
+
+        window.openRecruitmentGateway = () => {
+            const btn = event.target;
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="spin" size="14"></i> Initializing ATS...';
+            if(window.lucide) lucide.createIcons();
+
+            setTimeout(() => {
+                alert("Recruitment Gateway Live: You can now post new job requirements and track global applicant pipelines.");
+                btn.disabled = false;
+                btn.innerHTML = original;
+                if(window.lucide) lucide.createIcons();
+            }, 1500);
+        };
+
+        window.auditExpense = (btn) => {
+            const row = btn.closest('tr');
+            alert(`Opening Audit Trail for ${row.querySelector('td:nth-child(1) div div:last-child').textContent}\nClaim Amount: ${row.querySelector('td:nth-child(3)').textContent}\nPolicy Check: Compliant`);
+        };
+    </script>
+    <!-- Modals Ported from Admin -->
+    <div class="modal-overlay" id="empModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="close-modal" onclick="closeModal('empModal')"><i data-lucide="x"></i></div>
+            <div class="modal-header">
+                <h2 id="empModalTitle">New Personnel</h2>
+            </div>
+            <form id="empForm">
+                <input type="hidden" name="editId" id="editEmpId">
+                
+                <div id="editInfoFields" style="display: none; margin-bottom: 1.5rem; padding: 1.25rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>System ID</label>
+                            <input type="text" id="displayEmpId" readonly style="background: #e2e8f0; cursor: not-allowed; font-family: monospace;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Access Key</label>
+                            <input type="text" id="displayPassword" readonly style="background: #e2e8f0; cursor: not-allowed; font-family: monospace;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="john@hrflow.com" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select name="departmentId" id="deptSelect" required>
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select name="roleType" id="roleType" required>
+                            <option value="employee">Employee</option>
+                            <option value="manager">Manager</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" name="phone" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="form-group">
+                        <label>Joining Date</label>
+                        <input type="date" name="joiningDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Residential Address</label>
+                    <input type="text" name="address" placeholder="123 Street, City, State">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Annual Salary (₹)</label>
+                        <input type="number" name="salary" placeholder="50000">
+                    </div>
+                    <div class="form-group">
+                        <label>Set Password</label>
+                        <input type="text" name="password" placeholder="Pass123!" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center; padding: 14px;">
+                    <i data-lucide="save"></i> Save Personnel Record
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deptModal">
+        <div class="modal">
+            <div class="close-modal" onclick="closeModal('deptModal')"><i data-lucide="x"></i></div>
+            <div class="modal-header">
+                <h2>New Department</h2>
+            </div>
+            <form id="deptForm">
+                <div class="form-group">
+                    <label>Department Name</label>
+                    <input type="text" name="departmentName" id="deptNameInput" placeholder="e.g. Engineering" required>
+                </div>
+                <div class="form-group">
+                    <label>Department Code</label>
+                    <input type="text" name="departmentCode" id="deptCodeInput" placeholder="e.g. ENG" required maxlength="4">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center; padding: 14px;">
+                    <i data-lucide="plus"></i> Create Department
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Result Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div class="success-icon" style="width: 64px; height: 64px; background: rgba(16, 185, 129, 0.1); color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="check-circle" size="32"></i>
+            </div>
+            <h2 id="successTitle" style="margin-bottom: 0.5rem;">Success!</h2>
+            <p id="successMessage" style="color: var(--text-muted); margin-bottom: 1.5rem;"></p>
+            <div id="successDetails" style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; text-align: left; font-size: 0.9rem;"></div>
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="closeModal('successModal')">Great!</button>
+        </div>
+    </div>
+
+    <!-- Error Result Modal -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div class="error-icon" style="width: 64px; height: 64px; background: rgba(239, 68, 68, 0.1); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="alert-circle" size="32"></i>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; color: var(--danger);">Action Failed</h2>
+            <p id="errorMessage" style="color: var(--text-muted); margin-bottom: 1.5rem;"></p>
+            <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="closeModal('errorModal')">Try Again</button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width: 400px; text-align: center; padding: 2rem;">
+            <div style="width: 64px; height: 64px; background: rgba(239, 68, 68, 0.1); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="trash-2" size="32"></i>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; color: var(--text-dark);">Confirm Delete</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to delete <span id="deleteTargetName" style="font-weight: 600; color: var(--text-main);"></span>? This action cannot be undone.</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <button class="btn btn-outline" style="width: 100%; justify-content: center;" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn" style="width: 100%; background: var(--danger); color: white; justify-content: center;" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="admin-app.js"></script>
+    <script>
+        // Global Modal Helpers
+        window.openModal = (id) => document.getElementById(id).style.display = 'flex';
+        window.closeModal = (id) => document.getElementById(id).style.display = 'none';
     </script>
 </body>
 
 </html>
+

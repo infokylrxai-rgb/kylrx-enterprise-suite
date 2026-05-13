@@ -117,14 +117,26 @@ onAuthStateChanged(auth, async (user) => {
 
         if (!data) {
             data = {
-                name: localStorage.getItem('userName') || 'Admin',
-                role: 'Administrator'
+                name: localStorage.getItem('userName') || 'Super Admin',
+                role: localStorage.getItem('userRole') || 'ADMIN'
             };
         }
 
         // Update UI
         const welcomeText = document.querySelector('.welcome-text h1');
         if (welcomeText) welcomeText.innerHTML = `Welcome back, ${data.name.split(' ')[0]} 👋`;
+        
+        // Update Profile Trigger (Top Right)
+        const profileName = document.querySelector('.p-name');
+        const profileRole = document.querySelector('.p-role');
+        const profileAvatar = document.querySelector('.p-avatar');
+        
+        if (profileName) profileName.textContent = data.name;
+        if (profileRole) profileRole.textContent = (data.role || 'ADMIN').toUpperCase();
+        if (profileAvatar && data.name) {
+            const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            profileAvatar.textContent = initials.substring(0, 2);
+        }
         
         loadDepartments();
         loadEmployees();
@@ -481,49 +493,25 @@ function startActivityStream() {
 
 async function loadDepartments() {
     try {
-        // Try backend only if we haven't already confirmed it's down
-        if (state.backendAlerted) throw new Error('Using Firestore primary');
-
-        const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('access_token');
-        const response = await fetch(`${API_BASE}/admin/departments`, {
-            headers: {
-                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-            }
-        }).catch(e => { throw new Error('Offline'); });
+        console.log('%c☁️ Decentalized Cloud Active: Connected to Firebase', 'color: #3b82f6; font-weight: bold; background: #eff6ff; padding: 2px 6px; border-radius: 4px;');
         
-        if (!response.ok) throw new Error('Backend unreachable');
-        const result = await response.json();
+        // Use command_centers as the new source of truth
+        const snap = await getDocs(collection(db, 'command_centers'));
+        const commandCenters = snap.docs.map(d => ({ departmentId: d.id, ...d.data() }));
         
-        if (result.status === 'success' || result.success) {
-            state.departments = result.data;
-            updateDeptSelects();
-            updateStats();
-            renderSidebarCommands();
+        // If empty, try fallback to old departments collection
+        if (commandCenters.length === 0) {
+            const oldSnap = await getDocs(collection(db, 'departments'));
+            state.departments = oldSnap.docs.map(d => d.data());
+        } else {
+            state.departments = commandCenters;
         }
-    } catch (error) {
-        if (!state.backendAlerted) {
-            console.log('%c☁️ Decentalized Cloud Failover Active', 'color: #3b82f6; font-weight: bold; background: #eff6ff; padding: 2px 6px; border-radius: 4px;');
-            state.backendAlerted = true;
-        }
-        try {
-            // First try command_centers (the new source of truth)
-            const snap = await getDocs(collection(db, 'command_centers'));
-            const commandCenters = snap.docs.map(d => ({ departmentId: d.id, ...d.data() }));
-            
-            // If empty, try fallback to old departments collection
-            if (commandCenters.length === 0) {
-                const oldSnap = await getDocs(collection(db, 'departments'));
-                state.departments = oldSnap.docs.map(d => d.data());
-            } else {
-                state.departments = commandCenters;
-            }
-            
-            updateDeptSelects();
-            updateStats();
-            renderSidebarCommands();
-        } catch (fsError) {
-            console.error('Failed to load departments from any source:', fsError);
-        }
+        
+        updateDeptSelects();
+        updateStats();
+        renderSidebarCommands();
+    } catch (fsError) {
+        console.error('Failed to load departments from Firestore:', fsError);
     }
 }
 
@@ -558,62 +546,26 @@ function renderSidebarCommands() {
 
 async function loadEmployees() {
     try {
-        if (state.backendAlerted) throw new Error('Using Firestore primary');
+        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+        const snap = await getDocs(collection(db, 'users'));
+        state.employees = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => (u.role || '').toLowerCase() !== 'admin');
         
-        const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('access_token');
-        const response = await fetch(`${API_BASE}/admin/employees`, {
-            headers: {
-                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-            }
-        }).catch(e => { throw new Error('Offline'); });
-        
-        if (!response.ok) throw new Error('Backend unreachable');
-        const result = await response.json();
-              if (result.status === 'success' || result.success) {
-            state.employees = Array.isArray(result.data) ? result.data : (result.data.employees || []);
-            
-            // Sort by createdAt descending (Newest first)
-            state.employees.sort((a, b) => {
-                const getTime = (val) => {
-                    if (!val) return 0;
-                    if (val._seconds) return val._seconds * 1000 + (val._nanoseconds / 1000000);
-                    return new Date(val).getTime();
-                };
-                return getTime(b.createdAt) - getTime(a.createdAt);
-            });
+        // Sort by createdAt descending (Newest first)
+        state.employees.sort((a, b) => {
+            const getTime = (val) => {
+                if (!val) return 0;
+                if (val.toMillis) return val.toMillis();
+                if (val._seconds) return val._seconds * 1000;
+                return new Date(val).getTime();
+            };
+            return getTime(b.createdAt) - getTime(a.createdAt);
+        });
 
-            renderEmployeeTable(state.employees);
-            updateStats();
-        } else {
-            throw new Error(result.error || 'Failed to retrieve records');
-        }
-    } catch (error) {
-        if (!state.backendAlerted) {
-            console.log('%c☁️ Decentalized Cloud Failover Active', 'color: #3b82f6; font-weight: bold; background: #eff6ff; padding: 2px 6px; border-radius: 4px;');
-            state.backendAlerted = true;
-        }
-        try {
-            const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-            const snap = await getDocs(collection(db, 'users'));
-            state.employees = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => (u.role || '').toLowerCase() !== 'admin');
-            
-            // Sort by createdAt descending (Newest first)
-            state.employees.sort((a, b) => {
-                const getTime = (val) => {
-                    if (!val) return 0;
-                    if (val.toMillis) return val.toMillis();
-                    if (val._seconds) return val._seconds * 1000;
-                    return new Date(val).getTime();
-                };
-                return getTime(b.createdAt) - getTime(a.createdAt);
-            });
-
-            renderEmployeeTable(state.employees);
-            updateStats();
-        } catch (fbError) {
-            console.error('Final fallback failed:', fbError);
-            renderEmployeeTable([]);
-        }
+        renderEmployeeTable(state.employees);
+        updateStats();
+    } catch (fbError) {
+        console.error('Failed to load employees from Firestore:', fbError);
+        renderEmployeeTable([]);
     }
 }
 
@@ -714,9 +666,9 @@ function renderEmployeeTable(employees) {
                 </span>
             </td>
             <td>
-                <div class="password-cell" style="font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; position: relative; overflow: hidden; width: fit-content; min-width: 80px; text-align: center;">
+                <div class="password-cell" onclick="const m = this.querySelector('.masked-pwd'); const r = this.querySelector('.real-pwd'); if(m.style.display==='none'){m.style.display='inline';r.style.display='none';}else{m.style.display='none';r.style.display='inline';}" style="font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; position: relative; overflow: hidden; width: fit-content; min-width: 80px; text-align: center;">
                     <span class="masked-pwd">••••••••</span>
-                    <span class="real-pwd" style="display:none;">${emp.password || '---'}</span>
+                    <span class="real-pwd" style="display:none;">${emp.password || emp.tempPassword || '---'}</span>
                 </div>
             </td>
             <td style="font-weight: 700; color: var(--text-main);">₹${Number(emp.salary || 0).toLocaleString()}</td>
@@ -734,15 +686,15 @@ function renderEmployeeTable(employees) {
             <td>
                 <div style="display: flex; gap: 8px;">
                     ${isTrashed ? `
-                        <button class="btn btn-outline" style="padding: 8px; border-radius: 10px; color: var(--secondary);" onclick="restoreEmployee('${emp.uid || emp.id}')" title="Restore Profile">
+                        <button class="btn-action" onclick="restoreEmployee('${emp.uid || emp.id}')" title="Restore Profile">
                             <i data-lucide="rotate-ccw" size="14"></i>
                         </button>
                     ` : `
-                        <button class="btn btn-outline" style="padding: 8px; border-radius: 10px;" onclick="openEditModal('${emp.uid || emp.id}')" title="Edit Profile">
+                        <button class="btn-action" onclick="openEditModal('${emp.uid || emp.id}')" title="Edit Profile">
                             <i data-lucide="edit-3" size="14"></i>
                         </button>
                     `}
-                    <button class="btn btn-outline" style="padding: 8px; border-radius: 10px; color: var(--danger); border-color: rgba(239, 68, 68, 0.1);" onclick="deleteEmployee('${emp.uid || emp.id}', '${emp.name}')" title="${isTrashed ? 'Permanent Delete' : 'Terminate'}">
+                    <button class="btn-action delete" onclick="deleteEmployee('${emp.uid || emp.id}', '${emp.name}')" title="${isTrashed ? 'Permanent Delete' : 'Terminate'}">
                         <i data-lucide="${isTrashed ? 'user-minus' : 'trash-2'}" size="14"></i>
                     </button>
                 </div>

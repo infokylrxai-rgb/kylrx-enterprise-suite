@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -158,6 +158,57 @@
     </style>
 </head>
 <body>
+    <!-- Onboarding Flow Modal Overlay -->
+    <div id="onboardingModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background: white; width: 90%; max-width: 1200px; height: 85vh; border-radius: 24px; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+            
+            <!-- Document View Area -->
+            <div style="background: #f8fafc; padding: 2rem; display: flex; flex-direction: column; border-right: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800;">Welcome to HRFlow</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Official Onboarding Flow Document</p>
+                    </div>
+                </div>
+                
+                <div style="flex: 1; background: white; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+                    <i data-lucide="file-text" style="width: 64px; height: 64px; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;" id="obDocTitle">Employee_Handbook_2026.pdf</h3>
+                    <p style="color: var(--text-muted); max-width: 400px; font-size: 0.9rem; margin-bottom: 2rem;">Please review the company policies, benefits, and IT compliance guidelines thoroughly. Acknowledge once completed.</p>
+                    <button class="punch-btn" style="padding: 10px 24px; font-size: 0.9rem; border-radius: 10px; box-shadow: none;" onclick="document.getElementById('onboardingModal').style.display='none'">I have read and acknowledge</button>
+                </div>
+            </div>
+
+            <!-- Chat Request Area -->
+            <div style="background: white; display: flex; flex-direction: column;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--primary-light);">
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="message-square"></i> Support Chat
+                    </h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Ask HR or the AI Assistant</p>
+                </div>
+                
+                <div style="flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;" id="chatAreaOb">
+                    <div style="align-self: flex-start; background: #f8fafc; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.9rem; border: 1px solid var(--border); max-width: 85%;">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><i data-lucide="bot" size="12"></i> AI Assistant</div>
+                        Hello! Welcome aboard. I'm here to help answer any questions you have about the onboarding document. Would you like to connect with a human HR rep?
+                    </div>
+                </div>
+
+                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: white;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button style="flex: 1; background: #ecfdf5; color: #10b981; border: 1px solid #a7f3d0; padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'What is the leave policy?'; sendObChat();">Ask AI</button>
+                        <button style="flex: 1; background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'Connect to HR please.'; sendObChat();">Request HR</button>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="chatInputOb" placeholder="Type your question..." style="flex: 1; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.9rem;">
+                        <button onclick="sendObChat()" style="background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i data-lucide="send" size="18"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
 
     <div class="layout">
         <aside class="sidebar">
@@ -441,6 +492,51 @@
         // Set Date
         const now = new Date();
         document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        // Trigger Onboarding Flow if not completed
+        setTimeout(() => {
+            if (!localStorage.getItem('obFlowCompleted')) {
+                document.getElementById('onboardingModal').style.display = 'flex';
+                // Mark completed once shown
+                localStorage.setItem('obFlowCompleted', 'true');
+            }
+        }, 1500);
+
+        // Chat Request Logic
+        window.sendObChat = () => {
+            const input = document.getElementById('chatInputOb');
+            const area = document.getElementById('chatAreaOb');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            // User Message
+            const userMsg = document.createElement('div');
+            userMsg.style = "align-self: flex-end; background: var(--primary); color: white; padding: 12px 16px; border-radius: 16px; border-bottom-right-radius: 4px; font-size: 0.9rem; max-width: 85%; box-shadow: 0 4px 6px -1px rgba(59,130,246,0.2);";
+            userMsg.innerHTML = `<div style="font-size: 0.75rem; font-weight: 700; color: #bfdbfe; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">You <i data-lucide="user" size="12"></i></div>${msg}`;
+            area.appendChild(userMsg);
+            input.value = "";
+            lucide.createIcons();
+            area.scrollTop = area.scrollHeight;
+
+            // AI/HR Response
+            setTimeout(() => {
+                const isHrReq = msg.toLowerCase().includes('hr') || msg.toLowerCase().includes('connect');
+                const botMsg = document.createElement('div');
+                
+                if(isHrReq) {
+                    botMsg.style = "align-self: flex-start; background: #fff1f2; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.9rem; border: 1px solid #fecdd3; max-width: 85%;";
+                    botMsg.innerHTML = `<div style="font-size: 0.75rem; font-weight: 700; color: #e11d48; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><i data-lucide="user-check" size="12"></i> HR Representative</div>Your request has been routed to the HR team. An agent will join this chat momentarily.`;
+                } else {
+                    botMsg.style = "align-self: flex-start; background: #f8fafc; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.9rem; border: 1px solid var(--border); max-width: 85%;";
+                    botMsg.innerHTML = `<div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><i data-lucide="bot" size="12"></i> AI Assistant</div>I have verified the document. The standard notice period is 30 days as per clause 4.2. Let me know if you need anything else!`;
+                }
+                
+                area.appendChild(botMsg);
+                lucide.createIcons();
+                area.scrollTop = area.scrollHeight;
+            }, 1000);
+        };
     </script>
 </body>
 </html>
+

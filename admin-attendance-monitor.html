@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
         .attendance-grid {
             display: grid; grid-template-columns: 1fr 350px; gap: 2rem;
@@ -57,6 +57,24 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem; background: white; border-radius: 14px; border: 1px solid var(--border);
         }
+        .config-sidebar {
+            position: fixed;
+            top: 0;
+            right: -360px;
+            width: 360px;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
+            z-index: 2000;
+            padding: 2.5rem;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .config-sidebar.active {
+            right: 0;
+        }
     </style>
 </head>
 <body class="admin-dashboard">
@@ -79,8 +97,8 @@
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link active"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
-                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
-                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                
+                
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
@@ -240,6 +258,31 @@
         </main>
     </div>
 
+    <!-- Dashboard Configuration Sidebar -->
+    <div class="config-sidebar" id="configSidebar">
+        <div class="settings-header">
+            <h2 style="font-weight: 800; font-size: 1.25rem;">Dashboard Config</h2>
+            <div class="close-settings" onclick="toggleConfig()" style="cursor:pointer;"><i data-lucide="x"></i></div>
+        </div>
+
+        <span class="nav-label" style="margin: 2rem 0 1rem; display: block;">ACTIVE WIDGETS</span>
+
+        <div class="widget-toggle-list" id="widgetToggles">
+            <!-- Widgets will be dynamically rendered by admin-app.js -->
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem;"></i>
+                <p style="font-size: 0.85rem;">Loading components...</p>
+            </div>
+        </div>
+
+        <div style="margin-top: auto; padding-top: 2rem;">
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="saveDashboardConfig()">
+                <i data-lucide="save"></i> Save Configuration
+            </button>
+        </div>
+    </div>
+
+    <script type="module" src="admin-app.js"></script>
     <script type="module">
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
@@ -247,3 +290,4 @@
     </script>
 </body>
 </html>
+

@@ -35,7 +35,7 @@
         }
 
         /* Dashboard Settings Sidebar */
-        .settings-sidebar {
+        .config-sidebar {
             position: fixed;
             top: 0;
             right: -360px;
@@ -50,7 +50,7 @@
             flex-direction: column;
         }
 
-        .settings-sidebar.active {
+        .config-sidebar.active {
             right: 0;
         }
 
@@ -1342,8 +1342,7 @@
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link active"><i
                             data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link"><i
-                            data-lucide="bar-chart-3"></i><span>HRMS Dashboard</span></a></div>
+
                 <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i
                             data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i
@@ -1360,10 +1359,8 @@
                             data-lucide="clock"></i><span>Attendance Hub</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i
                             data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
-                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i
-                            data-lucide="refresh-cw"></i><span>Conversion Hub</span></a></div>
-                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i
-                            data-lucide="terminal"></i><span>Code Engine</span></a></div>
+                
+                
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i
                             data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
@@ -1775,46 +1772,27 @@
         </div>
     </div>
 
-    <!-- Dashboard Settings Sidebar -->
-    <div class="settings-sidebar" id="settingsSidebar">
+    <!-- Dashboard Configuration Sidebar -->
+    <div class="config-sidebar" id="configSidebar">
         <div class="settings-header">
-            <h2>Dashboard Settings</h2>
-            <div class="close-settings" id="closeSettings"><i data-lucide="x"></i></div>
+            <h2>Dashboard Config</h2>
+            <div class="close-settings" onclick="toggleConfig()"><i data-lucide="x"></i></div>
         </div>
 
         <span class="settings-label">ACTIVE WIDGETS</span>
 
-        <div class="widget-list">
-            <div class="widget-toggle-item">
-                <div class="widget-info"><i data-lucide="activity"></i><span>System Overview</span></div>
-                <label class="switch"><input type="checkbox" checked data-widget="system-overview"><span
-                        class="slider"></span></label>
+        <div class="widget-toggle-list" id="widgetToggles">
+            <!-- Widgets will be dynamically rendered by admin-app.js -->
+            <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem;"></i>
+                <p>Loading components...</p>
             </div>
-            <div class="widget-toggle-item">
-                <div class="widget-info"><i data-lucide="bar-chart-3"></i><span>Productivity Analytics</span></div>
-                <label class="switch"><input type="checkbox" checked data-widget="productivity-analytics"><span
-                        class="slider"></span></label>
-            </div>
-            <div class="widget-toggle-item">
-                <div class="widget-info"><i data-lucide="users"></i><span>Live Employee Activity</span></div>
-                <label class="switch"><input type="checkbox" checked data-widget="live-activity"><span
-                        class="slider"></span></label>
-            </div>
-            <div class="widget-toggle-item">
-                <div class="widget-info"><i data-lucide="dollar-sign"></i><span>Payroll Forecasting</span></div>
-                <label class="switch"><input type="checkbox" checked data-widget="payroll-forecast"><span
-                        class="slider"></span></label>
-            </div>
-            <div class="widget-toggle-item">
-                <div class="widget-info"><i data-lucide="brain"></i><span>AI Workforce Insights</span></div>
-                <label class="switch"><input type="checkbox" checked data-widget="ai-insights"><span
-                        class="slider"></span></label>
-            </div>
-            <div class="widget-toggle-item">
-                <div class="widget-info"><i data-lucide="shield"></i><span>TVC Alert Stream</span></div>
-                <label class="switch"><input type="checkbox" checked data-widget="tvc-alerts"><span
-                        class="slider"></span></label>
-            </div>
+        </div>
+
+        <div style="margin-top: auto; padding-top: 2rem;">
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="saveDashboardConfig()">
+                <i data-lucide="save"></i> Save Configuration
+            </button>
         </div>
     </div>
 
@@ -1825,31 +1803,16 @@
     <script>
         if (window.lucide) { lucide.createIcons(); }
 
-        // Settings Toggle Logic
-        const settingsSidebar = document.getElementById('settingsSidebar');
-        const openSettings = document.getElementById('btnCustom');
-        const closeSettings = document.getElementById('closeSettings');
-
-        openSettings?.addEventListener('click', (e) => {
-            e.preventDefault();
-            settingsSidebar.classList.add('active');
-        });
-
-        closeSettings?.addEventListener('click', () => {
-            settingsSidebar.classList.remove('active');
-        });
-
-        // Widget Toggling Logic
-        document.querySelectorAll('.settings-sidebar input[type="checkbox"]').forEach(toggle => {
+        // The toggleConfig function is now handled by admin-app.js
+        // But we keep this for initial Lucide rendering if needed
+        document.querySelectorAll('.config-sidebar input[type="checkbox"]').forEach(toggle => {
             toggle.addEventListener('change', (e) => {
-                const widgetId = e.target.dataset.widget;
-                const widgetEl = document.getElementById(widgetId);
-                if (widgetEl) {
-                    widgetEl.style.display = e.target.checked ? 'block' : 'none';
-                }
+                // admin-app.js handles the state, this is for immediate UI feedback if needed
+                console.log('Widget toggle changed:', e.target.dataset.widget);
             });
         });
     </script>
 </body>
 
 </html>
+

@@ -190,7 +190,7 @@ function showAlert(title, msg, icon = 'info', type = 'info') {
         cardEl.style.borderTop = 'none';
     }
     
-    if (window.lucide) if (window.lucide) { lucide.createIcons(); }
+    if (window.lucide) { lucide.createIcons(); }
     document.getElementById('customOverlay').style.display = 'flex';
 }
 
