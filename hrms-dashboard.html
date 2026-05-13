@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS Strategic Dashboard | HRFlow</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <style>
+        :root {
+            --glass: blur(12px);
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .main-content {
+            padding: 2.5rem;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card-premium {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-card-premium:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-soft);
+        }
+
+        .stat-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-content h3 {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .stat-value-large {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -1px;
+        }
+
+        .stat-trend {
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+
+        /* Organization Map */
+        .org-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .premium-panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .panel-title h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .department-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .dept-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto;
+            align-items: center;
+            gap: 20px;
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            border-radius: 16px;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+
+        .dept-row:hover {
+            background: white;
+            border-color: var(--primary-soft);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(5px);
+        }
+
+        .dept-icon-sm {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+            color: var(--primary);
+        }
+
+        .dept-name-box h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .dept-id {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .dept-progress {
+            width: 120px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .dept-metrics {
+            display: flex;
+            gap: 20px;
+            text-align: right;
+        }
+
+        .metric-mini {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-mini span:first-child {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .metric-mini span:last-child {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 16px;
+            position: relative;
+        }
+
+        .activity-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 14px;
+            top: 36px;
+            bottom: -12px;
+            width: 2px;
+            background: var(--border);
+            opacity: 0.5;
+        }
+
+        .activity-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            z-index: 1;
+            flex-shrink: 0;
+        }
+
+        .activity-info h5 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .activity-info p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .activity-time {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* AI Insight Banner */
+        .ai-insight-banner {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 24px;
+            padding: 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-insight-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .ai-text {
+            max-width: 60%;
+        }
+
+        .ai-badge {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ai-text h3 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .ai-text p {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .ai-action-btn {
+            background: white;
+            color: #0f172a;
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-action-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Top Menu Bar */
+        .top-menu-bar {
+            background: white;
+            padding: 1rem 2.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin: -2.5rem -2.5rem 2rem -2.5rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .user-profile:hover {
+            background: var(--bg-soft);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name { font-size: 0.85rem; font-weight: 700; }
+        .user-role { font-size: 0.75rem; color: var(--text-muted); }
+
+        .btn-view {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-view:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary-soft);
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="layers"></i>
+                </div>
+                <span class="logo-text">HRFlow</span>
+            </a>
+
+            <nav class="nav-menu">
+                <div class="nav-label">Main Menu</div>
+                <div class="nav-item">
+                    <a href="admin-dashboard.html" class="nav-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Admin Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html" class="nav-link active">
+                        <i data-lucide="bar-chart-3"></i>
+                        <span>HRMS Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-Dashboard-bulider.html" class="nav-link">
+                        <i data-lucide="layout-grid"></i>
+                        <span>Dashboard Builder</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Operations</div>
+                <div class="nav-item">
+                    <a href="admin-payroll-upload.html" class="nav-link">
+                        <i data-lucide="banknote"></i>
+                        <span>Payroll</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="calendar-check"></i>
+                        <span>Attendance</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-leave-management.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Leaves</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-onboarding-ai.html" class="nav-link">
+                        <i data-lucide="user-plus"></i>
+                        <span>Onboarding AI</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-asset-management.html" class="nav-link">
+                        <i data-lucide="package"></i>
+                        <span>Asset Management</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Intelligence</div>
+                <div class="nav-item">
+                    <a href="admin-analysis.html" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>AI Analytics</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-conversion-hub.html" class="nav-link">
+                        <i data-lucide="refresh-cw"></i>
+                        <span>Conversion Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-code-engine.html" class="nav-link">
+                        <i data-lucide="code-2"></i>
+                        <span>Code Engine</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a href="admin-settings.html" class="nav-link">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="nav-link" style="color: #ef4444;" onclick="logout()">
+                    <i data-lucide="log-out"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-menu-bar">
+                <div class="top-nav-left">
+                    <div class="breadcrumbs">
+                        <span class="breadcrumb-item">HRFlow</span>
+                        <span class="breadcrumb-sep">/</span>
+                        <span class="breadcrumb-item">Strategic</span>
+                        <span class="breadcrumb-sep">/</span>
+                        <span class="breadcrumb-item" style="color: var(--primary);">HRMS Dashboard</span>
+                    </div>
+                </div>
+
+                <div class="top-nav-right">
+                    <div class="user-profile">
+                        <div class="user-avatar">HR</div>
+                        <div class="user-info">
+                            <span class="user-name">HR Director</span>
+                            <span class="user-role">Strategic HR</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- AI Insight Banner -->
+            <div class="ai-insight-banner">
+                <div class="ai-text">
+                    <span class="ai-badge">AI Strategy Insight</span>
+                    <h3>Organization Health is Excellent</h3>
+                    <p>Current workforce productivity is up by 12% across all 8 departments. The AI recommends prioritizing 'Engineering' for the next expansion phase based on skill gap analysis.</p>
+                </div>
+                <a href="#" class="ai-action-btn">
+                    <i data-lucide="sparkles"></i>
+                    View Strategy Report
+                </a>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card-premium">
+                    <div class="stat-icon-box" style="background: #eff6ff; color: #3b82f6;">
+                        <i data-lucide="users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Total Workforce</h3>
+                        <div class="stat-value-large">1,284</div>
+                        <div class="stat-trend trend-up">
+                            <i data-lucide="arrow-up-right"></i> 4.2% from last month
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card-premium">
+                    <div class="stat-icon-box" style="background: #fdf2f2; color: #ef4444;">
+                        <i data-lucide="user-minus"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Attrition Rate</h3>
+                        <div class="stat-value-large">2.4%</div>
+                        <div class="stat-trend trend-down">
+                            <i data-lucide="arrow-down-right"></i> 0.8% decrease
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card-premium">
+                    <div class="stat-icon-box" style="background: #ecfdf5; color: #10b981;">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Productivity</h3>
+                        <div class="stat-value-large">94.2%</div>
+                        <div class="stat-trend trend-up">
+                            <i data-lucide="arrow-up-right"></i> 2.1% improvement
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card-premium">
+                    <div class="stat-icon-box" style="background: #fffbeb; color: #f59e0b;">
+                        <i data-lucide="briefcase"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Open Roles</h3>
+                        <div class="stat-value-large">42</div>
+                        <div class="stat-trend" style="color: var(--text-muted);">
+                            Active recruitment live
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="org-section">
+                <!-- Departmental Command Centers -->
+                <div class="premium-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <div class="stat-icon-box" style="background: var(--primary-light); color: var(--primary);">
+                                <i data-lucide="building-2"></i>
+                            </div>
+                            <h2>Departmental Command Centers</h2>
+                        </div>
+                        <button class="action-btn" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; background: white; border: 1px solid var(--border); cursor: pointer;">
+                            Export All
+                        </button>
+                    </div>
+
+                    <div class="department-list" id="dept-list-container">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- Recent Org Changes -->
+                <div class="premium-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <h2>Org Activity</h2>
+                        </div>
+                    </div>
+                    <div class="activity-feed">
+                        <div class="activity-item">
+                            <div class="activity-dot">
+                                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                            </div>
+                            <div class="activity-info">
+                                <h5>New Department Created</h5>
+                                <p>'Quantum Research' added by Admin</p>
+                                <div class="activity-time">2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background: #fef3c7; color: #d97706;">
+                                <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
+                            </div>
+                            <div class="activity-info">
+                                <h5>Payroll Strategy Update</h5>
+                                <p>Sales commission structure revised</p>
+                                <div class="activity-time">5 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-dot" style="background: #ecfdf5; color: #10b981;">
+                                <i data-lucide="user-check" style="width: 16px; height: 16px;"></i>
+                            </div>
+                            <div class="activity-info">
+                                <h5>Bulk Onboarding</h5>
+                                <p>15 new engineers joined Cybersecurity</p>
+                                <div class="activity-time">Yesterday</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Sample Department Data
+        const departments = [
+            { id: 'DEPT-CYB-01', name: 'Cybersecurity', icon: 'shield-check', personnel: 142, health: 98, budget: 85 },
+            { id: 'DEPT-ENG-02', name: 'Engineering', icon: 'cpu', personnel: 425, health: 92, budget: 94 },
+            { id: 'DEPT-SLS-03', name: 'Global Sales', icon: 'globe', personnel: 210, health: 85, budget: 70 },
+            { id: 'DEPT-MKT-04', name: 'Marketing', icon: 'megaphone', personnel: 84, health: 91, budget: 88 },
+            { id: 'DEPT-HR-05', name: 'Human Resources', icon: 'users', personnel: 32, health: 99, budget: 100 }
+        ];
+
+        function renderDepartments() {
+            const container = document.getElementById('dept-list-container');
+            container.innerHTML = departments.map(dept => `
+                <div class="dept-row">
+                    <div class="dept-icon-sm">
+                        <i data-lucide="${dept.icon}" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div class="dept-name-box">
+                        <h4>${dept.name}</h4>
+                        <span class="dept-id">${dept.id}</span>
+                    </div>
+                    <div class="dept-progress-box">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted);">Health Index</span>
+                            <span style="font-size: 0.65rem; font-weight: 800; color: var(--primary);">${dept.health}%</span>
+                        </div>
+                        <div class="dept-progress">
+                            <div class="progress-fill" style="width: ${dept.health}%"></div>
+                        </div>
+                    </div>
+                    <div class="dept-metrics">
+                        <div class="metric-mini">
+                            <span>Personnel</span>
+                            <span>${dept.personnel}</span>
+                        </div>
+                        <div class="metric-mini">
+                            <span>Budget</span>
+                            <span>${dept.budget}%</span>
+                        </div>
+                    </div>
+                    <button class="btn-view" title="View Dashboard">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function logout() {
+            localStorage.removeItem('hr_logged_in');
+            localStorage.removeItem('userRole');
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', renderDepartments);
+    </script>
+</body>
+
+</html>

@@ -14,60 +14,105 @@
         :root {
             --primary: #3b82f6;
             --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
             --bg: #f8fafc;
             --card: #ffffff;
             --border: #e2e8f0;
             --text-main: #0f172a;
             --text-muted: #64748b;
-            --sidebar-width: 260px;
-            --radius: 24px;
+            --sidebar-width: 280px;
+            --radius: 28px;
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
             --success: #10b981;
             --danger: #ef4444;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Outfit', sans-serif; background-color: var(--bg); color: var(--text-main); }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg); color: var(--text-main); min-height: 100vh; }
 
-        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; min-height: 100vh; }
+        .layout { display: flex; min-height: 100vh; }
 
         /* Sidebar */
-        .sidebar { background: white; border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; position: fixed; height: 100vh; width: var(--sidebar-width); }
-        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
-        .logo-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
-        .logo-text { font-size: 1.25rem; font-weight: 800; }
+        .sidebar { 
+            background: white; 
+            border-right: 1px solid var(--border); 
+            padding: 2.5rem 1.5rem; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            height: 100vh; 
+            width: var(--sidebar-width); 
+            z-index: 1000;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-soft) transparent;
+        }
 
-        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; margin-bottom: 4px; }
-        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
-        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .sidebar:hover::-webkit-scrollbar-thumb {
+            background: var(--primary-soft);
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
+
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; margin-bottom: 4px; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin: 2rem 0 1rem 0.5rem; opacity: 0.8; }
 
         /* Main */
-        .main-content { margin-left: var(--sidebar-width); padding: 3rem; }
+        .main-content { 
+            margin-left: var(--sidebar-width); 
+            flex: 1; 
+            padding: 3rem; 
+            max-width: calc(100vw - var(--sidebar-width));
+        }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
-        h1 { font-size: 2rem; font-weight: 800; letter-spacing: -1px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3.5rem; }
+        h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; color: #1e293b; margin-bottom: 8px; }
 
         /* Stat Grid */
-        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
-        .stat-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); }
-        .stat-card h3 { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
-        .stat-val { font-size: 1.75rem; font-weight: 800; margin-bottom: 4px; }
-        .stat-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 3.5rem; }
+        .stat-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .stat-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); border-color: var(--primary-soft); }
+        .stat-card h3 { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .stat-val { font-size: 2rem; font-weight: 800; margin-bottom: 8px; color: #1e293b; letter-spacing: -1px; }
+        .stat-trend { font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .trend-up { color: var(--success); }
         .trend-down { color: var(--danger); }
 
         /* Chart Grid */
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .chart-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); position: relative; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .chart-title { font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem; }
+        .chart-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 2.5rem; box-shadow: var(--shadow-sm); position: relative; transition: 0.3s; }
+        .chart-card:hover { box-shadow: var(--shadow); border-color: var(--primary-soft); }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .chart-title { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px; color: #1e293b; }
         .chart-icon { color: var(--primary); }
-        .chart-close { color: var(--text-muted); cursor: pointer; }
+        .chart-close { color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+        .chart-close:hover { color: var(--danger); transform: rotate(90deg); }
 
-        canvas { width: 100% !important; height: 220px !important; }
+        canvas { width: 100% !important; height: 240px !important; }
 
-        .btn-group { display: flex; gap: 8px; }
-        .btn { padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; cursor: pointer; border: 1px solid var(--border); background: white; display: flex; align-items: center; gap: 8px; }
+        .btn-group { display: flex; gap: 10px; }
+        .btn { padding: 12px 24px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: 1px solid var(--border); background: white; display: flex; align-items: center; gap: 8px; transition: 0.3s; color: #475569; }
+        .btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-2px); color: var(--text-main); }
+        .btn i { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -81,6 +126,7 @@
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>HRMS Dashboard</span></a></div>
                 <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
@@ -193,6 +239,14 @@
                         <i data-lucide="x" class="chart-close"></i>
                     </div>
                     <canvas id="predChart"></canvas>
+                    <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px dashed var(--border);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Prediction Horizon</span>
+                            <span id="sliderVal" style="font-size: 0.85rem; font-weight: 800; color: var(--primary);">3 Months</span>
+                        </div>
+                        <input type="range" id="horizonSlider" min="1" max="12" value="3" style="width: 100%; cursor: pointer; accent-color: var(--primary);">
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;">Adjust the slider to simulate long-term productivity trends based on current hiring velocity.</p>
+                    </div>
                 </div>
             </div>
         </main>
@@ -247,7 +301,7 @@
         });
 
         // Predictions
-        new Chart(document.getElementById('predChart'), {
+        const predChart = new Chart(document.getElementById('predChart'), {
             type: 'line',
             data: {
                 labels: ['Current', '+1M', '+2M', '+3M'],
@@ -261,6 +315,27 @@
             },
             options: { responsive: true, plugins: { legend: { display: false } } }
         });
+
+        // Slider Interaction
+        const slider = document.getElementById('horizonSlider');
+        const sliderVal = document.getElementById('sliderVal');
+
+        slider.oninput = function() {
+            const val = this.value;
+            sliderVal.innerText = val + (val == 1 ? ' Month' : ' Months');
+            
+            // Update Chart Data Dynamically
+            const newLabels = ['Current'];
+            const newData = [88];
+            for(let i=1; i<=val; i++) {
+                newLabels.push(`+${i}M`);
+                newData.push(88 + (i * 2.5) + (Math.random() * 2));
+            }
+            
+            predChart.data.labels = newLabels;
+            predChart.data.datasets[0].data = newData;
+            predChart.update();
+        };
     </script>
 </body>
 </html>

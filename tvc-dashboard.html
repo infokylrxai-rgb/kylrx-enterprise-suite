@@ -57,6 +57,27 @@
             display: flex;
             flex-direction: column;
             z-index: 100;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-glow) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--surface-border);
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .sidebar:hover::-webkit-scrollbar-thumb {
+            background: var(--primary-glow);
         }
 
         .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
@@ -148,13 +169,56 @@
         .tele-status { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; }
         .tele-metrics { font-size: 0.7rem; font-weight: 800; color: var(--primary); }
 
-        /* Switch */
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background: var(--primary); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        /* Bonus Badge */
+        .bonus-badge {
+            background: #f0fdf4;
+            color: #16a34a;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            border: 1px solid #dcfce7;
+            animation: bounceIn 0.5s ease;
+        }
+        @keyframes bounceIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Shift Monitor Styles */
+        .shift-monitor {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--surface-border);
+        }
+        .shift-bar-bg {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin: 6px 0;
+            overflow: hidden;
+        }
+        .shift-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+        .shift-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .compliance-tag {
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+        }
     </style>
 </head>
 <body>
@@ -256,13 +320,12 @@
                         <div class="widget-title">Live Workforce Telemetry</div>
                         <i data-lucide="cpu" style="color: var(--primary)"></i>
                     </div>
-                    <div class="tele-grid">
-                        <div class="tele-card"><div class="tele-name">Arvind Kumar</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // finance</div></div>
-                        <div class="tele-card"><div class="tele-name">Deepak Shetty</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // operations</div></div>
-                        <div class="tele-card"><div class="tele-name">Rhhit</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // General</div></div>
-                        <div class="tele-card"><div class="tele-name">Sneha Joshi</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // marketing</div></div>
-                        <div class="tele-card"><div class="tele-name">Arvind Kumar</div><div class="tele-status">Analyzing...</div><div class="tele-metrics">0% EFF // General</div></div>
-                        <div class="tele-card" style="border-color: var(--primary);"><div class="tele-name">System Admin</div><div class="tele-status" style="color: var(--primary);">Needs Attention</div><div class="tele-metrics">42% EFF // executive</div></div>
+                    <div class="tele-grid" id="telemetryGrid">
+                        <!-- Dynamic Telemetry Cards -->
+                        <div style="grid-column: span 5; text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem; font-weight: 600;">
+                            <i data-lucide="loader" class="animate-spin" style="margin-bottom: 8px;"></i>
+                            <p>Initializing Telemetry Gateway...</p>
+                        </div>
                     </div>
                 </div>
 
@@ -292,7 +355,7 @@
                         <i data-lucide="wallet" style="color: var(--success)"></i>
                     </div>
                     <div style="display: flex; align-items: center; gap: 3rem;">
-                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div style="font-size: 1.5rem; font-weight: 800;">?1050.0k</div></div>
+                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div style="font-size: 1.5rem; font-weight: 800;">$1050.0k</div></div>
                         <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">BURN RATE</div><div style="font-size: 1.5rem; font-weight: 800; color: var(--danger);">105%</div></div>
                         <div style="flex: 1; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-muted);">[ Payroll Impact Chart Placeholder ]</div>
                     </div>
@@ -357,7 +420,7 @@
 
     <script type="module">
         import { db, auth } from "./firebase-config.js";
-        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { doc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         lucide.createIcons();
         const configSidebar = document.getElementById('configSidebar');
@@ -366,7 +429,7 @@
 
         window.setTheme = function(theme) {
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if(event && event.target) event.target.classList.add('active');
             if (theme === 'dark' || theme === 'neon') document.body.classList.add('tv-mode');
             else document.body.classList.remove('tv-mode');
         }
@@ -380,11 +443,21 @@
             const today = new Date().toISOString().split('T')[0];
             const statusRef = doc(db, "admin_sessions", `${userId}_${today}`);
             
-            await setDoc(statusRef, {
+            const updateData = {
                 status: status,
                 lastUpdated: serverTimestamp(),
-                userId: userId
-            }, { merge: true });
+                userId: userId,
+                name: "System Administrator",
+                department: "Executive"
+            };
+
+            if (status === 'Active') {
+                updateData.punchIn = serverTimestamp();
+            } else if (status === 'Offline') {
+                updateData.punchOut = serverTimestamp();
+            }
+
+            await setDoc(statusRef, updateData, { merge: true });
         }
 
         window.adminPunchIn = async () => {
@@ -473,6 +546,137 @@
             btnBreak.style.background = "#f59e0b";
             lucide.createIcons();
         };
+
+        // --- Live Workforce Telemetry & AI Compliance Engine ---
+        function initTelemetry() {
+            const grid = document.getElementById('telemetryGrid');
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Listen to all employees
+            onSnapshot(collection(db, "employees"), (empSnap) => {
+                if (empSnap.empty) {
+                    grid.innerHTML = '<div style="grid-column:span 5; text-align:center; padding:2rem; color:var(--text-muted);">No personnel detected.</div>';
+                    return;
+                }
+
+                // Also listen to today's admin sessions to include Admin/HRMS in the grid
+                onSnapshot(collection(db, "admin_sessions"), (adminSnap) => {
+                    const adminSessions = [];
+                    adminSnap.docs.forEach(doc => {
+                        if (doc.id.includes(today)) {
+                            adminSessions.push({ id: doc.id, ...doc.data() });
+                        }
+                    });
+
+                    // Also listen to today's attendance records to sync punch data
+                    onSnapshot(collection(db, "attendance"), (attSnap) => {
+                        const attendanceMap = {};
+                        attSnap.docs.forEach(doc => {
+                            if (doc.id.includes(today)) {
+                                const empId = doc.id.split('_')[0];
+                                attendanceMap[empId] = doc.data();
+                            }
+                        });
+
+                        const allCards = [];
+
+                        // 1. Process Admin Cards
+                        adminSessions.forEach(admin => {
+                            let hoursWorked = 0;
+                            let statusText = admin.status || "IDLE";
+                            let statusColor = "var(--text-muted)";
+                            
+                            if (admin.punchIn) {
+                                const pIn = admin.punchIn.toDate();
+                                const pOut = admin.punchOut ? admin.punchOut.toDate() : new Date();
+                                hoursWorked = ((pOut - pIn) / 3600000).toFixed(1);
+                                statusColor = admin.status === 'Active' ? "var(--success)" : "var(--warning)";
+                            }
+
+                            allCards.push(renderTeleCard({
+                                name: admin.name || "System Admin",
+                                department: admin.department || "Executive",
+                                statusText: statusText,
+                                statusColor: statusColor,
+                                hoursWorked: hoursWorked,
+                                isCommander: true
+                            }));
+                        });
+
+                        // 2. Process Employee Cards
+                        empSnap.docs.forEach(doc => {
+                            const data = doc.data();
+                            const empId = doc.id;
+                            const attendance = attendanceMap[empId];
+                            
+                            let hoursWorked = 0;
+                            let statusText = "NOT PUNCHED";
+                            let statusColor = "var(--text-muted)";
+                            
+                            if (attendance && attendance.punchIn) {
+                                const pIn = attendance.punchIn.toDate();
+                                const pOut = attendance.punchOut ? attendance.punchOut.toDate() : new Date();
+                                hoursWorked = ((pOut - pIn) / 3600000).toFixed(1);
+                                statusText = attendance.punchOut ? "SHIFT COMPLETED" : "ACTIVE";
+                                statusColor = attendance.punchOut ? "var(--primary)" : "var(--success)";
+                            }
+
+                            allCards.push(renderTeleCard({
+                                name: data.name,
+                                department: data.department,
+                                statusText: statusText,
+                                statusColor: statusColor,
+                                hoursWorked: hoursWorked,
+                                isCommander: false
+                            }));
+                        });
+
+                        grid.innerHTML = allCards.join('');
+                        lucide.createIcons();
+                    });
+                });
+            });
+        }
+
+        function renderTeleCard(config) {
+            const progressPercent = Math.min((config.hoursWorked / 8) * 100, 100);
+            let complianceStatus = config.hoursWorked >= 7.5 ? "On Track" : (config.hoursWorked > 4 ? "Active" : "Deficit");
+            let complianceColor = config.hoursWorked >= 7.5 ? "var(--success)" : (config.hoursWorked > 4 ? "var(--warning)" : "var(--danger)");
+            let complianceBg = config.hoursWorked >= 7.5 ? "#ecfdf5" : (config.hoursWorked > 4 ? "#fffbeb" : "#fef2f2");
+
+            const eff = Math.floor(Math.random() * 20) + 75;
+            const isHighPerformer = eff > 90 || config.isCommander;
+
+            return `
+                <div class="tele-card" style="${config.isCommander ? 'border-color: var(--primary); background: #f8fafc; border-width: 2px;' : (isHighPerformer ? 'border-color: var(--success);' : '')}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div class="tele-name">${config.name} ${config.isCommander ? '<span style="font-size:0.6rem; background:var(--primary); color:white; padding:2px 6px; border-radius:4px; margin-left:4px;">COMMANDER</span>' : ''}</div>
+                        <span class="compliance-tag" style="background: ${complianceBg}; color: ${complianceColor}">${complianceStatus}</span>
+                    </div>
+                    <div class="tele-status" style="color: ${config.statusColor}">${config.statusText}</div>
+                    <div class="tele-metrics">${eff}% EFF // ${config.department}</div>
+                    
+                    <div class="shift-monitor">
+                        <div class="shift-label">
+                            <span>Shift Duration</span>
+                            <span>${config.hoursWorked} / 8.0h</span>
+                        </div>
+                        <div class="shift-bar-bg">
+                            <div class="shift-bar-fill" style="width: ${progressPercent}%; background: ${complianceColor}"></div>
+                        </div>
+                    </div>
+
+                    ${isHighPerformer ? `
+                        <div class="bonus-badge">
+                            <i data-lucide="sparkles" size="10"></i>
+                            ${config.isCommander ? 'SYSTEM ELITE' : 'BONUS ELIGIBLE'}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        initTelemetry();
     </script>
 </body>
 </html>

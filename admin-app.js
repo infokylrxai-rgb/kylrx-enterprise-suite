@@ -623,12 +623,22 @@ function updateDeptSelects() {
         if (!select) return;
         const isFilter = select.id === 'filterDept';
         select.innerHTML = isFilter ? '<option value="">All Departments</option>' : '<option value="">Select Department</option>';
+        
+        // Add HRMS as a primary department option
+        const hrmsOpt = document.createElement('option');
+        hrmsOpt.value = 'hrms';
+        hrmsOpt.textContent = 'HRMS Core (SYSTEM)';
+        select.appendChild(hrmsOpt);
+
         state.departments.forEach(dept => {
             const opt = document.createElement('option');
             const deptName = dept.name || dept.departmentName || 'Unnamed';
             const deptCode = dept.unitId || dept.departmentCode || 'UNIT';
             const deptId = dept.departmentId || dept.id || dept.unitId;
             
+            // Skip if it's already hrms to avoid duplicates
+            if (deptId === 'hrms') return;
+
             opt.value = deptId;
             opt.textContent = `${deptName} (${deptCode})`;
             select.appendChild(opt);

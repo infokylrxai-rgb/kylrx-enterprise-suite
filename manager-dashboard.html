@@ -173,6 +173,30 @@
 
                 <div class="nav-label" style="margin-top: 2rem;">BUILDER</div>
                 <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">APPLICATIONS</div>
+                <div class="nav-item">
+                    <div class="nav-link" style="cursor: pointer; justify-content: space-between;" onclick="toggleAppsMenu()">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i data-lucide="grid"></i>
+                            <span>App</span>
+                        </div>
+                        <i data-lucide="chevron-down" id="appsChevron" style="width: 14px; height: 14px; transition: 0.3s;"></i>
+                    </div>
+                    <div id="appsDropdown" style="display: none; padding-left: 1rem; flex-direction: column; gap: 4px; margin-top: 8px;">
+                        <div id="customAppsList">
+                            <!-- Dynamic Apps from Firestore -->
+                        </div>
+                        <div style="padding: 0.5rem;">
+                            <div style="display: flex; gap: 8px; background: var(--bg); padding: 8px; border-radius: 12px; border: 1px dashed var(--border);">
+                                <input type="text" id="appUrlInput" placeholder="Paste Link..." style="background: transparent; border: none; outline: none; font-size: 0.7rem; font-weight: 600; width: 100%; color: var(--text-main);">
+                                <button onclick="addCustomApp()" style="background: var(--primary); color: white; border: none; border-radius: 8px; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i data-lucide="plus" size="12"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </nav>
 
             <div class="sidebar-footer">
@@ -410,6 +434,95 @@
             btnBreak.style.background = "var(--warning)";
             lucide.createIcons();
         };
+
+        // --- Apps Logic (Firebase Connected) ---
+        import { onSnapshot, arrayUnion, arrayRemove, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        const DEFAULT_APPS = [
+            { name: "HRMS", url: "hrms-dashboard.html" },
+            { name: "SLACK", url: "https://slack.com" },
+            { name: "GITHUB", url: "https://github.com" },
+            { name: "JIRA", url: "https://atlassian.com" }
+        ];
+
+        async function initApps() {
+            const userId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+            const appsRef = doc(db, "manager_apps", userId);
+
+            // Listen for real-time updates
+            onSnapshot(appsRef, async (snapshot) => {
+                let apps = [];
+                if (snapshot.exists()) {
+                    apps = snapshot.data().apps || [];
+                } else {
+                    // Seed with defaults if first time
+                    await setDoc(appsRef, { apps: DEFAULT_APPS });
+                    apps = DEFAULT_APPS;
+                }
+                renderAppsUI(apps);
+            });
+        }
+
+        function renderAppsUI(apps) {
+            const list = document.getElementById('customAppsList');
+            list.innerHTML = apps.map((app, index) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.3; cursor: pointer; padding: 4px;">
+                        <i data-lucide="x" size="12"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        window.addCustomApp = async () => {
+            const input = document.getElementById('appUrlInput');
+            const url = input.value.trim();
+            if (!url) return;
+
+            try {
+                let cleanUrl = url;
+                if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+                const urlObj = new URL(cleanUrl);
+                const domain = urlObj.hostname.replace('www.', '');
+                const appName = domain.split('.')[0].toUpperCase();
+
+                const userId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+                const appsRef = doc(db, "manager_apps", userId);
+
+                await setDoc(appsRef, {
+                    apps: arrayUnion({ name: appName, url: cleanUrl })
+                }, { merge: true });
+
+                input.value = '';
+            } catch (e) {
+                alert("Invalid URL structure.");
+            }
+        };
+
+        window.removeAppFromServer = async (url, name) => {
+            const userId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+            const appsRef = doc(db, "manager_apps", userId);
+            await setDoc(appsRef, {
+                apps: arrayRemove({ name: name, url: url })
+            }, { merge: true });
+        };
+
+        window.toggleAppsMenu = () => {
+            const dropdown = document.getElementById('appsDropdown');
+            const chevron = document.getElementById('appsChevron');
+            const isVisible = dropdown.style.display === 'flex';
+            
+            dropdown.style.display = isVisible ? 'none' : 'flex';
+            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        // Initialize Apps after ensuring auth is checked
+        setTimeout(initApps, 1000);
     </script>
 </body>
 </html>
