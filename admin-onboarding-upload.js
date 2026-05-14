@@ -257,6 +257,8 @@ async function finalizeImport() {
         failedCount: state.stats.failed
     });
 
+    // 2. Create employees and send invites
+    for (const row of state.successRows) {
         const onboardingToken = `HRFLOW-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
         const expiryDate = new Date();
         expiryDate.setHours(expiryDate.getHours() + 3); // 3-hour security window

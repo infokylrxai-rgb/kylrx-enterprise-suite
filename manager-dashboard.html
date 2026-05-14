@@ -10,10 +10,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
+        /* Custom Alert Styles */
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .custom-alert-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            animation: alertPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        @keyframes alertPop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .alert-btn {
+            margin-top: 2rem; width: 100%; padding: 14px;
+            background: var(--primary); color: white; border: none;
+            border-radius: 14px; font-weight: 700; cursor: pointer;
+            transition: 0.2s;
+        }
+        .alert-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-delete:hover { background: #fecaca !important; transform: translateY(-2px); }
+
         :root {
             --primary: #2563eb;
             --primary-light: #eff6ff;
-            --bg: #f0f7ff;
+            --bg: #f8fafc;
             --card: #ffffff;
             --border: #e2e8f0;
             --text-main: #0f172a;
@@ -35,6 +71,15 @@
         }
 
         .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+        
+        @media (max-width: 1024px) {
+            :root { --sidebar-width: 80px; }
+            .dept-name, .dept-code, .nav-link span, .nav-label { display: none; }
+            .sidebar { padding: 2.5rem 1rem; align-items: center; }
+            .nav-link { justify-content: center; padding: 14px; }
+            .dept-branding { padding: 1.5rem 0.5rem; }
+            .dept-icon-box { margin-bottom: 0; }
+        }
 
         /* Sidebar */
         .sidebar {
@@ -43,30 +88,50 @@
             padding: 2.5rem 1.5rem;
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* Custom Slide Bar (Scrollbar) */
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .sidebar:hover::-webkit-scrollbar-thumb {
+            background: rgba(37, 99, 235, 0.2);
         }
 
         .dept-branding {
-            background: var(--primary-light);
-            border-radius: 20px;
-            padding: 2rem 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 100%);
+            border-radius: 24px;
+            padding: 2.25rem 1.5rem;
             text-align: center;
             margin-bottom: 2.5rem;
-            border: 1px solid rgba(37, 99, 235, 0.1);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
         }
         .dept-icon-box {
-            width: 52px; height: 52px; background: white; border-radius: 14px;
+            width: 60px; height: 60px; background: white; border-radius: 18px;
             display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1.25rem; color: var(--primary);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+            margin: 0 auto 1.5rem; color: var(--primary);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.05);
         }
-        .dept-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; letter-spacing: -0.5px; }
-        .dept-code { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-
-        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .dept-name { font-weight: 800; font-size: 1.2rem; margin-bottom: 6px; letter-spacing: -0.5px; color: var(--text-main); }
+        .dept-code { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.7; }
+ 
+        .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 2rem 0 1rem 0.5rem; opacity: 0.6; }
         .nav-link {
-            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 14px; padding: 14px 1.25rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; border-radius: 16px; transition: 0.3s; margin-bottom: 6px;
         }
-        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+        .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
+        .nav-link.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25); }
 
         .sidebar-footer { margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--border); }
 
@@ -155,6 +220,111 @@
     </style>
 </head>
 <body>
+    <div id="moduleAlertOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-card">
+            <div style="width: 48px; height: 48px; background: var(--primary-light); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i id="alertIcon" data-lucide="info"></i>
+            </div>
+            <h2 id="alertTitle" style="font-weight: 800; margin-bottom: 8px;">Module Info</h2>
+            <p id="alertMsg" style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">Message goes here.</p>
+            <button class="alert-btn" onclick="document.getElementById('moduleAlertOverlay').style.display='none'">Understood</button>
+        </div>
+    </div>
+
+    <div id="teamManagerModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 800px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Team Management</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Organize your workforce into specialized units</p>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('teamManagerModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Team List -->
+                <div style="border-right: 1px solid var(--border); padding-right: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Active Teams</h3>
+                        <button onclick="showNewTeamForm()" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 4px 12px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">+ Create Team</button>
+                    </div>
+                    <div id="teamsList" style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
+                        <!-- Teams dynamic list -->
+                    </div>
+                </div>
+
+                <!-- Team Detail / Form -->
+                <div id="teamEditor">
+                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; text-align: center; border: 2px dashed var(--border); border-radius: 20px;">
+                        Select a team to view details or create a new one
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notificationsModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-weight: 800; font-size: 1.25rem;">Notifications</h2>
+                <button class="btn-ghost" onclick="document.getElementById('notificationsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            <div id="notificationsList" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="padding: 1rem; background: var(--bg); border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px;">Security Patch Required</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">A new security update is available for Region 4 servers.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Modal -->
+    <div id="messagesModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-weight: 800; font-size: 1.25rem;">Direct Messages</h2>
+                <button class="btn-ghost" onclick="document.getElementById('messagesModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            <div id="messagesList" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="padding: 1rem; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); display: flex; gap: 12px; align-items: center;">
+                    <div style="width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.7rem;">AK</div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.85rem;">Arvind Kumar</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Sir, I've completed the Q2 report.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 400px;">
+            <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="alert-triangle" size="32"></i>
+            </div>
+            <h2 style="font-weight: 800; margin-bottom: 12px;">Are you sure?</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 2rem;">This action will permanently delete the team and all its internal configurations. This cannot be undone.</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="alert-btn" style="background: var(--bg); color: var(--text-main); margin-top: 0; flex: 1;" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+                <button id="confirmBtn" class="alert-btn" style="background: #ef4444; margin-top: 0; flex: 1;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Picker Modal -->
+    <div id="memberPickerModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 400px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 id="pickerTitle" style="font-weight: 800; font-size: 1.25rem;">Assign Member</h2>
+                <button class="btn-ghost" onclick="document.getElementById('memberPickerModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            <div id="pickerList" style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto;">
+                <!-- Personnel options dynamic list -->
+            </div>
+        </div>
+    </div>
 
     <div class="layout">
         <aside class="sidebar">
@@ -166,13 +336,17 @@
             
             <nav class="nav-menu">
                 <div class="nav-label">COMMAND</div>
-                <div class="nav-item"><a href="#" class="nav-link active"><i data-lucide="layout"></i><span>Overview</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="users"></i><span>Workforce</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="shield-check"></i><span>Security</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard.html" id="overviewLink" class="nav-link active"><i data-lucide="layout"></i><span>Overview</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Workforce', 'Real-time personnel monitoring is active for this unit.')"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Security', 'TVC Live Telemetry is currently monitoring all active stations.')"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Performance', 'AI Predictive Analytics are being calculated based on current focus scores.')"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
 
-                <div class="nav-label" style="margin-top: 2rem;">BUILDER</div>
-                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showNotifications()"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showMessages()"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="openTeamManager()"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
+
+
 
                 <div class="nav-label" style="margin-top: 2rem;">APPLICATIONS</div>
                 <div class="nav-item">
@@ -226,7 +400,7 @@
                         <button class="punch-btn-mini" id="btnPunchIn" onclick="managerPunchIn()" style="background: var(--success); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                             <i data-lucide="play" size="14"></i> Punch In
                         </button>
-                        <button class="punch-btn-mini" id="btnBreak" onclick="managerBreak()" style="display: none; background: var(--warning); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <button class="punch-btn-mini" id="btnBreak" onclick="managerBreak()" disabled style="opacity: 0.5; background: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                             <i data-lucide="coffee" size="14"></i> Break
                         </button>
                         <button class="punch-btn-mini" id="btnPunchOut" onclick="managerPunchOut()" style="display: none; background: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px;">
@@ -329,42 +503,147 @@
         import { db, auth } from "./firebase-config.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
         import { doc, setDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        
+        let currentDeptConfig = null;
+        const currentUnitId = new URLSearchParams(window.location.search).get('id');
 
         lucide.createIcons();
 
-        // --- Auth Guard & Profile Hydration ---
+        // --- Dynamic Dashboard Hydration ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const centerId = urlParams.get('id');
+
         onAuthStateChanged(auth, async (user) => {
+            let userData = null;
             if (user) {
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
-                let userData = userDoc.exists() ? userDoc.data() : null;
-                
-                if (!userData) {
-                    userData = {
-                        name: localStorage.getItem('userName') || 'Manager',
-                        role: localStorage.getItem('userRole') || 'manager',
-                        department: localStorage.getItem('userDept') || 'General'
-                    };
-                }
+                if (userDoc.exists()) userData = userDoc.data();
+            }
 
-                if ((userData.role || '').toLowerCase() !== 'manager') {
-                    window.location.href = 'index.html';
-                    return;
-                }
+            // Fallback for demo or admin viewing
+            if (!userData) {
+                userData = {
+                    name: localStorage.getItem('userName') || 'Manager',
+                    role: localStorage.getItem('userRole') || 'manager',
+                    department: localStorage.getItem('userDept') || 'General'
+                };
+            }
 
-                // Update UI Branding
+            if (centerId) {
+                // Fetch specific command center config
+                try {
+                    const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
+                    if (centerDoc.exists()) {
+                        const config = centerDoc.data();
+                        currentDeptConfig = config;
+                        hydrateDashboard(config);
+                    }
+                } catch (e) { console.error("Error fetching center config:", e); }
+            } else {
+                // Fallback to user's department
                 const sideDeptName = document.getElementById('sideDeptName');
                 const sideDeptCode = document.getElementById('sideDeptCode');
                 if (sideDeptName) sideDeptName.textContent = userData.department;
                 if (sideDeptCode) sideDeptCode.textContent = (userData.department.substring(0, 3) + '-UNIT').toUpperCase();
-                
-                // Welcome message
                 const welcomeTitle = document.querySelector('.header h1');
                 if (welcomeTitle) welcomeTitle.textContent = `${userData.department} Command Center`;
+            }
 
-            } else if (localStorage.getItem('hr_logged_in') !== 'true') {
+            if (user && (userData.role || '').toLowerCase() !== 'manager' && !centerId) {
                 window.location.href = 'index.html';
+                return;
             }
         });
+
+        function hydrateDashboard(config) {
+            const sideDeptName = document.getElementById('sideDeptName');
+            const sideDeptCode = document.getElementById('sideDeptCode');
+            const welcomeTitle = document.querySelector('.header h1');
+            const deptIcon = document.getElementById('deptIcon');
+            const customAppsList = document.getElementById('customAppsList');
+            const overviewLink = document.getElementById('overviewLink');
+
+            if (overviewLink && centerId) overviewLink.href = `manager-dashboard.html?id=${centerId}`;
+            if (sideDeptName) sideDeptName.textContent = config.name;
+            if (sideDeptCode) sideDeptCode.textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
+            if (welcomeTitle) welcomeTitle.textContent = `${config.name} Command Center`;
+            if (deptIcon) {
+                deptIcon.innerHTML = `<i data-lucide="${config.icon || 'shield'}"></i>`;
+                deptIcon.style.color = config.primaryColor || 'var(--primary)';
+            }
+
+            // Apply Theme Colors
+            if (config.primaryColor) {
+                document.documentElement.style.setProperty('--primary', config.primaryColor);
+                document.documentElement.style.setProperty('--primary-light', config.primaryColor + '15');
+            }
+            if (deptIcon) deptIcon.innerHTML = config.icon || '<i data-lucide="shield"></i>';
+
+            // SECURE DEPARTMENT SYNC: Strict isolation enforced at Firestore level
+            import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(mod => {
+                const { collection, query, where, onSnapshot } = mod;
+                
+                // DBAC Layer: Strict bind to currentUnitId
+                const q = query(
+                    collection(db, 'users'), 
+                    where('departmentId', '==', currentUnitId),
+                    where('employmentStatus', '==', 'active')
+                );
+                
+                onSnapshot(q, (snapshot) => {
+                    const users = snapshot.docs.map(d => d.data());
+                    renderWorkforceData(users);
+                    calculatePayroll(users, config.budget || 500000);
+                });
+            });
+
+            lucide.createIcons();
+        }
+
+        function renderWorkforceData(users) {
+            const tbody = document.querySelector('table tbody');
+            if (!tbody) return;
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:2rem; color:var(--text-muted);">No personnel assigned to this unit</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.slice(0, 5).map(u => `
+                <tr>
+                    <td>${u.name || 'Unknown Employee'}</td>
+                    <td>${u.designation || u.role || 'Personnel'}</td>
+                    <td><span style="color:${(u.status || 'Active').toLowerCase() === 'active' ? 'var(--success)' : 'var(--warning)'}">● ${u.status || 'Active'}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function calculatePayroll(users, budget = 500000) {
+            const burnVal = document.querySelector('.burn-val');
+            const burnTrend = document.querySelector('.burn-trend');
+            if (!burnVal || !burnTrend) return;
+
+            const total = users.reduce((acc, u) => {
+                const salary = parseFloat((u.salary || '0').toString().replace(/[^0-9.]/g, '')) || 0;
+                return acc + salary;
+            }, 0);
+
+            // Format for display
+            if (total >= 1000) {
+                burnVal.textContent = `₹${(total / 1000).toFixed(1)}K`;
+            } else {
+                burnVal.textContent = `₹${total}`;
+            }
+
+            // Compare with Budget
+            if (total > budget) {
+                burnTrend.textContent = `₹${((total - budget) / 1000).toFixed(1)}K Above Allocation`;
+                burnTrend.style.color = 'var(--danger)';
+            } else {
+                burnTrend.textContent = "Within Budget Allocation";
+                burnTrend.style.color = 'var(--success)';
+            }
+        }
 
         window.logout = async () => {
             await signOut(auth);
@@ -412,7 +691,8 @@
                 await syncStatus('Active');
                 
                 btnIn.style.display = 'none';
-                btnBreak.style.display = 'flex';
+                btnBreak.disabled = false;
+                btnBreak.style.opacity = '1';
                 btnOut.style.display = 'flex';
             }, 1000);
         };
@@ -439,12 +719,12 @@
                 btnBreak.innerHTML = '<i data-lucide="play" size="14"></i> Resume';
                 btnBreak.style.background = "#3b82f6";
                 tvcText.textContent = "SECURE: PAUSED";
-                tvcDot.style.background = "var(--warning)";
+                tvcDot.style.background = "#f59e0b";
                 await syncStatus('Break');
             } else {
                 startManagerTimer();
                 btnBreak.innerHTML = '<i data-lucide="coffee" size="14"></i> Break';
-                btnBreak.style.background = "var(--warning)";
+                btnBreak.style.background = "#f59e0b";
                 tvcText.textContent = "SECURE: ACTIVE";
                 tvcDot.style.background = "var(--success)";
                 await syncStatus('Active');
@@ -469,10 +749,11 @@
             await syncStatus('Offline');
 
             btnIn.style.display = 'flex';
-            btnBreak.style.display = 'none';
+            btnBreak.disabled = true;
+            btnBreak.style.opacity = '0.5';
             btnOut.style.display = 'none';
             btnBreak.innerHTML = '<i data-lucide="coffee" size="14"></i> Break';
-            btnBreak.style.background = "var(--warning)";
+            btnBreak.style.background = "#f59e0b";
             lucide.createIcons();
         };
 
@@ -559,6 +840,293 @@
             
             dropdown.style.display = isVisible ? 'none' : 'flex';
             chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        window.showModuleInfo = (title, msg) => {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMsg').textContent = msg;
+            document.getElementById('moduleAlertOverlay').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        // --- Operations Handlers ---
+        window.showNotifications = () => {
+            document.getElementById('notificationsModal').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.showMessages = () => {
+            document.getElementById('messagesModal').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.openTeamManager = async () => {
+            document.getElementById('teamManagerModal').style.display = 'flex';
+            loadTeams();
+        };
+
+        window.loadTeams = async () => {
+            const { collection, query, where, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            const teamList = document.getElementById('teamsList');
+            
+            // STRICT TEAM ISOLATION: No cross-department visibility
+            const q = query(collection(db, 'department_teams'), where('departmentId', '==', currentUnitId));
+            
+            onSnapshot(q, (snapshot) => {
+                const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                if (teams.length === 0) {
+                    teamList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 0.85rem; border: 2px dashed var(--border); border-radius: 20px;">No teams initialized in this secure unit.</div>';
+                    return;
+                }
+
+                teamList.innerHTML = teams.map(t => `
+                    <div class="team-card" onclick="viewTeam('${t.id}')" style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 16px; cursor: pointer; transition: 0.3s; margin-bottom: 12px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary);"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="font-weight: 800; font-size: 0.9rem; text-transform: capitalize;">${t.name}</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">${t.memberCount || 0} Operators • ${t.leaders?.length || 0} Leaders</p>
+                            </div>
+                            <i data-lucide="chevron-right" style="width: 16px; color: var(--text-muted);"></i>
+                        </div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            });
+        };
+
+        window.showNewTeamForm = async () => {
+            const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            
+            // ISOLATED PERSONNEL DISCOVERY: Only current department ID allowed
+            const snap = await getDocs(query(collection(db, 'users'), where('departmentId', '==', currentUnitId)));
+            const deptUsers = snap.docs.map(doc => {
+                const u = doc.data();
+                return { id: doc.id, publicId: u.id || 'N/A', name: u.name, clearance: u.securityClearance || 'Level 1' };
+            });
+
+            const editor = document.getElementById('teamEditor');
+            editor.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 500px; overflow-y: auto; padding-right: 10px;">
+                    <div style="background: rgba(59, 130, 246, 0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="lock" style="width: 16px; color: var(--primary);"></i>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Secure Unit Initialization</span>
+                    </div>
+                    
+                    <div>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Mission Parameters (Team Name)</label>
+                        <input type="text" id="newTeamName" placeholder="e.g. Threat Response Unit" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px;">
+                    </div>
+                    
+                    <div>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Operational Goals</label>
+                        <textarea id="newTeamGoal" placeholder="Define the mission objective..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; height: 80px;"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Operator Assignment</label>
+                        <div style="position: relative; margin-top: 8px;">
+                            <select id="initialMemberSelect" multiple style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; height: 180px; font-family: inherit; font-size: 0.8rem;">
+                                ${deptUsers.length > 0 ? deptUsers.map(u => `
+                                    <option value="${u.id}" data-name="${u.name}">
+                                        ${u.name} [${u.publicId}] — ${u.clearance}
+                                    </option>
+                                `).join('') : '<option disabled>Zero available personnel in this secure vault.</option>'}
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="saveTeam()" style="background: var(--primary); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; position: sticky; bottom: 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05);">Deploy Team</button>
+                </div>
+            `;
+            lucide.createIcons();
+        };
+
+        window.saveTeam = async () => {
+            const name = document.getElementById('newTeamName').value.trim();
+            const goal = document.getElementById('newTeamGoal').value.trim();
+            if (!name) return;
+
+            const select = document.getElementById('initialMemberSelect');
+            const members = Array.from(select.selectedOptions).map(opt => ({
+                id: opt.value,
+                name: opt.getAttribute('data-name')
+            }));
+
+            const { collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            
+            try {
+                // ATOMIC ISOLATION: Department bind enforced on creation
+                await addDoc(collection(db, 'department_teams'), {
+                    name,
+                    goal,
+                    departmentId: currentUnitId,
+                    departmentCode: currentDeptConfig?.unitId || 'SEC',
+                    businessUnit: currentDeptConfig?.businessUnit || 'Global Operations',
+                    createdBy: auth.currentUser?.uid || 'manager',
+                    createdAt: serverTimestamp(),
+                    memberCount: members.length,
+                    members: members,
+                    leaders: [],
+                    subManagers: []
+                });
+                loadTeams();
+                document.getElementById('teamEditor').innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--success); font-weight: 800; text-align: center;">Mission parameters successfully deployed.</div>';
+            } catch (e) { console.error("Deployment failed:", e); }
+        };
+
+        window.viewTeam = async (id) => {
+            const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            
+            onSnapshot(doc(db, 'department_teams', id), (snapshot) => {
+                if (!snapshot.exists()) return;
+                const t = snapshot.data();
+                
+                // DBAC VALIDATION: Block cross-department view attempts
+                if (t.departmentId !== currentUnitId) {
+                    alert("Unauthorized access attempt detected. Access Denied.");
+                    return;
+                }
+
+                const editor = document.getElementById('teamEditor');
+                editor.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; animation: slideIn 0.3s ease-out;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h3 style="font-weight: 800; font-size: 1.2rem; text-transform: capitalize;">${t.name}</h3>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.5;">${t.goal || 'No objective defined.'}</p>
+                            </div>
+                            <div style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 800;">ACTIVE UNIT</div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="role-box" onclick="openMemberPicker('${id}', 'leader')" style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 16px; cursor: pointer; transition: 0.2s;">
+                                <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Team Leader</div>
+                                <div style="font-weight: 700; font-size: 0.9rem; margin-top: 8px; color: ${t.leader ? 'var(--text)' : 'var(--text-muted)'};">
+                                    ${t.leader ? t.leader.name : 'Assign Leader'}
+                                </div>
+                            </div>
+                            <div class="role-box" onclick="openMemberPicker('${id}', 'subManager')" style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 16px; cursor: pointer; transition: 0.2s;">
+                                <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Sub-Manager</div>
+                                <div style="font-weight: 700; font-size: 0.9rem; margin-top: 8px; color: ${t.subManager ? 'var(--text)' : 'var(--text-muted)'};">
+                                    ${t.subManager ? t.subManager.name : 'Assign Support'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Assigned Workforce</label>
+                                <button onclick="openMemberPicker('${id}', 'member')" style="background: none; border: none; color: var(--primary); font-size: 0.7rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                    <i data-lucide="plus-circle" style="width: 14px;"></i> Add Operator
+                                </button>
+                            </div>
+                            <div id="teamMembersList" style="display: flex; flex-direction: column; gap: 8px;">
+                                ${t.members && t.members.length > 0 ? t.members.map(m => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="width: 32px; height: 32px; border-radius: 10px; background: var(--border); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; color: var(--primary);">${m.name.charAt(0)}</div>
+                                            <span style="font-size: 0.85rem; font-weight: 600;">${m.name}</span>
+                                        </div>
+                                        <button onclick="removeTeamMember('${id}', '${m.id}')" style="background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.6; transition: 0.2s;"><i data-lucide="x-circle" style="width: 18px;"></i></button>
+                                    </div>
+                                `).join('') : '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 20px;">No operators deployed.</p>'}
+                            </div>
+                        </div>
+
+                        <button onclick="deleteTeam('${id}')" style="margin-top: 10px; background: rgba(239, 68, 68, 0.05); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i data-lucide="trash-2" style="width: 18px;"></i> Decommission Team
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+            });
+        };
+
+        window.openMemberPicker = async (teamId, roleType) => {
+            const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            
+            // STRICT VAULT DISCOVERY: No cross-department leakage
+            const snap = await getDocs(query(collection(db, 'users'), where('departmentId', '==', currentUnitId)));
+            const deptUsers = snap.docs.map(doc => {
+                const u = doc.data();
+                return { id: doc.id, publicId: u.id || 'N/A', name: u.name, clearance: u.securityClearance || 'Level 1' };
+            });
+            
+            const title = document.getElementById('pickerTitle');
+            title.textContent = roleType === 'leader' ? 'Assign Team Leader' : (roleType === 'subManager' ? 'Assign Sub-Manager' : 'Add Operator');
+            
+            const list = document.getElementById('pickerList');
+            list.innerHTML = deptUsers.map(u => `
+                <div onclick="assignMember('${teamId}', '${roleType}', '${u.id}', '${u.name}')" style="padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); cursor: pointer; transition: 0.2s; margin-bottom: 8px;">
+                    <div style="font-weight: 700; font-size: 0.85rem;">${u.name}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">${u.publicId} • ${u.clearance}</div>
+                </div>
+            `).join('');
+            
+            document.getElementById('memberPickerModal').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.assignMember = async (teamId, roleType, userId, userName) => {
+            const { doc, updateDoc, arrayUnion, getDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            
+            try {
+                const teamSnap = await getDoc(doc(db, 'department_teams', teamId));
+                if (teamSnap.data().departmentId !== currentUnitId) {
+                    alert("Security Breach Detected: Unauthorized cross-department assignment blocked.");
+                    return;
+                }
+
+                if (roleType === 'member') {
+                    await updateDoc(doc(db, 'department_teams', teamId), {
+                        members: arrayUnion({ id: userId, name: userName }),
+                        memberCount: (parseInt(document.getElementById('teamMembersList')?.children.length) || 0) + 1
+                    });
+                } else {
+                    const updateData = {};
+                    updateData[roleType] = { id: userId, name: userName };
+                    await updateDoc(doc(db, 'department_teams', teamId), updateData);
+                }
+                document.getElementById('memberPickerModal').style.display = 'none';
+                viewTeam(teamId);
+            } catch (e) { console.error("Assignment failed:", e); }
+        };
+
+        window.removeTeamMember = async (teamId, userId) => {
+            const { doc, getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            try {
+                const teamDoc = await getDoc(doc(db, 'department_teams', teamId));
+                if (teamDoc.data().departmentId !== currentUnitId) return;
+
+                const currentMembers = teamDoc.data().members || [];
+                const updatedMembers = currentMembers.filter(m => m.id !== userId);
+                
+                await updateDoc(doc(db, 'department_teams', teamId), {
+                    members: updatedMembers,
+                    memberCount: updatedMembers.length
+                });
+                viewTeam(teamId);
+            } catch (e) { console.error("Removal failed:", e); }
+        };
+
+        window.deleteTeam = async (id) => {
+            const modal = document.getElementById('confirmModal');
+            const confirmBtn = document.getElementById('confirmBtn');
+            modal.style.display = 'flex';
+            
+            confirmBtn.onclick = async () => {
+                const { doc, deleteDoc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                try {
+                    const teamSnap = await getDoc(doc(db, 'department_teams', id));
+                    if (teamSnap.data().departmentId === currentUnitId) {
+                        await deleteDoc(doc(db, 'department_teams', id));
+                        modal.style.display = 'none';
+                        document.getElementById('teamEditor').innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; text-align: center; border: 2px dashed var(--border); border-radius: 20px;">Unit decommissioned successfully.</div>';
+                    }
+                } catch (e) { console.error("Decommissioning failed:", e); }
+            };
         };
 
         // Initialize Apps after ensuring auth is checked

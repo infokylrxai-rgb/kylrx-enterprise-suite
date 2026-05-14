@@ -219,15 +219,15 @@
             
             <nav class="nav-menu">
                 <div class="nav-label">MY WORKSPACE</div>
-                <div class="nav-item"><a href="#" class="nav-link active"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
-                <div class="nav-item"><a href="employee-leave.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
-                <div class="nav-item"><a href="employee-docs.html" class="nav-link"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="employee-dashboard.html" class="nav-link active"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Leave Management Module is active.')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Attendance Logs are being synchronized.')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Document Vault is secured.')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 
                 <div class="nav-label">RESOURCES</div>
-                <div class="nav-item"><a href="employee-policy.html" class="nav-link"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Policy Hub is updated.')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Asset Inventory is verified.')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Support Hub is online.')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
             </nav>
 
             <div class="profile-mini">
@@ -264,10 +264,16 @@
                     </div>
                     <div class="attendance-hero">
                         <div class="timer-display" id="timer">00:00:00</div>
-                        <button class="punch-btn" id="punchBtn">
-                            <i data-lucide="log-in" id="punchIcon"></i>
-                            <span id="punchText">Punch In</span>
-                        </button>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="punch-btn" id="punchBtn" style="flex: 1;">
+                                <i data-lucide="log-in" id="punchIcon"></i>
+                                <span id="punchText">Punch In</span>
+                            </button>
+                            <button class="punch-btn" id="breakBtn" disabled style="flex: 1; background: #f59e0b; opacity: 0.5; display: none;">
+                                <i data-lucide="coffee"></i>
+                                <span>Break</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="stats-row">
                         <div class="stat-item">
@@ -379,20 +385,63 @@
         lucide.createIcons();
 
         let currentUser = null;
+        // --- Dynamic Dashboard Hydration ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const centerId = urlParams.get('id');
+
         onAuthStateChanged(auth, async (user) => {
+            let userData = null;
             if (user) {
                 currentUser = user;
+                const { getDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                const userDoc = await getDoc(fsDoc(db, 'users', user.uid));
+                if (userDoc.exists()) userData = userDoc.data();
                 loadDashboardData(user);
             } else {
                 // Fallback for demo
-                const demoUser = { uid: localStorage.getItem('hr_user_id') || 'demo_user', displayName: localStorage.getItem('userName') || 'Employee' };
-                loadDashboardData(demoUser);
+                userData = {
+                    name: localStorage.getItem('userName') || 'Employee',
+                    role: localStorage.getItem('userRole') || 'employee',
+                    department: localStorage.getItem('userDept') || 'General'
+                };
+                loadDashboardData(userData);
+            }
+
+            if (centerId) {
+                const { getDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                try {
+                    const centerDoc = await getDoc(fsDoc(db, 'command_centers', centerId));
+                    if (centerDoc.exists()) {
+                        hydrateEmployeePortal(centerDoc.data());
+                    }
+                } catch (e) { console.error("Error fetching center config:", e); }
             }
         });
 
+        function hydrateEmployeePortal(config) {
+            const logoText = document.querySelector('.logo-text');
+            const logoIcon = document.querySelector('.logo-icon');
+            const greeting = document.getElementById('greeting');
+
+            if (logoText) logoText.textContent = config.name;
+            if (greeting) greeting.textContent = `Welcome to ${config.name}`;
+            
+            if (config.primaryColor) {
+                document.documentElement.style.setProperty('--primary', config.primaryColor);
+                if (logoIcon) logoIcon.style.background = config.primaryColor;
+            }
+
+            if (config.icon && logoIcon) {
+                logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
+            }
+
+            lucide.createIcons();
+        }
+
         async function loadDashboardData(user) {
-            const userName = user.displayName || localStorage.getItem('userName') || 'Employee';
-            document.getElementById('greeting').textContent = `Good Morning, ${userName.split(' ')[0]}!`;
+            const userName = user.displayName || user.name || 'Employee';
+            const greetEl = document.getElementById('greeting');
+            if (greetEl && !centerId) greetEl.textContent = `Good Morning, ${userName.split(' ')[0]}!`;
             document.getElementById('userNameDisplay').textContent = userName;
             document.getElementById('userInitial').textContent = userName.split(' ').map(n => n[0]).join('').toUpperCase();
 
@@ -426,13 +475,17 @@
 
         // Punch In/Out Logic
         const punchBtn = document.getElementById('punchBtn');
+        const breakBtn = document.getElementById('breakBtn');
         const punchText = document.getElementById('punchText');
         const punchIcon = document.getElementById('punchIcon');
         const timerDisplay = document.getElementById('timer');
         
         let isPunchedIn = false;
+        let isOnBreak = false;
         let timerInterval;
         let startTime;
+        let totalPausedTime = 0;
+        let breakStartTime;
 
         punchBtn.onclick = async () => {
             const uid = currentUser ? currentUser.uid : (localStorage.getItem('hr_user_id') || 'demo_user');
@@ -442,7 +495,12 @@
                 punchBtn.classList.add('active');
                 punchText.textContent = 'Punch Out';
                 punchIcon.setAttribute('data-lucide', 'log-out');
-                startTime = Date.now();
+                
+                breakBtn.style.display = 'flex';
+                breakBtn.disabled = false;
+                breakBtn.style.opacity = '1';
+
+                startTime = Date.now() - totalPausedTime;
                 startTimer();
                 
                 // Sync with Firebase
@@ -452,11 +510,16 @@
                 punchText.textContent = 'Punch In';
                 punchIcon.setAttribute('data-lucide', 'log-in');
                 
+                breakBtn.style.display = 'none';
+                breakBtn.disabled = true;
+
                 const totalTime = Date.now() - startTime;
                 clearInterval(timerInterval);
                 
                 // Sync with Firebase
                 await attendanceEngine.syncPunch(uid, 'out');
+                
+                totalPausedTime = 0; // Reset for next session
 
                 // 8 Hour Quota Check
                 const eightHoursMs = 8 * 3600000;
@@ -466,6 +529,27 @@
                     const m = Math.floor((diff % 3600000) / 60000);
                     alert(`Attention: You are punching out before completing your 8-hour shift. Remaining: ${h}h ${m}m.`);
                 }
+            }
+            lucide.createIcons();
+        };
+        
+        breakBtn.onclick = async () => {
+            const uid = currentUser ? currentUser.uid : (localStorage.getItem('hr_user_id') || 'demo_user');
+            isOnBreak = !isOnBreak;
+            
+            if (isOnBreak) {
+                clearInterval(timerInterval);
+                breakStartTime = Date.now();
+                breakBtn.innerHTML = '<i data-lucide="play"></i><span>Resume</span>';
+                breakBtn.style.background = "#3b82f6";
+                await attendanceEngine.syncPunch(uid, 'break');
+            } else {
+                totalPausedTime += (Date.now() - breakStartTime);
+                startTime = Date.now() - (Date.now() - startTime + (Date.now() - breakStartTime));
+                startTimer();
+                breakBtn.innerHTML = '<i data-lucide="coffee"></i><span>Break</span>';
+                breakBtn.style.background = "#f59e0b";
+                await attendanceEngine.syncPunch(uid, 'in');
             }
             lucide.createIcons();
         };

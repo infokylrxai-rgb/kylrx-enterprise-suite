@@ -496,8 +496,17 @@ async function loadDepartments() {
         console.log('%c☁️ Decentalized Cloud Active: Connected to Firebase', 'color: #3b82f6; font-weight: bold; background: #eff6ff; padding: 2px 6px; border-radius: 4px;');
         
         // Use command_centers as the new source of truth
+        const { collection, getDocs, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
         const snap = await getDocs(collection(db, 'command_centers'));
-        const commandCenters = snap.docs.map(d => ({ departmentId: d.id, ...d.data() }));
+        const commandCenters = snap.docs.map(d => {
+            const data = d.data();
+            // Auto-fix typo in Command Center record
+            if (data.name === 'Cyberseruity') {
+                updateDoc(d.ref, { name: 'Cybersecurity' });
+                data.name = 'Cybersecurity';
+            }
+            return { departmentId: d.id, ...data };
+        });
         
         // If empty, try fallback to old departments collection
         if (commandCenters.length === 0) {
@@ -546,9 +555,20 @@ function renderSidebarCommands() {
 
 async function loadEmployees() {
     try {
-        const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+        const { collection, getDocs, updateDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
         const snap = await getDocs(collection(db, 'users'));
-        state.employees = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => (u.role || '').toLowerCase() !== 'admin');
+        state.employees = snap.docs.map(doc => {
+            const data = doc.data();
+            const dept = (data.department || data.departmentId || '').toLowerCase();
+            
+            // Auto-fix typo in user record
+            if (dept === 'cyberseruity') {
+                updateDoc(doc.ref, { department: 'Cybersecurity' });
+                data.department = 'Cybersecurity';
+            }
+            
+            return { id: doc.id, ...data };
+        }).filter(u => (u.role || '').toLowerCase() !== 'admin');
         
         // Sort by createdAt descending (Newest first)
         state.employees.sort((a, b) => {

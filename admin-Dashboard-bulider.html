@@ -919,7 +919,45 @@
                     <span style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 100px; font-weight: 800; font-size: 0.7rem; text-transform: uppercase;">Central Control</span>
                 </div>
 
-                <div class="command-center-grid">
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+            <div class="stat-card" style="background: white; padding: 1.5rem; border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Total Deployed Units</span>
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="layers" size="18"></i>
+                    </div>
+                </div>
+                <div style="font-size: 1.75rem; font-weight: 800;" id="totalUnits">0</div>
+                <div style="font-size: 0.7rem; color: var(--success); font-weight: 700; margin-top: 4px;">Active Operational Centers</div>
+            </div>
+
+            <div class="stat-card" style="background: white; padding: 1.5rem; border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Total Personnel Coverage</span>
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="users" size="18"></i>
+                    </div>
+                </div>
+                <div style="font-size: 1.75rem; font-weight: 800;" id="totalCoverage">0</div>
+                <div style="font-size: 0.7rem; color: #10b981; font-weight: 700; margin-top: 4px;">Employees Across All Units</div>
+            </div>
+
+            <div class="stat-card" style="background: white; padding: 1.5rem; border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Network Status</span>
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: #fff7ed; color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="shield-check" size="18"></i>
+                    </div>
+                </div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: var(--success); display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite;"></div>
+                    PROTECTED
+                </div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-top: 4px;">Decentralized AI Active</div>
+            </div>
+        </div>
+
+            <div class="command-center-grid" id="hubGrid">
                     <div class="hub-card" style="border-color: var(--primary-soft); background: linear-gradient(to bottom right, #ffffff, #f0f7ff);">
                         <div class="card-header">
                             <div class="dept-icon-wrapper" style="background: var(--primary); color: white;">
@@ -1302,6 +1340,21 @@
             <h2 id="customAlertTitle" class="alert-title">Success</h2>
             <p id="customAlertMsg" class="alert-message">Action completed successfully.</p>
             <button class="alert-btn" onclick="closeCustomAlert()">Understood</button>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Overlay -->
+    <div id="customConfirmOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="border-top: 4px solid #ef4444;">
+            <div class="alert-icon-box" style="background: #fee2e2; color: #ef4444;">
+                <i data-lucide="trash-2" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h2 id="confirmTitle" class="alert-title">Confirm Deletion</h2>
+            <p id="confirmMsg" class="alert-message">Are you sure you want to delete this unit?</p>
+            <div style="display: flex; gap: 12px; width: 100%; margin-top: 1rem;">
+                <button class="alert-btn" style="background: #f1f5f9; color: #64748b; flex: 1;" onclick="closeCustomConfirm(false)">Cancel</button>
+                <button class="alert-btn" style="background: #ef4444; flex: 1;" onclick="closeCustomConfirm(true)">Delete Unit</button>
+            </div>
         </div>
     </div>
     <div class="modal-overlay" id="previewModal">
@@ -1689,9 +1742,43 @@
             overlay.style.display = 'flex';
         };
 
+        window.showCustomConfirm = (title, msg) => {
+            return new Promise((resolve) => {
+                document.getElementById('confirmTitle').textContent = title;
+                document.getElementById('confirmMsg').textContent = msg;
+                document.getElementById('customConfirmOverlay').style.display = 'flex';
+                window.confirmResolve = resolve;
+                lucide.createIcons();
+            });
+        };
+
+        window.closeCustomConfirm = (result) => {
+            document.getElementById('customConfirmOverlay').style.display = 'none';
+            if (window.confirmResolve) window.confirmResolve(result);
+        };
+
         window.closeCustomAlert = () => {
             document.getElementById('customAlertOverlay').style.display = 'none';
         };
+
+        // Real-time Personnel Counts
+        let personnelCounts = {};
+        onSnapshot(collection(db, 'users'), (snapshot) => {
+            personnelCounts = {};
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const dept = (data.department || data.departmentId || '').toLowerCase();
+                if (dept) {
+                    personnelCounts[dept] = (personnelCounts[dept] || 0) + 1;
+                    
+                    // Auto-fix typo in user record if found
+                    if (dept === 'cyberseruity') {
+                        updateDoc(doc.ref, { department: 'Cybersecurity' });
+                    }
+                }
+            });
+            // Re-render cards if needed (handled by the other snapshot)
+        });
 
         // Firebase: Listen for real-time updates
         onSnapshot(collection(db, 'command_centers'), 
@@ -1699,6 +1786,8 @@
                 if (loadingState) loadingState.style.display = 'none';
                 hubGrid.innerHTML = '';
                 
+                let totalPersonnel = 0;
+
                 if (snapshot.empty) {
                     hubGrid.innerHTML = `
                         <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
@@ -1710,11 +1799,27 @@
                     lucide.createIcons();
                 }
 
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const card = createCardElement(doc.id, data);
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    
+                    // Auto-fix typo in Command Center record
+                    if (data.name === 'Cyberseruity') {
+                        updateDoc(docSnap.ref, { name: 'Cybersecurity' });
+                    }
+
+                    const card = createCardElement(docSnap.id, data);
                     hubGrid.appendChild(card);
+                    
+                    // Sum personnel
+                    totalPersonnel += (personnelCounts[data.name.toLowerCase()] || data.activeUsers || 0);
                 });
+
+                // Update Stats
+                const totalUnitsEl = document.getElementById('totalUnits');
+                const totalCoverageEl = document.getElementById('totalCoverage');
+                if (totalUnitsEl) totalUnitsEl.textContent = snapshot.size;
+                if (totalCoverageEl) totalCoverageEl.textContent = totalPersonnel;
+
                 unitCountBadge.textContent = `${snapshot.size} UNITS`;
                 const globalUnitCount = document.getElementById('global-unit-count');
                 if (globalUnitCount) globalUnitCount.textContent = `${snapshot.size} Active Unit${snapshot.size === 1 ? '' : 's'}`;
@@ -1770,7 +1875,7 @@
                 <div class="card-stats">
                     <div class="stat-item">
                         <span class="stat-label">Active Users</span>
-                        <span class="stat-value">${data.activeUsers || 0} Personnel</span>
+                        <span class="stat-value">${personnelCounts[data.name.toLowerCase()] || data.activeUsers || 0} Personnel</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">AI Insights</span>
@@ -1795,8 +1900,10 @@
 
             div.querySelector('.btn-delete').onclick = async (e) => {
                 e.stopPropagation();
-                if (confirm(`Are you sure you want to delete ${data.name}?`)) {
+                const confirmed = await window.showCustomConfirm("Delete Command Center", `Are you sure you want to permanently delete the ${data.name} unit? This action cannot be undone.`);
+                if (confirmed) {
                     await deleteDoc(doc(db, 'command_centers', id));
+                    window.showCustomAlert("Unit Terminated", `${data.name} has been removed from the network.`, "success");
                 }
             };
 
