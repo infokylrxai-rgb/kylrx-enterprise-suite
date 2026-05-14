@@ -3,121 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Analytics Center | HRFlow</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📊%3C/text%3E%3C/svg%3E">
+    <title>Enterprise Analytics | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
     <style>
-        :root {
-            --primary: #3b82f6;
-            --primary-light: #eff6ff;
-            --primary-soft: #dbeafe;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --border: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --sidebar-width: 280px;
-            --radius: 28px;
-            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            --success: #10b981;
-            --danger: #ef4444;
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Outfit', sans-serif; background-color: var(--bg); color: var(--text-main); min-height: 100vh; }
-
-        .layout { display: flex; min-height: 100vh; }
-
-        /* Sidebar */
-        .sidebar { 
-            background: white; 
-            border-right: 1px solid var(--border); 
-            padding: 2.5rem 1.5rem; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            height: 100vh; 
-            width: var(--sidebar-width); 
-            z-index: 1000;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary-soft) transparent;
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
+        .stat-card h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: 0.05em; }
+        .stat-val { font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem; }
+        .stat-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
 
-        .sidebar::-webkit-scrollbar {
-            width: 5px;
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
         }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
+        .chart-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
         }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 10px;
-            transition: 0.3s;
-        }
-
-        .sidebar:hover::-webkit-scrollbar-thumb {
-            background: var(--primary-soft);
-        }
-
-        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
-        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-        .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
-
-        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; margin-bottom: 4px; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
-        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin: 2rem 0 1rem 0.5rem; opacity: 0.8; }
-
-        /* Main */
-        .main-content { 
-            margin-left: var(--sidebar-width); 
-            flex: 1; 
-            padding: 3rem; 
-            max-width: calc(100vw - var(--sidebar-width));
-        }
-
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3.5rem; }
-        h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; color: #1e293b; margin-bottom: 8px; }
-
-        /* Stat Grid */
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.75rem; margin-bottom: 3.5rem; }
-        .stat-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .stat-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); border-color: var(--primary-soft); }
-        .stat-card h3 { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1.5px; }
-        .stat-val { font-size: 2rem; font-weight: 800; margin-bottom: 8px; color: #1e293b; letter-spacing: -1px; }
-        .stat-trend { font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .trend-up { color: var(--success); }
-        .trend-down { color: var(--danger); }
-
-        /* Chart Grid */
-        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 2rem; }
-        .chart-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 2.5rem; box-shadow: var(--shadow-sm); position: relative; transition: 0.3s; }
-        .chart-card:hover { box-shadow: var(--shadow); border-color: var(--primary-soft); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .chart-title { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px; color: #1e293b; }
-        .chart-icon { color: var(--primary); }
-        .chart-close { color: var(--text-muted); cursor: pointer; transition: 0.2s; }
-        .chart-close:hover { color: var(--danger); transform: rotate(90deg); }
-
-        canvas { width: 100% !important; height: 240px !important; }
-
-        .btn-group { display: flex; gap: 10px; }
-        .btn { padding: 12px 24px; border-radius: 14px; font-weight: 700; font-size: 0.9rem; cursor: pointer; border: 1px solid var(--border); background: white; display: flex; align-items: center; gap: 8px; transition: 0.3s; color: #475569; }
-        .btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-2px); color: var(--text-main); }
-        .btn i { color: var(--primary); }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .chart-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .chart-icon { color: var(--primary); width: 20px; height: 20px; }
     </style>
 </head>
-<body>
-
-    <div class="layout">
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
@@ -126,18 +59,14 @@
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>HRMS Dashboard</span></a></div>
                 <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
-                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
-
+                
                 <div class="nav-label">OPERATIONS</div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
-                
-                
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
@@ -146,7 +75,6 @@
                 <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
-                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
@@ -154,24 +82,9 @@
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
-                <div class="nav-item">
-                    <a href="#" class="nav-link" id="btnCustom">
-                        <i data-lucide="layout"></i>
-                        <span>Customize Layout</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-settings.html" class="nav-link">
-                        <i data-lucide="settings"></i>
-                        <span>Settings</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
-                        <i data-lucide="log-out"></i>
-                        <span>Logout</span>
-                    </a>
-                </div>
+                <div class="nav-item"><a href="#" class="nav-link" id="btnCustom"><i data-lucide="layout"></i><span>Customize Layout</span></a></div>
+                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);"><i data-lucide="log-out"></i><span>Logout</span></a></div>
             </div>
         </aside>
 
@@ -191,23 +104,28 @@
             <div class="stat-grid">
                 <div class="stat-card">
                     <h3>Total Workforce</h3>
-                    <div class="stat-val">0</div>
+                    <div class="stat-val" id="totalWorkforce">0</div>
                     <div class="stat-trend trend-up"><i data-lucide="trending-up" size="14"></i> +4.2%</div>
                 </div>
                 <div class="stat-card">
                     <h3>Avg. Productivity</h3>
-                    <div class="stat-val">88%</div>
+                    <div class="stat-val" id="avgProductivity">0%</div>
                     <div class="stat-trend trend-up"><i data-lucide="trending-up" size="14"></i> +2.1%</div>
                 </div>
                 <div class="stat-card">
                     <h3>Monthly Payroll</h3>
-                    <div class="stat-val">₹0</div>
+                    <div class="stat-val" id="monthlyPayroll">₹0</div>
                     <div class="stat-trend trend-down"><i data-lucide="trending-down" size="14"></i> -1.5%</div>
                 </div>
                 <div class="stat-card">
                     <h3>Retention Rate</h3>
-                    <div class="stat-val">96.4%</div>
+                    <div class="stat-val" id="retentionRate">0%</div>
                     <div class="stat-trend trend-up"><i data-lucide="trending-up" size="14"></i> +0.8%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Work Accuracy</h3>
+                    <div class="stat-val" id="workAccuracy">0%</div>
+                    <div class="stat-trend trend-up"><i data-lucide="trending-up" size="14"></i> +1.2%</div>
                 </div>
             </div>
 
@@ -215,28 +133,24 @@
                 <div class="chart-card">
                     <div class="chart-header">
                         <div class="chart-title"><i data-lucide="bar-chart-2" class="chart-icon"></i> Dept Productivity Comparison</div>
-                        <i data-lucide="x" class="chart-close"></i>
                     </div>
                     <canvas id="deptChart"></canvas>
                 </div>
                 <div class="chart-card">
                     <div class="chart-header">
                         <div class="chart-title"><i data-lucide="trending-up" class="chart-icon"></i> Employee Performance Trends</div>
-                        <i data-lucide="x" class="chart-close"></i>
                     </div>
                     <canvas id="trendChart"></canvas>
                 </div>
                 <div class="chart-card">
                     <div class="chart-header">
                         <div class="chart-title"><i data-lucide="pie-chart" class="chart-icon"></i> Payroll Impact Analysis</div>
-                        <i data-lucide="x" class="chart-close"></i>
                     </div>
                     <canvas id="payrollChart"></canvas>
                 </div>
                 <div class="chart-card">
                     <div class="chart-header">
                         <div class="chart-title"><i data-lucide="zap" class="chart-icon"></i> Productivity Predictions</div>
-                        <i data-lucide="x" class="chart-close"></i>
                     </div>
                     <canvas id="predChart"></canvas>
                     <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px dashed var(--border);">
@@ -245,98 +159,149 @@
                             <span id="sliderVal" style="font-size: 0.85rem; font-weight: 800; color: var(--primary);">3 Months</span>
                         </div>
                         <input type="range" id="horizonSlider" min="1" max="12" value="3" style="width: 100%; cursor: pointer; accent-color: var(--primary);">
-                        <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;">Adjust the slider to simulate long-term productivity trends based on current hiring velocity.</p>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <script>
-        lucide.createIcons();
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getDepartmentProductivity, getPerformanceTrends } from "./pms-service.js";
 
-        // Dept Productivity
-        new Chart(document.getElementById('deptChart'), {
-            type: 'bar',
-            data: {
-                labels: ['Engineering', 'Marketing', 'Sales', 'Finance', 'HR', 'Operations'],
-                datasets: [{
-                    label: 'Efficiency %',
-                    data: [82, 78, 74, 88, 85, 87],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 8
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.lucide) lucide.createIcons();
+            await loadEnterpriseStats();
+            initCharts();
         });
 
-        // Performance Trend
-        new Chart(document.getElementById('trendChart'), {
-            type: 'line',
-            data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
-                datasets: [{
-                    label: 'Avg Score',
-                    data: [82, 85, 83, 87, 89, 93],
-                    borderColor: '#3b82f6',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(59, 130, 246, 0.05)'
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
+        async function loadEnterpriseStats() {
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                let totalWorkforce = 0;
+                let totalSalary = 0;
+                let totalProductivity = 0;
+                let totalAccuracy = 0;
+                let prodCount = 0;
+                let accCount = 0;
+                let exitedCount = 0;
+                let activeCount = 0;
 
-        // Payroll Impact
-        new Chart(document.getElementById('payrollChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['Fixed Salary', 'Variables', 'Incentives', 'Taxes'],
-                datasets: [{
-                    data: [65, 15, 10, 10],
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
-                }]
-            },
-            options: { responsive: true, cutout: '70%' }
-        });
+                usersSnap.forEach(doc => {
+                    const data = doc.data();
+                    const status = data.onboardingStatus;
+                    
+                    if (status === 'Active') {
+                        activeCount++;
+                        totalWorkforce++;
+                    }
+                    else if (status === 'Exited') exitedCount++;
 
-        // Predictions
-        const predChart = new Chart(document.getElementById('predChart'), {
-            type: 'line',
-            data: {
-                labels: ['Current', '+1M', '+2M', '+3M'],
-                datasets: [{
-                    label: 'Growth',
-                    data: [88, 91, 94, 96],
-                    borderColor: '#10b981',
-                    borderDash: [5, 5],
-                    tension: 0.4
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } } }
-        });
+                    if (data.salary) totalSalary += Number(data.salary);
+                    if (data.productivity) {
+                        totalProductivity += Number(data.productivity);
+                        prodCount++;
+                    }
+                    if (data.accuracy) {
+                        totalAccuracy += Number(data.accuracy);
+                        accCount++;
+                    } else if (data.performanceScore) {
+                        // Fallback to performance score as accuracy proxy
+                        totalAccuracy += Number(data.performanceScore);
+                        accCount++;
+                    }
+                });
 
-        // Slider Interaction
-        const slider = document.getElementById('horizonSlider');
-        const sliderVal = document.getElementById('sliderVal');
+                document.getElementById('totalWorkforce').textContent = activeCount;
+                document.getElementById('monthlyPayroll').textContent = `₹${(totalSalary / 100000).toFixed(1)}L`;
+                const avgProd = prodCount > 0 ? (totalProductivity / prodCount).toFixed(0) : '85';
+                document.getElementById('avgProductivity').textContent = `${avgProd}%`;
 
-        slider.oninput = function() {
-            const val = this.value;
-            sliderVal.innerText = val + (val == 1 ? ' Month' : ' Months');
-            
-            // Update Chart Data Dynamically
-            const newLabels = ['Current'];
-            const newData = [88];
-            for(let i=1; i<=val; i++) {
-                newLabels.push(`+${i}M`);
-                newData.push(88 + (i * 2.5) + (Math.random() * 2));
+                const avgAcc = accCount > 0 ? (totalAccuracy / accCount).toFixed(1) : '94.2';
+                document.getElementById('workAccuracy').textContent = `${avgAcc}%`;
+
+                const retention = (activeCount + exitedCount) > 0 ? ((activeCount / (activeCount + exitedCount)) * 100).toFixed(1) : '100';
+                document.getElementById('retentionRate').textContent = `${retention}%`;
+
+            } catch (err) {
+                console.error("Analytics fetch failed:", err);
             }
-            
-            predChart.data.labels = newLabels;
-            predChart.data.datasets[0].data = newData;
-            predChart.update();
-        };
+        }
+
+        async function initCharts() {
+            // Dept Chart
+            try {
+                const deptData = await getDepartmentProductivity();
+                new Chart(document.getElementById('deptChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: deptData.length > 0 ? deptData.map(d => d.name) : ['Eng', 'Sales', 'Mkt', 'Fin'],
+                        datasets: [{ label: 'Efficiency %', data: deptData.length > 0 ? deptData.map(d => d.score) : [88, 72, 85, 91], backgroundColor: '#3b82f6', borderRadius: 8 }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            } catch (err) { console.error("Dept Chart error:", err); }
+
+            // Trend Chart
+            const trends = await getPerformanceTrends();
+            try {
+                new Chart(document.getElementById('trendChart'), {
+                    type: 'line',
+                    data: {
+                        labels: trends.labels || ['Jan', 'Feb', 'Mar', 'Apr'],
+                        datasets: [{ label: 'Avg Score', data: trends.data || [75, 78, 82, 85], borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.05)' }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            } catch (err) { console.error("Trend Chart error:", err); }
+
+            // Payroll Chart (Connected to settings or aggregate)
+            try {
+                const settingsSnap = await getDocs(collection(db, 'payroll_metadata'));
+                let payrollDist = [65, 15, 10, 10]; // Default
+                if (!settingsSnap.empty) {
+                    const data = settingsSnap.docs[0].data();
+                    payrollDist = [data.fixed || 65, data.variable || 15, data.incentives || 10, data.tax || 10];
+                }
+                new Chart(document.getElementById('payrollChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Fixed', 'Variable', 'Incentives', 'Tax'],
+                        datasets: [{ data: payrollDist, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'] }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' }
+                });
+            } catch (err) { console.error("Payroll Chart error:", err); }
+
+            // Prediction Chart (Interactive)
+            const currentScore = trends.data ? trends.data[trends.data.length - 1] : 88;
+            const predChart = new Chart(document.getElementById('predChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Current', '+1M', '+2M', '+3M'],
+                    datasets: [{ label: 'Growth', data: [currentScore, currentScore + 2, currentScore + 4, currentScore + 6], borderColor: '#10b981', borderDash: [5, 5], tension: 0.4 }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            const slider = document.getElementById('horizonSlider');
+            if (slider) {
+                slider.oninput = function() {
+                    const val = this.value;
+                    document.getElementById('sliderVal').innerText = val + (val == 1 ? ' Month' : ' Months');
+                    const newLabels = ['Current'];
+                    const newData = [currentScore];
+                    for(let i=1; i<=val; i++) {
+                        newLabels.push(`+${i}M`);
+                        newData.push(currentScore + (i * 2.1) + (Math.random() * 2));
+                    }
+                    predChart.data.labels = newLabels;
+                    predChart.data.datasets[0].data = newData;
+                    predChart.update();
+                };
+            }
+        }
     </script>
 </body>
 </html>
-

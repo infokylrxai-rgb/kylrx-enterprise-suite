@@ -254,12 +254,49 @@
             </button>
         </aside>
     </div>
-    <script>
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
         if (window.lucide) lucide.createIcons();
         
         const configSidebar = document.getElementById('configSidebar');
         window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
         document.getElementById('btnCustom').onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+
+        const notifContainer = document.querySelector('.card');
+
+        // Real-time notification listener
+        const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
+        onSnapshot(q, (snap) => {
+            if (snap.empty) {
+                notifContainer.innerHTML = '<div style="text-align: center; padding: 5rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            notifContainer.innerHTML = snap.docs.map(doc => {
+                const data = doc.data();
+                const date = data.timestamp?.toDate().toLocaleString() || 'Recent';
+                const priority = (data.priority || 'normal').toLowerCase();
+                
+                const icon = priority === 'high' || priority === 'critical' ? 'alert-triangle' : (data.target === 'admin_hr' ? 'shield' : 'bell');
+                const color = priority === 'high' || priority === 'critical' ? '#ef4444' : (data.target === 'admin_hr' ? '#3b82f6' : '#10b981');
+                const bg = priority === 'high' || priority === 'critical' ? 'rgba(239, 68, 68, 0.1)' : (data.target === 'admin_hr' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)');
+
+                return `
+                    <div class="notif-item">
+                        <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
+                        <div class="notif-content">
+                            <div class="notif-title">${data.title || (priority.toUpperCase() + ' ALERT')}</div>
+                            <div class="notif-desc">${data.message || 'No details provided.'}</div>
+                            <div class="notif-time">${date} • Target: ${data.target || 'General'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            if (window.lucide) lucide.createIcons();
+        });
 
         window.setTheme = (theme, el) => {
             document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
@@ -289,7 +326,6 @@
             });
         };
 
-        // Logout Functionality
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.clear();

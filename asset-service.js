@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 /**
  * Enterprise Asset Management Service
@@ -94,6 +94,40 @@ export async function initiateAssetReturn(assetId, employeeId) {
     
     await logAssetTransaction(assetId, employeeId, 'Return Initiated', employeeId);
     await createNotification('admin_it', `Asset Return Initiated: ${assetId} from ${employeeId}`, 'normal');
+}
+
+export async function addAsset(assetData) {
+    console.log('[ASSET] Initializing new asset...', assetData);
+    const assetRef = doc(collection(db, 'assets'));
+    await setDoc(assetRef, {
+        ...assetData,
+        status: 'In Stock',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+    });
+    return assetRef.id;
+}
+
+export async function getAssets() {
+    console.log('[ASSET] Fetching inventory...');
+    const snap = await getDocs(collection(db, 'assets'));
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function getAssetStats() {
+    const assets = await getAssets();
+    return {
+        total: assets.length,
+        allocated: assets.filter(a => a.status === 'Allocated').length,
+        repair: assets.filter(a => a.status === 'Repair').length,
+        missing: assets.filter(a => a.status === 'Missing').length
+    };
+}
+
+export async function getAssetLogs() {
+    const q = query(collection(db, 'asset_audit_logs'), orderBy('timestamp', 'desc'), limit(10));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 async function logAssetTransaction(assetId, employeeId, action, actorId) {

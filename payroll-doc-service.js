@@ -56,12 +56,19 @@ export async function generateMonthlyBatch(month, year) {
         const emp = empDoc.data();
         const type = emp.employmentType === 'Full Time' ? 'Payslip' : 'Invoice';
         
+        const gross = emp.salary || 50000;
         await generateDocument(empDoc.id, type, {
             period: `${month} ${year}`,
             employeeName: emp.name,
             designation: emp.designation,
-            grossSalary: emp.salary || 50000,
-            deductions: (emp.salary || 50000) * 0.1 // Simulated 10% deduction
+            grossSalary: gross,
+            breakdown: {
+                basic: gross * 0.45,
+                hra: gross * 0.25,
+                variable: gross * 0.2,
+                tax: gross * 0.1
+            },
+            deductions: gross * 0.1 // Simulated 10% deduction
         });
         count++;
     }

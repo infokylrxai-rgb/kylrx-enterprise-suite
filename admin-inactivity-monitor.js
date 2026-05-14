@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, addDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 // Configuration
 const THRESHOLD_SUSPEND_HOURS = 3;
@@ -10,14 +10,17 @@ document.addEventListener('DOMContentLoaded', () => {
     startMonitor();
     
     document.getElementById('runSimulation')?.addEventListener('click', runManualSync);
+    document.getElementById('filterAll')?.addEventListener('click', () => refreshDashboard('all'));
+    document.getElementById('filterSuspended')?.addEventListener('click', () => refreshDashboard('suspended'));
 });
 
 async function startMonitor() {
     console.log("[INACTIVITY] Monitoring engine active...");
     await refreshDashboard();
+    await loadLiveLogs();
 }
 
-async function refreshDashboard() {
+async function refreshDashboard(filter = 'all') {
     // Fetch stats
     const usersRef = collection(db, 'users');
     
@@ -29,8 +32,55 @@ async function refreshDashboard() {
     document.getElementById('countSuspended').textContent = suspendedSnap.size;
     document.getElementById('countTrash').textContent = trashSnap.size;
 
+    const allActive = [...pendingSnap.docs, ...suspendedSnap.docs];
+    const filtered = filter === 'suspended' ? suspendedSnap.docs : allActive;
+
+    renderInactivityList(filtered);
     renderTrashTable(trashSnap);
-    renderLogs(`Dashboard refreshed. Monitoring ${pendingSnap.size} active pipelines.`);
+    renderLogs(`Dashboard refreshed. Filter: ${filter}. Monitoring ${allActive.length} pipelines.`);
+}
+
+function renderInactivityList(docs) {
+    const container = document.getElementById('inactivityList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (docs.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">No critical inactivity detected.</div>';
+        return;
+    }
+
+    docs.forEach(docSnap => {
+        const data = docSnap.data();
+        const inviteDate = data.invitationSentAt?.toDate() || new Date();
+        const diffHours = (new Date() - inviteDate) / (1000 * 60 * 60);
+        
+        const card = document.createElement('div');
+        card.className = 'profile-card';
+        card.innerHTML = `
+            <div class="profile-header">
+                <div class="profile-avatar">${data.name?.charAt(0) || 'U'}</div>
+                <span class="timer-badge" style="${data.onboardingStatus === 'Suspended' ? '' : 'background: #fff7ed; color: #f97316;'}">
+                    <i data-lucide="${data.onboardingStatus === 'Suspended' ? 'clock' : 'alert-triangle'}"></i> 
+                    ${Math.floor(diffHours)}h Overdue
+                </span>
+            </div>
+            <h4 style="font-weight: 800; margin-bottom: 4px;">${data.name || 'Anonymous'}</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">${data.email || 'No email'} • ${data.department || 'General'}</p>
+            
+            <div style="background: #f8fafc; padding: 10px; border-radius: 12px; font-size: 0.75rem;">
+                <p><strong>Status:</strong> <span style="color: ${data.onboardingStatus === 'Suspended' ? 'var(--danger)' : 'var(--warning)'}; font-weight: 700;">${data.onboardingStatus}</span></p>
+                <p><strong>Last Action:</strong> Invitation Sent (${inviteDate.toLocaleDateString()})</p>
+            </div>
+
+            <div class="action-btns">
+                <button class="btn btn-outline" style="font-size: 0.75rem;">Contact Dept</button>
+                <button class="btn btn-primary" style="font-size: 0.75rem;">Force Active</button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+    if (window.lucide) lucide.createIcons();
 }
 
 async function restoreUser(uid, name) {
@@ -85,10 +135,37 @@ async function renderTrashTable(snap) {
         `;
         container.appendChild(tr);
     });
+
+    if (snap.empty) {
+        container.innerHTML += `<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">Trash bin is currently empty.</td></tr>`;
+    }
+}
+
+async function emptyTrash() {
+    if (!confirm("Are you sure you want to permanently delete all candidates in the trash? This action cannot be undone.")) return;
+    
+    showToast("Purging trash bin...");
+    try {
+        const q = query(collection(db, 'users'), where('onboardingStatus', '==', 'Trash'));
+        const snap = await getDocs(q);
+        
+        const deletePromises = snap.docs.map(userDoc => updateDoc(doc(db, 'users', userDoc.id), {
+            onboardingStatus: 'Deleted',
+            deletedAt: serverTimestamp()
+        }));
+        
+        await Promise.all(deletePromises);
+        showToast(`Successfully purged ${snap.size} profiles.`);
+        await refreshDashboard();
+    } catch (err) {
+        console.error("Empty trash failed:", err);
+        showToast("Purge failed: " + err.message, true);
+    }
 }
 
 // Global handlers for HTML integration
 window.restoreUserHandler = restoreUser;
+window.emptyTrashHandler = emptyTrash;
 
 async function runManualSync() {
     const btn = document.getElementById('runSimulation');
@@ -167,12 +244,37 @@ async function logAutomationEvent(action, uid, details) {
     });
 }
 
+async function loadLiveLogs() {
+    const container = document.getElementById('automationLogs');
+    if (!container) return;
+    
+    try {
+        const q = query(collection(db, 'automation_logs'), orderBy('timestamp', 'desc'), limit(10));
+        const snap = await getDocs(q);
+        
+        if (!snap.empty) {
+            container.innerHTML = '';
+            snap.forEach(doc => {
+                const data = doc.data();
+                const time = data.timestamp?.toDate().toLocaleTimeString() || '--:--';
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.innerHTML = `<span class="log-timestamp">[${time}]</span> <span class="log-action">${data.action}</span>: ${data.details}`;
+                container.appendChild(entry);
+            });
+        }
+    } catch (err) {
+        console.error("Failed to load logs:", err);
+    }
+}
+
 function renderLogs(msg) {
     const container = document.getElementById('automationLogs');
     if (!container) return;
     const time = new Date().toLocaleTimeString();
     const entry = document.createElement('div');
     entry.className = 'log-entry';
+    entry.style.borderLeft = '2px solid var(--primary)';
     entry.innerHTML = `<span class="log-timestamp">[${time}]</span> ${msg}`;
     container.prepend(entry);
 }

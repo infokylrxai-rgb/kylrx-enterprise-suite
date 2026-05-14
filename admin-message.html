@@ -374,12 +374,13 @@
     <script type="module">
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         // UI State
         let currentContactId = null;
         let selectedContacts = new Set();
-        let currentFilter = 'all';
+        let currentRoleFilter = 'all';
+        let currentDeptFilter = 'all';
         let allUsers = [];
 
         // Customization Logic
@@ -428,70 +429,212 @@
         const token = rawToken;
 
         let users = [];
+        let teams = [];
         let selectedUserIds = new Set();
-        let currentFilterVal = '';
+        let currentUserId = localStorage.getItem('hr_user_id') || 'ADMIN_GLOBAL';
 
-        async function fetchUsers() {
-            try {
-                const response = await fetch(`${API_BASE}/admin/employees`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+        function setupRealtimeDirectory() {
+            let deptMap = {};
+
+            // Real-time Departments (Command Centers)
+            onSnapshot(collection(db, 'command_centers'), (snap) => {
+                snap.docs.forEach(doc => {
+                    const d = doc.data();
+                    deptMap[doc.id] = d.departmentName || d.name || 'Unknown Unit';
                 });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    users = data.data.map(u => ({
-                        id: u.uid || u.employeeId,
-                        name: u.name,
-                        role: u.role || 'employee',
-                        dept: u.department || u.departmentId || 'Operations',
-                        initials: u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-                        color: stringToColor(u.name)
-                    }));
-                    renderContacts();
-                    lucide.createIcons();
-                } else {
-                    throw new Error(data.error || 'Unauthorized access');
-                }
-            } catch (error) {
-                console.error('API Fetch Failed:', error.message);
-                // Fallback to local mock data if API is unauthorized or missing
-                users = [
-                    { id: 'mock1', name: 'Sarah Wilson', role: 'manager', dept: 'Marketing', initials: 'SW', color: '#6366f1' },
-                    { id: 'mock2', name: 'James Miller', role: 'manager', dept: 'Finance', initials: 'JM', color: '#10b981' },
-                    { id: 'mock3', name: 'Alice Lee', role: 'manager', dept: 'HR', initials: 'AL', color: '#f59e0b' }
-                ];
                 renderContacts();
-            }
+            });
+
+            // Real-time Users
+            onSnapshot(collection(db, 'users'), (snap) => {
+                users = snap.docs.map(doc => {
+                    const u = doc.data();
+                    return {
+                        id: doc.id,
+                        type: 'user',
+                        name: u.name || 'Unknown',
+                        role: (u.role || 'employee').toLowerCase(),
+                        dept: u.departmentName || u.department || u.departmentId || 'Operations',
+                        initials: (u.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+                        color: stringToColor(u.name || 'U')
+                    };
+                }).filter(u => u.role !== 'team' && u.role !== 'admin');
+                renderContacts();
+            });
+
+            // Real-time Teams
+            onSnapshot(collection(db, 'department_teams'), (snap) => {
+                const rawTeams = snap.docs.map(doc => {
+                    const t = doc.data();
+                    const deptId = t.departmentId || 'Cross-Functional';
+                    return {
+                        id: doc.id,
+                        type: 'team',
+                        name: t.name || 'Unnamed Team',
+                        role: 'team',
+                        dept: deptMap[deptId] || t.departmentName || deptId,
+                        initials: (t.name || 'T').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+                        color: '#6366f1'
+                    };
+                });
+                
+                // Deduplicate by name to prevent organizational drift
+                const seen = new Set();
+                teams = rawTeams.filter(t => {
+                    const duplicate = seen.has(t.name);
+                    seen.add(t.name);
+                    return !duplicate;
+                });
+                
+                renderContacts();
+            });
         }
+
+        let unsubscribeMessages = null;
+
+        async function fetchMessages(recipientId) {
+            if (unsubscribeMessages) unsubscribeMessages();
+            
+            chatMessages.innerHTML = '<div style="text-align:center; padding:20px;">Streaming history...</div>';
+            
+            // Query for messages involving the Admin
+            const q = query(
+                collection(db, 'messages'),
+                where('participants', 'array-contains', currentUserId),
+                limit(100)
+            );
+
+            unsubscribeMessages = onSnapshot(q, (snap) => {
+                const allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                // Sort locally to avoid index requirement for array-contains + orderBy
+                const pairMsgs = allMsgs
+                    .filter(m => m.participants.includes(recipientId))
+                    .sort((a, b) => {
+                        const tA = a.timestamp?.seconds || 0;
+                        const tB = b.timestamp?.seconds || 0;
+                        return tA - tB;
+                    });
+                
+                chatMessages.innerHTML = '';
+                if (pairMsgs.length === 0) {
+                    chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">No messages yet. Start the conversation!</div>';
+                    return;
+                }
+
+                pairMsgs.forEach(msg => {
+                    const msgDiv = document.createElement('div');
+                    const isSent = msg.senderId === currentUserId;
+                    msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+                    msgDiv.innerHTML = msg.text;
+                    chatMessages.appendChild(msgDiv);
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+        }
+
+        window.handleSendMessage = async () => {
+            const text = input.value.trim();
+            if (!text || selectedUserIds.size === 0) return;
+
+            const sendBtn = document.getElementById('sendBtn');
+            const originalBtn = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<div class="spinner" style="width:16px; height:16px; border:2px solid white; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>';
+            sendBtn.disabled = true;
+
+            try {
+                const recipients = Array.from(selectedUserIds);
+                for (const recipientId of recipients) {
+                    await addDoc(collection(db, 'messages'), {
+                        senderId: currentUserId,
+                        recipientId: recipientId,
+                        participants: [currentUserId, recipientId],
+                        text: text,
+                        timestamp: serverTimestamp(),
+                        read: false
+                    });
+                }
+                input.value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+            } finally {
+                sendBtn.innerHTML = originalBtn;
+                sendBtn.disabled = false;
+                lucide.createIcons();
+            }
+        };
+
+        document.getElementById('sendBtn').onclick = window.handleSendMessage;
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.handleSendMessage();
+        });
+
+        // Initialize
+        setupRealtimeDirectory();
+
+        // AI Correction Mock Implementation (Backend endpoint assumed)
+        document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
+            const text = input.value.trim();
+            if (!text) return;
+            const corrected = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
+            input.value = corrected;
+        });
+
+        // Mentions Logic
+        input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            const lastChar = val[val.length - 1];
+            if (lastChar === '@') mentions.classList.add('active');
+            else if (!val.includes('@') || val.endsWith(' ')) mentions.classList.remove('active');
+        });
+
+        window.insertMention = (name) => {
+            const val = input.value;
+            input.value = val.slice(0, val.lastIndexOf('@')) + '@' + name + ' ';
+            mentions.classList.remove('active');
+            input.focus();
+        };
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
 
         function stringToColor(str) {
             let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
+            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
             const colors = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
             return colors[Math.abs(hash) % colors.length];
         }
 
         function renderContacts() {
             contactsContainer.innerHTML = '';
-            const filtered = users.filter(u => 
-                u.name.toLowerCase().includes(currentFilter.toLowerCase()) || 
-                u.dept.toLowerCase().includes(currentFilter.toLowerCase())
-            );
+            const searchText = contactSearch.value.toLowerCase();
+            
+            const displayList = currentRoleFilter === 'team' ? teams : users;
 
-            filtered.forEach(user => {
-                const isSelected = selectedUserIds.has(user.id);
+            const filtered = displayList.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchText) || item.dept.toLowerCase().includes(searchText);
+                const matchesRole = currentRoleFilter === 'all' || item.role === currentRoleFilter || currentRoleFilter === 'team';
+                const matchesDept = currentDeptFilter === 'all' || item.dept === currentDeptFilter;
+                return matchesSearch && matchesRole && matchesDept;
+            });
+
+            filtered.forEach(item => {
+                const isSelected = selectedUserIds.has(item.id);
                 const div = document.createElement('div');
                 div.className = `contact-item ${isSelected ? 'selected' : ''}`;
-                div.onclick = () => toggleSelection(user.id);
+                div.onclick = () => window.toggleSelection(item.id);
                 
                 div.innerHTML = `
                     <div class="contact-checkbox"></div>
-                    <div class="contact-avatar" style="background: ${user.color}">${user.initials}</div>
+                    <div class="contact-avatar" style="background: ${item.color}">${item.initials}</div>
                     <div class="contact-info">
-                        <div class="contact-name">${user.name}</div>
-                        <div class="contact-last">${user.dept}</div>
-                        <span class="badge ${user.role}">${user.role}</span>
+                        <div class="contact-name">${item.name}</div>
+                        <div class="contact-last">${item.dept}</div>
+                        <span class="badge ${item.role}">${item.role}</span>
                     </div>
                 `;
                 contactsContainer.appendChild(div);
@@ -499,24 +642,28 @@
         }
 
         window.toggleSelection = (id) => {
-            if (selectedUserIds.has(id)) {
-                selectedUserIds.delete(id);
-            } else {
-                selectedUserIds.add(id);
-            }
+            if (selectedUserIds.has(id)) selectedUserIds.delete(id);
+            else selectedUserIds.add(id);
             updateSelectionUI();
         };
 
         window.selectByRole = (role) => {
-            const roleUsers = role === 'all' ? users : users.filter(u => u.role === role);
-            const allOfRoleSelected = roleUsers.every(u => selectedUserIds.has(u.id));
+            currentRoleFilter = role;
+            currentDeptFilter = 'all'; // Reset dept filter when choosing role
+            document.querySelectorAll('.bulk-btn').forEach(btn => btn.classList.remove('active'));
+            if (role === 'all') document.getElementById('btnAllDept').classList.add('active');
+            else if (role === 'manager') document.getElementById('btnManagers').classList.add('active');
+            else if (role === 'employee') document.getElementById('btnEmployees').classList.add('active');
+            
+            renderContacts();
+        };
 
-            if (allOfRoleSelected) {
-                roleUsers.forEach(u => selectedUserIds.delete(u.id));
-            } else {
-                roleUsers.forEach(u => selectedUserIds.add(u.id));
-            }
-            updateSelectionUI();
+        window.filterByDept = (dept) => {
+            currentDeptFilter = dept;
+            currentRoleFilter = 'all';
+            document.querySelectorAll('.bulk-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btnAllDept').classList.add('active');
+            renderContacts();
         };
 
         window.clearSelection = () => {
@@ -526,213 +673,39 @@
 
         function updateSelectionUI() {
             renderContacts();
+            const chatHeader = document.querySelector('.chat-header');
             if (selectedUserIds.size > 0) {
                 selectionInfo.classList.add('active');
                 selectionCount.innerText = `${selectedUserIds.size} people selected`;
-                
-                const chatHeader = document.querySelector('.chat-header');
                 if (selectedUserIds.size === 1) {
-                    const userId = Array.from(selectedUserIds)[0];
-                    const user = users.find(u => u.id === userId);
+                    const selId = Array.from(selectedUserIds)[0];
+                    const entity = users.find(u => u.id === selId) || teams.find(t => t.id === selId);
+                    if (!entity) return;
+
                     chatHeader.innerHTML = `
-                        <div class="contact-avatar" style="background: ${user.color}">${user.initials}</div>
-                        <div>
-                            <div class="contact-name">${user.name}</div>
-                            <div style="font-size: 0.75rem; color: #10b981; font-weight: 600;">Direct Message</div>
-                        </div>
+                        <div class="contact-avatar" style="background: ${entity.color}">${entity.initials}</div>
+                        <div><div class="contact-name">${entity.name}</div><div style="font-size:0.75rem; color:#10b981; font-weight:600;">${entity.type === 'team' ? 'Team Broadcast' : 'Direct Message'}</div></div>
                     `;
-                    fetchMessages(userId);
+                    fetchMessages(entity.id);
                 } else {
                     chatHeader.innerHTML = `
-                        <div class="contact-avatar" style="background: var(--primary)"><i data-lucide="megaphone"></i></div>
-                        <div>
-                            <div class="contact-name">Broadcast Message</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Sending to ${selectedUserIds.size} recipients</div>
-                        </div>
+                        <div class="contact-avatar" style="background:var(--primary)"><i data-lucide="megaphone"></i></div>
+                        <div><div class="contact-name">Broadcast Message</div><div style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Sending to ${selectedUserIds.size} recipients</div></div>
                     `;
                     chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">Ready to send broadcast...</div>';
+                    if (unsubscribeMessages) unsubscribeMessages();
                     lucide.createIcons();
                 }
             } else {
                 selectionInfo.classList.remove('active');
-                const chatHeader = document.querySelector('.chat-header');
                 chatHeader.innerHTML = `<p style="color: var(--text-muted)">Select a person to start messaging</p>`;
                 chatMessages.innerHTML = '';
+                if (unsubscribeMessages) unsubscribeMessages();
             }
         }
 
-        async function fetchMessages(recipientId) {
-            try {
-                chatMessages.innerHTML = '<div style="text-align:center; padding:20px;">Loading history...</div>';
-                const response = await fetch(`${API_BASE}/messages/${recipientId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    chatMessages.innerHTML = '';
-                    if (data.data.length === 0) {
-                        chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">No messages yet. Start the conversation!</div>';
-                        return;
-                    }
-                    data.data.forEach(msg => {
-                        const msgDiv = document.createElement('div');
-                        const isSent = msg.senderId === localStorage.getItem('hr_user_id');
-                        msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-                        msgDiv.innerHTML = msg.text;
-                        chatMessages.appendChild(msgDiv);
-                    });
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-            } catch (error) {
-                console.error('Error fetching messages:', error);
-                chatMessages.innerHTML = '<div style="text-align:center; color:#ef4444; margin-top:20px;">Failed to load messages.</div>';
-            }
-        }
+        window.filterContacts = () => renderContacts();
 
-        window.filterContacts = () => {
-            currentFilter = contactSearch.value;
-            renderContacts();
-        };
-
-        // Initialize
-        fetchUsers();
-
-        // AI Correction Logic
-        document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
-            const text = input.value.trim();
-            if (!text) return;
-            
-            const btn = document.getElementById('aiCorrectBtn');
-            const originalContent = btn.innerHTML;
-            btn.innerHTML = '<div class="spinner" style="width:14px; height:14px; border:2px solid #db2777; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div> Updating...';
-            btn.disabled = true;
-
-            try {
-                const response = await fetch(`${API_BASE}/ai/correct`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ text })
-                });
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    input.value = data.corrected;
-                    input.style.border = "2px solid #db2777";
-                    input.style.background = "#fff1f2";
-                    setTimeout(() => {
-                        input.style.border = "1px solid var(--border)";
-                        input.style.background = "white";
-                    }, 1000);
-                }
-            } catch (error) {
-                console.error('AI Correction failed:', error);
-                // Fallback to local logic if backend fails
-                let corrected = text.charAt(0).toUpperCase() + text.slice(1);
-                if (!/[.!?]?/.test(corrected)) corrected += '.';
-                input.value = corrected;
-            } finally {
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
-                lucide.createIcons();
-            }
-        });
-
-        // Mentions Logic
-        input.addEventListener('input', (e) => {
-            const val = e.target.value;
-            const lastChar = val[val.length - 1];
-            if (lastChar === '@') {
-                mentions.classList.add('active');
-            } else if (!val.includes('@') || val.endsWith(' ')) {
-                mentions.classList.remove('active');
-            }
-        });
-
-        window.insertMention = (name) => {
-            const val = input.value;
-            const newVal = val.slice(0, val.lastIndexOf('@')) + '@' + name + ' ';
-            input.value = newVal;
-            mentions.classList.remove('active');
-            input.focus();
-        };
-
-        // Send Message
-        document.getElementById('sendBtn').addEventListener('click', async () => {
-            const text = input.value.trim();
-            if (!text || selectedUserIds.size === 0) return;
-
-            const originalBtn = document.getElementById('sendBtn').innerHTML;
-            document.getElementById('sendBtn').innerHTML = '<div class="spinner" style="width:16px; height:16px; border:2px solid white; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>';
-            document.getElementById('sendBtn').disabled = true;
-
-            try {
-                let success = false;
-                if (selectedUserIds.size === 1) {
-                    const recipientId = Array.from(selectedUserIds)[0];
-                    const response = await fetch(`${API_BASE}/messages`, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ recipientId, text })
-                    });
-                    const data = await response.json();
-                    success = data.status === 'success';
-                } else {
-                    const recipientIds = Array.from(selectedUserIds);
-                    const response = await fetch(`${API_BASE}/messages/broadcast`, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ recipientIds, text })
-                    });
-                    const data = await response.json();
-                    success = data.status === 'success';
-                }
-
-                if (success) {
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = 'message sent';
-                    const highlightedText = text.replace(/@(\w+\s\w+)/g, '<b style="color:#e0e7ff; background:rgba(255,255,255,0.1); padding:2px 4px; border-radius:4px;">@?1</b>');
-                    msgDiv.innerHTML = highlightedText;
-                    chatMessages.appendChild(msgDiv);
-                    input.value = '';
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                    if (selectedUserIds.size > 1) {
-                        const alertDiv = document.createElement('div');
-                        alertDiv.style = "text-align: center; font-size: 0.75rem; color: var(--text-muted); margin: 10px 0;";
-                        alertDiv.innerText = `Broadcast sent to ${selectedUserIds.size} people`;
-                        chatMessages.appendChild(alertDiv);
-                    }
-                }
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Failed to send message. Please check your connection.');
-            } finally {
-                document.getElementById('sendBtn').innerHTML = originalBtn;
-                document.getElementById('sendBtn').disabled = false;
-            }
-        });
-
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('sendBtn').click();
-        });
-
-        // Logout Functionality
-        document.getElementById('logoutBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.clear();
-            window.location.href = 'index.html';
-        });
-
-        // Initial Icon Load
         lucide.createIcons();
     </script>
 </body>

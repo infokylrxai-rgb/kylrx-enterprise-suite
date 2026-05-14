@@ -273,54 +273,122 @@
     </div>
 
     <script type="module">
+        import { db } from "./firebase-config.js";
+        import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
         lucide.createIcons();
 
         const canvas = document.getElementById('workflowCanvas');
         const paletteItems = document.querySelectorAll('.block-item');
+        const btnPublish = document.getElementById('btnPublish');
+        const CONFIG_ID = 'global_onboarding_flow';
 
+        // Initialize Sortable
         new Sortable(canvas, {
             animation: 150,
             ghostClass: 'primary-light-bg',
-            handle: '.step-handle'
+            handle: '.step-handle',
+            onEnd: () => updateStepNumbers()
         });
+
+        // Load existing flow
+        async function loadFlow() {
+            try {
+                const snap = await getDoc(doc(db, 'onboarding_config', CONFIG_ID));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    canvas.innerHTML = '';
+                    data.steps.forEach(stepData => {
+                        addStepToCanvas(stepData);
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load flow:', err);
+            }
+        }
 
         paletteItems.forEach(item => {
             item.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', item.dataset.type);
+                e.dataTransfer.setData('text/json', JSON.stringify({
+                    type: item.dataset.type,
+                    title: item.querySelector('h4').innerText,
+                    desc: item.querySelector('p').innerText
+                }));
             });
         });
 
         canvas.addEventListener('dragover', (e) => e.preventDefault());
         canvas.addEventListener('drop', (e) => {
             e.preventDefault();
-            const type = e.dataTransfer.getData('text/plain');
-            const block = document.querySelector(`.block-item[data-type="${type}"]`);
-            if (block) addStepToCanvas(block.cloneNode(true));
+            const data = JSON.parse(e.dataTransfer.getData('text/json'));
+            addStepToCanvas(data);
         });
 
-        function addStepToCanvas(node) {
+        function addStepToCanvas(data) {
             const step = document.createElement('div');
             step.className = 'workflow-step';
+            step.dataset.type = data.type;
             step.innerHTML = `
                 <div class="step-handle"><i data-lucide="grip-vertical"></i></div>
                 <div class="step-num">${canvas.children.length + 1}</div>
                 <div style="flex: 1;">
-                    <h4 style="font-weight: 800;">${node.querySelector('h4').innerText}</h4>
-                    <p style="font-size: 0.75rem; color: var(--text-muted);">${node.querySelector('p').innerText}</p>
+                    <h4 style="font-weight: 800;">${data.title}</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">${data.desc}</p>
                 </div>
-                <button class="icon-btn" onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer; color: var(--danger);"><i data-lucide="trash-2"></i></button>
+                <button class="icon-btn" onclick="this.parentElement.remove(); window.updateStepNumbers();" style="background: none; border: none; cursor: pointer; color: #ef4444;"><i data-lucide="trash-2"></i></button>
             `;
             canvas.appendChild(step);
             lucide.createIcons();
+            updateStepNumbers();
         }
+
+        window.updateStepNumbers = () => {
+            Array.from(canvas.children).forEach((child, index) => {
+                child.querySelector('.step-num').innerText = index + 1;
+            });
+        };
+
+        btnPublish.onclick = async () => {
+            const steps = Array.from(canvas.children).map(child => ({
+                type: child.dataset.type,
+                title: child.querySelector('h4').innerText,
+                desc: child.querySelector('p').innerText
+            }));
+
+            btnPublish.disabled = true;
+            btnPublish.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Publishing...';
+            lucide.createIcons();
+
+            try {
+                await setDoc(doc(db, 'onboarding_config', CONFIG_ID), {
+                    steps,
+                    lastUpdated: serverTimestamp(),
+                    updatedBy: localStorage.getItem('userName') || 'Admin'
+                });
+                document.getElementById('successModal').style.display = 'flex';
+                lucide.createIcons();
+            } catch (err) {
+                console.error('Publish failed:', err);
+                alert('Publish failed. Check console for details.');
+            } finally {
+                btnPublish.disabled = false;
+                btnPublish.innerHTML = '<i data-lucide="send"></i> Publish Flow';
+                lucide.createIcons();
+            }
+        };
 
         window.closeModal = () => {
             document.getElementById('successModal').style.display = 'none';
         };
 
-        document.getElementById('btnPublish').onclick = () => {
-            document.getElementById('successModal').style.display = 'flex';
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = 'index.html';
         };
+
+        // Initialize
+        loadFlow();
     </script>
 </body>
 </html>

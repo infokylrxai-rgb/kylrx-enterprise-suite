@@ -75,9 +75,32 @@
         .config-sidebar.active {
             right: 0;
         }
+
+        /* Toasts */
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
     </style>
 </head>
 <body class="admin-dashboard">
+    <!-- Toasts -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Action completed successfully!</span>
+    </div>
+
+    <div class="toast-notification" id="errorToast" style="border-color: #fecaca;">
+        <i data-lucide="alert-circle" style="color: #ef4444;"></i>
+        <span style="color: #b91c1c;">Operation failed.</span>
+    </div>
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -174,8 +197,8 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                             <h3 style="font-weight: 800;">Real-time Attendance Timeline</h3>
                             <div class="btn-group">
-                                <button class="btn btn-outline" style="font-size: 0.75rem;"><i data-lucide="filter"></i> Filters</button>
-                                <button class="btn btn-primary" style="font-size: 0.75rem;"><i data-lucide="download"></i> Export Logs</button>
+                                <button class="btn btn-outline" id="btnFilters" style="font-size: 0.75rem;"><i data-lucide="filter"></i> Filters</button>
+                                <button class="btn btn-primary" id="btnExport" style="font-size: 0.75rem;"><i data-lucide="download"></i> Export Logs</button>
                             </div>
                         </div>
 
@@ -251,7 +274,7 @@
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">14:00 - 23:00</span>
                             </div>
                         </div>
-                        <button class="btn btn-outline" style="width:100%; margin-top: 1.5rem; font-size: 0.75rem;">Manage Shifts</button>
+                        <button class="btn btn-outline" id="btnManageShifts" style="width:100%; margin-top: 1.5rem; font-size: 0.75rem;">Manage Shifts</button>
                     </div>
                 </div>
             </div>
@@ -282,11 +305,149 @@
         </div>
     </div>
 
-    <script type="module" src="admin-app.js"></script>
     <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getAllAttendanceLogs, getPendingRegularizations, processRegularization } from "./attendance-service.js";
+
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
+            
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    console.log("Admin logged in:", user.uid);
+                    loadAttendanceLogs();
+                    loadRegularizationQueue();
+                    setupActionButtons();
+                } else {
+                    console.warn("No user logged in. Redirecting...");
+                    // window.location.href = 'login.html';
+                }
+            });
         });
+
+        window.showToast = (msg, isError = false) => {
+            const id = isError ? 'errorToast' : 'successToast';
+            const toast = document.getElementById(id);
+            toast.querySelector('span').textContent = msg;
+            toast.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        };
+
+        function setupActionButtons() {
+            document.getElementById('btnFilters')?.addEventListener('click', () => {
+                showToast("Filter system initializing...");
+            });
+
+            document.getElementById('btnManageShifts')?.addEventListener('click', () => {
+                showToast("Shift Management portal opening...");
+            });
+
+            document.getElementById('btnExport')?.addEventListener('click', async () => {
+                try {
+                    const logs = await getAllAttendanceLogs();
+                    if (logs.length === 0) {
+                        showToast("No logs available to export.", true);
+                        return;
+                    }
+
+                    let csv = 'Date,User ID,Punch In,Punch Out,Type,Status\n';
+                    logs.forEach(log => {
+                        const inTime = log.punchIn?.toDate ? log.punchIn.toDate().toISOString() : (log.punchIn || '');
+                        const outTime = log.punchOut?.toDate ? log.punchOut.toDate().toISOString() : (log.punchOut || '');
+                        csv += `${log.date},${log.userId},${inTime},${outTime},${log.type || 'Office'},${log.status}\n`;
+                    });
+
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.setAttribute('hidden', '');
+                    a.setAttribute('href', url);
+                    a.setAttribute('download', `Attendance_Logs_${new Date().toISOString().split('T')[0]}.csv`);
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast("Logs exported successfully.");
+                } catch (err) {
+                    showToast("Export failed: " + err.message, true);
+                }
+            });
+        }
+
+
+        async function loadRegularizationQueue() {
+            const queueContainer = document.querySelector('.attendance-right .ai-glass-card');
+            const queueInner = document.createElement('div');
+            
+            try {
+                const requests = await getPendingRegularizations();
+                // Clear existing cards (except title and view all button)
+                const title = queueContainer.querySelector('h3');
+                const viewAllBtn = queueContainer.querySelector('.btn-outline');
+                queueContainer.innerHTML = '';
+                queueContainer.appendChild(title);
+
+                if (requests.length > 0) {
+                    requests.forEach(req => {
+                        const card = document.createElement('div');
+                        card.className = 'request-card';
+                        card.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h4 style="font-size: 0.85rem; font-weight: 700;">${req.employeeName || 'Employee'}</h4>
+                                    <p style="font-size: 0.7rem; color: var(--text-muted);">${req.date} • ${req.type}</p>
+                                </div>
+                                <span class="badge" style="background: ${req.isAfterThreshold ? '#fef2f2' : 'var(--bg-soft)'}; color: ${req.isAfterThreshold ? '#ef4444' : 'var(--text-muted)'}; font-size: 0.6rem;">
+                                    ${req.isAfterThreshold ? 'SLA BREACH' : 'Pending'}
+                                </span>
+                            </div>
+                            <div class="reason-box">"${req.reason || 'No reason provided'}"</div>
+                            <div style="display: flex; gap: 8px; margin-top: 1rem;">
+                                <button class="btn btn-outline btn-reject" data-id="${req.id}" style="flex:1; padding: 6px; font-size: 0.75rem;">Reject</button>
+                                <button class="btn btn-primary btn-approve" data-id="${req.id}" style="flex:1; padding: 6px; font-size: 0.75rem;">Approve</button>
+                            </div>
+                        `;
+                        queueContainer.appendChild(card);
+                    });
+
+                    // Add Event Listeners
+                    document.querySelectorAll('.btn-approve').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            const id = e.target.getAttribute('data-id');
+                            try {
+                                await processRegularization(id, auth.currentUser.uid, 'approve');
+                                showToast("Request approved.");
+                                loadRegularizationQueue();
+                                loadAttendanceLogs();
+                            } catch (err) { showToast("Approval failed: " + err.message, true); }
+                        });
+                    });
+
+                    document.querySelectorAll('.btn-reject').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            const id = e.target.getAttribute('data-id');
+                            const comment = prompt("Enter rejection reason:");
+                            if (comment === null) return;
+                            try {
+                                await processRegularization(id, auth.currentUser.uid, 'reject', comment);
+                                showToast("Request rejected.");
+                                loadRegularizationQueue();
+                            } catch (err) { showToast("Rejection failed: " + err.message, true); }
+                        });
+                    });
+                } else {
+                    const emptyMsg = document.createElement('p');
+                    emptyMsg.style = "text-align: center; font-size: 0.8rem; color: var(--text-muted); padding: 1rem;";
+                    emptyMsg.textContent = "No pending requests.";
+                    queueContainer.appendChild(emptyMsg);
+                }
+                queueContainer.appendChild(viewAllBtn);
+            } catch (err) {
+                console.error("Error loading queue:", err);
+            }
+        }
     </script>
 </body>
 </html>

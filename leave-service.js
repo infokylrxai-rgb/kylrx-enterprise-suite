@@ -1,114 +1,140 @@
-import { db } from "./firebase-config.js";
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db } from './firebase-config.js';
+import { collection, query, getDocs, doc, setDoc, updateDoc, serverTimestamp, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-/**
- * Enterprise Leave Management Service
- * Handles Accruals, Submissions, Approvals, and SLA Escalations.
- */
-
-export async function submitLeaveRequest(employeeId, leaveData) {
-    console.log(`[LEAVE] Submitting request for ${employeeId}...`);
+export async function getLeaveStats() {
+    console.log('[LEAVE] Calculating workforce availability...');
     try {
-        const requestId = `LR-${Date.now()}`;
-        const leaveRef = doc(db, 'leave_requests', requestId);
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const leaveSnap = await getDocs(query(collection(db, 'leave_requests'), where('status', '==', 'Approved')));
         
-        const payload = {
-            ...leaveData,
-            employeeId,
-            status: 'Pending',
-            requestedAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            approvals: [
-                { role: 'Reporting Manager', actorId: leaveData.managerId, status: 'Pending', timestamp: null }
-            ]
+        const today = new Date().toISOString().split('T')[0];
+        const onLeaveToday = leaveSnap.docs.filter(d => {
+            const data = d.data();
+            return today >= data.startDate && today <= data.endDate;
+        }).length;
+
+        const pendingSnap = await getDocs(query(collection(db, 'leave_requests'), where('status', '==', 'Pending')));
+        
+        // Calculate Overdue SLA (Pending > 48 hours)
+        const fortyEightHoursAgo = new Date(Date.now() - (48 * 60 * 60 * 1000));
+        const overdueSLA = pendingSnap.docs.filter(d => {
+            const data = d.data();
+            return data.createdAt?.toDate() < fortyEightHoursAgo;
+        }).length;
+
+        return {
+            onLeaveToday,
+            onLeaveTrend: onLeaveToday > 0 ? `+${onLeaveToday} from yesterday` : 'Steady',
+            pendingApprovals: pendingSnap.size,
+            overdueSLA: overdueSLA > 0 ? `${overdueSLA} Overdue SLA` : 'Within SLA',
+            wfhCount: Math.ceil(usersSnap.size * 0.15), // Simulated WFH metric
+            monthlyAccrual: 1.75
         };
-
-        await setDoc(leaveRef, payload);
-        
-        // Notify Manager
-        await createNotification(leaveData.managerId, `New leave request from ${leaveData.employeeName} requires approval.`, 'normal');
-        
-        return { success: true, requestId };
     } catch (err) {
-        console.error('[LEAVE] Submission failed:', err);
-        throw err;
+        console.error('[LEAVE] Error fetching stats:', err);
+        return { onLeaveToday: 0, onLeaveTrend: 'Steady', pendingApprovals: 0, overdueSLA: 'Within SLA', wfhCount: 0, monthlyAccrual: 1.75 };
     }
 }
 
-export async function processLeaveApproval(requestId, actorId, action, isAdmin = false) {
-    console.log(`[LEAVE] Processing ${action} for ${requestId}...`);
-    try {
-        const docRef = doc(db, 'leave_requests', requestId);
-        const snap = await getDoc(docRef);
-        
-        if (!snap.exists()) throw new Error('Request not found');
-        const data = snap.data();
-
-        if (action === 'approve') {
-            // Deduct balance
-            await deductBalance(data.employeeId, data.type, data.days);
-            
-            await updateDoc(docRef, {
-                status: 'Approved',
-                finalApprover: actorId,
-                approvedAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-            });
-            
-            await createNotification(data.employeeId, `Your leave request for ${data.startDate} has been approved.`, 'high');
-        } else {
-            await updateDoc(docRef, {
-                status: 'Rejected',
-                rejectionReason: 'Management decision',
-                updatedAt: serverTimestamp()
-            });
-            
-            await createNotification(data.employeeId, `Your leave request for ${data.startDate} was rejected.`, 'high');
-        }
-
-        return { success: true };
-    } catch (err) {
-        console.error('[LEAVE] Approval failed:', err);
-        throw err;
-    }
-}
-
-async function deductBalance(employeeId, leaveType, days) {
-    const userRef = doc(db, 'users', employeeId);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return;
-
-    const balances = userSnap.data().leaveBalances || { Casual: 8, Sick: 6, Earned: 10.5 };
-    if (balances[leaveType]) {
-        balances[leaveType] -= days;
-    } else {
-        balances['LOP'] = (balances['LOP'] || 0) + days;
-    }
-
-    await updateDoc(userRef, { leaveBalances: balances });
-}
-
-export async function runMonthlyAccrual() {
-    console.log("[LEAVE] Running monthly accrual engine...");
-    // Logic to add 1.75 days to all active employees
-    const usersRef = collection(db, 'users');
-    const snap = await getDocs(query(usersRef, where('onboardingStatus', '==', 'Active')));
-    
-    for (const userDoc of snap.docs) {
-        const data = userDoc.data();
-        const balances = data.leaveBalances || { Casual: 8, Sick: 6, Earned: 10.5 };
-        balances.Earned += 1.75; // Corporate standard
-        
-        await updateDoc(doc(db, 'users', userDoc.id), { leaveBalances: balances });
-    }
-}
-
-async function createNotification(target, message, priority) {
-    await addDoc(collection(db, 'notifications'), {
-        target,
-        message,
-        priority,
-        read: false,
-        timestamp: serverTimestamp()
+export function listenToPendingLeaves(callback) {
+    console.log('[LEAVE] Starting live approval listener...');
+    // Removed orderBy to avoid index requirement; sorting in memory instead
+    const q = query(collection(db, 'leave_requests'), where('status', '==', 'Pending'));
+    return onSnapshot(q, (snap) => {
+        const requests = snap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
+        callback(requests);
     });
+}
+
+export async function processLeaveAction(requestId, action, actorId) {
+    console.log(`[LEAVE] Processing ${action} for ${requestId}...`);
+    const requestRef = doc(db, 'leave_requests', requestId);
+    await updateDoc(requestRef, {
+        status: action === 'approve' ? 'Approved' : 'Rejected',
+        processedBy: actorId,
+        processedAt: serverTimestamp()
+    });
+}
+
+export async function getLeavePolicies() {
+    const snap = await getDocs(collection(db, 'leave_policies'));
+    if (snap.empty) {
+        // Seed default policies if empty
+        return [
+            { type: 'Earned Leave', title: 'Corporate Standard Plan', details: 'Accrual: 1.75 days per month • Max Carry Forward: 45 days', autoApprove: true },
+            { type: 'Sick Leave', title: 'Health & Wellness Policy', details: 'Annual Limit: 12 days • Medical Certificate: Required > 3 days', autoApprove: false }
+        ];
+    }
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function getUpcomingHolidays() {
+    console.log('[LEAVE] Fetching organizational calendar...');
+    try {
+        const q = query(collection(db, 'holidays'), orderBy('date', 'asc'), limit(5));
+        const snap = await getDocs(q);
+        if (snap.empty) {
+            // Seed 2026 Holidays if empty
+            return [
+                { name: 'New Year', date: '2026-01-01', type: 'National', icon: 'calendar' },
+                { name: 'Republic Day', date: '2026-01-26', type: 'National', icon: 'flag' },
+                { name: 'Holi Festival', date: '2026-03-14', type: 'Regional', icon: 'palette' },
+                { name: 'Eid al-Fitr', date: '2026-03-31', type: 'National', icon: 'moon' },
+                { name: 'Independence Day', date: '2026-08-15', type: 'National', icon: 'flag' },
+                { name: 'Diwali', date: '2026-11-01', type: 'National', icon: 'sparkles' },
+                { name: 'Christmas', date: '2026-12-25', type: 'National', icon: 'gift' }
+            ];
+        }
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+        console.error('[LEAVE] Holiday sync failed:', err);
+        return [];
+    }
+}
+
+export async function saveHoliday(holidayData) {
+    console.log('[LEAVE] Persisting new holiday to cloud calendar...');
+    try {
+        const docRef = await addDoc(collection(db, 'holidays'), {
+            ...holidayData,
+            status: 'Upcoming'
+        });
+        return docRef.id;
+    } catch (err) {
+        console.error('[LEAVE] Holiday persistence failed:', err);
+        throw err;
+    }
+}
+
+export async function savePolicy(policyData) {
+    console.log('[LEAVE] Deploying new organizational policy...');
+    try {
+        const docRef = await addDoc(collection(db, 'leave_policies'), policyData);
+        return docRef.id;
+    } catch (err) {
+        console.error('[LEAVE] Policy deployment failed:', err);
+        throw err;
+    }
+}
+
+export async function getHeatmapData() {
+    console.log('[LEAVE] Aggregating workforce presence telemetry...');
+    try {
+        // In production: Query all approved leaves for the current month
+        // For now, calculating baseline from existing requests
+        const q = query(collection(db, 'leave_requests'), where('status', '==', 'Approved'));
+        const snap = await getDocs(q);
+        const data = {};
+        snap.docs.forEach(doc => {
+            const req = doc.data();
+            const day = new Date(req.startDate).getDate();
+            data[day] = (data[day] || 0) + 1;
+        });
+        return data;
+    } catch (err) {
+        console.error('[LEAVE] Heatmap aggregation failed:', err);
+        return {};
+    }
 }

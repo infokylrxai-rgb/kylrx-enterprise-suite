@@ -126,3 +126,18 @@ export async function checkRegularizationSLA() {
         }
     }
 }
+
+export async function getPendingRegularizations() {
+    console.log('[ATTENDANCE] Fetching pending requests...');
+    const q = query(collection(db, 'attendance_regularizations'), where('status', '==', 'Pending'));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function getAllAttendanceLogs() {
+    console.log('[ATTENDANCE] Fetching all logs...');
+    const todayStr = new Date().toISOString().split('T')[0];
+    const q = query(collection(db, 'attendance'), where('date', '==', todayStr));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}

@@ -582,22 +582,57 @@
             // SECURE DEPARTMENT SYNC: Strict isolation enforced at Firestore level
             import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(mod => {
                 const { collection, query, where, onSnapshot } = mod;
+                const today = new Date().toISOString().split('T')[0];
                 
                 // DBAC Layer: Strict bind to currentUnitId
                 const q = query(
                     collection(db, 'users'), 
-                    where('departmentId', '==', currentUnitId),
-                    where('employmentStatus', '==', 'active')
+                    where('departmentId', '==', currentUnitId)
                 );
                 
                 onSnapshot(q, (snapshot) => {
-                    const users = snapshot.docs.map(d => d.data());
-                    renderWorkforceData(users);
-                    calculatePayroll(users, config.budget || 500000);
+                    const rawUsers = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    
+                    // Listen to today's attendance
+                    onSnapshot(collection(db, 'attendance'), (attSnap) => {
+                        const attendanceMap = {};
+                        attSnap.docs.forEach(doc => {
+                            if (doc.id.includes(today)) {
+                                const empId = doc.id.split('_')[0];
+                                attendanceMap[empId] = doc.data();
+                            }
+                        });
+
+                        const usersWithStatus = rawUsers.map(u => {
+                            const att = attendanceMap[u.id];
+                            let liveStatus = u.status || 'Active';
+                            if (att && att.punchIn) {
+                                liveStatus = att.punchOut ? 'Shift Completed' : 'Punched In';
+                            } else if (u.status === 'Completed' || !u.status) {
+                                liveStatus = 'Available (Offline)';
+                            }
+                            return { ...u, status: liveStatus };
+                        });
+
+                        renderWorkforceData(usersWithStatus);
+                        calculatePayroll(usersWithStatus, config.budget || 500000);
+                        updateTeleStats(usersWithStatus);
+                    });
                 });
             });
 
             lucide.createIcons();
+        }
+
+        function updateTeleStats(users) {
+            const activeCount = users.filter(u => u.status === 'Punched In').length;
+            const offlineCount = users.length - activeCount;
+            
+            const activeBox = document.querySelector('.tele-box.active .tele-val');
+            const offlineBox = document.querySelector('.tele-box:not(.active) .tele-val');
+            
+            if (activeBox) activeBox.textContent = activeCount.toString().padStart(2, '0');
+            if (offlineBox) offlineBox.textContent = offlineCount.toString().padStart(2, '0');
         }
 
         function renderWorkforceData(users) {
@@ -613,7 +648,7 @@
                 <tr>
                     <td>${u.name || 'Unknown Employee'}</td>
                     <td>${u.designation || u.role || 'Personnel'}</td>
-                    <td><span style="color:${(u.status || 'Active').toLowerCase() === 'active' ? 'var(--success)' : 'var(--warning)'}">● ${u.status || 'Active'}</span></td>
+                    <td><span style="color:${(u.status || '').includes('Punched') || u.status === 'Active' ? 'var(--success)' : 'var(--text-muted)'}">● ${u.status || 'Active'}</span></td>
                 </tr>
             `).join('');
         }

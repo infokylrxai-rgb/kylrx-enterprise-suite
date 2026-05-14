@@ -555,37 +555,53 @@ function renderSidebarCommands() {
 
 async function loadEmployees() {
     try {
-        const { collection, getDocs, updateDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-        const snap = await getDocs(collection(db, 'users'));
-        state.employees = snap.docs.map(doc => {
-            const data = doc.data();
-            const dept = (data.department || data.departmentId || '').toLowerCase();
-            
-            // Auto-fix typo in user record
-            if (dept === 'cyberseruity') {
-                updateDoc(doc.ref, { department: 'Cybersecurity' });
-                data.department = 'Cybersecurity';
-            }
-            
-            return { id: doc.id, ...data };
-        }).filter(u => (u.role || '').toLowerCase() !== 'admin');
-        
-        // Sort by createdAt descending (Newest first)
-        state.employees.sort((a, b) => {
-            const getTime = (val) => {
-                if (!val) return 0;
-                if (val.toMillis) return val.toMillis();
-                if (val._seconds) return val._seconds * 1000;
-                return new Date(val).getTime();
-            };
-            return getTime(b.createdAt) - getTime(a.createdAt);
-        });
+        const { collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+        const today = new Date().toISOString().split('T')[0];
 
-        renderEmployeeTable(state.employees);
-        updateStats();
+        // 1. Listen to all users
+        onSnapshot(collection(db, 'users'), (userSnap) => {
+            const rawUsers = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(u => (u.role || '').toLowerCase() !== 'admin');
+
+            // 2. Listen to today's attendance
+            onSnapshot(collection(db, 'attendance'), (attSnap) => {
+                const attendanceMap = {};
+                attSnap.docs.forEach(doc => {
+                    if (doc.id.includes(today)) {
+                        const empId = doc.id.split('_')[0];
+                        attendanceMap[empId] = doc.data();
+                    }
+                });
+
+                // Combine data
+                state.employees = rawUsers.map(u => {
+                    const att = attendanceMap[u.id];
+                    let liveStatus = u.status || 'Active';
+                    if (att && att.punchIn) {
+                        liveStatus = att.punchOut ? 'Shift Completed' : 'Punched In';
+                    } else if (u.status === 'Completed' || !u.status) {
+                        liveStatus = 'Available (Offline)';
+                    }
+                    return { ...u, status: liveStatus };
+                });
+
+                // Sort by createdAt descending
+                state.employees.sort((a, b) => {
+                    const getTime = (val) => {
+                        if (!val) return 0;
+                        if (val.toMillis) return val.toMillis();
+                        if (val._seconds) return val._seconds * 1000;
+                        return new Date(val).getTime();
+                    };
+                    return getTime(b.createdAt) - getTime(a.createdAt);
+                });
+
+                renderEmployeeTable(state.employees);
+                updateStats();
+            });
+        });
     } catch (fbError) {
         console.error('Failed to load employees from Firestore:', fbError);
-        renderEmployeeTable([]);
     }
 }
 

@@ -174,22 +174,22 @@
             <div class="tvc-stat-row">
                 <div class="ai-glass-card">
                     <p class="nav-label" style="margin:0 0 8px 0">Completion Rate</p>
-                    <h2 style="font-size: 2rem; font-weight: 800;">94.2%</h2>
-                    <p style="font-size: 0.75rem; color: #10b981; font-weight: 700;">+5.4% from last batch</p>
+                    <h2 id="overallCompletion" style="font-size: 2rem; font-weight: 800;">0.0%</h2>
+                    <p id="completionTrend" style="font-size: 0.75rem; color: #10b981; font-weight: 700;">Live Pulse</p>
                 </div>
                 <div class="ai-glass-card">
                     <p class="nav-label" style="margin:0 0 8px 0">AI Prediction</p>
-                    <h2 style="font-size: 2rem; font-weight: 800;">72h</h2>
+                    <h2 id="aiPrediction" style="font-size: 2rem; font-weight: 800;">48h</h2>
                     <span class="prediction-badge">Avg. Est. Completion</span>
                 </div>
                 <div class="ai-glass-card">
                     <p class="nav-label" style="margin:0 0 8px 0">Sentiment Score</p>
-                    <h2 style="font-size: 2rem; font-weight: 800;">4.8/5</h2>
-                    <div class="sentiment-meter"><div class="sentiment-fill"></div></div>
+                    <h2 id="sentimentScore" style="font-size: 2rem; font-weight: 800;">4.8/5</h2>
+                    <div class="sentiment-meter"><div id="sentimentFill" class="sentiment-fill" style="width: 85%;"></div></div>
                 </div>
                 <div class="ai-glass-card">
                     <p class="nav-label" style="margin:0 0 8px 0">Bot Automation</p>
-                    <h2 style="font-size: 2rem; font-weight: 800;">88%</h2>
+                    <h2 id="botAutomation" style="font-size: 2rem; font-weight: 800;">88%</h2>
                     <p style="font-size: 0.75rem; color: var(--text-muted);">FAQs resolved by AI</p>
                 </div>
             </div>
@@ -198,25 +198,13 @@
                 <div class="ai-left">
                     <div class="ai-glass-card" style="margin-bottom: 2rem;">
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Intelligence Insights</h3>
-                        <div class="insight-item">
-                            <div class="insight-icon"><i data-lucide="zap"></i></div>
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">Smart Suggestion</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-muted);">Candidates in <strong>Engineering</strong> are delaying 'NDA Signatures'. Suggest moving this to step 1.</p>
-                            </div>
-                        </div>
-                        <div class="insight-item bottleneck-card">
-                            <div class="insight-icon" style="color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">HR Bottleneck Detected</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-muted);">Finance verification for 'Bank Details' is averaging 4.2 days. 12 profiles stuck in queue.</p>
-                            </div>
-                        </div>
-                        <div class="insight-item">
-                            <div class="insight-icon" style="color: #f59e0b;"><i data-lucide="trending-up"></i></div>
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">Predictive Reminder</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-muted);">AI predicts 8 users will hit inactivity threshold in 4 hours. Automated reminders queued.</p>
+                        <div id="insightsContainer">
+                            <div class="insight-item">
+                                <div class="insight-icon"><i data-lucide="zap"></i></div>
+                                <div>
+                                    <h4 style="font-size: 0.9rem; font-weight: 800;">Smart Suggestion</h4>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);">Synchronizing insights from cloud...</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -235,12 +223,10 @@
                         </div>
                         <div class="chat-display" id="chatDisplay">
                             <div class="chat-bubble bubble-ai">Hello Admin! I'm your onboarding intelligence agent. How can I assist you with today's batch?</div>
-                            <div class="chat-bubble bubble-user">Show me why the Sales department is lagging.</div>
-                            <div class="chat-bubble bubble-ai">Analyzing... Sales has a 65% completion rate. The primary delay is 'Government ID' uploads. I recommend sending a bulk reminder with the mobile upload link.</div>
                         </div>
                         <div class="chat-input-area">
-                            <input type="text" class="input-box" placeholder="Ask AI about onboarding..." style="flex:1">
-                            <button class="btn btn-primary" style="padding: 10px;"><i data-lucide="send"></i></button>
+                            <input type="text" id="chatInput" class="input-box" placeholder="Ask AI about onboarding..." style="flex:1">
+                            <button class="btn btn-primary" id="sendChat" style="padding: 10px;"><i data-lucide="send"></i></button>
                         </div>
                     </div>
                 </div>
@@ -250,21 +236,160 @@
 
     <script type="module">
         import { db } from "./firebase-config.js";
+        import { collection, query, getDocs, where, addDoc, serverTimestamp, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
-            initCharts();
+            loadAIIntelligence();
+            setupChat();
         });
 
-        function initCharts() {
-            const ctx = document.getElementById('deptChart').getContext('2d');
-            new Chart(ctx, {
+        function setupChat() {
+            const btn = document.getElementById('sendChat');
+            const input = document.getElementById('chatInput');
+            const display = document.getElementById('chatDisplay');
+
+            btn?.addEventListener('click', async () => {
+                const text = input.value.trim();
+                if (!text) return;
+
+                appendMessage(text, 'user');
+                input.value = '';
+
+                try {
+                    await addDoc(collection(db, 'ai_chat_logs'), {
+                        role: 'user',
+                        message: text,
+                        timestamp: serverTimestamp()
+                    });
+
+                    // Simulated AI Response
+                    setTimeout(async () => {
+                        const response = "Analyzing data... I see your request. I recommend reviewing the latest department bottlenecks in the Intelligence Insights panel.";
+                        appendMessage(response, 'ai');
+                        await addDoc(collection(db, 'ai_chat_logs'), {
+                            role: 'ai',
+                            message: response,
+                            timestamp: serverTimestamp()
+                        });
+                    }, 1000);
+                } catch (err) {
+                    console.error("Chat sync failed:", err);
+                }
+            });
+
+            // Load recent history
+            const q = query(collection(db, 'ai_chat_logs'), orderBy('timestamp', 'asc'), limit(10));
+            onSnapshot(q, (snap) => {
+                display.innerHTML = '<div class="chat-bubble bubble-ai">Hello Admin! I\'m your onboarding intelligence agent. How can I assist you with today\'s batch?</div>';
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    appendMessage(data.message, data.role);
+                });
+            });
+        }
+
+        function appendMessage(text, role) {
+            const display = document.getElementById('chatDisplay');
+            if (!display) return;
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble bubble-${role}`;
+            bubble.textContent = text;
+            display.appendChild(bubble);
+            display.scrollTop = display.scrollHeight;
+        }
+
+        async function loadAIIntelligence() {
+            try {
+                const usersRef = collection(db, 'users');
+                const snap = await getDocs(usersRef);
+                
+                const total = snap.size;
+                if (total === 0) {
+                    initCharts(['No Data'], [0]);
+                    return;
+                }
+
+                let active = 0;
+                const deptStats = {};
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (data.onboardingStatus === 'Active') active++;
+                    
+                    const dept = data.department || 'General';
+                    if (!deptStats[dept]) deptStats[dept] = { total: 0, active: 0 };
+                    deptStats[dept].total++;
+                    if (data.onboardingStatus === 'Active') deptStats[dept].active++;
+                });
+
+                const completionRate = (active / total) * 100;
+                document.getElementById('overallCompletion').textContent = `${completionRate.toFixed(1)}%`;
+                
+                // Fetch dynamic intelligence stats
+                const intelSnap = await getDocs(collection(db, 'system_intelligence'));
+                if (!intelSnap.empty) {
+                    const intelData = intelSnap.docs[0].data();
+                    document.getElementById('aiPrediction').textContent = intelData.prediction || '48h';
+                    document.getElementById('sentimentScore').textContent = `${intelData.sentiment || '4.8'}/5`;
+                    document.getElementById('sentimentFill').style.width = `${(intelData.sentiment || 4.8) * 20}%`;
+                    document.getElementById('botAutomation').textContent = `${intelData.automation || '88'}%`;
+                }
+
+                const depts = Object.keys(deptStats);
+                const rates = depts.map(d => (deptStats[d].active / deptStats[d].total) * 100);
+
+                initCharts(depts, rates);
+                loadInsights();
+            } catch (err) {
+                console.error("AI Intelligence Fault:", err);
+                initCharts(['Eng', 'Sales', 'Mkt', 'Fin', 'Prod'], [98, 65, 82, 91, 89]);
+            }
+        }
+
+        async function loadInsights() {
+            const container = document.getElementById('insightsContainer');
+            try {
+                const snap = await getDocs(collection(db, 'intelligence_insights'));
+                if (!snap.empty) {
+                    container.innerHTML = '';
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        const item = document.createElement('div');
+                        item.className = `insight-item ${data.type === 'bottleneck' ? 'bottleneck-card' : ''}`;
+                        const icon = data.type === 'bottleneck' ? 'alert-triangle' : (data.type === 'reminder' ? 'trending-up' : 'zap');
+                        const color = data.type === 'bottleneck' ? '#ef4444' : (data.type === 'reminder' ? '#f59e0b' : 'var(--primary)');
+                        
+                        item.innerHTML = `
+                            <div class="insight-icon" style="color: ${color};"><i data-lucide="${icon}"></i></div>
+                            <div>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">${data.title}</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">${data.description}</p>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                    if (window.lucide) lucide.createIcons();
+                }
+            } catch (err) {
+                console.error("Insights load fault:", err);
+            }
+        }
+
+        function initCharts(labels, data) {
+            const canvas = document.getElementById('deptChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            if (window.myDeptChart) window.myDeptChart.destroy();
+
+            window.myDeptChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Engineering', 'Sales', 'Marketing', 'Finance', 'Product'],
+                    labels: labels,
                     datasets: [{
                         label: 'Completion Rate %',
-                        data: [98, 65, 82, 91, 89],
+                        data: data,
                         backgroundColor: '#3b82f6',
                         borderRadius: 10,
                     }]

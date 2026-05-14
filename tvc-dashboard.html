@@ -552,29 +552,32 @@
             const grid = document.getElementById('telemetryGrid');
             const today = new Date().toISOString().split('T')[0];
             
-            // Listen to all employees
-            onSnapshot(collection(db, "employees"), (empSnap) => {
-                if (empSnap.empty) {
+            // Listen to all users (personnel)
+            onSnapshot(collection(db, "users"), (userSnap) => {
+                const users = userSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .filter(u => u.role !== 'admin');
+
+                if (users.length === 0) {
                     grid.innerHTML = '<div style="grid-column:span 5; text-align:center; padding:2rem; color:var(--text-muted);">No personnel detected.</div>';
                     return;
                 }
 
-                // Also listen to today's admin sessions to include Admin/HRMS in the grid
-                onSnapshot(collection(db, "admin_sessions"), (adminSnap) => {
-                    const adminSessions = [];
-                    adminSnap.docs.forEach(doc => {
+                // Listen to today's attendance records to sync punch data
+                onSnapshot(collection(db, "attendance"), (attSnap) => {
+                    const attendanceMap = {};
+                    attSnap.docs.forEach(doc => {
                         if (doc.id.includes(today)) {
-                            adminSessions.push({ id: doc.id, ...doc.data() });
+                            const empId = doc.id.split('_')[0];
+                            attendanceMap[empId] = doc.data();
                         }
                     });
 
-                    // Also listen to today's attendance records to sync punch data
-                    onSnapshot(collection(db, "attendance"), (attSnap) => {
-                        const attendanceMap = {};
-                        attSnap.docs.forEach(doc => {
+                    // Listen to today's admin sessions
+                    onSnapshot(collection(db, "admin_sessions"), (adminSnap) => {
+                        const adminSessions = [];
+                        adminSnap.docs.forEach(doc => {
                             if (doc.id.includes(today)) {
-                                const empId = doc.id.split('_')[0];
-                                attendanceMap[empId] = doc.data();
+                                adminSessions.push({ id: doc.id, ...doc.data() });
                             }
                         });
 
@@ -587,8 +590,8 @@
                             let statusColor = "var(--text-muted)";
                             
                             if (admin.punchIn) {
-                                const pIn = admin.punchIn.toDate();
-                                const pOut = admin.punchOut ? admin.punchOut.toDate() : new Date();
+                                const pIn = admin.punchIn.toDate ? admin.punchIn.toDate() : new Date(admin.punchIn);
+                                const pOut = admin.punchOut ? (admin.punchOut.toDate ? admin.punchOut.toDate() : new Date(admin.punchOut)) : new Date();
                                 hoursWorked = ((pOut - pIn) / 3600000).toFixed(1);
                                 statusColor = admin.status === 'Active' ? "var(--success)" : "var(--warning)";
                             }
@@ -604,26 +607,24 @@
                         });
 
                         // 2. Process Employee Cards
-                        empSnap.docs.forEach(doc => {
-                            const data = doc.data();
-                            const empId = doc.id;
-                            const attendance = attendanceMap[empId];
+                        users.forEach(user => {
+                            const attendance = attendanceMap[user.id];
                             
                             let hoursWorked = 0;
-                            let statusText = "NOT PUNCHED";
+                            let statusText = "OFFLINE";
                             let statusColor = "var(--text-muted)";
                             
                             if (attendance && attendance.punchIn) {
-                                const pIn = attendance.punchIn.toDate();
-                                const pOut = attendance.punchOut ? attendance.punchOut.toDate() : new Date();
+                                const pIn = attendance.punchIn.toDate ? attendance.punchIn.toDate() : new Date(attendance.punchIn);
+                                const pOut = attendance.punchOut ? (attendance.punchOut.toDate ? attendance.punchOut.toDate() : new Date(attendance.punchOut)) : new Date();
                                 hoursWorked = ((pOut - pIn) / 3600000).toFixed(1);
                                 statusText = attendance.punchOut ? "SHIFT COMPLETED" : "ACTIVE";
                                 statusColor = attendance.punchOut ? "var(--primary)" : "var(--success)";
                             }
 
                             allCards.push(renderTeleCard({
-                                name: data.name,
-                                department: data.department,
+                                name: user.name || "Unknown",
+                                department: user.departmentName || user.department || "General",
                                 statusText: statusText,
                                 statusColor: statusColor,
                                 hoursWorked: hoursWorked,

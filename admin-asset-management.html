@@ -130,112 +130,317 @@
                     <p>Track hardware lifecycle, manage allocations, and orchestrate employee declarations.</p>
                 </div>
                 <div class="btn-group">
-                    <button class="btn btn-outline"><i data-lucide="printer"></i> Print Labels</button>
-                    <button class="btn btn-primary"><i data-lucide="plus"></i> Add New Asset</button>
+                    <button class="btn btn-outline" onclick="togglePrintModal(true)"><i data-lucide="printer"></i> Print Labels</button>
+                    <button class="btn btn-primary" onclick="toggleAssetModal(true)"><i data-lucide="plus"></i> Add New Asset</button>
                 </div>
             </header>
 
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                 <div class="asset-stat-card">
                     <div class="asset-stat-icon" style="background: #eff6ff; color: #3b82f6;"><i data-lucide="cpu"></i></div>
-                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Total Assets</p><h3 style="font-weight: 800;">1,242</h3></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Total Assets</p><h3 style="font-weight: 800;" id="statTotal">...</h3></div>
                 </div>
                 <div class="asset-stat-card">
                     <div class="asset-stat-icon" style="background: #f0fdf4; color: #22c55e;"><i data-lucide="user-check"></i></div>
-                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Allocated</p><h3 style="font-weight: 800;">948</h3></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Allocated</p><h3 style="font-weight: 800;" id="statAllocated">...</h3></div>
                 </div>
                 <div class="asset-stat-card">
                     <div class="asset-stat-icon" style="background: #fff7ed; color: #f59e0b;"><i data-lucide="wrench"></i></div>
-                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">In Repair</p><h3 style="font-weight: 800;">18</h3></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">In Repair</p><h3 style="font-weight: 800;" id="statRepair">...</h3></div>
                 </div>
                 <div class="asset-stat-card">
                     <div class="asset-stat-icon" style="background: #fef2f2; color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
-                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Missing/Lost</p><h3 style="font-weight: 800;">4</h3></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Missing/Lost</p><h3 style="font-weight: 800;" id="statMissing">...</h3></div>
                 </div>
             </div>
 
-            <div class="asset-grid">
-                <!-- Asset Card -->
-                <div class="asset-item-card">
-                    <span class="asset-tag" style="background: #ecfdf5; color: #059669;">Allocated</span>
-                    <div class="asset-type-badge">Laptop</div>
-                    <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">MacBook Pro M2</h4>
-                    <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: HRF-LP-2026-084</p>
-                    
-                    <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0;"></div>
-                        <div style="flex: 1;">
-                            <p style="font-size: 0.8rem; font-weight: 700;">Arjun Mehta</p>
-                            <p style="font-size: 0.65rem; color: var(--text-muted);">Engineering • Since Oct 01</p>
-                        </div>
-                        <div class="qr-placeholder"><i data-lucide="qr-code" size="20"></i></div>
-                    </div>
-                    
-                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
-                        <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;">Re-Allocate</button>
-                        <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;">Retire</button>
-                    </div>
-                </div>
-
-                <div class="asset-item-card">
-                    <span class="asset-tag" style="background: #eff6ff; color: #3b82f6;">In Stock</span>
-                    <div class="asset-type-badge">Mobile</div>
-                    <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">iPhone 15 Pro</h4>
-                    <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: HRF-MB-2026-112</p>
-                    
-                    <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i data-lucide="user" size="16"></i></div>
-                        <div style="flex: 1;">
-                            <p style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Unassigned</p>
-                            <p style="font-size: 0.65rem; color: var(--text-muted);">Location: Warehouse A</p>
-                        </div>
-                        <div class="qr-placeholder"><i data-lucide="qr-code" size="20"></i></div>
-                    </div>
-                    
-                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
-                        <button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;">Assign to Employee</button>
-                    </div>
-                </div>
-
-                <div class="asset-item-card">
-                    <span class="asset-tag" style="background: #fff7ed; color: #f59e0b;">Verification</span>
-                    <div class="asset-type-badge">Peripheral</div>
-                    <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">Dell 4K Monitor</h4>
-                    <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: HRF-MN-2026-245</p>
-                    
-                    <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0;"></div>
-                        <div style="flex: 1;">
-                            <p style="font-size: 0.8rem; font-weight: 700;">Sarah Jenkins</p>
-                            <p style="font-size: 0.65rem; color: #f59e0b; font-weight: 600;">Pending Declaration</p>
-                        </div>
-                        <div class="qr-placeholder"><i data-lucide="qr-code" size="20"></i></div>
-                    </div>
-                    
-                    <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
-                        <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;">Send Reminder</button>
-                    </div>
+            <div class="asset-grid" id="assetGrid">
+                <!-- Asset Cards Dynamically Injected -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 5rem;">
+                    <i data-lucide="loader" class="animate-spin" size="32" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <p style="color: var(--text-muted);">Syncing organizational inventory...</p>
                 </div>
             </div>
 
             <div class="allocation-history">
                 <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Recent Asset Transactions</h3>
-                <div class="history-item">
-                    <div><p style="font-weight: 700; font-size: 0.9rem;">MacBook Pro M2 Allocated</p><p style="font-size: 0.75rem; color: var(--text-muted);">To Arjun Mehta • Tag: HRF-LP-084</p></div>
-                    <div style="text-align: right;"><p style="font-weight: 800; color: #10b981;">SUCCESS</p><p style="font-size: 0.65rem; color: var(--text-muted);">Oct 01, 2026 • 10:15 AM</p></div>
-                </div>
-                <div class="history-item">
-                    <div><p style="font-weight: 700; font-size: 0.9rem;">Asset Return Initiated</p><p style="font-size: 0.75rem; color: var(--text-muted);">From Michael Scott • Tag: HRF-MB-112</p></div>
-                    <div style="text-align: right;"><p style="font-weight: 800; color: #3b82f6;">IN PROGRESS</p><p style="font-size: 0.65rem; color: var(--text-muted);">Oct 05, 2026 • 02:30 PM</p></div>
+                <div id="transactionHistory">
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">Retrieving transaction audit logs...</div>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- Add Asset Modal -->
+    <div class="modal-overlay" id="assetModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Provision New Asset</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Onboard new hardware into the enterprise ecosystem</p>
+                </div>
+                <button class="action-icon" onclick="toggleAssetModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label class="nav-label">ASSET NAME</label>
+                    <input type="text" id="assetName" class="input-box" placeholder="e.g. MacBook Pro M3" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="nav-label">TYPE</label>
+                        <select id="assetType" class="input-box" style="width: 100%; margin-top: 8px;">
+                            <option>Laptop</option>
+                            <option>Mobile</option>
+                            <option>Peripheral</option>
+                            <option>Furniture</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="nav-label">ASSET TAG</label>
+                        <div style="position: relative; margin-top: 8px;">
+                            <input type="text" id="assetTag" class="input-box" placeholder="HRF-LP-2026-XXX" style="width: 100%; padding-right: 40px;">
+                            <button id="btnGenTag" class="action-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; color: var(--primary);" title="Auto-generate Tag">
+                                <i data-lucide="refresh-cw" size="14"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btnSaveAsset" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="save"></i> Initialize Asset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Labels Modal -->
+    <div class="modal-overlay" id="printModal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Asset Labelling Hub</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Generate QR labels for physical hardware tracking</p>
+                </div>
+                <button class="action-icon" onclick="togglePrintModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="labelPreviewGrid">
+                <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center;">
+                    <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <p style="font-weight: 800; font-size: 0.9rem;">HRF-LP-084</p>
+                    <p style="font-size: 0.65rem; color: var(--text-muted);">MacBook Pro M2</p>
+                </div>
+                <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center;">
+                    <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <p style="font-weight: 800; font-size: 0.9rem;">HRF-MB-112</p>
+                    <p style="font-size: 0.65rem; color: var(--text-muted);">iPhone 15 Pro</p>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 2rem; justify-content: center; padding: 1rem;" onclick="window.print()">
+                <i data-lucide="printer"></i> Send to Asset Printer
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Asset initialized in enterprise database.</span>
+    </div>
+
+    <style>
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: white; border-radius: 32px; padding: 3rem;
+            width: 500px; max-width: 95%; box-shadow: var(--shadow-lg);
+            animation: modalSlide 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        @keyframes modalSlide { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .input-box {
+            background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit;
+            font-weight: 600; font-size: 0.9rem; color: #1e293b; outline: none;
+            transition: 0.2s;
+        }
+        .input-box:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
+        .action-icon {
+            background: #f1f5f9; border: none; width: 32px; height: 32px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: #64748b; cursor: pointer; transition: 0.2s;
+        }
+        .action-icon:hover { background: #e2e8f0; color: #1e293b; }
+    </style>
+
     <script type="module">
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.lucide) lucide.createIcons();
+        import { db } from "./firebase-config.js";
+        import { getAssets, getAssetStats, getAssetLogs, addAsset } from "./asset-service.js";
+
+        lucide.createIcons();
+
+        async function initDashboard() {
+            loadStats();
+            renderAssets();
+            loadHistory();
+        }
+
+        async function loadStats() {
+            try {
+                const stats = await getAssetStats();
+                document.getElementById('statTotal').textContent = stats.total.toLocaleString();
+                document.getElementById('statAllocated').textContent = stats.allocated.toLocaleString();
+                document.getElementById('statRepair').textContent = stats.repair.toLocaleString();
+                document.getElementById('statMissing').textContent = stats.missing.toLocaleString();
+            } catch (err) {
+                console.error("Error loading stats:", err);
+            }
+        }
+
+        async function renderAssets() {
+            const grid = document.getElementById('assetGrid');
+            try {
+                const assets = await getAssets();
+                if (assets.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 5rem; color: var(--text-muted);">No assets registered in the cloud.</div>';
+                    return;
+                }
+
+                grid.innerHTML = assets.map(a => {
+                    const tagColor = a.status === 'Allocated' ? '#059669' : a.status === 'In Stock' ? '#3b82f6' : '#f59e0b';
+                    const tagBg = a.status === 'Allocated' ? '#ecfdf5' : a.status === 'In Stock' ? '#eff6ff' : '#fff7ed';
+                    
+                    return `
+                        <div class="asset-item-card">
+                            <span class="asset-tag" style="background: ${tagBg}; color: ${tagColor};">${a.status}</span>
+                            <div class="asset-type-badge">${a.type}</div>
+                            <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">${a.name}</h4>
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: ${a.tag}</p>
+                            
+                            <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                                    <i data-lucide="${a.assignedTo ? 'user' : 'package'}" size="16"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <p style="font-size: 0.8rem; font-weight: 700;">${a.assignedToName || 'Unassigned'}</p>
+                                    <p style="font-size: 0.65rem; color: var(--text-muted);">${a.assignedTo ? 'Allocated' : 'In Warehouse'}</p>
+                                </div>
+                                <div class="qr-placeholder"><i data-lucide="qr-code" size="20"></i></div>
+                            </div>
+                            
+                            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
+                                ${a.status === 'In Stock' ? 
+                                    `<button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;">Assign to Employee</button>` :
+                                    `<button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;">Re-Allocate</button>
+                                     <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;">Retire</button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Error rendering assets:", err);
+            }
+        }
+
+        async function loadHistory() {
+            const hist = document.getElementById('transactionHistory');
+            try {
+                const logs = await getAssetLogs();
+                if (logs.length === 0) {
+                    hist.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">No recent transactions recorded.</div>';
+                    return;
+                }
+
+                hist.innerHTML = logs.map(l => `
+                    <div class="history-item">
+                        <div><p style="font-weight: 700; font-size: 0.9rem;">${l.action} Recorded</p><p style="font-size: 0.75rem; color: var(--text-muted);">Asset: ${l.assetId}</p></div>
+                        <div style="text-align: right;">
+                            <p style="font-weight: 800; color: #3b82f6;">PROCESSED</p>
+                            <p style="font-size: 0.65rem; color: var(--text-muted);">${l.timestamp?.toDate().toLocaleString() || 'Recent'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Error loading history:", err);
+            }
+        }
+
+        window.toggleAssetModal = (show) => {
+            const modal = document.getElementById('assetModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        window.togglePrintModal = (show) => {
+            const modal = document.getElementById('printModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        document.getElementById('btnGenTag')?.addEventListener('click', () => {
+            const type = document.getElementById('assetType').value || 'Asset';
+            const prefix = type === 'Laptop' ? 'LP' : type === 'Mobile' ? 'MB' : type === 'Peripheral' ? 'PR' : 'HW';
+            const year = new Date().getFullYear();
+            const rand = Math.floor(100 + Math.random() * 900);
+            const tag = `HRF-${prefix}-${year}-${rand}`;
+            
+            const input = document.getElementById('assetTag');
+            input.value = tag;
         });
+
+        document.getElementById('btnSaveAsset')?.addEventListener('click', async () => {
+            const btn = document.getElementById('btnSaveAsset');
+            const data = {
+                name: document.getElementById('assetName').value,
+                type: document.getElementById('assetType').value,
+                tag: document.getElementById('assetTag').value
+            };
+
+            if (!data.name || !data.tag) return alert('Please complete all fields.');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Initializing...';
+            lucide.createIcons();
+
+            try {
+                await addAsset(data);
+                const toast = document.getElementById('successToast');
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                toggleAssetModal(false);
+                initDashboard();
+
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Save failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="save"></i> Initialize Asset';
+                lucide.createIcons();
+            }
+        });
+
+        initDashboard();
     </script>
 </body>
 </html>

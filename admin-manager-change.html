@@ -356,13 +356,157 @@
         </main>
     </div>
 
+    <!-- Initiate Change Modal -->
+    <div class="modal-overlay" id="changeModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Initiate Hierarchy Change</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Execute an organizational reporting transfer</p>
+                </div>
+                <button class="action-icon" onclick="toggleChangeModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label class="nav-label">TARGET EMPLOYEE</label>
+                    <select id="targetEmp" class="input-box" style="width: 100%; margin-top: 8px;">
+                        <option value="">Loading employees...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="nav-label">NEW REPORTING MANAGER</label>
+                    <select id="newMgrSelect" class="input-box" style="width: 100%; margin-top: 8px;">
+                        <option value="">Loading managers...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="nav-label">REASON FOR TRANSFER</label>
+                    <textarea id="transferReason" class="input-box" placeholder="e.g. Departmental Restructuring" style="width: 100%; margin-top: 8px; min-height: 80px; padding: 12px;"></textarea>
+                </div>
+                <button class="btn btn-primary" id="btnSubmitChange" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="send"></i> Propose Transfer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: white; border-radius: 32px; padding: 3rem;
+            width: 500px; max-width: 95%; box-shadow: var(--shadow-lg);
+            animation: modalSlide 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        @keyframes modalSlide { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .input-box {
+            background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit;
+            font-weight: 600; font-size: 0.9rem; color: #1e293b; outline: none;
+            transition: 0.2s;
+        }
+        .input-box:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
+        .action-icon {
+            background: #f1f5f9; border: none; width: 32px; height: 32px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: #64748b; cursor: pointer; transition: 0.2s;
+        }
+        .action-icon:hover { background: #e2e8f0; color: #1e293b; }
+    </style>
+
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getManagers } from "./pms-service.js";
 
         lucide.createIcons();
 
         let activeRequestId = null;
+
+        window.toggleChangeModal = (show) => {
+            const modal = document.getElementById('changeModal');
+            if (show) {
+                modal.classList.add('active');
+                loadModalData();
+            } else {
+                modal.classList.remove('active');
+            }
+        };
+
+        async function loadModalData() {
+            const empSelect = document.getElementById('targetEmp');
+            const mgrSelect = document.getElementById('newMgrSelect');
+            
+            try {
+                // Fetch all employees
+                const empSnap = await getDocs(collection(db, 'users'));
+                empSelect.innerHTML = '<option value="">Select Employee</option>';
+                empSnap.docs.forEach(d => {
+                    const data = d.data();
+                    empSelect.innerHTML += `<option value="${d.id}">${data.name} (${data.department || 'N/A'})</option>`;
+                });
+
+                // Fetch managers using the new service
+                const managers = await getManagers();
+                mgrSelect.innerHTML = '<option value="">Select New Manager</option>';
+                managers.forEach(m => {
+                    mgrSelect.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+                });
+            } catch (err) {
+                console.error("Error loading modal data:", err);
+            }
+        }
+
+        document.getElementById('btnInitiateChange').addEventListener('click', () => toggleChangeModal(true));
+
+        document.getElementById('btnSubmitChange').addEventListener('click', async function() {
+            const empId = document.getElementById('targetEmp').value;
+            const mgrId = document.getElementById('newMgrSelect').value;
+            const reason = document.getElementById('transferReason').value;
+
+            if (!empId || !mgrId) {
+                alert("Please select both an employee and a new manager.");
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Submitting...';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const empSnap = await getDoc(doc(db, 'users', empId));
+                const mgrSnap = await getDoc(doc(db, 'users', mgrId));
+                const empData = empSnap.data();
+                const mgrData = mgrSnap.data();
+
+                await addDoc(collection(db, 'manager_change_requests'), {
+                    employeeId: empId,
+                    employeeName: empData.name,
+                    currentManagerName: empData.reportingManagerName || 'Unassigned',
+                    newManagerId: mgrId,
+                    newManagerName: mgrData.name,
+                    reason,
+                    status: 'Pending',
+                    currentStage: 'Business Head',
+                    timestamp: serverTimestamp()
+                });
+
+                alert("Change request submitted successfully.");
+                toggleChangeModal(false);
+                loadQueue();
+            } catch (err) {
+                alert("Submission failed: " + err.message);
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '<i data-lucide="send"></i> Propose Transfer';
+                if (window.lucide) lucide.createIcons();
+            }
+        });
 
         async function loadQueue() {
             const q = query(collection(db, 'manager_change_requests'), where('status', '==', 'Pending'));
@@ -381,7 +525,7 @@
                         <td style="font-weight: 700;">${data.employeeName}</td>
                         <td style="font-size: 0.75rem;">${data.currentManagerName} → ${data.newManagerName}</td>
                         <td><span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">${data.currentStage}</span></td>
-                        <td style="color: var(--text-muted);">14 Hours</td>
+                        <td style="color: var(--text-muted);">Recent</td>
                         <td><button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;" onclick="viewRequest('${d.id}')">Review BPM</button></td>
                     </tr>
                 `;
@@ -391,6 +535,13 @@
 
         window.viewRequest = async (id) => {
             activeRequestId = id;
+            const docSnap = await getDoc(doc(db, 'manager_change_requests', id));
+            const data = docSnap.data();
+
+            document.getElementById('reqTitle').textContent = `Request #MGR-${id.slice(0,4).toUpperCase()}: ${data.employeeName}`;
+            document.getElementById('currMgr').textContent = data.currentManagerName;
+            document.getElementById('nextMgr').textContent = data.newManagerName;
+
             document.getElementById('activeRequest').style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };

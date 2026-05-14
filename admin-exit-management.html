@@ -121,8 +121,8 @@
                     <p>Orchestrate employee offboarding, exit interviews, and clearance workflows.</p>
                 </div>
                 <div class="btn-group">
-                    <button class="btn btn-outline"><i data-lucide="pie-chart"></i> Exit Analytics</button>
-                    <button class="btn btn-primary"><i data-lucide="plus"></i> Initiate Exit</button>
+                    <button class="btn btn-outline" onclick="toggleAnalyticsModal(true)"><i data-lucide="pie-chart"></i> Exit Analytics</button>
+                    <button class="btn btn-primary" onclick="toggleExitModal(true)"><i data-lucide="plus"></i> Initiate Exit</button>
                 </div>
             </header>
 
@@ -130,68 +130,39 @@
                 <!-- Under Review -->
                 <div class="pipeline-column">
                     <div class="pipeline-header">
-                        <h4 style="font-size: 0.85rem; font-weight: 800;">UNDER REVIEW (3)</h4>
+                        <h4 style="font-size: 0.85rem; font-weight: 800;" id="labelReview">UNDER REVIEW (0)</h4>
                         <i data-lucide="more-horizontal" size="16"></i>
                     </div>
-                    <div class="exit-card">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <h5 style="font-weight: 700; font-size: 0.9rem;">Robert Brown</h5>
-                            <span class="badge" style="font-size: 0.6rem;">LWD: Oct 20</span>
-                        </div>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Engineering • Sr. Developer</p>
-                        <div class="meeting-box">
-                            <i data-lucide="video" size="14"></i>
-                            <span>Interview Oct 15 • 10:00 AM</span>
-                        </div>
+                    <div id="colReview">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.75rem;">Syncing review queue...</div>
                     </div>
                 </div>
 
                 <!-- Notice Period -->
                 <div class="pipeline-column">
                     <div class="pipeline-header">
-                        <h4 style="font-size: 0.85rem; font-weight: 800;">NOTICE PERIOD (5)</h4>
+                        <h4 style="font-size: 0.85rem; font-weight: 800;" id="labelNotice">NOTICE PERIOD (0)</h4>
                         <i data-lucide="more-horizontal" size="16"></i>
                     </div>
-                    <div class="exit-card">
-                        <h5 style="font-weight: 700; font-size: 0.9rem;">Sarah Jenkins</h5>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Marketing • Manager</p>
-                        <div style="margin-top: 12px; height: 4px; background: #e2e8f0; border-radius: 10px; overflow: hidden;">
-                            <div style="width: 65%; height: 100%; background: var(--primary);"></div>
-                        </div>
-                        <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 6px;">22 days remaining of 90</p>
-                    </div>
+                    <div id="colNotice"></div>
                 </div>
 
                 <!-- Clearance Pending -->
                 <div class="pipeline-column">
                     <div class="pipeline-header">
-                        <h4 style="font-size: 0.85rem; font-weight: 800;">CLEARANCE PENDING (2)</h4>
+                        <h4 style="font-size: 0.85rem; font-weight: 800;" id="labelClearance">CLEARANCE PENDING (0)</h4>
                         <i data-lucide="more-horizontal" size="16"></i>
                     </div>
-                    <div class="exit-card">
-                        <h5 style="font-weight: 700; font-size: 0.9rem;">David Vane</h5>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Sales • Executive</p>
-                        <div style="display: flex; gap: 6px; margin-top: 10px;">
-                            <span class="badge" style="background: #fef2f2; color: #ef4444; font-size: 0.6rem;">IT Dues</span>
-                            <span class="badge" style="background: #f0fdf4; color: #16a34a; font-size: 0.6rem;">Finance OK</span>
-                        </div>
-                    </div>
+                    <div id="colClearance"></div>
                 </div>
 
                 <!-- F&F Pending -->
                 <div class="pipeline-column">
                     <div class="pipeline-header">
-                        <h4 style="font-size: 0.85rem; font-weight: 800;">F&F PENDING (1)</h4>
+                        <h4 style="font-size: 0.85rem; font-weight: 800;" id="labelSettlement">F&F PENDING (0)</h4>
                         <i data-lucide="more-horizontal" size="16"></i>
                     </div>
-                    <div class="exit-card">
-                        <h5 style="font-weight: 700; font-size: 0.9rem;">Jane Doe</h5>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">HR • Generalist</p>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--secondary); font-size: 0.75rem;">
-                            <i data-lucide="calculator" size="14"></i>
-                            <span>Settlement in progress</span>
-                        </div>
-                    </div>
+                    <div id="colSettlement"></div>
                 </div>
             </div>
 
@@ -241,10 +212,311 @@
         </main>
     </div>
 
+    <!-- Initiate Exit Modal -->
+    <div class="modal-overlay" id="exitModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Initiate Offboarding</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Launch a professional exit workflow</p>
+                </div>
+                <button class="action-icon" onclick="toggleExitModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label class="nav-label">TARGET EMPLOYEE</label>
+                    <select id="exitEmp" class="input-box" style="width: 100%; margin-top: 8px;">
+                        <option value="">Select Employee</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="nav-label">LAST WORKING DAY</label>
+                        <input type="date" id="lwd" class="input-box" style="width: 100%; margin-top: 8px;">
+                    </div>
+                    <div>
+                        <label class="nav-label">EXIT TYPE</label>
+                        <select id="exitType" class="input-box" style="width: 100%; margin-top: 8px;">
+                            <option>Resignation</option>
+                            <option>Termination</option>
+                            <option>Retirement</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="nav-label">PRIMARY REASON</label>
+                    <textarea id="exitReason" class="input-box" placeholder="e.g. Personal reasons / Career move" style="width: 100%; margin-top: 8px; min-height: 80px; padding: 12px;"></textarea>
+                </div>
+                <button class="btn btn-primary" id="btnConfirmExit" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="log-out"></i> Launch Exit Process
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Analytics Modal -->
+    <div class="modal-overlay" id="analyticsModal">
+        <div class="modal-card" style="max-width: 700px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Attritional Intelligence</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Deep-dive insights into organizational churn</p>
+                </div>
+                <button class="action-icon" onclick="toggleAnalyticsModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div style="padding: 1.5rem; background: #f8fafc; border-radius: 20px;">
+                    <h4 style="font-weight: 800; font-size: 0.9rem; margin-bottom: 1rem;">Exit Distribution</h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem;"><span>Career Growth</span><span style="font-weight: 800;">65%</span></div>
+                        <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: 65%; height: 100%; background: var(--primary);"></div></div>
+                        
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 5px;"><span>Compensation</span><span style="font-weight: 800;">20%</span></div>
+                        <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: 20%; height: 100%; background: var(--secondary);"></div></div>
+                        
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 5px;"><span>Culture/Fit</span><span style="font-weight: 800;">15%</span></div>
+                        <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: 15%; height: 100%; background: #10b981;"></div></div>
+                    </div>
+                </div>
+                <div style="padding: 1.5rem; background: #eff6ff; border-radius: 20px; border: 1px solid var(--primary-soft);">
+                    <h4 style="font-weight: 800; font-size: 0.9rem; margin-bottom: 1rem; color: var(--primary);">Retention Risk Heatmap</h4>
+                    <p style="font-size: 0.75rem; color: #1e40af; line-height: 1.6;">High probability of attrition detected in <strong>Engineering</strong> and <strong>Product Design</strong> units over the next 120 days based on sentiment analysis.</p>
+                    <button class="btn btn-primary" id="btnDownloadForecast" style="margin-top: 1.5rem; width: 100%; font-size: 0.75rem; justify-content: center; background: #1e40af;">Download AI Forecast</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: white; border-radius: 32px; padding: 3rem;
+            width: 500px; max-width: 95%; box-shadow: var(--shadow-lg);
+            animation: modalSlide 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        @keyframes modalSlide { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .input-box {
+            background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit;
+            font-weight: 600; font-size: 0.9rem; color: #1e293b; outline: none;
+            transition: 0.2s;
+        }
+        .input-box:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
+        .action-icon {
+            background: #f1f5f9; border: none; width: 32px; height: 32px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: #64748b; cursor: pointer; transition: 0.2s;
+        }
+        .action-icon:hover { background: #e2e8f0; color: #1e293b; }
+        .badge { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-weight: 700; }
+    </style>
+
+    <!-- Success Toast -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Exit process initiated successfully.</span>
+    </div>
+
+    <style>
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+    </style>
+
     <script type="module">
-        document.addEventListener('DOMContentLoaded', () => {
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getExits, getExitAnalytics, initiateExit } from "./exit-workflow-service.js";
+
+        lucide.createIcons();
+
+        async function initDashboard() {
+            loadEmployees();
+            renderPipeline();
+            renderAnalytics();
+        }
+
+        async function renderAnalytics() {
+            try {
+                const analytics = await getExitAnalytics();
+                const container = document.querySelector('.checklist-card:last-child');
+                if (!container) return;
+
+                container.innerHTML = `
+                    <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Exit Analytics Insight</h3>
+                    <div style="display: grid; gap: 1.5rem;">
+                        <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
+                            <p class="nav-label" style="margin:0">Primary Exit Reason</p>
+                            <h4 style="font-weight: 800; color: var(--primary); margin-top: 4px;">${analytics.primaryReason}</h4>
+                        </div>
+                        <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
+                            <p class="nav-label" style="margin:0">Avg. Retention Period</p>
+                            <h4 style="font-weight: 800; color: var(--secondary); margin-top: 4px;">${analytics.avgRetention}</h4>
+                        </div>
+                        <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
+                            <p class="nav-label" style="margin:0">Interview Sentiment</p>
+                            <h4 style="font-weight: 800; color: #10b981; margin-top: 4px;">${analytics.sentiment}</h4>
+                        </div>
+                    </div>
+                `;
+            } catch (err) { console.error("Error rendering analytics:", err); }
+        }
+
+        async function renderPipeline() {
+            try {
+                const exits = await getExits();
+                const cols = {
+                    'Exit Initiated': { id: 'colReview', label: 'labelReview', title: 'UNDER REVIEW' },
+                    'Notice Period': { id: 'colNotice', label: 'labelNotice', title: 'NOTICE PERIOD' },
+                    'Clearance Pending': { id: 'colClearance', label: 'labelClearance', title: 'CLEARANCE PENDING' },
+                    'F&F Pending': { id: 'colSettlement', label: 'labelSettlement', title: 'F&F PENDING' }
+                };
+
+                // Clear
+                Object.values(cols).forEach(c => {
+                    document.getElementById(c.id).innerHTML = '';
+                    document.getElementById(c.label).textContent = `${c.title} (0)`;
+                });
+
+                exits.forEach(e => {
+                    const col = cols[e.status];
+                    if (!col) return;
+
+                    const count = parseInt(document.getElementById(col.label).textContent.match(/\d+/)[0]) + 1;
+                    document.getElementById(col.label).textContent = `${col.title} (${count})`;
+
+                    const card = document.createElement('div');
+                    card.className = 'exit-card';
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <h5 style="font-weight: 700; font-size: 0.9rem;">${e.employeeName || 'Unknown'}</h5>
+                            <span class="badge" style="font-size: 0.6rem;">LWD: ${new Date(e.lwd).toLocaleDateString()}</span>
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">${e.type || 'Offboarding'}</p>
+                        ${e.meetingLink ? `
+                            <div class="meeting-box">
+                                <i data-lucide="video" size="14"></i>
+                                <span>Interview Scheduled</span>
+                            </div>
+                        ` : ''}
+                    `;
+                    document.getElementById(col.id).appendChild(card);
+                });
+
+                if (window.lucide) lucide.createIcons();
+            } catch (err) { console.error("Error rendering pipeline:", err); }
+        }
+
+        async function loadEmployees() {
+            try {
+                const snap = await getDocs(collection(db, 'users'));
+                const select = document.getElementById('exitEmp');
+                snap.docs.forEach(doc => {
+                    const data = doc.data();
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.setAttribute('data-name', data.name);
+                    opt.textContent = `${data.name || 'User'} (${data.department || 'Staff'})`;
+                    select.appendChild(opt);
+                });
+            } catch (err) { console.error("Error loading employees:", err); }
+        }
+
+        window.toggleExitModal = (show) => {
+            const modal = document.getElementById('exitModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        window.toggleAnalyticsModal = (show) => {
+            const modal = document.getElementById('analyticsModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        document.getElementById('btnDownloadForecast')?.addEventListener('click', () => {
+            const btn = document.getElementById('btnDownloadForecast');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin" size="14"></i> Preparing Forecast...';
             if (window.lucide) lucide.createIcons();
+            
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="check" size="14"></i> Download Started';
+                if (window.lucide) lucide.createIcons();
+                
+                const blob = new Blob(["HRFlow AI Attrition Forecast - 2026\nEngineering: High Risk\nProduct: Medium Risk\nSales: Low Risk"], {type: 'text/plain'});
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'HRFlow_AI_Forecast_Oct_2026.txt';
+                a.click();
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    if (window.lucide) lucide.createIcons();
+                }, 2000);
+            }, 1500);
         });
+
+        document.getElementById('btnConfirmExit')?.addEventListener('click', async () => {
+            const btn = document.getElementById('btnConfirmExit');
+            const select = document.getElementById('exitEmp');
+            const empId = select.value;
+            const empName = select.options[select.selectedIndex]?.getAttribute('data-name');
+
+            const data = {
+                employeeName: empName,
+                lwd: document.getElementById('lwd').value,
+                type: document.getElementById('exitType').value,
+                reason: document.getElementById('exitReason').value,
+                initiator: 'Admin',
+                initiatorName: 'System Administrator'
+            };
+
+            if (!empId || !data.lwd) return alert('Please complete the mandatory fields.');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Launching...';
+            lucide.createIcons();
+
+            try {
+                await initiateExit(empId, data);
+                const toast = document.getElementById('successToast');
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                toggleExitModal(false);
+                renderPipeline();
+                
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Process failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="log-out"></i> Launch Exit Process';
+                lucide.createIcons();
+            }
+        });
+
+        initDashboard();
     </script>
 </body>
 </html>

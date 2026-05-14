@@ -20,7 +20,7 @@ class OnboardingAutomation {
     }
 
     async runAutomationCycle() {
-        console.log("🤖 Running Onboarding Automation Cycle...");
+        console.log("🤖 Running Global Automation Cycle...");
         const now = new Date();
 
         // 1. Rule: No response within 3 hours (Link Expired -> Suspended)
@@ -31,6 +31,14 @@ class OnboardingAutomation {
 
         // 3. Rule: 3 Days Post-Onboarding Bank Verification
         await this.handleBankVerificationTask(now);
+
+        // 4. Rule: 8-Hour Deficit Compliance (Productivity)
+        try {
+            const { attendanceAutomation } = await import("./attendance-automation.js");
+            await attendanceAutomation.runProductivityCheck();
+        } catch (e) {
+            console.error("Attendance Automation Error:", e);
+        }
     }
 
     async handleThreeHourRule(now) {

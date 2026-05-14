@@ -1,117 +1,97 @@
-import { db } from "./firebase-config.js";
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db } from './firebase-config.js';
+import { collection, query, getDocs, doc, getDoc, setDoc, updateDoc, serverTimestamp, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-/**
- * Enterprise Policy Management Service
- * Handles Assignments, Digital Signatures, and Compliance Tracking.
- */
+export async function getActivePolicies() {
+    console.log('[POLICY] Fetching active rollouts...');
+    try {
+        const q = query(collection(db, 'policies'), orderBy('updatedAt', 'desc'));
+        const snap = await getDocs(q);
+        const results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        return results;
+    } catch (err) {
+        console.error('[POLICY] Error fetching policies:', err);
+        return [];
+    }
+}
+
+export async function getPolicyAuditLogs() {
+    console.log('[POLICY] Fetching audit logs...');
+    try {
+        const q = query(collection(db, 'policy_audit'), orderBy('timestamp', 'desc'), limit(10));
+        const snap = await getDocs(q);
+        const results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return results;
+    } catch (err) {
+        console.error('[POLICY] Error fetching audit logs:', err);
+        return [];
+    }
+}
+
+import { onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+export function listenToAuditLogs(callback) {
+    console.log('[POLICY] Starting live audit listener...');
+    const q = query(collection(db, 'policy_audit'), orderBy('timestamp', 'desc'), limit(10));
+    return onSnapshot(q, (snap) => {
+        const logs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        callback(logs);
+    });
+}
 
 export async function createPolicy(policyData) {
-    console.log(`[POLICY] Creating new policy: ${policyData.title}...`);
-    try {
-        const policyId = `POL-${Date.now()}`;
-        const policyRef = doc(db, 'policies', policyId);
-        
-        const payload = {
-            ...policyData,
-            policyId,
-            version: '1.0',
-            status: 'Active',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        };
-
-        await setDoc(policyRef, payload);
-        
-        // Auto-assign if targeting New Joiners
-        if (policyData.target === 'New Joiners') {
-            await assignToNewJoiners(policyId);
-        }
-
-        return { success: true, policyId };
-    } catch (err) {
-        console.error('[POLICY] Creation failed:', err);
-        throw err;
-    }
-}
-
-export async function acknowledgePolicy(employeeId, policyId, signature) {
-    console.log(`[POLICY] Acknowledging ${policyId} by ${employeeId}...`);
-    try {
-        const ackId = `${employeeId}_${policyId}`;
-        const ackRef = doc(db, 'policy_acknowledgements', ackId);
-        
-        const payload = {
-            employeeId,
-            policyId,
-            signature,
-            status: 'Signed',
-            ipAddress: '192.168.1.1',
-            userAgent: navigator.userAgent,
-            signedAt: serverTimestamp()
-        };
-
-        await setDoc(ackRef, payload);
-        
-        // Log to Audit Trail
-        await logAudit(employeeId, `Signed Policy: ${policyId}`);
-        
-        // Notify HR
-        await createNotification('admin_hr', `Policy ${policyId} acknowledged by employee ${employeeId}.`, 'normal');
-        
-        return { success: true };
-    } catch (err) {
-        console.error('[POLICY] Acknowledgement failed:', err);
-        throw err;
-    }
-}
-
-async function assignToNewJoiners(policyId) {
-    // Logic to flag this policy for any future onboarding employees
-}
-
-export async function checkComplianceSLA() {
-    console.log("[POLICY] Scanning for compliance breaches...");
-    const q = query(collection(db, 'policy_acknowledgements'), where('status', '==', 'Pending'));
-    const snap = await getDocs(q);
-    
-    const now = new Date();
-    for (const docSnap of snap.docs) {
-        const data = docSnap.data();
-        const assignedAt = data.assignedAt.toDate();
-        const diffHours = (now - assignedAt) / (1000 * 60 * 60);
-        
-        if (diffHours > 72) { // 3 Day SLA
-            await escalateBreach(docSnap.id, data);
-        }
-    }
-}
-
-async function escalateBreach(ackId, data) {
-    console.warn(`[POLICY] SLA BREACH: ${ackId}`);
-    // Simulate system access block for critical policies
-    if (data.isCritical) {
-        const userRef = doc(db, 'users', data.employeeId);
-        await updateDoc(userRef, { systemAccessBlocked: true, blockReason: 'Policy Non-Compliance' });
-    }
-    
-    await createNotification(data.employeeId, `URGENT: Your system access is at risk. Please sign the mandatory policy immediately.`, 'high');
-}
-
-async function logAudit(userId, action) {
-    await addDoc(collection(db, 'policy_audit_logs'), {
-        userId,
-        action,
-        timestamp: serverTimestamp()
+    console.log('[POLICY] Creating new policy...');
+    const policyRef = doc(collection(db, 'policies'));
+    await setDoc(policyRef, {
+        ...policyData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        signedPercentage: 0
     });
+    return policyRef.id;
 }
 
-async function createNotification(target, message, priority) {
-    await addDoc(collection(db, 'notifications'), {
-        target,
-        message,
-        priority,
-        read: false,
-        timestamp: serverTimestamp()
+export async function updateSelectiveRouting(selectedDepts) {
+    console.log('[POLICY] Updating selective routing...', selectedDepts);
+    const configRef = doc(db, 'system_config', 'policy_routing');
+    await setDoc(configRef, {
+        type: 'Selective',
+        departments: selectedDepts,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+}
+
+export async function createCustomCompliancePlan(planData) {
+    console.log('[POLICY] Saving custom compliance plan...', planData);
+    const planRef = doc(collection(db, 'compliance_plans'));
+    await setDoc(planRef, {
+        ...planData,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
     });
+    return planRef.id;
+}
+export async function getCompliancePulse() {
+    console.log('[POLICY] Fetching compliance pulse metrics...');
+    try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const totalUsers = usersSnap.size || 1;
+        
+        const auditSnap = await getDocs(collection(db, 'policy_audit'));
+        const signatures = auditSnap.docs.filter(d => d.data().type === 'signature').length;
+        const violations = auditSnap.docs.filter(d => d.data().type === 'violation').length;
+
+        // Logic: Overall Compliance = (Signatures / (Signatures + Violations)) or similar
+        // For demo/initial connectivity, we'll use a data-driven calculation
+        const complianceRate = Math.min(100, Math.round((signatures / (signatures + violations || 1)) * 100));
+        
+        return {
+            overallRate: complianceRate || 0,
+            overdueCount: violations,
+            blockedCount: Math.ceil(violations / 3)
+        };
+    } catch (err) {
+        console.error('[POLICY] Error fetching compliance pulse:', err);
+        return { overallRate: 0, overdueCount: 0, blockedCount: 0 };
+    }
 }

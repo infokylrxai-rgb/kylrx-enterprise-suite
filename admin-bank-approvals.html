@@ -265,70 +265,82 @@
 
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         import { processBankApproval } from "./bank-verification-service.js";
 
-        lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            setupRealtimeQueue();
+        });
 
-        let currentId = null;
+        let currentEmpId = null;
 
-        window.loadQueue = async () => {
+        function setupRealtimeQueue() {
             const list = document.getElementById('approvalsList');
             const q = query(collection(db, 'bank_verifications'), where('status', 'in', ['Under Review', 'Resubmitted']));
-            const snap = await getDocs(q);
+            
+            onSnapshot(q, (snapshot) => {
+                if (snapshot.empty) {
+                    list.innerHTML = `
+                        <div style="text-align: center; padding: 5rem; background: white; border-radius: 32px; border: 1px dashed var(--border);">
+                            <i data-lucide="check-circle" size="48" style="color: var(--success); margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <h3 style="font-weight: 800;">Queue is Empty</h3>
+                            <p style="color: var(--text-muted);">All employee bank details have been verified.</p>
+                        </div>
+                    `;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
 
-            if (snap.empty) {
-                list.innerHTML = `
-                    <div style="text-align: center; padding: 5rem; background: white; border-radius: 32px; border: 1px dashed var(--border);">
-                        <i data-lucide="check-circle" size="48" style="color: var(--success); margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <h3 style="font-weight: 800;">Queue is Empty</h3>
-                        <p style="color: var(--text-muted);">All employee bank details have been verified.</p>
-                    </div>
-                `;
-                lucide.createIcons();
-                return;
-            }
-
-            list.innerHTML = snap.docs.map(doc => {
-                const data = doc.data();
-                return `
-                    <div class="approval-card">
+                list.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'approval-card';
+                    card.innerHTML = `
                         <div class="card-header">
                             <div class="emp-meta">
-                                <div class="emp-avatar">${data.employeeId.substring(0,2).toUpperCase()}</div>
+                                <div class="emp-avatar">${data.employeeId ? data.employeeId.substring(0,2).toUpperCase() : '??'}</div>
                                 <div>
                                     <h4 style="font-weight: 800;">ID: ${data.employeeId}</h4>
-                                    <p style="font-size: 0.75rem; color: var(--text-muted);">Submitted ${new Date(data.submittedAt?.toDate()).toLocaleString()}</p>
+                                    <p style="font-size: 0.75rem; color: var(--text-muted);">Submitted: ${data.submittedAt?.toDate().toLocaleDateString() || 'Today'}</p>
                                 </div>
                             </div>
-                            <span class="status-badge" style="background: var(--primary-light); color: var(--primary);">${data.status}</span>
+                            <span class="status-badge" style="background: ${data.status === 'Resubmitted' ? '#fef3c7; color:#d97706' : '#dcfce7; color:#16a34a'}">
+                                <i data-lucide="${data.status === 'Resubmitted' ? 'alert-circle' : 'clock'}" size="12"></i> ${data.status}
+                            </span>
                         </div>
                         <div class="card-body">
                             <div class="data-point">
                                 <label>Bank Name</label>
-                                <p>${data.bankName}</p>
+                                <p>${data.bankName || 'N/A'}</p>
                             </div>
                             <div class="data-point">
                                 <label>Account Number</label>
-                                <p style="font-family: monospace; letter-spacing: 1px;">${data.accountNum}</p>
+                                <p>•••• •••• ${data.accountNum ? data.accountNum.slice(-4) : '****'}</p>
                             </div>
                             <div class="data-point">
-                                <label>Routing / IFSC</label>
-                                <p style="font-family: monospace;">${data.routingCode}</p>
+                                <label>Routing Code (IFSC)</label>
+                                <p>${data.routingCode || 'N/A'}</p>
                             </div>
                         </div>
                         <div class="card-footer">
-                            <button class="btn btn-danger" onclick="openRejectModal('${doc.id}')">Reject</button>
-                            <button class="btn btn-primary" onclick="approveDetails('${doc.id}')">Approve & Sync</button>
+                            <button class="btn btn-outline btn-danger" onclick="window.triggerReject('${data.employeeId}')">
+                                <i data-lucide="x-circle"></i> Reject
+                            </button>
+                            <button class="btn btn-primary" onclick="window.handleApproval('${data.employeeId}')">
+                                <i data-lucide="check-circle"></i> Approve & Sync
+                            </button>
                         </div>
-                    </div>
-                `;
-            }).join('');
-            lucide.createIcons();
-        };
+                    `;
+                    list.appendChild(card);
+                });
+                if (window.lucide) lucide.createIcons();
+            });
+        }
 
-        window.openRejectModal = (id) => {
-            currentId = id;
+        window.triggerReject = (id) => {
+            currentEmpId = id;
             document.getElementById('rejectModal').style.display = 'flex';
         };
 
@@ -336,29 +348,29 @@
             document.getElementById('rejectModal').style.display = 'none';
         };
 
-        window.approveDetails = async (id) => {
-            if (!confirm("Approve these bank details?")) return;
+        window.handleApproval = async (id) => {
+            if (!confirm("Are you sure you want to approve these bank details? This will sync to payroll.")) return;
             try {
-                await processBankApproval(id, 'approve', 'HR_ADMIN');
-                alert("Approved and synced!");
-                loadQueue();
-            } catch (err) { alert("Error."); }
+                await processBankApproval(id, 'approve', 'ADMIN_HR');
+                alert("Bank details approved and synced successfully.");
+            } catch (err) {
+                alert("Approval failed: " + err.message);
+            }
         };
 
         document.getElementById('btnConfirmReject').onclick = async () => {
             const reason = document.getElementById('rejectReason').value;
-            if (!reason) return alert("Reason required.");
+            if (!reason) { alert("Please provide a reason."); return; }
             try {
-                await processBankApproval(currentId, 'reject', 'HR_ADMIN', reason);
-                alert("Rejected.");
-                closeModal();
-                loadQueue();
-            } catch (err) { alert("Error."); }
+                await processBankApproval(currentEmpId, 'reject', 'ADMIN_HR', reason);
+                window.closeModal();
+                alert("Bank details rejected.");
+            } catch (err) {
+                alert("Rejection failed: " + err.message);
+            }
         };
 
-        document.getElementById('btnRefresh').onclick = loadQueue;
-        loadQueue();
+        document.getElementById('btnRefresh').onclick = () => location.reload();
     </script>
 </body>
 </html>
-

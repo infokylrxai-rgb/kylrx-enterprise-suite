@@ -57,9 +57,33 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border);
         }
+
+        /* Toasts */
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
     </style>
 </head>
 <body class="admin-dashboard">
+    <!-- Toasts -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Action completed successfully!</span>
+    </div>
+
+    <div class="toast-notification" id="errorToast" style="border-color: #fecaca;">
+        <i data-lucide="alert-circle" style="color: #ef4444;"></i>
+        <span style="color: #b91c1c;">Operation failed.</span>
+    </div>
+
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -125,8 +149,8 @@
                     <p>Generate, encrypt, and archive employee financial and professional records.</p>
                 </div>
                 <div class="btn-group">
-                    <button class="btn btn-outline"><i data-lucide="settings"></i> Config Engine</button>
-                    <button class="btn btn-primary"><i data-lucide="play"></i> Auto-Generate Batch</button>
+                    <button class="btn btn-outline" onclick="showToast('Opening Config Engine...')"><i data-lucide="settings"></i> Config Engine</button>
+                    <button class="btn btn-primary" onclick="triggerBatch()"><i data-lucide="play"></i> Auto-Generate Batch</button>
                 </div>
             </header>
 
@@ -139,22 +163,22 @@
                         </div>
                         
                         <div class="doc-category-grid">
-                            <div class="category-item">
+                            <div class="category-item" onclick="showToast('Opening Monthly Payslip Generator...')">
                                 <i data-lucide="file-spreadsheet" size="32"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Monthly Payslips</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Full-Time Employees</p>
                             </div>
-                            <div class="category-item">
-                                <i data-lucide="invoice" size="32"></i>
+                            <div class="category-item" onclick="showToast('Opening Service Invoice Manager...')">
+                                <i data-lucide="receipt" size="32"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Service Invoices</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Interns & Consultants</p>
                             </div>
-                            <div class="category-item">
+                            <div class="category-item" onclick="showToast('Opening Experience Letter Wizard...')">
                                 <i data-lucide="award" size="32"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Experience Letters</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Service Certification</p>
                             </div>
-                            <div class="category-item">
+                            <div class="category-item" onclick="showToast('Opening Revision Letter Generator...')">
                                 <i data-lucide="trending-up" size="32"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Revision Letters</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Salary Hike Addendums</p>
@@ -208,11 +232,11 @@
                         <div style="margin-top: 1.5rem; display: grid; gap: 10px;">
                             <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
                                 <span style="color: var(--text-muted);">Total Disbursed</span>
-                                <span style="font-weight: 800;">₹42.8L</span>
+                                <span id="totalDisbursed" style="font-weight: 800;">₹0.00</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
                                 <span style="color: var(--text-muted);">Tax Deductions (TDS)</span>
-                                <span style="font-weight: 800; color: #ef4444;">₹4.2L</span>
+                                <span id="totalTDS" style="font-weight: 800; color: #ef4444;">₹0.00</span>
                             </div>
                         </div>
                     </div>
@@ -229,7 +253,7 @@
                                 <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
                             </div>
                         </div>
-                        <button class="btn btn-outline" style="width: 100%; margin-top: 1.5rem; font-size: 0.75rem;">Access Vault</button>
+                        <button class="btn btn-outline" onclick="showToast('Opening Secure Document Vault...')" style="width: 100%; margin-top: 1.5rem; font-size: 0.75rem;">Access Vault</button>
                     </div>
 
                     <div class="ai-glass-card" style="background: #eff6ff; border: 1px solid #dbeafe; padding: 1rem; margin-top: 2rem; display: flex; gap: 12px; align-items: center;">
@@ -242,19 +266,147 @@
     </div>
 
     <script type="module">
-        document.addEventListener('DOMContentLoaded', () => {
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, query, orderBy, limit, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { generateMonthlyBatch, generateDocument } from "./payroll-doc-service.js";
+
+        window.showToast = (msg, isError = false) => {
+            const id = isError ? 'errorToast' : 'successToast';
+            const toast = document.getElementById(id);
+            toast.querySelector('span').textContent = msg;
+            toast.classList.add('active');
             if (window.lucide) lucide.createIcons();
-            initCharts();
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        };
+
+        window.triggerBatch = async () => {
+            showToast('Initiating Monthly Batch Generation...');
+            try {
+                const month = new Date().toLocaleString('default', { month: 'long' });
+                const year = new Date().getFullYear();
+                const result = await generateMonthlyBatch(month, year);
+                showToast(`Successfully generated ${result.count} documents.`);
+                loadRecentGenerations();
+            } catch (err) {
+                showToast("Batch generation failed: " + err.message, true);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    loadRecentGenerations();
+                    loadPayrollStats();
+                } else {
+                    // window.location.href = 'login.html';
+                }
+            });
+            if (window.lucide) lucide.createIcons();
         });
 
-        function initCharts() {
-            const ctx = document.getElementById('payrollChart').getContext('2d');
-            new Chart(ctx, {
+        async function loadPayrollStats() {
+            try {
+                const q = query(collection(db, 'payroll_documents'));
+                const snap = await getDocs(q);
+                let total = 0;
+                let tds = 0;
+                let breakdown = { basic: 0, hra: 0, variable: 0, tax: 0 };
+                
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    total += Number(data.grossSalary || 0);
+                    tds += Number(data.deductions || 0);
+                    
+                    if (data.breakdown) {
+                        breakdown.basic += data.breakdown.basic || 0;
+                        breakdown.hra += data.breakdown.hra || 0;
+                        breakdown.variable += data.breakdown.variable || 0;
+                        breakdown.tax += data.breakdown.tax || 0;
+                    }
+                });
+
+                document.getElementById('totalDisbursed').textContent = `₹${(total / 100000).toFixed(2)}L`;
+                document.getElementById('totalTDS').textContent = `₹${(tds / 100000).toFixed(2)}L`;
+
+                // Update Chart with real aggregated data
+                const chartData = total > 0 
+                    ? [breakdown.basic, breakdown.hra, breakdown.variable, breakdown.tax]
+                    : [45, 25, 20, 10]; // Fallback to template ratio if no data
+                
+                initCharts(chartData);
+            } catch (err) {
+                console.error("Failed to load payroll stats:", err);
+                initCharts([45, 25, 20, 10]);
+            }
+        }
+
+        async function loadRecentGenerations() {
+            const tbody = document.querySelector('.doc-table tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Fetching generation logs...</td></tr>';
+            try {
+                const q = query(collection(db, 'payroll_documents'), orderBy('createdAt', 'desc'), limit(5));
+                const snap = await getDocs(q);
+                
+                tbody.innerHTML = '';
+                if (!snap.empty) {
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td style="font-weight: 700;">${data.employeeName || 'Unknown'}</td>
+                            <td>${data.docType} (${data.period || 'N/A'})</td>
+                            <td>${data.docId}</td>
+                            <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">${data.status}</span></td>
+                            <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    if (window.lucide) lucide.createIcons();
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">No documents generated in this cycle.</td></tr>';
+                }
+                loadArchives();
+            } catch (err) {
+                console.error("Failed to load documents:", err);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #ef4444;">Failed to load logs.</td></tr>';
+            }
+        }
+
+        async function loadArchives() {
+            const archiveContainer = document.querySelector('.archive-list');
+            try {
+                const snap = await getDocs(collection(db, 'payroll_documents'));
+                const count = snap.size;
+                const month = new Date().toLocaleString('default', { month: 'long' });
+                const year = new Date().getFullYear();
+
+                archiveContainer.innerHTML = `
+                    <div class="archive-item">
+                        <div><p style="font-weight: 700; font-size: 0.8rem;">${month} ${year}</p><p style="font-size: 0.7rem; color: var(--text-muted);">${count} Documents</p></div>
+                        <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error("Archive sync failed:", err);
+            }
+        }
+
+        function initCharts(chartData) {
+            const canvas = document.getElementById('payrollChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.myPayrollChart) window.myPayrollChart.destroy();
+
+            window.myPayrollChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Basic', 'HRA', 'Variable', 'PF/Tax'],
                     datasets: [{
-                        data: [45, 25, 20, 10],
+                        data: chartData,
                         backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#ef4444'],
                         borderWidth: 0,
                     }]

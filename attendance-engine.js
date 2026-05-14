@@ -7,8 +7,10 @@ import {
     addDoc,
     serverTimestamp,
     doc,
-    setDoc
+    setDoc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { calculateAttendanceProductivity } from "./pms-service.js";
 
 class AttendanceEngine {
     constructor() {
@@ -67,6 +69,17 @@ class AttendanceEngine {
         };
 
         await setDoc(docRef, punchData, { merge: true });
+
+        // If punching out, calculate productivity
+        if (type === 'out') {
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.punchIn && data.punchOut) {
+                    await calculateAttendanceProductivity(userId, data.punchIn, data.punchOut);
+                }
+            }
+        }
     }
 
     formatTime(ms) {

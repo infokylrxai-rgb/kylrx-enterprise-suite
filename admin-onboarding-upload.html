@@ -212,32 +212,62 @@
                     <p style="color: var(--text-muted);">Import employee manifests and trigger secure invitation workflows.</p>
                 </div>
                 <div style="display: flex; gap: 12px;">
-                    <button class="btn btn-outline" onclick="window.location.href='sample_upload.csv'"><i data-lucide="download"></i> Template</button>
+                    <button class="btn btn-outline" id="btnDownloadTemplate"><i data-lucide="download"></i> Template</button>
                     <button class="btn btn-primary" id="btnProcess" disabled><i data-lucide="play"></i> Start Batch</button>
                 </div>
             </header>
 
             <div class="stat-grid">
-                <div class="stat-card"><p>Pending Ingestion</p><h3 id="statPending">0</h3></div>
-                <div class="stat-card"><p>Validation Success</p><h3 id="statSuccess" style="color: var(--success);">0%</h3></div>
+                <div class="stat-card"><p>Total Manifest Volume</p><h3 id="statTotal">0</h3></div>
+                <div class="stat-card"><p>Validation Success</p><h3 id="statSuccess" style="color: var(--success);">0</h3></div>
                 <div class="stat-card"><p>Failed Rows</p><h3 id="statFailed" style="color: var(--danger);">0</h3></div>
-                <div class="stat-card"><p>Batch Capacity</p><h3>5000</h3></div>
+                <div class="stat-card"><p>Duplicate Detected</p><h3 id="statDupes">0</h3></div>
             </div>
 
-            <div class="upload-zone" id="dropZone">
-                <input type="file" id="fileInput" hidden accept=".csv, .xlsx, .xls">
-                <div class="icon-container"><i data-lucide="file-plus" size="32"></i></div>
-                <h2>Drop Employee Manifest</h2>
-                <p style="color: var(--text-muted); margin-top: 8px;">Upload Excel or CSV files. All fields are validated in real-time.</p>
-            </div>
-
-            <div class="progress-tracker" id="progressTracker">
+            <div class="progress-tracker" id="progressView">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="font-weight: 800;">Batch Processing...</h3>
-                    <span id="progressText" style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">0%</span>
+                    <span id="progressPercent" style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">0%</span>
                 </div>
                 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-                <p id="statusMsg" style="font-size: 0.8rem; color: var(--text-muted);">Preparing data stream...</p>
+                <p id="progressDetail" style="font-size: 0.8rem; color: var(--text-muted);">Preparing data stream...</p>
+            </div>
+
+            <div id="retryBanner" style="display: none; align-items: center; justify-content: space-between; background: #fff1f2; border: 1px solid #fecaca; padding: 1.5rem; border-radius: 20px; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i data-lucide="alert-circle" style="color: var(--danger);"></i>
+                    <p style="font-size: 0.85rem; font-weight: 700; color: #991b1b;">Manifest Validation Incomplete. Some rows require correction.</p>
+                </div>
+                <button class="btn btn-outline" id="btnRetryFailed" style="font-size: 0.75rem;">Retry Failed Rows</button>
+            </div>
+
+            <div id="resultsTable" style="display: none; background: white; border: 1px solid var(--border); border-radius: 24px; overflow: hidden; box-shadow: var(--shadow);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #fcfdfe; border-bottom: 1px solid var(--border);">
+                            <th style="padding: 1.25rem; text-align: left; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Row</th>
+                            <th style="padding: 1.25rem; text-align: left; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Status</th>
+                            <th style="padding: 1.25rem; text-align: left; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Employee</th>
+                            <th style="padding: 1.25rem; text-align: left; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Email</th>
+                            <th style="padding: 1.25rem; text-align: left; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Manager</th>
+                            <th style="padding: 1.25rem; text-align: left; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Validation Feedback</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+                <div style="padding: 2rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button class="btn btn-outline" onclick="window.location.reload()">Discard Batch</button>
+                    <button class="btn btn-primary" id="btnFinalize" disabled>Finalize & Send Invitations</button>
+                </div>
+            </div>
+            
+            <div id="uploadView">
+                <div class="upload-zone" id="dropZone">
+                    <input type="file" id="fileInput" hidden accept=".csv, .xlsx, .xls">
+                    <div class="icon-container"><i data-lucide="file-plus" size="32"></i></div>
+                    <h2>Drop Employee Manifest</h2>
+                    <p style="color: var(--text-muted); margin-top: 8px;">Upload Excel or CSV files. All fields are validated in real-time.</p>
+                </div>
             </div>
         </main>
     </div>

@@ -49,9 +49,30 @@
         }
 
         .log-entry { margin-bottom: 8px; border-bottom: 1px solid var(--bg); padding-bottom: 4px; }
-        .log-timestamp { color: var(--primary); margin-right: 10px; font-weight: 700; }
-        .log-action { color: var(--success); font-weight: 700; }
-        .log-entity { color: #f97316; font-weight: 700; }
+        .log-timestamp { color: var(--primary); font-weight: 700; margin-right: 8px; }
+        .log-action { color: #1e293b; font-weight: 800; text-transform: uppercase; }
+        .log-entity { color: var(--primary); font-weight: 700; }
+
+        /* Toasts */
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+
+        /* Heartbeat */
+        @keyframes heartbeat {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .heartbeat { animation: heartbeat 2s infinite; display: inline-block; }
 
         .inactivity-list {
             display: grid;
@@ -103,6 +124,17 @@
     </style>
 </head>
 <body class="admin-dashboard">
+    <!-- Toasts -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Action completed successfully!</span>
+    </div>
+
+    <div class="toast-notification" id="errorToast" style="border-color: #fecaca;">
+        <i data-lucide="alert-circle" style="color: #ef4444;"></i>
+        <span style="color: #b91c1c;">Operation failed.</span>
+    </div>
+
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -179,7 +211,7 @@
                     </div>
                     <div class="btn-group">
                         <button class="btn btn-outline" id="runSimulation"><i data-lucide="play"></i> Run Sync Now</button>
-                        <button class="btn btn-primary"><i data-lucide="settings"></i> Automation Rules</button>
+                        <button class="btn btn-primary" onclick="showToast('Opening Automation Rule Engine...')"><i data-lucide="settings"></i> Automation Rules</button>
                     </div>
                 </div>
             </header>
@@ -203,7 +235,7 @@
                 <div class="tvc-card">
                     <p class="tvc-label">System Uptime</p>
                     <h3 class="tvc-value">99.9%</h3>
-                    <p class="tvc-trend" style="color: var(--primary);"><i data-lucide="shield"></i> Cron Engine Active</p>
+                    <p class="tvc-trend" style="color: var(--primary);"><i data-lucide="shield" class="heartbeat"></i> Cron Engine Active</p>
                 </div>
             </div>
 
@@ -218,8 +250,8 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2 style="font-size: 1.25rem; font-weight: 800;">Critical Inactivity Alerts</h2>
                 <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;">All Profiles</button>
-                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem; background: #fef2f2; color: #ef4444;">Suspended Only</button>
+                    <button class="btn btn-outline" id="filterAll" style="padding: 6px 12px; font-size: 0.75rem;">All Profiles</button>
+                    <button class="btn btn-outline" id="filterSuspended" style="padding: 6px 12px; font-size: 0.75rem; background: #fef2f2; color: #ef4444;">Suspended Only</button>
                 </div>
             </div>
 
@@ -271,7 +303,7 @@
                         <h3 style="font-weight: 800;"><i data-lucide="trash-2" style="vertical-align: middle;"></i> Candidate Trash Bin</h3>
                         <p style="font-size: 0.85rem; color: var(--text-muted);">Profiles in this bin will be permanently deleted after 30 days.</p>
                     </div>
-                    <button class="btn btn-outline" style="border-color: var(--danger); color: var(--danger);">Empty Trash</button>
+                    <button class="btn btn-outline" onclick="window.emptyTrashHandler()" style="border-color: var(--danger); color: var(--danger);">Empty Trash</button>
                 </div>
                 
                 <div style="margin-top: 1.5rem;">
@@ -294,6 +326,16 @@
         </main>
     </div>
 
+    <script type="module">
+        window.showToast = (msg, isError = false) => {
+            const id = isError ? 'errorToast' : 'successToast';
+            const toast = document.getElementById(id);
+            toast.querySelector('span').textContent = msg;
+            toast.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        };
+    </script>
     <script type="module" src="admin-inactivity-monitor.js"></script>
 </body>
 </html>
