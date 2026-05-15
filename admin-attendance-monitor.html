@@ -133,7 +133,7 @@
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
@@ -310,6 +310,43 @@
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         import { getAllAttendanceLogs, getPendingRegularizations, processRegularization } from "./attendance-service.js";
+
+        async function loadAttendanceLogs() {
+            const timelineContainer = document.querySelector('.attendance-timeline');
+            if (!timelineContainer) return;
+
+            try {
+                const logs = await getAllAttendanceLogs();
+                if (logs.length > 0) {
+                    timelineContainer.innerHTML = '';
+                    logs.forEach(log => {
+                        const row = document.createElement('div');
+                        row.className = 'log-row';
+                        
+                        const punchIn = log.punchIn?.toDate ? log.punchIn.toDate() : (log.punchIn ? new Date(log.punchIn) : null);
+                        const timeStr = punchIn ? punchIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        
+                        const statusClass = log.status === 'On-Time' ? 'status-present' : (log.status === 'Late' ? 'status-late' : 'status-missing');
+                        
+                        row.innerHTML = `
+                            <span class="time-badge" style="color: ${log.status === 'Late' ? '#f59e0b' : (log.status === 'Missing' ? '#ef4444' : 'var(--primary)')}">${timeStr}</span>
+                            <div>
+                                <h4 style="font-size: 0.9rem; font-weight: 700;">${log.userName || 'Employee'}</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-muted);">${log.department || 'General'} • ${log.type || 'Office'}</p>
+                            </div>
+                            <span class="status-badge ${statusClass}">${log.status}</span>
+                            <i data-lucide="${log.status === 'Missing' ? 'alert-triangle' : 'map-pin'}" size="16" style="color: ${log.status === 'Missing' ? '#ef4444' : 'var(--text-muted)'}; justify-self: end;"></i>
+                        `;
+                        timelineContainer.appendChild(row);
+                    });
+                    if (window.lucide) lucide.createIcons();
+                } else {
+                    timelineContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-muted);">No logs found for today.</p>';
+                }
+            } catch (err) {
+                console.error("Error loading logs:", err);
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();

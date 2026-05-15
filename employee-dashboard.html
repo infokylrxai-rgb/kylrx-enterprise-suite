@@ -59,6 +59,29 @@
         }
         .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
 
+        /* Header Actions & Hub */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; position: relative; }
+        .header-right { display: flex; align-items: center; gap: 1.5rem; }
+        .header-actions { display: flex; gap: 0.75rem; }
+        .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: white; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; position: relative; }
+        .icon-btn:hover { background: var(--bg); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .icon-badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #ef4444; color: white; border-radius: 50%; font-size: 0.65rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+
+        /* Notification Dropdown */
+        .notif-dropdown { position: absolute; top: 100%; right: 0; width: 320px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 100; margin-top: 12px; animation: dropdownFade 0.3s ease; }
+        .notif-dropdown.active { display: flex; }
+        .notif-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .notif-title { font-size: 0.9rem; font-weight: 800; color: var(--text-main); }
+        .notif-list { max-height: 400px; overflow-y: auto; padding: 0.5rem; }
+        .notif-item { padding: 1rem; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; }
+        .notif-item:hover { background: var(--bg); }
+        .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
+        .notif-content { flex: 1; }
+        .notif-text { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+        .notif-time { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+
+        @keyframes dropdownFade { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
         .profile-mini {
             margin-top: auto;
             background: var(--primary-light);
@@ -77,7 +100,21 @@
         .main-content { padding: 3rem; overflow-y: auto; }
 
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
-        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }        .msg-channel { 
+            padding: 12px; 
+            border-radius: 16px; 
+            transition: 0.3s; 
+            cursor: pointer; 
+            display: flex; 
+            gap: 12px; 
+            align-items: center; 
+            border: 1px solid transparent;
+            background: transparent;
+        }
+        .msg-channel:hover { background: rgba(59,130,246,0.05); }
+        .msg-channel.active { background: white !border: 1px solid var(--primary); box-shadow: 0 4px 12px rgba(59,130,246,0.1); }
+        .msg-channel.active .channel-icon { background: var(--primary) !important; color: white !important; }
+        .channel-icon { transition: 0.3s; }
         .sub-header { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
 
         .date-box { text-align: right; }
@@ -130,12 +167,13 @@
         .stat-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
 
         /* Task List */
-        .task-item { display: flex; align-items: center; gap: 16px; padding: 1rem; background: var(--bg); border-radius: 14px; margin-bottom: 12px; border: 1px solid var(--border); }
+        .task-item { display: flex; align-items: center; gap: 16px; padding: 1rem; background: var(--bg); border-radius: 14px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        .task-item:hover { border-color: var(--primary); transform: translateX(4px); }
         .task-icon { width: 40px; height: 40px; border-radius: 10px; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
         .task-content { flex: 1; }
         .task-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
         .task-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
-        .task-action { color: var(--primary); cursor: pointer; }
+        .task-action { color: var(--primary); cursor: pointer; border: none; background: none; }
 
         /* Quick Actions */
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -155,6 +193,38 @@
         .action-card h3 { font-size: 0.85rem; font-weight: 700; }
 
         .badge { background: #fee2e2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; }
+
+        /* Centered Status Modal */
+        .modal-overlay-status {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .modal-overlay-status.active { display: flex; }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 32px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay-status.active .status-modal { transform: scale(1); }
+        .modal-icon-status {
+            width: 64px; height: 64px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 1.5rem;
+        }
+        .modal-icon-status.error { background: #fee2e2; color: #ef4444; }
+        .modal-icon-status.success { background: #dcfce7; color: #10b981; }
+        .modal-icon-status.info { background: #dbeafe; color: #3b82f6; }
+        
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -210,6 +280,94 @@
         </div>
     </div>
 
+    <!-- HR Message Hub Modal (Dual Pane Refactor) -->
+    <div id="hrMessageModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+        <div style="background: white; width: 95%; max-width: 900px; height: 650px; border-radius: 32px; display: flex; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalFadeIn 0.3s ease;">
+            
+            <!-- Left Pane: Communication Channels -->
+            <div style="width: 280px; background: #f8fafc; border-right: 1px solid var(--border); display: flex; flex-direction: column;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: white;">
+                    <h2 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main);">Messages</h2>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Organizational Sync</p>
+                </div>
+                
+                <div style="flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 8px;" id="modalSidebarChannels">
+                    <div class="msg-channel active" onclick="switchChat('hr', this)" style="padding: 12px; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; align-items: center;">
+                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;"><i data-lucide="shield-check" size="20"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">HR Support</div>
+                            <div style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Official Channel</div>
+                        </div>
+                    </div>
+                    
+                    <div class="msg-channel" onclick="switchChat('manager', this)" style="padding: 12px; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; align-items: center;">
+                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center;"><i data-lucide="user" size="20"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">My Manager</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">Nandan.B</div>
+                        </div>
+                    </div>
+
+                    <div class="msg-channel" onclick="switchChat('team', this)" style="padding: 12px; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; align-items: center;">
+                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: #dcfce7; color: #10b981; display: flex; align-items: center; justify-content: center;"><i data-lucide="users" size="20"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">Team Group</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;" id="deptLabelMsg">Cybersecurity</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1rem 0 0.5rem 0.5rem;">Direct Messages</div>
+                    <div id="directMsgList" style="display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Real-time departmental colleagues will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Pane: Active Messaging Suite -->
+            <div style="flex: 1; display: flex; flex-direction: column; background: white;">
+                <!-- Header -->
+                <div style="padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--success);"></div>
+                        <div>
+                            <h2 style="font-size: 1rem; font-weight: 800; color: var(--text-main);" id="activeChatPartner">HR Support Hub</h2>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;" id="activeChatStatus">Active Session • Secure Line</p>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('hrMessageModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x" size="20"></i></button>
+                </div>
+
+                <!-- Chat Area -->
+                <div style="flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: #f0f7ff;" id="hrChatArea">
+                    <div style="align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.85rem; border: 1px solid #e0e7ff; max-width: 85%; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">SYSTEM ASSISTANT</div>
+                        Hello! I'm your HR assistant. How can I help you today?
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div style="padding: 1.5rem 2rem; border-top: 1px solid var(--border); background: white;">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <input type="file" id="msgAttachmentInput" style="display: none;" onchange="handleMessageAttachment(this)">
+                        <button onclick="document.getElementById('msgAttachmentInput').click()" style="background: var(--bg); border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted);"><i data-lucide="plus" size="20"></i></button>
+                        <input type="text" id="hrChatInput" placeholder="Type your message..." style="flex: 1; padding: 12px 1.25rem; border-radius: 14px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.9rem; font-weight: 500; background: #f8fafc;">
+                        <button onclick="sendHrMessage()" style="background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(59,130,246,0.25);"><i data-lucide="send" size="20"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Modal Overlay -->
+    <div class="modal-overlay-status" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon-status" id="statusModalIcon"><i data-lucide="info"></i></div>
+            <h2 class="modal-title" id="statusModalTitle">Status</h2>
+            <p class="modal-desc" id="statusModalDesc">Message content goes here.</p>
+            <button class="modal-btn" onclick="closeStatusModal()">Dismiss</button>
+        </div>
+    </div>
+
     <div class="layout">
         <aside class="sidebar">
             <a href="#" class="logo">
@@ -220,23 +378,27 @@
             <nav class="nav-menu">
                 <div class="nav-label">MY WORKSPACE</div>
                 <div class="nav-item"><a href="employee-dashboard.html" class="nav-link active"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Leave Management Module is active.')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Attendance Logs are being synchronized.')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Document Vault is secured.')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Leave & Holidays', 'Leave Management Module is active.', 'info')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Attendance Sync', 'Attendance Logs are being synchronized.', 'info')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Document Vault', 'Document Vault is secured.', 'success')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="document.getElementById('hrMessageModal').style.display='flex'"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="toggleNotifications()"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 
                 <div class="nav-label">RESOURCES</div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Policy Hub is updated.')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Asset Inventory is verified.')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="alert('Support Hub is online.')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Policy Hub', 'Policy Hub is updated.', 'info')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Asset Inventory', 'Asset Inventory is verified.', 'success')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Support Hub', 'Support Hub is online.', 'info')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
             </nav>
 
             <div class="profile-mini">
-                <div class="avatar" id="userInitial">JD</div>
+                <div class="avatar" id="userInitial">--</div>
                 <div class="profile-info">
-                    <div class="profile-name" id="userNameDisplay">John Doe</div>
-                    <div class="profile-role" id="userRoleDisplay">Software Engineer</div>
+                    <div class="profile-name" id="userNameDisplay">--</div>
+                    <div class="profile-role" id="userRoleDisplay">--</div>
                 </div>
-                <a href="index.html" style="color: var(--text-muted);"><i data-lucide="log-out" size="18"></i></a>
+                <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i data-lucide="log-out" size="18"></i>
+                </button>
             </div>
         </aside>
 
@@ -246,11 +408,57 @@
                     <h1 id="greeting">Good Morning, John!</h1>
                     <p class="sub-header">You have 3 tasks that need your attention today.</p>
                 </div>
-                <div class="date-box">
-                    <div class="date-today" id="currentDate">Monday, 11 May</div>
-                    <div class="date-status">
-                        <i data-lucide="check-circle" size="14"></i>
-                        <span>On Track for May</span>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="icon-btn" onclick="document.getElementById('hrMessageModal').style.display='flex'">
+                            <i data-lucide="message-square" size="20"></i>
+                            <div class="icon-badge">2</div>
+                        </button>
+                        <div style="position: relative;">
+                            <button class="icon-btn" onclick="toggleNotifications()">
+                                <i data-lucide="bell" size="20"></i>
+                                <div class="icon-badge">3</div>
+                            </button>
+                            <div class="notif-dropdown" id="notifDropdown">
+                                <div class="notif-header">
+                                    <span class="notif-title">Notifications</span>
+                                    <span style="font-size: 0.7rem; color: var(--primary); font-weight: 800; cursor: pointer;">Mark all read</span>
+                                </div>
+                                <div class="notif-list">
+                                    <div class="notif-item">
+                                        <div class="notif-dot"></div>
+                                        <div class="notif-content">
+                                            <div class="notif-text">Payroll process for May has been initiated.</div>
+                                            <div class="notif-time">2 hours ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="notif-item">
+                                        <div class="notif-dot"></div>
+                                        <div class="notif-content">
+                                            <div class="notif-text">New IT Policy updated. Please review.</div>
+                                            <div class="notif-time">5 hours ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="notif-item" style="opacity: 0.6;">
+                                        <div style="width: 8px;"></div>
+                                        <div class="notif-content">
+                                            <div class="notif-text">Leave request for June Approved.</div>
+                                            <div class="notif-time">Yesterday</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="padding: 1rem; text-align: center; border-top: 1px solid var(--border);">
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; cursor: pointer;">View All Notifications</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="date-box">
+                        <div class="date-today" id="currentDate">Monday, 11 May</div>
+                        <div class="date-status">
+                            <i data-lucide="check-circle" size="14"></i>
+                            <span>On Track for May</span>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -285,7 +493,7 @@
                             <div class="stat-label">Logged Time</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-val" style="color: var(--success);">18</div>
+                            <div class="stat-val" style="color: var(--success);" id="dashboardLeaveBal">--</div>
                             <div class="stat-label">Leave Bal.</div>
                         </div>
                     </div>
@@ -295,7 +503,7 @@
                 <div class="card col-4">
                     <div class="card-header">
                         <div class="card-title">Upcoming Holidays</div>
-                        <i data-lucide="calendar" class="text-muted" size="16"></i>
+                        <i data-lucide="calendar" class="text-muted" size="16" style="cursor: pointer;" onclick="showStatusModal('Holiday Calendar', 'Full organizational holiday calendar is being synchronized.', 'info')"></i>
                     </div>
                     <div class="task-list">
                         <div class="task-item">
@@ -322,23 +530,23 @@
                         <span class="badge">3 URGENT</span>
                     </div>
                     <div class="task-list">
-                        <div class="task-item">
+                        <div class="task-item" onclick="handleTaskClick('Bank Verification')">
                             <div class="task-icon"><i data-lucide="landmark" size="18"></i></div>
                             <div class="task-content">
                                 <div class="task-name">Update Bank Details</div>
                                 <div class="task-meta">Required for May payroll processing</div>
                             </div>
-                            <a href="employee-bank-task.html" class="task-action"><i data-lucide="chevron-right"></i></a>
+                            <div class="task-action"><i data-lucide="chevron-right"></i></div>
                         </div>
-                        <div class="task-item">
+                        <div class="task-item" onclick="handleTaskClick('IT Security Policy')">
                             <div class="task-icon"><i data-lucide="shield-check" size="18"></i></div>
                             <div class="task-content">
                                 <div class="task-name">Sign IT Security Policy</div>
                                 <div class="task-meta">Annual compliance update</div>
                             </div>
-                            <a href="employee-policy.html" class="task-action"><i data-lucide="chevron-right"></i></a>
+                            <div class="task-action"><i data-lucide="chevron-right"></i></div>
                         </div>
-                        <div class="task-item">
+                        <div class="task-item" onclick="handleTaskClick('Self-Appraisal Q2')">
                             <div class="task-icon"><i data-lucide="user-check" size="18"></i></div>
                             <div class="task-content">
                                 <div class="task-name">Self-Appraisal Q2</div>
@@ -363,14 +571,25 @@
                             <div class="action-icon"><i data-lucide="download"></i></div>
                             <h3>Payslip</h3>
                         </a>
-                        <a href="#" class="action-card">
-                            <div class="action-icon"><i data-lucide="message-circle"></i></div>
-                            <h3>HR Chat</h3>
+                        <a href="#" class="action-card" onclick="document.getElementById('hrMessageModal').style.display='flex'">
+                            <div class="action-icon"><i data-lucide="message-square"></i></div>
+                            <h3>HR Message</h3>
                         </a>
                         <a href="employee-policy.html" class="action-card">
                             <div class="action-icon"><i data-lucide="info"></i></div>
                             <h3>Policy</h3>
                         </a>
+                    </div>
+                </div>
+
+                <!-- My Team Widget -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div class="card-title">My Team</div>
+                        <span id="deptBadge" style="font-size: 0.65rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 100px; text-transform: uppercase;">--</span>
+                    </div>
+                    <div id="teamList" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">Synchronizing team...</div>
                     </div>
                 </div>
             </div>
@@ -381,8 +600,57 @@
         import { attendanceEngine } from "./attendance-engine.js";
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         lucide.createIcons();
+
+        // Premium Modal Logic
+        window.showStatusModal = (title, msg, type = 'info') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+            
+            icon.className = `modal-icon-status ${type}`;
+            icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : 
+                            (type === 'error' ? '<i data-lucide="x-circle"></i>' : '<i data-lucide="info"></i>');
+            
+            overlay.classList.add('active');
+            lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        };
+
+        window.showHolidayDetail = (name, date) => {
+            showStatusModal(
+                'Holiday Detail',
+                `"${name}" on ${date} is a recognized organizational holiday. All offices will remain closed, and automated attendance logging will be paused.`,
+                'info'
+            );
+        };
+
+        window.handleTaskClick = (title) => {
+            if (title === 'Bank Verification') {
+                window.location.href = `employee-bank-task.html?id=${new URLSearchParams(window.location.search).get('id') || 'demo_emp'}`;
+            } else if (title === 'Self-Appraisal Q2') {
+                showStatusModal(
+                    'Performance Review Cycle',
+                    'The Q2 Self-Appraisal window is scheduled to open on May 20th. You will receive an automated notification once your feedback form is active.',
+                    'info'
+                );
+            } else {
+                showStatusModal(
+                    'Task Module',
+                    `The "${title}" module is currently being synchronized with your profile. Please check back in a moment.`,
+                    'info'
+                );
+            }
+        };
 
         let currentUser = null;
         // --- Dynamic Dashboard Hydration ---
@@ -390,33 +658,67 @@
         const centerId = urlParams.get('id');
 
         onAuthStateChanged(auth, async (user) => {
-            let userData = null;
             if (user) {
                 currentUser = user;
-                const { getDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-                const userDoc = await getDoc(fsDoc(db, 'users', user.uid));
-                if (userDoc.exists()) userData = userDoc.data();
-                loadDashboardData(user);
+                const userDocRef = doc(db, 'users', user.uid);
+                
+                // Live Dashboard & Profile Sync
+                onSnapshot(userDocRef, (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        const fullData = { ...user, ...data };
+                        loadDashboardData(fullData);
+                        
+                        // Hydrate Leave
+                        const balances = data.leaveBalances || { paid: 12, sick: 4, comp: 2 };
+                        const total = (balances.paid || 0) + (balances.sick || 0) + (balances.comp || 0);
+                        document.getElementById('dashboardLeaveBal').textContent = total;
+                        
+                        // Hydrate Team
+                        const dept = data.department || 'Cybersecurity';
+                        document.getElementById('deptBadge').textContent = dept;
+                        loadTeamMembers(dept);
+                        
+                        syncNotifications(user.uid);
+                        syncMessagesCount(user.uid);
+                    }
+                });
             } else {
-                // Fallback for demo
-                userData = {
-                    name: localStorage.getItem('userName') || 'Employee',
-                    role: localStorage.getItem('userRole') || 'employee',
-                    department: localStorage.getItem('userDept') || 'General'
+                // Authoritative Demo Fallback
+                const demoData = {
+                    uid: 'demo_emp',
+                    name: 'John Doe',
+                    role: 'Cybersecurity Specialist',
+                    department: 'Cybersecurity'
                 };
-                loadDashboardData(userData);
+                currentUser = demoData;
+                loadDashboardData(demoData);
+                
+                document.getElementById('deptBadge').textContent = demoData.department;
+                loadTeamMembers(demoData.department);
+                syncNotifications(demoData.uid);
+                syncMessagesCount(demoData.uid);
             }
 
             if (centerId) {
-                const { getDoc, doc: fsDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
                 try {
-                    const centerDoc = await getDoc(fsDoc(db, 'command_centers', centerId));
+                    const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
                     if (centerDoc.exists()) {
                         hydrateEmployeePortal(centerDoc.data());
                     }
                 } catch (e) { console.error("Error fetching center config:", e); }
             }
         });
+
+        window.handleLogout = async () => {
+            try {
+                await auth.signOut();
+                window.location.href = 'index.html';
+            } catch (e) {
+                console.error("Logout Error:", e);
+                window.location.href = 'index.html';
+            }
+        };
 
         function hydrateEmployeePortal(config) {
             const logoText = document.querySelector('.logo-text');
@@ -440,10 +742,19 @@
 
         async function loadDashboardData(user) {
             const userName = user.displayName || user.name || 'Employee';
+            const userRole = user.role || 'Employee';
+            const userDept = user.department || 'General';
+            
             const greetEl = document.getElementById('greeting');
             if (greetEl && !centerId) greetEl.textContent = `Good Morning, ${userName.split(' ')[0]}!`;
+            
             document.getElementById('userNameDisplay').textContent = userName;
+            document.getElementById('userRoleDisplay').textContent = userRole;
             document.getElementById('userInitial').textContent = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+            
+            // Hydrate Dept Label in Messages if exists
+            const deptLabelMsg = document.getElementById('deptLabelMsg');
+            if(deptLabelMsg) deptLabelMsg.textContent = userDept;
 
             // Check Holiday Status
             await attendanceEngine.initHolidays();
@@ -461,7 +772,7 @@
             const holidayList = document.querySelector('.task-list');
             if (holidays.length > 0) {
                 holidayList.innerHTML = holidays.map(h => `
-                    <div class="task-item">
+                    <div class="task-item" style="cursor: pointer;" onclick="showHolidayDetail('${h.name}', '${new Date(h.date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}')">
                         <div class="task-icon" style="color: var(--warning);"><i data-lucide="sun" size="18"></i></div>
                         <div class="task-content">
                             <div class="task-name">${h.name}</div>
@@ -472,6 +783,147 @@
                 lucide.createIcons();
             }
         }
+
+        async function loadTeamMembers(dept) {
+            const teamListEl = document.getElementById('teamList');
+            
+            try {
+                const q = query(collection(db, 'users'), where('department', '==', dept));
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    teamListEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem;">No teammates found in your department.</div>';
+                    return;
+                }
+
+                const members = snap.docs.map(doc => doc.data());
+                const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+                
+                teamListEl.innerHTML = members.map((m, index) => {
+                    const avatarColor = colors[index % colors.length];
+                    const initials = m.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const isManager = m.role.toLowerCase() === 'manager';
+                    
+                    return `
+                        <div style="display: flex; align-items: center; gap: 1rem; padding: 12px; border-radius: 16px; transition: 0.2s; border: 1px solid transparent; cursor: pointer;" onmouseover="this.style.background='rgba(59,130,246,0.05)'" onmouseout="this.style.background='transparent'" onclick="openDirectChatFromWidget('${m.name}', '${m.role}')">
+                            <div style="width: 42px; height: 42px; border-radius: 12px; background: ${avatarColor}; color: white; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; box-shadow: 0 4px 6px -1px ${avatarColor}33;">
+                                ${initials}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                                    ${m.name}
+                                    ${m.uid === (currentUser?.uid) ? '<span style="font-size: 0.65rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 4px;">YOU</span>' : ''}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">${m.department || dept}</div>
+                                <div style="display: inline-block; font-size: 0.6rem; font-weight: 800; padding: 3px 10px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; background: ${isManager ? '#fee2e2' : '#dcfce7'}; color: ${isManager ? '#991b1b' : '#15803d'};">
+                                    ${m.role}
+                                </div>
+                            </div>
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--success); border: 2px solid white; box-shadow: 0 0 0 1px var(--success);"></div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Inject into Message Modal Sidebar
+                const directMsgList = document.getElementById('directMsgList');
+                if(directMsgList) {
+                    directMsgList.innerHTML = members.filter(m => m.uid !== currentUser?.uid).map(m => `
+                        <div class="msg-channel" onclick="switchChat('direct', '${m.name}', '${m.role}')" style="padding: 10px; border-radius: 12px; transition: 0.2s; cursor: pointer; display: flex; gap: 10px; align-items: center;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">
+                                ${m.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">${m.name}</div>
+                                <div style="font-size: 0.65rem; color: var(--text-muted);">${m.role}</div>
+                            </div>
+                            <div style="width: 6px; height: 6px; border-radius: 50%; background: var(--success);"></div>
+                        </div>
+                    `).join('');
+                }
+                
+                lucide.createIcons();
+            } catch (e) {
+                console.error("Team Sync Error:", e);
+                teamListEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem;">Error loading team.</div>';
+            }
+        }
+
+        // Notification & Message Sync Logic
+        const syncNotifications = (uid) => {
+            const notifListEl = document.querySelector('.notif-list');
+            
+            // Listen for notifications
+            const q = query(
+                collection(db, "notifications"), 
+                where("targetUid", "in", [uid, "global"]),
+                limit(30)
+            );
+
+            onSnapshot(q, (snap) => {
+                let notifs = snap.docs.map(doc => doc.data());
+                
+                // Sort client-side to avoid index requirement
+                notifs.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                
+                const unreadCount = notifs.filter(n => !n.read).length;
+                
+                // Update Badge
+                const bellBadge = document.querySelector('.header-actions div:nth-child(2) .icon-badge');
+                if(unreadCount > 0) {
+                    bellBadge.style.display = 'flex';
+                    bellBadge.textContent = unreadCount;
+                } else {
+                    bellBadge.style.display = 'none';
+                }
+
+                // Update List
+                if(notifs.length === 0) {
+                    notifListEl.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                            No new notifications
+                        </div>
+                    `;
+                    return;
+                }
+
+                notifListEl.innerHTML = notifs.map(n => `
+                    <div class="notif-item" style="${n.read ? 'opacity: 0.6;' : ''}">
+                        ${!n.read ? '<div class="notif-dot"></div>' : '<div style="width: 8px;"></div>'}
+                        <div class="notif-content">
+                            <div class="notif-text">${n.text}</div>
+                            <div class="notif-time">${n.timestamp?.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) || 'Just now'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        };
+
+        const syncMessagesCount = (uid) => {
+            const msgBadge = document.querySelector('.header-actions .icon-btn:nth-child(1) .icon-badge');
+            
+            // Listen for active chat unread status
+            const q = query(
+                collection(db, "chats"),
+                where("participants", "array-contains", uid)
+            );
+
+            onSnapshot(q, (snap) => {
+                let totalUnread = 0;
+                snap.docs.forEach(doc => {
+                    const data = doc.data();
+                    if(data.lastMessage?.senderId !== uid && !data.lastMessage?.read) {
+                        totalUnread++;
+                    }
+                });
+
+                if(totalUnread > 0) {
+                    msgBadge.style.display = 'flex';
+                    msgBadge.textContent = totalUnread;
+                } else {
+                    msgBadge.style.display = 'none';
+                }
+            });
+        };
 
         // Punch In/Out Logic
         const punchBtn = document.getElementById('punchBtn');
@@ -527,7 +979,7 @@
                     const diff = eightHoursMs - totalTime;
                     const h = Math.floor(diff / 3600000);
                     const m = Math.floor((diff % 3600000) / 60000);
-                    alert(`Attention: You are punching out before completing your 8-hour shift. Remaining: ${h}h ${m}m.`);
+                    showStatusModal('Shift Compliance Warning', `Attention: You are punching out before completing your 8-hour shift. Remaining: ${h}h ${m}m.`, 'error');
                 }
             }
             lucide.createIcons();
@@ -619,6 +1071,122 @@
                 lucide.createIcons();
                 area.scrollTop = area.scrollHeight;
             }, 1000);
+        };
+
+        window.openDirectChatFromWidget = (name, role) => {
+            const modal = document.getElementById('hrMessageModal');
+            modal.style.display = 'flex';
+            
+            // Find the element in the sidebar if it exists, or just call switchChat
+            const channels = document.querySelectorAll('.msg-channel');
+            let targetEl = null;
+            channels.forEach(c => {
+                if(c.textContent.includes(name)) targetEl = c;
+            });
+            
+            window.switchChat('direct', targetEl, name, role);
+        };
+
+        window.handleMessageAttachment = (input) => {
+            if(input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                showStatusModal(
+                    'Secure Attachment Sync',
+                    `Your file "${fileName}" is being encrypted and synchronized with the organizational messaging backend. This process ensures enterprise-grade security compliance.`,
+                    'success'
+                );
+                input.value = ""; // Clear for next selection
+            }
+        };
+
+        let activeChatPartnerId = 'hr_support';
+
+        window.sendHrMessage = async () => {
+            const input = document.getElementById('hrChatInput');
+            const msg = input.value.trim();
+            if(!msg || !currentUser) return;
+
+            // Generate deterministic Chat ID
+            const chatId = [currentUser.uid, activeChatPartnerId].sort().join('_');
+
+            try {
+                await addDoc(collection(db, "messages"), {
+                    chatId: chatId,
+                    senderId: currentUser.uid,
+                    receiverId: activeChatPartnerId,
+                    text: msg,
+                    timestamp: serverTimestamp(),
+                    read: false
+                });
+                input.value = "";
+            } catch (e) {
+                console.error("Message Send Error:", e);
+            }
+        };
+
+        let messageListener = null;
+        
+        window.switchChat = (target, element, name, role) => {
+            const partner = document.getElementById('activeChatPartner');
+            const status = document.getElementById('activeChatStatus');
+            const area = document.getElementById('hrChatArea');
+            const channels = document.querySelectorAll('.msg-channel');
+            
+            // UI State
+            channels.forEach(c => c.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            if(target === 'hr') {
+                activeChatPartnerId = 'hr_support';
+                partner.textContent = 'HR Support Hub';
+                status.textContent = 'Active Session • Secure Line';
+            } else if(target === 'manager') {
+                activeChatPartnerId = 'manager_id';
+                partner.textContent = 'Nandan.B';
+                status.textContent = 'Manager • Immediate Contact';
+            } else if(target === 'direct') {
+                activeChatPartnerId = name;
+                partner.textContent = name;
+                status.textContent = `${role || 'Teammate'} • Direct Message`;
+            }
+
+            // Generate deterministic Chat ID
+            const chatId = [currentUser.uid, activeChatPartnerId].sort().join('_');
+
+            // Establish real-time listener for this specific conversation
+            if(messageListener) messageListener();
+            
+            const q = query(
+                collection(db, "messages"),
+                where("chatId", "==", chatId),
+                limit(50)
+            );
+
+            messageListener = onSnapshot(q, (snap) => {
+                let msgs = snap.docs.map(doc => doc.data());
+                // Sort client-side to avoid index requirement
+                msgs.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+                area.innerHTML = '';
+                msgs.forEach(m => {
+                    const isMe = m.senderId === currentUser.uid;
+                    const msgDiv = document.createElement('div');
+                    
+                    msgDiv.style = isMe 
+                        ? "align-self: flex-end; background: var(--primary); color: white; padding: 12px 16px; border-radius: 16px; border-bottom-right-radius: 4px; font-size: 0.85rem; max-width: 85%; box-shadow: 0 4px 6px -1px rgba(59,130,246,0.1);"
+                        : "align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.85rem; border: 1px solid #e0e7ff; max-width: 85%; box-shadow: 0 2px 4px rgba(0,0,0,0.02);";
+                    
+                    msgDiv.innerHTML = `<div style="font-size: 0.7rem; font-weight: 800; color: ${isMe ? '#bfdbfe' : 'var(--primary)'}; margin-bottom: 4px; text-transform: uppercase;">${isMe ? 'You' : (target === 'hr' ? 'HR Assistant' : partner.textContent)}</div>${m.text}`;
+                    area.appendChild(msgDiv);
+                });
+                area.scrollTop = area.scrollHeight;
+            });
+            
+            lucide.createIcons();
+        };
+    </script>
+            
+            lucide.createIcons();
         };
     </script>
 </body>

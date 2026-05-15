@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <script>
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
@@ -164,6 +164,19 @@
         
         @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Dept Dropdown */
+        .dept-dropdown {
+            position: absolute; top: 100%; right: 0; width: 220px; background: white;
+            border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg);
+            display: none; flex-direction: column; overflow: hidden; z-index: 1000; margin-top: 8px;
+            animation: slideDown 0.2s ease;
+        }
+        .dept-dropdown.active { display: flex; }
+        .dept-item { padding: 12px 16px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-main); transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
+        .dept-item:last-child { border-bottom: none; }
+        .dept-item:hover { background: #eff6ff; color: var(--primary); }
+        .dept-item.active { background: #eff6ff; color: var(--primary); border-left: 3px solid var(--primary); }
     </style>
 </head>
 <body>
@@ -265,9 +278,13 @@
                         <div class="search-filter">
                             <i data-lucide="search"></i>
                             <input type="text" id="contactSearch" placeholder="Search people or depts..." oninput="filterContacts()">
-                            <button class="filter-btn" title="Filter options">
+                            <button class="filter-btn" id="filterOptionsBtn" title="Filter options" onclick="toggleDeptDropdown(event)">
                                 <i data-lucide="sliders-horizontal"></i>
                             </button>
+                            <div class="dept-dropdown" id="deptDropdown">
+                                <div class="dept-item active" onclick="filterByDept('all')">All Departments</div>
+                                <div id="deptListContainer"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="selection-info" id="selectionInfo">
@@ -279,17 +296,11 @@
                     </div>
                 </div>
                 <div class="chat-window">
-                    <div class="chat-header">
-                        <div class="contact-avatar">SW</div>
-                        <div>
-                            <div class="contact-name">Sarah Wilson</div>
-                            <div style="font-size: 0.75rem; color: #10b981; font-weight: 600;">Online</div>
-                        </div>
+                    <div class="chat-header" id="chatWindowHeader">
+                        <p style="color: var(--text-muted)">Select a person to start messaging</p>
                     </div>
                     <div class="chat-messages" id="chatMessages">
-                        <div class="message received">Hi Admin, I've just sent over the revised marketing budget for Q3. Could you please review and approve it when you have a moment?</div>
-                        <div class="message sent">Hi Sarah, thanks for the update. I'll take a look at it right away. Any specific changes I should be aware of?</div>
-                        <div class="message received">Yes, we've allocated a bit more to social media advertising as the ROI there has been increasing.</div>
+                        <!-- Real-time messages will be streamed here -->
                     </div>
                     <div class="chat-input">
                         <div class="mentions-dropdown" id="mentionsDropdown">
@@ -438,9 +449,21 @@
 
             // Real-time Departments (Command Centers)
             onSnapshot(collection(db, 'command_centers'), (snap) => {
+                const deptList = document.getElementById('deptListContainer');
+                if (deptList) deptList.innerHTML = '';
+                
                 snap.docs.forEach(doc => {
                     const d = doc.data();
-                    deptMap[doc.id] = d.departmentName || d.name || 'Unknown Unit';
+                    const name = d.departmentName || d.name || 'Unknown Unit';
+                    deptMap[doc.id] = name;
+                    
+                    if (deptList) {
+                        const item = document.createElement('div');
+                        item.className = 'dept-item';
+                        item.textContent = name;
+                        item.onclick = () => filterByDept(name);
+                        deptList.appendChild(item);
+                    }
                 });
                 renderContacts();
             });
@@ -661,10 +684,28 @@
         window.filterByDept = (dept) => {
             currentDeptFilter = dept;
             currentRoleFilter = 'all';
+            
+            // UI Updates
             document.querySelectorAll('.bulk-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('btnAllDept').classList.add('active');
+            
+            document.querySelectorAll('.dept-item').forEach(item => {
+                item.classList.toggle('active', item.textContent === dept || (dept === 'all' && item.textContent === 'All Departments'));
+            });
+            
+            document.getElementById('deptDropdown').classList.remove('active');
             renderContacts();
         };
+
+        window.toggleDeptDropdown = (e) => {
+            e.stopPropagation();
+            document.getElementById('deptDropdown').classList.toggle('active');
+        };
+
+        document.addEventListener('click', () => {
+            const dd = document.getElementById('deptDropdown');
+            if (dd) dd.classList.remove('active');
+        });
 
         window.clearSelection = () => {
             selectedUserIds.clear();
@@ -673,7 +714,7 @@
 
         function updateSelectionUI() {
             renderContacts();
-            const chatHeader = document.querySelector('.chat-header');
+            const chatHeader = document.getElementById('chatWindowHeader');
             if (selectedUserIds.size > 0) {
                 selectionInfo.classList.add('active');
                 selectionCount.innerText = `${selectedUserIds.size} people selected`;

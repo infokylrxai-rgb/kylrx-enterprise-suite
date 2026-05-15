@@ -254,7 +254,7 @@
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link active"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
@@ -284,7 +284,7 @@
             <div class="top-bar">
                 <div class="ai-status">
                     <div class="ai-dot"></div>
-                    <span>Enterprise Command Center</span>
+                    <span>Enterprise Command Center // <span style="color: #10b981;">CLOUD LINK ACTIVE</span></span>
                 </div>
                 <div style="width: 1px; height: 16px; background: var(--surface-border);"></div>
                 
@@ -318,7 +318,7 @@
                 <div class="widget w-8 r-4">
                     <div class="widget-header">
                         <div class="widget-title">Live Workforce Telemetry</div>
-                        <i data-lucide="cpu" style="color: var(--primary)"></i>
+                        <i data-lucide="cpu" onclick="location.href='admin-attendance-monitor.html'" style="color: var(--primary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
                     </div>
                     <div class="tele-grid" id="telemetryGrid">
                         <!-- Dynamic Telemetry Cards -->
@@ -333,18 +333,18 @@
                 <div class="widget w-4 r-3">
                     <div class="widget-header">
                         <div class="widget-title">AI Predictive Insights</div>
-                        <i data-lucide="brain-circuit" style="color: var(--accent)"></i>
+                        <i data-lucide="brain-circuit" onclick="location.href='admin-onboarding-ai.html'" style="color: var(--accent); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                         <div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;"><span>Burnout Probability</span><span>12%</span></div>
-                            <div style="height: 6px; background: var(--bg-base); border-radius: 10px; overflow: hidden;"><div style="width: 12%; height: 100%; background: var(--success);"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;"><span>Burnout Probability</span><span id="burnoutVal">Loading...</span></div>
+                            <div style="height: 6px; background: var(--bg-base); border-radius: 10px; overflow: hidden;"><div id="burnoutBar" style="width: 0%; height: 100%; background: var(--success); transition: 1s;"></div></div>
                         </div>
                         <div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;"><span>Workforce Risk</span><span>Low</span></div>
-                            <div style="height: 6px; background: var(--bg-base); border-radius: 10px; overflow: hidden;"><div style="width: 20%; height: 100%; background: var(--success);"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;"><span>Workforce Risk</span><span id="riskVal">Loading...</span></div>
+                            <div style="height: 6px; background: var(--bg-base); border-radius: 10px; overflow: hidden;"><div id="riskBar" style="width: 0%; height: 100%; background: var(--success); transition: 1s;"></div></div>
                         </div>
-                        <div style="background: var(--bg-base); padding: 1rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">Productivity trend is stable for the next 4 hours.</div>
+                        <div id="predictionText" style="background: var(--bg-base); padding: 1rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">Analyzing workforce telemetry...</div>
                     </div>
                 </div>
 
@@ -352,12 +352,14 @@
                 <div class="widget w-8 r-2">
                     <div class="widget-header">
                         <div class="widget-title">Payroll Intelligence</div>
-                        <i data-lucide="wallet" style="color: var(--success)"></i>
+                        <i data-lucide="wallet" onclick="location.href='admin-payroll-documents.html'" style="color: var(--success); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="View Payroll Documents"></i>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 3rem;">
-                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div style="font-size: 1.5rem; font-weight: 800;">$1050.0k</div></div>
-                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">BURN RATE</div><div style="font-size: 1.5rem; font-weight: 800; color: var(--danger);">105%</div></div>
-                        <div style="flex: 1; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-muted);">[ Payroll Impact Chart Placeholder ]</div>
+                    <div style="display: flex; align-items: center; gap: 3rem; flex: 1;">
+                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MONTHLY PAYROLL</div><div id="finPayroll" style="font-size: 1.5rem; font-weight: 800;">Loading...</div></div>
+                        <div><div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">BURN RATE</div><div id="finBurn" style="font-size: 1.5rem; font-weight: 800; color: var(--danger);">Loading...</div></div>
+                        <div style="flex: 1; height: 100px; position: relative;">
+                            <canvas id="spendChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -365,10 +367,10 @@
                 <div class="widget w-4 r-3">
                     <div class="widget-header">
                         <div class="widget-title">Security & Behavior Logs</div>
-                        <i data-lucide="shield-alert" style="color: var(--danger)"></i>
+                        <i data-lucide="shield-alert" onclick="location.href='admin-inactivity-monitor.html'" style="color: var(--danger); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
                     </div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">
-                        <p>Suspicious Activity: Sneha Joshi recorded high context switching (7 tabs).</p>
+                    <div id="alertsGrid" style="font-size: 0.8rem; color: var(--text-muted); max-height: 200px; overflow-y: auto;">
+                        <p style="padding: 1rem; text-align: center;">Awaiting real-time telemetry...</p>
                     </div>
                 </div>
             </div>
@@ -546,7 +548,6 @@
             btnBreak.style.background = "#f59e0b";
             lucide.createIcons();
         };
-
         // --- Live Workforce Telemetry & AI Compliance Engine ---
         function initTelemetry() {
             const grid = document.getElementById('telemetryGrid');
@@ -557,83 +558,96 @@
                 const users = userSnap.docs.map(d => ({ id: d.id, ...d.data() }))
                     .filter(u => u.role !== 'admin');
 
-                if (users.length === 0) {
-                    grid.innerHTML = '<div style="grid-column:span 5; text-align:center; padding:2rem; color:var(--text-muted);">No personnel detected.</div>';
-                    return;
-                }
-
-                // Listen to today's attendance records to sync punch data
-                onSnapshot(collection(db, "attendance"), (attSnap) => {
-                    const attendanceMap = {};
-                    attSnap.docs.forEach(doc => {
-                        if (doc.id.includes(today)) {
-                            const empId = doc.id.split('_')[0];
-                            attendanceMap[empId] = doc.data();
-                        }
+                // Listen to Real-time activity (Online/Offline/Scores)
+                onSnapshot(collection(db, "activityStatus"), (activitySnap) => {
+                    const activityMap = {};
+                    activitySnap.docs.forEach(doc => {
+                        activityMap[doc.id] = doc.data();
                     });
 
-                    // Listen to today's admin sessions
-                    onSnapshot(collection(db, "admin_sessions"), (adminSnap) => {
-                        const adminSessions = [];
-                        adminSnap.docs.forEach(doc => {
+                    // Listen to today's attendance records to sync punch data
+                    onSnapshot(collection(db, "attendance"), (attSnap) => {
+                        const attendanceMap = {};
+                        attSnap.docs.forEach(doc => {
                             if (doc.id.includes(today)) {
-                                adminSessions.push({ id: doc.id, ...doc.data() });
+                                const empId = doc.id.split('_')[0];
+                                attendanceMap[empId] = doc.data();
                             }
                         });
 
-                        const allCards = [];
+                        // Listen to today's admin sessions
+                        onSnapshot(collection(db, "admin_sessions"), (adminSnap) => {
+                            const adminSessions = [];
+                            adminSnap.docs.forEach(doc => {
+                                if (doc.id.includes(today)) {
+                                    adminSessions.push({ id: doc.id, ...doc.data() });
+                                }
+                            });
 
-                        // 1. Process Admin Cards
-                        adminSessions.forEach(admin => {
-                            let hoursWorked = 0;
-                            let statusText = admin.status || "IDLE";
-                            let statusColor = "var(--text-muted)";
-                            
-                            if (admin.punchIn) {
-                                const pIn = admin.punchIn.toDate ? admin.punchIn.toDate() : new Date(admin.punchIn);
-                                const pOut = admin.punchOut ? (admin.punchOut.toDate ? admin.punchOut.toDate() : new Date(admin.punchOut)) : new Date();
-                                hoursWorked = ((pOut - pIn) / 3600000).toFixed(1);
-                                statusColor = admin.status === 'Active' ? "var(--success)" : "var(--warning)";
-                            }
+                            const allCards = [];
 
-                            allCards.push(renderTeleCard({
-                                name: admin.name || "System Admin",
-                                department: admin.department || "Executive",
-                                statusText: statusText,
-                                statusColor: statusColor,
-                                hoursWorked: hoursWorked,
-                                isCommander: true
-                            }));
+                            // 1. Process Admin Cards
+                            adminSessions.forEach(admin => {
+                                let hoursWorked = 0;
+                                let statusText = admin.status || "IDLE";
+                                let statusColor = "var(--text-muted)";
+                                
+                                if (admin.punchIn) {
+                                    const pIn = admin.punchIn.toDate ? admin.punchIn.toDate() : new Date(admin.punchIn);
+                                    const pOut = admin.punchOut ? (admin.punchOut.toDate ? admin.punchOut.toDate() : new Date(admin.punchOut)) : new Date();
+                                    hoursWorked = Math.max(0, (pOut - pIn) / 3600000).toFixed(1);
+                                    statusColor = admin.status === 'Active' ? "var(--success)" : "var(--warning)";
+                                }
+
+                                allCards.push(renderTeleCard({
+                                    name: admin.name || "System Admin",
+                                    department: admin.department || "Executive",
+                                    statusText: statusText,
+                                    statusColor: statusColor,
+                                    hoursWorked: hoursWorked,
+                                    eff: 100,
+                                    isCommander: true
+                                }));
+                            });
+
+                            // 2. Process Employee Cards
+                            users.forEach(user => {
+                                const attendance = attendanceMap[user.id];
+                                const activity = activityMap[user.id];
+                                
+                                let hoursWorked = 0;
+                                let statusText = "OFFLINE";
+                                let statusColor = "var(--text-muted)";
+                                let eff = activity ? (activity.aiProductivityScore || (activity.status === 'Online' ? 75 : 0)) : 0;
+                                
+                                if (activity && activity.status === 'Online') {
+                                    statusText = "ONLINE";
+                                    statusColor = "var(--success)";
+                                } else if (attendance && attendance.punchIn) {
+                                    statusText = attendance.punchOut ? "SHIFT COMPLETED" : "IDLE";
+                                    statusColor = attendance.punchOut ? "var(--primary)" : "var(--warning)";
+                                }
+
+                                if (attendance && attendance.punchIn) {
+                                    const pIn = attendance.punchIn.toDate ? attendance.punchIn.toDate() : new Date(attendance.punchIn);
+                                    const pOut = attendance.punchOut ? (attendance.punchOut.toDate ? attendance.punchOut.toDate() : new Date(attendance.punchOut)) : new Date();
+                                    hoursWorked = Math.max(0, (pOut - pIn) / 3600000).toFixed(1);
+                                }
+
+                                allCards.push(renderTeleCard({
+                                    name: user.name || "Unknown",
+                                    department: (user.departmentName || user.department || "General").replace('Cyberseruity', 'Cybersecurity'),
+                                    statusText: statusText,
+                                    statusColor: statusColor,
+                                    hoursWorked: hoursWorked,
+                                    eff: eff,
+                                    isCommander: false
+                                }));
+                            });
+
+                            grid.innerHTML = allCards.join('');
+                            lucide.createIcons();
                         });
-
-                        // 2. Process Employee Cards
-                        users.forEach(user => {
-                            const attendance = attendanceMap[user.id];
-                            
-                            let hoursWorked = 0;
-                            let statusText = "OFFLINE";
-                            let statusColor = "var(--text-muted)";
-                            
-                            if (attendance && attendance.punchIn) {
-                                const pIn = attendance.punchIn.toDate ? attendance.punchIn.toDate() : new Date(attendance.punchIn);
-                                const pOut = attendance.punchOut ? (attendance.punchOut.toDate ? attendance.punchOut.toDate() : new Date(attendance.punchOut)) : new Date();
-                                hoursWorked = ((pOut - pIn) / 3600000).toFixed(1);
-                                statusText = attendance.punchOut ? "SHIFT COMPLETED" : "ACTIVE";
-                                statusColor = attendance.punchOut ? "var(--primary)" : "var(--success)";
-                            }
-
-                            allCards.push(renderTeleCard({
-                                name: user.name || "Unknown",
-                                department: user.departmentName || user.department || "General",
-                                statusText: statusText,
-                                statusColor: statusColor,
-                                hoursWorked: hoursWorked,
-                                isCommander: false
-                            }));
-                        });
-
-                        grid.innerHTML = allCards.join('');
-                        lucide.createIcons();
                     });
                 });
             });
@@ -645,7 +659,7 @@
             let complianceColor = config.hoursWorked >= 7.5 ? "var(--success)" : (config.hoursWorked > 4 ? "var(--warning)" : "var(--danger)");
             let complianceBg = config.hoursWorked >= 7.5 ? "#ecfdf5" : (config.hoursWorked > 4 ? "#fffbeb" : "#fef2f2");
 
-            const eff = Math.floor(Math.random() * 20) + 75;
+            const eff = config.eff || 0;
             const isHighPerformer = eff > 90 || config.isCommander;
 
             return `
@@ -660,10 +674,10 @@
                     <div class="shift-monitor">
                         <div class="shift-label">
                             <span>Shift Duration</span>
-                            <span>${config.hoursWorked} / 8.0h</span>
+                            <span style="color: ${complianceColor}; font-weight: 700;">${config.hoursWorked} / 8.0h</span>
                         </div>
-                        <div class="shift-bar-bg">
-                            <div class="shift-bar-fill" style="width: ${progressPercent}%; background: ${complianceColor}"></div>
+                        <div class="shift-bar-bg" style="height: 8px;">
+                            <div class="shift-bar-fill" style="width: ${Math.max(5, progressPercent)}%; background: ${complianceColor}"></div>
                         </div>
                     </div>
 

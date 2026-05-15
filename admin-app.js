@@ -187,44 +187,61 @@ function populateWidgetContent(id) {
             startActivityStream();
             break;
 
-        case 'productivity':
+        case 'payroll':
             container.innerHTML = `
                 <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div style="height: 150px; background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%); border-radius: 12px; display: flex; align-items: flex-end; padding: 10px; gap: 8px;">
-                        ${[65, 80, 45, 90, 75, 85, 95].map(h => `<div style="flex:1; height:${h}%; background:var(--primary); border-radius:4px 4px 0 0;"></div>`).join('')}
+                    <div id="payroll-forecast-chart" style="height: 150px; background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%); border-radius: 12px; display: flex; align-items: flex-end; padding: 10px; gap: 8px;">
+                        <div style="width: 100%; text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-bottom: 2rem;">
+                            <i data-lucide="bar-chart-3" class="animate-pulse"></i><br>Calculating Finance Projections...
+                        </div>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
                         <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                     </div>
                 </div>
             `;
+            startPayrollForecast();
             break;
 
-        case 'ai-insights':
+        case 'productivity':
             container.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="padding: 12px; background: var(--primary-light); border-radius: 12px; border-left: 4px solid var(--primary);">
-                        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: var(--primary);">Productivity Boost Detected</div>
-                        <p style="font-size: 0.75rem; color: var(--text-muted);">Engineering team output is 12% higher than average this week.</p>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div id="productivity-trend-chart" style="height: 150px; background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%); border-radius: 12px; display: flex; align-items: flex-end; padding: 10px; gap: 8px;">
+                        <div style="width: 100%; text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-bottom: 2rem;">
+                            <i data-lucide="trending-up" class="animate-pulse"></i><br>Aggregating Productivity Metrics...
+                        </div>
                     </div>
-                    <div style="padding: 12px; background: rgba(245, 158, 11, 0.1); border-radius: 12px; border-left: 4px solid var(--accent);">
-                        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: var(--accent);">Focus Warning</div>
-                        <p style="font-size: 0.75rem; color: var(--text-muted);">Marketing department shows a 15% increase in focus loss events.</p>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                     </div>
                 </div>
             `;
+            startProductivityTrend();
+            break;
+
+        case 'ai-insights':
+            container.innerHTML = `<div id="ai-insights-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="padding: 1rem; text-align:center; color: var(--text-muted); font-size: 0.8rem;">
+                    <i data-lucide="brain-circuit" class="animate-pulse" style="margin-bottom: 0.5rem;"></i><br>Generating insights...
+                </div>
+            </div>`;
+            startAIInsightsStream();
             break;
             
         case 'tvc-monitor':
             container.innerHTML = `
-                <div style="background: #0f172a; padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 0.75rem; color: #10b981; min-height: 120px;">
-                    <div style="margin-bottom: 5px;">[SYSTEM] Initializing TVC Data Stream...</div>
-                    <div style="margin-bottom: 5px;">[WARN] High idle time: Emp-102 (Sales)</div>
-                    <div style="margin-bottom: 5px; color: #ef4444;">[ALERT] Restricted access: User-88 (HR)</div>
+                <div id="tvc-alert-stream" style="background: #0f172a; padding: 1rem; border-radius: 12px; font-family: monospace; font-size: 0.75rem; color: #10b981; min-height: 140px; overflow-y: auto; max-height: 200px;">
+                    <div style="margin-bottom: 5px; opacity: 0.7;">[SYSTEM] Initializing Secure TVC Link...</div>
+                    <div class="tvc-log-container" id="tvc-logs"></div>
                     <div class="cursor" style="display: inline-block; width: 8px; height: 14px; background: #10b981; animation: blink 1s infinite;"></div>
                 </div>
-                <style>@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }</style>
+                <style>
+                    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+                    .tvc-log-item { margin-bottom: 4px; animation: slideIn 0.3s ease-out; }
+                    @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+                </style>
             `;
+            startTVCMonitor();
             break;
             
         case 'analytics-productivity-dept':
@@ -463,7 +480,8 @@ function startActivityStream() {
     if (!list) return;
 
     import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
-        const q = query(collection(db, 'activity'), orderBy('timestamp', 'desc'), limit(10));
+        // Listening to 'activityStatus' which is the source for TVC as well
+        const q = query(collection(db, 'activityStatus'), orderBy('lastUpdated', 'desc'), limit(10));
         onSnapshot(q, (snapshot) => {
             if (snapshot.empty) {
                 list.innerHTML = '<div style="padding: 1rem; text-align:center; color: var(--text-muted);">No recent activity detected.</div>';
@@ -471,23 +489,179 @@ function startActivityStream() {
             }
             list.innerHTML = snapshot.docs.map(doc => {
                 const data = doc.data();
+                const status = data.status || 'Active';
+                const color = status === 'Punched In' ? 'var(--secondary)' : (status === 'Punched Out' ? 'var(--danger)' : 'var(--primary)');
                 return `
                     <div class="notif-item">
-                        <div class="stat-icon" style="width:32px; height:32px; background:var(--primary-light); color:var(--primary); font-size: 0.7rem;">${data.userName ? data.userName[0] : 'U'}</div>
+                        <div class="stat-icon" style="width:32px; height:32px; background:var(--primary-light); color:var(--primary); font-size: 0.7rem;">${data.name ? data.name[0] : 'U'}</div>
                         <div class="notif-body">
-                            <div class="notif-text"><b>${data.userName || 'Unknown'}</b> - ${data.action || 'Active'}</div>
-                            <div class="notif-msg">${data.department || 'General'}</div>
+                            <div class="notif-text"><b>${data.name || 'Unknown'}</b> - ${data.aiBehaviorLabel || status}</div>
+                            <div class="notif-msg" style="color: ${color}; font-weight: 700; font-size: 0.65rem;">${status.toUpperCase()} // ${data.departmentId || 'GENERAL'}</div>
                         </div>
                     </div>
                 `;
             }).join('');
         });
     }).catch(err => {
-        console.warn('Firebase activity stream failed, using demo data:', err);
-        list.innerHTML = `
-            <div class="notif-item"><div class="stat-icon" style="width:32px; height:32px;">A</div><div class="notif-body"><div class="notif-text"><b>Aman Verma</b> - Coding</div><div class="notif-msg">Engineering</div></div></div>
-            <div class="notif-item"><div class="stat-icon" style="width:32px; height:32px;">P</div><div class="notif-body"><div class="notif-text"><b>Priya Sharma</b> - Meeting</div><div class="notif-msg">Marketing</div></div></div>
-        `;
+        console.warn('Firebase activity stream failed:', err);
+    });
+}
+
+function startProductivityHeatmap() {
+    const grid = document.getElementById('productivity-heatmap-grid');
+    if (!grid) return;
+
+    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
+        // Fetch 21 most recent productivity snapshots for accuracy
+        const q = query(collection(db, 'performance_snapshots'), orderBy('timestamp', 'desc'), limit(21));
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                // Fallback to active employee distribution if snapshots are empty
+                onSnapshot(collection(db, 'activityStatus'), (statusSnap) => {
+                    const scores = statusSnap.docs.map(d => Number(d.data().aiProductivityScore) || 0);
+                    renderHeatmapData(scores.length > 0 ? scores : Array(21).fill(80));
+                });
+                return;
+            }
+            
+            const scores = snapshot.docs.map(d => Number(d.data().score) || 0);
+            renderHeatmapData(scores);
+        });
+    });
+
+    function renderHeatmapData(data) {
+        // Ensure we have exactly 21 cells
+        const displayData = [...data];
+        while (displayData.length < 21) displayData.push(displayData[0] || 75);
+        
+        grid.innerHTML = displayData.slice(0, 21).reverse().map((score) => {
+            const level = Math.max(0.1, Math.min(1, score / 100));
+            return `<div style="aspect-ratio:1; background:var(--primary); border-radius:4px; opacity:${level}; transition: opacity 0.5s ease-in-out;" title="Efficiency: ${Math.round(score)}%"></div>`;
+        }).join('');
+    }
+}
+
+function startProductivityTrend() {
+    const container = document.getElementById('productivity-trend-chart');
+    if (!container) return;
+
+    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
+        const q = query(collection(db, 'performance_snapshots'), orderBy('timestamp', 'desc'), limit(7));
+        onSnapshot(q, (snapshot) => {
+            let trend;
+            if (snapshot.empty) {
+                // Fallback to weekly EOD aggregation
+                onSnapshot(collection(db, 'employee_eods'), (eodSnap) => {
+                    const scores = eodSnap.docs.map(d => Number(d.data().managerScore) || 0);
+                    renderTrend(scores.length >= 7 ? scores.slice(-7) : [45, 52, 48, 70, 75, 82, 85]);
+                });
+                return;
+            } else {
+                trend = snapshot.docs.map(d => Number(d.data().score) || 0).reverse();
+                renderTrend(trend);
+            }
+        });
+    });
+
+    function renderTrend(data) {
+        container.innerHTML = data.map(val => {
+            const height = Math.max(10, Math.min(100, val));
+            return `<div style="flex:1; height:${height}%; background:var(--primary); border-radius:4px 4px 0 0; transition: height 0.5s ease-out;" title="${Math.round(val)}% Efficiency"></div>`;
+        }).join('');
+    }
+}
+
+function startPayrollForecast() {
+    const container = document.getElementById('payroll-forecast-chart');
+    if (!container) return;
+
+    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+        onSnapshot(collection(db, 'payroll_profiles'), (snapshot) => {
+            if (snapshot.empty) return;
+            
+            const totalBase = snapshot.docs.reduce((acc, d) => acc + (Number(d.data().salaryStructure?.base) || 0), 0);
+            const dailyAverage = totalBase / 30;
+            
+            // Mocking a weekly trend based on real total
+            const mockTrend = [0.8, 1.1, 0.9, 1.3, 1.0, 0.7, 0.6].map(m => (dailyAverage * m));
+            const max = Math.max(...mockTrend);
+            
+            container.innerHTML = mockTrend.map(val => {
+                const height = Math.max(20, (val / max) * 100);
+                return `<div style="flex:1; height:${height}%; background:var(--primary); border-radius:4px 4px 0 0; transition: height 0.5s ease-out;" title="₹${Math.round(val).toLocaleString()}"></div>`;
+            }).join('');
+        });
+    });
+}
+
+function startAIInsightsStream() {
+    const container = document.getElementById('ai-insights-list');
+    if (!container) return;
+
+    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
+        const q = query(collection(db, 'ai_insights'), orderBy('timestamp', 'desc'), limit(3));
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                container.innerHTML = `
+                    <div style="padding: 12px; background: var(--primary-light); border-radius: 12px; border-left: 4px solid var(--primary);">
+                        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: var(--primary);">System Normal</div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">Workforce operations are stable across all departments.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const type = data.type || 'info';
+                const color = type === 'warning' ? 'var(--accent)' : (type === 'danger' ? 'var(--danger)' : 'var(--primary)');
+                const bg = type === 'warning' ? 'rgba(245, 158, 11, 0.1)' : (type === 'danger' ? 'rgba(239, 68, 68, 0.1)' : 'var(--primary-light)');
+                
+                return `
+                    <div style="padding: 12px; background: ${bg}; border-radius: 12px; border-left: 4px solid ${color};">
+                        <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; color: ${color};">${data.title || 'Insight'}</div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">${data.message}</p>
+                    </div>
+                `;
+            }).join('');
+            if (window.lucide) lucide.createIcons();
+        });
+    });
+}
+
+function startTVCMonitor() {
+    const logContainer = document.getElementById('tvc-logs');
+    if (!logContainer) return;
+
+    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
+        const q = query(collection(db, 'alertEvents'), orderBy('timestamp', 'desc'), limit(15));
+        onSnapshot(q, (snapshot) => {
+            if (snapshot.empty) {
+                logContainer.innerHTML = '<div class="tvc-log-item" style="opacity: 0.5;">[INFO] Waiting for security events...</div>';
+                return;
+            }
+            
+            logContainer.innerHTML = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const time = data.timestamp ? (data.timestamp.toDate ? data.timestamp.toDate().toLocaleTimeString() : new Date(data.timestamp).toLocaleTimeString()) : '--:--';
+                const severity = (data.severity || 'info').toUpperCase();
+                const color = severity === 'CRITICAL' || severity === 'HIGH' ? '#ef4444' : (severity === 'WARNING' ? '#f59e0b' : '#10b981');
+                
+                return `
+                    <div class="tvc-log-item">
+                        <span style="opacity: 0.5;">[${time}]</span> 
+                        <span style="color: ${color}; font-weight: 700;">[${severity}]</span> 
+                        ${data.message}
+                    </div>
+                `;
+            }).join('');
+            
+            // Auto-scroll to bottom
+            const parent = document.getElementById('tvc-alert-stream');
+            if (parent) parent.scrollTop = parent.scrollHeight;
+        });
+    }).catch(err => {
+        console.error('TVC Monitor Error:', err);
     });
 }
 

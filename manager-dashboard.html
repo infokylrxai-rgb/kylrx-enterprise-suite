@@ -424,9 +424,8 @@
                         <h2>Efficiency Rating</h2>
                         <i data-lucide="zap" class="text-muted" size="16"></i>
                     </div>
-                    <div class="insight-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                        <div style="font-size: 3.5rem; font-weight: 800; color: var(--primary);">94%</div>
-                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--success);">↑ 4.2% from Yesterday</div>
+                    <div id="manager-efficiency-box" class="insight-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div style="font-size: 0.8rem; color: var(--text-muted);"><i data-lucide="loader" class="animate-spin"></i> Analyzing...</div>
                     </div>
                 </div>
 
@@ -456,13 +455,9 @@
                         <h2>Security Alerts</h2>
                         <i data-lucide="shield-alert" class="text-muted" size="16"></i>
                     </div>
-                    <div class="insight-content">
-                        <div class="alert-box">
-                            <i data-lucide="alert-circle" class="alert-icon" size="20"></i>
-                            <div>
-                                <div class="alert-title">Access Warning</div>
-                                <div class="alert-msg">Unusual login pattern detected in Region 4.</div>
-                            </div>
+                    <div id="manager-security-list" class="insight-content">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 2rem;">
+                            <i data-lucide="shield" class="animate-pulse"></i><br>Monitoring Network...
                         </div>
                     </div>
                 </div>
@@ -617,6 +612,8 @@
                         renderWorkforceData(usersWithStatus);
                         calculatePayroll(usersWithStatus, config.budget || 500000);
                         updateTeleStats(usersWithStatus);
+                        updateEfficiency(usersWithStatus);
+                        updateSecurityAlerts(config.name);
                     });
                 });
             });
@@ -651,6 +648,73 @@
                     <td><span style="color:${(u.status || '').includes('Punched') || u.status === 'Active' ? 'var(--success)' : 'var(--text-muted)'}">● ${u.status || 'Active'}</span></td>
                 </tr>
             `).join('');
+        }
+
+        function updateEfficiency(users) {
+            const box = document.getElementById('manager-efficiency-box');
+            if (!box) return;
+
+            const scores = users.map(u => Number(u.aiProductivityScore) || 0).filter(s => s > 0);
+            if (scores.length === 0) {
+                box.innerHTML = `
+                    <div style="font-size: 3.5rem; font-weight: 800; color: var(--text-muted);">--</div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Awaiting Telemetry</div>
+                `;
+                return;
+            }
+
+            const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+            const trend = avg > 70 ? 'Optimal' : (avg > 40 ? 'Stable' : 'Risk');
+            const color = avg > 70 ? 'var(--success)' : (avg > 40 ? 'var(--primary)' : 'var(--danger)');
+
+            box.innerHTML = `
+                <div style="font-size: 3.5rem; font-weight: 800; color: ${color};">${avg}%</div>
+                <div style="font-size: 0.8rem; font-weight: 700; color: ${color};">${trend} Efficiency</div>
+            `;
+        }
+
+        function updateSecurityAlerts(deptName) {
+            const list = document.getElementById('manager-security-list');
+            if (!list) return;
+
+            import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(mod => {
+                const { collection, query, where, onSnapshot, limit, orderBy } = mod;
+                // Fetch alerts relevant to this department or system-wide
+                const q = query(
+                    collection(db, 'alertEvents'),
+                    where('departmentId', 'in', [deptName, 'SYS', 'GLOBAL']),
+                    orderBy('timestamp', 'desc'),
+                    limit(1)
+                );
+
+                onSnapshot(q, (snapshot) => {
+                    if (snapshot.empty) {
+                        list.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 1rem; background: var(--primary-light); border-radius: 12px; color: var(--primary);">
+                                <i data-lucide="check-circle" size="20"></i>
+                                <div style="font-size: 0.85rem; font-weight: 700;">No Active Alerts</div>
+                            </div>
+                        `;
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    const al = snapshot.docs[0].data();
+                    const color = al.severity === 'critical' ? 'var(--danger)' : 'var(--primary)';
+                    const bg = al.severity === 'critical' ? '#fff1f2' : 'var(--primary-light)';
+
+                    list.innerHTML = `
+                        <div class="alert-box" style="background: ${bg}; border-color: ${color}20;">
+                            <i data-lucide="alert-circle" style="color: ${color};" size="20"></i>
+                            <div>
+                                <div class="alert-title" style="color: ${color};">${al.severity ? al.severity.toUpperCase() : 'ALERT'}</div>
+                                <div class="alert-msg" style="color: ${color}; opacity: 0.8;">${al.message}</div>
+                            </div>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                });
+            });
         }
 
         function calculatePayroll(users, budget = 500000) {

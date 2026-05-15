@@ -97,6 +97,18 @@
         }
 
         .bottleneck-card { border-left-color: #ef4444 !important; }
+
+        /* Chart Placeholder */
+        .chart-placeholder {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(4px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10; border-radius: 20px; transition: 0.5s ease;
+            color: var(--text-muted); gap: 1rem;
+        }
+        .chart-placeholder i { width: 32px; height: 32px; color: var(--primary); animation: aiPulse 2s infinite; }
+        .chart-placeholder p { font-size: 0.85rem; font-weight: 600; }
+        @keyframes aiPulse { 0% { opacity: 0.4; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.4; transform: scale(0.9); } }
     </style>
 </head>
 <body class="admin-dashboard">
@@ -209,8 +221,12 @@
                         </div>
                     </div>
 
-                    <div class="ai-glass-card">
-                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Departmental Performance</h3>
+                    <div class="ai-glass-card" style="position: relative; min-height: 280px;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Weekly Performance</h3>
+                        <div id="chartLoading" class="chart-placeholder">
+                            <i data-lucide="trending-up"></i>
+                            <p>Aggregating Productivity Metrics...</p>
+                        </div>
                         <canvas id="deptChart" height="200"></canvas>
                     </div>
                 </div>
@@ -300,10 +316,7 @@
         }
 
         async function loadAIIntelligence() {
-            try {
-                const usersRef = collection(db, 'users');
-                const snap = await getDocs(usersRef);
-                
+            onSnapshot(collection(db, 'users'), async (snap) => {
                 const total = snap.size;
                 if (total === 0) {
                     initCharts(['No Data'], [0]);
@@ -312,11 +325,20 @@
 
                 let active = 0;
                 const deptStats = {};
+                let totalDuration = 0;
+                let completedCount = 0;
 
                 snap.forEach(doc => {
                     const data = doc.data();
                     if (data.onboardingStatus === 'Active') active++;
                     
+                    if (data.onboardingCompletedAt && data.onboardingStartedAt) {
+                        const start = data.onboardingStartedAt.toDate ? data.onboardingStartedAt.toDate() : new Date(data.onboardingStartedAt);
+                        const end = data.onboardingCompletedAt.toDate ? data.onboardingCompletedAt.toDate() : new Date(data.onboardingCompletedAt);
+                        totalDuration += (end - start);
+                        completedCount++;
+                    }
+
                     const dept = data.department || 'General';
                     if (!deptStats[dept]) deptStats[dept] = { total: 0, active: 0 };
                     deptStats[dept].total++;
@@ -326,25 +348,49 @@
                 const completionRate = (active / total) * 100;
                 document.getElementById('overallCompletion').textContent = `${completionRate.toFixed(1)}%`;
                 
-                // Fetch dynamic intelligence stats
-                const intelSnap = await getDocs(collection(db, 'system_intelligence'));
-                if (!intelSnap.empty) {
-                    const intelData = intelSnap.docs[0].data();
-                    document.getElementById('aiPrediction').textContent = intelData.prediction || '48h';
-                    document.getElementById('sentimentScore').textContent = `${intelData.sentiment || '4.8'}/5`;
-                    document.getElementById('sentimentFill').style.width = `${(intelData.sentiment || 4.8) * 20}%`;
-                    document.getElementById('botAutomation').textContent = `${intelData.automation || '88'}%`;
-                }
+                const avgHours = completedCount > 0 ? (totalDuration / (completedCount * 3600000)).toFixed(0) : '48';
+                document.getElementById('aiPrediction').textContent = `${avgHours}h`;
 
-                const depts = Object.keys(deptStats);
-                const rates = depts.map(d => (deptStats[d].active / deptStats[d].total) * 100);
+                // Calculate Authoritative Sentiment Score from EODs
+                const eodSnap = await getDocs(query(collection(db, 'employee_eods'), where('status', '==', 'Reviewed')));
+                let totalSentiment = 0;
+                let eodCount = 0;
+                eodSnap.forEach(e => {
+                    totalSentiment += (e.data().managerScore || 0);
+                    eodCount++;
+                });
+                const calculatedSentiment = eodCount > 0 ? (totalSentiment / eodCount).toFixed(1) : null;
+                
+                // Fetch dynamic intelligence stats (Live Sync)
+                onSnapshot(collection(db, 'system_intelligence'), (intelSnap) => {
+                    if (!intelSnap.empty) {
+                        const intelData = intelSnap.docs[0].data();
+                        document.getElementById('aiPrediction').textContent = intelData.prediction || '48h';
+                        const finalSentiment = calculatedSentiment || intelData.sentiment || '0.0';
+                        document.getElementById('sentimentScore').textContent = `${finalSentiment}/5`;
+                        document.getElementById('sentimentFill').style.width = `${Number(finalSentiment) * 20}%`;
+                        document.getElementById('botAutomation').textContent = `${intelData.automation || '88'}%`;
+                    }
+                });
 
-                initCharts(depts, rates);
+                const weeklyStats = { 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0 };
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (data.onboardingCompletedAt) {
+                        const date = data.onboardingCompletedAt.toDate ? data.onboardingCompletedAt.toDate() : new Date(data.onboardingCompletedAt);
+                        const dayName = days[date.getDay()];
+                        if (weeklyStats[dayName] !== undefined) weeklyStats[dayName]++;
+                    }
+                });
+
+                const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                const activityData = labels.map(l => weeklyStats[l]);
+
+                initCharts(labels, activityData);
                 loadInsights();
-            } catch (err) {
-                console.error("AI Intelligence Fault:", err);
-                initCharts(['Eng', 'Sales', 'Mkt', 'Fin', 'Prod'], [98, 65, 82, 91, 89]);
-            }
+            });
         }
 
         async function loadInsights() {
@@ -380,6 +426,13 @@
             const canvas = document.getElementById('deptChart');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
+            
+            const placeholder = document.getElementById('chartLoading');
+            const hasData = data.some(v => v > 0);
+            if (placeholder) {
+                placeholder.style.opacity = hasData ? '0' : '1';
+                placeholder.style.pointerEvents = hasData ? 'none' : 'all';
+            }
             
             if (window.myDeptChart) window.myDeptChart.destroy();
 

@@ -97,7 +97,7 @@
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
@@ -126,9 +126,22 @@
         <main class="main-content">
             <header class="header-actions">
                 <div class="welcome-text">
-                    <h1>Performance Command Center</h1>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        <h1 style="margin-bottom: 0;">Performance Command Center</h1>
+                        <div id="backend-status" style="display: flex; align-items: center; gap: 6px; background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 100px; font-size: 0.65rem; font-weight: 800; border: 1px solid #d1fae5;">
+                            <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
+                            BACKEND CONNECTED
+                        </div>
+                    </div>
                     <p>Analyze workforce productivity, review EOD summaries, and score departmental KPIs.</p>
                 </div>
+                <style>
+                    @keyframes pulse {
+                        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+                        70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+                        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+                    }
+                </style>
                 <div class="btn-group">
                     <button class="btn btn-outline"><i data-lucide="file-text"></i> Export Reports</button>
                     <button class="btn btn-primary"><i data-lucide="award"></i> Finalize Monthly Scores</button>
@@ -171,20 +184,10 @@
                         <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-muted);">
                             <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                         </div>
-                        <div class="heatmap-grid">
-                            <div class="heatmap-cell level-4" data-val="High (98%)"></div>
-                            <div class="heatmap-cell level-3" data-val="Med (82%)"></div>
-                            <div class="heatmap-cell level-4" data-val="High (95%)"></div>
-                            <div class="heatmap-cell level-2" data-val="Low (45%)"></div>
-                            <div class="heatmap-cell level-4" data-val="High (92%)"></div>
-                            <div class="heatmap-cell" data-val="N/A"></div>
-                            <div class="heatmap-cell" data-val="N/A"></div>
-                            <!-- More cells... -->
-                             <script>
-                                for(let i=0; i<21; i++) {
-                                    document.write('<div class="heatmap-cell level-' + (Math.floor(Math.random()*4)+1) + '" data-val="' + (Math.floor(Math.random()*100)) + '%"></div>');
-                                }
-                             </script>
+                        <div class="heatmap-grid" id="heatmapGrid">
+                            <div style="grid-column: 1/-1; padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.7rem;">
+                                <i data-lucide="loader" class="animate-spin"></i> Analyzing...
+                            </div>
                         </div>
                         <div style="margin-top: 1rem; display: flex; gap: 8px; align-items: center; font-size: 0.6rem; color: var(--text-muted);">
                             <span>Less</span>
@@ -210,33 +213,13 @@
                         </div>
                     </div>
 
-                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                            <h3 style="font-weight: 800;">KPI Goal Tracking</h3>
-                            <span class="badge" style="background: #eff6ff; color: var(--primary); font-size: 0.6rem;">LIVE SYNC</span>
-                        </div>
-                        <canvas id="goalChart" height="200"></canvas>
-                        <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 10px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
-                                <span style="color: var(--text-muted);">Org. Target (ARR)</span>
-                                <span style="font-weight: 800;">₹500M</span>
-                            </div>
-                            <div class="progress-container" style="height: 8px; background: #f1f5f9; border-radius: 100px; overflow: hidden;">
-                                <div id="arrProgressBar" style="height: 100%; width: 82%; background: var(--primary); transition: 1s cubic-bezier(0.4, 0, 0.2, 1);"></div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
-                                <span style="color: var(--text-muted);">Current Progress</span>
-                                <span id="arrStatusText" style="font-weight: 800; color: var(--primary);">₹412M (82%)</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>
     </div>
 
     <script type="module">
-        import { getDepartmentLeaderboard, getPendingReviews, scorePerformance, getPerformanceTrends, getProductivityHeatmap, getDepartments, getAIProductivityInsights, getPerformanceForecast } from "./pms-service.js";
+        import { getDepartmentLeaderboard, getPendingReviews, scorePerformance, getPerformanceTrends, getProductivityHeatmap, getDepartments, getAIProductivityInsights, getPerformanceForecast, getOrgMetrics } from "./pms-service.js";
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
         import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
@@ -262,7 +245,6 @@
                     loadLeaderboard();
                     loadReviewQueue();
                     renderHeatmap();
-                    initGoalChart();
                 } else {
                     console.warn("No user logged in. Redirecting...");
                 }
@@ -352,7 +334,6 @@
                                     loadReviewQueue();
                                     loadLeaderboard();
                                     renderHeatmap();
-                                    initGoalChart();
                                 } catch (err) {
                                     alert("Error scoring performance: " + err.message);
                                 }
@@ -368,19 +349,22 @@
         }
 
         async function renderHeatmap() {
-            const grid = document.querySelector('.heatmap-grid');
+            const grid = document.getElementById('heatmapGrid');
             if (!grid) return;
-            grid.innerHTML = '';
             
             try {
                 const dayScores = await getProductivityHeatmap();
                 const hasRealData = dayScores.some(s => s > 0);
+                
+                grid.innerHTML = '';
 
                 for(let i=0; i<21; i++) {
                     const dayIdx = (i + 1) % 7;
                     let score = dayScores[dayIdx];
+                    
+                    // No more synthetic variability - show exactly what's in the database
                     if (!hasRealData) {
-                        score = 40 + (Math.sin(i) * 30) + (Math.random() * 20); 
+                        score = 0; 
                     }
 
                     let level = 0;
@@ -403,86 +387,6 @@
             }
         }
 
-        async function updateAIInsights(dayScores, trendData) {
-            const list = document.getElementById('aiInsightsList');
-            if (!list) return;
-            
-            try {
-                const insights = await getAIProductivityInsights(dayScores, trendData);
-                list.innerHTML = '';
-                insights.forEach(ins => {
-                    const item = document.createElement('div');
-                    item.style = `padding: 10px; background: ${ins.type === 'warning' ? '#fff1f2' : '#f8fafc'}; border-radius: 12px; font-size: 0.75rem; color: ${ins.type === 'warning' ? '#e11d48' : 'var(--text-muted)'}; display: flex; align-items: start; gap: 8px; border: 1px solid ${ins.type === 'warning' ? '#fecaca' : 'transparent'};`;
-                    item.innerHTML = `
-                        <i data-lucide="${ins.type === 'warning' ? 'alert-triangle' : 'zap'}" size="14" style="margin-top:2px; flex-shrink:0;"></i>
-                        <span>${ins.text}</span>
-                    `;
-                    list.appendChild(item);
-                });
-                if (window.lucide) lucide.createIcons();
-                
-                // Update ARR Progress Bar based on organizational average
-                const avg = dayScores.reduce((a, b) => a + b, 0) / (dayScores.filter(s => s > 0).length || 1);
-                const progress = Math.min(Math.round(avg || 82), 100);
-                document.getElementById('arrProgressBar').style.width = `${progress}%`;
-                document.getElementById('arrStatusText').textContent = `₹${Math.round(500 * (progress/100))}M (${progress}%)`;
-
-            } catch (err) {
-                console.error("Error updating AI insights:", err);
-            }
-        }
-
-        let goalChartInstance = null;
-        async function initGoalChart() {
-            const ctx = document.getElementById('goalChart').getContext('2d');
-            try {
-                const trendData = await getPerformanceTrends();
-                const forecastData = await getPerformanceForecast(trendData);
-                
-                const labels = [...trendData.labels];
-                const data = [...trendData.data];
-                
-                // Add Forecast labels and points
-                const months = ['Jul', 'Aug', 'Sep'];
-                labels.push(...months);
-                
-                if (goalChartInstance) goalChartInstance.destroy();
-
-                goalChartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels.slice(0, 9),
-                        datasets: [
-                            {
-                                label: 'Productivity Trend',
-                                data: data.slice(0, 6),
-                                borderColor: '#3b82f6',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                fill: true,
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Executive Forecast',
-                                data: [null, null, null, null, null, data[5], ...forecastData],
-                                borderColor: '#10b981',
-                                borderDash: [5, 5],
-                                fill: false,
-                                tension: 0.4
-                            }
-                        ]
-                    },
-                    options: {
-                        plugins: { legend: { display: false } },
-                        scales: { 
-                            y: { beginAtZero: true, max: 120, grid: { display: false } }, 
-                            x: { grid: { display: false } } 
-                        }
-                    }
-                });
-            } catch (err) {
-                console.error("Error initializing goal chart:", err);
-            }
-        }
 
         async function finalizeMonthlyScores() {
             if (!confirm("Are you sure you want to finalize all monthly scores? This will archive current KPI metrics.")) return;

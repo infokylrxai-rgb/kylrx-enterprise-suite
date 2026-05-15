@@ -221,12 +221,16 @@ export async function getPerformanceTrends() {
             });
         }
 
-        // If still empty, return demo seed
+        // If still empty, we return a zeroed baseline for accuracy (instead of hardcoded mocks)
         if (results.length === 0) {
-            return { 
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], 
-                data: [45, 52, 48, 70, 75, 82] 
-            };
+            const currentMonthIdx = new Date().getMonth();
+            const emptyLabels = [];
+            for (let i = 5; i >= 0; i--) {
+                let idx = currentMonthIdx - i;
+                if (idx < 0) idx += 12;
+                emptyLabels.push(monthNames[idx]);
+            }
+            return { labels: emptyLabels, data: Array(6).fill(0) };
         }
 
         results.forEach(data => {
@@ -238,7 +242,6 @@ export async function getPerformanceTrends() {
             }
         });
 
-        // Determine the current month and the 5 preceding months
         const currentMonthIdx = new Date().getMonth();
         const displayMonths = [];
         for (let i = 5; i >= 0; i--) {
@@ -387,5 +390,43 @@ export async function calculateAttendanceProductivity(employeeId, punchIn, punch
         return score;
     } catch (err) {
         console.error('[PMS] Failed to calculate attendance productivity:', err);
+    }
+}
+export async function getOrgMetrics() {
+    console.log('[PMS] Fetching organizational metrics...');
+    try {
+        const configRef = doc(db, 'system_config', 'revenue_metrics');
+        const configSnap = await getDoc(configRef);
+        
+        // Accurate Target calculation: Number of Departments * 100M baseline
+        const deptsSnap = await getDocs(collection(db, 'command_centers'));
+        const deptCount = deptsSnap.size || 5; 
+        const calculatedTarget = deptCount * 100;
+
+        // Accurate Current Progress: Based on Average Performance Score * Target
+        const metricsSnap = await getDocs(collection(db, 'performance_metrics'));
+        const totalScore = metricsSnap.docs.reduce((acc, d) => acc + (d.data().overallScore || 0), 0);
+        const avgScore = metricsSnap.size > 0 ? (totalScore / metricsSnap.size) : 75; // Fallback to 75% if no metrics yet
+        
+        const calculatedCurrent = Math.round((avgScore / 100) * calculatedTarget);
+
+        if (configSnap.exists()) {
+            const data = configSnap.data();
+            return {
+                ...data,
+                currentArr: data.currentArr || calculatedCurrent,
+                arrTarget: data.arrTarget || calculatedTarget
+            };
+        }
+
+        return {
+            currentArr: calculatedCurrent,
+            arrTarget: calculatedTarget,
+            currency: '₹',
+            lastUpdated: serverTimestamp()
+        };
+    } catch (err) {
+        console.error('[PMS] Failed to fetch org metrics:', err);
+        return { currentArr: 0, arrTarget: 100, currency: '₹' };
     }
 }

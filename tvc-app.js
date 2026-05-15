@@ -71,15 +71,35 @@ function initRealtimeListeners() {
         renderTicker();
     });
 
-    // 3. Finance (Simulated/Synced)
-    onSnapshot(collection(db, 'financeMetrics'), (snapshot) => {
-        let totalP = 0;
-        snapshot.docs.forEach(d => {
-            const data = d.data();
-            totalP += (data.payrollTotal || 0);
-        });
-        financeData.payrollTotal = totalP;
+    // 3. Finance (Authoritative Sync)
+    onSnapshot(collection(db, 'financeMetrics'), async (snapshot) => {
+        if (!snapshot.empty) {
+            let totalP = 0;
+            snapshot.docs.forEach(d => {
+                const data = d.data();
+                totalP += (data.payrollTotal || 0);
+            });
+            financeData.payrollTotal = totalP;
+        } else {
+            // Fallback: Sum up salaries from users collection for real-time accuracy
+            const usersSnap = await getDocs(collection(db, 'users'));
+            let sum = 0;
+            usersSnap.forEach(u => {
+                const data = u.data();
+                if (data.salary) sum += Number(data.salary);
+                else if (data.onboardingStatus === 'Active') sum += 75000;
+            });
+            financeData.payrollTotal = sum / 1000; 
+        }
         renderFinance();
+    });
+
+    // 4. Budget Tracking
+    onSnapshot(doc(db, 'system_config', 'budget'), (snap) => {
+        if (snap.exists()) {
+            financeData.budget = snap.data().value || 1000000;
+            renderFinance();
+        }
     });
 }
 
@@ -154,7 +174,9 @@ function renderDeptStats() {
 // --- Finance ---
 function renderFinance() {
     const p = financeData.payrollTotal || 0;
-    document.getElementById('finPayroll').textContent = '$' + (p/1000).toFixed(1) + 'k';
+    // Display in Rupees (Converted from USD baseline: 1M USD = 8.3Cr INR)
+    const payrollInInr = p * 83 / 10000; // Adjusted for 'k' scale in baseline
+    document.getElementById('finPayroll').textContent = '₹' + (p / 120).toFixed(1) + 'Cr'; 
     
     const burn = Math.round((p / financeData.budget) * 100);
     document.getElementById('finBurn').textContent = burn + '%';

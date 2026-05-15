@@ -121,6 +121,38 @@
             color: var(--text-muted);
             font-weight: 600;
         }
+
+        /* Centered Status Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 32px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .status-modal { transform: scale(1); }
+        .modal-icon {
+            width: 64px; height: 64px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 1.5rem;
+        }
+        .modal-icon.success { background: #dcfce7; color: #10b981; }
+        .modal-icon.info { background: #dbeafe; color: #3b82f6; }
+        
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 
@@ -135,9 +167,12 @@
                 </h1>
             </div>
             <button
-                style="padding: 12px 24px; border-radius: 12px; background: var(--primary); border: none; color: white; font-weight: 800; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);">
-                <i data-lucide="upload-cloud" size="18"></i> Upload Document
+                id="uploadBtn"
+                onclick="document.getElementById('fileInput').click()"
+                style="padding: 12px 24px; border-radius: 12px; background: var(--primary); border: none; color: white; font-weight: 800; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: 0.2s;">
+                <i data-lucide="upload-cloud" size="18"></i> <span id="btnText">Upload Document</span>
             </button>
+            <input type="file" id="fileInput" style="display: none;" onchange="handleFileUpload(event)">
         </header>
 
         <div class="card">
@@ -149,32 +184,32 @@
             </div>
 
             <div class="doc-grid">
-                <div class="doc-item">
+                <div class="doc-item" onclick="downloadDoc('Offer Letter.pdf')">
                     <div class="doc-icon"><i data-lucide="file-text"></i></div>
                     <div class="doc-name">Offer Letter.pdf</div>
                     <div class="doc-meta">Signed • Jan 12, 2026</div>
                 </div>
-                <div class="doc-item">
+                <div class="doc-item" onclick="downloadDoc('NDA Agreement.pdf')">
                     <div class="doc-icon"><i data-lucide="shield-check"></i></div>
                     <div class="doc-name">NDA Agreement.pdf</div>
                     <div class="doc-meta">Signed • Jan 12, 2026</div>
                 </div>
-                <div class="doc-item">
+                <div class="doc-item" onclick="downloadDoc('Payslip_Apr_2026.pdf')">
                     <div class="doc-icon" style="color: var(--danger);"><i data-lucide="file-minus"></i></div>
                     <div class="doc-name">Payslip_Apr_2026.pdf</div>
                     <div class="doc-meta">Generated • May 01, 2026</div>
                 </div>
-                <div class="doc-item">
+                <div class="doc-item" onclick="downloadDoc('Bank Proof.jpg')">
                     <div class="doc-icon"><i data-lucide="landmark"></i></div>
                     <div class="doc-name">Bank Proof.jpg</div>
                     <div class="doc-meta">Verified • May 10, 2026</div>
                 </div>
-                <div class="doc-item">
+                <div class="doc-item" onclick="downloadDoc('PAN Card.pdf')">
                     <div class="doc-icon" style="color: var(--primary);"><i data-lucide="credit-card"></i></div>
                     <div class="doc-name">PAN Card.pdf</div>
                     <div class="doc-meta">Personal ID</div>
                 </div>
-                <div class="doc-item">
+                <div class="doc-item" onclick="downloadDoc('Profile Pic.jpg')">
                     <div class="doc-icon"><i data-lucide="user"></i></div>
                     <div class="doc-name">Profile Pic.jpg</div>
                     <div class="doc-meta">Updated 3m ago</div>
@@ -183,7 +218,84 @@
         </div>
     </div>
 
-    <script>lucide.createIcons();</script>
+    <!-- Status Modal -->
+    <div class="modal-overlay" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon success" id="statusModalIcon"><i data-lucide="check-circle"></i></div>
+            <h2 class="modal-title" id="statusModalTitle">Document Uploaded</h2>
+            <p class="modal-desc" id="statusModalDesc">Your file has been securely encrypted and stored in the HRFlow Document Vault.</p>
+            <button class="modal-btn" onclick="closeStatusModal()">Return to Vault</button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Premium Modal Logic
+        window.showStatusModal = (title, msg, type = 'success') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+            
+            icon.className = `modal-icon ${type}`;
+            icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : '<i data-lucide="info"></i>';
+            
+            overlay.classList.add('active');
+            lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        };
+
+        window.handleFileUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const btn = document.getElementById('uploadBtn');
+            const btnText = document.getElementById('btnText');
+            const originalHtml = btn.innerHTML;
+
+            // Show Uploading State
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.innerHTML = '<div style="width:18px; height:18px; border:2px solid white; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div> <span>Uploading...</span>';
+
+            // Simulate Secure Upload
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerHTML = originalHtml;
+                lucide.createIcons();
+                
+                showStatusModal(
+                    'Upload Successful', 
+                    `The document "${file.name}" has been successfully synchronized with the HRFlow Cloud Vault.`, 
+                    'success'
+                );
+                
+                // Clear input
+                event.target.value = '';
+            }, 2000);
+        };
+
+        window.downloadDoc = (name) => {
+            showStatusModal(
+                'Retrieving File',
+                `Initializing secure encrypted download for "${name}". Your file will be available locally in a moment.`,
+                'info'
+            );
+            
+            // Mock download delay
+            setTimeout(() => {
+                console.log(`✅ Download complete: ${name}`);
+            }, 1500);
+        };
+    </script>
 </body>
 
 </html>

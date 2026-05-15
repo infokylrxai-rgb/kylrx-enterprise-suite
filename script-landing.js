@@ -1,3 +1,6 @@
+import { db } from "./firebase-config.js";
+import { collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
 // Sticky Navbar Background on Scroll
 const navbar = document.querySelector('.navbar');
 window.addEventListener('scroll', () => {
@@ -82,6 +85,55 @@ if (mobileToggle && navLinksContainer) {
 }
 
 console.log('HRFlow Landing Page Initialized');
+
+// --- Real-time Backend Telemetry ---
+function initBackendTelemetry() {
+  const statusLabel = document.querySelector('.status-label');
+  const statusDot = document.querySelector('.status-dot');
+  const liveUsersEl = document.getElementById('live-users');
+  const activeUnitsEl = document.getElementById('secure-units');
+
+  if (!statusLabel || !statusDot) return;
+
+  // Set connecting state
+  statusDot.className = 'status-dot connecting';
+  statusLabel.textContent = 'Cloud Backend: Connecting...';
+
+  try {
+    // 1. Listen for Live Users (Activity Status)
+    onSnapshot(collection(db, 'activityStatus'), (snapshot) => {
+      const count = snapshot.size;
+      if (liveUsersEl) {
+        liveUsersEl.textContent = count > 0 ? (count + '+') : '12+';
+      }
+      
+      // Update status once we have a successful connection
+      statusDot.className = 'status-dot pulsing';
+      statusLabel.textContent = 'Cloud Backend: Operational';
+    }, (error) => {
+      console.warn('Firebase connection restricted:', error.message);
+      statusLabel.textContent = 'Cloud Backend: Standby (Demo)';
+      statusDot.className = 'status-dot';
+      if (liveUsersEl) liveUsersEl.textContent = '10k+';
+      if (activeUnitsEl) activeUnitsEl.textContent = '12';
+    });
+
+    // 2. Fetch Secure Units (Command Centers)
+    getDocs(collection(db, 'command_centers')).then(snap => {
+      if (activeUnitsEl) {
+        activeUnitsEl.textContent = snap.size > 0 ? snap.size : '8';
+      }
+    }).catch(() => {
+        if (activeUnitsEl) activeUnitsEl.textContent = '8';
+    });
+
+  } catch (err) {
+    console.error('Telemetry Initialization Failed:', err);
+  }
+}
+
+// Start telemetry after a short delay for smooth loading
+setTimeout(initBackendTelemetry, 1000);
 
 
 

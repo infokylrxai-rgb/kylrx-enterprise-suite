@@ -207,6 +207,29 @@
             padding: 1.5rem; border-radius: var(--radius);
         }
 
+        /* Centered Modal Styling */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 24px;
+            width: 400px; text-align: center; box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-overlay.active .status-modal { transform: scale(1); }
+        .modal-icon {
+            width: 64px; height: 64px; border-radius: 50%; background: var(--primary-light);
+            color: var(--primary); display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 2rem;
+        }
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.5; }
+
         @media (max-width: 1024px) {
             .sidebar { width: 80px; padding: 1.5rem 1rem; }
             .logo-text, .nav-link span { display: none; }
@@ -251,7 +274,7 @@
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
@@ -302,7 +325,7 @@
                     <a href="#" class="snav-item" data-tab="ai"><i data-lucide="sparkles"></i> AI & Monitoring</a>
                     <a href="#" class="snav-item" data-tab="payroll"><i data-lucide="banknote"></i> Payroll</a>
                     <a href="#" class="snav-item" data-tab="tvc"><i data-lucide="tv"></i> TVC Config</a>
-                    <a href="#" class="snav-item" data-tab="security"><i data-lucide="shield-lock"></i> Security</a>
+                    <a href="#" class="snav-item" data-tab="security"><i data-lucide="shield"></i> Security</a>
                 </div>
 
                 <div class="settings-content"                    <!-- General Settings -->
@@ -715,10 +738,15 @@
                     updatedAt: new Date().toISOString()
                 }, { merge: true });
                 
-                alert(`System ${isLocked ? 'LOCKED' : 'UNLOCKED'} successfully.`);
+                showStatusModal(
+                    `System ${isLocked ? 'Locked' : 'Unlocked'}`,
+                    `The global access control has been successfully updated. All non-admin sessions are now ${isLocked ? 'restricted' : 'active'}.`,
+                    isLocked ? 'lock' : 'unlock',
+                    isLocked ? '#ef4444' : '#10b981'
+                );
             } catch (err) {
                 console.error("Failed to update lock state:", err);
-                alert("Error updating system lock. Please check permissions.");
+                showStatusModal('Action Failed', 'Failed to update system lock. Please check your administrative permissions.', 'alert-triangle', '#ef4444');
                 // Revert UI
                 lockToggle.checked = !isLocked;
                 updateLockUI(!isLocked);
@@ -730,6 +758,32 @@
         if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
     </script>
   <script src="status-widget.js"></script>
+
+    <!-- Centered Success Modal -->
+    <div class="modal-overlay" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon" id="statusModalIcon"><i data-lucide="check-circle"></i></div>
+            <div class="modal-title" id="statusModalTitle">System Updated</div>
+            <p class="modal-desc" id="statusModalDesc">Operational parameters have been successfully synchronized with the cloud.</p>
+            <button class="btn btn-primary" style="width: 100%;" onclick="closeStatusModal()">Dismiss</button>
+        </div>
+    </div>
+
+    <script>
+        function showStatusModal(title, desc, icon = 'check-circle', color = '#3b82f6') {
+            const overlay = document.getElementById('statusModalOverlay');
+            document.getElementById('statusModalTitle').textContent = title;
+            document.getElementById('statusModalDesc').textContent = desc;
+            document.getElementById('statusModalIcon').innerHTML = `<i data-lucide="${icon}"></i>`;
+            document.getElementById('statusModalIcon').style.color = color;
+            document.getElementById('statusModalIcon').style.background = color + '20';
+            overlay.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+        }
+        function closeStatusModal() {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        }
+    </script>
 </body>
 </html>
 

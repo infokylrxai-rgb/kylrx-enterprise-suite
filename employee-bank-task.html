@@ -8,12 +8,12 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
-            --primary: #6366f1;
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --bg: #f0f9ff;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
@@ -29,19 +29,18 @@
             align-items: center;
             justify-content: center;
             background-image: 
-                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.03) 0%, transparent 40%);
         }
 
         .task-card {
             width: 100%;
             max-width: 600px;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 32px;
-            padding: 3rem;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.08);
             animation: fadeIn 0.6s ease-out;
         }
 
@@ -54,7 +53,7 @@
 
         .icon-box {
             width: 80px; height: 80px;
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(59, 130, 246, 0.08);
             color: var(--primary);
             border-radius: 24px;
             display: flex; align-items: center; justify-content: center;
@@ -68,11 +67,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255,255,255,0.02);
+            background: #f8fafc;
             padding: 1rem 1.5rem;
             border-radius: 16px;
             margin-bottom: 2rem;
-            border: 1px solid var(--glass-border);
+            border: 1px solid var(--border);
         }
 
         .status-pill {
@@ -93,22 +92,23 @@
         .form-group label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
         .form-group input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 14px;
             padding: 14px 16px;
-            color: white;
+            color: var(--text);
             font-family: inherit;
             outline: none;
             transition: 0.3s;
+            font-weight: 500;
         }
-        .form-group input:focus { border-color: var(--primary); background: rgba(255,255,255,0.06); }
+        .form-group input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
 
         /* Timeline */
         .timeline {
-            margin-top: 2rem;
+            margin-top: 2.5rem;
             padding-top: 2rem;
-            border-top: 1px solid var(--glass-border);
+            border-top: 1px solid var(--border);
         }
         .timeline-item {
             display: flex;
@@ -116,8 +116,8 @@
             margin-bottom: 1rem;
             font-size: 0.85rem;
         }
-        .timeline-marker { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); margin-top: 6px; flex-shrink: 0; }
-        .timeline-marker.active { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        .timeline-marker { width: 8px; height: 8px; border-radius: 50%; background: var(--border); margin-top: 6px; flex-shrink: 0; }
+        .timeline-marker.active { background: var(--primary); }
 
         .btn {
             width: 100%;
@@ -132,18 +132,51 @@
             margin-top: 1rem;
         }
 
-        .btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5); }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); }
         .btn-primary:hover { transform: translateY(-2px); }
 
         .rejection-box {
-            background: rgba(239, 68, 68, 0.05);
-            border: 1px solid rgba(239, 68, 68, 0.1);
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
             color: var(--danger);
             font-size: 0.9rem;
         }
+
+        /* Status Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 32px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .status-modal { transform: scale(1); }
+        .modal-icon {
+            width: 64px; height: 64px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 1.5rem;
+        }
+        .modal-icon.success { background: #dcfce7; color: #10b981; }
+        .modal-icon.error { background: #fee2e2; color: #ef4444; }
+        
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -198,6 +231,16 @@
         </div>
     </div>
 
+    <!-- Status Modal Overlay -->
+    <div class="modal-overlay" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon success" id="statusModalIcon"><i data-lucide="check-circle"></i></div>
+            <h2 class="modal-title" id="statusModalTitle">Submission Success</h2>
+            <p class="modal-desc" id="statusModalDesc">Message content goes here.</p>
+            <button class="modal-btn" onclick="closeStatusModal()">Dismiss</button>
+        </div>
+    </div>
+
     <script type="module">
         import { db } from "./firebase-config.js";
         import { doc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
@@ -210,6 +253,28 @@
         const statusLabel = document.getElementById('statusLabel');
         const rejectionMsg = document.getElementById('rejectionMsg');
         const feedbackText = document.getElementById('feedbackText');
+
+        // Modal Logic
+        window.showStatusModal = (title, msg, type = 'success') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+            
+            icon.className = `modal-icon ${type}`;
+            icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : '<i data-lucide="x-circle"></i>';
+            
+            overlay.classList.add('active');
+            lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+            window.location.reload();
+        };
 
         async function loadStatus() {
             const snap = await getDoc(doc(db, 'bank_verifications', empId));
@@ -279,11 +344,18 @@
 
             try {
                 await submitBankDetails(empId, details);
-                alert("Bank details submitted successfully! Our finance team will review them within 24 hours.");
-                window.location.reload();
+                showStatusModal(
+                    'Details Submitted',
+                    'Your bank details have been successfully synchronized with the finance cloud. Our team will verify them within 24 hours.',
+                    'success'
+                );
             } catch (err) {
                 console.error(err);
-                alert("Submission failed. Please try again.");
+                showStatusModal(
+                    'Submission Failed',
+                    'An error occurred during secure synchronization. Please check your network and try again.',
+                    'error'
+                );
                 btn.disabled = false;
                 btn.innerHTML = 'Submit for Verification <i data-lucide="send" size="18"></i>';
             }

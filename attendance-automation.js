@@ -34,15 +34,16 @@ class AttendanceAutomation {
 
     async checkEmployeeCompliance(userId, userData) {
         // Fetch last 7 attendance records to check for patterns
+        // Simplified query to avoid composite index (Secondary sorting in JS)
         const q = query(
             this.attColl,
-            where("userId", "==", userId),
-            orderBy("timestamp", "desc"),
-            limit(7)
+            where("userId", "==", userId)
         );
 
         const snap = await getDocs(q);
-        const records = snap.docs.map(d => d.data());
+        const records = snap.docs.map(d => d.data())
+            .sort((a, b) => (b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp)) - (a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp)))
+            .slice(0, 7);
         
         let deficitDays = 0;
         records.forEach(rec => {
@@ -75,14 +76,16 @@ class AttendanceAutomation {
         if (!deptId) return;
 
         // Find manager for this department
+        // Simplified query to avoid composite index (Secondary filter in JS)
         const mq = query(
             this.userColl,
-            where("role", "==", "manager"),
-            where("departmentId", "==", deptId)
+            where("role", "==", "manager")
         );
 
         const mSnap = await getDocs(mq);
-        mSnap.forEach(async (mDoc) => {
+        const managers = mSnap.docs.filter(mDoc => mDoc.data().departmentId === deptId);
+        
+        managers.forEach(async (mDoc) => {
             await addDoc(this.notifColl, {
                 target: mDoc.id,
                 type: "Productivity Alert",
