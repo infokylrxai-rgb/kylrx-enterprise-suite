@@ -150,7 +150,22 @@ export async function getDepartments() {
         const oldSnap = await getDocs(collection(db, 'departments'));
         return oldSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     }
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return snap.docs.map(d => {
+        const data = d.data();
+        let name = data.name || data.departmentName || 'Unnamed';
+        if (data.targetType) {
+            const targetSuffix = data.targetType === 'Manager Suite' ? 'Manager' : 'Employee';
+            if (!name.toLowerCase().includes('manager') && !name.toLowerCase().includes('employee')) {
+                name = `${name} ${targetSuffix}`;
+            }
+        }
+        return {
+            id: d.id,
+            ...data,
+            name: name,
+            departmentName: name
+        };
+    });
 }
 
 export async function getManagers() {

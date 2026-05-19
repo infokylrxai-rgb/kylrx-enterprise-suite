@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Command Center | HRFlow</title>
+    <title>Manager Command Center | Kylrx AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -335,8 +335,9 @@
             </div>
             
             <nav class="nav-menu">
-                <div class="nav-label">COMMAND</div>
-                <div class="nav-item"><a href="manager-dashboard.html" id="overviewLink" class="nav-link active"><i data-lucide="layout"></i><span>Overview</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Workforce', 'Real-time personnel monitoring is active for this unit.')"><i data-lucide="users"></i><span>Workforce</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Security', 'TVC Live Telemetry is currently monitoring all active stations.')"><i data-lucide="shield-check"></i><span>Security</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Performance', 'AI Predictive Analytics are being calculated based on current focus scores.')"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
@@ -602,7 +603,7 @@
                             const att = attendanceMap[u.id];
                             let liveStatus = u.status || 'Active';
                             if (att && att.punchIn) {
-                                liveStatus = att.punchOut ? 'Shift Completed' : 'Punched In';
+                                 liveStatus = att.punchOut ? 'Shift Completed' : 'Online';
                             } else if (u.status === 'Completed' || !u.status) {
                                 liveStatus = 'Available (Offline)';
                             }
@@ -622,7 +623,7 @@
         }
 
         function updateTeleStats(users) {
-            const activeCount = users.filter(u => u.status === 'Punched In').length;
+            const activeCount = users.filter(u => u.status === 'Online').length;
             const offlineCount = users.length - activeCount;
             
             const activeBox = document.querySelector('.tele-box.active .tele-val');
@@ -645,7 +646,7 @@
                 <tr>
                     <td>${u.name || 'Unknown Employee'}</td>
                     <td>${u.designation || u.role || 'Personnel'}</td>
-                    <td><span style="color:${(u.status || '').includes('Punched') || u.status === 'Active' ? 'var(--success)' : 'var(--text-muted)'}">● ${u.status || 'Active'}</span></td>
+                    <td><span style="color:${(u.status || '').includes('Online') || u.status === 'Active' ? 'var(--success)' : 'var(--text-muted)'}">● ${u.status || 'Active'}</span></td>
                 </tr>
             `).join('');
         }

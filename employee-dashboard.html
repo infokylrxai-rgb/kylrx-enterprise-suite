@@ -47,6 +47,25 @@
             display: flex;
             flex-direction: column;
             z-index: 100;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(59, 130, 246, 0.1) transparent;
+        }
+
+        /* Custom Slide Bar (Scrollbar) */
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .sidebar:hover::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.2);
         }
 
         .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
@@ -383,6 +402,27 @@
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Document Vault', 'Document Vault is secured.', 'success')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="document.getElementById('hrMessageModal').style.display='flex'"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="toggleNotifications()"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item">
+                    <div class="nav-link" style="cursor: pointer; justify-content: space-between;" onclick="toggleAppsMenu()">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i data-lucide="grid"></i>
+                            <span>Apps</span>
+                        </div>
+                        <i data-lucide="chevron-down" id="appsChevron" style="width: 16px; transition: 0.3s;"></i>
+                    </div>
+                    <!-- Collapsible Apps Dropdown -->
+                    <div id="appsDropdown" style="display: none; flex-direction: column; padding-left: 2rem; margin-top: 4px; gap: 4px;">
+                        <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;">
+                            <!-- Dynamic Apps from Firebase will render here -->
+                        </div>
+                        
+                        <!-- Add Custom App Input -->
+                        <div style="padding: 8px 12px; display: flex; gap: 6px; align-items: center;">
+                            <input type="text" id="appUrlInput" placeholder="Add URL (e.g. canvas.com)" style="flex: 1; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.75rem; outline: none; width: 100%;">
+                            <button onclick="addCustomApp()" style="background: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Add</button>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="nav-label">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Policy Hub', 'Policy Hub is updated.', 'info')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
@@ -600,7 +640,7 @@
         import { attendanceEngine } from "./attendance-engine.js";
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, query, where, getDoc, getDocs, onSnapshot, addDoc, serverTimestamp, orderBy, limit, doc, setDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         lucide.createIcons();
 
@@ -658,29 +698,34 @@
         const centerId = urlParams.get('id');
 
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                const userDocRef = doc(db, 'users', user.uid);
+            const activeUid = user ? user.uid : localStorage.getItem('employee_uid');
+            
+            if (activeUid) {
+                const userDocRef = doc(db, 'users', activeUid);
                 
                 // Live Dashboard & Profile Sync
                 onSnapshot(userDocRef, (snap) => {
                     if (snap.exists()) {
                         const data = snap.data();
-                        const fullData = { ...user, ...data };
+                        const fullData = { uid: activeUid, ...data };
+                        currentUser = fullData;
                         loadDashboardData(fullData);
                         
                         // Hydrate Leave
                         const balances = data.leaveBalances || { paid: 12, sick: 4, comp: 2 };
                         const total = (balances.paid || 0) + (balances.sick || 0) + (balances.comp || 0);
-                        document.getElementById('dashboardLeaveBal').textContent = total;
+                        const leaveBalEl = document.getElementById('dashboardLeaveBal');
+                        if (leaveBalEl) leaveBalEl.textContent = total;
                         
                         // Hydrate Team
-                        const dept = data.department || 'Cybersecurity';
-                        document.getElementById('deptBadge').textContent = dept;
+                        const dept = data.departmentName || data.department || 'Cybersecurity';
+                        const deptBadge = document.getElementById('deptBadge');
+                        if (deptBadge) deptBadge.textContent = dept;
                         loadTeamMembers(dept);
                         
-                        syncNotifications(user.uid);
-                        syncMessagesCount(user.uid);
+                        syncNotifications(activeUid);
+                        syncMessagesCount(activeUid);
+                        initApps();
                     }
                 });
             } else {
@@ -694,10 +739,12 @@
                 currentUser = demoData;
                 loadDashboardData(demoData);
                 
-                document.getElementById('deptBadge').textContent = demoData.department;
+                const deptBadge = document.getElementById('deptBadge');
+                if (deptBadge) deptBadge.textContent = demoData.department;
                 loadTeamMembers(demoData.department);
                 syncNotifications(demoData.uid);
                 syncMessagesCount(demoData.uid);
+                initApps();
             }
 
             if (centerId) {
@@ -712,6 +759,10 @@
 
         window.handleLogout = async () => {
             try {
+                localStorage.removeItem('employee_uid');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('userDept');
                 await auth.signOut();
                 window.location.href = 'index.html';
             } catch (e) {
@@ -720,7 +771,7 @@
             }
         };
 
-        function hydrateEmployeePortal(config) {
+         function hydrateEmployeePortal(config) {
             const logoText = document.querySelector('.logo-text');
             const logoIcon = document.querySelector('.logo-icon');
             const greeting = document.getElementById('greeting');
@@ -735,6 +786,19 @@
 
             if (config.icon && logoIcon) {
                 logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
+            }
+
+            // Authoritatively bind and render Enterprise Builder configured Apps
+            if (config.apps && Array.isArray(config.apps)) {
+                if (appsListener) {
+                    appsListener(); // Terminate user-level personal listener
+                    appsListener = null;
+                }
+                const formattedApps = config.apps.map(app => ({
+                    name: app.name,
+                    url: app.link || app.url
+                }));
+                renderAppsUI(formattedApps, true);
             }
 
             lucide.createIcons();
@@ -1184,9 +1248,104 @@
             
             lucide.createIcons();
         };
-    </script>
+
+        // --- Connected Apps Hub (Cloud-Synchronized) ---
+        const DEFAULT_APPS = [
+            { name: "GITHUB", url: "https://github.com" },
+            { name: "CANVAS", url: "https://canvas.instructure.com" },
+            { name: "SLACK", url: "https://slack.com" },
+            { name: "JIRA", url: "https://atlassian.com" }
+        ];
+
+        let appsListener = null;
+
+        window.initApps = async () => {
+            if (appsListener) appsListener();
+            const userId = currentUser ? currentUser.uid : 'demo_emp';
+            const appsRef = doc(db, "employee_apps", userId);
+
+            // Listen for real-time updates from Firestore
+            appsListener = onSnapshot(appsRef, async (snapshot) => {
+                let apps = [];
+                if (snapshot.exists()) {
+                    apps = snapshot.data().apps || [];
+                } else {
+                    // Seed with defaults on first load
+                    await setDoc(appsRef, { apps: DEFAULT_APPS });
+                    apps = DEFAULT_APPS;
+                }
+                renderAppsUI(apps);
+            });
+        };
+
+        function renderAppsUI(apps, isAuthoritative = false) {
+            const list = document.getElementById('customAppsList');
+            if (!list) return;
             
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative; margin-bottom: 2px;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    ${isAuthoritative ? '' : `
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.4; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                    `}
+                </div>
+            `).join('');
+
+            // Hide or show the custom app addition form based on authority
+            const addForm = document.querySelector('#appsDropdown > div:last-child');
+            if (addForm) {
+                addForm.style.display = isAuthoritative ? 'none' : 'flex';
+            }
+
             lucide.createIcons();
+        }
+
+        window.addCustomApp = async () => {
+            const input = document.getElementById('appUrlInput');
+            const url = input.value.trim();
+            if (!url) return;
+
+            try {
+                let cleanUrl = url;
+                if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+                const urlObj = new URL(cleanUrl);
+                const domain = urlObj.hostname.replace('www.', '');
+                const appName = domain.split('.')[0].toUpperCase();
+
+                const userId = currentUser ? currentUser.uid : 'demo_emp';
+                const appsRef = doc(db, "employee_apps", userId);
+
+                await setDoc(appsRef, {
+                    apps: arrayUnion({ name: appName, url: cleanUrl })
+                }, { merge: true });
+
+                input.value = '';
+            } catch (e) {
+                alert("Please enter a valid URL structure.");
+            }
+        };
+
+        window.removeAppFromServer = async (url, name) => {
+            const userId = currentUser ? currentUser.uid : 'demo_emp';
+            const appsRef = doc(db, "employee_apps", userId);
+            await setDoc(appsRef, {
+                apps: arrayRemove({ name: name, url: url })
+            }, { merge: true });
+        };
+
+        window.toggleAppsMenu = () => {
+            const dropdown = document.getElementById('appsDropdown');
+            const chevron = document.getElementById('appsChevron');
+            if (!dropdown || !chevron) return;
+            
+            const isVisible = dropdown.style.display === 'flex';
+            dropdown.style.display = isVisible ? 'none' : 'flex';
+            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
         };
     </script>
 </body>

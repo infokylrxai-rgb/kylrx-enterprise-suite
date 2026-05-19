@@ -454,7 +454,13 @@
                 
                 snap.docs.forEach(doc => {
                     const d = doc.data();
-                    const name = d.departmentName || d.name || 'Unknown Unit';
+                    let name = d.departmentName || d.name || 'Unknown Unit';
+                    if (d.targetType) {
+                        const targetSuffix = d.targetType === 'Manager Suite' ? 'Manager' : 'Employee';
+                        if (!name.toLowerCase().includes('manager') && !name.toLowerCase().includes('employee')) {
+                            name = `${name} ${targetSuffix}`;
+                        }
+                    }
                     deptMap[doc.id] = name;
                     
                     if (deptList) {

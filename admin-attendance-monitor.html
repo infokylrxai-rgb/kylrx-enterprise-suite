@@ -25,9 +25,10 @@
         }
 
         .log-row {
-            display: grid; grid-template-columns: 100px 1fr 120px 100px;
+            display: grid; grid-template-columns: 100px 100px 1fr 120px 60px;
             padding: 1.25rem; background: #f8fafc; border-radius: 16px;
             align-items: center; border: 1px solid transparent; transition: 0.2s;
+            gap: 1rem;
         }
 
         .log-row:hover { border-color: var(--primary-soft); background: white; }
@@ -205,6 +206,7 @@
                         <div class="attendance-timeline">
                             <div class="log-row">
                                 <span class="time-badge">09:02 AM</span>
+                                <span class="time-badge" style="color: var(--text-muted);">06:05 PM</span>
                                 <div><h4 style="font-size: 0.9rem; font-weight: 700;">Arjun Mehta</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Engineering • Shift A</p></div>
                                 <span class="status-badge status-present">On-Time</span>
                                 <i data-lucide="map-pin" size="16" style="color: var(--text-muted); justify-self: end;"></i>
@@ -324,12 +326,16 @@
                         row.className = 'log-row';
                         
                         const punchIn = log.punchIn?.toDate ? log.punchIn.toDate() : (log.punchIn ? new Date(log.punchIn) : null);
-                        const timeStr = punchIn ? punchIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        const punchOut = log.punchOut?.toDate ? log.punchOut.toDate() : (log.punchOut ? new Date(log.punchOut) : null);
+                        
+                        const inStr = punchIn ? punchIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        const outStr = punchOut ? punchOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
                         
                         const statusClass = log.status === 'On-Time' ? 'status-present' : (log.status === 'Late' ? 'status-late' : 'status-missing');
                         
                         row.innerHTML = `
-                            <span class="time-badge" style="color: ${log.status === 'Late' ? '#f59e0b' : (log.status === 'Missing' ? '#ef4444' : 'var(--primary)')}">${timeStr}</span>
+                            <span class="time-badge" style="color: ${log.status === 'Late' ? '#f59e0b' : (log.status === 'Missing' ? '#ef4444' : 'var(--primary)')}">${inStr}</span>
+                            <span class="time-badge" style="color: var(--text-muted);">${outStr}</span>
                             <div>
                                 <h4 style="font-size: 0.9rem; font-weight: 700;">${log.userName || 'Employee'}</h4>
                                 <p style="font-size: 0.75rem; color: var(--text-muted);">${log.department || 'General'} • ${log.type || 'Office'}</p>

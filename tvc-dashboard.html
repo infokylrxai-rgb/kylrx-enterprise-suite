@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Command Center (TVC)</title>
+    <title>Kylrx Workforce Command Center</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏢%3C/text%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,6 +141,62 @@
         .ai-status { display: flex; align-items: center; gap: 8px; color: var(--success); }
         .ai-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
+        
+        /* Tab Navigation */
+        .tvc-tabs {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            padding: 0 1rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+        .tvc-tab-btn {
+            padding: 12px 0;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tvc-tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .tvc-tab-btn i { width: 16px; height: 16px; }
+
+        .tab-pane { display: none; height: 100%; flex-direction: column; gap: 1.5rem; }
+        .tab-pane.active { display: flex; }
+
+        /* Security Log Styles */
+        .security-log-container {
+            flex: 1;
+            background: var(--surface-bg);
+            border: 1px solid var(--surface-border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .log-entry {
+            display: grid;
+            grid-template-columns: 180px 150px 1fr;
+            padding: 12px;
+            border-bottom: 1px solid var(--bg-base);
+            font-size: 0.85rem;
+            align-items: center;
+        }
+        .log-entry:hover { background: var(--bg-base); }
+        .log-time { color: var(--text-muted); font-family: 'Roboto Mono', monospace; }
+        .log-type { font-weight: 800; font-size: 0.7rem; text-transform: uppercase; padding: 4px 8px; border-radius: 4px; width: fit-content; }
+        .type-tab { background: #fef2f2; color: #ef4444; }
+        .type-focus { background: #fff7ed; color: #f97316; }
+        .type-active { background: #f0fdf4; color: #16a34a; }
+        .log-msg { font-weight: 600; }
 
         /* Layout Grid */
         .tvc-grid { display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: repeat(6, 1fr); gap: 1.5rem; flex: 1; overflow: hidden; }
@@ -227,7 +283,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
-                <span class="logo-text">HRFlow</span>
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
             </a>
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
@@ -246,6 +302,7 @@
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
                 <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
@@ -284,7 +341,12 @@
             <div class="top-bar">
                 <div class="ai-status">
                     <div class="ai-dot"></div>
-                    <span>Enterprise Command Center // <span style="color: #10b981;">CLOUD LINK ACTIVE</span></span>
+                    <span>Kylrx AI Command Center // <span style="color: #10b981;">CLOUD LINK ACTIVE</span></span>
+                </div>
+                <div style="width: 1px; height: 16px; background: var(--surface-border);"></div>
+                
+                <div class="tvc-tabs" style="border-bottom: none; margin-bottom: 0; padding: 0;">
+                    <button class="tvc-tab-btn active"><i data-lucide="monitor"></i> Workforce Monitor</button>
                 </div>
                 <div style="width: 1px; height: 16px; background: var(--surface-border);"></div>
                 
@@ -313,7 +375,10 @@
                 </div>
             </div>
 
-            <div class="tvc-grid">
+            </div>
+
+            <div id="monitorPane" class="tab-pane active">
+                <div class="tvc-grid">
                 <!-- Workforce Telemetry (W8 R4) -->
                 <div class="widget w-8 r-4">
                     <div class="widget-header">
@@ -332,9 +397,16 @@
                 <!-- AI Predictions (W4 R3) -->
                 <div class="widget w-4 r-3">
                     <div class="widget-header">
-                        <div class="widget-title">AI Predictive Insights</div>
-                        <i data-lucide="brain-circuit" onclick="location.href='admin-onboarding-ai.html'" style="color: var(--accent); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
+                        <div class="widget-title">Live Punch Feed</div>
+                        <i data-lucide="clock" style="color: var(--accent);"></i>
                     </div>
+                    <div id="punchFeed" style="overflow-y: auto; height: 180px; padding: 10px; font-size: 0.75rem;">
+                        <div style="text-align: center; color: var(--text-muted); padding-top: 2rem;">
+                            <i data-lucide="activity" class="animate-pulse"></i>
+                            <p>Awaiting live events...</p>
+                        </div>
+                    </div>
+                </div>
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                         <div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;"><span>Burnout Probability</span><span id="burnoutVal">Loading...</span></div>
@@ -374,6 +446,7 @@
                     </div>
                 </div>
             </div>
+
         </main>
 
         <!-- Config Sidebar -->
@@ -548,140 +621,276 @@
             btnBreak.style.background = "#f59e0b";
             lucide.createIcons();
         };
-        // --- Live Workforce Telemetry & AI Compliance Engine ---
+        // ============================================================
+        // FLAT STATE-DRIVEN TELEMETRY ENGINE
+        // Fixes blank grid: renders ALL users from 'users' collection
+        // regardless of attendance status.
+        // Also fires under-hours manager alerts for < 4h shifts.
+        // ============================================================
+        const _state = { users: [], activity: {}, attendance: {}, adminSessions: [] };
+        const _alertedUsers = new Set(); // prevent duplicate alerts per session
+
         function initTelemetry() {
-            const grid = document.getElementById('telemetryGrid');
             const today = new Date().toISOString().split('T')[0];
-            
-            // Listen to all users (personnel)
-            onSnapshot(collection(db, "users"), (userSnap) => {
-                const users = userSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .filter(u => u.role !== 'admin');
 
-                // Listen to Real-time activity (Online/Offline/Scores)
-                onSnapshot(collection(db, "activityStatus"), (activitySnap) => {
-                    const activityMap = {};
-                    activitySnap.docs.forEach(doc => {
-                        activityMap[doc.id] = doc.data();
-                    });
+            // Listener 1 – All users (employees + managers, excluding admins)
+            onSnapshot(collection(db, 'users'), snap => {
+                _state.users = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .filter(u => (u.role || '').toLowerCase() !== 'admin');
+                renderGrid();
+            });
 
-                    // Listen to today's attendance records to sync punch data
-                    onSnapshot(collection(db, "attendance"), (attSnap) => {
-                        const attendanceMap = {};
-                        attSnap.docs.forEach(doc => {
-                            if (doc.id.includes(today)) {
-                                const empId = doc.id.split('_')[0];
-                                attendanceMap[empId] = doc.data();
-                            }
-                        });
+            // Listener 2 – Live activity status
+            onSnapshot(collection(db, 'activityStatus'), snap => {
+                _state.activity = {};
+                snap.docs.forEach(d => { _state.activity[d.id] = d.data(); });
+                renderGrid();
+            });
 
-                        // Listen to today's admin sessions
-                        onSnapshot(collection(db, "admin_sessions"), (adminSnap) => {
-                            const adminSessions = [];
-                            adminSnap.docs.forEach(doc => {
-                                if (doc.id.includes(today)) {
-                                    adminSessions.push({ id: doc.id, ...doc.data() });
-                                }
-                            });
-
-                            const allCards = [];
-
-                            // 1. Process Admin Cards
-                            adminSessions.forEach(admin => {
-                                let hoursWorked = 0;
-                                let statusText = admin.status || "IDLE";
-                                let statusColor = "var(--text-muted)";
-                                
-                                if (admin.punchIn) {
-                                    const pIn = admin.punchIn.toDate ? admin.punchIn.toDate() : new Date(admin.punchIn);
-                                    const pOut = admin.punchOut ? (admin.punchOut.toDate ? admin.punchOut.toDate() : new Date(admin.punchOut)) : new Date();
-                                    hoursWorked = Math.max(0, (pOut - pIn) / 3600000).toFixed(1);
-                                    statusColor = admin.status === 'Active' ? "var(--success)" : "var(--warning)";
-                                }
-
-                                allCards.push(renderTeleCard({
-                                    name: admin.name || "System Admin",
-                                    department: admin.department || "Executive",
-                                    statusText: statusText,
-                                    statusColor: statusColor,
-                                    hoursWorked: hoursWorked,
-                                    eff: 100,
-                                    isCommander: true
-                                }));
-                            });
-
-                            // 2. Process Employee Cards
-                            users.forEach(user => {
-                                const attendance = attendanceMap[user.id];
-                                const activity = activityMap[user.id];
-                                
-                                let hoursWorked = 0;
-                                let statusText = "OFFLINE";
-                                let statusColor = "var(--text-muted)";
-                                let eff = activity ? (activity.aiProductivityScore || (activity.status === 'Online' ? 75 : 0)) : 0;
-                                
-                                if (activity && activity.status === 'Online') {
-                                    statusText = "ONLINE";
-                                    statusColor = "var(--success)";
-                                } else if (attendance && attendance.punchIn) {
-                                    statusText = attendance.punchOut ? "SHIFT COMPLETED" : "IDLE";
-                                    statusColor = attendance.punchOut ? "var(--primary)" : "var(--warning)";
-                                }
-
-                                if (attendance && attendance.punchIn) {
-                                    const pIn = attendance.punchIn.toDate ? attendance.punchIn.toDate() : new Date(attendance.punchIn);
-                                    const pOut = attendance.punchOut ? (attendance.punchOut.toDate ? attendance.punchOut.toDate() : new Date(attendance.punchOut)) : new Date();
-                                    hoursWorked = Math.max(0, (pOut - pIn) / 3600000).toFixed(1);
-                                }
-
-                                allCards.push(renderTeleCard({
-                                    name: user.name || "Unknown",
-                                    department: (user.departmentName || user.department || "General").replace('Cyberseruity', 'Cybersecurity'),
-                                    statusText: statusText,
-                                    statusColor: statusColor,
-                                    hoursWorked: hoursWorked,
-                                    eff: eff,
-                                    isCommander: false
-                                }));
-                            });
-
-                            grid.innerHTML = allCards.join('');
-                            lucide.createIcons();
-                        });
-                    });
+            // Listener 3 – Today's attendance records
+            onSnapshot(collection(db, 'attendance'), snap => {
+                _state.attendance = {};
+                snap.docs.forEach(d => {
+                    if (d.id.includes(today)) {
+                        const empId = d.id.split('_')[0];
+                        _state.attendance[empId] = { id: d.id, ...d.data() };
+                    }
                 });
+                renderGrid();
+                checkUnderHours();  // ← trigger alert check on every attendance update
+            });
+
+            // Listener 4 – Today's admin / manager sessions
+            onSnapshot(collection(db, 'admin_sessions'), snap => {
+                _state.adminSessions = snap.docs
+                    .filter(d => d.id.includes(today))
+                    .map(d => ({ id: d.id, ...d.data() }));
+                renderGrid();
             });
         }
 
+        function renderGrid() {
+            const grid = document.getElementById('telemetryGrid');
+            if (!grid) return;
+
+            const allCards = [];
+
+            // --- Admin / Commander cards ---
+            _state.adminSessions.forEach(admin => {
+                let hoursWorked = 0;
+                let statusText = admin.status || 'IDLE';
+                let statusColor = 'var(--text-muted)';
+
+                if (admin.punchIn) {
+                    const pIn  = admin.punchIn.toDate  ? admin.punchIn.toDate()  : new Date(admin.punchIn);
+                    const pOut = admin.punchOut ? (admin.punchOut.toDate ? admin.punchOut.toDate() : new Date(admin.punchOut)) : new Date();
+                    hoursWorked = Math.max(0, (pOut - pIn) / 3600000).toFixed(1);
+                    statusColor = admin.status === 'Active' ? 'var(--success)' : 'var(--warning)';
+                }
+
+                allCards.push(renderTeleCard({
+                    id: admin.userId || admin.id,
+                    name: admin.name || 'System Admin',
+                    role: 'Admin',
+                    department: admin.department || 'Executive',
+                    statusText, statusColor, hoursWorked, eff: 100, isCommander: true
+                }));
+            });
+
+            // --- Employee / Manager cards ---
+            _state.users.forEach(user => {
+                const att      = _state.attendance[user.id];
+                const activity = _state.activity[user.id];
+
+                let hoursWorked = 0;
+                let statusText  = 'OFFLINE';
+                let statusColor = 'var(--text-muted)';
+                let eff = activity
+                    ? (activity.aiProductivityScore || (activity.status === 'Online' ? 75 : 0))
+                    : 0;
+
+                // Determine status
+                if (activity && activity.status === 'Online') {
+                    statusText  = 'ONLINE';
+                    statusColor = 'var(--success)';
+                } else if (att && att.punchIn) {
+                    statusText  = att.punchOut ? 'SHIFT COMPLETED' : 'ONLINE';
+                    statusColor = att.punchOut ? 'var(--primary)' : 'var(--success)';
+                }
+
+                // Calculate hours worked
+                if (att && att.punchIn) {
+                    const pIn  = att.punchIn.toDate  ? att.punchIn.toDate()  : new Date(att.punchIn);
+                    const pOut = att.punchOut ? (att.punchOut.toDate ? att.punchOut.toDate() : new Date(att.punchOut)) : new Date();
+                    hoursWorked = Math.max(0, (pOut - pIn) / 3600000).toFixed(1);
+                }
+
+                allCards.push(renderTeleCard({
+                    id: user.id,
+                    name: user.name || 'Unknown',
+                    role: (user.role || 'employee'),
+                    department: (user.departmentName || user.department || 'General').replace('Cyberseruity','Cybersecurity'),
+                    statusText, statusColor, hoursWorked, eff, isCommander: false
+                }));
+            });
+
+            // If nothing to show yet, display a helpful message
+            if (allCards.length === 0) {
+                grid.innerHTML = `<div style="grid-column:span 5;text-align:center;padding:3rem;color:var(--text-muted);">
+                    <i data-lucide="users" style="width:48px;height:48px;opacity:0.3;margin-bottom:1rem;"></i>
+                    <p style="font-weight:700;">No workforce data yet.</p>
+                    <p style="font-size:0.8rem;margin-top:6px;">Add employees via <a href="admin-dashboard.html" style="color:var(--primary);">Admin Console</a>.</p>
+                </div>`;
+            } else {
+                grid.innerHTML = allCards.join('');
+            }
+
+            updatePunchFeed(_state.attendance, _state.adminSessions);
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // ============================================================
+        // UNDER-HOURS ALERT ENGINE
+        // If employee punches out with < 4 hours, write a Firestore
+        // notification to the manager's notifications collection.
+        // ============================================================
+        async function checkUnderHours() {
+            const THRESHOLD_HOURS = 4;
+
+            for (const [empId, att] of Object.entries(_state.attendance)) {
+                // Only trigger when punch-out exists
+                if (!att.punchOut || _alertedUsers.has(empId)) continue;
+
+                const pIn  = att.punchIn.toDate  ? att.punchIn.toDate()  : new Date(att.punchIn);
+                const pOut = att.punchOut.toDate ? att.punchOut.toDate() : new Date(att.punchOut);
+                const hrs  = (pOut - pIn) / 3600000;
+
+                if (hrs < THRESHOLD_HOURS) {
+                    _alertedUsers.add(empId); // prevent re-triggering
+
+                    const user = _state.users.find(u => u.id === empId);
+                    const empName = user ? (user.name || 'Unknown Employee') : 'Unknown Employee';
+                    const dept    = user ? (user.departmentName || user.department || 'General') : 'General';
+                    const managerId = user ? (user.managerId || user.managerUid || null) : null;
+
+                    const alertPayload = {
+                        type: 'UNDER_HOURS_ALERT',
+                        employeeId: empId,
+                        employeeName: empName,
+                        department: dept,
+                        hoursWorked: parseFloat(hrs.toFixed(2)),
+                        threshold: THRESHOLD_HOURS,
+                        message: `⚠️ ${empName} (${dept}) worked only ${hrs.toFixed(1)}h today — below the 4-hour minimum.`,
+                        status: 'unread',
+                        createdAt: serverTimestamp(),
+                        date: new Date().toISOString().split('T')[0]
+                    };
+
+                    try {
+                        // Write to global notifications (admin-readable)
+                        await setDoc(
+                            doc(db, 'notifications', `underHours_${empId}_${alertPayload.date}`),
+                            alertPayload,
+                            { merge: true }
+                        );
+
+                        // If we know the manager UID, also write to their personal feed
+                        if (managerId) {
+                            await setDoc(
+                                doc(db, 'manager_notifications', `${managerId}_underHours_${empId}_${alertPayload.date}`),
+                                { ...alertPayload, managerId },
+                                { merge: true }
+                            );
+                        }
+
+                        console.warn(`🚨 Under-hours alert sent for ${empName}: ${hrs.toFixed(1)}h`);
+                        showUnderHoursBanner(empName, hrs.toFixed(1));
+                    } catch (e) {
+                        console.error('Alert write failed:', e.message);
+                    }
+                }
+            }
+        }
+
+        // Show a visible banner on the TVC screen
+        function showUnderHoursBanner(name, hrs) {
+            let banner = document.getElementById('underHoursBanner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'underHoursBanner';
+                banner.style.cssText = 'position:fixed;top:70px;right:24px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:16px;padding:16px 20px;z-index:9999;box-shadow:0 8px 24px rgba(239,68,68,0.15);max-width:340px;font-family:inherit;animation:fadeInRight 0.4s ease;';
+                document.body.appendChild(banner);
+            }
+            banner.innerHTML = `
+                <div style="display:flex;gap:10px;align-items:flex-start;">
+                    <div style="font-size:1.4rem;">⚠️</div>
+                    <div>
+                        <div style="font-weight:800;color:#b91c1c;font-size:0.9rem;">Under-Hours Alert</div>
+                        <div style="font-size:0.8rem;color:#7f1d1d;margin-top:4px;"><b>${name}</b> worked only <b>${hrs}h</b> — below 4h minimum.</div>
+                        <div style="font-size:0.7rem;color:#9ca3af;margin-top:6px;">Manager notification sent ✓</div>
+                    </div>
+                    <button onclick="document.getElementById('underHoursBanner').remove()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:1.1rem;margin-left:auto;">✕</button>
+                </div>
+            `;
+            setTimeout(() => banner && banner.remove(), 8000);
+        }
+
         function renderTeleCard(config) {
-            const progressPercent = Math.min((config.hoursWorked / 8) * 100, 100);
-            let complianceStatus = config.hoursWorked >= 7.5 ? "On Track" : (config.hoursWorked > 4 ? "Active" : "Deficit");
-            let complianceColor = config.hoursWorked >= 7.5 ? "var(--success)" : (config.hoursWorked > 4 ? "var(--warning)" : "var(--danger)");
-            let complianceBg = config.hoursWorked >= 7.5 ? "#ecfdf5" : (config.hoursWorked > 4 ? "#fffbeb" : "#fef2f2");
+            const hrs = parseFloat(config.hoursWorked) || 0;
+            const progressPercent = Math.min((hrs / 8) * 100, 100);
+
+            // Compliance status
+            let complianceStatus, complianceColor, complianceBg;
+            if (config.isCommander) {
+                complianceStatus = 'Commander'; complianceColor = 'var(--primary)'; complianceBg = '#eff6ff';
+            } else if (hrs >= 7.5) {
+                complianceStatus = 'On Track'; complianceColor = 'var(--success)'; complianceBg = '#ecfdf5';
+            } else if (hrs >= 4) {
+                complianceStatus = 'Active'; complianceColor = 'var(--warning)'; complianceBg = '#fffbeb';
+            } else if (hrs > 0) {
+                complianceStatus = '⚠ Under 4h'; complianceColor = 'var(--danger)'; complianceBg = '#fef2f2';
+            } else {
+                complianceStatus = 'Offline'; complianceColor = 'var(--text-muted)'; complianceBg = '#f1f5f9';
+            }
 
             const eff = config.eff || 0;
             const isHighPerformer = eff > 90 || config.isCommander;
+            const roleLower = (config.role || 'employee').toLowerCase();
+            const roleBadgeColor = roleLower === 'manager' ? '#7c3aed' : '#0ea5e9';
+            const roleLabel = roleLower === 'manager' ? 'MANAGER' : (config.isCommander ? 'ADMIN' : 'EMPLOYEE');
+
+            // Under-hours warning stripe
+            const underHoursWarning = (!config.isCommander && hrs > 0 && hrs < 4)
+                ? `<div style="margin-top:8px;padding:6px 10px;background:#fef2f2;border-radius:8px;font-size:0.7rem;font-weight:700;color:#b91c1c;display:flex;gap:6px;align-items:center;">
+                    ⚠ Worked ${hrs}h — Alert sent to manager
+                   </div>`
+                : '';
 
             return `
-                <div class="tele-card" style="${config.isCommander ? 'border-color: var(--primary); background: #f8fafc; border-width: 2px;' : (isHighPerformer ? 'border-color: var(--success);' : '')}">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div class="tele-name">${config.name} ${config.isCommander ? '<span style="font-size:0.6rem; background:var(--primary); color:white; padding:2px 6px; border-radius:4px; margin-left:4px;">COMMANDER</span>' : ''}</div>
-                        <span class="compliance-tag" style="background: ${complianceBg}; color: ${complianceColor}">${complianceStatus}</span>
+                <div class="tele-card" style="${config.isCommander ? 'border-color:var(--primary);background:#f8fafc;border-width:2px;' : (hrs > 0 && hrs < 4 ? 'border-color:#fca5a5;' : (isHighPerformer ? 'border-color:var(--success);' : ''))}">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div>
+                            <div class="tele-name">${config.name}</div>
+                            <span style="font-size:0.6rem;font-weight:800;background:${roleBadgeColor};color:white;padding:2px 7px;border-radius:4px;">${roleLabel}</span>
+                        </div>
+                        <span class="compliance-tag" style="background:${complianceBg};color:${complianceColor}">${complianceStatus}</span>
                     </div>
-                    <div class="tele-status" style="color: ${config.statusColor}">${config.statusText}</div>
+                    <div class="tele-status" style="color:${config.statusColor};margin-top:6px;">${config.statusText}</div>
                     <div class="tele-metrics">${eff}% EFF // ${config.department}</div>
                     
                     <div class="shift-monitor">
                         <div class="shift-label">
                             <span>Shift Duration</span>
-                            <span style="color: ${complianceColor}; font-weight: 700;">${config.hoursWorked} / 8.0h</span>
+                            <span style="color:${complianceColor};font-weight:700;">${hrs.toFixed(1)} / 8.0h</span>
                         </div>
-                        <div class="shift-bar-bg" style="height: 8px;">
-                            <div class="shift-bar-fill" style="width: ${Math.max(5, progressPercent)}%; background: ${complianceColor}"></div>
+                        <div class="shift-bar-bg" style="height:8px;">
+                            <div class="shift-bar-fill" style="width:${Math.max(hrs > 0 ? 5 : 0, progressPercent)}%;background:${complianceColor}"></div>
                         </div>
                     </div>
 
-                    ${isHighPerformer ? `
+                    ${underHoursWarning}
+
+                    ${isHighPerformer && !underHoursWarning ? `
                         <div class="bonus-badge">
                             <i data-lucide="sparkles" size="10"></i>
                             ${config.isCommander ? 'SYSTEM ELITE' : 'BONUS ELIGIBLE'}
@@ -689,6 +898,64 @@
                     ` : ''}
                 </div>
             `;
+        }
+
+
+        function updatePunchFeed(attMap, adminSessions) {
+            const feed = document.getElementById('punchFeed');
+            if (!feed) return;
+            
+            const events = [];
+            
+            // Employee events
+            Object.values(attMap).forEach(att => {
+                if (att.punchIn) events.push({ 
+                    time: att.punchIn.toDate ? att.punchIn.toDate() : new Date(att.punchIn),
+                    name: att.userName || 'Employee',
+                    type: 'IN',
+                    role: 'Employee'
+                });
+                if (att.punchOut) events.push({ 
+                    time: att.punchOut.toDate ? att.punchOut.toDate() : new Date(att.punchOut),
+                    name: att.userName || 'Employee',
+                    type: 'OUT',
+                    role: 'Employee'
+                });
+            });
+            
+            // Admin/Manager events
+            adminSessions.forEach(sess => {
+                if (sess.punchIn) events.push({ 
+                    time: sess.punchIn.toDate ? sess.punchIn.toDate() : new Date(sess.punchIn),
+                    name: sess.name || 'Manager',
+                    type: 'IN',
+                    role: 'Admin'
+                });
+                if (sess.punchOut) events.push({ 
+                    time: sess.punchOut.toDate ? sess.punchOut.toDate() : new Date(sess.punchOut),
+                    name: sess.name || 'Manager',
+                    type: 'OUT',
+                    role: 'Admin'
+                });
+            });
+            
+            events.sort((a, b) => b.time - a.time);
+            
+            feed.innerHTML = events.slice(0, 10).map(e => `
+                <div style="display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid var(--bg-base); margin-bottom: 4px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="width: 6px; height: 6px; border-radius: 50%; background: ${e.type === 'IN' ? 'var(--success)' : 'var(--danger)'}"></div>
+                        <span style="font-weight: 700;">${e.name}</span>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.7rem;">
+                        ${e.type} @ ${e.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                </div>
+            `).join('');
+            
+            if (events.length === 0) {
+                feed.innerHTML = '<div style="text-align:center; padding: 2rem; color: var(--text-muted);">No punch activity today.</div>';
+            }
         }
 
         initTelemetry();

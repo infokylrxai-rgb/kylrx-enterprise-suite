@@ -85,7 +85,7 @@ function initAuth() {
             state.userRole = (localStorage.getItem('userRole') || 'employee').toLowerCase();
             state.userDept = (localStorage.getItem('userDept') || 'general').toLowerCase();
             state.loginTime = Date.now();
-            state.status = 'Active';
+            state.status = 'Online';
             state.lastActivityTs = Date.now();
 
             // Load persisted data
@@ -158,7 +158,7 @@ function handleFocusLoss() {
 
 function handleFocusGain() {
     state.lastActivityTs = Date.now();
-    if (!state.isOnBreak) state.status = 'Active';
+    if (!state.isOnBreak) state.status = 'Online';
     emit('focus:gained', {});
 }
 
@@ -201,7 +201,7 @@ function startTracking() {
     activityEvents.forEach(evt => {
         window.addEventListener(evt, () => {
             state.lastActivityTs = Date.now();
-            if (state.status === 'Idle' && !state.isOnBreak) { state.status = 'Active'; }
+            if (state.status === 'Idle' && !state.isOnBreak) { state.status = 'Online'; }
         }, { passive: true });
     });
 
@@ -227,7 +227,7 @@ function startTracking() {
         const elapsed = Date.now() - state.lastActivityTs;
         if (elapsed > CONFIG.AUTO_LOGOUT_MS && state.status !== 'Break') {
             forceLogout('Inactivity timeout');
-        } else if (elapsed > CONFIG.IDLE_TIMEOUT_MS && state.status === 'Active') {
+        } else if (elapsed > CONFIG.IDLE_TIMEOUT_MS && state.status === 'Online') {
             state.status = 'Idle';
             emit('status:idle', {});
         }
@@ -352,7 +352,7 @@ function getSnapshot() {
 function setBreak(isBreak) {
     state.isOnBreak = isBreak;
     if (isBreak) { state.breakStartTs = Date.now(); state.status = 'Break'; }
-    else { state.status = 'Active'; state.lastActivityTs = Date.now(); }
+    else { state.status = 'Online'; state.lastActivityTs = Date.now(); }
     syncToFirestore();
     emit('break:toggle', { isBreak });
 }

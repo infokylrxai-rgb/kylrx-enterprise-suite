@@ -679,7 +679,14 @@ async function loadDepartments() {
                 updateDoc(d.ref, { name: 'Cybersecurity' });
                 data.name = 'Cybersecurity';
             }
-            return { departmentId: d.id, ...data };
+            let name = data.name || data.departmentName || 'Unnamed';
+            if (data.targetType) {
+                const targetSuffix = data.targetType === 'Manager Suite' ? 'Manager' : 'Employee';
+                if (!name.toLowerCase().includes('manager') && !name.toLowerCase().includes('employee')) {
+                    name = `${name} ${targetSuffix}`;
+                }
+            }
+            return { departmentId: d.id, ...data, name: name, departmentName: name };
         });
         
         // If empty, try fallback to old departments collection

@@ -3,7 +3,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/f
 import { doc, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 let trackingActive = false;
-let status = 'Offline'; // Active, Idle, Away, Break, Offline
+let status = 'Offline'; // Online, Idle, Away, Break, Offline
 let lastActivity = Date.now();
 let tabSwitchCount = 0;
 let activeTime = 0;
@@ -26,7 +26,7 @@ function initTracker(user) {
     const dept = localStorage.getItem('userDept') || 'General';
 
     // Ensure we start with Active
-    status = 'Active';
+    status = 'Online';
     lastActivity = Date.now();
 
     // Event listeners for activity
@@ -76,7 +76,7 @@ function handleActivity() {
     if (status === 'Break') return; 
     lastActivity = Date.now();
     if (status !== 'Active') {
-        setStatus('Active');
+        setStatus('Online');
         updateFirestoreNow();
     }
 }
@@ -104,7 +104,7 @@ function checkAndSync() {
     }
 
     // Accumulate time based on status
-    if (status === 'Active') {
+    if (status === 'Online') {
         activeTime += UPDATE_INTERVAL;
     } else if (status === 'Idle' || status === 'Away') {
         idleTime += UPDATE_INTERVAL;
@@ -148,9 +148,9 @@ async function updateFirestoreNow(isUnloading = false) {
 
 // Global method to set status manually
 window.setTrackerOverride = function(newStatus) {
-    if (newStatus === 'Active') {
+    if (newStatus === 'Online' || newStatus === 'Active') {
         overrideStatus = null;
-        status = 'Active';
+        status = 'Online';
         handleActivity();
     } else {
         overrideStatus = newStatus;
@@ -164,7 +164,7 @@ window.setTrackerBreak = function(isBreak) {
     if (isBreak) {
         window.setTrackerOverride('Break');
     } else {
-        window.setTrackerOverride('Active');
+        window.setTrackerOverride('Online');
     }
 }
 
