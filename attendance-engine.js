@@ -70,6 +70,14 @@ class AttendanceEngine {
 
         await setDoc(docRef, punchData, { merge: true });
 
+        // Update real-time activity status for TVC dashboard
+        const activityRef = doc(db, "activityStatus", userId);
+        await setDoc(activityRef, {
+            status: type === 'in' ? 'Active' : 'Offline',
+            lastUpdated: timestamp,
+            userId: userId
+        }, { merge: true });
+
         // If punching out, calculate productivity
         if (type === 'out') {
             const snap = await getDoc(docRef);

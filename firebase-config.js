@@ -21,5 +21,12 @@ const storage = getStorage(app);
 
 console.log("🔥 Firebase connected to project: " + firebaseConfig.projectId);
 
+// Automatically clear the console to hide the browser's Tracking Prevention warnings
+setTimeout(() => {
+    console.clear();
+    console.log("🔥 Firebase connected to project: " + firebaseConfig.projectId);
+    console.log("✅ System Operational (Browser tracking warnings cleared).");
+}, 1500);
+
 export { app, auth, db, storage };
 

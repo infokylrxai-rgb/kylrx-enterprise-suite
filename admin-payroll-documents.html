@@ -73,6 +73,21 @@
     </style>
 </head>
 <body class="admin-dashboard">
+    <!-- Confirm Modal -->
+    <div id="disburseModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+            <div style="width: 64px; height: 64px; background: #eff6ff; color: #3b82f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="send" size="32"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="disburseModalTitle">Confirm Disbursement</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="disburseModalDesc">...</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('disburseModal').style.display='none'">Cancel</button>
+                <button class="btn btn-primary" style="flex: 1; background: #10b981; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmDisburseBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toasts -->
     <div class="toast-notification" id="successToast">
         <i data-lucide="check-circle"></i>
@@ -186,6 +201,31 @@
                         </div>
                     </div>
 
+                    <div class="doc-card" style="margin-top: 2rem; border-color: #10b981;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3 style="font-weight: 800; color: #059669;">1-Click Salary Disbursement</h3>
+                            <div class="security-badge" style="background: #eff6ff; color: #3b82f6;"><i data-lucide="lock" size="12"></i> Admin Controlled</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                            <label style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; font-weight: 700;">
+                                Payment Authority
+                                <select id="paymentAuthority" style="padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit;" onchange="document.getElementById('disbursementTargetContainer').style.display = this.value === 'Admin' ? 'flex' : 'none'">
+                                    <option value="HRMS">HRMS (Automated Gateway)</option>
+                                    <option value="Admin">Admin (Direct Bank Transfer)</option>
+                                </select>
+                            </label>
+                            <label id="disbursementTargetContainer" style="display: none; flex-direction: column; gap: 8px; font-size: 0.85rem; font-weight: 700;">
+                                Disbursement Target
+                                <select style="padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit;">
+                                    <option>All Employees & Managers</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; justify-content: center; background: #10b981; border: none; font-size: 1rem; padding: 14px;" onclick="triggerDisbursement()">
+                            <i data-lucide="banknote"></i> Pay Salaries Now (1-Click)
+                        </button>
+                    </div>
+
                     <div class="doc-card" style="margin-top: 2rem;">
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Recent Generations</h3>
                         <table class="doc-table">
@@ -269,7 +309,7 @@
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
         import { collection, query, orderBy, limit, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-        import { generateMonthlyBatch, generateDocument } from "./payroll-doc-service.js";
+        import { generateMonthlyBatch, generateDocument, disburseSalaries } from "./payroll-doc-service.js";
 
         window.showToast = (msg, isError = false) => {
             const id = isError ? 'errorToast' : 'successToast';
@@ -291,6 +331,41 @@
             } catch (err) {
                 showToast("Batch generation failed: " + err.message, true);
             }
+        };
+
+        window.triggerDisbursement = () => {
+            const authority = document.getElementById('paymentAuthority').value;
+            const modal = document.getElementById('disburseModal');
+            const title = document.getElementById('disburseModalTitle');
+            const desc = document.getElementById('disburseModalDesc');
+            const total = document.getElementById('totalDisbursed').textContent;
+
+            if (authority === 'HRMS') {
+                title.textContent = 'Transfer to HRMS Gateway';
+                desc.textContent = `You are authorizing a total lump sum transfer of ${total} to the automated HRMS Gateway. HRMS will handle distribution to employees and managers.`;
+            } else {
+                title.textContent = 'Direct Admin Disbursement';
+                desc.textContent = `You are taking manual control. You will directly disburse a total of ${total} to all managers and employees via bank transfer.`;
+            }
+
+            modal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+            
+            document.getElementById('confirmDisburseBtn').onclick = async () => {
+                modal.style.display = 'none';
+                showToast(`Processing via ${authority}...`);
+                try {
+                    const result = await disburseSalaries(authority);
+                    if (result.count === 0) {
+                        showToast("No pending 'Generated' payrolls found.", true);
+                    } else {
+                        showToast(`Successfully authorized payments to ${result.count} personnel via ${authority}.`);
+                        loadRecentGenerations();
+                    }
+                } catch (err) {
+                    showToast("Disbursement failed: " + err.message, true);
+                }
+            };
         };
 
         document.addEventListener('DOMContentLoaded', () => {

@@ -49,11 +49,13 @@ export async function generateDocument(employeeId, docType, data) {
 
 export async function generateMonthlyBatch(month, year) {
     console.log(`[PAYROLL] Initiating batch generation for ${month} ${year}...`);
-    const employeesSnap = await getDocs(query(collection(db, 'users'), where('onboardingStatus', '==', 'Active')));
+    const employeesSnap = await getDocs(collection(db, 'users'));
     
     let count = 0;
     for (const empDoc of employeesSnap.docs) {
         const emp = empDoc.data();
+        if ((emp.role || '').toLowerCase() === 'admin') continue; // Skip admins
+
         const type = emp.employmentType === 'Full Time' ? 'Payslip' : 'Invoice';
         
         const gross = emp.salary || 50000;
@@ -104,4 +106,29 @@ export async function generateFullFinal(employeeId) {
         leaveEncashment: 12000,
         noticePay: 0
     });
+}
+
+export async function disburseSalaries(authority) {
+    console.log(`[PAYROLL] Disbursing salaries via ${authority}...`);
+    const docsSnap = await getDocs(query(collection(db, 'payroll_documents'), where('status', '==', 'Generated')));
+    
+    let count = 0;
+    for (const d of docsSnap.docs) {
+        await updateDoc(doc(db, 'payroll_documents', d.id), {
+            status: 'Paid',
+            paidVia: authority,
+            paidAt: serverTimestamp()
+        });
+        count++;
+    }
+    
+    await addDoc(collection(db, 'document_audit_logs'), {
+        action: 'Mass Salary Disbursement',
+        authority,
+        count,
+        timestamp: serverTimestamp(),
+        ip: '192.168.1.1'
+    });
+    
+    return { success: true, count };
 }

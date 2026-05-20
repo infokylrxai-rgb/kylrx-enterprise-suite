@@ -50,6 +50,12 @@
         .ai-btn:hover { background: #fce7f3; transform: scale(1.05); }
         .send-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
         .send-btn:hover { background: var(--primary-dark); }
+        .attach-btn { background: #f8fafc; color: var(--text-muted); border: 1px solid var(--border); padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; height: 100%; }
+        .attach-btn:hover { background: #e2e8f0; color: #1e293b; }
+
+        .file-pill { background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: #334155; }
+        .file-pill .remove { cursor: pointer; color: #ef4444; width: 14px; height: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+        .file-pill .remove:hover { transform: scale(1.1); }
 
         /* Mentions Dropdown */
         .mentions-dropdown {
@@ -165,6 +171,19 @@
         @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+        /* Toasts */
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+
         /* Dept Dropdown */
         .dept-dropdown {
             position: absolute; top: 100%; right: 0; width: 220px; background: white;
@@ -180,6 +199,12 @@
     </style>
 </head>
 <body>
+    <!-- Toasts -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Action completed successfully!</span>
+    </div>
+
     <div class="dashboard-container">
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
@@ -302,7 +327,10 @@
                     <div class="chat-messages" id="chatMessages">
                         <!-- Real-time messages will be streamed here -->
                     </div>
-                    <div class="chat-input">
+                    
+                    <div id="attachmentPreview" style="padding: 1rem 1.5rem 0; display: none; gap: 8px; flex-wrap: wrap; background: white; border-top: 1px solid var(--border);"></div>
+                    
+                    <div class="chat-input" id="chatInputArea" style="border-top: 1px solid var(--border);">
                         <div class="mentions-dropdown" id="mentionsDropdown">
                             <div class="mention-item" onclick="insertMention('Sarah Wilson')">
                                 <div class="mention-avatar">SW</div>
@@ -321,6 +349,10 @@
                                 <span>John Doe (Employee)</span>
                             </div>
                         </div>
+                        <input type="file" id="fileUploadInput" style="display: none;" multiple onchange="handleFileUpload(event)">
+                        <button class="attach-btn" id="attachBtn" title="Attach Document" onclick="document.getElementById('fileUploadInput').click()">
+                            <i data-lucide="plus"></i>
+                        </button>
                         <input type="text" class="input-box" id="messageInput" placeholder="Type @ to mention someone...">
                         <button class="ai-btn" id="aiCorrectBtn" title="AI Sentence Correction">
                             <i data-lucide="sparkles" size="16"></i>
@@ -393,6 +425,15 @@
         let currentRoleFilter = 'all';
         let currentDeptFilter = 'all';
         let allUsers = [];
+
+        window.showToast = (msg) => {
+            const toast = document.getElementById('successToast');
+            if (!toast) return;
+            toast.querySelector('span').textContent = msg;
+            toast.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        };
 
         // Customization Logic
         const configSidebar = document.getElementById('configSidebar');
@@ -562,9 +603,11 @@
             });
         }
 
+        let pendingFiles = [];
+
         window.handleSendMessage = async () => {
             const text = input.value.trim();
-            if (!text || selectedUserIds.size === 0) return;
+            if ((!text && pendingFiles.length === 0) || selectedUserIds.size === 0) return;
 
             const sendBtn = document.getElementById('sendBtn');
             const originalBtn = sendBtn.innerHTML;
@@ -574,16 +617,22 @@
             try {
                 const recipients = Array.from(selectedUserIds);
                 for (const recipientId of recipients) {
+                    let attachmentsHTML = pendingFiles.length > 0 
+                        ? (text ? '<br><br>' : '') + `<div style="display:flex; flex-direction:column; gap:8px;">` + pendingFiles.map(f => `<div style="background:rgba(255,255,255,0.8); padding:8px 12px; border-radius:8px; display:flex; align-items:center; gap:8px; font-size:0.85rem; border:1px solid rgba(0,0,0,0.1); color:#1e293b;">📎 ${f.name}</div>`).join('') + `</div>`
+                        : '';
+                        
                     await addDoc(collection(db, 'messages'), {
                         senderId: currentUserId,
                         recipientId: recipientId,
                         participants: [currentUserId, recipientId],
-                        text: text,
+                        text: text + attachmentsHTML,
                         timestamp: serverTimestamp(),
                         read: false
                     });
                 }
                 input.value = '';
+                pendingFiles = [];
+                renderAttachmentPreview();
             } catch (error) {
                 console.error('Error sending message:', error);
             } finally {
@@ -701,6 +750,41 @@
             
             document.getElementById('deptDropdown').classList.remove('active');
             renderContacts();
+        };
+
+        window.handleFileUpload = (e) => {
+            if (e.target.files.length > 0) {
+                pendingFiles = [...pendingFiles, ...Array.from(e.target.files)];
+                renderAttachmentPreview();
+                e.target.value = '';
+            }
+        };
+
+        window.removeAttachment = (index) => {
+            pendingFiles.splice(index, 1);
+            renderAttachmentPreview();
+        };
+
+        window.renderAttachmentPreview = () => {
+            const preview = document.getElementById('attachmentPreview');
+            const chatInputArea = document.getElementById('chatInputArea');
+            if (pendingFiles.length === 0) {
+                preview.style.display = 'none';
+                preview.innerHTML = '';
+                chatInputArea.style.borderTop = '1px solid var(--border)';
+                return;
+            }
+            
+            preview.style.display = 'flex';
+            chatInputArea.style.borderTop = 'none';
+            preview.innerHTML = pendingFiles.map((f, i) => `
+                <div class="file-pill">
+                    <i data-lucide="file-text" style="width:14px; height:14px;"></i>
+                    <span>${f.name}</span>
+                    <i data-lucide="x" class="remove" onclick="removeAttachment(${i})"></i>
+                </div>
+            `).join('');
+            if (window.lucide) lucide.createIcons();
         };
 
         window.toggleDeptDropdown = (e) => {

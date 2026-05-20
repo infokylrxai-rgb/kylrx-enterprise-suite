@@ -247,8 +247,10 @@
             margin-top: 12px;
             padding-top: 12px;
             border-top: 1px dashed var(--surface-border);
+            width: 100%;
         }
         .shift-bar-bg {
+            width: 100%;
             height: 4px;
             background: #e2e8f0;
             border-radius: 10px;
@@ -261,6 +263,7 @@
             transition: width 1s ease;
         }
         .shift-label {
+            width: 100%;
             display: flex;
             justify-content: space-between;
             font-size: 0.65rem;
@@ -375,8 +378,6 @@
                 </div>
             </div>
 
-            </div>
-
             <div id="monitorPane" class="tab-pane active">
                 <div class="tvc-grid">
                 <!-- Workforce Telemetry (W8 R4) -->
@@ -397,7 +398,7 @@
                 <!-- AI Predictions (W4 R3) -->
                 <div class="widget w-4 r-3">
                     <div class="widget-header">
-                        <div class="widget-title">Live Punch Feed</div>
+                        <div class="widget-title">Live Punch Feed & AI Predictions</div>
                         <i data-lucide="clock" style="color: var(--accent);"></i>
                     </div>
                     <div id="punchFeed" style="overflow-y: auto; height: 180px; padding: 10px; font-size: 0.75rem;">
@@ -406,8 +407,7 @@
                             <p>Awaiting live events...</p>
                         </div>
                     </div>
-                </div>
-                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
                         <div>
                             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;"><span>Burnout Probability</span><span id="burnoutVal">Loading...</span></div>
                             <div style="height: 6px; background: var(--bg-base); border-radius: 10px; overflow: hidden;"><div id="burnoutBar" style="width: 0%; height: 100%; background: var(--success); transition: 1s;"></div></div>
@@ -446,7 +446,7 @@
                     </div>
                 </div>
             </div>
-
+            </div>
         </main>
 
         <!-- Config Sidebar -->
@@ -496,6 +496,7 @@
     <script type="module">
         import { db, auth } from "./firebase-config.js";
         import { doc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
         lucide.createIcons();
         const configSidebar = document.getElementById('configSidebar');
@@ -621,6 +622,22 @@
             btnBreak.style.background = "#f59e0b";
             lucide.createIcons();
         };
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await syncStatus('Offline');
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
         // ============================================================
         // FLAT STATE-DRIVEN TELEMETRY ENGINE
         // Fixes blank grid: renders ALL users from 'users' collection
@@ -660,11 +677,23 @@
                 checkUnderHours();  // ← trigger alert check on every attendance update
             });
 
+            // Periodically refresh the grid to update live shift durations (since new Date() needs to be recalculated)
+            setInterval(renderGrid, 60000);
+
             // Listener 4 – Today's admin / manager sessions
             onSnapshot(collection(db, 'admin_sessions'), snap => {
-                _state.adminSessions = snap.docs
+                const sessions = snap.docs
                     .filter(d => d.id.includes(today))
                     .map(d => ({ id: d.id, ...d.data() }));
+                
+                const deduped = {};
+                sessions.forEach(s => {
+                    const key = s.name || s.id;
+                    if (!deduped[key] || s.status === 'Active') {
+                        deduped[key] = s;
+                    }
+                });
+                _state.adminSessions = Object.values(deduped);
                 renderGrid();
             });
         }
@@ -710,7 +739,7 @@
                     : 0;
 
                 // Determine status
-                if (activity && activity.status === 'Online') {
+                if (activity && (activity.status === 'Online' || activity.status === 'Active')) {
                     statusText  = 'ONLINE';
                     statusColor = 'var(--success)';
                 } else if (att && att.punchIn) {
@@ -849,6 +878,8 @@
                 complianceStatus = 'Active'; complianceColor = 'var(--warning)'; complianceBg = '#fffbeb';
             } else if (hrs > 0) {
                 complianceStatus = '⚠ Under 4h'; complianceColor = 'var(--danger)'; complianceBg = '#fef2f2';
+            } else if (config.statusText === 'ONLINE' || config.statusText === 'Active') {
+                complianceStatus = 'Active'; complianceColor = 'var(--warning)'; complianceBg = '#fffbeb';
             } else {
                 complianceStatus = 'Offline'; complianceColor = 'var(--text-muted)'; complianceBg = '#f1f5f9';
             }
@@ -879,9 +910,9 @@
                     <div class="tele-metrics">${eff}% EFF // ${config.department}</div>
                     
                     <div class="shift-monitor">
-                        <div class="shift-label">
-                            <span>Shift Duration</span>
-                            <span style="color:${complianceColor};font-weight:700;">${hrs.toFixed(1)} / 8.0h</span>
+                        <div class="shift-label" style="display: flex; justify-content: space-between; gap: 8px; flex-wrap: nowrap;">
+                            <span style="white-space: nowrap; color: var(--text-muted);">Shift Duration</span>
+                            <span style="white-space: nowrap; color:${complianceColor};font-weight:700;">${hrs.toFixed(1)} / 8.0h</span>
                         </div>
                         <div class="shift-bar-bg" style="height:8px;">
                             <div class="shift-bar-fill" style="width:${Math.max(hrs > 0 ? 5 : 0, progressPercent)}%;background:${complianceColor}"></div>
