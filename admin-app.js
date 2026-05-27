@@ -1042,7 +1042,17 @@ function setupEventListeners() {
         
         if (deptField) {
             ['change', 'input', 'click'].forEach(evt => {
-                deptField.addEventListener(evt, generatePassword);
+                deptField.addEventListener(evt, (e) => {
+                    if (roleField && e.target.value === 'hrms') {
+                        roleField.value = 'manager';
+                        Array.from(roleField.options).forEach(opt => {
+                            if(opt.value !== 'manager') opt.disabled = true;
+                        });
+                    } else if (roleField) {
+                        Array.from(roleField.options).forEach(opt => opt.disabled = false);
+                    }
+                    generatePassword();
+                });
             });
         }
         

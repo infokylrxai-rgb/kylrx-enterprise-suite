@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notifications | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+        const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+        if (!isLoggedIn || userRole !== 'admin') window.location.href = 'index.html';
+    </script>
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <style>
+        .sidebar {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
+
+        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
+        .header { margin-bottom: 2.5rem; }
+        .header h1 { font-size: 2rem; font-weight: 700; }
+        .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
+        .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif-content { flex: 1; }
+        .notif-title { font-weight: 600; margin-bottom: 4px; }
+        .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+        .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+
+        .icon-btn { 
+            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .action-icon:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--border);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-icon i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2px;
+        }
+
+        /* Customization Sidebar */
+        .config-sidebar {
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border);
+            z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+        }
+        .config-sidebar.active { right: 0; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .config-header h2 { font-weight: 800; font-size: 1.25rem; }
+        .config-section { margin-bottom: 2rem; }
+        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option span { font-size: 0.9rem; font-weight: 600; }
+
+        /* Switches */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+
+        /* Density Modes */
+        .tight .notif-item { padding: 1rem; }
+        .tight .notif-desc { display: none; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="#" class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="layers"></i>
+                </div>
+                <span class="logo-text">Kylrx AI</span>
+            </a>
+
+            <nav class="nav-menu">
+                <div class="nav-label">Strategic Hub</div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html" class="nav-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard Overview</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#bulk-onboarding" class="nav-link">
+                        <i data-lucide="user-plus"></i>
+                        <span>Onboarding Engine</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#compliance" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Compliance Tracker</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Operations</div>
+                <div class="nav-item">
+                    <a href="hrms-calnceder.html" class="nav-link">
+                        <i data-lucide="calendar-check"></i>
+                        <span>Leave & Attendance</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#payroll" class="nav-link">
+                        <i data-lucide="banknote"></i>
+                        <span>Payroll & Finances</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#pms" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance (PMS)</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Intelligence</div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#recruitment" class="nav-link">
+                        <i data-lucide="user-search"></i>
+                        <span>Recruitment (ATS)</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#analytics" class="nav-link">
+                        <i data-lucide="brain-circuit"></i>
+                        <span>AI Insights</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#expenses" class="nav-link">
+                        <i data-lucide="receipt"></i>
+                        <span>Expense Claims</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Communication</div>
+                <div class="nav-item">
+                    <a href="hrms-message.html" class="nav-link">
+                        <i data-lucide="message-square"></i>
+                        <span>Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-notification.html" class="nav-link active">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Lifecycle</div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#lifecycle" class="nav-link">
+                        <i data-lucide="briefcase"></i>
+                        <span>Employee Lifecycle</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#assets" class="nav-link">
+                        <i data-lucide="laptop"></i>
+                        <span>Asset Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#org-structure" class="nav-link">
+                        <i data-lucide="building-2"></i>
+                        <span>Org Structure</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a href="#" class="nav-link" style="color: #ef4444;" onclick="localStorage.clear(); window.location.href = 'index.html';">
+                    <i data-lucide="log-out"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
+                <div style="flex: 1;">
+                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">System Notifications</h1>
+                    <p style="color: var(--text-muted); font-weight: 500;">Manage and view all administrative alerts</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='hrms-message.html'">
+                        <i data-lucide="message-square"></i>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='hrms-notification.html'">
+                        <i data-lucide="bell"></i>
+                    </button>
+                </div>
+            </header>
+            <div class="card">
+                <div class="notif-item">
+                    <div class="notif-icon"><i data-lucide="info"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">System Update Successful</div>
+                        <div class="notif-desc">The HRFlow enterprise core has been updated to version 3.0.1. All systems are stable.</div>
+                        <div class="notif-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i data-lucide="user-plus"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">New Manager Registered</div>
+                        <div class="notif-desc">Sarah Wilson has been registered as the new Marketing Manager.</div>
+                        <div class="notif-time">5 hours ago</div>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
+                    <div class="notif-content">
+                        <div class="notif-title">Critical: System Lock Active</div>
+                        <div class="notif-desc">The global system lock was enabled for maintenance by an administrator.</div>
+                        <div class="notif-time">1 day ago</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Customization Sidebar -->
+        <aside class="config-sidebar" id="configSidebar">
+            <div class="config-header">
+                <div>
+                    <h2>Personalize</h2>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">INTERFACE CONTROL</p>
+                </div>
+                <button style="background:transparent; border:none; cursor:pointer;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="config-section">
+                <h3>Visual Theme</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="btn-theme active" onclick="setTheme('light', this)">Modern Light</div>
+                    <div class="btn-theme" onclick="setTheme('glass', this)">Enterprise Glass</div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>Notification Layout</h3>
+                <div class="config-option">
+                    <span>Compact Mode</span>
+                    <label class="switch"><input type="checkbox" id="checkTight"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Show Decriptions</span>
+                    <label class="switch"><input type="checkbox" checked id="checkDesc"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>AI Filters</h3>
+                <div class="config-option">
+                    <span>Hide Low Priority</span>
+                    <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Smart Grouping</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <button class="btn" style="background: var(--primary); color: white; margin-top: auto; width: 100%; justify-content: center;" onclick="toggleConfig(false)">
+                Save Preferences
+            </button>
+        </aside>
+    </div>
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        if (window.lucide) lucide.createIcons();
+        
+        const configSidebar = document.getElementById('configSidebar');
+        window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
+        const btnCustom = document.getElementById('btnCustom');
+        if (btnCustom) {
+            btnCustom.onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+        }
+
+        const notifContainer = document.querySelector('.card');
+
+        // Real-time notification listener
+        const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
+        onSnapshot(q, (snap) => {
+            if (snap.empty) {
+                notifContainer.innerHTML = '<div style="text-align: center; padding: 5rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            notifContainer.innerHTML = snap.docs.map(doc => {
+                const data = doc.data();
+                const date = data.timestamp?.toDate().toLocaleString() || 'Recent';
+                const priority = (data.priority || 'normal').toLowerCase();
+                
+                const icon = priority === 'high' || priority === 'critical' ? 'alert-triangle' : (data.target === 'admin_hr' ? 'shield' : 'bell');
+                const color = priority === 'high' || priority === 'critical' ? '#ef4444' : (data.target === 'admin_hr' ? '#3b82f6' : '#10b981');
+                const bg = priority === 'high' || priority === 'critical' ? 'rgba(239, 68, 68, 0.1)' : (data.target === 'admin_hr' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)');
+
+                return `
+                    <div class="notif-item">
+                        <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
+                        <div class="notif-content">
+                            <div class="notif-title">${data.title || (priority.toUpperCase() + ' ALERT')}</div>
+                            <div class="notif-desc">${data.message || 'No details provided.'}</div>
+                            <div class="notif-time">${date} • Target: ${data.target || 'General'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            if (window.lucide) lucide.createIcons();
+        });
+
+        window.setTheme = (theme, el) => {
+            document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            if (theme === 'glass') {
+                document.body.style.background = "linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)";
+                document.querySelectorAll('.card').forEach(c => {
+                    c.style.background = "rgba(255,255,255,0.7)";
+                    c.style.backdropFilter = "blur(10px)";
+                });
+            } else {
+                document.body.style.background = "";
+                document.querySelectorAll('.card').forEach(c => {
+                    c.style.background = "";
+                    c.style.backdropFilter = "";
+                });
+            }
+        };
+
+        document.getElementById('checkTight').onchange = (e) => {
+            document.querySelector('.card').classList.toggle('tight', e.target.checked);
+        };
+
+        document.getElementById('checkDesc').onchange = (e) => {
+            document.querySelectorAll('.notif-desc').forEach(d => {
+                d.style.display = e.target.checked ? 'block' : 'none';
+            });
+        };
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            });
+        }
+    </script>
+</body>
+</html>
+
