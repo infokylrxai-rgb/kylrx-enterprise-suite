@@ -8,7 +8,7 @@ const { verifyToken, authorize } = require("../middleware/authMiddleware");
 router.use(verifyToken);
 router.use(authorize('Admin', 'Super Admin'));
 
-// Department Routes
+router.post("/bank/transfer", adminController.transferBank);
 router.post("/create-department", validateDepartment, adminController.createDepartment);
 router.get("/departments", adminController.getAllDepartments);
 

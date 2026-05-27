@@ -17,13 +17,13 @@ import time
 # Note: You need to download your serviceAccountKey.json from Firebase Console
 # Settings > Project Settings > Service accounts > Generate new private key
 try:
-    cred = credentials.Certificate("serviceAccountKey.json")
+    cred = credentials.Certificate("config/serviceAccountKey.json")
     firebase_admin.initialize_app(cred)
     db = firestore.client()
-    print("🔥 Kylrx AI Engine: Connected to Firebase Firestore")
+    print("🔥 Kylrx AI Engine: Connected to Firebase Firestore Backend")
 except Exception as e:
     print(f"❌ Error: Service account key not found or invalid. {e}")
-    print("💡 Please place 'serviceAccountKey.json' in this directory to enable the AI Engine.")
+    print("💡 Please place 'serviceAccountKey.json' in the 'config' directory to enable the AI Engine.")
     exit()
 
 def calculate_ai_insights(session_data):

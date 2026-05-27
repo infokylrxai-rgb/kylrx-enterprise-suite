@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Messages | HRFlow</title>
+    <title>Admin Messages | Kylrx AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,10 +40,10 @@
         .contact-last { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-window { display: flex; flex-direction: column; background: white; }
         .chat-header { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-        .chat-messages { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
-        .message { max-width: 70%; padding: 1rem; border-radius: 16px; font-size: 0.95rem; line-height: 1.5; }
-        .message.received { background: #f1f5f9; align-self: flex-start; border-bottom-left-radius: 4px; }
-        .message.sent { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-messages { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: #efeae2; }
+        .message { max-width: 70%; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); color: #111b21; position: relative; }
+        .message.received { background: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
+        .message.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
         .chat-input { padding: 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; position: relative; }
         .input-box { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; }
         .ai-btn { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; }
@@ -93,9 +93,7 @@
         .selection-info.active { display: flex; }
         .clear-selection { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
         
-        .contact-checkbox { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border); margin-right: 12px; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
-        .contact-item.selected .contact-checkbox { background: var(--primary); border-color: var(--primary); color: white; }
-        .contact-item.selected .contact-checkbox::after { content: '✓'; font-size: 12px; font-weight: 900; }
+        .contact-item.selected { background: #eff6ff; border-left: 4px solid var(--primary); }
         
         .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-top: 4px; display: inline-block; }
         .badge.manager { background: #fee2e2; color: #ef4444; }
@@ -208,8 +206,7 @@
     <div class="dashboard-container">
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
-                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
-                <span class="logo-text">HRFlow</span>
+                <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
             </a>
             
             <nav class="nav-menu">
@@ -236,6 +233,8 @@
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link active"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
@@ -483,7 +482,20 @@
         let users = [];
         let teams = [];
         let selectedUserIds = new Set();
-        let currentUserId = localStorage.getItem('hr_user_id') || 'ADMIN_GLOBAL';
+        // Start with localStorage fallback; will be replaced by real Auth UID below
+        let currentUserId = localStorage.getItem('hr_user_id') || localStorage.getItem('adminUid') || 'ADMIN_GLOBAL';
+
+        // Resolve real Firebase Auth UID so chatId matches across dashboards
+        import('https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js').then(({ onAuthStateChanged }) => {
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    currentUserId = user.uid;
+                    localStorage.setItem('hr_user_id', user.uid);
+                    localStorage.setItem('adminUid', user.uid);
+                }
+            });
+        });
+
 
         function setupRealtimeDirectory() {
             let deptMap = {};
@@ -528,7 +540,7 @@
                         initials: (u.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
                         color: stringToColor(u.name || 'U')
                     };
-                }).filter(u => u.role !== 'team' && u.role !== 'admin');
+                }).filter(u => u.role !== 'team' && u.role !== 'admin' && u.role !== 'hrms' && u.name !== 'HR Support Hub');
                 renderContacts();
             });
 
@@ -566,26 +578,38 @@
             if (unsubscribeMessages) unsubscribeMessages();
             
             chatMessages.innerHTML = '<div style="text-align:center; padding:20px;">Streaming history...</div>';
-            
-            // Query for messages involving the Admin
+
+            // Build the same deterministic chatId used by employee dashboard
+            const chatId = ['hr_support', recipientId].sort().join('_');
+
+            // Query by chatId — works without composite index, matches employee schema
             const q = query(
                 collection(db, 'messages'),
-                where('participants', 'array-contains', currentUserId),
+                where('chatId', '==', chatId),
                 limit(100)
             );
 
+            let isInitialChatLoad = true;
+            let previousMessageIds = new Set();
+
             unsubscribeMessages = onSnapshot(q, (snap) => {
                 const allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                
-                // Sort locally to avoid index requirement for array-contains + orderBy
-                const pairMsgs = allMsgs
-                    .filter(m => m.participants.includes(recipientId))
-                    .sort((a, b) => {
-                        const tA = a.timestamp?.seconds || 0;
-                        const tB = b.timestamp?.seconds || 0;
-                        return tA - tB;
-                    });
-                
+
+                if (!isInitialChatLoad) {
+                    const hasNew = allMsgs.some(m => m.senderId !== currentUserId && !previousMessageIds.has(m.id));
+                    if (hasNew) {
+                        const audio = new Audio('notification.mp3');
+                        audio.play().catch(e => console.log('Audio playback blocked:', e));
+                    }
+                }
+                previousMessageIds = new Set(allMsgs.map(m => m.id));
+                isInitialChatLoad = false;
+
+                // Sort client-side by timestamp
+                const pairMsgs = allMsgs.sort((a, b) => {
+                    return (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0);
+                });
+
                 chatMessages.innerHTML = '';
                 if (pairMsgs.length === 0) {
                     chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">No messages yet. Start the conversation!</div>';
@@ -594,16 +618,51 @@
 
                 pairMsgs.forEach(msg => {
                     const msgDiv = document.createElement('div');
-                    const isSent = msg.senderId === currentUserId;
+                    const isSent = msg.senderId === currentUserId || msg.senderId === 'hr_support';
                     msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-                    msgDiv.innerHTML = msg.text;
+
+                    // Timestamp label
+                    const ts = msg.timestamp?.toDate
+                        ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : '';
+                    const senderLabel = isSent ? 'Admin' : (msg.senderName || 'Employee');
+                    const labelColor = isSent ? '#475569' : 'var(--primary)';
+
+                    let htmlContent = `<div style="font-size:0.65rem;font-weight:800;color:${labelColor};margin-bottom:4px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>${senderLabel}</span><span style="font-weight:400;opacity:0.8">${ts}</span></div>`;
+                    htmlContent += msg.text || '';
+
+                    if (msg.attachments && msg.attachments.length > 0) {
+                        const attHtml = msg.attachments.map(att =>
+                            `<a href="${att.dataUrl}" download="${att.name}" style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.8); padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.1); color:#1e293b; text-decoration:none; margin-top:8px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='rgba(255,255,255,0.8)'">
+                                📎 ${att.name} <span style="font-size:0.7rem; color:var(--text-muted); font-weight:400;">(Click to Download)</span>
+                            </a>`
+                        ).join('');
+                        htmlContent += `<div style="display:flex; flex-direction:column;">${attHtml}</div>`;
+                    }
+
+                    msgDiv.innerHTML = htmlContent;
                     chatMessages.appendChild(msgDiv);
+
+                    // Mark as read if received
+                    if (!isSent && !msg.read) {
+                        import('https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js').then(mod => {
+                            mod.updateDoc(mod.doc(db, 'messages', msg.id), { read: true }).catch(() => {});
+                        });
+                    }
                 });
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             });
         }
 
         let pendingFiles = [];
+
+        // Helper to convert file to base64 Data URL
+        const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
 
         window.handleSendMessage = async () => {
             const text = input.value.trim();
@@ -615,20 +674,60 @@
             sendBtn.disabled = true;
 
             try {
+                // Convert all pending files to base64 Data URLs
+                const processedAttachments = [];
+                for (const file of pendingFiles) {
+                    if (file.size > 800000) { // Keep under 1MB Firestore limit
+                        showToast('Error', 'File too large for database storage. Keep under 800KB.', 'error');
+                        continue;
+                    }
+                    const dataUrl = await fileToDataUrl(file);
+                    processedAttachments.push({
+                        name: file.name,
+                        dataUrl: dataUrl
+                    });
+                }
+
                 const recipients = Array.from(selectedUserIds);
                 for (const recipientId of recipients) {
-                    let attachmentsHTML = pendingFiles.length > 0 
-                        ? (text ? '<br><br>' : '') + `<div style="display:flex; flex-direction:column; gap:8px;">` + pendingFiles.map(f => `<div style="background:rgba(255,255,255,0.8); padding:8px 12px; border-radius:8px; display:flex; align-items:center; gap:8px; font-size:0.85rem; border:1px solid rgba(0,0,0,0.1); color:#1e293b;">📎 ${f.name}</div>`).join('') + `</div>`
-                        : '';
-                        
+                    // Build the same deterministic chatId used by employee dashboard
+                    const chatId = ['hr_support', recipientId].sort().join('_');
+                    const senderName = localStorage.getItem('userName') || 'Admin';
                     await addDoc(collection(db, 'messages'), {
-                        senderId: currentUserId,
-                        recipientId: recipientId,
+                        chatId,
+                        senderId: 'hr_support',
+                        senderName,
+                        senderRole: 'admin',
+                        receiverId: recipientId,
                         participants: [currentUserId, recipientId],
-                        text: text + attachmentsHTML,
+                        text: text,
+                        attachments: processedAttachments,
                         timestamp: serverTimestamp(),
                         read: false
                     });
+                    
+                    // Add generic notification for the recipient
+                    await addDoc(collection(db, 'notifications'), {
+                        title: `New Message from ${senderName}`,
+                        message: text.length > 50 ? text.substring(0, 50) + '...' : text,
+                        timestamp: serverTimestamp(),
+                        target: recipientId,
+                        priority: 'normal'
+                    });
+
+                    // Add specific notification for mentioned users
+                    const mentionedUsers = users.filter(u => text.includes(`@${u.name}`));
+                    for (const mu of mentionedUsers) {
+                        if (mu.id !== recipientId) { // Prevent duplicate notification
+                            await addDoc(collection(db, 'notifications'), {
+                                title: `You were mentioned by ${senderName}`,
+                                message: `"${text}"`,
+                                timestamp: serverTimestamp(),
+                                target: mu.id,
+                                priority: 'high'
+                            });
+                        }
+                    }
                 }
                 input.value = '';
                 pendingFiles = [];
@@ -651,20 +750,60 @@
         // Initialize
         setupRealtimeDirectory();
 
-        // AI Correction Mock Implementation (Backend endpoint assumed)
+        // AI Correction Implementation (Gemini API)
         document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
             const text = input.value.trim();
             if (!text) return;
-            const corrected = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
-            input.value = corrected;
+
+            const btn = document.getElementById('aiCorrectBtn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Fixing...';
+            
+            try {
+                // Replace 'YOUR_GEMINI_API_KEY' with a valid key.
+                const apiKey = 'YOUR_GEMINI_API_KEY';
+                
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: `Fix the grammar and spelling of this text. Maintain the exact original meaning and tone. Only return the corrected text and nothing else:\n\n${text}` }]
+                        }]
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                    input.value = data.candidates[0].content.parts[0].text.trim();
+                } else {
+                    input.value = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
+                }
+            } catch (err) {
+                console.error("AI Fix Error:", err);
+                input.value = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
+            } finally {
+                btn.innerHTML = originalHtml;
+            }
         });
 
         // Mentions Logic
         input.addEventListener('input', (e) => {
             const val = e.target.value;
-            const lastChar = val[val.length - 1];
-            if (lastChar === '@') mentions.classList.add('active');
-            else if (!val.includes('@') || val.endsWith(' ')) mentions.classList.remove('active');
+            const match = val.match(/@([a-zA-Z0-9_ ]*)$/);
+            if (match) {
+                const searchStr = match[1].toLowerCase();
+                const filtered = users.filter(u => u.name.toLowerCase().includes(searchStr)).slice(0, 5);
+                mentions.innerHTML = filtered.map(u => `
+                    <div class="mention-item" onclick="insertMention('${u.name}')">
+                        <div class="mention-avatar" style="background:${u.color}">${u.initials}</div>
+                        <span>${u.name} (${u.role})</span>
+                    </div>
+                `).join('');
+                mentions.classList.add('active');
+            } else {
+                mentions.classList.remove('active');
+            }
         });
 
         window.insertMention = (name) => {
@@ -707,7 +846,6 @@
                 div.onclick = () => window.toggleSelection(item.id);
                 
                 div.innerHTML = `
-                    <div class="contact-checkbox"></div>
                     <div class="contact-avatar" style="background: ${item.color}">${item.initials}</div>
                     <div class="contact-info">
                         <div class="contact-name">${item.name}</div>
@@ -720,8 +858,8 @@
         }
 
         window.toggleSelection = (id) => {
-            if (selectedUserIds.has(id)) selectedUserIds.delete(id);
-            else selectedUserIds.add(id);
+            selectedUserIds.clear();
+            selectedUserIds.add(id);
             updateSelectionUI();
         };
 
@@ -806,8 +944,8 @@
             renderContacts();
             const chatHeader = document.getElementById('chatWindowHeader');
             if (selectedUserIds.size > 0) {
-                selectionInfo.classList.add('active');
-                selectionCount.innerText = `${selectedUserIds.size} people selected`;
+                // selectionInfo.classList.add('active'); // Hide bulk selection UI like WhatsApp
+                // selectionCount.innerText = `${selectedUserIds.size} people selected`;
                 if (selectedUserIds.size === 1) {
                     const selId = Array.from(selectedUserIds)[0];
                     const entity = users.find(u => u.id === selId) || teams.find(t => t.id === selId);

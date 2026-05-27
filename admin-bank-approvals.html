@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank Detail Approvals | HRFlow Admin</title>
+    <title>Bank Detail Approvals | Kylrx AI Admin</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -176,7 +176,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
-                <span class="logo-text">HRFlow</span>
+                <span class="logo-text">Kylrx <span style="color:var(--primary)">AI</span></span>
             </a>
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
@@ -263,6 +263,33 @@
         </div>
     </div>
 
+    <!-- Centered Confirmation Modal -->
+    <div id="confirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+            <div style="width: 64px; height: 64px; background: #eff6ff; color: #3b82f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="check-square" size="32"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="confirmModalTitle">Approve Bank Details</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="confirmModalDesc">Are you sure you want to approve these bank details? This will sync to payroll.</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+                <button class="btn btn-primary" style="flex: 1; background: #10b981; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmModalBtn">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Centered Custom Alert Modal -->
+    <div id="alertModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 7000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+            <div id="alertModalIconBg" style="width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i id="alertModalIcon" data-lucide="info" size="32"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="alertModalTitle">Notification</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="alertModalDesc">Description</p>
+            <button class="btn btn-primary" style="width: 100%; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('alertModal').style.display='none'">Dismiss</button>
+        </div>
+    </div>
+
     <script type="module">
         import { db } from "./firebase-config.js";
         import { collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
@@ -339,6 +366,34 @@
             });
         }
 
+        window.showCustomAlert = (title, message, type = 'success') => {
+            const modal = document.getElementById('alertModal');
+            const iconBg = document.getElementById('alertModalIconBg');
+            const icon = document.getElementById('alertModalIcon');
+            const titleEl = document.getElementById('alertModalTitle');
+            const descEl = document.getElementById('alertModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = message;
+
+            if (type === 'success') {
+                iconBg.style.background = '#ecfdf5';
+                iconBg.style.color = '#10b981';
+                icon.setAttribute('data-lucide', 'check-circle');
+            } else if (type === 'error') {
+                iconBg.style.background = '#fee2e2';
+                iconBg.style.color = '#ef4444';
+                icon.setAttribute('data-lucide', 'alert-circle');
+            } else {
+                iconBg.style.background = '#eff6ff';
+                iconBg.style.color = '#3b82f6';
+                icon.setAttribute('data-lucide', 'info');
+            }
+
+            modal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+        };
+
         window.triggerReject = (id) => {
             currentEmpId = id;
             document.getElementById('rejectModal').style.display = 'flex';
@@ -348,25 +403,31 @@
             document.getElementById('rejectModal').style.display = 'none';
         };
 
-        window.handleApproval = async (id) => {
-            if (!confirm("Are you sure you want to approve these bank details? This will sync to payroll.")) return;
-            try {
-                await processBankApproval(id, 'approve', 'ADMIN_HR');
-                alert("Bank details approved and synced successfully.");
-            } catch (err) {
-                alert("Approval failed: " + err.message);
-            }
+        window.handleApproval = (id) => {
+            const modal = document.getElementById('confirmModal');
+            modal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+
+            document.getElementById('confirmModalBtn').onclick = async () => {
+                modal.style.display = 'none';
+                try {
+                    await processBankApproval(id, 'approve', 'ADMIN_HR');
+                    window.showCustomAlert("Approved & Synced", "Bank details have been approved and synchronized with the payroll system.", "success");
+                } catch (err) {
+                    window.showCustomAlert("Approval Failed", "Failed to approve bank details: " + err.message, "error");
+                }
+            };
         };
 
         document.getElementById('btnConfirmReject').onclick = async () => {
             const reason = document.getElementById('rejectReason').value;
-            if (!reason) { alert("Please provide a reason."); return; }
+            if (!reason) { window.showCustomAlert("Required Field", "Please provide a rejection reason.", "error"); return; }
             try {
                 await processBankApproval(currentEmpId, 'reject', 'ADMIN_HR', reason);
                 window.closeModal();
-                alert("Bank details rejected.");
+                window.showCustomAlert("Rejected", "Bank details have been rejected successfully.", "success");
             } catch (err) {
-                alert("Rejection failed: " + err.message);
+                window.showCustomAlert("Rejection Failed", "Failed to reject bank details: " + err.message, "error");
             }
         };
 

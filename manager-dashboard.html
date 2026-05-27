@@ -335,7 +335,12 @@
             </div>
             
             <nav class="nav-menu">
-                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="location.href='manger-calacder.html'"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Attendance Log', 'Attendance Logs are being synchronized.')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('My Documents', 'Document Vault is secured.')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
                 <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Workforce', 'Real-time personnel monitoring is active for this unit.')"><i data-lucide="users"></i><span>Workforce</span></a></div>
@@ -348,6 +353,11 @@
                 <div class="nav-item"><a href="#" class="nav-link" onclick="openTeamManager()"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
 
 
+
+                <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Policy Hub', 'Policy Hub is updated.')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Asset Inventory', 'Asset Inventory is verified.')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Support Hub', 'Support Hub is online.')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
 
                 <div class="nav-label" style="margin-top: 2rem;">APPLICATIONS</div>
                 <div class="nav-item">
@@ -542,14 +552,87 @@
                 if (sideDeptName) sideDeptName.textContent = userData.department;
                 if (sideDeptCode) sideDeptCode.textContent = (userData.department.substring(0, 3) + '-UNIT').toUpperCase();
                 const welcomeTitle = document.querySelector('.header h1');
-                if (welcomeTitle) welcomeTitle.textContent = `${userData.department} Command Center`;
+                const welcomeSub = document.querySelector('.header .sub-header');
+                if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${userData.name}`;
+                if (welcomeSub) welcomeSub.textContent = `${userData.department} Command Center - Real-time operational intelligence`;
             }
 
             if (user && (userData.role || '').toLowerCase() !== 'manager' && !centerId) {
                 window.location.href = 'index.html';
                 return;
             }
+
+            const activeUserId = user ? user.uid : localStorage.getItem('hr_user_id') || 'manager_demo';
+            restoreManagerSession(activeUserId);
         });
+
+        function restoreManagerSession(userId) {
+            const today = new Date().toISOString().split('T')[0];
+            const statusRef = doc(db, "manager_sessions", `${userId}_${today}`);
+            const btnIn = document.getElementById('btnPunchIn');
+            const btnBreak = document.getElementById('btnBreak');
+            const btnOut = document.getElementById('btnPunchOut');
+            const tvcDot = document.getElementById('tvcDot');
+            const tvcText = document.getElementById('tvcStatusText');
+            const timerDisplay = document.getElementById('adminSessionTimer');
+
+            import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(mod => {
+                const { onSnapshot } = mod;
+                onSnapshot(statusRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.status === 'Active' || data.status === 'Break') {
+                            btnIn.style.display = 'none';
+                            btnOut.style.display = 'flex';
+                            btnBreak.disabled = false;
+                            btnBreak.style.opacity = '1';
+                            
+                            if (data.punchIn) {
+                                const pIn = data.punchIn.toDate ? data.punchIn.toDate() : new Date(data.punchIn);
+                                managerStartTime = pIn.getTime();
+                                timerDisplay.style.display = 'inline';
+                                
+                                if (data.status === 'Active') {
+                                    tvcText.textContent = "SECURE: ACTIVE";
+                                    tvcDot.style.background = "var(--success)";
+                                    tvcDot.style.boxShadow = "0 0 10px var(--success)";
+                                    btnBreak.innerHTML = '<i data-lucide="coffee" size="14"></i> Break';
+                                    btnBreak.style.background = "#f59e0b";
+                                    startManagerTimer();
+                                } else {
+                                    tvcText.textContent = "SECURE: PAUSED";
+                                    tvcDot.style.background = "#f59e0b";
+                                    tvcDot.style.boxShadow = "none";
+                                    btnBreak.innerHTML = '<i data-lucide="play" size="14"></i> Resume';
+                                    btnBreak.style.background = "#3b82f6";
+                                    clearInterval(managerTimerInterval);
+                                    
+                                    // Static timer update for paused state
+                                    const diff = Date.now() - managerStartTime;
+                                    const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                                    const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                                    const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                                    timerDisplay.textContent = `${h}:${m}:${s}`;
+                                }
+                            }
+                        } else if (data.status === 'Offline') {
+                            btnIn.style.display = 'flex';
+                            btnBreak.disabled = true;
+                            btnBreak.style.opacity = '0.5';
+                            btnOut.style.display = 'none';
+                            tvcText.textContent = "SECURE: IDLE";
+                            tvcDot.style.background = "#cbd5e1";
+                            tvcDot.style.boxShadow = "none";
+                            timerDisplay.style.display = 'none';
+                            clearInterval(managerTimerInterval);
+                            btnBreak.innerHTML = '<i data-lucide="coffee" size="14"></i> Break';
+                            btnBreak.style.background = "#f59e0b";
+                        }
+                        if (window.lucide) lucide.createIcons();
+                    }
+                });
+            });
+        }
 
         function hydrateDashboard(config) {
             const sideDeptName = document.getElementById('sideDeptName');
@@ -562,7 +645,9 @@
             if (overviewLink && centerId) overviewLink.href = `manager-dashboard.html?id=${centerId}`;
             if (sideDeptName) sideDeptName.textContent = config.name;
             if (sideDeptCode) sideDeptCode.textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
-            if (welcomeTitle) welcomeTitle.textContent = `${config.name} Command Center`;
+            if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${localStorage.getItem('userName') || 'Manager'}`;
+            const welcomeSub = document.querySelector('.header .sub-header');
+            if (welcomeSub) welcomeSub.textContent = `${config.name} Command Center - Real-time operational intelligence`;
             if (deptIcon) {
                 deptIcon.innerHTML = `<i data-lucide="${config.icon || 'shield'}"></i>`;
                 deptIcon.style.color = config.primaryColor || 'var(--primary)';
@@ -755,17 +840,39 @@
         let managerTimerInterval;
         let managerStartTime;
 
-        async function syncStatus(status) {
+        async function syncStatus(status, type) {
             const userId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
             const today = new Date().toISOString().split('T')[0];
-            const statusRef = doc(db, "manager_sessions", `${userId}_${today}`);
             
-            await setDoc(statusRef, {
+            // Internal Manager Session
+            const statusRef = doc(db, "manager_sessions", `${userId}_${today}`);
+            const sessionData = {
                 status: status,
                 lastUpdated: serverTimestamp(),
                 userId: userId,
-                role: 'manager'
-            }, { merge: true });
+                role: 'manager',
+                name: localStorage.getItem('userName') || 'Manager',
+                department: localStorage.getItem('userDept') || 'General'
+            };
+            if (type === 'in') sessionData.punchIn = serverTimestamp();
+            if (type === 'out') sessionData.punchOut = serverTimestamp();
+            await setDoc(statusRef, sessionData, { merge: true });
+
+            // Global Attendance Sync for Admin Visibility
+            const attRef = doc(db, "attendance", `${userId}_${today}`);
+            const updateData = {
+                status: status === 'Active' ? 'Online' : (status === 'Break' ? 'On Break' : 'Shift Completed'),
+                lastUpdated: serverTimestamp(),
+                userId: userId,
+                name: localStorage.getItem('userName') || 'Manager',
+                role: 'manager',
+                department: localStorage.getItem('userDept') || 'General'
+            };
+
+            if (type === 'in') updateData.punchIn = serverTimestamp();
+            if (type === 'out') updateData.punchOut = serverTimestamp();
+
+            await setDoc(attRef, updateData, { merge: true });
         }
 
         window.managerPunchIn = async () => {
@@ -788,7 +895,7 @@
                 timerDisplay.style.display = 'inline';
                 startManagerTimer();
 
-                await syncStatus('Active');
+                await syncStatus('Active', 'in');
                 
                 btnIn.style.display = 'none';
                 btnBreak.disabled = false;
@@ -820,14 +927,14 @@
                 btnBreak.style.background = "#3b82f6";
                 tvcText.textContent = "SECURE: PAUSED";
                 tvcDot.style.background = "#f59e0b";
-                await syncStatus('Break');
+                await syncStatus('Break', 'break');
             } else {
                 startManagerTimer();
                 btnBreak.innerHTML = '<i data-lucide="coffee" size="14"></i> Break';
                 btnBreak.style.background = "#f59e0b";
                 tvcText.textContent = "SECURE: ACTIVE";
                 tvcDot.style.background = "var(--success)";
-                await syncStatus('Active');
+                await syncStatus('Active', 'resume');
             }
             lucide.createIcons();
         };
@@ -846,7 +953,7 @@
             tvcDot.style.boxShadow = "none";
             timerDisplay.style.display = 'none';
 
-            await syncStatus('Offline');
+            await syncStatus('Offline', 'out');
 
             btnIn.style.display = 'flex';
             btnBreak.disabled = true;

@@ -627,9 +627,15 @@
 
                 <div class="nav-label">Operations</div>
                 <div class="nav-item">
-                    <a href="#leave-attendance" class="nav-link">
+                    <a href="hrms-calnceder.html" class="nav-link">
                         <i data-lucide="calendar-check"></i>
                         <span>Leave & Attendance</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-attendance-monitor.html" class="nav-link">
+                        <i data-lucide="clock"></i>
+                        <span>Attendance Hub</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -941,17 +947,10 @@
                     <div>
                         <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
                             <span>Legal Entities</span>
-                            <button style="background: none; border: none; color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" size="14"></i> Add</button>
+                            <button onclick="addLegalEntityPrompt()" style="background: none; border: none; color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" size="14"></i> Add</button>
                         </h4>
-                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
-                                <span>Kylrx AI Global LLC (US)</span>
-                                <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;"></i>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
-                                <span>Kylrx AI India Pvt Ltd (IN)</span>
-                                <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;"></i>
-                            </div>
+                        <div id="legalEntitiesList" style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.8rem;">Loading Entities...</div>
                         </div>
                     </div>
                     
@@ -959,17 +958,10 @@
                     <div>
                         <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
                             <span>Business Units (BUs)</span>
-                            <button style="background: none; border: none; color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" size="14"></i> Add</button>
+                            <button onclick="addBusinessUnitPrompt()" style="background: none; border: none; color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;"><i data-lucide="plus" size="14"></i> Add</button>
                         </h4>
-                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
-                                <span>Cloud Engineering & Ops</span>
-                                <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;"></i>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;">
-                                <span>Enterprise Sales & Marketing</span>
-                                <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;"></i>
-                            </div>
+                        <div id="businessUnitsList" style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.8rem;">Loading Business Units...</div>
                         </div>
                     </div>
                 </div>
@@ -1341,7 +1333,8 @@
                         <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
                             <h4 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">Attendance Regularization</h4>
                             <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">Employee Window: 2 Days | Manager/HR: Anytime</div>
-                            <button class="action-btn" style="width: 100%; justify-content: center; background: white; color: var(--text-main); border: 1px solid var(--border);">Review Regularization Requests (8)</button>
+                            <button class="action-btn" style="width: 100%; justify-content: center; background: white; color: var(--text-main); border: 1px solid var(--border); margin-bottom: 8px;">Review Regularization Requests (8)</button>
+                            <button onclick="location.href='admin-attendance-monitor.html'" class="action-btn" style="width: 100%; justify-content: center; background: var(--primary); color: white; border: none; font-weight: 700;">Open Attendance Hub</button>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div style="background: white; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
@@ -1667,7 +1660,7 @@
     <script type="module">
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, onSnapshot, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, onSnapshot, query, orderBy, doc, getDoc, addDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         lucide.createIcons();
 
@@ -1892,6 +1885,314 @@
             const row = btn.closest('tr');
             alert(`Opening Audit Trail for ${row.querySelector('td:nth-child(1) div div:last-child').textContent}\nClaim Amount: ${row.querySelector('td:nth-child(3)').textContent}\nPolicy Check: Compliant`);
         };
+
+        // ------------------ Org Structure Configuration (Firestore Connected) ------------------
+        
+        // Listeners for Legal Entities
+        onSnapshot(collection(db, 'legal_entities'), (snapshot) => {
+            const listContainer = document.getElementById('legalEntitiesList');
+            if (!listContainer) return;
+            
+            if (snapshot.empty) {
+                // Pre-populate with defaults if empty
+                const defaults = [
+                    { name: 'Kylrx AI Global LLC (US)' },
+                    { name: 'Kylrx AI India Pvt Ltd (IN)' }
+                ];
+                defaults.forEach(item => addDoc(collection(db, 'legal_entities'), item));
+                return;
+            }
+            
+            listContainer.innerHTML = '';
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.style = "display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;";
+                itemDiv.innerHTML = `
+                    <span>${data.name}</span>
+                    <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;" onclick="deleteLegalEntity('${id}', '${data.name.replace(/'/g, "\\'")}')"></i>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+            if (window.lucide) lucide.createIcons();
+        });
+
+        // Listeners for Business Units
+        onSnapshot(collection(db, 'business_units'), (snapshot) => {
+            const listContainer = document.getElementById('businessUnitsList');
+            if (!listContainer) return;
+            
+            if (snapshot.empty) {
+                // Pre-populate with defaults if empty
+                const defaults = [
+                    { name: 'Cloud Engineering & Ops' },
+                    { name: 'Enterprise Sales & Marketing' }
+                ];
+                defaults.forEach(item => addDoc(collection(db, 'business_units'), item));
+                return;
+            }
+            
+            listContainer.innerHTML = '';
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.style = "display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.85rem; font-weight: 600;";
+                itemDiv.innerHTML = `
+                    <span>${data.name}</span>
+                    <i data-lucide="trash-2" size="14" style="color: #ef4444; cursor: pointer;" onclick="deleteBusinessUnit('${id}', '${data.name.replace(/'/g, "\\'")}')"></i>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+            if (window.lucide) lucide.createIcons();
+        });
+
+        // ------------------ Centered Custom High-Fidelity Dialog System ------------------
+        window.showCustomConfirm = (title, message, isDelete = false) => {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('customDialogModal');
+                const titleEl = document.getElementById('customDialogTitle');
+                const msgEl = document.getElementById('customDialogMessage');
+                const iconContainer = document.getElementById('customDialogIconContainer');
+                const inputContainer = document.getElementById('customDialogInputContainer');
+                const cancelBtn = document.getElementById('customDialogCancelBtn');
+                const confirmBtn = document.getElementById('customDialogConfirmBtn');
+                
+                titleEl.textContent = title;
+                msgEl.textContent = message;
+                inputContainer.style.display = 'none';
+                
+                if (isDelete) {
+                    iconContainer.style.background = '#fef2f2';
+                    iconContainer.style.color = '#ef4444';
+                    iconContainer.innerHTML = '<i data-lucide="trash-2" style="width: 28px; height: 28px;"></i>';
+                    confirmBtn.style.background = '#ef4444';
+                    confirmBtn.style.borderColor = '#ef4444';
+                    confirmBtn.style.color = 'white';
+                } else {
+                    iconContainer.style.background = '#eff6ff';
+                    iconContainer.style.color = 'var(--primary)';
+                    iconContainer.innerHTML = '<i data-lucide="help-circle" style="width: 28px; height: 28px;"></i>';
+                    confirmBtn.style.background = 'var(--primary)';
+                    confirmBtn.style.borderColor = 'var(--primary)';
+                    confirmBtn.style.color = 'white';
+                }
+                
+                if (window.lucide) lucide.createIcons();
+                
+                modal.style.display = 'flex';
+                
+                const cleanup = (value) => {
+                    modal.style.display = 'none';
+                    cancelBtn.onclick = null;
+                    confirmBtn.onclick = null;
+                    resolve(value);
+                };
+                
+                cancelBtn.onclick = () => cleanup(false);
+                confirmBtn.onclick = () => cleanup(true);
+            });
+        };
+
+        window.showCustomPrompt = (title, message, placeholder = '') => {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('customDialogModal');
+                const titleEl = document.getElementById('customDialogTitle');
+                const msgEl = document.getElementById('customDialogMessage');
+                const iconContainer = document.getElementById('customDialogIconContainer');
+                const inputContainer = document.getElementById('customDialogInputContainer');
+                const inputVal = document.getElementById('customDialogInput');
+                const cancelBtn = document.getElementById('customDialogCancelBtn');
+                const confirmBtn = document.getElementById('customDialogConfirmBtn');
+                
+                titleEl.textContent = title;
+                msgEl.textContent = message;
+                inputContainer.style.display = 'block';
+                inputVal.value = '';
+                inputVal.placeholder = placeholder;
+                
+                iconContainer.style.background = '#f5f3ff';
+                iconContainer.style.color = '#8b5cf6';
+                iconContainer.innerHTML = '<i data-lucide="plus-circle" style="width: 28px; height: 28px;"></i>';
+                confirmBtn.style.background = 'var(--primary)';
+                confirmBtn.style.borderColor = 'var(--primary)';
+                confirmBtn.style.color = 'white';
+                
+                if (window.lucide) lucide.createIcons();
+                
+                modal.style.display = 'flex';
+                inputVal.focus();
+                
+                const cleanup = (value) => {
+                    modal.style.display = 'none';
+                    cancelBtn.onclick = null;
+                    confirmBtn.onclick = null;
+                    resolve(value);
+                };
+                
+                cancelBtn.onclick = () => cleanup(null);
+                confirmBtn.onclick = () => cleanup(inputVal.value);
+                
+                inputVal.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        cleanup(inputVal.value);
+                    } else if (e.key === 'Escape') {
+                        cleanup(null);
+                    }
+                };
+            });
+        };
+
+        window.addLegalEntityPrompt = async () => {
+            const name = await showCustomPrompt("Add Legal Entity", "Enter the official name of the new Legal Entity:", "e.g. Kylrx AI Europe Ltd");
+            if (!name || name.trim() === '') return;
+            try {
+                await addDoc(collection(db, 'legal_entities'), { name: name.trim() });
+            } catch (e) {
+                console.error("Failed to add legal entity:", e);
+                alert("Error adding Legal Entity.");
+            }
+        };
+
+        window.addBusinessUnitPrompt = async () => {
+            const name = await showCustomPrompt("Add Business Unit", "Enter the name of the new Business Unit (BU):", "e.g. Finance & Accounting");
+            if (!name || name.trim() === '') return;
+            try {
+                await addDoc(collection(db, 'business_units'), { name: name.trim() });
+            } catch (e) {
+                console.error("Failed to add business unit:", e);
+                alert("Error adding Business Unit.");
+            }
+        };
+
+        window.deleteLegalEntity = async (id, name) => {
+            const confirmed = await showCustomConfirm("Delete Legal Entity", `Are you sure you want to delete the Legal Entity: "${name}"?`, true);
+            if (!confirmed) return;
+            try {
+                await deleteDoc(doc(db, 'legal_entities', id));
+            } catch (e) {
+                console.error("Failed to delete legal entity:", e);
+                alert("Error deleting Legal Entity.");
+            }
+        };
+
+        window.deleteBusinessUnit = async (id, name) => {
+            const confirmed = await showCustomConfirm("Delete Business Unit", `Are you sure you want to delete the Business Unit: "${name}"?`, true);
+            if (!confirmed) return;
+            try {
+                await deleteDoc(doc(db, 'business_units', id));
+            } catch (e) {
+                console.error("Failed to delete business unit:", e);
+                alert("Error deleting Business Unit.");
+            }
+        };
+
+        // Listeners for Generated Employee Profiles (Firebase Connected)
+        onSnapshot(collection(db, 'users'), (snapshot) => {
+            const tableBody = document.getElementById('generatedProfilesTable');
+            if (!tableBody) return;
+            
+            if (snapshot.empty) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                            No employee profiles found in Firebase backend.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tableBody.innerHTML = '';
+            
+            snapshot.forEach(docSnap => {
+                const emp = docSnap.data();
+                const uid = docSnap.id;
+                
+                // Initials calculation
+                const name = emp.name || 'N/A';
+                const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '??';
+                
+                // Dynamic colors for avatar
+                const colors = [
+                    { bg: 'var(--primary-light)', text: 'var(--primary)' },
+                    { bg: '#fef3c7', text: '#d97706' },
+                    { bg: '#ecfdf5', text: '#10b981' },
+                    { bg: '#f5f3ff', text: '#8b5cf6' },
+                    { bg: '#e0f2fe', text: '#0369a1' }
+                ];
+                const colorIndex = initials.charCodeAt(0) % colors.length;
+                const avatarColor = colors[colorIndex];
+                
+                // Formatted generated code
+                const code = emp.employeeId || emp.uid?.substring(0,6).toUpperCase() || uid.substring(0, 6).toUpperCase() || 'N/A';
+                const employeeCode = code.startsWith('EMP-') ? code : `EMP-${code}`;
+                
+                // Department & Designation
+                const deptName = emp.departmentName || emp.department || 'General';
+                const roleTitle = emp.designation || (emp.role === 'manager' ? 'Lead Manager' : 'Team Member');
+                
+                // Status Badge
+                const status = emp.status || 'Completed';
+                let statusBadge = '';
+                if (status === 'Completed' || status === 'Active') {
+                    statusBadge = `
+                        <span style="background: #ecfdf5; color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="check-circle" size="12"></i> Profile Created
+                        </span>
+                    `;
+                } else if (status === 'Invitation Sent' || status === 'Pending') {
+                    statusBadge = `
+                        <span style="background: #fffbeb; color: #d97706; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="mail" size="12"></i> Invite Pending
+                        </span>
+                    `;
+                } else {
+                    statusBadge = `
+                        <span style="background: #eff6ff; color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="loader" class="spin" size="12"></i> Onboarding
+                        </span>
+                    `;
+                }
+                
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid var(--border)';
+                row.innerHTML = `
+                    <td style="padding: 1rem 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 32px; height: 32px; background: ${avatarColor.bg}; color: ${avatarColor.text}; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">
+                                ${initials}
+                            </div>
+                            <div>
+                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">${name}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${emp.email || 'N/A'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 1rem 1.5rem;">
+                        <span style="background: #eff6ff; color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; border: 1px solid #bfdbfe; font-family: monospace;">
+                            ${employeeCode}
+                        </span>
+                    </td>
+                    <td style="padding: 1rem 1.5rem;">
+                        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${deptName}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${roleTitle}</div>
+                    </td>
+                    <td style="padding: 1rem 1.5rem;">
+                        ${statusBadge}
+                    </td>
+                    <td style="padding: 1rem 1.5rem;">
+                        <button onclick="window.openEditModal('${uid}')" style="background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; color: var(--text-main); transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--text-main)'">View Profile</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            if (window.lucide) lucide.createIcons();
+        });
     </script>
     <!-- Modals Ported from Admin -->
     <div class="modal-overlay" id="empModal">
@@ -2035,6 +2336,26 @@
     </div>
 
     <script type="module" src="admin-app.js"></script>
+    <!-- Centered Custom Prompt & Confirmation Modal Dialog -->
+    <div class="modal-overlay" id="customDialogModal" style="display: none; z-index: 9999;">
+        <div class="modal" style="max-width: 420px; text-align: center; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow-lg);">
+            <div id="customDialogIconContainer" style="margin: 0 auto 1.25rem; width: 56px; height: 56px; border-radius: 100px; display: flex; align-items: center; justify-content: center; background: #fee2e2; color: #ef4444;">
+                <i data-lucide="help-circle" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h3 id="customDialogTitle" style="font-weight: 800; font-size: 1.2rem; color: #0f172a; margin-bottom: 0.75rem;">Confirm Action</h3>
+            <p id="customDialogMessage" style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.5rem;">Are you sure you want to perform this action?</p>
+            
+            <div id="customDialogInputContainer" style="display: none; margin-bottom: 1.5rem;">
+                <input type="text" id="customDialogInput" style="width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 0.9rem; font-family: inherit; outline: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); transition: 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'" placeholder="Enter details...">
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <button id="customDialogCancelBtn" class="btn btn-outline" style="flex: 1; justify-content: center; font-size: 0.85rem; font-weight: 700; padding: 10px 16px; border-radius: 12px;">Cancel</button>
+                <button id="customDialogConfirmBtn" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.85rem; font-weight: 700; padding: 10px 16px; border-radius: 12px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Global Modal Helpers
         window.openModal = (id) => document.getElementById(id).style.display = 'flex';

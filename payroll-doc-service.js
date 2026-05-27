@@ -16,7 +16,7 @@ export async function generateDocument(employeeId, docType, data) {
         const secureMetadata = {
             isEncrypted: true,
             encryptionType: 'AES-256',
-            watermark: 'HRFlow Confidential',
+            watermark: 'Kylrx AI Confidential',
             generatedBy: 'System Admin',
             generationIp: '192.168.1.1'
         };
@@ -58,7 +58,24 @@ export async function generateMonthlyBatch(month, year) {
 
         const type = emp.employmentType === 'Full Time' ? 'Payslip' : 'Invoice';
         
-        const gross = emp.salary || 50000;
+        let gross = emp.salary || 50000;
+        
+        // Connect to HRMS dynamic session data!
+        try {
+            const dayKey = new Date().toISOString().split('T')[0];
+            const sessionRef = doc(db, 'hrms_sessions', `${empDoc.id}_${dayKey}`);
+            const sessionSnap = await getDoc(sessionRef);
+            if (sessionSnap.exists()) {
+                const sessionData = sessionSnap.data();
+                if (sessionData.finalSalary) {
+                    gross = sessionData.finalSalary;
+                    console.log(`[PAYROLL] Connected to HRMS: Dynamic salary for ${emp.name} is ₹${gross}`);
+                }
+            }
+        } catch (e) {
+            console.warn(`[PAYROLL] HRMS connection failed for ${emp.name}, using static base salary:`, e.message);
+        }
+
         await generateDocument(empDoc.id, type, {
             period: `${month} ${year}`,
             employeeName: emp.name,
@@ -114,11 +131,32 @@ export async function disburseSalaries(authority) {
     
     let count = 0;
     for (const d of docsSnap.docs) {
-        await updateDoc(doc(db, 'payroll_documents', d.id), {
+        const dData = d.data();
+        let payload = {
             status: 'Paid',
             paidVia: authority,
             paidAt: serverTimestamp()
-        });
+        };
+
+        // If authorized via HRMS automated gateway, synchronize dynamic session metrics
+        if (authority === 'HRMS') {
+            try {
+                const dayKey = new Date().toISOString().split('T')[0];
+                const sessionRef = doc(db, 'hrms_sessions', `${dData.employeeId}_${dayKey}`);
+                const sessionSnap = await getDoc(sessionRef);
+                if (sessionSnap.exists()) {
+                    const sData = sessionSnap.data();
+                    payload.hrmsScore = sData.productivityScore || 100;
+                    payload.hrmsPenalty = sData.penalty || 0;
+                    payload.hrmsBonus = sData.bonus || 0;
+                    payload.grossSalary = sData.finalSalary || dData.grossSalary;
+                }
+            } catch (e) {
+                console.warn("Could not sync HRMS session on disbursement:", e);
+            }
+        }
+
+        await updateDoc(doc(db, 'payroll_documents', d.id), payload);
         count++;
     }
     

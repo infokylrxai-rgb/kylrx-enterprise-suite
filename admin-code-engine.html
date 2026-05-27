@@ -217,6 +217,8 @@
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
@@ -361,7 +363,7 @@
 
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, onSnapshot, query, orderBy, limit, setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         lucide.createIcons();
 
@@ -412,6 +414,68 @@
                 alert("Failed to save configuration.");
             }
         };
+
+        // Real-time Firestore Subscriber for Code Generation Audit Logs
+        onSnapshot(query(collection(db, 'users'), limit(50)), (snapshot) => {
+            const auditLogsBody = document.getElementById('auditLogsBody');
+            if (!auditLogsBody) return;
+            
+            if (snapshot.empty) {
+                auditLogsBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            No generated code logs found in database.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            auditLogsBody.innerHTML = '';
+            
+            snapshot.forEach(docSnap => {
+                const emp = docSnap.data();
+                const uid = docSnap.id;
+                
+                // Format timestamp
+                let dateStr = 'N/A';
+                if (emp.joiningDate) {
+                    const d = new Date(emp.joiningDate);
+                    dateStr = d.toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                } else if (emp.createdAt) {
+                    const d = emp.createdAt.toDate ? emp.createdAt.toDate() : new Date(emp.createdAt);
+                    dateStr = d.toLocaleDateString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                } else {
+                    dateStr = 'System default';
+                }
+                
+                const name = emp.name || 'N/A';
+                const type = emp.role === 'manager' ? 'Lead Manager' : 'Full-Time';
+                
+                const code = emp.employeeId || emp.uid?.substring(0, 6).toUpperCase() || uid.substring(0, 6).toUpperCase() || 'N/A';
+                const employeeCode = code.startsWith('EMP-') ? code : `EMP-${code}`;
+                
+                const operator = emp.createdBy || 'System (Onboarding)';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td style="font-weight: 700; color: var(--text-main);">${name}</td>
+                    <td>${type}</td>
+                    <td style="font-weight: 800; color: var(--primary); font-family: monospace;">${employeeCode}</td>
+                    <td>${operator}</td>
+                `;
+                auditLogsBody.appendChild(tr);
+            });
+        });
 
         updatePreviews();
     </script>

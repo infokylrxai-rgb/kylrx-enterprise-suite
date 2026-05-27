@@ -39,7 +39,7 @@ const AVAILABLE_WIDGETS = [
 import { onboardingAutomation } from "./onboarding-automation.js";
 
 // Initialize Dashboard
-document.addEventListener('DOMContentLoaded', () => {
+const init = () => {
     loadConfig();
     setupEventListeners();
     initDashboard();
@@ -47,7 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start Onboarding Automation Background Cycle
     onboardingAutomation.runAutomationCycle();
     setInterval(() => onboardingAutomation.runAutomationCycle(), 15 * 60 * 1000); // Every 15 mins
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 function loadConfig() {
     const isAnalysis = window.location.pathname.includes('admin-analysis.html');
@@ -1647,9 +1653,134 @@ window.renderPayrollImpactChart = renderPayrollImpactChart;
 window.renderSalaryDistChart = renderSalaryDistChart;
 window.renderDistractionTrendsChart = renderDistractionTrendsChart;
 
-// --- TVC AI/ML Python Connectivity Simulation ---
+// --- TVC AI/ML Python Connectivity Simulation (Persistent) ---
 let adminTimerInterval;
-let adminStartTime;
+let adminStartTime = localStorage.getItem('tvc_adminStartTime') ? parseInt(localStorage.getItem('tvc_adminStartTime')) : 0;
+let breakTotalTime = localStorage.getItem('tvc_breakTotalTime') ? parseInt(localStorage.getItem('tvc_breakTotalTime')) : 0;
+let breakStartTime = localStorage.getItem('tvc_breakStartTime') ? parseInt(localStorage.getItem('tvc_breakStartTime')) : 0;
+let isPunchedIn = localStorage.getItem('tvc_isPunchedIn') === 'true';
+let isOnBreak = localStorage.getItem('tvc_isOnBreak') === 'true';
+
+// Reset TVC state if date changes (new day)
+if (adminStartTime) {
+    const sessionDate = new Date(adminStartTime).toISOString().split('T')[0];
+    const todayDate = new Date().toISOString().split('T')[0];
+    if (sessionDate !== todayDate) {
+        localStorage.removeItem('tvc_isPunchedIn');
+        localStorage.removeItem('tvc_adminStartTime');
+        localStorage.removeItem('tvc_breakTotalTime');
+        localStorage.removeItem('tvc_isOnBreak');
+        localStorage.removeItem('tvc_breakStartTime');
+        adminStartTime = 0;
+        breakTotalTime = 0;
+        breakStartTime = 0;
+        isPunchedIn = false;
+        isOnBreak = false;
+    }
+}
+
+function updateTimerDisplay() {
+    const timerDisplay = document.getElementById('adminSessionTimer');
+    if (!timerDisplay) return;
+    
+    let diff = 0;
+    if (isPunchedIn) {
+        if (isOnBreak) {
+            diff = breakStartTime - adminStartTime - breakTotalTime;
+        } else {
+            diff = Date.now() - adminStartTime - breakTotalTime;
+        }
+    }
+    
+    if (diff < 0) diff = 0;
+    
+    const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+    const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+    const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+    timerDisplay.textContent = `${h}:${m}:${s}`;
+}
+
+function startAdminTimer() {
+    clearInterval(adminTimerInterval);
+    adminTimerInterval = setInterval(updateTimerDisplay, 1000);
+}
+
+async function syncAdminStatusToFirebase(status) {
+    try {
+        const { doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+        const userId = localStorage.getItem('hr_user_id') || 'admin_demo';
+        const today = new Date().toISOString().split('T')[0];
+        // Import db dynamically or it's already in scope if we are careful, but better to be safe
+        const { db } = await import("./firebase-config.js");
+        const statusRef = doc(db, "admin_sessions", `${userId}_${today}`);
+        
+        const updateData = {
+            status: status,
+            lastUpdated: serverTimestamp(),
+            userId: userId,
+            name: localStorage.getItem('userName') || "System Administrator",
+            department: "Executive"
+        };
+
+        if (status === 'Active') {
+            updateData.punchIn = serverTimestamp();
+        } else if (status === 'Offline') {
+            updateData.punchOut = serverTimestamp();
+        }
+
+        await setDoc(statusRef, updateData, { merge: true });
+    } catch (error) {
+        console.error("Firebase sync error:", error);
+    }
+}
+
+// Auto-resume state on page load
+function restoreTVCState() {
+    const btnIn = document.getElementById('btnPunchIn');
+    const btnBreak = document.getElementById('btnBreak');
+    const btnOut = document.getElementById('btnPunchOut');
+    const tvcDot = document.getElementById('tvcDot');
+    const tvcText = document.getElementById('tvcStatusText');
+    const timerDisplay = document.getElementById('adminSessionTimer');
+
+    if (!btnIn) return; // Not on a page with TVC controls
+
+    if (isPunchedIn) {
+        btnIn.style.display = 'none';
+        btnBreak.style.display = 'flex';
+        btnOut.style.display = 'flex';
+        timerDisplay.style.display = 'inline';
+        
+        if (isOnBreak) {
+            btnBreak.innerHTML = '<i data-lucide="play" size="16"></i> Resume';
+            btnBreak.style.background = "#3b82f6";
+            if(tvcText) tvcText.textContent = "SECURE: PAUSED";
+            if(tvcDot) tvcDot.style.background = "#f59e0b";
+            updateTimerDisplay(); // Just show static time
+        } else {
+            btnBreak.innerHTML = '<i data-lucide="coffee" size="16"></i> Break';
+            btnBreak.style.background = "#f59e0b";
+            if(tvcText) tvcText.textContent = "TVC: SECURE";
+            if(tvcDot) {
+                tvcDot.style.background = "#10b981";
+                tvcDot.style.boxShadow = "0 0 10px #10b981";
+            }
+            startAdminTimer();
+        }
+    } else {
+        btnIn.style.display = 'flex';
+        btnBreak.style.display = 'none';
+        btnOut.style.display = 'none';
+        if(timerDisplay) timerDisplay.style.display = 'none';
+        if(tvcText) tvcText.textContent = "SECURE: IDLE";
+        if(tvcDot) {
+            tvcDot.style.background = "#cbd5e1";
+            tvcDot.style.boxShadow = "none";
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', restoreTVCState);
 
 window.adminPunchIn = async () => {
     try {
@@ -1664,18 +1795,30 @@ window.adminPunchIn = async () => {
         if (window.setTrackerOverride) window.setTrackerOverride('Active');
 
         // 2. Simulate AI/ML Python Engine Connection
-        tvcText.textContent = "TVC: CONNECTING...";
-        tvcDot.style.background = "#3b82f6";
+        if(tvcText) tvcText.textContent = "TVC: CONNECTING...";
+        if(tvcDot) tvcDot.style.background = "#3b82f6";
         
         setTimeout(() => {
-            tvcText.textContent = "TVC: SECURE";
-            tvcDot.style.background = "#10b981";
-            tvcDot.style.boxShadow = "0 0 10px #10b981";
+            if(tvcText) tvcText.textContent = "TVC: SECURE";
+            if(tvcDot) {
+                tvcDot.style.background = "#10b981";
+                tvcDot.style.boxShadow = "0 0 10px #10b981";
+            }
             
             // Start Timer
+            isPunchedIn = true;
             adminStartTime = Date.now();
-            timerDisplay.style.display = 'inline';
+            breakTotalTime = 0;
+            isOnBreak = false;
+            
+            localStorage.setItem('tvc_isPunchedIn', 'true');
+            localStorage.setItem('tvc_adminStartTime', adminStartTime.toString());
+            localStorage.setItem('tvc_breakTotalTime', breakTotalTime.toString());
+            localStorage.setItem('tvc_isOnBreak', 'false');
+            
+            if(timerDisplay) timerDisplay.style.display = 'inline';
             startAdminTimer();
+            syncAdminStatusToFirebase('Active');
 
             showSuccess('Security Link Established', 'Total Visibility Control is now active for this administrative session.', {
                 "Mode": "Standard / Encrypted",
@@ -1684,51 +1827,54 @@ window.adminPunchIn = async () => {
         }, 1500);
 
         // 3. UI Updates
-        btnIn.style.display = 'none';
-        btnBreak.style.display = 'flex';
-        btnOut.style.display = 'flex';
+        if(btnIn) btnIn.style.display = 'none';
+        if(btnBreak) btnBreak.style.display = 'flex';
+        if(btnOut) btnOut.style.display = 'flex';
         
     } catch (err) {
         console.error('Punch In Error:', err);
     }
 };
 
-function startAdminTimer() {
-    const timerDisplay = document.getElementById('adminSessionTimer');
-    clearInterval(adminTimerInterval);
-    adminTimerInterval = setInterval(() => {
-        const diff = Date.now() - adminStartTime;
-        const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
-        const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-        timerDisplay.textContent = `${h}:${m}:${s}`;
-    }, 1000);
-}
-
 window.adminBreak = () => {
     const btnBreak = document.getElementById('btnBreak');
     const tvcDot = document.getElementById('tvcDot');
     const tvcText = document.getElementById('tvcStatusText');
 
-    if (btnBreak.textContent.includes('Break')) {
+    if (!isOnBreak) {
         // Start Break
         if (window.setTrackerOverride) window.setTrackerOverride('Break');
         clearInterval(adminTimerInterval);
-        btnBreak.innerHTML = '<i data-lucide="play" size="16"></i> Resume';
-        btnBreak.style.background = "#3b82f6";
-        tvcText.textContent = "SECURE: PAUSED";
-        tvcDot.style.background = "#f59e0b";
+        isOnBreak = true;
+        breakStartTime = Date.now();
+        localStorage.setItem('tvc_isOnBreak', 'true');
+        localStorage.setItem('tvc_breakStartTime', breakStartTime.toString());
+
+        if(btnBreak) {
+            btnBreak.innerHTML = '<i data-lucide="play" size="16"></i> Resume';
+            btnBreak.style.background = "#3b82f6";
+        }
+        if(tvcText) tvcText.textContent = "SECURE: PAUSED";
+        if(tvcDot) tvcDot.style.background = "#f59e0b";
+        syncAdminStatusToFirebase('Break');
         showSuccess('Status: On Break', 'Productivity tracking has been paused.', {});
     } else {
         // Resume
         if (window.setTrackerOverride) window.setTrackerOverride('Active');
-        // Adjust start time to "skip" the break duration
-        // Simplified for demo: just restart from where it was or continue
+        isOnBreak = false;
+        breakTotalTime += (Date.now() - breakStartTime);
+        
+        localStorage.setItem('tvc_isOnBreak', 'false');
+        localStorage.setItem('tvc_breakTotalTime', breakTotalTime.toString());
+        
         startAdminTimer();
-        btnBreak.innerHTML = '<i data-lucide="coffee" size="16"></i> Break';
-        btnBreak.style.background = "#f59e0b";
-        tvcText.textContent = "TVC: SECURE";
-        tvcDot.style.background = "#10b981";
+        if(btnBreak) {
+            btnBreak.innerHTML = '<i data-lucide="coffee" size="16"></i> Break';
+            btnBreak.style.background = "#f59e0b";
+        }
+        if(tvcText) tvcText.textContent = "TVC: SECURE";
+        if(tvcDot) tvcDot.style.background = "#10b981";
+        syncAdminStatusToFirebase('Active');
         showSuccess('Status: Resumed', 'Administrative session security re-established.', {});
     }
     if (window.lucide) lucide.createIcons();
@@ -1746,19 +1892,51 @@ window.adminPunchOut = () => {
     if (window.setTrackerOverride) window.setTrackerOverride('Offline');
     clearInterval(adminTimerInterval);
 
-    // 2. Disconnect TVC
-    tvcText.textContent = "SECURE: IDLE";
-    tvcDot.style.background = "#cbd5e1";
-    tvcDot.style.boxShadow = "none";
-    timerDisplay.style.display = 'none';
+    // 2. Clear State
+    isPunchedIn = false;
+    isOnBreak = false;
+    localStorage.removeItem('tvc_isPunchedIn');
+    localStorage.removeItem('tvc_adminStartTime');
+    localStorage.removeItem('tvc_breakTotalTime');
+    localStorage.removeItem('tvc_isOnBreak');
+    localStorage.removeItem('tvc_breakStartTime');
 
-    // 3. UI Reset
-    btnIn.style.display = 'flex';
-    btnBreak.style.display = 'none';
-    btnOut.style.display = 'none';
-    btnBreak.innerHTML = '<i data-lucide="coffee" size="16"></i> Break';
-    btnBreak.style.background = "#f59e0b";
+    // 3. Disconnect TVC
+    if(tvcText) tvcText.textContent = "SECURE: IDLE";
+    if(tvcDot) {
+        tvcDot.style.background = "#cbd5e1";
+        tvcDot.style.boxShadow = "none";
+    }
+    if(timerDisplay) timerDisplay.style.display = 'none';
+    syncAdminStatusToFirebase('Offline');
+
+    // 4. UI Reset
+    if(btnIn) btnIn.style.display = 'flex';
+    if(btnBreak) {
+        btnBreak.style.display = 'none';
+        btnBreak.innerHTML = '<i data-lucide="coffee" size="16"></i> Break';
+        btnBreak.style.background = "#f59e0b";
+    }
+    if(btnOut) btnOut.style.display = 'none';
 
     showSuccess('Punch Out Successful', 'Session ended safely.', {});
     if (window.lucide) lucide.createIcons();
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await signOut(auth);
+                localStorage.clear();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Logout error", error);
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
+    }
+});

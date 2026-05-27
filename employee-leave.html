@@ -96,10 +96,13 @@
     <div class="container">
         <header class="header">
             <div>
-                <a href="employee-dashboard.html" class="back-btn"><i data-lucide="arrow-left" size="18"></i> Back to Dashboard</a>
+                <a href="#" onclick="const id=new URLSearchParams(window.location.search).get('id'); window.location.href=id ? 'employee-dashboard.html?id='+id : 'employee-dashboard.html';" class="back-btn"><i data-lucide="arrow-left" size="18"></i> Back to Dashboard</a>
                 <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Leave & Time Off</h1>
             </div>
-            <div style="text-align: right;">
+            <div style="text-align: right; display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                <button class="btn btn-outline" style="width: auto; padding: 6px 14px; font-size: 0.75rem; border-radius: 100px; display: flex; align-items: center; gap: 6px; font-weight: 800; border: 1px solid var(--border); background: white; cursor: pointer; color: var(--text-muted);" onclick="const id=new URLSearchParams(window.location.search).get('id'); window.location.href=id ? 'employee-calander.html?id='+id : 'employee-calander.html';">
+                    <i data-lucide="calendar" size="14"></i> Holiday Calendar
+                </button>
                 <div style="font-size: 0.8rem; font-weight: 800; color: var(--success); background: #dcfce7; padding: 6px 12px; border-radius: 100px;">ANNUAL QUOTA: 24 DAYS</div>
             </div>
         </header>

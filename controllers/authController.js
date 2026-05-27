@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+const { admin, db } = require('../config/firebase');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
@@ -37,8 +37,6 @@ exports.register = async (req, res, next) => {
         if (policyError) {
             return res.status(400).json({ success: false, error: policyError });
         }
-
-        const db = admin.firestore();
 
         // 2. Check if email exists
         const userRef = db.collection('users').where('email', '==', email);
@@ -81,7 +79,6 @@ exports.login = async (req, res, next) => {
             return res.status(400).json({ success: false, error: 'Email and password required' });
         }
 
-        const db = admin.firestore();
         const usersSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
 
         if (usersSnapshot.empty) {

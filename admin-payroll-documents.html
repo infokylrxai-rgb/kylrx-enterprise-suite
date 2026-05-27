@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
     <style>
         .doc-center-grid {
@@ -311,6 +312,12 @@
         import { collection, query, orderBy, limit, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         import { generateMonthlyBatch, generateDocument, disburseSalaries } from "./payroll-doc-service.js";
 
+        // ─────────────────────────────────────────────
+        // EMAIL API CONFIGURATION
+        // ─────────────────────────────────────────────
+        const EMAIL_API_KEY = "6f8d75dc-500b-4eb1-b0db-6e6b4e7235db"; // Pre-validated, live SMTP token for direct delivery
+        const SENDER_EMAIL = "payroll@kylrxai.com";
+
         window.showToast = (msg, isError = false) => {
             const id = isError ? 'errorToast' : 'successToast';
             const toast = document.getElementById(id);
@@ -352,6 +359,14 @@
             if (window.lucide) lucide.createIcons();
             
             document.getElementById('confirmDisburseBtn').onclick = async () => {
+                if (authority === 'Admin') {
+                    modal.style.display = 'none';
+                    showToast("Redirecting to Bank Transfer Center...");
+                    setTimeout(() => {
+                        window.location.href = 'admin-bank-transfer.html?type=salary';
+                    }, 1200);
+                    return;
+                }
                 modal.style.display = 'none';
                 showToast(`Processing via ${authority}...`);
                 try {
@@ -360,6 +375,49 @@
                         showToast("No pending 'Generated' payrolls found.", true);
                     } else {
                         showToast(`Successfully authorized payments to ${result.count} personnel via ${authority}.`);
+                        
+                        // Trigger live email notifications for all active personnel
+                        try {
+                            const usersSnap = await getDocs(collection(db, 'users'));
+                            for (const uDoc of usersSnap.docs) {
+                                const userData = uDoc.data();
+                                const employeeEmail = userData.email;
+                                
+                                if (employeeEmail && (userData.role || '').toLowerCase() !== 'admin') {
+                                    const gross = userData.salary || 50000;
+                                    const emailBody = `
+                                        <h3>Salary Disbursed</h3>
+                                        <p>Dear ${userData.name || 'Employee'},</p>
+                                        <p>We are pleased to inform you that your salary for the current cycle has been disbursed successfully via <strong>${authority}</strong>.</p>
+                                        <ul>
+                                            <li><strong>Gross Amount:</strong> ₹${gross}</li>
+                                            <li><strong>Gateway Status:</strong> Paid & Verified</li>
+                                        </ul>
+                                        <p>Your secure payslip has been archived and uploaded to your Employee Vault.</p>
+                                        <p>Best regards,<br>Kylrx AI Admin Team</p>
+                                    `;
+                                    
+                                    console.log(`[EMAIL] Dispatching 1-Click payment notification to ${employeeEmail} via Web3Forms...`);
+                                    await fetch("https://api.web3forms.com/submit", {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            "Accept": "application/json"
+                                        },
+                                        body: JSON.stringify({
+                                            access_key: EMAIL_API_KEY,
+                                            name: "Kylrx AI Payroll Gate",
+                                            email: SENDER_EMAIL,
+                                            subject: 'Kylrx AI - Salary Disbursed (1-Click Gateway)',
+                                            message: `Dear ${userData.name || 'Employee'},\n\nWe are pleased to inform you that your salary for the current cycle has been disbursed successfully via ${authority}.\n\nGross Amount: ₹${gross}\nGateway Status: Paid & Verified\n\nYour secure payslip has been archived and uploaded to your Employee Vault.\n\nBest regards,\nKylrx AI Admin Team`
+                                        })
+                                    });
+                                }
+                            }
+                        } catch (mailErr) {
+                            console.warn('[EMAIL] 1-Click distribution failed:', mailErr);
+                        }
+
                         loadRecentGenerations();
                     }
                 } catch (err) {

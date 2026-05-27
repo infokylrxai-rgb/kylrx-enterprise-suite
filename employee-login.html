@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Login | HRFlow</title>
+    <title>Employee Login | Kylrx AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👤</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
@@ -121,7 +121,7 @@
         <div class="header">
             <div class="logo-icon"><i data-lucide="user"></i></div>
             <h1>Employee Portal</h1>
-            <p class="subtitle">Welcome back to HRFlow Enterprise</p>
+            <p class="subtitle">Welcome back to Kylrx AI Enterprise</p>
         </div>
 
         <form id="loginForm">
@@ -240,6 +240,35 @@
 
                 // --- Strategy 3: Demo Bypass (Fallback for Development) ---
                 if (!userData) {
+                    // Check if they are trying to use a manager or admin demo credential in the employee portal
+                    const isManagerEmail = 
+                        lowercaseEmail === 'nandan.b@gmail.com' ||
+                        lowercaseEmail === 'cyber@gmail.com' ||
+                        lowercaseEmail.includes('mgr') ||
+                        lowercaseEmail.includes('manager');
+                    
+                    const isAdminEmail = 
+                        lowercaseEmail === 'admin@hrflow.com' ||
+                        lowercaseEmail === 'admin@kylrx.ai' ||
+                        lowercaseEmail === 'admin@demo.com' ||
+                        lowercaseEmail.includes('admin') ||
+                        lowercaseEmail.includes('sysadmin') ||
+                        lowercaseEmail.includes('hrms');
+
+                    if (isManagerEmail) {
+                        showStatusModal('Access Denied', 'These credentials belong to a Manager. Please log in via the Manager Portal.', 'error');
+                        loginBtn.textContent = originalBtnText;
+                        loginBtn.disabled = false;
+                        return;
+                    }
+
+                    if (isAdminEmail) {
+                        showStatusModal('Access Denied', 'These credentials belong to an Administrator. Please log in via the Admin/HRMS Portal.', 'error');
+                        loginBtn.textContent = originalBtnText;
+                        loginBtn.disabled = false;
+                        return;
+                    }
+
                     const isBypassEmail = 
                         lowercaseEmail === 'john@gmail.com' ||
                         lowercaseEmail === 'dev@gmail.com' ||
@@ -284,7 +313,7 @@
 
                 if (userData) {
                     const role = (userData.role || '').toLowerCase();
-                    if (role === 'employee' || role === 'manager' || role === 'admin' || role === 'super admin') {
+                    if (role === 'employee') {
                         localStorage.setItem('employee_uid', userId);
                         localStorage.setItem('userName', userData.name || email.split('@')[0]);
                         localStorage.setItem('userRole', role);
@@ -292,7 +321,14 @@
                         
                         window.location.href = `employee-dashboard.html?id=${userData.departmentId || '6xpTjjcdEHyzMU1NuIBk'}`;
                     } else {
-                        showStatusModal('Access Denied', 'This account does not have employee credentials.', 'error');
+                        const article = ['a', 'e', 'i', 'o', 'u'].includes(role[0]) ? 'an' : 'a';
+                        let portalName = 'Admin Portal';
+                        if (role === 'manager') {
+                            portalName = 'Manager Portal';
+                        } else if (role === 'hrms' || role === 'admin' || role === 'super admin') {
+                            portalName = 'Admin or HRMS Portal';
+                        }
+                        showStatusModal('Access Denied', `You are registered as ${article} ${role}. Please log in via the ${portalName}.`, 'error');
                         loginBtn.textContent = originalBtnText;
                         loginBtn.disabled = false;
                     }

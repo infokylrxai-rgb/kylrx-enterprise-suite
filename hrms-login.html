@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Login | Kylrx AI</title>
+    <title>HRMS Admin Login | Kylrx AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
@@ -119,17 +119,17 @@
 
     <div class="login-card">
         <div class="header">
-            <div class="logo-icon"><i data-lucide="shield-check"></i></div>
-            <h1>Manager Access</h1>
-            <p class="subtitle">Operational Command Gateway</p>
+            <div class="logo-icon"><i data-lucide="database"></i></div>
+            <h1>HRMS Admin Access</h1>
+            <p class="subtitle">Enterprise Core System</p>
         </div>
 
         <form id="loginForm">
             <div class="form-group">
-                <label>Corporate ID</label>
+                <label>Admin ID</label>
                 <div class="input-wrapper">
                     <i data-lucide="mail" size="18"></i>
-                    <input type="email" id="email" placeholder="manager@hrflow.com" required>
+                    <input type="email" id="email" placeholder="admin@kylrx.ai" required>
                 </div>
             </div>
             <div class="form-group">
@@ -144,7 +144,7 @@
         </form>
 
         <div class="footer-links">
-            <p>System authorized users only. <a href="#" onclick="showStatusModal('Manager Access Help', 'Authorized Demo Access:\n- Manager: nandan.b@gmail.com\n- Cyber Security: cyber@gmail.com\n- Password: UNIT-CYB-637-Manager-Nandan.B@2026!', 'info')">Help</a></p>
+            <p>System authorized users only. <a href="#" onclick="showStatusModal('Admin Access Help', 'Authorized Demo Access:\n- Admin: admin@kylrx.ai\n- Password: Admin123!', 'info')">Help</a></p>
             <p style="margin-top: 1.5rem;"><a href="index.html" style="color: var(--text-muted); font-weight: 600;">← Return to Gateway</a></p>
         </div>
     </div>
@@ -237,34 +237,32 @@
                             userData = {
                                 name: email.split('@')[0].toUpperCase(),
                                 email: lowercaseEmail,
-                                role: 'manager',
-                                department: (lowercaseEmail.includes('cyber') || lowercaseEmail.includes('nandan')) ? 'Cybersecurity' : 'Operational Command',
+                                role: lowercaseEmail.includes('admin') ? 'admin' : 'manager',
+                                department: 'Core HR',
                                 createdAt: serverTimestamp()
                             };
                             await setDoc(doc(db, 'users', userId), userData);
-                            console.log("✅ Auto-provisioned missing Firestore record for authenticated manager");
+                            console.log("✅ Auto-provisioned missing Firestore record for authenticated user");
                         }
                         console.log("✅ Firebase Auth successful");
                     } catch (authError) {
-                        console.warn("Firebase Auth failed, trying Strategy 3...");
+                        console.warn("Firebase Auth failed:", authError);
                     }
                 }
 
-                // --- Strategy 3: Demo Bypass (Fallback for Development) ---
+                // --- Strategy 3: Demo Bypass & Auto-Provision to Firebase ---
                 if (!userData) {
-                    // Check if they are trying to use an employee or admin demo credential in the manager portal
+                    // Check if they are trying to use an employee or manager demo credential in the HRMS portal
                     const isEmployeeEmail = 
                         lowercaseEmail === 'john@gmail.com' ||
                         lowercaseEmail.includes('emp') ||
                         lowercaseEmail.includes('employee');
                     
-                    const isAdminEmail = 
-                        lowercaseEmail === 'admin@hrflow.com' ||
-                        lowercaseEmail === 'admin@kylrx.ai' ||
-                        lowercaseEmail === 'admin@demo.com' ||
-                        lowercaseEmail.includes('admin') ||
-                        lowercaseEmail.includes('sysadmin') ||
-                        lowercaseEmail.includes('hrms');
+                    const isManagerEmail = 
+                        lowercaseEmail === 'nandan.b@gmail.com' ||
+                        lowercaseEmail === 'cyber@gmail.com' ||
+                        lowercaseEmail.includes('mgr') ||
+                        lowercaseEmail.includes('manager');
 
                     if (isEmployeeEmail) {
                         showStatusModal('Access Denied', 'These credentials belong to an Employee. Please log in via the Employee Portal.', 'error');
@@ -273,45 +271,25 @@
                         return;
                     }
 
-                    if (isAdminEmail) {
-                        showStatusModal('Access Denied', 'These credentials belong to an Administrator. Please log in via the Admin/HRMS Portal.', 'error');
+                    if (isManagerEmail) {
+                        showStatusModal('Access Denied', 'These credentials belong to a Manager. Please log in via the Manager Portal.', 'error');
                         loginBtn.textContent = originalBtnText;
                         loginBtn.disabled = false;
                         return;
                     }
 
                     const isBypassEmail = 
+                        lowercaseEmail === 'username@gmail.com' ||
                         lowercaseEmail === 'demo@gmail.com' || 
-                        lowercaseEmail.includes('nandan') ||
-                        lowercaseEmail === 'cyber@gmail.com' ||
-                        lowercaseEmail.includes('cyber') ||
-                        lowercaseEmail.includes('mgr') || 
-                        lowercaseEmail.includes('manager') ||
-                        lowercaseEmail.includes('demo') ||
-                        lowercaseEmail.includes('dev');
+                        lowercaseEmail === 'admin@kylrx.ai';
 
                     if (isBypassEmail) {
-                        // Specific password check for "Proper" login simulation
-                        if (lowercaseEmail.includes('nandan') || lowercaseEmail.includes('cyber')) {
-                            const correctPass = 'UNIT-CYB-637-Manager-Nandan.B@2026!';
-                            if (password !== correctPass && password !== 'demo123' && password !== 'UNIT-CYB-637-Manager-Nandan@2026!') {
-                                throw new Error('Invalid Secure Token for this Corporate ID.');
-                            }
-                        }
-
-                        let dept = 'Operational Command';
-                        let role = 'manager';
-                        
-                        if (lowercaseEmail.includes('cyber') || lowercaseEmail.includes('nandan')) {
-                            dept = 'Cybersecurity';
-                        }
-
                         userData = {
                             name: email.split('@')[0].toUpperCase(),
-                            role: role,
-                            department: dept
+                            role: 'admin',
+                            department: 'Core HR'
                         };
-                        userId = 'demo_' + Date.now();
+                        userId = 'demo_admin_' + Date.now();
                         console.log("✅ Demo Bypass triggered for:", lowercaseEmail);
 
                         // Auto-provision this user in Firestore so it becomes a "proper" record for future lookups
@@ -322,7 +300,7 @@
                                 password: password,
                                 createdAt: serverTimestamp()
                             }, { merge: true });
-                            console.log("✅ Provisioned new manager record in Firebase backend");
+                            console.log("✅ Provisioned new HRMS admin record in Firebase backend");
                         } catch (provisionErr) {
                             console.warn("Auto-provisioning failed:", provisionErr);
                         }
@@ -332,13 +310,6 @@
                 if (userData) {
                     const role = (userData.role || '').toLowerCase();
                     
-                    if (role === 'admin' || role === 'super admin' || role === 'hrms') {
-                        showStatusModal('Access Denied', 'These credentials belong to an Administrator. Please log in via the Admin/HRMS Portal.', 'error');
-                        loginBtn.textContent = originalBtnText;
-                        loginBtn.disabled = false;
-                        return;
-                    }
-
                     if (role === 'employee') {
                         showStatusModal('Access Denied', 'These credentials belong to an Employee. Please log in via the Employee Portal.', 'error');
                         loginBtn.textContent = originalBtnText;
@@ -346,18 +317,25 @@
                         return;
                     }
 
-                    // Allow access ONLY if role is manager
                     if (role === 'manager') {
+                        showStatusModal('Access Denied', 'These credentials belong to a Manager. Please log in via the Manager Portal.', 'error');
+                        loginBtn.textContent = originalBtnText;
+                        loginBtn.disabled = false;
+                        return;
+                    }
+
+                    // Enforce strict HRMS Admin access via backend roles
+                    if (role === 'admin' || role === 'super admin' || role === 'hrms') {
                         
                         localStorage.setItem('hr_logged_in', 'true');
                         localStorage.setItem('hr_user_id', userId);
                         localStorage.setItem('userName', userData.name || email.split('@')[0]);
-                        localStorage.setItem('userRole', 'manager');
-                        localStorage.setItem('userDept', (userData.department || userData.departmentId || 'General').toLowerCase());
+                        localStorage.setItem('userRole', 'admin');
+                        localStorage.setItem('userDept', (userData.department || userData.departmentId || 'Core HR').toLowerCase());
                         
-                        window.location.href = 'manager-dashboard.html';
+                        window.location.href = 'hrms-dashboard.html';
                     } else {
-                        showStatusModal('Access Denied', 'This portal is strictly reserved for Operational Managers.', 'error');
+                        showStatusModal('Access Denied', 'This portal is reserved for HR Administrators only.', 'error');
                         loginBtn.textContent = originalBtnText;
                         loginBtn.disabled = false;
                     }

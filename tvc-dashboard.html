@@ -313,6 +313,8 @@
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
@@ -493,6 +495,70 @@
         </div>
     </div>
 
+    <!-- Synchronous State Restoration to prevent UI flashing -->
+    <script>
+        (function() {
+            const savedState = localStorage.getItem('adminTvcState');
+            if (savedState) {
+                try {
+                    const parsed = JSON.parse(savedState);
+                    
+                    // Reset on new day
+                    const sessionDate = new Date(parsed.startTime).toISOString().split('T')[0];
+                    const todayDate = new Date().toISOString().split('T')[0];
+                    if (sessionDate !== todayDate) {
+                        localStorage.removeItem('adminTvcState');
+                        return;
+                    }
+
+                    if (parsed.state === 'Active' || parsed.state === 'Break') {
+                        const btnIn = document.getElementById('btnPunchIn');
+                        const btnBreak = document.getElementById('btnBreak');
+                        const btnOut = document.getElementById('btnPunchOut');
+                        const tvcDot = document.getElementById('tvcDot');
+                        const tvcText = document.getElementById('tvcStatusText');
+                        const timerDisplay = document.getElementById('adminSessionTimer');
+
+                        window.adminStartTime = parsed.startTime;
+                        timerDisplay.style.display = 'inline';
+                        
+                        btnIn.style.display = 'none';
+                        btnBreak.style.display = 'flex';
+                        btnOut.style.display = 'flex';
+                        
+                        if (parsed.state === 'Active') {
+                            tvcText.textContent = "SECURE: ACTIVE";
+                            tvcDot.style.background = "#10b981";
+                            tvcDot.style.boxShadow = "0 0 10px #10b981";
+                            btnBreak.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-coffee"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg> Break';
+                            btnBreak.style.background = "#f59e0b";
+                            
+                            // Start visual timer instantly
+                            window.adminTimerInterval = setInterval(() => {
+                                const diff = Date.now() - window.adminStartTime;
+                                const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                                timerDisplay.textContent = `${h}:${m}:${s}`;
+                            }, 1000);
+                        } else if (parsed.state === 'Break') {
+                            tvcText.textContent = "SECURE: PAUSED";
+                            tvcDot.style.background = "#f59e0b";
+                            tvcDot.style.boxShadow = "none";
+                            btnBreak.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play"><polygon points="6 3 20 12 6 21 6 3"/></svg> Resume';
+                            btnBreak.style.background = "#3b82f6";
+                            const diff = parsed.pauseOffset || (Date.now() - window.adminStartTime);
+                            const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                            timerDisplay.textContent = `${h}:${m}:${s}`;
+                        }
+                    }
+                } catch(e) {}
+            }
+        })();
+    </script>
+
     <script type="module">
         import { db, auth } from "./firebase-config.js";
         import { doc, setDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
@@ -536,6 +602,8 @@
             await setDoc(statusRef, updateData, { merge: true });
         }
 
+
+
         window.adminPunchIn = async () => {
             const btnIn = document.getElementById('btnPunchIn');
             const btnBreak = document.getElementById('btnBreak');
@@ -552,7 +620,9 @@
                 tvcDot.style.background = "#10b981";
                 tvcDot.style.boxShadow = "0 0 10px #10b981";
                 
-                adminStartTime = Date.now();
+                window.adminStartTime = Date.now();
+                localStorage.setItem('adminTvcState', JSON.stringify({ state: 'Active', startTime: window.adminStartTime }));
+                
                 timerDisplay.style.display = 'inline';
                 startAdminTimer();
 
@@ -566,9 +636,9 @@
 
         function startAdminTimer() {
             const timerDisplay = document.getElementById('adminSessionTimer');
-            clearInterval(adminTimerInterval);
-            adminTimerInterval = setInterval(() => {
-                const diff = Date.now() - adminStartTime;
+            clearInterval(window.adminTimerInterval);
+            window.adminTimerInterval = setInterval(() => {
+                const diff = Date.now() - window.adminStartTime;
                 const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
                 const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
                 const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
@@ -582,13 +652,21 @@
             const tvcText = document.getElementById('tvcStatusText');
 
             if (btnBreak.textContent.includes('Break')) {
-                clearInterval(adminTimerInterval);
+                clearInterval(window.adminTimerInterval);
                 btnBreak.innerHTML = '<i data-lucide="play" size="12"></i> Resume';
                 btnBreak.style.background = "#3b82f6";
                 tvcText.textContent = "SECURE: PAUSED";
                 tvcDot.style.background = "#f59e0b";
+                const pauseOffset = Date.now() - window.adminStartTime;
+                localStorage.setItem('adminTvcState', JSON.stringify({ state: 'Break', startTime: window.adminStartTime, pauseOffset }));
                 await syncStatus('Break');
             } else {
+                const savedState = JSON.parse(localStorage.getItem('adminTvcState') || '{}');
+                // Adjust start time to ignore the duration of the break
+                if (savedState.pauseOffset) {
+                    window.adminStartTime = Date.now() - savedState.pauseOffset;
+                }
+                localStorage.setItem('adminTvcState', JSON.stringify({ state: 'Active', startTime: window.adminStartTime }));
                 startAdminTimer();
                 btnBreak.innerHTML = '<i data-lucide="coffee" size="12"></i> Break';
                 btnBreak.style.background = "#f59e0b";
@@ -596,7 +674,7 @@
                 tvcDot.style.background = "#10b981";
                 await syncStatus('Active');
             }
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         };
 
         window.adminPunchOut = async () => {
@@ -607,12 +685,13 @@
             const tvcText = document.getElementById('tvcStatusText');
             const timerDisplay = document.getElementById('adminSessionTimer');
 
-            clearInterval(adminTimerInterval);
+            clearInterval(window.adminTimerInterval);
             tvcText.textContent = "SECURE: IDLE";
             tvcDot.style.background = "#cbd5e1";
             tvcDot.style.boxShadow = "none";
             timerDisplay.style.display = 'none';
 
+            localStorage.removeItem('adminTvcState');
             await syncStatus('Offline');
 
             btnIn.style.display = 'flex';
@@ -620,7 +699,7 @@
             btnOut.style.display = 'none';
             btnBreak.innerHTML = '<i data-lucide="coffee" size="12"></i> Break';
             btnBreak.style.background = "#f59e0b";
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         };
 
         const logoutBtn = document.getElementById('logoutBtn');
@@ -735,16 +814,26 @@
                 let statusText  = 'OFFLINE';
                 let statusColor = 'var(--text-muted)';
                 let eff = activity
-                    ? (activity.aiProductivityScore || (activity.status === 'Online' ? 75 : 0))
+                    ? (activity.aiProductivityScore || ((activity.status === 'Online' || activity.status === 'Active') ? 75 : 0))
                     : 0;
 
-                // Determine status
-                if (activity && (activity.status === 'Online' || activity.status === 'Active')) {
+                // Check if activity is recent
+                let isActivityStale = false;
+                if (activity && activity.lastSeen) {
+                    const lastSeenTime = activity.lastSeen.toDate ? activity.lastSeen.toDate() : new Date(activity.lastSeen);
+                    const now = new Date();
+                    if ((now - lastSeenTime) > 2 * 60 * 1000) { // 2 minutes
+                        isActivityStale = true;
+                    }
+                }
+
+                // Determine status based strictly on punch records as requested by user
+                if (att && att.punchIn && !att.punchOut) {
                     statusText  = 'ONLINE';
                     statusColor = 'var(--success)';
-                } else if (att && att.punchIn) {
-                    statusText  = att.punchOut ? 'SHIFT COMPLETED' : 'ONLINE';
-                    statusColor = att.punchOut ? 'var(--primary)' : 'var(--success)';
+                } else {
+                    statusText  = 'OFFLINE';
+                    statusColor = 'var(--text-muted)';
                 }
 
                 // Calculate hours worked

@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 /**
  * Attendance Regularization Service
@@ -136,8 +136,60 @@ export async function getPendingRegularizations() {
 
 export async function getAllAttendanceLogs() {
     console.log('[ATTENDANCE] Fetching all logs...');
-    const todayStr = new Date().toISOString().split('T')[0];
-    const q = query(collection(db, 'attendance'), where('date', '==', todayStr));
+    const q = query(collection(db, 'attendance'));
     const snap = await getDocs(q);
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
+
+export async function getAttendanceStats() {
+    console.log('[ATTENDANCE] Fetching accurate stats...');
+    const todayStr = new Date().toISOString().split('T')[0];
+    const q = query(collection(db, 'attendance'), where('date', '==', todayStr));
+    const snap = await getDocs(q);
+    
+    let activeLogin = 0;
+    let lateLogin = 0;
+    let missingPunch = 0;
+    let onFieldWfh = 0;
+
+    snap.docs.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.punchIn && !data.punchOut) activeLogin++;
+        if (data.status === 'Late') lateLogin++;
+        if (data.status === 'Missing') missingPunch++;
+        if (data.type === 'On Field' || data.type === 'WFH') onFieldWfh++;
+    });
+
+    return {
+        activeLogin,
+        lateLogin,
+        missingPunch,
+        onFieldWfh
+    };
+}
+
+export async function getShifts() {
+    console.log('[ATTENDANCE] Fetching shifts...');
+    const snap = await getDocs(collection(db, 'shifts'));
+    if (snap.empty) {
+        return [
+            { id: 'default_a', name: 'Shift A (General)', time: '09:00 - 18:00' },
+            { id: 'default_b', name: 'Shift B (Evening)', time: '14:00 - 23:00' }
+        ];
+    }
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function addShift(shiftData) {
+    console.log('[ATTENDANCE] Adding new shift...');
+    const docRef = await addDoc(collection(db, 'shifts'), shiftData);
+    return { id: docRef.id, ...shiftData };
+}
+
+export async function deleteShift(shiftId) {
+    console.log('[ATTENDANCE] Deleting shift...', shiftId);
+    if (!shiftId.startsWith('default_')) {
+        await deleteDoc(doc(db, 'shifts', shiftId));
+    }
+}
+

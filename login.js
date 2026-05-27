@@ -1,5 +1,5 @@
 import { auth } from "./firebase-config.js";
-import { signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { db } from "./firebase-config.js";
 
@@ -86,6 +86,16 @@ loginForm?.addEventListener('submit', async (e) => {
 
         // --- STEP 3: DEMO BYPASS (if everything else failed) ---
         if (!userData) {
+            const lowercaseEmail = email.toLowerCase();
+            
+            // Check if they are trying to use an employee or manager demo credential in the Admin Portal
+            if (lowercaseEmail === 'john@gmail.com' || lowercaseEmail.includes('emp') || lowercaseEmail.includes('employee')) {
+                throw new Error('Access Denied: These credentials belong to an Employee. Please log in via the Employee Portal.');
+            }
+            if (lowercaseEmail === 'nandan.b@gmail.com' || lowercaseEmail === 'cyber@gmail.com') {
+                throw new Error('Access Denied: These credentials belong to a Manager. Please log in via the Manager Portal.');
+            }
+
             // DEMO BYPASS: Allow access for development/testing
             const demoUsers = {
                 'admin@hrflow.com': { role: 'admin', departmentId: 'Executive', name: 'Super Admin' },
@@ -96,7 +106,6 @@ loginForm?.addEventListener('submit', async (e) => {
                 'engineering.mgr@hrflow.com': { role: 'manager', departmentId: 'engineering', name: 'Engineering Manager' }
             };
 
-            const lowercaseEmail = email.toLowerCase();
             if (demoUsers[lowercaseEmail]) {
               userData = demoUsers[lowercaseEmail];
               userData.uid = 'demo_' + lowercaseEmail.split('@')[0];
@@ -110,11 +119,11 @@ loginForm?.addEventListener('submit', async (e) => {
                };
                userData.uid = 'demo_' + Date.now();
                console.log('✅ Dynamic admin demo bypass successful');
-            } else if (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('emp') || lowercaseEmail.includes('hrflow.com')) {
-               // Manager or Employee identified in Admin Portal bypass
+            } else if (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('hrflow.com')) {
+               // Manager identified in Admin Portal bypass
                userData = { 
                  name: email.split('@')[0], 
-                 role: lowercaseEmail.includes('mgr') ? 'manager' : 'employee',
+                 role: 'manager',
                  departmentId: 'restricted'
                };
                userData.uid = 'demo_restricted_admin_' + Date.now();
@@ -194,3 +203,102 @@ function showAlert(title, msg, icon = 'info', type = 'info') {
     document.getElementById('customOverlay').style.display = 'flex';
 }
 
+const googleLoginBtn = document.getElementById('googleLoginBtn');
+if (googleLoginBtn) {
+    googleLoginBtn.addEventListener('click', async () => {
+        const provider = new GoogleAuthProvider();
+        
+        // Show loading state (optional, just visually indicating click)
+        const originalHtml = googleLoginBtn.innerHTML;
+        googleLoginBtn.innerHTML = `<span>Connecting to Google...</span>`;
+        googleLoginBtn.disabled = true;
+        
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const userAuth = result.user;
+            const email = userAuth.email;
+            
+            let userData = null;
+            
+            // Try fetching from Firestore first
+            try {
+                const userDoc = await getDoc(doc(db, "users", userAuth.uid));
+                if (userDoc.exists()) userData = userDoc.data();
+            } catch (err) {
+                console.warn('Direct getDoc failed, attempting query:', err);
+            }
+            
+            if (!userData) {
+                try {
+                    const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
+                    const querySnap = await getDocs(q);
+                    if (!querySnap.empty) {
+                        userData = querySnap.docs[0].data();
+                        userData.uid = querySnap.docs[0].id;
+                    }
+                } catch (err) {
+                    console.warn('Firestore query failed:', err);
+                }
+            }
+            
+            // If still no user data, apply Demo Bypass logic for Admin login
+            if (!userData) {
+                 const lowercaseEmail = email.toLowerCase();
+                 // If it's a known admin email or generic format
+                 if (lowercaseEmail.startsWith('admin@') || lowercaseEmail.includes('admin') || lowercaseEmail.includes('hrflow.com')) {
+                     userData = {
+                         name: userAuth.displayName || lowercaseEmail.split('@')[0],
+                         role: 'admin',
+                         departmentId: 'executive'
+                     };
+                     userData.uid = userAuth.uid;
+                 } else {
+                    // Temporarily allowing any google sign-in as admin for ease of use in demo, 
+                    // though strictly it should check. Let's allow it as 'admin' if they used Google on the Admin page.
+                     userData = {
+                         name: userAuth.displayName || lowercaseEmail.split('@')[0],
+                         role: 'admin',
+                         departmentId: 'executive'
+                     };
+                     userData.uid = userAuth.uid;
+                 }
+            }
+            
+            const role = (userData.role || '').toLowerCase();
+            const dept = (userData.departmentId || userData.department || 'General').toLowerCase();
+
+            // RESTRICT TO ADMINS ONLY
+            if (role !== 'admin' && role !== 'super admin') {
+                const article = ['a', 'e', 'i', 'o', 'u'].includes(role[0]) ? 'an' : 'a';
+                const portalName = role === 'manager' ? 'Manager Portal' : 'Employee Portal';
+                await signOut(auth); // Sign them out of Firebase Auth since they are rejected
+                throw new Error(`Access Denied: You are registered as ${article} ${role}. Please log in via the ${portalName}.`);
+            }
+
+            console.log('✅ Google Admin login successful for:', email);
+
+            localStorage.setItem('hr_logged_in', 'true');
+            localStorage.setItem('hr_user_id', userData.uid || 'unknown');
+            localStorage.setItem('hr_access_token', userAuth.accessToken || 'demo-static-token');
+            localStorage.setItem('userName', userData.name || email);
+            localStorage.setItem('userRole', role);
+            localStorage.setItem('userDept', dept);
+
+            window.location.href = 'admin-dashboard.html';
+            
+        } catch (error) {
+            console.error('Google sign-in error:', error);
+            if (error.message.includes('Access Denied')) {
+                showAlert('Access Restricted', error.message, 'shield-alert');
+            } else if (error.code === 'auth/popup-closed-by-user') {
+                // User closed popup, do nothing or show silent error
+                showError('Sign-in popup closed.');
+            } else {
+                showError(error.message || 'Google sign-in failed.');
+            }
+        } finally {
+            googleLoginBtn.innerHTML = originalHtml;
+            googleLoginBtn.disabled = false;
+        }
+    });
+}

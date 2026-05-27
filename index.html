@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kylrx AI – Smart HR & Payroll Automation</title>
   <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://unpkg.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com http://localhost:3000 http://127.0.0.1:3000 http://127.0.0.1:5500 https://unpkg.com https://cdn.jsdelivr.net; frame-src 'self' https://planning-with-ai-c026b.firebaseapp.com https://apis.google.com;">
+    content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://unpkg.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com http://localhost:3000 http://127.0.0.1:3000 http://127.0.0.1:5500 https://unpkg.com https://cdn.jsdelivr.net; frame-src 'self' https://kylrxai.firebaseapp.com https://apis.google.com;">
   <meta name="description" content="Manage attendance, payroll, and security reports easily with Kylrx AI.">
   <link rel="stylesheet" href="style-landing.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -21,12 +21,13 @@
   <nav class="navbar">
     <div class="container nav-content">
       <a href="#" class="logo">
-        <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
-        <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+        <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
       </a>
       <div class="nav-links">
         <a href="index.html" class="nav-link active">Home</a>
+        <a href="feedback.html" class="nav-link">Feedback Center</a>
         <a href="manager-login.html" class="nav-link">Manager Portal</a>
+        <a href="hrms-login.html" class="nav-link">HRMS Login</a>
         <a href="login.html" class="nav-link">Admin Portal</a>
         <a href="employee-login.html" class="nav-btn">Employee Portal</a>
       </div>
@@ -38,23 +39,13 @@
   <header class="hero">
     <div class="container hero-content">
       <div class="hero-text">
-        <span class="badge">Version 2.0 is live!</span>
         <h1>Kylrx <span class="text-gradient">AI</span> Automation System</h1>
-        <div id="backend-status" class="status-indicator">
-          <span class="status-dot pulsing"></span>
-          <span class="status-label">Cloud Backend: Connecting...</span>
-        </div>
         <p>Manage attendance, payroll, and employee reports easily. Empower your HR team with AI-driven insights and automated workflows.</p>
         <div class="hero-actions">
           <a href="employee-login.html" class="btn btn-primary">Employee Login <i data-lucide="user-check"></i></a>
           <a href="manager-login.html" class="btn btn-secondary">Manager Portal <i data-lucide="shield-check"></i></a>
-
+          <a href="hrms-login.html" class="btn btn-outline">HRMS Login <i data-lucide="database"></i></a>
           <a href="login.html" class="btn btn-outline">Admin Portal <i data-lucide="lock"></i></a>
-        </div>
-        <div class="hero-stats">
-          <div class="h-stat"><b id="live-users">---</b><span>Live Users</span></div>
-          <div class="h-stat"><b id="system-uptime">99.9%</b><span>Uptime</span></div>
-          <div class="h-stat"><b id="secure-units">---</b><span>Active Units</span></div>
         </div>
       </div>
       <div class="hero-image">
@@ -117,8 +108,7 @@
     <div class="container footer-content">
       <div class="footer-brand">
         <div class="logo">
-          <div class="logo-icon"><i data-lucide="users"></i></div>
-          <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+          <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
         </div>
         <p>Next-generation HR management system for ambitious teams.</p>
       </div>
@@ -133,14 +123,14 @@
           <h4>Company</h4>
           <a href="#">About Us</a>
           <a href="#">Careers</a>
-          <a href="#">Contact</a>
+          <a href="feedback.html">Feedback Center</a>
         </div>
       </div>
     </div>
     <div class="container footer-bottom">
       <p>&copy; 2026 Kylrx AI Automation System. All rights reserved.</p>
       <div class="socials">
-        <a href="#"><i data-lucide="twitter"></i></a>
+        <a href="#"><i data-lucide="x"></i></a>
         <a href="#"><i data-lucide="linkedin"></i></a>
         <a href="#"><i data-lucide="github"></i></a>
       </div>
@@ -148,7 +138,15 @@
   </footer>
 
   <script type="module" src="script-landing.js"></script>
-  <script>if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.lucide) {
+        lucide.createIcons();
+      } else {
+        console.error('Lucide failed to load');
+      }
+    });
+  </script>
 </body>
 
 </html>

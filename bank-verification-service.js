@@ -76,13 +76,13 @@ async function syncToPayroll(employeeId) {
     if (verificationSnap.exists()) {
         const details = verificationSnap.data();
         const payrollRef = doc(db, 'payroll_profiles', employeeId);
-        await updateDoc(payrollRef, {
+        await setDoc(payrollRef, {
             bankName: details.bankName,
             accountNumber: details.accountNum,
             routingCode: details.routingCode,
             bankVerificationStatus: 'Verified',
             lastUpdated: serverTimestamp()
-        });
+        }, { merge: true });
         console.log(`[BANK] Successfully synced to payroll for ${employeeId}`);
     }
 }

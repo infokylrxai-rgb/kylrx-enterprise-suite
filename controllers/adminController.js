@@ -326,3 +326,58 @@ exports.syncDatabase = async (req, res, next) => {
         next(error);
     }
 };
+
+// ===============================
+// Bank Transfer Flow for Admin
+// ===============================
+/**
+ * POST /admin/bank/transfer
+ * Handles bank transfer submission by admin.
+ * Expected payload: { employeeId, bankName, accountNum, ifsc, amount }
+ */
+exports.transferBank = async (req, res, next) => {
+    try {
+        const { employeeId, bankName, accountNum, ifsc, amount, emailMessage } = req.body;
+        if (!employeeId || !bankName || !accountNum || !ifsc || !amount) {
+            return res.status(400).json({ success: false, error: 'Missing required bank details.' });
+        }
+
+        // Securely write bank verification details to Firestore via Admin SDK
+        const verificationRef = db.collection('bank_verifications').doc(employeeId);
+        await verificationRef.set({
+            bankName,
+            accountNum,
+            routingCode: ifsc, // IFSC serves as the routingCode in Indian banking
+            ifsc: ifsc,
+            amount: Number(amount),
+            employeeId,
+            emailMessage: emailMessage || '',
+            status: 'Under Review',
+            submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // Add transaction entry to Audit Logs
+        await db.collection('audit_logs').add({
+            action: 'BANK_SUBMISSION',
+            employeeId,
+            performedBy: req.user.id || 'admin',
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            details: `Bank transfer of ₹${amount} submitted for review by ${req.user.name || 'Admin'}.${emailMessage ? ' Notification message drafted.' : ''}`
+        });
+
+        // Add real-time Admin Notification
+        await db.collection('notifications').add({
+            target: 'admin',
+            message: `New bank transfer of ₹${amount} pending review for employee ${employeeId}.`,
+            priority: 'high',
+            read: false,
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        return res.status(200).json({ success: true, message: 'Bank transfer details submitted for verification.' });
+    } catch (err) {
+        console.error('[ADMIN] Bank Transfer error:', err);
+        next(err);
+    }
+};

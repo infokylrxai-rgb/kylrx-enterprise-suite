@@ -65,9 +65,24 @@ export function listenNotifications() {
 
     if (!auth.currentUser) return; // Final guard before Firestore call
 
+    let previousUnreadIds = new Set();
+    let isInitialLoad = true;
+
     return onSnapshot(q, (snapshot) => {
         const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const unreadCount = notifications.filter(n => !n.read).length;
+        const unreadNotifications = notifications.filter(n => !n.read);
+        const unreadCount = unreadNotifications.length;
+
+        // Play Sound logic
+        if (!isInitialLoad) {
+            const hasNew = unreadNotifications.some(n => !previousUnreadIds.has(n.id));
+            if (hasNew) {
+                const audio = new Audio('notification.mp3');
+                audio.play().catch(e => console.log('Audio playback blocked by browser:', e));
+            }
+        }
+        previousUnreadIds = new Set(unreadNotifications.map(n => n.id));
+        isInitialLoad = false;
 
         // Update dot/badge
         if (notifDot) {

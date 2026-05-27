@@ -1,0 +1,282 @@
+/* ============================================================
+   theme-white-blue.css — HRFlow Admin Enterprise Design System
+   ============================================================ */
+
+/* ---------- CSS Variables ---------- */
+:root {
+  --primary:        #4fa9ff;
+  --primary-dark:   #2d8de4;
+  --primary-light:  #e5f2ff;
+  --primary-soft:   #cde8ff;
+  --secondary:      #10b981;
+  --danger:         #ef4444;
+  --bg:             #f0f7ff;
+  --bg-soft:        #f8fbff;
+  --card:           #ffffff;
+  --border:         #d1e7ff;
+  --text-main:      #1a2842;
+  --text-muted:     #64748b;
+  --radius:         14px;
+  --sidebar-width:  260px;
+  --shadow:         0 2px 8px rgba(79,169,255,.10);
+  --shadow-lg:      0 12px 32px rgba(79,169,255,.15);
+  --glass:          blur(12px);
+}
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* ---------- Layout Shell ---------- */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.25rem;
+  z-index: 100;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-soft) transparent;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2.5rem;
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(79,169,255,.35);
+  flex-shrink: 0;
+}
+
+.logo-icon i { width: 20px; height: 20px; }
+
+.logo-text {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text-main);
+}
+
+/* Nav */
+.nav-menu { flex: 1; }
+
+.nav-item { margin-bottom: 4px; }
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 11px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.nav-link i { width: 18px; height: 18px; flex-shrink: 0; }
+
+.nav-link:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: translateX(3px);
+}
+
+.nav-link.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(79,169,255,.15);
+}
+
+/* Sidebar bottom */
+.sidebar-bottom {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- Main Content ---------- */
+.main-content {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  padding: 2.5rem;
+  min-height: 100vh;
+}
+
+/* ---------- Header ---------- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-main);
+}
+
+/* ---------- Widget Card ---------- */
+.widget-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  animation: fadeUp 0.4s ease-out;
+}
+
+.widget-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Form Elements ---------- */
+label.widget-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+  margin-top: 1.25rem;
+}
+
+label.widget-info:first-of-type { margin-top: 0; }
+
+label.widget-info i { width: 15px; height: 15px; color: var(--primary); }
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+select,
+textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-soft);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  outline: none;
+  margin-bottom: 0.25rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(79,169,255,.12);
+}
+
+/* ---------- Buttons ---------- */
+.button-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1.75rem;
+  padding: 13px 28px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79,169,255,.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(79,169,255,.4);
+}
+
+.button-primary:active {
+  transform: translateY(0);
+}
+
+/* ---------- Utility ---------- */
+.w-full { width: 100%; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  :root { --sidebar-width: 72px; }
+
+  .sidebar { padding: 1.5rem 0.5rem; align-items: center; }
+  .logo-text, .nav-link span { display: none; }
+  .logo { justify-content: center; }
+  .nav-link { justify-content: center; padding: 12px; }
+  .main-content { padding: 1.5rem; }
+}
+
+@media (max-width: 600px) {
+  .main-content { margin-left: 0; padding: 1rem; padding-bottom: 5rem; }
+  .sidebar {
+    width: 100%;
+    height: 60px;
+    top: auto;
+    bottom: 0;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    padding: 0 1rem;
+    justify-content: space-around;
+  }
+  .logo { display: none; }
+  .nav-menu { display: flex; justify-content: space-around; width: 100%; }
+  .nav-item { margin-bottom: 0; }
+  .sidebar-bottom { display: none; }
+}
