@@ -203,6 +203,201 @@
         .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
         .btn-outline:hover { background: var(--bg-soft); border-color: #cbd5e1; transform: translateY(-2px); }
 
+        /* Verification Layer Styles */
+        .verification-container {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+            margin-bottom: 3.5rem;
+        }
+
+        .verification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
+        }
+
+        .verification-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .health-badge {
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .health-success { background: #dcfce7; color: #15803d; }
+        .health-warning { background: #fef9c3; color: #a16207; }
+        .health-danger { background: #fee2e2; color: #b91c1c; }
+
+        .schema-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .schema-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .schema-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .schema-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .schema-card.danger {
+            border-left: 4px solid #ef4444;
+            background: #fff8f8;
+        }
+
+        .schema-card.warning {
+            border-left: 4px solid #f59e0b;
+            background: #fdfbf7;
+        }
+
+        .schema-card.success {
+            border-left: 4px solid #10b981;
+            background: #fafdfb;
+        }
+
+        .schema-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .schema-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .schema-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
+
+        .schema-req {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .req-badge { background: #fee2e2; color: #ef4444; }
+        .opt-badge { background: #f1f5f9; color: #64748b; }
+
+        .schema-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .schema-select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: white;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .schema-select:focus {
+            border-color: var(--primary);
+        }
+
+        .schema-status-text {
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-success { color: #10b981; }
+        .status-fuzzy { color: #3b82f6; }
+        .status-warning { color: #f59e0b; }
+        .status-danger { color: #ef4444; }
+
+        .anomaly-alert {
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+            border-radius: 20px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .anomaly-alert.danger {
+            background: #fef2f2;
+            border-color: #fee2e2;
+        }
+
+        .anomaly-alert.success {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .anomaly-alert-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .verification-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 1rem;
+        }
+
     </style>
 </head>
 <body>
@@ -223,7 +418,6 @@
 
                 <div class="nav-label">OPERATIONS</div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
-                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link active"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
                 
                 
@@ -314,6 +508,44 @@
                 <div class="icon-box-large"><i data-lucide="file-up" size="40"></i></div>
                 <h2 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 12px;">Drop Finance Manifest</h2>
                 <p style="color: var(--text-muted); font-size: 1rem; font-weight: 500;">Select or drag Excel/CSV files with salary components.</p>
+            </div>
+
+            <!-- Column Schema Verification Layer -->
+            <div class="verification-container" id="verificationLayer">
+                <div class="verification-header">
+                    <div>
+                        <div class="verification-title">
+                            <i data-lucide="shield-alert" style="color: var(--primary);"></i>
+                            <span>Column Schema & Health Check</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;">Verify how the columns in your sheet map to standard payroll components.</p>
+                    </div>
+                    <div id="healthBadge" class="health-badge health-success">
+                        <i data-lucide="check-circle-2"></i>
+                        <span>Schema Healthy</span>
+                    </div>
+                </div>
+
+                <!-- Global Alert Box -->
+                <div id="globalAnomalyAlert" class="anomaly-alert" style="display: none;">
+                    <div id="anomalyAlertIcon" class="anomaly-alert-icon">
+                        <i data-lucide="info"></i>
+                    </div>
+                    <div>
+                        <h4 id="anomalyAlertTitle" style="font-weight: 800; font-size: 0.95rem; color: #1e293b;">Validation Warnings</h4>
+                        <p id="anomalyAlertDesc" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; line-height: 1.4;"></p>
+                    </div>
+                </div>
+
+                <!-- Columns Mapping Grid -->
+                <div class="schema-grid" id="schemaMappingGrid">
+                    <!-- Schema cards will be rendered dynamically by JS -->
+                </div>
+
+                <div class="verification-actions">
+                    <button class="btn btn-outline" id="btnCancelVerification"><i data-lucide="x"></i> Reset File</button>
+                    <button class="btn btn-primary" id="btnConfirmVerification"><i data-lucide="play"></i> Confirm Schema & Parse</button>
+                </div>
             </div>
 
             <div class="table-container" id="resultsTable">

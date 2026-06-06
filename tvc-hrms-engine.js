@@ -152,7 +152,7 @@ function handleFocusLoss() {
     state.focusLossCount++;
     state.status = 'Away';
     processWarning();
-    syncToFirestore();
+    syncToFirestore(true);
     emit('focus:lost', { count: state.focusLossCount, warningLevel: state.warningLevel });
 }
 
@@ -196,6 +196,7 @@ function checkDailyReset() {
 function startTracking() {
     if (state.initialized) return;
     state.initialized = true;
+    state.lastTickTs = Date.now();
 
     const activityEvents = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
     activityEvents.forEach(evt => {
@@ -205,17 +206,21 @@ function startTracking() {
         }, { passive: true });
     });
 
-    // Time accumulation
+    // Time accumulation (timestamp-calibrated to survive event loop lag under heavy load)
     _intervalId = setInterval(() => {
         checkDailyReset();
-        if (state.status === 'Active') {
-            state.activeTime += CONFIG.UPDATE_INTERVAL_MS;
+        const now = Date.now();
+        const elapsed = now - (state.lastTickTs || now);
+        state.lastTickTs = now;
+
+        if (state.status === 'Online' || state.status === 'Active') {
+            state.activeTime += elapsed;
         } else if (state.status === 'Idle' || state.status === 'Away') {
-            state.idleTime += CONFIG.UPDATE_INTERVAL_MS;
-        } else if (state.isOnBreak) {
-            state.breakDuration += CONFIG.UPDATE_INTERVAL_MS;
+            state.idleTime += elapsed;
+        } else if (state.isOnBreak || state.status === 'Break') {
+            state.breakDuration += elapsed;
         }
-        state.sessionDuration = Date.now() - (state.loginTime || Date.now());
+        state.sessionDuration = now - (state.loginTime || now);
         calculateProductivity();
         calculatePayroll();
         syncToFirestore();
@@ -233,7 +238,7 @@ function startTracking() {
         }
     }, 10000);
 
-    window.addEventListener('beforeunload', () => { state.status = 'Offline'; syncToFirestore(); });
+    window.addEventListener('beforeunload', () => { state.status = 'Offline'; syncToFirestore(true); });
     initTabDetection();
 }
 
@@ -291,11 +296,17 @@ function calculatePayroll() {
 }
 
 // ==================== FIRESTORE SYNC ====================
-async function syncToFirestore() {
+// ==================== FIRESTORE SYNC ====================
+let _syncTimeout = null;
+let _pendingSyncData = null;
+
+async function syncToFirestore(force = false) {
     if (!state.userId) return;
     const dayKey = new Date().toISOString().split('T')[0];
-    try {
-        await setDoc(doc(db, 'hrms_sessions', `${state.userId}_${dayKey}`), {
+
+    // Batch data to avoid duplicate serializations
+    _pendingSyncData = {
+        session: {
             userId: state.userId,
             userName: state.userName,
             role: state.userRole,
@@ -314,10 +325,8 @@ async function syncToFirestore() {
             bonus: state.bonus,
             finalSalary: state.finalSalary,
             lastUpdate: serverTimestamp()
-        }, { merge: true });
-
-        // Also update activityStatus for TVC monitor
-        await setDoc(doc(db, 'activityStatus', state.userId), {
+        },
+        activity: {
             userId: state.userId,
             name: state.userName,
             role: state.userRole,
@@ -331,8 +340,32 @@ async function syncToFirestore() {
             aiProductivityScore: state.productivityScore,
             aiBehaviorLabel: state.productivityScore > 80 ? 'High Performer' : state.productivityScore > 50 ? 'Focused' : 'Needs Attention',
             isAnomaly: state.focusLossCount > 10 || state.productivityScore < 30
-        }, { merge: true });
-    } catch (e) { console.warn('HRMS sync error:', e.message); }
+        }
+    };
+
+    const performWrite = async () => {
+        if (!_pendingSyncData) return;
+        const data = _pendingSyncData;
+        _pendingSyncData = null;
+        if (_syncTimeout) {
+            clearTimeout(_syncTimeout);
+            _syncTimeout = null;
+        }
+
+        try {
+            await setDoc(doc(db, 'hrms_sessions', `${state.userId}_${dayKey}`), data.session, { merge: true });
+            await setDoc(doc(db, 'activityStatus', state.userId), data.activity, { merge: true });
+        } catch (e) {
+            console.warn('HRMS sync error:', e.message);
+        }
+    };
+
+    if (force) {
+        await performWrite();
+    } else if (!_syncTimeout) {
+        // Debounce/Throttle writes under high load (max once every 5 seconds)
+        _syncTimeout = setTimeout(performWrite, 5000);
+    }
 }
 
 // ==================== PUBLIC API ====================
@@ -353,7 +386,7 @@ function setBreak(isBreak) {
     state.isOnBreak = isBreak;
     if (isBreak) { state.breakStartTs = Date.now(); state.status = 'Break'; }
     else { state.status = 'Online'; state.lastActivityTs = Date.now(); }
-    syncToFirestore();
+    syncToFirestore(true);
     emit('break:toggle', { isBreak });
 }
 

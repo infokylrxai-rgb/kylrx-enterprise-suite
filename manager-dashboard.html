@@ -263,6 +263,38 @@
         </div>
     </div>
 
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.25rem;">Custom App Registry</h2>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem;">
+                </div>
+                <button onclick="addCustomApp()" style="background: var(--primary); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; width: 100%;">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
+                <h3 style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Notifications Modal -->
     <div id="notificationsModal" class="custom-alert-overlay">
         <div class="custom-alert-card" style="max-width: 500px; text-align: left;">
@@ -336,52 +368,35 @@
             
             <nav class="nav-menu">
                 <div class="nav-label">MY WORKSPACE</div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="location.href='manger-calacder.html'"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link active" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Attendance Log', 'Attendance Logs are being synchronized.')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('My Documents', 'Document Vault is secured.')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
 
                 <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
-                <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
-                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Workforce', 'Real-time personnel monitoring is active for this unit.')"><i data-lucide="users"></i><span>Workforce</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Security', 'TVC Live Telemetry is currently monitoring all active stations.')"><i data-lucide="shield-check"></i><span>Security</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Performance', 'AI Predictive Analytics are being calculated based on current focus scores.')"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
 
                 <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showNotifications()"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showMessages()"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="openTeamManager()"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
 
-
+                <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
 
                 <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Policy Hub', 'Policy Hub is updated.')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Asset Inventory', 'Asset Inventory is verified.')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Support Hub', 'Support Hub is online.')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
-
-                <div class="nav-label" style="margin-top: 2rem;">APPLICATIONS</div>
-                <div class="nav-item">
-                    <div class="nav-link" style="cursor: pointer; justify-content: space-between;" onclick="toggleAppsMenu()">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <i data-lucide="grid"></i>
-                            <span>App</span>
-                        </div>
-                        <i data-lucide="chevron-down" id="appsChevron" style="width: 14px; height: 14px; transition: 0.3s;"></i>
-                    </div>
-                    <div id="appsDropdown" style="display: none; padding-left: 1rem; flex-direction: column; gap: 4px; margin-top: 8px;">
-                        <div id="customAppsList">
-                            <!-- Dynamic Apps from Firestore -->
-                        </div>
-                        <div style="padding: 0.5rem;">
-                            <div style="display: flex; gap: 8px; background: var(--bg); padding: 8px; border-radius: 12px; border: 1px dashed var(--border);">
-                                <input type="text" id="appUrlInput" placeholder="Paste Link..." style="background: transparent; border: none; outline: none; font-size: 0.7rem; font-weight: 600; width: 100%; color: var(--text-main);">
-                                <button onclick="addCustomApp()" style="background: var(--primary); color: white; border: none; border-radius: 8px; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                    <i data-lucide="plus" size="12"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </nav>
 
             <div class="sidebar-footer">
@@ -508,7 +523,7 @@
     <script type="module">
         import { db, auth } from "./firebase-config.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { doc, setDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { doc, setDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         
         let currentDeptConfig = null;
         const currentUnitId = new URLSearchParams(window.location.search).get('id');
@@ -546,6 +561,26 @@
                     }
                 } catch (e) { console.error("Error fetching center config:", e); }
             } else {
+                // Dynamically look up the command center matching the manager's department
+                try {
+                    const q = query(collection(db, 'command_centers'), where('name', '==', userData.department));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        const docId = snap.docs[0].id;
+                        window.location.href = `manager-dashboard.html?id=${docId}`;
+                        return;
+                    } else {
+                        // Fallback: If no matching department command center exists, fetch the very first command center
+                        const allSnap = await getDocs(collection(db, 'command_centers'));
+                        if (!allSnap.empty) {
+                            window.location.href = `manager-dashboard.html?id=${allSnap.docs[0].id}`;
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error finding manager command center:", err);
+                }
+                
                 // Fallback to user's department
                 const sideDeptName = document.getElementById('sideDeptName');
                 const sideDeptCode = document.getElementById('sideDeptCode');
@@ -641,8 +676,18 @@
             const deptIcon = document.getElementById('deptIcon');
             const customAppsList = document.getElementById('customAppsList');
             const overviewLink = document.getElementById('overviewLink');
+            const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
+            const navConsoleLink = document.getElementById('navConsoleLink');
+            const navAnalysisLink = document.getElementById('navAnalysisLink');
+            const navNotifLink = document.getElementById('navNotifLink');
+            const navMsgLink = document.getElementById('navMsgLink');
 
             if (overviewLink && centerId) overviewLink.href = `manager-dashboard.html?id=${centerId}`;
+            if (leaveHolidaysLink && centerId) leaveHolidaysLink.href = `manger-calacder.html?id=${centerId}`;
+            if (navConsoleLink && centerId) navConsoleLink.href = `manager-dashboard.html?id=${centerId}`;
+            if (navAnalysisLink && centerId) navAnalysisLink.href = `manager-analysis.html?id=${centerId}`;
+            if (navNotifLink && centerId) navNotifLink.href = `manager-notification.html?id=${centerId}`;
+            if (navMsgLink && centerId) navMsgLink.href = `manager-message.html?id=${centerId}`;
             if (sideDeptName) sideDeptName.textContent = config.name;
             if (sideDeptCode) sideDeptCode.textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
             if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${localStorage.getItem('userName') || 'Manager'}`;
@@ -993,23 +1038,50 @@
 
         function renderAppsUI(apps) {
             const list = document.getElementById('customAppsList');
-            list.innerHTML = apps.map((app, index) => `
-                <div class="nav-item" style="position: relative;">
-                    <a href="${app.url}" target="_blank" class="nav-link">
-                        <i data-lucide="external-link"></i>
-                        <span>${app.name}</span>
-                    </a>
-                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.3; cursor: pointer; padding: 4px;">
-                        <i data-lucide="x" size="12"></i>
-                    </button>
-                </div>
-            `).join('');
+            if (list) {
+                list.innerHTML = apps.map((app, index) => `
+                    <div class="nav-item" style="position: relative;">
+                        <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                            <i data-lucide="external-link"></i>
+                            <span>${app.name}</span>
+                        </a>
+                        <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                            <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            const registryList = document.getElementById('registryAppsList');
+            if (registryList) {
+                registryList.innerHTML = apps.map((app) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                            <i data-lucide="external-link" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0;"></i>
+                            <span style="font-weight: 700; font-size: 0.8rem;">${app.name}</span>
+                        </div>
+                        <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
             lucide.createIcons();
         }
 
+        window.openAppRegistryModal = () => {
+            const modal = document.getElementById('customAppsModal');
+            if (modal) modal.style.display = 'flex';
+            lucide.createIcons();
+        };
+
         window.addCustomApp = async () => {
-            const input = document.getElementById('appUrlInput');
-            const url = input.value.trim();
+            const urlInput = document.getElementById('appUrlInput');
+            const nameInput = document.getElementById('appNameInput');
+            if (!urlInput) return;
+            
+            const url = urlInput.value.trim();
+            const customName = nameInput ? nameInput.value.trim() : '';
             if (!url) return;
 
             try {
@@ -1017,7 +1089,7 @@
                 if (!url.startsWith('http')) cleanUrl = 'https://' + url;
                 const urlObj = new URL(cleanUrl);
                 const domain = urlObj.hostname.replace('www.', '');
-                const appName = domain.split('.')[0].toUpperCase();
+                const appName = customName || domain.split('.')[0].toUpperCase();
 
                 const userId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
                 const appsRef = doc(db, "manager_apps", userId);
@@ -1026,7 +1098,8 @@
                     apps: arrayUnion({ name: appName, url: cleanUrl })
                 }, { merge: true });
 
-                input.value = '';
+                urlInput.value = '';
+                if (nameInput) nameInput.value = '';
             } catch (e) {
                 alert("Invalid URL structure.");
             }

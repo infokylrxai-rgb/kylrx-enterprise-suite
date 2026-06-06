@@ -308,14 +308,36 @@
             
             <nav class="nav-menu">
                 <div class="nav-label">MY WORKSPACE</div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.history.back()"><i data-lucide="arrow-left"></i><span>Back to Command</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link active" onclick="location.reload()"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link active" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Attendance Log', 'Attendance Logs are being synchronized.')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('My Documents', 'Document Vault is secured.')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
 
                 <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
-                <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
-                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Workforce', 'Real-time personnel monitoring is active for this unit.')"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Security', 'TVC Live Telemetry is currently monitoring all active stations.')"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Performance', 'AI Predictive Analytics are being calculated based on current focus scores.')"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Team Management', 'Team Management is online.')"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Policy Hub', 'Policy Hub is updated.')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Asset Inventory', 'Asset Inventory is verified.')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Support Hub', 'Support Hub is online.')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
             </nav>
+
+            <div class="sidebar-footer" style="padding-top: 2rem;">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="localStorage.clear(); window.location.href = 'index.html';" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i><span>Sign Out</span>
+                    </a>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Workspace -->
@@ -388,6 +410,21 @@
                             document.getElementById('sideDeptCode').textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
                         }
                     });
+
+                    // Hydrate links
+                    const overviewLink = document.getElementById('overviewLink');
+                    const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
+                    const navConsoleLink = document.getElementById('navConsoleLink');
+                    const navAnalysisLink = document.getElementById('navAnalysisLink');
+                    const navNotifLink = document.getElementById('navNotifLink');
+                    const navMsgLink = document.getElementById('navMsgLink');
+                    
+                    if (overviewLink) overviewLink.href = `manager-dashboard.html?id=${centerId}`;
+                    if (leaveHolidaysLink) leaveHolidaysLink.href = `manger-calacder.html?id=${centerId}`;
+                    if (navConsoleLink) navConsoleLink.href = `manager-dashboard.html?id=${centerId}`;
+                    if (navAnalysisLink) navAnalysisLink.href = `manager-analysis.html?id=${centerId}`;
+                    if (navNotifLink) navNotifLink.href = `manager-notification.html?id=${centerId}`;
+                    if (navMsgLink) navMsgLink.href = `manager-message.html?id=${centerId}`;
                 } else if (user) {
                     getDoc(doc(db, 'users', activeUid)).then(snap => {
                         if (snap.exists()) {

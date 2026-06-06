@@ -298,7 +298,6 @@
 
                 <div class="nav-label">OPERATIONS</div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
-                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Hub</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
                 
                 
@@ -386,7 +385,7 @@
                 <div class="widget w-8 r-4">
                     <div class="widget-header">
                         <div class="widget-title">Live Workforce Telemetry</div>
-                        <i data-lucide="cpu" onclick="location.href='admin-attendance-monitor.html'" style="color: var(--primary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
+                        <i data-lucide="cpu" style="color: var(--primary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
                     </div>
                     <div class="tele-grid" id="telemetryGrid">
                         <!-- Dynamic Telemetry Cards -->
@@ -468,27 +467,6 @@
                     <button class="theme-btn" onclick="setTheme('minimal')">Minimal Pro</button>
                 </div>
                 <div class="toggle-item">
-                    <span>Glassmorphism Effects</span>
-                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-                </div>
-            </div>
-
-            <div class="config-section">
-                <span class="config-label"><i data-lucide="zap" size="14" style="vertical-align: middle; margin-right: 6px;"></i> AI/ML SENSITIVITY</span>
-                <div class="range-container">
-                    <div class="range-header"><span>Risk Threshold</span><span class="range-val">41%</span></div>
-                    <input type="range" min="0" max="100" value="41">
-                </div>
-                <div class="range-container">
-                    <div class="range-header"><span>Burnout Detection</span><span class="range-val">70%</span></div>
-                    <input type="range" min="0" max="100" value="70">
-                </div>
-            </div>
-
-            <div class="config-section">
-                <span class="config-label"><i data-lucide="grid" size="14" style="vertical-align: middle; margin-right: 6px;"></i> WIDGET MANAGEMENT</span>
-                <div class="toggle-item">
-                    <span>Workforce Monitor</span>
                     <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
                 </div>
             </div>
@@ -741,6 +719,7 @@
                 _state.activity = {};
                 snap.docs.forEach(d => { _state.activity[d.id] = d.data(); });
                 renderGrid();
+                if (typeof checkFocusScores === 'function') checkFocusScores();
             });
 
             // Listener 3 – Today's attendance records
@@ -754,6 +733,7 @@
                 });
                 renderGrid();
                 checkUnderHours();  // ← trigger alert check on every attendance update
+                if (typeof checkFocusScores === 'function') checkFocusScores();
             });
 
             // Periodically refresh the grid to update live shift durations (since new Date() needs to be recalculated)
@@ -951,6 +931,143 @@
                 </div>
             `;
             setTimeout(() => banner && banner.remove(), 8000);
+        }
+
+        // ==================== ACTIVE TELEMETRY AUDITOR ====================
+        let _focusAlertTriggered = false;
+
+        async function checkFocusScores() {
+            const today = new Date().toISOString().split('T')[0];
+            const FOCUS_THRESHOLD = 70;
+
+            const onlineUsers = _state.users.filter(u => {
+                const att = _state.attendance[u.id];
+                return att && att.punchIn && !att.punchOut;
+            });
+
+            if (onlineUsers.length === 0) return;
+
+            let totalFocus = 0;
+            let count = 0;
+
+            onlineUsers.forEach(u => {
+                const activity = _state.activity[u.id];
+                if (activity && activity.aiProductivityScore !== undefined) {
+                    totalFocus += activity.aiProductivityScore;
+                    count++;
+                }
+            });
+
+            const avgFocus = count > 0 ? Math.round(totalFocus / count) : 100;
+
+            updateAlertsGrid(avgFocus, onlineUsers);
+
+            if (avgFocus < FOCUS_THRESHOLD) {
+                if (_focusAlertTriggered) return;
+                _focusAlertTriggered = true;
+
+                const alertPayload = {
+                    type: 'FOCUS_THRESHOLD_DROP',
+                    averageFocusScore: avgFocus,
+                    threshold: FOCUS_THRESHOLD,
+                    activeCount: onlineUsers.length,
+                    message: `⚠️ WARNING: Organizational Focus Score dropped to ${avgFocus}% — below the ${FOCUS_THRESHOLD}% threshold average.`,
+                    status: 'unread',
+                    createdAt: serverTimestamp(),
+                    date: today
+                };
+
+                try {
+                    await setDoc(
+                        doc(db, 'notifications', `focusAlert_${today}`),
+                        alertPayload,
+                        { merge: true }
+                    );
+                    showFocusScoreAlertBanner(avgFocus);
+                    console.warn(`🚨 Telemetry Audit Triggered: Focus score averages dropped to ${avgFocus}%!`);
+                } catch (e) {
+                    console.error('Focus alert write failed:', e.message);
+                }
+            } else {
+                _focusAlertTriggered = false;
+            }
+        }
+
+        function updateAlertsGrid(avgFocus, onlineUsers) {
+            const alertsGrid = document.getElementById('alertsGrid');
+            if (!alertsGrid) return;
+
+            let alertHtml = '';
+            
+            const focusColor = avgFocus < 70 ? 'var(--danger)' : 'var(--success)';
+            const focusBg = avgFocus < 70 ? '#fef2f2' : '#f0fdf4';
+            const focusBorder = avgFocus < 70 ? '#fecaca' : '#bbf7d0';
+
+            alertHtml += `
+                <div style="padding: 10px 14px; background: ${focusBg}; border: 1.5px solid ${focusBorder}; border-radius: 12px; margin-bottom: 10px; font-family: inherit;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 800; font-size: 0.75rem; color: ${focusColor}; display: flex; align-items: center; gap: 4px;">
+                            <i data-lucide="${avgFocus < 70 ? 'shield-alert' : 'shield-check'}" style="width: 14px; height: 14px;"></i>
+                            FOCUS AUDITOR
+                        </span>
+                        <span style="font-size: 0.75rem; font-weight: 800; color: ${focusColor};">${avgFocus}% AVG</span>
+                    </div>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin: 6px 0 0 0;">
+                        Organizational focus check active across ${onlineUsers.length} online stations. Threshold target: 70%.
+                    </p>
+                </div>
+            `;
+
+            if (avgFocus < 70) {
+                alertHtml += `
+                    <div style="padding: 10px 14px; background: #fffbeb; border: 1.5px solid #fef3c7; border-radius: 12px; margin-bottom: 8px;">
+                        <div style="font-weight: 700; font-size: 0.75rem; color: #b45309; display: flex; align-items: center; gap: 4px;">
+                            <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+                            ATTENTION SPAN DROP
+                        </div>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin: 4px 0 0 0;">
+                            Multiple workstations have recorded tab-switch behavior in the last 15 minutes.
+                        </p>
+                    </div>
+                `;
+            } else {
+                alertHtml += `
+                    <div style="padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px;">
+                        <div style="font-weight: 700; font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                            <i data-lucide="activity" style="width: 14px; height: 14px;"></i>
+                            STATION LOGS
+                        </div>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); margin: 4px 0 0 0;">
+                            Security and focus monitoring protocols are operating normally. Zero anomalies detected.
+                        </p>
+                    </div>
+                `;
+            }
+
+            alertsGrid.innerHTML = alertHtml;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function showFocusScoreAlertBanner(avgFocus) {
+            let banner = document.getElementById('focusAlertBanner');
+            if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'focusAlertBanner';
+                banner.style.cssText = 'position:fixed;top:180px;right:24px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:16px;padding:16px 20px;z-index:9999;box-shadow:0 8px 24px rgba(217,119,6,0.15);max-width:340px;font-family:inherit;animation:fadeInRight 0.4s ease;';
+                document.body.appendChild(banner);
+            }
+            banner.innerHTML = `
+                <div style="display:flex;gap:10px;align-items:flex-start;">
+                    <div style="font-size:1.4rem;">⚠️</div>
+                    <div>
+                        <div style="font-weight:800;color:#d97706;font-size:0.9rem;">Productivity Focus Alert</div>
+                        <div style="font-size:0.8rem;color:#78350f;margin-top:4px;">Organizational average dropped to <b>${avgFocus}%</b> — below the 70% company baseline!</div>
+                        <div style="font-size:0.7rem;color:#9ca3af;margin-top:6px;">Automated manager notification broadcasted ✓</div>
+                    </div>
+                    <button onclick="document.getElementById('focusAlertBanner').remove()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:1.1rem;margin-left:auto;">✕</button>
+                </div>
+            `;
+            setTimeout(() => banner && banner.remove(), 10000);
         }
 
         function renderTeleCard(config) {

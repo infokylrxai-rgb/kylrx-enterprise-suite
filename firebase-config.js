@@ -31,5 +31,34 @@ setTimeout(() => {
     console.log("✅ System Operational (Browser tracking warnings cleared).");
 }, 1500);
 
+// Global high-fidelity logout hook
+function setupGlobalLogout() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn && !logoutBtn.dataset.logoutWired) {
+        logoutBtn.dataset.logoutWired = "true";
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                // Dynamically import signOut only on demand to maintain ultra-fast page load times
+                const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js");
+                await signOut(auth);
+                localStorage.clear();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Global logout handler failed:", error);
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
+    }
+}
+
+// Register for both immediate execution and ready state fallbacks
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setupGlobalLogout();
+} else {
+    document.addEventListener('DOMContentLoaded', setupGlobalLogout);
+}
+
 export { app, auth, db, storage };
 

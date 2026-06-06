@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Messages | Kylrx AI</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <title>Manager Messages | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,10 +12,44 @@
     <script>
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
-        if (!isLoggedIn || userRole !== 'admin') window.location.href = 'index.html';
+        if (!isLoggedIn || userRole !== 'manager') window.location.href = 'index.html';
     </script>
     <link rel="stylesheet" href="admin-dashboard.css">
     <style>
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .custom-alert-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            animation: alertPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        @keyframes alertPop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .alert-btn {
+            margin-top: 2rem; width: 100%; padding: 14px;
+            background: var(--primary); color: white; border: none;
+            border-radius: 14px; font-weight: 700; cursor: pointer;
+            transition: 0.2s;
+        }
+        .alert-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+
         .sidebar {
             overflow-y: auto;
             scrollbar-width: thin;
@@ -203,60 +237,54 @@
         <span>Action completed successfully!</span>
     </div>
 
+    <div id="moduleAlertOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-card">
+            <div style="width: 48px; height: 48px; background: var(--primary-light); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i id="alertIcon" data-lucide="info"></i>
+            </div>
+            <h2 id="alertTitle" style="font-weight: 800; margin-bottom: 8px;">Module Info</h2>
+            <p id="alertMsg" style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">Message goes here.</p>
+            <button class="alert-btn" onclick="document.getElementById('moduleAlertOverlay').style.display='none'">Understood</button>
+        </div>
+    </div>
+
     <div class="dashboard-container">
         <aside class="sidebar">
-            <a href="admin-dashboard.html" class="logo">
-                <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
-            </a>
+            <div class="dept-branding">
+                <div class="dept-icon-box" id="deptIcon"><i data-lucide="shield"></i></div>
+                <div class="dept-name" id="sideDeptName">Cybersecurity</div>
+                <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
+            </div>
             
             <nav class="nav-menu">
-                <div class="nav-label">MAIN MENU</div>
-                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
-                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
-                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
-                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Attendance Log', 'Attendance Logs are being synchronized.')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('My Documents', 'Document Vault is secured.')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
 
-                <div class="nav-label">OPERATIONS</div>
-                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
-                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
-                
-                
-                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Workforce', 'Real-time personnel monitoring is active for this unit.')"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Security', 'TVC Live Telemetry is currently monitoring all active stations.')"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Performance', 'AI Predictive Analytics are being calculated based on current focus scores.')"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
 
-                <div class="nav-label">INTELLIGENCE</div>
-                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
-                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link active" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Team Management', 'Team Management is online.')"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
 
-                <div class="nav-label">APPROVALS & SETTINGS</div>
-                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
-                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
-
-                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
-                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="admin-message.html" class="nav-link active"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
-                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
-                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Policy Hub', 'Policy Hub is updated.')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Asset Inventory', 'Asset Inventory is verified.')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Support Hub', 'Support Hub is online.')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
             </nav>
 
-            <div class="sidebar-bottom">
+            <div class="sidebar-footer" style="padding-top: 2rem;">
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="btnCustom">
-                        <i data-lucide="layout"></i>
-                        <span>Customize Layout</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="admin-settings.html" class="nav-link">
-                        <i data-lucide="settings"></i>
-                        <span>Settings</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
-                        <i data-lucide="log-out"></i>
-                        <span>Logout</span>
+                    <a href="#" class="nav-link" onclick="localStorage.clear(); window.location.href = 'index.html';" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i><span>Sign Out</span>
                     </a>
                 </div>
             </div>
@@ -264,15 +292,15 @@
         <main class="main-content">
             <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
                 <div style="flex: 1;">
-                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Admin Communications</h1>
-                    <p style="color: var(--text-muted); font-weight: 500;">Secure messaging with managers and personnel</p>
+                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Manager Communications</h1>
+                    <p style="color: var(--text-muted); font-weight: 500;">Secure messaging with departments, managers, and personnel</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='manager-message.html?id=' + new URLSearchParams(window.location.search).get('id')">
                         <i data-lucide="message-square"></i>
                     </button>
                     <div style="width: 1px; height: 24px; background: var(--border);"></div>
-                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='manager-notification.html?id=' + new URLSearchParams(window.location.search).get('id')">
                         <i data-lucide="bell"></i>
                     </button>
                 </div>
@@ -436,7 +464,10 @@
         // Customization Logic
         const configSidebar = document.getElementById('configSidebar');
         window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
-        document.getElementById('btnCustom').onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+        const btnCustom = document.getElementById('btnCustom');
+        if (btnCustom) {
+            btnCustom.onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+        }
 
         window.setTheme = (theme, el) => {
             document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
@@ -486,15 +517,56 @@
 
         // Resolve real Firebase Auth UID so chatId matches across dashboards
         import('https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js').then(({ onAuthStateChanged }) => {
-            onAuthStateChanged(auth, user => {
+            onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUserId = user.uid;
                     localStorage.setItem('hr_user_id', user.uid);
                     localStorage.setItem('adminUid', user.uid);
                 }
+
+                // Dynamic Sidebar Hydration
+                const centerId = new URLSearchParams(window.location.search).get('id');
+                if (centerId) {
+                    try {
+                        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                        const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
+                        if (centerDoc.exists()) {
+                            const config = centerDoc.data();
+                            document.getElementById('sideDeptName').textContent = config.name;
+                            document.getElementById('sideDeptCode').textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
+                            if (config.primaryColor) {
+                                document.documentElement.style.setProperty('--primary', config.primaryColor);
+                            }
+                        }
+                    } catch (e) { console.error("Error fetching center config:", e); }
+
+                    // Hydrate links
+                    const overviewLink = document.getElementById('overviewLink');
+                    const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
+                    const navConsoleLink = document.getElementById('navConsoleLink');
+                    const navAnalysisLink = document.getElementById('navAnalysisLink');
+                    const navNotifLink = document.getElementById('navNotifLink');
+                    const navMsgLink = document.getElementById('navMsgLink');
+                    if (overviewLink) overviewLink.href = `manager-dashboard.html?id=${centerId}`;
+                    if (leaveHolidaysLink) leaveHolidaysLink.href = `manger-calacder.html?id=${centerId}`;
+                    if (navConsoleLink) navConsoleLink.href = `manager-dashboard.html?id=${centerId}`;
+                    if (navAnalysisLink) navAnalysisLink.href = `manager-analysis.html?id=${centerId}`;
+                    if (navNotifLink) navNotifLink.href = `manager-notification.html?id=${centerId}`;
+                    if (navMsgLink) navMsgLink.href = `manager-message.html?id=${centerId}`;
+                } else {
+                    document.getElementById('sideDeptName').textContent = localStorage.getItem('userDept') || 'General';
+                    document.getElementById('sideDeptCode').textContent = ((localStorage.getItem('userDept') || 'General').substring(0, 3) + '-UNIT').toUpperCase();
+                }
             });
         });
 
+
+        window.showModuleInfo = (title, msg) => {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMsg').textContent = msg;
+            document.getElementById('moduleAlertOverlay').style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+        };
 
         function setupRealtimeDirectory() {
             let deptMap = {};
@@ -812,11 +884,14 @@
             input.focus();
         };
 
-        document.getElementById('logoutBtn').onclick = (e) => {
-            e.preventDefault();
-            localStorage.clear();
-            window.location.href = 'index.html';
-        };
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.onclick = (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            };
+        }
 
         function stringToColor(str) {
             let hash = 0;

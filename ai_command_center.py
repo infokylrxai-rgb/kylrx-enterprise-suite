@@ -170,6 +170,7 @@ class AIAgent(threading.Thread):
                     user_id = user.get("id")
                     name = user.get("name", "Unknown")
                     dept = user.get("departmentId", "General")
+                    status = user.get("status", "Offline")
                     
                     # 2. ML Analysis
                     analysis = self.models.analyze_user(user)
@@ -210,6 +211,20 @@ class AIAgent(threading.Thread):
                     else:
                         # 4. Sync results to Firestore
                         self.fb.update_user_ai_labels(user_id, analysis["productivity"], analysis["behavior"], analysis["is_anomaly"])
+
+                # 4. Organizational Focus Score Auditing
+                focus_scores = [u["ai_analysis"]["productivity"] for u in users if "ai_analysis" in u]
+                if focus_scores:
+                    org_avg_focus = sum(focus_scores) / len(focus_scores)
+                    self.ui.log_action(f"Organizational Focus Score Average: {org_avg_focus:.1f}%")
+                    
+                    # Under-threshold checks (benchmark threshold of 75%)
+                    org_threshold = 75.0
+                    if org_avg_focus < org_threshold:
+                        alert_msg = f"Organizational focus score average dropped to {org_avg_focus:.1f}% (below threshold average of {org_threshold}%)."
+                        self.fb.create_alert("sys", "All", "critical", alert_msg)
+                        self.fb.create_insight("All", alert_msg)
+                        self.ui.log_action(f"[CRITICAL ALERT] Organizational Focus Breach: {org_avg_focus:.1f}%")
 
                 # 5. Marketing Performance Check
                 campaigns = self.fb.get_campaigns()
