@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kylrx AI – Connect & Explore</title>
+  <meta name="description" content="Connect with Kylrx AI on X/Twitter, LinkedIn, and GitHub to stay updated with the latest in automated enterprise HRMS.">
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
+  
+  <style>
+    :root {
+      --bg-dark: #f8fafc;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --border-color: rgba(255, 255, 255, 0.6);
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.15);
+      
+      --x-color: #0f172a;
+      --x-bg: rgba(15, 23, 42, 0.03);
+      --x-border: rgba(15, 23, 42, 0.08);
+      --x-glow: rgba(15, 23, 42, 0.05);
+      
+      --linkedin-color: #0077b5;
+      --linkedin-bg: rgba(0, 119, 181, 0.05);
+      --linkedin-border: rgba(0, 119, 181, 0.15);
+      --linkedin-glow: rgba(0, 119, 181, 0.1);
+      
+      --github-color: #24292f;
+      --github-bg: rgba(15, 23, 42, 0.03);
+      --github-border: rgba(15, 23, 42, 0.08);
+      --github-glow: rgba(15, 23, 42, 0.05);
+      
+      --youtube-color: #ef4444;
+      --youtube-bg: rgba(239, 68, 68, 0.05);
+      --youtube-border: rgba(239, 68, 68, 0.15);
+      --youtube-glow: rgba(239, 68, 68, 0.1);
+      
+      --instagram-color: #e1306c;
+      --instagram-bg: rgba(225, 48, 108, 0.05);
+      --instagram-border: rgba(225, 48, 108, 0.15);
+      --instagram-glow: rgba(225, 48, 108, 0.1);
+      
+      --home-color: #3b82f6;
+      --home-bg: rgba(59, 130, 246, 0.05);
+      --home-border: rgba(59, 130, 246, 0.15);
+      --home-glow: rgba(59, 130, 246, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background glow effect */
+    .glow-blob {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+      border-radius: 50%;
+      z-index: -1;
+      filter: blur(40px);
+    }
+
+    .glow-1 {
+      top: -100px;
+      left: -100px;
+      animation: drift 15s infinite alternate ease-in-out;
+    }
+
+    .glow-2 {
+      bottom: -100px;
+      right: -100px;
+      animation: drift 15s infinite alternate-reverse ease-in-out;
+    }
+
+    @keyframes drift {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 50px) scale(1.2); }
+    }
+
+    /* Container Card */
+    .links-card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-color);
+      border-radius: 32px;
+      padding: 3rem 2.5rem;
+      box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.1);
+      text-align: center;
+      position: relative;
+      z-index: 10;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Brand Section */
+    .brand-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-container {
+      width: 90px;
+      height: 90px;
+      margin: 0 auto 1.25rem;
+      border-radius: 28px;
+      background: #ffffff;
+      border: 1px solid rgba(59, 130, 246, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      position: relative;
+      box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1);
+    }
+
+    .logo-container::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      z-index: -1;
+      opacity: 0.3;
+      filter: blur(6px);
+    }
+
+    .logo-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 18px;
+    }
+
+    .brand-section h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #0f172a 30%, #334155 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-section p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      font-weight: 400;
+      padding: 0 1rem;
+    }
+
+    /* Links List */
+    .links-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      padding: 1.25rem 1.5rem;
+      border-radius: 20px;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+      background: rgba(255, 255, 255, 0.8);
+      text-align: left;
+    }
+
+    .link-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.03), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.5s ease;
+    }
+
+    .link-item:hover::before {
+      transform: translateX(100%);
+    }
+
+    /* X / Twitter Styling */
+    .link-x:hover {
+      background: rgba(15, 23, 42, 0.02);
+      border-color: rgba(15, 23, 42, 0.15);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+      transform: translateY(-3px);
+    }
+
+    /* LinkedIn Styling */
+    .link-linkedin:hover {
+      background: rgba(0, 119, 181, 0.04);
+      border-color: rgba(0, 119, 181, 0.2);
+      box-shadow: 0 8px 20px rgba(0, 119, 181, 0.1);
+      transform: translateY(-3px);
+    }
+
+    /* GitHub Styling */
+    .link-github:hover {
+      background: rgba(15, 23, 42, 0.03);
+      border-color: rgba(15, 23, 42, 0.12);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+      transform: translateY(-3px);
+    }
+
+    /* YouTube Styling */
+    .link-youtube:hover {
+      background: var(--youtube-bg);
+      border-color: var(--youtube-border);
+      box-shadow: 0 8px 20px var(--youtube-glow);
+      transform: translateY(-3px);
+    }
+
+    /* Instagram Styling */
+    .link-instagram:hover {
+      background: var(--instagram-bg);
+      border-color: var(--instagram-border);
+      box-shadow: 0 8px 20px var(--instagram-glow);
+      transform: translateY(-3px);
+    }
+
+    /* Home Styling */
+    .link-home:hover {
+      background: rgba(59, 130, 246, 0.05);
+      border-color: rgba(59, 130, 246, 0.2);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12);
+      transform: translateY(-3px);
+    }
+
+    .link-icon-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1.25rem;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+
+    .link-item:hover .link-icon-wrapper {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .wrapper-x { background: rgba(15, 23, 42, 0.05); color: #0f172a; }
+    .wrapper-linkedin { background: rgba(0, 119, 181, 0.08); color: #0077b5; }
+    .wrapper-github { background: rgba(15, 23, 42, 0.05); color: #24292f; }
+    .wrapper-youtube { background: rgba(239, 68, 68, 0.08); color: #ef4444; }
+    .wrapper-instagram { background: rgba(225, 48, 108, 0.08); color: #e1306c; }
+    .wrapper-home { background: rgba(59, 130, 246, 0.08); color: #3b82f6; }
+
+    .link-content {
+      flex-grow: 1;
+    }
+
+    .link-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .link-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .arrow-icon {
+      color: var(--text-secondary);
+      opacity: 0.5;
+      transition: all 0.3s ease;
+    }
+
+    .link-item:hover .arrow-icon {
+      opacity: 1;
+      color: var(--text-primary);
+      transform: translateX(4px);
+    }
+
+    /* Footer */
+    .footer {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 1rem;
+      opacity: 0.8;
+    }
+
+    .footer a {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .footer a:hover {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glow-blob glow-1"></div>
+  <div class="glow-blob glow-2"></div>
+
+  <div class="links-card">
+    <div class="brand-section">
+      <div class="logo-container">
+        <img src="logo.jpg" alt="Kylrx AI Logo">
+      </div>
+      <h1>Kylrx AI</h1>
+      <p>Next-generation enterprise operations ecosystem & AI-driven HRMS.</p>
+    </div>
+
+    <div class="links-list">
+      <!-- Twitter / X -->
+      <a href="https://x.com/kylrxai" target="_blank" rel="noopener noreferrer" class="link-item link-x" id="link-x">
+        <div class="link-icon-wrapper wrapper-x">
+          <i data-lucide="x" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div class="link-content">
+          <div class="link-title">Follow on X</div>
+          <div class="link-desc">Updates, release logs, and system announcements.</div>
+        </div>
+        <i data-lucide="chevron-right" class="arrow-icon" style="width: 20px; height: 20px;"></i>
+      </a>
+
+      <!-- LinkedIn -->
+      <a href="https://www.linkedin.com/company/kylrx-ai/" target="_blank" rel="noopener noreferrer" class="link-item link-linkedin" id="link-linkedin">
+        <div class="link-icon-wrapper wrapper-linkedin">
+          <i data-lucide="linkedin" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div class="link-content">
+          <div class="link-title">Connect on LinkedIn</div>
+          <div class="link-desc">Enterprise updates, news, and career opportunities.</div>
+        </div>
+        <i data-lucide="chevron-right" class="arrow-icon" style="width: 20px; height: 20px;"></i>
+      </a>
+
+
+
+      <!-- Instagram -->
+      <a href="https://www.instagram.com/kylrx.ai" target="_blank" rel="noopener noreferrer" class="link-item link-instagram" id="link-instagram">
+        <div class="link-icon-wrapper wrapper-instagram">
+          <i data-lucide="instagram" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div class="link-content">
+          <div class="link-title">Follow on Instagram</div>
+          <div class="link-desc">Behind the scenes, product updates, and media.</div>
+        </div>
+        <i data-lucide="chevron-right" class="arrow-icon" style="width: 20px; height: 20px;"></i>
+      </a>
+
+      <!-- YouTube -->
+      <a href="https://youtube.com/@kylrxai" target="_blank" rel="noopener noreferrer" class="link-item link-youtube" id="link-youtube">
+        <div class="link-icon-wrapper wrapper-youtube">
+          <i data-lucide="youtube" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div class="link-content">
+          <div class="link-title">Subscribe on YouTube</div>
+          <div class="link-desc">System tutorials, walk-throughs, and video guides.</div>
+        </div>
+        <i data-lucide="chevron-right" class="arrow-icon" style="width: 20px; height: 20px;"></i>
+      </a>
+
+
+    </div>
+
+    <div class="footer">
+      <p>&copy; 2026 <a href="index.html">Kylrx AI</a>. All rights reserved.</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
