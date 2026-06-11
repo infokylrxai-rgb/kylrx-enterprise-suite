@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, refreshToken } = require('../controllers/authController');
+const { register, login, refreshToken, unlockAccount } = require('../controllers/authController');
 
 // Rate limiting specifically for Auth
 const rateLimit = require('express-rate-limit');
@@ -13,5 +13,8 @@ const authLimiter = rateLimit({
 router.post('/signup', authLimiter, register);
 router.post('/login', authLimiter, login);
 router.post('/refresh-token', refreshToken);
+
+// Admin-only unlock endpoint (dev + admin use)
+router.get('/unlock/:email', unlockAccount);
 
 module.exports = router;

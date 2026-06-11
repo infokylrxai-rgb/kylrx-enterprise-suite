@@ -156,3 +156,25 @@ export async function getHeatmapData(year, month) {
         return {};
     }
 }
+
+export function listenToWeeklyOff(callback) {
+    console.log('[LEAVE] Starting live weekly off listener...');
+    const docRef = doc(db, 'system_config', 'weekly_off');
+    return onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            callback(docSnap.data().value || 'sat-sun');
+        } else {
+            callback('sat-sun');
+        }
+    }, (err) => {
+        console.error('[LEAVE] Weekly off sync failed, fallback to sat-sun:', err);
+        callback('sat-sun');
+    });
+}
+
+export async function updateWeeklyOff(value) {
+    console.log('[LEAVE] Updating weekly off config in Firestore:', value);
+    const docRef = doc(db, 'system_config', 'weekly_off');
+    await setDoc(docRef, { value, updatedAt: serverTimestamp() }, { merge: true });
+}
+

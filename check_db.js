@@ -7,6 +7,13 @@ async function check() {
         console.log(`User ID: ${doc.id} =>`, doc.data());
     });
 
+    console.log("\n=== Fetching command_centers from Firestore ===");
+    const ccSnap = await db.collection('command_centers').get();
+    console.log(`Total command centers found: ${ccSnap.size}`);
+    ccSnap.forEach(doc => {
+        console.log(`Command Center ID: ${doc.id} =>`, doc.data());
+    });
+
     console.log("\n=== Fetching notifications from Firestore ===");
     const notifSnap = await db.collection('notifications').get();
     console.log(`Total notifications found: ${notifSnap.size}`);

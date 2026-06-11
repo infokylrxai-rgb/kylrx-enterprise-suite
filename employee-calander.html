@@ -363,7 +363,7 @@
 
     <script type="module">
         import { db, auth } from './firebase-config.js';
-        import { collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, onSnapshot, query, doc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
         lucide.createIcons();
@@ -426,6 +426,13 @@
         // Listen for Holidays in Real-time from Firestore
         onSnapshot(collection(db, "holidays"), (snapshot) => {
             holidayData = snapshot.docs.map(doc => doc.data());
+            renderCalendar();
+        });
+
+        // Listen for weekly off configuration in Real-time
+        onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
+            const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
+            localStorage.setItem('weekly_off_config', val);
             renderCalendar();
         });
 

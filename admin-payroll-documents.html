@@ -104,8 +104,8 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
-                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
-                <span class="logo-text">HRFlow</span>
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
             </a>
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
@@ -178,25 +178,25 @@
                         </div>
                         
                         <div class="doc-category-grid">
-                            <div class="category-item" onclick="showToast('Opening Monthly Payslip Generator...')">
+                            <div class="category-item" onclick="filterDocsByType('Payslip')">
                                 <i data-lucide="file-spreadsheet" size="32"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Monthly Payslips</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Full-Time Employees</p>
                             </div>
-                            <div class="category-item" onclick="showToast('Opening Service Invoice Manager...')">
+                            <div class="category-item" onclick="filterDocsByType('Invoice')">
                                 <i data-lucide="receipt" size="32"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Service Invoices</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Interns & Consultants</p>
                             </div>
-                            <div class="category-item" onclick="showToast('Opening Experience Letter Wizard...')">
+                            <div class="category-item" onclick="filterDocsByType('F&F Settlement')">
                                 <i data-lucide="award" size="32"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Experience Letters</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-muted);">Service Certification</p>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">F&amp;F &amp; Settlements</p>
                             </div>
-                            <div class="category-item" onclick="showToast('Opening Revision Letter Generator...')">
+                            <div class="category-item" onclick="window.location.href='hrms-dashboard.html#payroll'">
                                 <i data-lucide="trending-up" size="32"></i>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">Revision Letters</h4>
-                                <p style="font-size: 0.7rem; color: var(--text-muted);">Salary Hike Addendums</p>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">HRMS Pay Slip Hub</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Generate &amp; Export</p>
                             </div>
                         </div>
                     </div>
@@ -223,6 +223,9 @@
                         </div>
                         <button class="btn btn-primary" style="width: 100%; justify-content: center; background: #10b981; border: none; font-size: 1rem; padding: 14px;" onclick="triggerDisbursement()">
                             <i data-lucide="banknote"></i> Pay Salaries Now (1-Click)
+                        </button>
+                        <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 12px; font-size: 0.9rem; padding: 12px;" onclick="exportBankFileFromDocs()">
+                            <i data-lucide="landmark"></i> Export Bank Transfer CSV
                         </button>
                     </div>
 
@@ -309,7 +312,13 @@
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
         import { collection, query, orderBy, limit, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-        import { generateMonthlyBatch, generateDocument, disburseSalaries } from "./payroll-doc-service.js";
+        import { generateMonthlyBatch, disburseSalaries } from "./payroll-doc-service.js";
+        import { downloadPayslipFromDoc } from "./payslip-pdf-service.js";
+        import { exportBankTransferCSV, enrichEmployeeBankDetails } from "./bank-export-service.js";
+        import { doc as firestoreDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        let cachedPayrollDocs = [];
+        let docTypeFilter = null;
 
         // ─────────────────────────────────────────────
         // EMAIL API CONFIGURATION
@@ -473,37 +482,89 @@
             }
         }
 
+        window.filterDocsByType = (type) => {
+            docTypeFilter = type;
+            renderRecentDocsTable();
+            showToast(`Showing ${type} documents`);
+        };
+
+        window.downloadPayrollDoc = async (docId) => {
+            const data = cachedPayrollDocs.find(d => d.id === docId);
+            if (!data) return;
+            try {
+                showToast('Preparing download...');
+                await downloadPayslipFromDoc(data);
+            } catch (err) {
+                showToast('Download failed: ' + err.message, true);
+            }
+        };
+
+        function renderRecentDocsTable() {
+            const tbody = document.querySelector('.doc-table tbody');
+            const docs = docTypeFilter
+                ? cachedPayrollDocs.filter(d => d.docType === docTypeFilter)
+                : cachedPayrollDocs.slice(0, 10);
+
+            tbody.innerHTML = '';
+            if (!docs.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">No documents found.</td></tr>';
+                return;
+            }
+            docs.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 700;">${data.employeeName || 'Unknown'}</td>
+                    <td>${data.docType} (${data.period || 'N/A'})</td>
+                    <td>${data.docId || data.id}</td>
+                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">${data.status}</span></td>
+                    <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);" onclick="downloadPayrollDoc('${data.id}')"></i></td>
+                `;
+                tbody.appendChild(row);
+            });
+            if (window.lucide) lucide.createIcons();
+        }
+
         async function loadRecentGenerations() {
             const tbody = document.querySelector('.doc-table tbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Fetching generation logs...</td></tr>';
             try {
-                const q = query(collection(db, 'payroll_documents'), orderBy('createdAt', 'desc'), limit(5));
+                const q = query(collection(db, 'payroll_documents'), orderBy('createdAt', 'desc'), limit(50));
                 const snap = await getDocs(q);
-                
-                tbody.innerHTML = '';
-                if (!snap.empty) {
-                    snap.forEach(doc => {
-                        const data = doc.data();
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td style="font-weight: 700;">${data.employeeName || 'Unknown'}</td>
-                            <td>${data.docType} (${data.period || 'N/A'})</td>
-                            <td>${data.docId}</td>
-                            <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">${data.status}</span></td>
-                            <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
-                        `;
-                        tbody.appendChild(row);
-                    });
-                    if (window.lucide) lucide.createIcons();
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">No documents generated in this cycle.</td></tr>';
-                }
+                cachedPayrollDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderRecentDocsTable();
                 loadArchives();
             } catch (err) {
                 console.error("Failed to load documents:", err);
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #ef4444;">Failed to load logs.</td></tr>';
             }
         }
+
+        window.exportBankFileFromDocs = async () => {
+            try {
+                const employees = [];
+                for (const d of cachedPayrollDocs.filter(x => x.status === 'Generated' || x.status === 'Paid')) {
+                    const profileSnap = await getDoc(firestoreDoc(db, 'payroll_profiles', d.employeeId)).catch(() => null);
+                    const profile = profileSnap?.exists() ? profileSnap.data() : {};
+                    const net = d.netPay ?? (d.grossSalary - (d.deductions || 0));
+                    employees.push(enrichEmployeeBankDetails({
+                        id: d.employeeId,
+                        name: d.employeeName,
+                        employeeCode: d.employeeCode,
+                        department: d.designation,
+                        net
+                    }, profile));
+                }
+                if (!employees.length) {
+                    showToast('No payroll documents to export.', true);
+                    return;
+                }
+                const month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+                const result = exportBankTransferCSV(employees, month);
+                if (result.exported) showToast(`Exported ${result.count} bank transfer rows.`);
+            } catch (err) {
+                showToast('Bank export failed: ' + err.message, true);
+            }
+        };
 
         async function loadArchives() {
             const archiveContainer = document.querySelector('.archive-list');

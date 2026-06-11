@@ -86,6 +86,9 @@ function setStatus(newStatus) {
     if (status === 'Break' && newStatus !== 'Offline') return;
     if (status !== newStatus) {
         status = newStatus;
+        if (window.updateStatusWidgetUI) {
+            window.updateStatusWidgetUI(newStatus);
+        }
     }
 }
 

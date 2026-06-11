@@ -111,6 +111,8 @@
         .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; font-weight: 500; }
         .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .modal-btn.redirect { background: #10b981; }
+        .redirect-counter { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem; }
 
         @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -155,7 +157,8 @@
             <div class="modal-icon" id="modalIcon"><i data-lucide="alert-circle"></i></div>
             <h2 class="modal-title" id="modalTitle">Status</h2>
             <p class="modal-desc" id="modalDesc" style="white-space: pre-line;"></p>
-            <button class="modal-btn" onclick="closeStatusModal()">Dismiss</button>
+            <button class="modal-btn" id="modalActionBtn" onclick="closeStatusModal()">Dismiss</button>
+            <p class="redirect-counter" id="redirectCounter"></p>
         </div>
     </div>
 
@@ -170,24 +173,53 @@
         const loginBtn = document.getElementById('loginBtn');
 
         // Modal Logic
-        window.showStatusModal = (title, msg, type = 'info') => {
+        let redirectTimer = null;
+        window.showStatusModal = (title, msg, type = 'info', redirectUrl = null) => {
             const overlay = document.getElementById('modalOverlay');
             const icon = document.getElementById('modalIcon');
             const titleEl = document.getElementById('modalTitle');
             const descEl = document.getElementById('modalDesc');
+            const btn = document.getElementById('modalActionBtn');
+            const counter = document.getElementById('redirectCounter');
 
             titleEl.textContent = title;
             descEl.textContent = msg;
+            counter.textContent = '';
             
             icon.className = `modal-icon ${type}`;
             icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : 
                             (type === 'error' ? '<i data-lucide="x-circle"></i>' : '<i data-lucide="info"></i>');
+
+            if (redirectUrl) {
+                btn.textContent = 'Go Now →';
+                btn.className = 'modal-btn redirect';
+                btn.onclick = () => window.location.href = redirectUrl;
+                let sec = 3;
+                counter.textContent = `Auto-redirecting in ${sec}s...`;
+                if (redirectTimer) clearInterval(redirectTimer);
+                redirectTimer = setInterval(() => {
+                    sec--;
+                    if (sec <= 0) {
+                        clearInterval(redirectTimer);
+                        window.location.href = redirectUrl;
+                    } else {
+                        counter.textContent = `Auto-redirecting in ${sec}s...`;
+                    }
+                }, 1000);
+            } else {
+                btn.textContent = 'Dismiss';
+                btn.className = 'modal-btn';
+                btn.onclick = () => closeStatusModal();
+                counter.textContent = '';
+                if (redirectTimer) clearInterval(redirectTimer);
+            }
             
             overlay.classList.add('active');
             lucide.createIcons();
         };
 
         window.closeStatusModal = () => {
+            if (redirectTimer) clearInterval(redirectTimer);
             document.getElementById('modalOverlay').classList.remove('active');
         };
 
@@ -313,22 +345,40 @@
 
                 if (userData) {
                     const role = (userData.role || '').toLowerCase();
+
+                    // Save session for all valid users
+                    localStorage.setItem('employee_uid', userId);
+                    localStorage.setItem('hr_user_id', userId);
+                    localStorage.setItem('userName', userData.name || email.split('@')[0]);
+                    localStorage.setItem('userRole', role);
+                    localStorage.setItem('userDept', (userData.department || userData.departmentId || 'General').toLowerCase());
+
+                    if (role === 'manager') {
+                        const centerId = userData.commandCenterId || userData.unitId || null;
+                        const redirectUrl = centerId ? `manager-dashboard.html?id=${centerId}` : 'manager-dashboard.html';
+                        showStatusModal('Redirecting to Manager Portal',
+                            `Welcome ${userData.name || email.split('@')[0]}! Your account is a Manager account. Taking you to the Manager Dashboard.`,
+                            'info', redirectUrl);
+                        loginBtn.textContent = originalBtnText;
+                        loginBtn.disabled = false;
+                        return;
+                    }
+
+                    if (role === 'admin' || role === 'super admin' || role === 'hrms') {
+                        showStatusModal('Redirecting to Admin Portal',
+                            `Welcome ${userData.name || email.split('@')[0]}! Your account is an Admin account. Taking you to the HRMS Dashboard.`,
+                            'info', 'hrms-dashboard.html');
+                        loginBtn.textContent = originalBtnText;
+                        loginBtn.disabled = false;
+                        return;
+                    }
+
                     if (role === 'employee') {
-                        localStorage.setItem('employee_uid', userId);
-                        localStorage.setItem('userName', userData.name || email.split('@')[0]);
-                        localStorage.setItem('userRole', role);
-                        localStorage.setItem('userDept', (userData.department || userData.departmentId || 'General').toLowerCase());
-                        
-                        window.location.href = `employee-dashboard.html?id=${userData.departmentId || '6xpTjjcdEHyzMU1NuIBk'}`;
+                        const deptId = userData.departmentId || userData.commandCenterId || '';
+                        const redirectUrl = deptId ? `employee-dashboard.html?id=${deptId}` : 'employee-dashboard.html';
+                        window.location.href = redirectUrl;
                     } else {
-                        const article = ['a', 'e', 'i', 'o', 'u'].includes(role[0]) ? 'an' : 'a';
-                        let portalName = 'Admin Portal';
-                        if (role === 'manager') {
-                            portalName = 'Manager Portal';
-                        } else if (role === 'hrms' || role === 'admin' || role === 'super admin') {
-                            portalName = 'Admin or HRMS Portal';
-                        }
-                        showStatusModal('Access Denied', `You are registered as ${article} ${role}. Please log in via the ${portalName}.`, 'error');
+                        showStatusModal('Access Denied', `Your account role (${role}) is not recognized. Please contact your HR administrator.`, 'error');
                         loginBtn.textContent = originalBtnText;
                         loginBtn.disabled = false;
                     }

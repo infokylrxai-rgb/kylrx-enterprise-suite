@@ -3,23 +3,188 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Registration | HRFlow</title>
+  <title>Admin Registration | Kylrx AI</title>
   <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==">
   <link rel="stylesheet" href="login.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css">
   <style>
-    body { font-family: 'Outfit', sans-serif; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      overflow-y: auto !important;
+      height: auto !important;
+      min-height: 100vh;
+    }
+    .login-container {
+      height: auto !important;
+      min-height: 100vh;
+      align-items: center;
+      padding: 3rem 1.5rem !important;
+      overflow-y: auto;
+    }
+    .login-card {
+      max-width: 700px !important;
+      width: 100%;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      text-align: left;
+    }
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .form-grid .full-width-mobile {
+        grid-column: span 1 !important;
+      }
+    }
     .badge-admin {
-      background: #fef2f2;
-      color: #991b1b;
+      background: var(--primary-light);
+      color: #1e40af;
       padding: 6px 12px;
       border-radius: 20px;
       font-size: 0.75rem;
       font-weight: 700;
       display: inline-block;
       margin-bottom: 1rem;
-      border: 1px solid #fecaca;
+      border: 1px solid var(--primary-soft);
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .checkbox-container input {
+      display: none;
+    }
+    .checkbox-container .checkmark {
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      display: inline-block;
+      position: relative;
+      transition: all 0.2s ease;
+      background: white;
+      flex-shrink: 0;
+    }
+    .checkbox-container input:checked + .checkmark {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .checkbox-container .checkmark::after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 6px;
+      top: 2px;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    .checkbox-container input:checked + .checkmark::after {
+      display: block;
+    }
+    .checkbox-text a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .checkbox-text a:hover {
+      text-decoration: underline;
+    }
+    .validation-feedback {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: block;
+      font-weight: 600;
+    }
+    .validation-feedback.valid {
+      color: #10b981;
+    }
+    .validation-feedback.invalid {
+      color: #ef4444;
+    }
+    .iti {
+      width: 100%;
+    }
+    .iti__country-list {
+      z-index: 100;
+      border-radius: 10px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+      border: 1px solid var(--primary-soft);
+      max-width: 300px;
+      background-color: #fff;
+    }
+    .iti__selected-flag {
+      border-radius: 8px 0 0 8px;
+      padding-left: 1rem;
+    }
+    .strength-container {
+      margin-top: 0.5rem;
+      background: #f8fafc;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .strength-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.25rem;
+    }
+    .strength-bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: all 0.3s ease;
+    }
+    .strength-text {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .strength-checklist {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .strength-checklist li {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 0.15rem;
+    }
+    .strength-checklist li.valid {
+      color: #10b981;
+    }
+    .strength-checklist li.valid i {
+      color: #10b981;
+    }
+    .strength-checklist li i {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+    .login-btn {
+      grid-column: span 2;
+    }
+    @media (max-width: 600px) {
+      .login-btn {
+        grid-column: span 1;
+      }
     }
   </style>
 </head>
@@ -28,9 +193,9 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <a href="index.html" class="logo">
-          <div class="logo-icon" style="background: linear-gradient(135deg, #ef4444, #991b1b);"><i class="fa-solid fa-shield-halved"></i></div>
-          <span class="logo-text">HRFlow</span>
+        <a href="index.html" class="logo" style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; margin-bottom: 1.5rem; text-decoration: none;">
+          <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain; border-radius: 8px;">
+          <span class="logo-text" style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Kylrx <span style="color: var(--primary);">AI</span></span>
         </a>
         <div class="badge-admin">RESTRICTED: ADMIN REGISTRATION</div>
         <h1>Create Admin Account</h1>
@@ -38,35 +203,133 @@
       </div>
 
       <form id="signupForm">
-        <div class="form-group">
-          <label for="name">Full Name</label>
-          <div class="input-wrapper">
-            <i class="fa-regular fa-user"></i>
-            <input type="text" id="name" placeholder="System Administrator" required>
+        <div class="form-grid">
+          <!-- Full Name -->
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-user"></i>
+              <input type="text" id="name" placeholder="System Administrator" required>
+            </div>
+          </div>
+          <!-- Official Email Address -->
+          <div class="form-group">
+            <label for="email">Official Email Address</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-envelope"></i>
+              <input type="email" id="email" placeholder="username@gmail.com" required>
+            </div>
+            <div id="emailFeedback" class="validation-feedback"></div>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <div class="input-wrapper" style="overflow: visible;">
+              <input type="tel" id="phone" placeholder="" required>
+            </div>
+          </div>
+
+          <!-- Company Name -->
+          <div class="form-group">
+            <label for="company">Company Name</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-building"></i>
+              <input type="text" id="company" placeholder="Kylrx AI" required>
+            </div>
+          </div>
+
+          <!-- Department -->
+          <div class="form-group">
+            <label for="department">Department</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-sitemap"></i>
+              <input type="text" id="department" placeholder="Executive / HR / IT" required>
+            </div>
+          </div>
+
+          <!-- Country -->
+          <div class="form-group">
+            <label for="country">Country</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-earth-americas"></i>
+              <select id="country" required>
+                <option value="" disabled selected>Select Country</option>
+                <option value="India">India</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="United Arab Emirates">United Arab Emirates</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- State -->
+          <div class="form-group">
+            <label for="state">State / Province</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-map-location-dot"></i>
+              <select id="state" required disabled>
+                <option value="" disabled selected>Select State</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Password -->
+          <div class="form-group password-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="password" placeholder="••••••••" required>
+              <button type="button" class="eye-btnToggle eye-btn" data-target="password">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+            <!-- Strength validation container -->
+            <div class="strength-container">
+              <div class="strength-bar"><div class="strength-bar-fill" id="strengthFill"></div></div>
+              <div class="strength-text" id="strengthText">Password Strength: None</div>
+              <ul class="strength-checklist">
+                <li id="chkLength"><i class="fa-solid fa-circle-xmark"></i> At least 8 characters</li>
+                <li id="chkUpper"><i class="fa-solid fa-circle-xmark"></i> One uppercase letter</li>
+                <li id="chkLower"><i class="fa-solid fa-circle-xmark"></i> One lowercase letter</li>
+                <li id="chkNumber"><i class="fa-solid fa-circle-xmark"></i> One number</li>
+                <li id="chkSpecial"><i class="fa-solid fa-circle-xmark"></i> One special character</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="confirmPassword" placeholder="••••••••" required>
+              <button type="button" class="eye-btnToggle eye-btn" data-target="confirmPassword">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+            <div id="confirmFeedback" class="validation-feedback"></div>
+          </div>
+
+
+
+          <!-- Terms & Conditions Checkbox -->
+          <div class="form-group checkbox-group full-width-mobile" style="grid-column: span 2;">
+            <label class="checkbox-container">
+              <input type="checkbox" id="terms" required>
+              <span class="checkmark"></span>
+              <span class="checkbox-text">I agree to the <a href="javascript:void(0)" id="showTerms">Terms &amp; Conditions</a> and <a href="javascript:void(0)" id="showPrivacy">Privacy Policy</a></span>
+            </label>
           </div>
         </div>
 
-        <div class="form-group">
-          <label for="email">Email Address</label>
-          <div class="input-wrapper">
-            <i class="fa-regular fa-envelope"></i>
-            <input type="email" id="email" placeholder="admin@hrflow.com" required>
-          </div>
-        </div>
+        <div id="errorMessage" class="error-msg" style="grid-column: span 2; margin-top: 1rem;">Registration failed. Contact support.</div>
 
-        <div class="form-group">
-          <label for="password">Security Password</label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-lock"></i>
-            <input type="password" id="password" placeholder="••••••••" required>
-          </div>
-        </div>
-
-        <div id="errorMessage" class="error-msg">Registration failed. Contact support.</div>
-
-        <button type="submit" class="login-btn" id="signupBtn" style="background: #ef4444;">
+        <button type="submit" class="login-btn" id="signupBtn" style="background: var(--primary); width: 100%; margin-top: 1rem;">
           <span>Register Admin Portal</span>
-          <i class="fa-solid fa-shield-check"></i>
+          <i class="fa-solid fa-shield-halved"></i>
         </button>
       </form>
 
@@ -75,17 +338,73 @@
       </div>
     </div>
     
-    <div class="bg-shape shape-1" style="background: rgba(239, 68, 68, 0.1);"></div>
-    <div class="bg-shape shape-2" style="background: rgba(153, 27, 27, 0.1);"></div>
+    <div class="bg-shape shape-1" style="background: rgba(37, 99, 235, 0.1);"></div>
+    <div class="bg-shape shape-2" style="background: rgba(14, 165, 233, 0.1);"></div>
   </div>
 
   <!-- Custom Alert Overlay -->
   <div id="customOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999;">
-    <div style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:400px; text-align:center; border:1px solid #fee2e2; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
-      <div id="alertIcon" style="font-size:2.5rem; color:#ef4444; margin-bottom:1.5rem;"><i class="fa-solid fa-circle-info"></i></div>
+    <div style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:400px; text-align:center; border:1px solid var(--primary-soft); box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+      <div id="alertIcon" style="font-size:2.5rem; color:var(--primary); margin-bottom:1.5rem;"><i class="fa-solid fa-circle-info"></i></div>
       <h2 id="alertTitle" style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem;">Notification</h2>
       <p id="alertMsg" style="color:#64748b; margin-bottom:2rem; line-height:1.6;"></p>
-      <button id="closeAlertBtn" style="background:#ef4444; color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer;">Understood</button>
+      <button id="closeAlertBtn" style="background:var(--primary); color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer;">Understood</button>
+    </div>
+  </div>
+
+  <!-- Terms & Conditions Modal -->
+  <div id="termsModal" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999; padding: 1.5rem;">
+    <div style="background:white; padding:2.5rem; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; border:1px solid var(--primary-soft); box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; text-align:left;">
+      <button onclick="closeModal('termsModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="font-size:1.75rem; font-weight:800; margin-bottom:0.5rem; color:var(--text-main);">Terms of Service</h2>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">Effective Date: May 27, 2026</p>
+      <div style="font-size:0.95rem; color:#475569; line-height:1.7; display:flex; flex-direction:column; gap:1.25rem;">
+        <p>Welcome to Kylrx AI. By subscribing to our SaaS platform, your organization agrees to be bound by these Terms of Service.</p>
+        
+        <div>
+          <h4 style="font-weight:700; color:var(--text-main); margin-bottom:0.25rem;">1. Platform License & Access</h4>
+          <p>Kylrx AI grants a non-exclusive, non-transferable, revocable license to access our platform in accordance with the features detailed in your subscribed plan (Starter, Growth, Scale, or Enterprise).</p>
+        </div>
+        
+        <div>
+          <h4 style="font-weight:700; color:var(--text-main); margin-bottom:0.25rem;">2. Data Security & Ownership</h4>
+          <p>Your organization retains complete ownership of all data submitted to the platform. Kylrx AI commits to maintaining robust backup regimes and SOC 2 security standards as outlined in our security protocol.</p>
+        </div>
+        
+        <div>
+          <h4 style="font-weight:700; color:var(--text-main); margin-bottom:0.25rem;">3. Payments, Cancellations & Service Levels</h4>
+          <p>Billing is managed on a monthly or annual cycle. Subscriptions can be upgraded, downgraded, or canceled with a 30-day notice. We offer a guaranteed 99.9% uptime SLA commit for all Scale and Enterprise instances.</p>
+        </div>
+      </div>
+      <button onclick="closeModal('termsModal')" style="background:var(--primary); color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; margin-top:2rem;">Close</button>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div id="privacyModal" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999; padding: 1.5rem;">
+    <div style="background:white; padding:2.5rem; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; border:1px solid var(--primary-soft); box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; text-align:left;">
+      <button onclick="closeModal('privacyModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+      <h2 style="font-size:1.75rem; font-weight:800; margin-bottom:0.5rem; color:var(--text-main);">Privacy Policy</h2>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">Last Updated: May 27, 2026</p>
+      <div style="font-size:0.95rem; color:#475569; line-height:1.7; display:flex; flex-direction:column; gap:1.25rem;">
+        <p>At Kylrx AI, we prioritize the confidentiality and safety of your employee and organizational data. This Privacy Policy details our data collection, usage, and security practices.</p>
+        
+        <div>
+          <h4 style="font-weight:700; color:var(--text-main); margin-bottom:0.25rem;">1. Information We Collect</h4>
+          <p>To deliver AI-powered HR and payroll services, we process: employee roster details, secure biometric attendance tokens (where TVC is enabled), clock-in/out stamps, leave entries, and salary calculation parameters.</p>
+        </div>
+        
+        <div>
+          <h4 style="font-weight:700; color:var(--text-main); margin-bottom:0.25rem;">2. Use of AI and Machine Learning</h4>
+          <p>We use automated systems to run payroll calculations, evaluate anomaly alerts, and answer questions via our AI Assistant. We do NOT use your private organizational data to train public models. All learning is strictly partitioned to your individual company instance.</p>
+        </div>
+        
+        <div>
+          <h4 style="font-weight:700; color:var(--text-main); margin-bottom:0.25rem;">3. Security Framework</h4>
+          <p>We leverage advanced serverless infrastructure and high-fidelity encryption systems (AES-256 and TLS 1.3) to protect data at rest and in transit. Secure logins are supported by Single Sign-On (SSO) protocols.</p>
+        </div>
+      </div>
+      <button onclick="closeModal('privacyModal')" style="background:var(--primary); color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; margin-top:2rem;">Close</button>
     </div>
   </div>
 
@@ -102,10 +421,20 @@
     }
     
     document.getElementById('closeAlertBtn').onclick = closeAlert;
+
+    // Policy and Terms Modals Control
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+    document.getElementById('showTerms').onclick = () => openModal('termsModal');
+    document.getElementById('showPrivacy').onclick = () => openModal('privacyModal');
   </script>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/intlTelInput.min.js"></script>
   <script type="module" src="signup.js"></script>
-  <script src="status-widget.js"></script>
 </body>
 </html>
 

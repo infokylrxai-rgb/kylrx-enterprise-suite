@@ -241,9 +241,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <a href="hrms-dashboard.html" class="logo">
-                <div class="logo-icon">
-                    <i data-lucide="layers"></i>
-                </div>
+                <img src="logo.jpg" alt="Kylrx AI Logo" style="height: 36px; width: 36px; object-fit: contain; border-radius: 10px;">
                 <span class="logo-text">Kylrx AI</span>
             </a>
 
@@ -253,6 +251,12 @@
                     <a href="hrms-dashboard.html" class="nav-link">
                         <i data-lucide="layout-dashboard"></i>
                         <span>Dashboard Overview</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-Dashboard-bulider.html" class="nav-link">
+                        <i data-lucide="layout"></i>
+                        <span>Enterprise Builder</span>
                     </a>
                 </div>
                 
@@ -463,6 +467,13 @@
         // Listen for Holidays in Real-time from Firestore
         onSnapshot(collection(db, "holidays"), (snapshot) => {
             holidayData = snapshot.docs.map(doc => doc.data());
+            renderCalendar();
+        });
+
+        // Listen for weekly off configuration in Real-time
+        onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
+            const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
+            localStorage.setItem('weekly_off_config', val);
             renderCalendar();
         });
 

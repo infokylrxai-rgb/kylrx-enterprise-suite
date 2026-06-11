@@ -597,10 +597,8 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <a href="#" class="logo">
-                <div class="logo-icon">
-                    <i data-lucide="layers"></i>
-                </div>
+            <a href="hrms-dashboard.html" class="logo">
+                <img src="logo.jpg" alt="Kylrx AI Logo" style="height: 36px; width: 36px; object-fit: contain; border-radius: 10px;">
                 <span class="logo-text">Kylrx AI</span>
             </a>
 
@@ -622,6 +620,12 @@
                     <a href="#compliance" class="nav-link">
                         <i data-lucide="shield-check"></i>
                         <span>Compliance Tracker</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-Dashboard-bulider.html" class="nav-link">
+                        <i data-lucide="layout"></i>
+                        <span>Enterprise Builder</span>
                     </a>
                 </div>
 
@@ -728,10 +732,9 @@
                         <span class="search-hint">⌘K</span>
                     </div>
 
-                    <div class="btn-group">
-                        <button class="btn btn-primary" onclick="openModal('empModal')">
+                    <div class="btn-group" style="gap: 0.75rem;">
+                        <button id="btnAddEmp" class="action-icon" style="background: var(--primary); color: white; border-color: var(--primary);" onclick="openModal('empModal')" title="Add Employee">
                             <i data-lucide="user-plus"></i>
-                            <span>Add Employee</span>
                         </button>
                     </div>
 
@@ -746,12 +749,8 @@
                         <span class="badge red" style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%;"></span>
                     </button>
 
-                    <div class="user-profile">
-                        <div class="user-avatar">HR</div>
-                        <div class="user-info">
-                            <span class="user-name">HR Director</span>
-                            <span class="user-role">Strategic HR</span>
-                        </div>
+                    <div class="user-profile" title="HR Director">
+                        <div class="user-avatar" style="width: 42px; height: 42px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">HR</div>
                     </div>
                 </div>
             </header>
@@ -1365,61 +1364,102 @@
                             </div>
                             <h2>Performance Management (PMS)</h2>
                         </div>
+                        <span class="ai-badge" style="background: #ecfdf5; color: #10b981;">Live Sync</span>
                     </div>
                     <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <span style="font-size: 0.85rem; font-weight: 700;">EOD Task Tracking</span>
-                            <span class="ai-badge" style="background: #ecfdf5; color: #10b981;">Live Sync</span>
+                            <span style="font-size: 0.85rem; font-weight: 700;">EOD Approval Queue</span>
+                            <span id="eodPendingBadge" style="background: #fee2e2; color: #ef4444; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 100px;">Loading...</span>
                         </div>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: #f8fafc; border-radius: 8px;">
-                                <span>Sarah Wilson (Design)</span>
-                                <span style="font-weight: 800; color: var(--primary);">Score: 4.8/5.0</span>
-                            </div>
-                            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; padding: 8px; background: #f8fafc; border-radius: 8px;">
-                                <span>John Smith (Sales)</span>
-                                <span style="font-weight: 800; color: var(--primary);">Score: 4.2/5.0</span>
+                        <div id="hrmsEodList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                            <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 1rem;">
+                                <i data-lucide="loader" class="animate-spin" style="width:16px;height:16px;"></i> Fetching pending EODs...
                             </div>
                         </div>
-                        <button style="width: 100%; margin-top: 1rem; background: var(--primary); color: white; border: none; padding: 8px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Audit EOD Updates</button>
+                        <button id="btnAuditEod" style="width: 100%; margin-top: 1rem; background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
+                            <i data-lucide="clipboard-check" style="width:14px;height:14px;"></i> Audit EOD Updates
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Payroll & Document Studio -->
+            <!-- Pay Slip Generator -->
             <div class="premium-panel" id="payroll" style="margin-bottom: 2.5rem;">
                 <div class="panel-header">
                     <div class="panel-title">
                         <div class="stat-icon-box" style="background: #fdf2f2; color: #ef4444;">
                             <i data-lucide="file-check"></i>
                         </div>
-                        <h2>Payroll & Document Studio</h2>
+                        <h2>Pay Slip Generator</h2>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span style="background:#ecfdf5; color:#10b981; font-size:0.7rem; font-weight:800; padding:3px 10px; border-radius:100px; border:1px solid #d1fae5;">&#9679; Live Sync</span>
+                        <button onclick="exportBankTransferCSV()" style="background:#1e40af; color:white; border:none; padding:7px 14px; border-radius:8px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                            <i data-lucide="landmark" style="width:13px;height:13px;"></i> Bank Transfer Export
+                        </button>
+                        <button onclick="openPayslipModal()" style="background:var(--primary); color:white; border:none; padding:7px 14px; border-radius:8px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                            <i data-lucide="file-down" style="width:13px;height:13px;"></i> Generate Pay Slips
+                        </button>
                     </div>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
-                    <div class="doc-card" style="text-align: center; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); cursor: pointer;">
-                        <i data-lucide="file-text" style="color: var(--primary); margin-bottom: 10px;"></i>
-                        <div style="font-size: 0.85rem; font-weight: 700;">Payslips (FTE)</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Generate May 2026</div>
+                <div style="background:#f8fafc; border:1px solid var(--border); border-radius:16px; padding:1.5rem; margin-bottom:1rem;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:1rem; align-items:end;">
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Month</label>
+                            <select id="payslipMonth" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; outline:none; font-family:inherit; background:white;">
+                                <option value="01">January</option><option value="02">February</option><option value="03">March</option>
+                                <option value="04">April</option><option value="05">May</option><option value="06" selected>June</option>
+                                <option value="07">July</option><option value="08">August</option><option value="09">September</option>
+                                <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Year</label>
+                            <select id="payslipYear" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; outline:none; font-family:inherit; background:white;">
+                                <option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">Department</label>
+                            <select id="payslipDept" style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; outline:none; font-family:inherit; background:white;">
+                                <option value="all">All Departments</option>
+                            </select>
+                        </div>
+                        <button onclick="loadPayslipPreview()" style="background:#0f172a; color:white; border:none; padding:9px 16px; border-radius:10px; font-size:0.8rem; font-weight:700; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px;">
+                            <i data-lucide="search" style="width:14px;height:14px;"></i> Load Employees
+                        </button>
                     </div>
-                    <div class="doc-card" style="text-align: center; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); cursor: pointer;">
-                        <i data-lucide="receipt" style="color: var(--primary); margin-bottom: 10px;"></i>
-                        <div style="font-size: 0.85rem; font-weight: 700;">Invoices (Contr.)</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Intern/Cons. Billing</div>
+                </div>
+                <div style="background:white; border:1px solid var(--border); border-radius:16px; overflow:hidden;">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                        <thead>
+                            <tr style="background:#f8fafc; border-bottom:1px solid var(--border); font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">
+                                <th style="padding:12px 16px; font-weight:800; text-align:left;">Employee</th>
+                                <th style="padding:12px 16px; font-weight:800; text-align:left;">Code</th>
+                                <th style="padding:12px 16px; font-weight:800; text-align:right;">Basic</th>
+                                <th style="padding:12px 16px; font-weight:800; text-align:right;">Incentives</th>
+                                <th style="padding:12px 16px; font-weight:800; text-align:right;">Deductions</th>
+                                <th style="padding:12px 16px; font-weight:800; text-align:right;">Net Pay</th>
+                                <th style="padding:12px 16px; font-weight:800; text-align:center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payslipTableBody">
+                            <tr><td colspan="7" style="text-align:center; padding:2.5rem; color:var(--text-muted); font-size:0.82rem;">Select filters and click Load Employees to generate pay slips</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="payslipToast" style="display:none; margin-top:1rem; background:#0f172a; color:white; padding:10px 14px; border-radius:10px; font-size:0.8rem; font-weight:600;"></div>
+                <div style="display:flex; gap:10px; margin-top:1rem; flex-wrap:wrap;">
+                    <div style="display:flex; gap:6px; align-items:center; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:8px 14px; font-size:0.78rem; color:#166534; font-weight:600;">
+                        <i data-lucide="users" style="width:14px;height:14px;"></i>
+                        <span id="payslipCount">0 employees loaded</span>
                     </div>
-                    <div class="doc-card" style="text-align: center; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); cursor: pointer;">
-                        <i data-lucide="calculator" style="color: var(--primary); margin-bottom: 10px;"></i>
-                        <div style="font-size: 0.85rem; font-weight: 700;">F&F Settlements</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Full & Final Audit</div>
-                    </div>
-                    <div class="doc-card" style="text-align: center; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); cursor: pointer;">
-                        <i data-lucide="award" style="color: var(--primary); margin-bottom: 10px;"></i>
-                        <div style="font-size: 0.85rem; font-weight: 700;">Relieving Letters</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">Exit Documentation</div>
+                    <div style="display:flex; gap:6px; align-items:center; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:8px 14px; font-size:0.78rem; color:#1e40af; font-weight:600;">
+                        <i data-lucide="indian-rupee" style="width:14px;height:14px;"></i>
+                        <span id="payslipTotalNet">Total Net: &#8377;0</span>
                     </div>
                 </div>
             </div>
-
             <!-- Employee Lifecycle & Strategic Ops -->
             <div class="premium-panel" id="lifecycle" style="margin-bottom: 2.5rem;">
                 <div class="panel-header">
@@ -1514,34 +1554,82 @@
                             </div>
                             <h2>Recruitment Pipeline (ATS)</h2>
                         </div>
-                        <button class="action-btn" onclick="openRecruitmentGateway()" style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Post New Job</button>
+                        <button onclick="openAddCandidateModal()" style="background:var(--primary); color:white; border:none; padding:6px 12px; border-radius:8px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                            <i data-lucide="user-plus" style="width:13px;height:13px;"></i> Add Candidate
+                        </button>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
-                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
-                            <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">42</div>
-                            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Active Apps</div>
+                    <!-- Live Pipeline Counters -->
+                    <div id="recruitmentStats" style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:1rem;">
+                        <div style="background:white; border:1px solid var(--border); border-radius:12px; padding:1rem; text-align:center;">
+                            <div id="statActiveApps" style="font-size:1.25rem; font-weight:800; color:var(--primary);">—</div>
+                            <div style="font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Active Apps</div>
                         </div>
-                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
-                            <div style="font-size: 1.25rem; font-weight: 800; color: #f59e0b;">08</div>
-                            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Interviews Today</div>
+                        <div style="background:white; border:1px solid var(--border); border-radius:12px; padding:1rem; text-align:center;">
+                            <div id="statInterviews" style="font-size:1.25rem; font-weight:800; color:#f59e0b;">—</div>
+                            <div style="font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Interviewing</div>
                         </div>
-                        <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center;">
-                            <div style="font-size: 1.25rem; font-weight: 800; color: #10b981;">03</div>
-                            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Offers Pending</div>
+                        <div style="background:white; border:1px solid var(--border); border-radius:12px; padding:1rem; text-align:center;">
+                            <div id="statOffers" style="font-size:1.25rem; font-weight:800; color:#10b981;">—</div>
+                            <div style="font-size:0.7rem; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Offer Pending</div>
                         </div>
                     </div>
-                    <div style="margin-top: 1.5rem;">
-                        <h4 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem;">Urgent Hiring Needs</h4>
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.8rem;">
-                                <span style="font-weight: 600;">Lead Cloud Architect</span>
-                                <span class="ai-badge" style="background: #fee2e2; color: #ef4444;">High Priority</span>
+                    <!-- Search & Filter -->
+                    <div style="margin-top:1rem; display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px;">
+                        <input id="candSearch" type="text" placeholder="Search candidates..." oninput="applyCandidateFilters()" style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; font-family:inherit;">
+                        <select id="candFilterStage" onchange="applyCandidateFilters()" style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; background:white;">
+                            <option value="all">All Stages</option>
+                            <option value="Applied">Applied</option>
+                            <option value="Screening">Screening</option>
+                            <option value="Interview">Interview</option>
+                            <option value="Offer">Offer</option>
+                            <option value="Hired">Hired</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                        <select id="candFilterSource" onchange="applyCandidateFilters()" style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; background:white;">
+                            <option value="all">All Sources</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Referral">Referral</option>
+                            <option value="Careers Page">Careers Page</option>
+                            <option value="Direct">Direct</option>
+                        </select>
+                    </div>
+                    <!-- Interview Pipeline Stages -->
+                    <div style="margin-top:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                            <h4 style="font-size:0.82rem; font-weight:700;">Interview Pipeline</h4>
+                            <span style="font-size:0.7rem; color:var(--text-muted);">Move via dropdown or open candidate for actions</span>
+                        </div>
+                        <div id="pipelineGrid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+                            <div class="pipeline-col" data-stage="Applied" style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:10px; min-height:120px;">
+                                <div style="font-size:0.7rem; font-weight:800; color:#0369a1; margin-bottom:8px; text-transform:uppercase;">Applied</div>
+                                <div id="stage-Applied" class="stage-list"></div>
                             </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.8rem;">
-                                <span style="font-weight: 600;">HR Operations Manager</span>
-                                <span class="ai-badge" style="background: #fff7ed; color: #f59e0b;">In Progress</span>
+                            <div class="pipeline-col" data-stage="Screening" style="background:#f5f3ff; border:1px solid #ddd6fe; border-radius:10px; padding:10px; min-height:120px;">
+                                <div style="font-size:0.7rem; font-weight:800; color:#5b21b6; margin-bottom:8px; text-transform:uppercase;">Screening</div>
+                                <div id="stage-Screening" class="stage-list"></div>
+                            </div>
+                            <div class="pipeline-col" data-stage="Interview" style="background:#fefce8; border:1px solid #fde68a; border-radius:10px; padding:10px; min-height:120px;">
+                                <div style="font-size:0.7rem; font-weight:800; color:#92400e; margin-bottom:8px; text-transform:uppercase;">Interview</div>
+                                <div id="stage-Interview" class="stage-list"></div>
+                            </div>
+                            <div class="pipeline-col" data-stage="Offer" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:10px; min-height:120px;">
+                                <div style="font-size:0.7rem; font-weight:800; color:#065f46; margin-bottom:8px; text-transform:uppercase;">Offer</div>
+                                <div id="stage-Offer" class="stage-list"></div>
+                            </div>
+                            <div class="pipeline-col" data-stage="Hired" style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:10px; padding:10px; min-height:120px;">
+                                <div style="font-size:0.7rem; font-weight:800; color:#047857; margin-bottom:8px; text-transform:uppercase;">Hired</div>
+                                <div id="stage-Hired" class="stage-list"></div>
+                            </div>
+                            <div class="pipeline-col" data-stage="Rejected" style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:10px; min-height:120px;">
+                                <div style="font-size:0.7rem; font-weight:800; color:#b91c1c; margin-bottom:8px; text-transform:uppercase;">Rejected</div>
+                                <div id="stage-Rejected" class="stage-list"></div>
                             </div>
                         </div>
+                    </div>
+                    <div id="upcomingInterviews" style="margin-top:1rem; background:#f8fafc; border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:0.75rem;"></div>
+                    <!-- Hiring Workflow Queue -->
+                    <div id="hiringWorkflowList" style="margin-top:1.25rem; display:flex; flex-direction:column; gap:8px;">
+                        <div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:1rem;"><i data-lucide="loader" class="animate-spin" style="width:14px;height:14px;"></i> Loading pipeline...</div>
                     </div>
                 </div>
 
@@ -1874,18 +1962,8 @@
         };
 
         window.openRecruitmentGateway = () => {
-            const btn = event.target;
-            const original = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader" class="spin" size="14"></i> Initializing ATS...';
-            if(window.lucide) lucide.createIcons();
-
-            setTimeout(() => {
-                alert("Recruitment Gateway Live: You can now post new job requirements and track global applicant pipelines.");
-                btn.disabled = false;
-                btn.innerHTML = original;
-                if(window.lucide) lucide.createIcons();
-            }, 1500);
+            if (typeof openAddCandidateModal === 'function') openAddCandidateModal();
+            document.getElementById('recruitment')?.scrollIntoView({ behavior: 'smooth' });
         };
 
         window.auditExpense = (btn) => {
@@ -2363,11 +2441,726 @@
         </div>
     </div>
 
+    <!-- EOD Audit Modal -->
+    <div id="eodAuditModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:28px; padding:2.5rem; width:90%; max-width:600px; max-height:80vh; overflow-y:auto; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); animation:modalIn 0.3s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <div>
+                    <h2 style="font-weight:800; font-size:1.25rem; letter-spacing:-0.5px;">EOD Approval Workflow</h2>
+                    <p style="font-size:0.8rem; color:#64748b; margin-top:4px;">Review and score pending end-of-day submissions</p>
+                </div>
+                <button onclick="document.getElementById('eodAuditModal').style.display='none'" style="background:#f1f5f9; border:none; border-radius:12px; width:36px; height:36px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#64748b;">✕</button>
+            </div>
+            <div id="eodAuditList" style="display:flex; flex-direction:column; gap:1rem;">
+                <div style="text-align:center; padding:2rem; color:#64748b;"><i data-lucide="loader" class="animate-spin"></i> Loading EODs...</div>
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes modalIn { from { opacity:0; transform:translateY(20px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+        .eod-score-btn { background:var(--primary); color:white; border:none; border-radius:8px; padding:6px 14px; font-size:0.75rem; font-weight:700; cursor:pointer; transition:0.2s; }
+        .eod-score-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+        .eod-score-input { border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-size:0.8rem; width:70px; text-align:center; outline:none; }
+        .eod-score-input:focus { border-color:var(--primary); }
+    </style>
+
+    <script type="module">
+        import { getPendingReviews, scorePerformance } from "./pms-service.js";
+        import { auth } from "./firebase-config.js";
+
+        async function loadHrmsEodList() {
+            const listEl = document.getElementById('hrmsEodList');
+            const badge = document.getElementById('eodPendingBadge');
+            try {
+                const reviews = await getPendingReviews();
+                badge.textContent = `${reviews.length} Pending`;
+                badge.style.background = reviews.length > 0 ? '#fee2e2' : '#ecfdf5';
+                badge.style.color = reviews.length > 0 ? '#ef4444' : '#10b981';
+
+                if (reviews.length === 0) {
+                    listEl.innerHTML = '<div style="text-align:center; color:#10b981; font-size:0.8rem; padding:1rem;">✅ All EODs reviewed!</div>';
+                    return;
+                }
+                listEl.innerHTML = reviews.slice(0, 4).map(r => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; padding:8px 10px; background:#f8fafc; border-radius:8px; border:1px solid var(--border);">
+                        <div>
+                            <span style="font-weight:700;">${r.employeeName || 'Employee'}</span>
+                            <span style="color:#64748b; margin-left:6px;">${(r.summary || 'No summary').substring(0,35)}...</span>
+                        </div>
+                        <span style="background:#fef3c7; color:#d97706; font-size:0.65rem; font-weight:800; padding:2px 6px; border-radius:6px;">Pending</span>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            } catch(err) {
+                listEl.innerHTML = '<div style="color:#ef4444; font-size:0.8rem; text-align:center;">Failed to load EODs.</div>';
+                if(badge) badge.textContent = 'Error';
+            }
+        }
+
+        async function openEodAuditModal() {
+            const modal = document.getElementById('eodAuditModal');
+            const listEl = document.getElementById('eodAuditList');
+            modal.style.display = 'flex';
+            listEl.innerHTML = '<div style="text-align:center; padding:2rem; color:#64748b;"><i data-lucide="loader" class="animate-spin"></i> Loading...</div>';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const reviews = await getPendingReviews();
+                if (reviews.length === 0) {
+                    listEl.innerHTML = '<div style="text-align:center; padding:2rem; color:#10b981; font-weight:700;">✅ No pending EOD reviews. All caught up!</div>';
+                    return;
+                }
+                listEl.innerHTML = reviews.map(r => `
+                    <div id="eod-item-${r.id}" style="background:#f8fafc; border:1px solid var(--border); border-radius:16px; padding:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                            <div>
+                                <div style="font-weight:800; font-size:0.9rem;">${r.employeeName || 'Employee'}</div>
+                                <div style="font-size:0.75rem; color:#64748b; margin-top:2px;">${r.submittedAt ? new Date(r.submittedAt.seconds * 1000).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : 'Date unknown'}</div>
+                            </div>
+                            <span style="background:#fef3c7; color:#d97706; font-size:0.7rem; font-weight:800; padding:4px 10px; border-radius:100px;">Pending Review</span>
+                        </div>
+                        <p style="font-size:0.82rem; color:#475569; line-height:1.6; margin-bottom:1rem; background:white; padding:10px; border-radius:10px; border:1px solid var(--border);">${r.summary || r.tasks || 'No summary provided.'}</p>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input class="eod-score-input" id="score-input-${r.id}" type="number" min="0" max="100" placeholder="Score" title="Enter score 0-100">
+                            <input style="flex:1; border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-size:0.8rem; outline:none;" id="comment-input-${r.id}" placeholder="Add review comment...">
+                            <button class="eod-score-btn" onclick="submitEodScore('${r.id}')">Approve & Score</button>
+                        </div>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            } catch(err) {
+                listEl.innerHTML = `<div style="color:#ef4444; text-align:center; padding:2rem;">Error: ${err.message}</div>`;
+            }
+        }
+
+        window.submitEodScore = async (eodId) => {
+            const scoreEl = document.getElementById(`score-input-${eodId}`);
+            const commentEl = document.getElementById(`comment-input-${eodId}`);
+            const score = parseFloat(scoreEl.value);
+            const comment = commentEl.value.trim() || 'Reviewed by HR.';
+            if (isNaN(score) || score < 0 || score > 100) {
+                alert('Please enter a valid score between 0 and 100.');
+                return;
+            }
+            const adminId = auth.currentUser?.uid || localStorage.getItem('hr_user_id') || 'hrms_admin';
+            try {
+                const btn = document.querySelector(`#eod-item-${eodId} .eod-score-btn`);
+                if(btn) { btn.textContent = 'Saving...'; btn.disabled = true; }
+                await scorePerformance(eodId, score, comment, adminId);
+                const item = document.getElementById(`eod-item-${eodId}`);
+                if(item) {
+                    item.style.opacity = '0.5';
+                    item.innerHTML = `<div style="text-align:center; color:#10b981; font-weight:700; padding:1rem;">✅ Scored ${score}/100 — Review Submitted</div>`;
+                }
+                loadHrmsEodList();
+            } catch(err) {
+                alert('Failed to submit score: ' + err.message);
+                const btn = document.querySelector(`#eod-item-${eodId} .eod-score-btn`);
+                if(btn) { btn.textContent = 'Approve & Score'; btn.disabled = false; }
+            }
+        };
+
+        document.getElementById('btnAuditEod')?.addEventListener('click', openEodAuditModal);
+        loadHrmsEodList();
+        // Refresh every 2 minutes
+        setInterval(loadHrmsEodList, 120000);
+    </script>
+
     <script>
         // Global Modal Helpers
         window.openModal = (id) => document.getElementById(id).style.display = 'flex';
         window.closeModal = (id) => document.getElementById(id).style.display = 'none';
     </script>
+
+    <!-- ══ PAY SLIP GENERATOR MODULE ══════════════════════════════════ -->
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { generatePayslipPdfBlob, downloadPayslipPdf, parsePeriod } from "./payslip-pdf-service.js";
+        import { generateDocument } from "./payroll-doc-service.js";
+        import { enrichEmployeeBankDetails, exportBankTransferCSV as exportBankCSV } from "./bank-export-service.js";
+
+        let payslipData = [];
+
+        function getPayslipPeriodLabel() {
+            const month = document.getElementById('payslipMonth');
+            const year = document.getElementById('payslipYear').value;
+            return `${month.options[month.selectedIndex].text} ${year}`;
+        }
+
+        function showPayslipToast(msg) {
+            const el = document.getElementById('payslipToast');
+            if (!el) { alert(msg); return; }
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 3000);
+        }
+
+        // Populate department dropdown from Firestore
+        async function populatePayslipDepts() {
+            try {
+                const snap = await getDocs(collection(db, 'departments'));
+                const sel = document.getElementById('payslipDept');
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.textContent = d.data().name || d.id;
+                    sel.appendChild(opt);
+                });
+            } catch(e) { console.warn('Dept load:', e); }
+        }
+
+        window.loadPayslipPreview = async () => {
+            const month = document.getElementById('payslipMonth').value;
+            const year = document.getElementById('payslipYear').value;
+            const dept = document.getElementById('payslipDept').value;
+            const tbody = document.getElementById('payslipTableBody');
+            const countEl = document.getElementById('payslipCount');
+            const totalEl = document.getElementById('payslipTotalNet');
+
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:#64748b;"><i data-lucide="loader" class="animate-spin" style="width:16px;height:16px;"></i> Loading employees from Firestore...</td></tr>`;
+            if(window.lucide) lucide.createIcons();
+
+            try {
+                let q = collection(db, 'users');
+                const snap = await getDocs(query(q, where('role', '==', 'employee')));
+                let employees = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                if (dept !== 'all') {
+                    employees = employees.filter(e => e.departmentId === dept || e.department === dept);
+                }
+
+                const profileSnaps = await Promise.all(
+                    employees.map((e) => getDoc(doc(db, 'payroll_profiles', e.id)).catch(() => null))
+                );
+
+                payslipData = employees.map((e, i) => {
+                    const basic = parseFloat(e.basicSalary || e.salary || 0);
+                    const incentives = parseFloat(e.incentives || 0);
+                    const pf = basic * 0.12;
+                    const esic = basic > 21000 ? 0 : basic * 0.0075;
+                    const deductions = pf + esic + parseFloat(e.tds || 0);
+                    const net = basic + incentives - deductions;
+                    const profile = profileSnaps[i]?.exists() ? profileSnaps[i].data() : {};
+                    return enrichEmployeeBankDetails(
+                        { ...e, basic, incentives, deductions: Math.round(deductions), net: Math.round(net) },
+                        profile
+                    );
+                });
+
+                if (payslipData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:#64748b;">No employees found. Ensure Firestore has users with role="employee".</td></tr>`;
+                    countEl.textContent = '0 employees loaded';
+                    totalEl.textContent = 'Total Net: \u20b90';
+                    return;
+                }
+
+                const totalNet = payslipData.reduce((s, e) => s + e.net, 0);
+                countEl.textContent = `${payslipData.length} employees loaded`;
+                totalEl.textContent = `Total Net: \u20b9${totalNet.toLocaleString('en-IN')}`;
+
+                tbody.innerHTML = payslipData.map((e, i) => `
+                    <tr style="border-bottom:1px solid #f1f5f9; ${i % 2 === 0 ? 'background:white;' : 'background:#fafafa;'}">
+                        <td style="padding:12px 16px; font-weight:600;">
+                            ${e.name || e.email || 'Unknown'}
+                            ${!e.bankComplete ? '<span style="margin-left:6px;background:#fee2e2;color:#b91c1c;font-size:0.62rem;font-weight:800;padding:2px 6px;border-radius:100px;">No Bank</span>' : ''}
+                        </td>
+                        <td style="padding:12px 16px; color:#64748b; font-family:monospace; font-size:0.8rem;">${e.employeeCode || e.id.substring(0,8).toUpperCase()}</td>
+                        <td style="padding:12px 16px; text-align:right; font-weight:600;">\u20b9${e.basic.toLocaleString('en-IN')}</td>
+                        <td style="padding:12px 16px; text-align:right; color:#10b981; font-weight:600;">\u20b9${e.incentives.toLocaleString('en-IN')}</td>
+                        <td style="padding:12px 16px; text-align:right; color:#ef4444; font-weight:600;">\u20b9${e.deductions.toLocaleString('en-IN')}</td>
+                        <td style="padding:12px 16px; text-align:right; font-weight:800; color:#1e40af;">\u20b9${e.net.toLocaleString('en-IN')}</td>
+                        <td style="padding:12px 16px; text-align:center;">
+                            <div style="display:flex; gap:6px; justify-content:center;">
+                                <button onclick="downloadSinglePayslip(${i})" style="background:#eff6ff; color:#1d4ed8; border:none; padding:5px 10px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;">
+                                    Download PDF
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+                if(window.lucide) lucide.createIcons();
+            } catch(err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:#ef4444;">Error: ${err.message}</td></tr>`;
+            }
+        };
+
+        window.downloadSinglePayslip = async (idx) => {
+            const e = payslipData[idx];
+            if (!e) return;
+            const period = getPayslipPeriodLabel();
+            try {
+                showPayslipToast(`Generating PDF for ${e.name || e.email}...`);
+                const blob = await generatePayslipPdfBlob(e, period);
+                const { key } = parsePeriod(period);
+                downloadPayslipPdf(blob, `payslip_${e.employeeCode || e.id.substring(0, 8)}_${key}.pdf`);
+                showPayslipToast('PDF downloaded successfully.');
+            } catch (err) {
+                alert('PDF generation failed: ' + err.message);
+            }
+        };
+
+        window.openPayslipModal = async () => {
+            if (payslipData.length === 0) {
+                alert('Please click "Load Employees" first to generate pay slips.');
+                return;
+            }
+            const period = getPayslipPeriodLabel();
+            if (!confirm(`Generate and archive ${payslipData.length} pay slip(s) for ${period}?`)) return;
+
+            showPayslipToast('Batch generating pay slips...');
+            let count = 0;
+            for (const e of payslipData) {
+                try {
+                    await generateDocument(e.id, 'Payslip', {
+                        period,
+                        employeeName: e.name || e.email,
+                        employeeCode: e.employeeCode,
+                        designation: e.department,
+                        grossSalary: e.basic + e.incentives,
+                        breakdown: { basic: e.basic, hra: 0, variable: e.incentives, tax: e.deductions },
+                        deductions: e.deductions,
+                        netPay: e.net
+                    });
+                    count++;
+                } catch (err) {
+                    console.warn('Batch payslip failed for', e.id, err);
+                }
+            }
+            showPayslipToast(`Generated ${count} pay slip(s) with PDF archive.`);
+        };
+
+        window.exportBankTransferCSV = () => {
+            if (payslipData.length === 0) {
+                alert('Please click "Load Employees" first before exporting.');
+                return;
+            }
+            const result = exportBankCSV(payslipData, getPayslipPeriodLabel());
+            if (result.exported) {
+                showPayslipToast(`Exported ${result.count} row(s) to bank transfer CSV.`);
+            }
+        };
+
+        populatePayslipDepts();
+    </script>
+
+    <!-- ══ RECRUITMENT ATS MODULE ══════════════════════════════════════ -->
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import {
+            STAGES, subscribeCandidates, addCandidate, updateCandidate, deleteCandidate,
+            uploadResume, addInterview, getInterviews, updateOffer, startOnboarding,
+            filterCandidates, getUpcomingInterviews
+        } from "./recruitment-service.js";
+
+        let candidatesCache = [];
+        let filteredCandidates = [];
+        let activeCandidateId = null;
+
+        function getFilters() {
+            return {
+                search: document.getElementById('candSearch')?.value || '',
+                stage: document.getElementById('candFilterStage')?.value || 'all',
+                source: document.getElementById('candFilterSource')?.value || 'all'
+            };
+        }
+
+        window.applyCandidateFilters = () => {
+            filteredCandidates = filterCandidates(candidatesCache, getFilters());
+            renderPipeline(filteredCandidates);
+        };
+
+        function renderPipeline(candidates) {
+            const appsEl = document.getElementById('statActiveApps');
+            const intEl = document.getElementById('statInterviews');
+            const offEl = document.getElementById('statOffers');
+            if (appsEl) appsEl.textContent = candidatesCache.filter(c => c.stage === 'Applied' || c.stage === 'Screening').length;
+            if (intEl) intEl.textContent = candidatesCache.filter(c => c.stage === 'Interview').length;
+            if (offEl) offEl.textContent = candidatesCache.filter(c => c.stage === 'Offer').length;
+
+            STAGES.forEach(stage => {
+                const col = document.getElementById(`stage-${stage}`);
+                if (!col) return;
+                const stageCands = candidates.filter(c => c.stage === stage);
+                if (stageCands.length === 0) {
+                    col.innerHTML = '<div style="font-size:0.72rem; color:#94a3b8; text-align:center; padding:8px;">Empty</div>';
+                    return;
+                }
+                col.innerHTML = stageCands.map(c => `
+                    <div style="background:white; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; margin-bottom:6px; cursor:pointer;" onclick="openCandidateDetail('${c.id}')">
+                        <div style="font-weight:700; font-size:0.78rem; color:#0f172a;">${c.name}</div>
+                        <div style="font-size:0.7rem; color:#64748b;">${c.role || 'Role TBD'}</div>
+                        <div style="font-size:0.65rem; color:#94a3b8; margin-top:2px;">${c.source || 'Direct'}</div>
+                        ${stage !== 'Hired' && stage !== 'Rejected' ? `<select onclick="event.stopPropagation()" onchange="moveCandidateStage('${c.id}', this.value)" style="width:100%; margin-top:6px; font-size:0.68rem; border:1px solid #e2e8f0; border-radius:6px; padding:3px 6px; background:#f8fafc;">
+                            ${STAGES.map(s => `<option value="${s}" ${s === stage ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>` : `<div style="font-size:0.68rem; color:#10b981; font-weight:700; margin-top:4px;">${c.onboardingStatus === 'invited' ? 'Onboarding Invited' : stage}</div>`}
+                    </div>
+                `).join('');
+            });
+
+            renderHiringWorkflow(candidatesCache);
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function renderHiringWorkflow(candidates) {
+            const wf = document.getElementById('hiringWorkflowList');
+            if (!wf) return;
+            const pending = candidates.filter(c => ['Screening', 'Interview', 'Offer', 'Hired'].includes(c.stage));
+            if (pending.length === 0) {
+                wf.innerHTML = '<div style="text-align:center; color:#10b981; font-size:0.8rem; padding:0.75rem; background:#ecfdf5; border-radius:8px;">No urgent hiring actions needed.</div>';
+                return;
+            }
+            wf.innerHTML = `<h4 style="font-size:0.8rem; font-weight:700; margin-bottom:8px;">Urgent Hiring Actions</h4>` +
+                pending.map(c => {
+                    let actions = '';
+                    if (c.stage === 'Screening' || c.stage === 'Interview') {
+                        actions = `<button onclick="openInterviewModal('${c.id}')" style="font-size:0.68rem;padding:4px 8px;border:none;border-radius:6px;background:#3b82f6;color:white;cursor:pointer;margin-right:4px;">Schedule</button>
+                            <button onclick="moveCandidateStage('${c.id}','Offer')" style="font-size:0.68rem;padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;background:white;cursor:pointer;margin-right:4px;">To Offer</button>
+                            <button onclick="moveCandidateStage('${c.id}','Rejected')" style="font-size:0.68rem;padding:4px 8px;border:none;border-radius:6px;background:#fee2e2;color:#b91c1c;cursor:pointer;">Reject</button>`;
+                    } else if (c.stage === 'Offer') {
+                        actions = `<button onclick="openOfferModal('${c.id}')" style="font-size:0.68rem;padding:4px 8px;border:none;border-radius:6px;background:#10b981;color:white;cursor:pointer;margin-right:4px;">Record Offer</button>
+                            <button onclick="moveCandidateStage('${c.id}','Hired')" style="font-size:0.68rem;padding:4px 8px;border:1px solid #e2e8f0;border-radius:6px;background:white;cursor:pointer;">Mark Hired</button>`;
+                    } else if (c.stage === 'Hired') {
+                        actions = `<button onclick="triggerOnboarding('${c.id}')" style="font-size:0.68rem;padding:4px 8px;border:none;border-radius:6px;background:#7c3aed;color:white;cursor:pointer;">Start Onboarding</button>`;
+                    }
+                    return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#fefce8; border:1px solid #fde68a; border-radius:10px; font-size:0.8rem; gap:8px; flex-wrap:wrap;">
+                        <div><span style="font-weight:700;">${c.name}</span> <span style="color:#64748b;font-size:0.75rem;">${c.role || ''}</span></div>
+                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                            <span style="background:#fef3c7;color:#92400e;font-size:0.65rem;font-weight:800;padding:3px 8px;border-radius:100px;">${c.stage}</span>
+                            ${actions}
+                        </div>
+                    </div>`;
+                }).join('');
+        }
+
+        async function renderUpcomingInterviews() {
+            const el = document.getElementById('upcomingInterviews');
+            if (!el) return;
+            try {
+                const upcoming = await getUpcomingInterviews(7);
+                if (!upcoming.length) {
+                    el.innerHTML = '<strong>Upcoming Interviews (7d):</strong> None scheduled.';
+                    return;
+                }
+                el.innerHTML = '<strong>Upcoming Interviews (7d):</strong> ' +
+                    upcoming.map(iv => `${iv.candidateName} — ${iv.round} (${iv.scheduledDate.toLocaleString()})`).join(' | ');
+            } catch (e) {
+                el.innerHTML = '';
+            }
+        }
+
+        window.moveCandidateStage = async (candidateId, newStage) => {
+            try {
+                await updateCandidate(candidateId, { stage: newStage });
+            } catch (err) {
+                alert('Stage update failed: ' + err.message);
+            }
+        };
+
+        window.openAddCandidateModal = () => {
+            document.getElementById('addCandidateModal').style.display = 'flex';
+            ['candName','candRole','candEmail','candPhone','candDepartment','candNotes'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            document.getElementById('candStage').value = 'Applied';
+            document.getElementById('candSource').value = 'Direct';
+        };
+
+        window.saveCandidate = async () => {
+            const name = document.getElementById('candName').value.trim();
+            const role = document.getElementById('candRole').value.trim();
+            if (!name || !role) { alert('Name and role are required.'); return; }
+            const saveBtn = document.getElementById('candSaveBtn');
+            saveBtn.textContent = 'Saving...'; saveBtn.disabled = true;
+            try {
+                await addCandidate({
+                    name, role,
+                    email: document.getElementById('candEmail').value.trim(),
+                    phone: document.getElementById('candPhone').value.trim(),
+                    department: document.getElementById('candDepartment')?.value.trim() || '',
+                    notes: document.getElementById('candNotes')?.value.trim() || '',
+                    source: document.getElementById('candSource').value,
+                    stage: document.getElementById('candStage').value
+                });
+                document.getElementById('addCandidateModal').style.display = 'none';
+            } catch (err) {
+                alert('Failed to add candidate: ' + err.message);
+            } finally {
+                saveBtn.textContent = 'Add to Pipeline'; saveBtn.disabled = false;
+            }
+        };
+
+        window.openCandidateDetail = async (id) => {
+            const c = candidatesCache.find(x => x.id === id);
+            if (!c) return;
+            activeCandidateId = id;
+            document.getElementById('detailCandName').textContent = c.name;
+            document.getElementById('detailCandRole').value = c.role || '';
+            document.getElementById('detailCandEmail').value = c.email || '';
+            document.getElementById('detailCandPhone').value = c.phone || '';
+            document.getElementById('detailCandSource').value = c.source || 'Direct';
+            document.getElementById('detailCandDepartment').value = c.department || '';
+            document.getElementById('detailCandNotes').value = c.notes || '';
+            const stageSel = document.getElementById('detailCandStage');
+            stageSel.innerHTML = STAGES.map(s => `<option value="${s}">${s}</option>`).join('');
+            stageSel.value = c.stage || 'Applied';
+            const resumeEl = document.getElementById('detailResumeLink');
+            if (c.resumeUrl) {
+                resumeEl.innerHTML = `<a href="${c.resumeUrl}" target="_blank" style="color:#3b82f6;font-weight:700;">${c.resumeFileName || 'View Resume'}</a>`;
+            } else {
+                resumeEl.textContent = 'No resume uploaded';
+            }
+            const interviews = await getInterviews(id);
+            document.getElementById('detailInterviewList').innerHTML = interviews.length
+                ? interviews.map(iv => `<div style="padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:0.75rem;"><strong>${iv.round}</strong> — ${iv.status} ${iv.scheduledAt ? '• ' + (iv.scheduledAt.toDate ? iv.scheduledAt.toDate().toLocaleString() : iv.scheduledAt) : ''}</div>`).join('')
+                : '<div style="font-size:0.75rem;color:#94a3b8;">No interviews scheduled</div>';
+            const history = (c.stageHistory || []).slice().reverse();
+            document.getElementById('detailStageHistory').innerHTML = history.length
+                ? history.map(h => `<div style="font-size:0.72rem;color:#64748b;">${h.stage} — ${h.at ? new Date(h.at).toLocaleString() : ''}</div>`).join('')
+                : '<div style="font-size:0.72rem;color:#94a3b8;">No history</div>';
+            document.getElementById('candidateDetailModal').style.display = 'flex';
+        };
+
+        window.saveCandidateDetail = async () => {
+            if (!activeCandidateId) return;
+            await updateCandidate(activeCandidateId, {
+                role: document.getElementById('detailCandRole').value.trim(),
+                email: document.getElementById('detailCandEmail').value.trim(),
+                phone: document.getElementById('detailCandPhone').value.trim(),
+                source: document.getElementById('detailCandSource').value,
+                department: document.getElementById('detailCandDepartment').value.trim(),
+                notes: document.getElementById('detailCandNotes').value.trim(),
+                stage: document.getElementById('detailCandStage').value
+            });
+            document.getElementById('candidateDetailModal').style.display = 'none';
+        };
+
+        window.archiveCandidate = async () => {
+            if (!activeCandidateId || !confirm('Archive this candidate?')) return;
+            await deleteCandidate(activeCandidateId);
+            document.getElementById('candidateDetailModal').style.display = 'none';
+            activeCandidateId = null;
+        };
+
+        window.uploadCandidateResume = async (event) => {
+            const file = event.target.files[0];
+            if (!file || !activeCandidateId) return;
+            await uploadResume(activeCandidateId, file);
+            openCandidateDetail(activeCandidateId);
+        };
+
+        window.openInterviewModal = (candidateId) => {
+            if (candidateId) activeCandidateId = candidateId;
+            if (!activeCandidateId) return;
+            document.getElementById('interviewRound').value = 'Phone Screen';
+            document.getElementById('interviewDateTime').value = '';
+            document.getElementById('interviewInterviewer').value = '';
+            document.getElementById('interviewLink').value = '';
+            document.getElementById('interviewModal').style.display = 'flex';
+            loadInterviewers();
+        };
+
+        async function loadInterviewers() {
+            const sel = document.getElementById('interviewInterviewer');
+            if (!sel) return;
+            try {
+                const snap = await getDocs(query(collection(db, 'users'), where('role', 'in', ['manager', 'hr', 'admin'])));
+                sel.innerHTML = '<option value="">Select interviewer</option>' +
+                    snap.docs.map(d => {
+                        const u = d.data();
+                        return `<option value="${u.name || u.email}">${u.name || u.email}</option>`;
+                    }).join('');
+            } catch (e) {
+                sel.innerHTML = '<option value="">HR Team</option>';
+            }
+        }
+
+        window.saveInterview = async () => {
+            if (!activeCandidateId) return;
+            const c = candidatesCache.find(x => x.id === activeCandidateId);
+            const dt = document.getElementById('interviewDateTime').value;
+            await addInterview(activeCandidateId, {
+                round: document.getElementById('interviewRound').value,
+                scheduledAt: dt ? new Date(dt) : null,
+                interviewer: document.getElementById('interviewInterviewer').value,
+                locationOrLink: document.getElementById('interviewLink').value,
+                candidateName: c?.name
+            });
+            if (c && c.stage === 'Screening') await updateCandidate(activeCandidateId, { stage: 'Interview' });
+            document.getElementById('interviewModal').style.display = 'none';
+            renderUpcomingInterviews();
+        };
+
+        window.openOfferModal = (candidateId) => {
+            activeCandidateId = candidateId;
+            const c = candidatesCache.find(x => x.id === candidateId);
+            document.getElementById('offerCtc').value = c?.offer?.ctc || c?.expectedCtc || '';
+            document.getElementById('offerJoiningDate').value = c?.offer?.joiningDate || '';
+            document.getElementById('offerModal').style.display = 'flex';
+        };
+
+        window.saveOffer = async () => {
+            if (!activeCandidateId) return;
+            await updateOffer(activeCandidateId, {
+                ctc: document.getElementById('offerCtc').value,
+                joiningDate: document.getElementById('offerJoiningDate').value,
+                status: 'Draft'
+            });
+            document.getElementById('offerModal').style.display = 'none';
+        };
+
+        window.triggerOnboarding = async (candidateId) => {
+            try {
+                const { inviteLink, empId } = await startOnboarding(candidateId);
+                prompt('Onboarding started. Share this invite link:', inviteLink);
+                console.log('Onboarding employee ID:', empId);
+            } catch (err) {
+                alert('Onboarding failed: ' + err.message);
+            }
+        };
+
+        subscribeCandidates((candidates) => {
+            candidatesCache = candidates;
+            applyCandidateFilters();
+            renderUpcomingInterviews();
+        }, (err) => {
+            const wf = document.getElementById('hiringWorkflowList');
+            if (wf) wf.innerHTML = `<div style="color:#ef4444;font-size:0.8rem;padding:1rem;">Failed to load pipeline: ${err.message}</div>`;
+        });
+    </script>
+
+    <!-- Add Candidate Modal -->
+    <div id="addCandidateModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:24px; padding:2rem; width:90%; max-width:480px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h3 style="font-weight:800; font-size:1.1rem;">Add Candidate to Pipeline</h3>
+                <button onclick="document.getElementById('addCandidateModal').style.display='none'" style="background:#f1f5f9; border:none; border-radius:10px; width:32px; height:32px; cursor:pointer; font-size:1rem; color:#64748b;">&#10005;</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:4px;">Full Name *</label>
+                    <input id="candName" type="text" placeholder="e.g. Arjun Mehta" style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; outline:none; font-family:inherit; box-sizing:border-box;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                </div>
+                <div>
+                    <label style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:4px;">Role / Position *</label>
+                    <input id="candRole" type="text" placeholder="e.g. Lead Cloud Architect" style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; outline:none; font-family:inherit; box-sizing:border-box;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:4px;">Email</label>
+                        <input id="candEmail" type="email" placeholder="email@example.com" style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; outline:none; font-family:inherit; box-sizing:border-box;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                    </div>
+                    <div>
+                        <label style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:4px;">Phone</label>
+                        <input id="candPhone" type="tel" placeholder="+91 XXXXX XXXXX" style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; outline:none; font-family:inherit; box-sizing:border-box;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:4px;">Source</label>
+                        <select id="candSource" style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; background:white;">
+                            <option value="Direct">Direct</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Referral">Referral</option>
+                            <option value="Careers Page">Careers Page</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:4px;">Pipeline Stage</label>
+                        <select id="candStage" style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; background:white;">
+                            <option value="Applied">Applied</option>
+                            <option value="Screening">Screening</option>
+                            <option value="Interview">Interview</option>
+                            <option value="Offer">Offer</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:4px;">Department</label>
+                    <input id="candDepartment" type="text" placeholder="e.g. Engineering" style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:0.72rem; font-weight:700; color:#64748b; text-transform:uppercase; display:block; margin-bottom:4px;">Notes</label>
+                    <textarea id="candNotes" rows="2" placeholder="Internal notes..." style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; font-family:inherit; box-sizing:border-box;"></textarea>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:1.5rem;">
+                <button onclick="document.getElementById('addCandidateModal').style.display='none'" style="flex:1; padding:11px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; font-weight:600; cursor:pointer; background:white; color:#64748b;">Cancel</button>
+                <button id="candSaveBtn" onclick="saveCandidate()" style="flex:2; padding:11px; border:none; border-radius:10px; font-size:0.85rem; font-weight:700; cursor:pointer; background:#3b82f6; color:white;">Add to Pipeline</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Detail Modal -->
+    <div id="candidateDetailModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; overflow-y:auto; padding:1rem;">
+        <div style="background:white; border-radius:24px; padding:2rem; width:90%; max-width:560px; max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 id="detailCandName" style="font-weight:800; font-size:1.1rem;">Candidate</h3>
+                <button onclick="document.getElementById('candidateDetailModal').style.display='none'" style="background:#f1f5f9; border:none; border-radius:10px; width:32px; height:32px; cursor:pointer;">&#10005;</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <input id="detailCandRole" placeholder="Role" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <input id="detailCandEmail" placeholder="Email" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem;">
+                    <input id="detailCandPhone" placeholder="Phone" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem;">
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <select id="detailCandSource" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem;">
+                        <option value="Direct">Direct</option><option value="LinkedIn">LinkedIn</option><option value="Referral">Referral</option><option value="Careers Page">Careers Page</option>
+                    </select>
+                    <select id="detailCandStage" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem;"></select>
+                </div>
+                <input id="detailCandDepartment" placeholder="Department" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem;">
+                <textarea id="detailCandNotes" rows="2" placeholder="Notes" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px; font-size:0.85rem; font-family:inherit;"></textarea>
+                <div style="font-size:0.8rem;"><strong>Resume:</strong> <span id="detailResumeLink">—</span>
+                    <input type="file" id="detailResumeInput" accept=".pdf,.doc,.docx" onchange="uploadCandidateResume(event)" style="margin-top:6px; font-size:0.75rem;">
+                </div>
+                <div><strong style="font-size:0.75rem;">Interviews</strong><div id="detailInterviewList"></div></div>
+                <div><strong style="font-size:0.75rem;">Stage History</strong><div id="detailStageHistory"></div></div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:1.25rem; flex-wrap:wrap;">
+                <button onclick="saveCandidateDetail()" style="flex:1; padding:10px; border:none; border-radius:10px; background:#3b82f6; color:white; font-weight:700; cursor:pointer;">Save</button>
+                <button onclick="openInterviewModal()" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px; background:white; cursor:pointer;">Schedule Interview</button>
+                <button onclick="archiveCandidate()" style="padding:10px; border:none; border-radius:10px; background:#fee2e2; color:#b91c1c; font-weight:700; cursor:pointer;">Archive</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interview Modal -->
+    <div id="interviewModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:20px; padding:1.5rem; width:90%; max-width:420px;">
+            <h3 style="font-weight:800; margin-bottom:1rem;">Schedule Interview</h3>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <select id="interviewRound" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px;">
+                    <option>Phone Screen</option><option>Technical</option><option>HR</option><option>Final</option>
+                </select>
+                <input id="interviewDateTime" type="datetime-local" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px;">
+                <select id="interviewInterviewer" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px;"></select>
+                <input id="interviewLink" placeholder="Meeting link or location" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px;">
+            </div>
+            <div style="display:flex; gap:8px; margin-top:1rem;">
+                <button onclick="document.getElementById('interviewModal').style.display='none'" style="flex:1; padding:10px; border:1px solid #e2e8f0; border-radius:10px; background:white; cursor:pointer;">Cancel</button>
+                <button onclick="saveInterview()" style="flex:1; padding:10px; border:none; border-radius:10px; background:#3b82f6; color:white; font-weight:700; cursor:pointer;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offer Modal -->
+    <div id="offerModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.5); z-index:10000; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:20px; padding:1.5rem; width:90%; max-width:420px;">
+            <h3 style="font-weight:800; margin-bottom:1rem;">Record Offer</h3>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <input id="offerCtc" placeholder="CTC (e.g. 1200000)" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px;">
+                <input id="offerJoiningDate" type="date" style="padding:10px; border:1px solid #e2e8f0; border-radius:10px;">
+            </div>
+            <div style="display:flex; gap:8px; margin-top:1rem;">
+                <button onclick="document.getElementById('offerModal').style.display='none'" style="flex:1; padding:10px; border:1px solid #e2e8f0; border-radius:10px; background:white; cursor:pointer;">Cancel</button>
+                <button onclick="saveOffer()" style="flex:1; padding:10px; border:none; border-radius:10px; background:#10b981; color:white; font-weight:700; cursor:pointer;">Save Offer</button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

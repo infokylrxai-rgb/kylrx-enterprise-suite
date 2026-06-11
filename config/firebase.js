@@ -21,7 +21,8 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
 
 if (serviceAccount) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "kylrxai.firebasestorage.app"
   });
   console.log("Firebase Admin SDK initialized successfully!");
 } else {

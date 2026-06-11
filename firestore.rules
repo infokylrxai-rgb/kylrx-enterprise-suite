@@ -2,9 +2,75 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Universal Access for Dev Sprint ─────────────────────────────
-    match /{document=**} {
-      allow read, write: if true;
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function userExists(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function isStaff() {
+      return signedIn()
+        && userExists(request.auth.uid)
+        && userDoc(request.auth.uid).role in [
+          'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR',
+          'super admin', 'manager', 'Manager'
+        ];
+    }
+
+    function ownsEmployeeId(employeeId) {
+      return signedIn() && (
+        request.auth.uid == employeeId
+        || (
+          userExists(employeeId)
+          && (
+            userDoc(employeeId).linkedAuthUid == request.auth.uid
+            || userDoc(employeeId).email == request.auth.token.email
+          )
+        )
+      );
+    }
+
+    // ── Payroll documents ───────────────────────────────────────────
+    match /payroll_documents/{docId} {
+      allow read: if isStaff() || ownsEmployeeId(resource.data.employeeId);
+      allow create, update: if isStaff();
+      allow delete: if isStaff();
+    }
+
+    // ── Recruitment ATS ─────────────────────────────────────────────
+    match /candidates/{candidateId} {
+      allow read, write: if isStaff();
+
+      match /interviews/{interviewId} {
+        allow read, write: if isStaff();
+      }
+    }
+
+    match /recruitment_events/{eventId} {
+      allow read, write: if isStaff();
+    }
+
+    // ── Users (custom login still queries by email) ─────────────────
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isStaff() || signedIn();
+      allow delete: if isStaff();
+    }
+
+    // ── Legacy collections (open during auth migration) ─────────────
+    match /{collection}/{document} {
+      allow read, write: if collection not in [
+        'payroll_documents',
+        'candidates',
+        'recruitment_events'
+      ];
     }
   }
 }

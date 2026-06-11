@@ -5,8 +5,8 @@ const logger = require('../utils/logger');
 
 // Security Configurations
 const SALT_ROUNDS = 12;
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOCK_TIME = 2 * 60 * 60 * 1000; // 2 hours
+const MAX_LOGIN_ATTEMPTS = 8;
+const LOCK_TIME = 15 * 60 * 1000; // 15 minutes (dev-friendly)
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-enterprise-key-hrflow-2026';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'super-refresh-secret-enterprise-key-hrflow-2026';
 
@@ -91,12 +91,17 @@ exports.login = async (req, res, next) => {
 
         // 1. Check if account is locked
         if (user.lockUntil && typeof user.lockUntil.toDate === 'function') {
-            if (user.lockUntil.toDate() > Date.now()) {
+            const lockExpiry = user.lockUntil.toDate();
+            if (lockExpiry > new Date()) {
+                const remainingMs = lockExpiry - Date.now();
+                const remainingMins = Math.ceil(remainingMs / 60000);
                 return res.status(423).json({ 
                     success: false, 
-                    error: `Account locked due to multiple failed attempts. Try again later.` 
+                    error: `Account locked due to multiple failed attempts. Try again in ${remainingMins} minute${remainingMins !== 1 ? 's' : ''}.`
                 });
             }
+            // Lock expired — reset it automatically
+            await db.collection('users').doc(userId).update({ loginAttempts: 0, lockUntil: null });
         }
 
         // 2. Verify Password (Supports both hashed 'password' and plain 'tempPassword')
@@ -170,6 +175,22 @@ exports.refreshToken = async (req, res, next) => {
 
             res.status(200).json({ success: true, accessToken: newAccessToken });
         });
+    } catch (error) {
+        next(error);
+    }
+};
+// Admin unlock route — resets lockUntil and loginAttempts for a given email
+exports.unlockAccount = async (req, res, next) => {
+    try {
+        const { email } = req.params;
+        if (!email) return res.status(400).json({ success: false, error: 'Email required' });
+
+        const snap = await db.collection('users').where('email', '==', email).limit(1).get();
+        if (snap.empty) return res.status(404).json({ success: false, error: 'User not found' });
+
+        await snap.docs[0].ref.update({ loginAttempts: 0, lockUntil: null });
+        logger.info(`Account manually unlocked: ${email}`);
+        res.status(200).json({ success: true, message: `Account unlocked for ${email}` });
     } catch (error) {
         next(error);
     }

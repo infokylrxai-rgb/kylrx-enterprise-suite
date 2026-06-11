@@ -20,6 +20,7 @@ const adminRoutes = require("./routes/admin");
 
 const messageRoutes = require("./routes/messages");
 const aiRoutes = require("./routes/ai");
+const payrollRoutes = require("./routes/payroll");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,15 +35,18 @@ app.use(cors({
 // Security Middlewares
 // 2. Set Security HTTP Headers with Dev-Friendly CSP
 app.use(helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     contentSecurityPolicy: {
         directives: {
-            "default-src": ["'self'"],
-            "script-src": ["'self'", "'unsafe-inline'", "https://www.gstatic.com", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://apis.google.com"],
-            "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
-            "img-src": ["'self'", "data:", "https:"],
-            "connect-src": ["'self'", "https://www.gstatic.com", "https://identitytoolkit.googleapis.com", "https://firestore.googleapis.com", "http://localhost:3000", "http://127.0.0.1:3000", "http://127.0.0.1:5500", "https://unpkg.com"],
-            "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
-            "object-src": ["'none'"],
+            "default-src":      ["'self'"],
+            "script-src":       ["'self'", "'unsafe-inline'", "https://www.gstatic.com", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com", "https://apis.google.com"],
+            "script-src-attr":  ["'unsafe-inline'"],   // ← allows onclick/onchange attributes (was defaulting to 'none')
+            "style-src":        ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            "img-src":          ["'self'", "data:", "https:"],
+            "connect-src":      ["'self'", "https://www.gstatic.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firestore.googleapis.com", "wss://*.firebaseio.com", "https://*.firebaseapp.com", "http://localhost:3000", "http://127.0.0.1:3000", "http://127.0.0.1:5500", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+            "font-src":         ["'self'", "https://fonts.gstatic.com", "data:"],
+            "frame-src":        ["'self'", "https://kylrxai.firebaseapp.com", "https://apis.google.com"],
+            "object-src":       ["'none'"],
             "upgrade-insecure-requests": [],
         },
     },
@@ -78,6 +82,7 @@ app.get("/", (req, res) => {
 });
 
 // Serve static files from workspace root
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.use(express.static(__dirname));
 
 // Route Wiring
@@ -88,6 +93,7 @@ app.use("/api/admin", adminRoutes);
 
 app.use("/api/messages", messageRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/payroll", payrollRoutes);
 
 // Unhandled Route Fallback
 app.use((req, res, next) => {

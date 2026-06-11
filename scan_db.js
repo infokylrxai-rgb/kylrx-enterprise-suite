@@ -10,7 +10,7 @@ async function scanFirebase() {
             console.log(`\n📂 Collection: ${collName} (${snapshot.size} documents)`);
             snapshot.forEach(doc => {
                 const data = doc.data();
-                console.log(`   - [${doc.id}]: ${data.name || data.email || 'No Name'} (${JSON.stringify(data).substring(0, 50)}...)`);
+                console.log(`   - [${doc.id}]: ${JSON.stringify(data)}`);
             });
         } catch (e) {
             console.log(`\n❌ Could not read ${collName}: ${e.message}`);

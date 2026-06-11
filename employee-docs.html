@@ -177,42 +177,12 @@
         <div class="card">
             <div class="card-title">
                 <span>Personal & Corporate Records</span>
-                <span
-                    style="color: var(--text-muted); font-size: 0.7rem; background: var(--bg); padding: 4px 10px; border-radius: 100px;">6
-                    FILES</span>
+                <span id="docCountBadge"
+                    style="color: var(--text-muted); font-size: 0.7rem; background: var(--bg); padding: 4px 10px; border-radius: 100px;">Loading...</span>
             </div>
 
-            <div class="doc-grid">
-                <div class="doc-item" onclick="downloadDoc('Offer Letter.pdf')">
-                    <div class="doc-icon"><i data-lucide="file-text"></i></div>
-                    <div class="doc-name">Offer Letter.pdf</div>
-                    <div class="doc-meta">Signed • Jan 12, 2026</div>
-                </div>
-                <div class="doc-item" onclick="downloadDoc('NDA Agreement.pdf')">
-                    <div class="doc-icon"><i data-lucide="shield-check"></i></div>
-                    <div class="doc-name">NDA Agreement.pdf</div>
-                    <div class="doc-meta">Signed • Jan 12, 2026</div>
-                </div>
-                <div class="doc-item" onclick="downloadDoc('Payslip_Apr_2026.pdf')">
-                    <div class="doc-icon" style="color: var(--danger);"><i data-lucide="file-minus"></i></div>
-                    <div class="doc-name">Payslip_Apr_2026.pdf</div>
-                    <div class="doc-meta">Generated • May 01, 2026</div>
-                </div>
-                <div class="doc-item" onclick="downloadDoc('Bank Proof.jpg')">
-                    <div class="doc-icon"><i data-lucide="landmark"></i></div>
-                    <div class="doc-name">Bank Proof.jpg</div>
-                    <div class="doc-meta">Verified • May 10, 2026</div>
-                </div>
-                <div class="doc-item" onclick="downloadDoc('PAN Card.pdf')">
-                    <div class="doc-icon" style="color: var(--primary);"><i data-lucide="credit-card"></i></div>
-                    <div class="doc-name">PAN Card.pdf</div>
-                    <div class="doc-meta">Personal ID</div>
-                </div>
-                <div class="doc-item" onclick="downloadDoc('Profile Pic.jpg')">
-                    <div class="doc-icon"><i data-lucide="user"></i></div>
-                    <div class="doc-name">Profile Pic.jpg</div>
-                    <div class="doc-meta">Updated 3m ago</div>
-                </div>
+            <div class="doc-grid" id="docGrid">
+                <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted); padding: 2rem;">Loading your documents...</div>
             </div>
         </div>
     </div>
@@ -227,8 +197,64 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { downloadPayslipFromDoc } from "./payslip-pdf-service.js";
+
         lucide.createIcons();
+
+        let payrollDocs = [];
+
+        async function loadEmployeeDocs(uid) {
+            const grid = document.getElementById('docGrid');
+            const badge = document.getElementById('docCountBadge');
+            try {
+                let snap;
+                try {
+                    snap = await getDocs(query(
+                        collection(db, 'payroll_documents'),
+                        where('employeeId', '==', uid),
+                        orderBy('createdAt', 'desc')
+                    ));
+                } catch {
+                    snap = await getDocs(query(
+                        collection(db, 'payroll_documents'),
+                        where('employeeId', '==', uid)
+                    ));
+                }
+                payrollDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .filter(d => d.docType === 'Payslip' || d.docType === 'Invoice')
+                    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                badge.textContent = `${payrollDocs.length} PAYSLIP${payrollDocs.length === 1 ? '' : 'S'}`;
+
+                if (!payrollDocs.length) {
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:2rem;">No payslips available yet. They will appear here after HR generates them.</div>';
+                    return;
+                }
+
+                grid.innerHTML = payrollDocs.map((doc, i) => {
+                    const date = doc.createdAt?.toDate ? doc.createdAt.toDate().toLocaleDateString() : 'Recent';
+                    return `<div class="doc-item" onclick="downloadDoc(${i})">
+                        <div class="doc-icon"><i data-lucide="file-text"></i></div>
+                        <div class="doc-name">${doc.fileName || doc.docType + ' — ' + (doc.period || 'N/A')}</div>
+                        <div class="doc-meta">${doc.status || 'Generated'} • ${date}</div>
+                    </div>`;
+                }).join('');
+                lucide.createIcons();
+            } catch (err) {
+                console.warn('Payslip load error:', err);
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#ef4444;padding:2rem;">Could not load payslips. Please try again later.</div>';
+                badge.textContent = '0 FILES';
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            const uid = user?.uid || localStorage.getItem('employee_uid');
+            if (uid) loadEmployeeDocs(uid);
+        });
 
         // Premium Modal Logic
         window.showStatusModal = (title, msg, type = 'success') => {
@@ -282,17 +308,17 @@
             }, 2000);
         };
 
-        window.downloadDoc = (name) => {
-            showStatusModal(
-                'Retrieving File',
-                `Initializing secure encrypted download for "${name}". Your file will be available locally in a moment.`,
-                'info'
-            );
-            
-            // Mock download delay
-            setTimeout(() => {
-                console.log(`✅ Download complete: ${name}`);
-            }, 1500);
+        window.downloadDoc = async (index) => {
+            const docData = payrollDocs[index];
+            if (!docData) return;
+            const label = docData.fileName || docData.docType + ' — ' + (docData.period || '');
+            showStatusModal('Retrieving File', `Downloading "${label}"...`, 'info');
+            try {
+                await downloadPayslipFromDoc(docData);
+                closeStatusModal();
+            } catch (err) {
+                showStatusModal('Download Failed', err.message, 'info');
+            }
         };
     </script>
 </body>

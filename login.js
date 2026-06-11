@@ -18,6 +18,22 @@ const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('errorMessage');
 const loginBtn = document.getElementById('loginBtn');
 
+// Pre-fill credentials if redirecting from signup page
+try {
+    const signupEmail = sessionStorage.getItem('signup_email');
+    const signupPassword = sessionStorage.getItem('signup_password');
+    if (signupEmail && emailInput) {
+        emailInput.value = signupEmail;
+        sessionStorage.removeItem('signup_email');
+    }
+    if (signupPassword && passwordInput) {
+        passwordInput.value = signupPassword;
+        sessionStorage.removeItem('signup_password');
+    }
+} catch (e) {
+    console.warn('Session storage pre-fill failed:', e);
+}
+
 loginForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
   
@@ -44,8 +60,13 @@ loginForm?.addEventListener('submit', async (e) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password: password })
         });
-        const data = await response.json();
         
+        if (response.status === 423) {
+            const data = await response.json();
+            throw new Error(data.error || 'Account is locked due to multiple failed attempts. Try again later.');
+        }
+        
+        const data = await response.json();
         if (data.success) {
             console.log('✅ Backend API login successful');
             userData = data.user;
@@ -53,6 +74,9 @@ loginForm?.addEventListener('submit', async (e) => {
             if (data.accessToken) localStorage.setItem('hr_access_token', data.accessToken);
         }
     } catch (apiErr) {
+        if (apiErr.message.includes('locked') || apiErr.message.includes('Locked')) {
+            throw apiErr;
+        }
         console.warn('Backend API unavailable, falling back to client-side Firebase...', apiErr.message);
     }
 

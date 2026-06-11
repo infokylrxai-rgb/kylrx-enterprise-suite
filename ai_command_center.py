@@ -49,12 +49,22 @@ class FirebaseController:
         })
 
     def create_insight(self, dept_id, message):
+        # Legacy write
         insight_ref = self.db.collection('aiInsights').document()
         insight_ref.set({
             "departmentId": dept_id,
             "message": message,
             "timestamp": firestore.SERVER_TIMESTAMP,
             "type": "productivity_drop" if "productivity" in message.lower() else "behavior_alert"
+        })
+        # Unified aligned write
+        ai_ref = self.db.collection('ai_insights').document()
+        ai_ref.set({
+            "title": "AI Productivity Insight" if "productivity" in message.lower() else "AI Behavioral Insight",
+            "message": message,
+            "type": "warning" if "warning" in message.lower() or "drop" in message.lower() else "info",
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            "departmentId": dept_id
         })
 
     def update_user_ai_labels(self, user_id, productivity, behavior, is_anomaly):

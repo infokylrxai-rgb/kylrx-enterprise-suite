@@ -170,21 +170,24 @@ window.markAllAsRead = async () => {
 };
 
 // Initialize listeners
-document.addEventListener('DOMContentLoaded', () => {
-    // Small delay to ensure auth is ready
-    setTimeout(() => {
-        listenNotifications();
-        
-        // Handle dropdown toggle if elements exist
-        const btnNotif = document.getElementById('btnNotif');
-        const notifDropdown = document.getElementById('notifDropdown');
-        if (btnNotif && notifDropdown) {
-            btnNotif.addEventListener('click', (e) => {
-                e.stopPropagation();
-                notifDropdown.classList.toggle('active');
-            });
-            document.addEventListener('click', () => notifDropdown.classList.remove('active'));
-        }
-    }, 1000);
-});
+function initNotifications() {
+    listenNotifications();
+    
+    // Handle dropdown toggle if elements exist
+    const btnNotif = document.getElementById('btnNotif');
+    const notifDropdown = document.getElementById('notifDropdown');
+    if (btnNotif && notifDropdown) {
+        btnNotif.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('active');
+        });
+        document.addEventListener('click', () => notifDropdown.classList.remove('active'));
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initNotifications, 1000));
+} else {
+    setTimeout(initNotifications, 1000);
+}
 

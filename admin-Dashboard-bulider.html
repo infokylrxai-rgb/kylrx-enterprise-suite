@@ -787,7 +787,7 @@
         <!-- Sidebar (Gold Standard Admin Menu) -->
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
-                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
                 <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
             </a>
 
@@ -1786,20 +1786,44 @@
         onSnapshot(collection(db, 'command_centers'), 
             (snapshot) => {
                 if (loadingState) loadingState.style.display = 'none';
-                hubGrid.innerHTML = '';
+                
+                // Initialize the grid with the static HRMS Strategic Hub card
+                hubGrid.innerHTML = `
+                    <div class="hub-card" style="border-color: var(--primary-soft); background: linear-gradient(to bottom right, #ffffff, #f0f7ff);">
+                        <div class="card-header">
+                            <div class="dept-icon-wrapper" style="background: var(--primary); color: white;">
+                                <i data-lucide="bar-chart-3"></i>
+                            </div>
+                            <div class="header-controls">
+                                <span class="status-badge" style="background: #fee2e2; color: #ef4444;">MANAGER</span>
+                            </div>
+                        </div>
+                        <div class="dept-info">
+                            <h3>HRMS Strategic Hub</h3>
+                            <span class="dept-id-tag">ORG-WIDE-CONTROL</span>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">TOTAL DEPARTMENTS</span>
+                                <span class="stat-value" id="global-unit-count">${snapshot.size} Active Unit${snapshot.size === 1 ? '' : 's'}</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">SYSTEM HEALTH</span>
+                                <span class="stat-value" id="global-system-health" style="color: #10b981;">Excellent</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <a href="hrms-dashboard.html" class="action-btn btn-edit" style="text-decoration: none;">
+                                <i data-lucide="shield-check"></i> Control Hub
+                            </a>
+                            <a href="hrms-dashboard.html" class="action-btn btn-view" style="text-decoration: none;">
+                                <i data-lucide="eye"></i> View Insights
+                            </a>
+                        </div>
+                    </div>
+                `;
                 
                 let totalPersonnel = 0;
-
-                if (snapshot.empty) {
-                    hubGrid.innerHTML = `
-                        <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
-                            <i data-lucide="box" style="width: 48px; height: 48px; color: var(--border); margin-bottom: 1rem;"></i>
-                            <h3 style="color: var(--text-muted);">No Active Command Centers</h3>
-                            <p style="font-size: 0.85rem; color: var(--text-muted);">Deploy your first unit to begin monitoring.</p>
-                        </div>
-                    `;
-                    lucide.createIcons();
-                }
 
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
@@ -1830,8 +1854,6 @@
                 if (totalCoverageEl) totalCoverageEl.textContent = totalPersonnel;
 
                 unitCountBadge.textContent = `${snapshot.size} UNITS`;
-                const globalUnitCount = document.getElementById('global-unit-count');
-                if (globalUnitCount) globalUnitCount.textContent = `${snapshot.size} Active Unit${snapshot.size === 1 ? '' : 's'}`;
                 lucide.createIcons();
             },
             (error) => {

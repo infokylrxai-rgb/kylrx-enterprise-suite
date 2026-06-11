@@ -1,5 +1,6 @@
 import { db } from "./firebase-config.js";
 import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { generatePayslipPdfBlob, uploadPayslipPdf, normalizePayslipEmployee, parsePeriod } from "./payslip-pdf-service.js";
 
 /**
  * Payroll Document Generation Service
@@ -31,6 +32,25 @@ export async function generateDocument(employeeId, docType, data) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
         };
+
+        if (docType === 'Payslip' || docType === 'Invoice') {
+            try {
+                const period = data.period || parsePeriod().label;
+                const empSnap = await getDoc(doc(db, 'users', employeeId));
+                const empData = empSnap.exists() ? empSnap.data() : {};
+                const payslipEmployee = normalizePayslipEmployee(
+                    { id: employeeId, name: data.employeeName, ...empData },
+                    data
+                );
+                const blob = await generatePayslipPdfBlob(payslipEmployee, period);
+                const { storageUrl, storagePath, fileName } = await uploadPayslipPdf(employeeId, period, blob);
+                payload.storageUrl = storageUrl;
+                payload.storagePath = storagePath;
+                payload.fileName = fileName;
+            } catch (pdfErr) {
+                console.warn('[PAYROLL] PDF generation failed, saving metadata only:', pdfErr);
+            }
+        }
 
         await setDoc(docRef, payload);
         

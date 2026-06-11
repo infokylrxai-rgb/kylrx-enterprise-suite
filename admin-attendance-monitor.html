@@ -106,8 +106,8 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
-                <div class="logo-icon"><i data-lucide="bar-chart-2"></i></div>
-                <span class="logo-text">Kylrx AI</span>
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
             </a>
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
@@ -395,7 +395,7 @@
     <script type="module">
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         import { getAllAttendanceLogs, getPendingRegularizations, processRegularization, getAttendanceStats, getShifts, addShift, deleteShift } from "./attendance-service.js";
 
         async function loadAttendanceLogs(filters = { status: 'All', type: 'All', period: 'today' }) {
@@ -542,6 +542,15 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
             
+            // Listen for weekly off config in real-time
+            onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
+                const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
+                localStorage.setItem('weekly_off_config', val);
+                if (typeof loadAttendanceSheet === 'function') {
+                    loadAttendanceSheet();
+                }
+            });
+            
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     console.log("User logged in:", user.uid);
@@ -587,7 +596,7 @@
                                 if (logoLink) {
                                     logoLink.setAttribute('href', 'hrms-dashboard.html');
                                     logoLink.innerHTML = `
-                                        <div class="logo-icon"><i data-lucide="layers"></i></div>
+                                        <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
                                         <span class="logo-text">Kylrx AI</span>
                                     `;
                                     if (window.lucide) lucide.createIcons();

@@ -1357,8 +1357,8 @@
                             data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i
                             data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
-                
-                
+
+
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i
                             data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
@@ -1474,14 +1474,12 @@
                 </div>
 
                 <div class="top-nav-right">
-                    <div class="btn-group">
-                        <button class="btn btn-outline" onclick="window.location.href='admin-onboarding-upload.html'"
-                            title="Bulk Onboarding">
+                    <div class="btn-group" style="gap: 0.75rem;">
+                        <button id="btnBulkOnboard" class="action-icon" title="Bulk Onboarding">
                             <i data-lucide="upload-cloud"></i>
                         </button>
-                        <button class="btn btn-primary" onclick="openModal('empModal')">
+                        <button id="btnAddEmp" class="action-icon" style="background: var(--primary); color: white; border-color: var(--primary);" onclick="openModal('empModal')" title="Add Employee">
                             <i data-lucide="user-plus"></i>
-                            <span>Add Employee</span>
                         </button>
                     </div>
 
@@ -1496,12 +1494,8 @@
                         <i data-lucide="bell"></i>
                         <span class="badge red"></span>
                     </button>
-                    <div class="profile-trigger" onclick="toggleConfig()">
-                        <div class="profile-info">
-                            <span class="p-name">System Admin</span>
-                            <span class="p-role">Master Control</span>
-                        </div>
-                        <div class="p-avatar">AD</div>
+                    <div class="profile-trigger" onclick="toggleConfig()" title="System Admin" style="display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <div class="p-avatar" style="width: 42px; height: 42px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700;">AD</div>
                     </div>
                 </div>
             </nav>
@@ -1758,6 +1752,12 @@
                 <button class="btn" style="width: 100%; background: var(--danger); color: white;"
                     id="confirmDeleteBtn">Delete</button>
             </div>
+            <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <button class="btn btn-outline" style="width: 100%; border-color: #f59e0b; color: #d97706; justify-content: center;"
+                    id="gracefulExitBtn" onclick="const empId = document.getElementById('deleteModal').dataset.empId; if(empId) window.location.href='admin-exit-management.html?empId=' + empId;">
+                    <i data-lucide="log-out"></i> Graceful Offboarding
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1779,7 +1779,8 @@
         </div>
 
         <div style="margin-top: auto; padding-top: 2rem;">
-            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="saveDashboardConfig()">
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;"
+                onclick="saveDashboardConfig()">
                 <i data-lucide="save"></i> Save Configuration
             </button>
         </div>
@@ -1788,20 +1789,38 @@
     <script type="module" src="admin-app.js"></script>
     <script type="module" src="notification-app.js"></script>
     <script type="module" src="activity-tracker.js"></script>
-    <script src="status-widget.js"></script>
     <script>
-        if (window.lucide) { lucide.createIcons(); }
+        // ── Lucide Icon Initialisation ────────────────────────────────────────
+        // type="module" scripts are deferred — re-run createIcons() at every
+        // safe point so ALL icons (static + dynamically injected) render.
 
-        // The toggleConfig function is now handled by admin-app.js
-        // But we keep this for initial Lucide rendering if needed
-        document.querySelectorAll('.config-sidebar input[type="checkbox"]').forEach(toggle => {
-            toggle.addEventListener('change', (e) => {
-                // admin-app.js handles the state, this is for immediate UI feedback if needed
-                console.log('Widget toggle changed:', e.target.dataset.widget);
-            });
+        function initLucide() {
+            if (window.lucide && document.querySelector('i[data-lucide]')) {
+                if (window._lucideObserver) window._lucideObserver.disconnect();
+                lucide.createIcons();
+                if (window._lucideObserver) window._lucideObserver.observe(document.body, { childList: true, subtree: true });
+            }
+        }
+
+        // 1. Static icons: fire as soon as the DOM is parsed
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initLucide);
+        } else {
+            initLucide();
+        }
+
+        // 2. After all resources finish loading (catches deferred modules)
+        window.addEventListener('load', initLucide);
+
+        // 3. Custom event dispatched by admin-app.js after init() completes
+        window.addEventListener('lucideReinit', initLucide);
+
+        // 4. MutationObserver — re-init when Firebase injects rows / widgets
+        window._lucideObserver = new MutationObserver(initLucide);
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window._lucideObserver) window._lucideObserver.observe(document.body, { childList: true, subtree: true });
         });
     </script>
 </body>
 
 </html>
-
