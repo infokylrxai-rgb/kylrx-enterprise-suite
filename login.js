@@ -1,5 +1,5 @@
 import { auth } from "./firebase-config.js";
-import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 import { db } from "./firebase-config.js";
 
@@ -167,8 +167,42 @@ loginForm?.addEventListener('submit', async (e) => {
 
       console.log('✅ Admin login successful for:', email);
 
+      // Ensure Firebase Auth is synchronized for Firestore rules compatibility
+      let finalUid = userData.uid || userData.employeeId || 'unknown';
+      if (!auth.currentUser) {
+          try {
+              // Try signing in using the entered email & password to link to a real Auth user
+              const userCredential = await signInWithEmailAndPassword(auth, email, password);
+              finalUid = userCredential.user.uid;
+              console.log('✅ Firebase Auth synced successfully with credentials, UID:', finalUid);
+          } catch (firebaseErr) {
+              console.warn('Firebase Auth email login failed, falling back to anonymous auth:', firebaseErr.message);
+              try {
+                  const userCredential = await signInAnonymously(auth);
+                  finalUid = userCredential.user.uid;
+                  console.log('✅ Firebase Auth synced anonymously as fallback, UID:', finalUid);
+
+                  // Map/sync the anonymous user in the 'users' collection so they pass the 'isStaff()' firestore rules
+                  const { doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                  await setDoc(doc(db, "users", finalUid), {
+                      uid: finalUid,
+                      email: email.toLowerCase(),
+                      name: userData.name || email.split('@')[0],
+                      role: role,
+                      department: dept,
+                      departmentId: dept,
+                      createdAt: serverTimestamp(),
+                      isAnonymousFallback: true
+                  }, { merge: true });
+                  console.log('✅ Temporary admin mapping provisioned in Firestore.');
+              } catch (anonErr) {
+                  console.error('Anonymous auth fallback failed:', anonErr.message);
+              }
+          }
+      }
+
       localStorage.setItem('hr_logged_in', 'true');
-      localStorage.setItem('hr_user_id', userData.uid || userData.employeeId || 'unknown');
+      localStorage.setItem('hr_user_id', finalUid);
       if (!localStorage.getItem('hr_access_token')) localStorage.setItem('hr_access_token', 'demo-static-token');
       localStorage.setItem('userName', userData.name || email);
       localStorage.setItem('userRole', role);

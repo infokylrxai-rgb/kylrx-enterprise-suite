@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, setDoc, updateDoc, serverTimestamp, collection, addDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, setDoc, updateDoc, serverTimestamp, collection, addDoc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 /**
  * Bank Verification Workflow Service
@@ -41,6 +41,10 @@ export async function processBankApproval(employeeId, action, adminId, reason = 
         const verificationRef = doc(db, 'bank_verifications', employeeId);
         const status = action === 'approve' ? 'Approved' : 'Rejected';
 
+        // Retrieve the bank verification data
+        const verificationSnap = await getDoc(verificationRef);
+        const vData = verificationSnap.exists() ? verificationSnap.data() : {};
+
         await updateDoc(verificationRef, {
             status,
             adminFeedback: reason,
@@ -59,10 +63,90 @@ export async function processBankApproval(employeeId, action, adminId, reason = 
 
         if (action === 'approve') {
             await syncToPayroll(employeeId);
-        }
 
-        // Notify Employee
-        await createNotification(employeeId, `Your bank verification was ${status.toLowerCase()}.`, 'normal');
+            // Process associated payroll document (if any exists in 'Generated' state)
+            const payrollQuery = query(
+                collection(db, 'payroll_documents'),
+                where('employeeId', '==', employeeId),
+                where('status', '==', 'Generated')
+            );
+            const payrollSnap = await getDocs(payrollQuery);
+            for (const docObj of payrollSnap.docs) {
+                await updateDoc(doc(db, 'payroll_documents', docObj.id), {
+                    status: 'Paid',
+                    paidVia: 'Admin (Direct)',
+                    paidAt: serverTimestamp(),
+                    bankTransferDetails: {
+                        bankName: vData.bankName || '',
+                        accountNum: vData.accountNum || '',
+                        ifsc: vData.ifsc || ''
+                    }
+                });
+            }
+
+            const amount = vData.amount || 50000;
+            const EMAIL_API_KEY = "6f8d75dc-500b-4eb1-b0db-6e6b4e7235db";
+            const SENDER_EMAIL = "payroll@kylrxai.com";
+
+            // 1. System Notification
+            await createNotification(
+                employeeId,
+                `Your payout of ₹${amount} has been approved and processed.`,
+                'normal',
+                'Salary Disbursed'
+            );
+
+            // 2. Dashboard Chat Message
+            const chatId = [employeeId, 'hr_support'].sort().join('_');
+            await addDoc(collection(db, 'messages'), {
+                chatId,
+                senderId: 'hr_support',
+                senderName: 'HR Support Hub',
+                receiverId: employeeId,
+                chatType: 'hr',
+                text: vData.emailMessage || `Dear Employee,\n\nWe are pleased to inform you that your payout of ₹${amount} has been successfully processed to your bank account.\n\nBest regards,\nPayroll Operations`,
+                timestamp: serverTimestamp(),
+                read: false
+            });
+
+            // 3. Email Notification via Web3Forms
+            try {
+                const userSnap = await getDoc(doc(db, 'users', employeeId));
+                if (userSnap.exists()) {
+                    const uData = userSnap.data();
+                    const employeeEmail = uData.email;
+                    if (employeeEmail) {
+                        const emailBody = `Dear ${uData.name || 'Employee'},\n\nWe are pleased to inform you that your bank transfer payout has been approved and processed successfully.\n\nPayout Details:\n- Amount: ₹${amount}\n- Status: Completed\n\nYour detailed payslip/invoice is now available in your Employee Documents Portal.\n\nBest regards,\nPayroll Operations Team`;
+                        
+                        console.log(`[EMAIL] Sending payment approval email to ${employeeEmail}...`);
+                        await fetch("https://api.web3forms.com/submit", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+                            body: JSON.stringify({
+                                access_key: EMAIL_API_KEY,
+                                name: "Kylrx AI Payroll Gate",
+                                email: SENDER_EMAIL,
+                                subject: "Kylrx AI - Payout Processed",
+                                message: vData.emailMessage || emailBody
+                            })
+                        });
+                    }
+                }
+            } catch (emailErr) {
+                console.error("Error sending salary disbursement email:", emailErr);
+            }
+        } else {
+            // If rejected, notify employee
+            await createNotification(
+                employeeId,
+                `Your bank verification/payout request was rejected. Reason: ${reason}`,
+                'normal',
+                'Payout Rejected'
+            );
+        }
 
         return { success: true };
     } catch (err) {
@@ -87,9 +171,12 @@ async function syncToPayroll(employeeId) {
     }
 }
 
-async function createNotification(target, message, priority) {
+async function createNotification(target, message, priority, title = 'Notification') {
     await addDoc(collection(db, 'notifications'), {
         target,
+        targetUid: target,
+        title,
+        text: message,
         message,
         priority,
         read: false,

@@ -101,7 +101,7 @@
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link active"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
@@ -116,7 +116,6 @@
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
@@ -396,7 +395,7 @@
     <script type="module">
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getActivePolicies, getPolicyAuditLogs, createPolicy, updateSelectiveRouting, createCustomCompliancePlan, listenToAuditLogs, getCompliancePulse } from "./policy-service.js";
+        import { getActivePolicies, getPolicyAuditLogs, createPolicy, updateSelectiveRouting, createCustomCompliancePlan, listenToAuditLogs, getCompliancePulse, updateAutoAssignConfig, getAutoAssignConfig } from "./policy-service.js";
         import { getDepartments } from "./pms-service.js";
 
         window.toggleModal = (show) => {
@@ -482,6 +481,7 @@
                 if (user) {
                     loadActivePolicies();
                     loadDepartments();
+                    loadAutoAssignState();
                     loadCompliancePulse();
                     
                     // Real-time Audit Listener
@@ -508,16 +508,32 @@
             }
 
             // Assignment Engine Interactivity
-            document.getElementById('btnAutoAssign').addEventListener('click', function() {
+            document.getElementById('btnAutoAssign').addEventListener('click', async function() {
                 const isActive = this.classList.toggle('active');
                 this.style.background = isActive ? '#eff6ff' : '#f8fafc';
                 this.style.borderColor = isActive ? 'var(--primary-soft)' : 'transparent';
                 this.querySelector('h4').style.color = isActive ? 'var(--primary)' : 'var(--text-muted)';
                 
-                const toast = document.getElementById('successToast');
-                toast.querySelector('span').textContent = isActive ? 'Auto-Assignment Enabled' : 'Auto-Assignment Disabled';
-                toast.classList.add('active');
-                setTimeout(() => toast.classList.remove('active'), 3000);
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.7';
+                try {
+                    await updateAutoAssignConfig(isActive);
+                    const toast = document.getElementById('successToast');
+                    toast.querySelector('span').textContent = isActive ? 'Auto-Assignment Enabled' : 'Auto-Assignment Disabled';
+                    toast.classList.add('active');
+                    setTimeout(() => toast.classList.remove('active'), 3000);
+                } catch (err) {
+                    console.error("Error updating auto assign:", err);
+                    alert("Failed to update setting");
+                    // Revert UI on failure
+                    const reverted = this.classList.toggle('active');
+                    this.style.background = reverted ? '#eff6ff' : '#f8fafc';
+                    this.style.borderColor = reverted ? 'var(--primary-soft)' : 'transparent';
+                    this.querySelector('h4').style.color = reverted ? 'var(--primary)' : 'var(--text-muted)';
+                } finally {
+                    this.style.pointerEvents = 'auto';
+                    this.style.opacity = '1';
+                }
             });
 
             document.getElementById('btnSelective').addEventListener('click', () => {
@@ -783,6 +799,26 @@
             } catch (err) {
                 console.error("Error loading departments:", err);
                 list.innerHTML = '<p style="font-size: 0.7rem; color: #ef4444;">Failed to load units.</p>';
+            }
+        }
+
+        async function loadAutoAssignState() {
+            try {
+                const isEnabled = await getAutoAssignConfig();
+                const btn = document.getElementById('btnAutoAssign');
+                if (isEnabled) {
+                    btn.classList.add('active');
+                    btn.style.background = '#eff6ff';
+                    btn.style.borderColor = 'var(--primary-soft)';
+                    btn.querySelector('h4').style.color = 'var(--primary)';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = '#f8fafc';
+                    btn.style.borderColor = 'transparent';
+                    btn.querySelector('h4').style.color = 'var(--text-muted)';
+                }
+            } catch (err) {
+                console.error("Failed to load Auto-Assign state", err);
             }
         }
     </script>

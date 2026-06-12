@@ -51,6 +51,30 @@ export async function createPolicy(policyData) {
     return policyRef.id;
 }
 
+export async function updateAutoAssignConfig(isEnabled) {
+    console.log('[POLICY] Updating Auto-Assign config...', isEnabled);
+    const configRef = doc(db, 'system_config', 'policy_auto_assign');
+    await setDoc(configRef, {
+        enabled: isEnabled,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+}
+
+export async function getAutoAssignConfig() {
+    console.log('[POLICY] Fetching Auto-Assign config...');
+    try {
+        const configRef = doc(db, 'system_config', 'policy_auto_assign');
+        const snap = await getDoc(configRef);
+        if (snap.exists()) {
+            return snap.data().enabled;
+        }
+        return true; // default
+    } catch (err) {
+        console.error('[POLICY] Error fetching Auto-Assign config:', err);
+        return true;
+    }
+}
+
 export async function updateSelectiveRouting(selectedDepts) {
     console.log('[POLICY] Updating selective routing...', selectedDepts);
     const configRef = doc(db, 'system_config', 'policy_routing');

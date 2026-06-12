@@ -285,92 +285,39 @@
 
                 // --- Strategy 3: Demo Bypass & Auto-Provision to Firebase ---
                 if (!userData) {
-                    // Check if they are trying to use an employee or manager demo credential in the HRMS portal
-                    const isEmployeeEmail = 
-                        lowercaseEmail === 'john@gmail.com' ||
-                        lowercaseEmail.includes('emp') ||
-                        lowercaseEmail.includes('employee');
-                    
-                    const isManagerEmail = 
-                        lowercaseEmail === 'nandan.b@gmail.com' ||
-                        lowercaseEmail === 'cyber@gmail.com' ||
-                        lowercaseEmail.includes('mgr') ||
-                        lowercaseEmail.includes('manager');
+                    userData = {
+                        name: email.split('@')[0].toUpperCase(),
+                        role: 'hrms',
+                        department: 'Core HR'
+                    };
+                    userId = 'demo_admin_' + Date.now();
+                    console.log("✅ Demo Bypass triggered for:", lowercaseEmail);
 
-                    if (isEmployeeEmail) {
-                        showStatusModal('Access Denied', 'These credentials belong to an Employee. Please log in via the Employee Portal.', 'error');
-                        loginBtn.textContent = originalBtnText;
-                        loginBtn.disabled = false;
-                        return;
-                    }
-
-                    if (isManagerEmail) {
-                        showStatusModal('Access Denied', 'These credentials belong to a Manager. Please log in via the Manager Portal.', 'error');
-                        loginBtn.textContent = originalBtnText;
-                        loginBtn.disabled = false;
-                        return;
-                    }
-
-                    const isBypassEmail = 
-                        lowercaseEmail === 'username@gmail.com' ||
-                        lowercaseEmail === 'demo@gmail.com' || 
-                        lowercaseEmail === 'admin@kylrx.ai' ||
-                        lowercaseEmail === 'dev@gmail.com';
-
-                    if (isBypassEmail) {
-                        userData = {
-                            name: email.split('@')[0].toUpperCase(),
-                            role: 'admin',
-                            department: 'Core HR'
-                        };
-                        userId = 'demo_admin_' + Date.now();
-                        console.log("✅ Demo Bypass triggered for:", lowercaseEmail);
-
-                        // Auto-provision this user in Firestore so it becomes a "proper" record for future lookups
-                        try {
-                            await setDoc(doc(db, 'users', userId), {
-                                ...userData,
-                                email: lowercaseEmail,
-                                password: password,
-                                createdAt: serverTimestamp()
-                            }, { merge: true });
-                            console.log("✅ Provisioned new HRMS admin record in Firebase backend");
-                        } catch (provisionErr) {
-                            console.warn("Auto-provisioning failed:", provisionErr);
-                        }
+                    // Auto-provision this user in Firestore so it becomes a "proper" record for future lookups
+                    try {
+                        await setDoc(doc(db, 'users', userId), {
+                            ...userData,
+                            email: lowercaseEmail,
+                            password: password,
+                            createdAt: serverTimestamp()
+                        }, { merge: true });
+                        console.log("✅ Provisioned new HRMS admin record in Firebase backend");
+                    } catch (provisionErr) {
+                        console.warn("Auto-provisioning failed:", provisionErr);
                     }
                 }
 
                 if (userData) {
-                    const role = (userData.role || '').toLowerCase();
-                    
                     // Save session for all valid users
                     localStorage.setItem('hr_logged_in', 'true');
                     localStorage.setItem('hr_user_id', userId);
                     localStorage.setItem('userName', userData.name || email.split('@')[0]);
-                    localStorage.setItem('userRole', role);
-                    localStorage.setItem('userDept', (userData.department || userData.departmentId || 'General').toLowerCase());
+                    localStorage.setItem('userRole', 'hrms');
+                    localStorage.setItem('userDept', 'core hr');
                     localStorage.setItem('employee_uid', userId);
 
-                    // HRMS portal: employees go to employee dashboard, everyone else goes to hrms-dashboard.html
-                    if (role === 'employee') {
-                        showStatusModal('Redirecting to Employee Portal', 
-                            `Welcome ${userData.name || email.split('@')[0]}! Your account is an Employee account. Taking you to the Employee Dashboard.`, 
-                            'info', 'employee-dashboard.html');
-                        loginBtn.textContent = originalBtnText;
-                        loginBtn.disabled = false;
-                        return;
-                    }
-
-                    // Admin, Manager, HRMS, Super Admin → all go to hrms-dashboard.html
-                    if (role === 'admin' || role === 'super admin' || role === 'hrms' || role === 'manager') {
-                        console.log(`✅ HRMS login success for role: ${role} → hrms-dashboard.html`);
-                        window.location.href = 'hrms-dashboard.html';
-                    } else {
-                        showStatusModal('Access Denied', 'This portal is reserved for authorized personnel only. Please contact your IT administrator.', 'error');
-                        loginBtn.textContent = originalBtnText;
-                        loginBtn.disabled = false;
-                    }
+                    console.log(`✅ HRMS login success → hrms-dashboard.html`);
+                    window.location.href = 'hrms-dashboard.html';
                 } else {
                     throw new Error('Invalid credentials. Please verify your Corporate ID and Secure Token.');
                 }

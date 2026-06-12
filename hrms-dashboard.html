@@ -622,12 +622,7 @@
                         <span>Compliance Tracker</span>
                     </a>
                 </div>
-                <div class="nav-item">
-                    <a href="admin-Dashboard-bulider.html" class="nav-link">
-                        <i data-lucide="layout"></i>
-                        <span>Enterprise Builder</span>
-                    </a>
-                </div>
+
 
                 <div class="nav-label">Operations</div>
                 <div class="nav-item">
@@ -799,12 +794,17 @@
                     <i data-lucide="upload-cloud" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem;"></i>
                     <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">Upload Employee Data</h3>
                     <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Drag and drop or click to select Excel (.xlsx, .csv) file</p>
-                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">official email id</span>
-                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">department</span>
-                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">sub-department</span>
-                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">designation</span>
-                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">reporting manager (Code)</span>
+                    <div style="display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 1rem;">
+                        <span style="font-size: 0.7rem; font-weight: 800; color: #ef4444; text-transform: uppercase; background: #fee2e2; padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;">STRICT ORDER:</span>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border); font-weight: 700;">1. OFFICIAL EMAIL ID</span>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border); font-weight: 700;">2. DEPARTMENT</span>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border); font-weight: 700;">3. SUB-DEPARTMENT</span>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border); font-weight: 700;">4. DESIGNATION</span>
+                        <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
+                        <span class="ai-badge" style="background: white; color: var(--text-muted); border: 1px solid var(--border); font-weight: 700;">5. REPORTING MANAGER (CODE)</span>
                     </div>
                     <input type="file" id="bulkUploadInput" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" style="display: none;" onchange="handleBulkUpload(event)">
                 </div>
@@ -830,12 +830,12 @@
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Suspended (3h Expiry)</div>
-                                <div style="font-size: 1.5rem; font-weight: 800; color: #d97706; margin-top: 4px;">24</div>
+                                <div id="suspendedCount" style="font-size: 1.5rem; font-weight: 800; color: #d97706; margin-top: 4px;">0</div>
                             </div>
                             <div style="background: #fffbeb; color: #d97706; padding: 8px; border-radius: 10px;"><i data-lucide="clock"></i></div>
                         </div>
                         <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Profiles suspended due to 3-hour inactivity on personal email links.</div>
-                        <button onclick="alert('Viewing 24 Suspended Profiles')" style="width: 100%; background: #fef3c7; color: #92400e; border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Review & Reactive</button>
+                        <button id="btnReviewSuspended" style="width: 100%; background: #fef3c7; color: #92400e; border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Review & Reactive</button>
                     </div>
 
                     <!-- Trash Queue -->
@@ -843,12 +843,12 @@
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">In Trash (3d Post-Suspension)</div>
-                                <div style="font-size: 1.5rem; font-weight: 800; color: #ef4444; margin-top: 4px;">12</div>
+                                <div id="trashCount" style="font-size: 1.5rem; font-weight: 800; color: #ef4444; margin-top: 4px;">0</div>
                             </div>
                             <div style="background: #fdf2f2; color: #ef4444; padding: 8px; border-radius: 10px;"><i data-lucide="trash-2"></i></div>
                         </div>
                         <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Profiles moved to trash after 3 days of suspension. Pending permanent deletion.</div>
-                        <button onclick="alert('Viewing 12 Profiles in Trash')" style="width: 100%; background: #fdf2f2; color: #b91c1c; border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Retrieve From Trash</button>
+                        <button id="btnRetrieveTrash" style="width: 100%; background: #fdf2f2; color: #b91c1c; border: none; padding: 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Retrieve From Trash</button>
                     </div>
 
                     <!-- Permanent Deletion Config -->
@@ -1217,48 +1217,10 @@
                 </div>
                 
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Review and approve banking details submitted by employees (Task triggered 3 days post-onboarding). Once approved, data is synced directly to their payroll profile.</p>
-                
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <!-- Approval Request 1 -->
-                    <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;" id="bankApproval-1">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 48px; height: 48px; background: #eff6ff; color: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">JS</div>
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                    <h4 style="font-size: 1rem; font-weight: 700;">John Smith</h4>
-                                    <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted);">EMP-5089</span>
-                                </div>
-                                <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted);">
-                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="building" size="14"></i> Chase Bank</span>
-                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="credit-card" size="14"></i> Acct: **** 4092</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button onclick="approveBankDetails(1)" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="check" size="14"></i> Approve & Sync</button>
-                            <button onclick="document.getElementById('bankApproval-1').style.display='none'" style="background: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="x" size="14"></i> Reject</button>
-                        </div>
-                    </div>
-
-                    <!-- Approval Request 2 -->
-                    <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;" id="bankApproval-2">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 48px; height: 48px; background: #fdf2f2; color: #ef4444; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">MT</div>
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                    <h4 style="font-size: 1rem; font-weight: 700;">Maria Torres</h4>
-                                    <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted);">INT-204</span>
-                                </div>
-                                <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted);">
-                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="building" size="14"></i> Bank of America</span>
-                                    <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="credit-card" size="14"></i> Acct: **** 8812</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button onclick="approveBankDetails(2)" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="check" size="14"></i> Approve & Sync</button>
-                            <button onclick="document.getElementById('bankApproval-2').style.display='none'" style="background: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="x" size="14"></i> Reject</button>
-                        </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem;" id="bankApprovalsContainer">
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+                        <i data-lucide="loader" class="spin" style="animation: spin 2s linear infinite; margin-bottom: 0.5rem;" size="18"></i>
+                        <div>Loading banking approvals from Firebase...</div>
                     </div>
                 </div>
             </div>
@@ -1801,14 +1763,14 @@
         };
 
         window.downloadTemplate = () => {
-            const headers = "official email id,department,sub-department,designation,reporting manager\n";
-            const sampleRow = "new.hire@Kylrx AI.com,Engineering,Frontend,Senior Developer,EMP-5098\n";
+            const headers = "official email id,department,sub-department,designation,reporting manager (code)\n";
+            const sampleRow = "new.hire@kylrx.ai,Engineering,Frontend,Senior Developer,EMP-5098\n";
             const csvContent = "data:text/csv;charset=utf-8," + headers + sampleRow;
             
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Kylrx AI_Bulk_Onboarding_Template.csv");
+            link.setAttribute("download", "Kylrx_AI_Bulk_Onboarding_Template.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1829,10 +1791,30 @@
                 try {
                     const text = e.target.result;
                     const lines = text.split('\n');
-                    const headers = lines[0].toLowerCase();
+                    if (lines.length === 0 || !lines[0].trim()) {
+                        throw new Error("The uploaded file is empty.");
+                    }
                     
-                    if (!headers.includes('official email id') || !headers.includes('department')) {
-                        throw new Error("Invalid format. Please use the downloaded template.");
+                    const columns = lines[0].toLowerCase().split(',').map(c => c.trim().replace(/"/g, ''));
+                    const expected = [
+                        'official email id',
+                        'department',
+                        'sub-department',
+                        'designation',
+                        'reporting manager (code)'
+                    ];
+                    
+                    // Strict ordering and presence check
+                    const matchesOrder = columns.length >= expected.length && expected.every((val, index) => {
+                        const col = columns[index] || '';
+                        if (val === 'reporting manager (code)') {
+                            return col === 'reporting manager (code)' || col === 'reporting manager';
+                        }
+                        return col === val;
+                    });
+                    
+                    if (!matchesOrder) {
+                        throw new Error("Invalid template structure. Columns must be exactly in this order: official email id, department, sub-department, designation, reporting manager (code)");
                     }
                     
                     statusEl.innerHTML = '<i data-lucide="loader" class="spin" style="animation: spin 2s linear infinite;" size="14"></i> Syncing with Secure Cloud...';
@@ -2177,6 +2159,33 @@
 
         // Listeners for Generated Employee Profiles (Firebase Connected)
         onSnapshot(collection(db, 'users'), (snapshot) => {
+            let suspendedCount = 0;
+            let trashCount = 0;
+
+            snapshot.forEach(docSnap => {
+                const emp = docSnap.data();
+                if (emp.status === 'Suspended') suspendedCount++;
+                if (emp.status === 'Trash') trashCount++;
+            });
+
+            const suspendedCountEl = document.getElementById('suspendedCount');
+            const trashCountEl = document.getElementById('trashCount');
+            if (suspendedCountEl) suspendedCountEl.textContent = suspendedCount;
+            if (trashCountEl) trashCountEl.textContent = trashCount;
+
+            const btnReviewSuspended = document.getElementById('btnReviewSuspended');
+            if (btnReviewSuspended) {
+                btnReviewSuspended.onclick = () => {
+                    alert(`Viewing ${suspendedCount} Suspended Profiles`);
+                };
+            }
+            const btnRetrieveTrash = document.getElementById('btnRetrieveTrash');
+            if (btnRetrieveTrash) {
+                btnRetrieveTrash.onclick = () => {
+                    alert(`Viewing ${trashCount} Profiles in Trash`);
+                };
+            }
+
             const tableBody = document.getElementById('generatedProfilesTable');
             if (!tableBody) return;
             
@@ -2278,6 +2287,104 @@
             
             if (window.lucide) lucide.createIcons();
         });
+
+        // Listeners for Bank Approvals (Firebase Connected)
+        onSnapshot(collection(db, 'bank_approvals'), (snapshot) => {
+            const container = document.getElementById('bankApprovalsContainer');
+            if (!container) return;
+
+            if (snapshot.empty) {
+                // Pre-populate with defaults if empty
+                const defaults = [
+                    {
+                        name: 'John Smith',
+                        employeeId: 'EMP-5089',
+                        bankName: 'Chase Bank',
+                        accountNumber: '**** 4092',
+                        initials: 'JS',
+                        status: 'Pending'
+                    },
+                    {
+                        name: 'Maria Torres',
+                        employeeId: 'INT-204',
+                        bankName: 'Bank of America',
+                        accountNumber: '**** 8812',
+                        initials: 'MT',
+                        status: 'Pending'
+                    }
+                ];
+                defaults.forEach(item => addDoc(collection(db, 'bank_approvals'), item));
+                return;
+            }
+
+            container.innerHTML = '';
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const id = docSnap.id;
+
+                const approvalDiv = document.createElement('div');
+                approvalDiv.style = "background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;";
+                approvalDiv.id = `bankApproval-${id}`;
+
+                const isMT = data.initials === 'MT';
+                const avatarBg = isMT ? '#fdf2f2' : '#eff6ff';
+                const avatarText = isMT ? '#ef4444' : '#3b82f6';
+
+                approvalDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 48px; height: 48px; background: ${avatarBg}; color: ${avatarText}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem;">${data.initials}</div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <h4 style="font-size: 1rem; font-weight: 700;">${data.name}</h4>
+                                <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted);">${data.employeeId}</span>
+                            </div>
+                            <div style="display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+                                <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="building" size="14"></i> ${data.bankName}</span>
+                                <span style="display: flex; align-items: center; gap: 4px;"><i data-lucide="credit-card" size="14"></i> Acct: ${data.accountNumber}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;" id="bankApprovalActions-${id}">
+                        <button onclick="approveBankDetailsFirebase('${id}')" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="check" size="14"></i> Approve & Sync</button>
+                        <button onclick="rejectBankDetailsFirebase('${id}')" style="background: white; color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i data-lucide="x" size="14"></i> Reject</button>
+                    </div>
+                `;
+                container.appendChild(approvalDiv);
+            });
+            if (window.lucide) lucide.createIcons();
+        });
+
+        window.approveBankDetailsFirebase = async (id) => {
+            const actionsDiv = document.getElementById(`bankApprovalActions-${id}`);
+            if (actionsDiv) {
+                actionsDiv.innerHTML = `<span style="color: #10b981; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" size="14"></i> Synced to Payroll</span>`;
+                if (window.lucide) lucide.createIcons();
+            }
+
+            setTimeout(async () => {
+                try {
+                    await deleteDoc(doc(db, 'bank_approvals', id));
+                } catch (e) {
+                    console.error("Failed to delete bank approval:", e);
+                }
+            }, 2000);
+        };
+
+        window.rejectBankDetailsFirebase = async (id) => {
+            const actionsDiv = document.getElementById(`bankApprovalActions-${id}`);
+            if (actionsDiv) {
+                actionsDiv.innerHTML = `<span style="color: #ef4444; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i data-lucide="x-circle" size="14"></i> Rejected</span>`;
+                if (window.lucide) lucide.createIcons();
+            }
+
+            setTimeout(async () => {
+                try {
+                    await deleteDoc(doc(db, 'bank_approvals', id));
+                } catch (e) {
+                    console.error("Failed to delete bank approval:", e);
+                }
+            }, 2000);
+        };
     </script>
     <!-- Modals Ported from Admin -->
     <div class="modal-overlay" id="empModal">

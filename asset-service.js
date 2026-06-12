@@ -140,9 +140,12 @@ async function logAssetTransaction(assetId, employeeId, action, actorId) {
     });
 }
 
-async function createNotification(target, message, priority) {
+async function createNotification(target, message, priority, title = 'Asset Hub') {
     await addDoc(collection(db, 'notifications'), {
         target,
+        targetUid: target,
+        title,
+        text: message,
         message,
         priority,
         read: false,

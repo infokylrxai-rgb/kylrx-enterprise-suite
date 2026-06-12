@@ -75,7 +75,7 @@
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link active"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
@@ -90,7 +90,6 @@
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
@@ -391,11 +390,41 @@
             else modal.classList.remove('active');
         };
 
-        window.togglePrintModal = (show) => {
+        window.togglePrintModal = async (show) => {
             const modal = document.getElementById('printModal');
-            if (show) modal.classList.add('active');
-            else modal.classList.remove('active');
+            if (show) {
+                modal.classList.add('active');
+                await renderPrintLabels();
+            } else {
+                modal.classList.remove('active');
+            }
         };
+
+        async function renderPrintLabels() {
+            const grid = document.getElementById('labelPreviewGrid');
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;"><i data-lucide="loader" class="animate-spin" size="24" style="color: var(--primary);"></i><p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">Loading labels...</p></div>';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const assets = await getAssets();
+                if (assets.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">No assets found in the inventory to label.</div>';
+                    return;
+                }
+
+                grid.innerHTML = assets.slice(0, 8).map(a => `
+                    <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; background: #f8fafc;">
+                        <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                        <p style="font-weight: 800; font-size: 0.9rem;">${a.tag || 'NO-TAG'}</p>
+                        <p style="font-size: 0.65rem; color: var(--text-muted);">${a.name || a.type}</p>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error("Error rendering print labels:", err);
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #ef4444; font-size: 0.85rem;">Failed to load asset labels from database.</div>';
+            }
+        }
 
         document.getElementById('btnGenTag')?.addEventListener('click', () => {
             const type = document.getElementById('assetType').value || 'Asset';

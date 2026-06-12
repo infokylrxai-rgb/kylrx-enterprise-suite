@@ -110,7 +110,7 @@
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
@@ -125,7 +125,6 @@
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
@@ -315,7 +314,6 @@
         import { generateMonthlyBatch, disburseSalaries } from "./payroll-doc-service.js";
         import { downloadPayslipFromDoc } from "./payslip-pdf-service.js";
         import { exportBankTransferCSV, enrichEmployeeBankDetails } from "./bank-export-service.js";
-        import { doc as firestoreDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         let cachedPayrollDocs = [];
         let docTypeFilter = null;
@@ -383,49 +381,6 @@
                         showToast("No pending 'Generated' payrolls found.", true);
                     } else {
                         showToast(`Successfully authorized payments to ${result.count} personnel via ${authority}.`);
-                        
-                        // Trigger live email notifications for all active personnel
-                        try {
-                            const usersSnap = await getDocs(collection(db, 'users'));
-                            for (const uDoc of usersSnap.docs) {
-                                const userData = uDoc.data();
-                                const employeeEmail = userData.email;
-                                
-                                if (employeeEmail && (userData.role || '').toLowerCase() !== 'admin') {
-                                    const gross = userData.salary || 50000;
-                                    const emailBody = `
-                                        <h3>Salary Disbursed</h3>
-                                        <p>Dear ${userData.name || 'Employee'},</p>
-                                        <p>We are pleased to inform you that your salary for the current cycle has been disbursed successfully via <strong>${authority}</strong>.</p>
-                                        <ul>
-                                            <li><strong>Gross Amount:</strong> ₹${gross}</li>
-                                            <li><strong>Gateway Status:</strong> Paid & Verified</li>
-                                        </ul>
-                                        <p>Your secure payslip has been archived and uploaded to your Employee Vault.</p>
-                                        <p>Best regards,<br>Kylrx AI Admin Team</p>
-                                    `;
-                                    
-                                    console.log(`[EMAIL] Dispatching 1-Click payment notification to ${employeeEmail} via Web3Forms...`);
-                                    await fetch("https://api.web3forms.com/submit", {
-                                        method: "POST",
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                            "Accept": "application/json"
-                                        },
-                                        body: JSON.stringify({
-                                            access_key: EMAIL_API_KEY,
-                                            name: "Kylrx AI Payroll Gate",
-                                            email: SENDER_EMAIL,
-                                            subject: 'Kylrx AI - Salary Disbursed (1-Click Gateway)',
-                                            message: `Dear ${userData.name || 'Employee'},\n\nWe are pleased to inform you that your salary for the current cycle has been disbursed successfully via ${authority}.\n\nGross Amount: ₹${gross}\nGateway Status: Paid & Verified\n\nYour secure payslip has been archived and uploaded to your Employee Vault.\n\nBest regards,\nKylrx AI Admin Team`
-                                        })
-                                    });
-                                }
-                            }
-                        } catch (mailErr) {
-                            console.warn('[EMAIL] 1-Click distribution failed:', mailErr);
-                        }
-
                         loadRecentGenerations();
                     }
                 } catch (err) {
@@ -543,7 +498,7 @@
             try {
                 const employees = [];
                 for (const d of cachedPayrollDocs.filter(x => x.status === 'Generated' || x.status === 'Paid')) {
-                    const profileSnap = await getDoc(firestoreDoc(db, 'payroll_profiles', d.employeeId)).catch(() => null);
+                    const profileSnap = await getDoc(doc(db, 'payroll_profiles', d.employeeId)).catch(() => null);
                     const profile = profileSnap?.exists() ? profileSnap.data() : {};
                     const net = d.netPay ?? (d.grossSalary - (d.deductions || 0));
                     employees.push(enrichEmployeeBankDetails({

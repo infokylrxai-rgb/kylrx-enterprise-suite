@@ -22,13 +22,32 @@ export async function getLeaveStats() {
             return data.createdAt?.toDate() < fortyEightHoursAgo;
         }).length;
 
+        // Calculate WFH count based on approved WFH requests for today
+        const wfhCount = leaveSnap.docs.filter(d => {
+            const data = d.data();
+            return (data.type === 'WFH' || data.type === 'Work From Home') && today >= data.startDate && today <= data.endDate;
+        }).length;
+
+        // Fetch actual Monthly Accrual from policies
+        let monthlyAccrual = "1.75";
+        const policySnap = await getDocs(collection(db, 'leave_policies'));
+        if (!policySnap.empty) {
+            const earnedPolicy = policySnap.docs.find(d => d.data().type === 'Earned Leave');
+            if (earnedPolicy) {
+                const details = earnedPolicy.data().details || earnedPolicy.data().accrual || '';
+                // Try to extract a decimal number like "1.75" from the details text if it exists
+                const match = details.match(/(\d+\.\d+)/);
+                if (match) monthlyAccrual = match[0];
+            }
+        }
+
         return {
             onLeaveToday,
             onLeaveTrend: onLeaveToday > 0 ? `+${onLeaveToday} from yesterday` : 'Steady',
             pendingApprovals: pendingSnap.size,
             overdueSLA: overdueSLA > 0 ? `${overdueSLA} Overdue SLA` : 'Within SLA',
-            wfhCount: Math.ceil(usersSnap.size * 0.15), // Simulated WFH metric
-            monthlyAccrual: 1.75
+            wfhCount: wfhCount > 0 ? wfhCount : 0,
+            monthlyAccrual: monthlyAccrual
         };
     } catch (err) {
         console.error('[LEAVE] Error fetching stats:', err);

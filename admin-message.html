@@ -213,7 +213,7 @@
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
@@ -228,7 +228,6 @@
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
@@ -493,6 +492,8 @@
                     localStorage.setItem('hr_user_id', user.uid);
                     localStorage.setItem('adminUid', user.uid);
                 }
+                // Always boot the directory — auth state is now resolved
+                setupRealtimeDirectory();
             });
         });
 
@@ -501,75 +502,87 @@
             let deptMap = {};
 
             // Real-time Departments (Command Centers)
-            onSnapshot(collection(db, 'command_centers'), (snap) => {
-                const deptList = document.getElementById('deptListContainer');
-                if (deptList) deptList.innerHTML = '';
-                
-                snap.docs.forEach(doc => {
-                    const d = doc.data();
-                    let name = d.departmentName || d.name || 'Unknown Unit';
-                    if (d.targetType) {
-                        const targetSuffix = d.targetType === 'Manager Suite' ? 'Manager' : 'Employee';
-                        if (!name.toLowerCase().includes('manager') && !name.toLowerCase().includes('employee')) {
-                            name = `${name} ${targetSuffix}`;
-                        }
-                    }
-                    deptMap[doc.id] = name;
+            onSnapshot(
+                collection(db, 'command_centers'),
+                (snap) => {
+                    const deptList = document.getElementById('deptListContainer');
+                    if (deptList) deptList.innerHTML = '';
                     
-                    if (deptList) {
-                        const item = document.createElement('div');
-                        item.className = 'dept-item';
-                        item.textContent = name;
-                        item.onclick = () => filterByDept(name);
-                        deptList.appendChild(item);
-                    }
-                });
-                renderContacts();
-            });
+                    snap.docs.forEach(doc => {
+                        const d = doc.data();
+                        let name = d.departmentName || d.name || 'Unknown Unit';
+                        if (d.targetType) {
+                            const targetSuffix = d.targetType === 'Manager Suite' ? 'Manager' : 'Employee';
+                            if (!name.toLowerCase().includes('manager') && !name.toLowerCase().includes('employee')) {
+                                name = `${name} ${targetSuffix}`;
+                            }
+                        }
+                        deptMap[doc.id] = name;
+                        
+                        if (deptList) {
+                            const item = document.createElement('div');
+                            item.className = 'dept-item';
+                            item.textContent = name;
+                            item.onclick = () => filterByDept(name);
+                            deptList.appendChild(item);
+                        }
+                    });
+                    renderContacts();
+                },
+                (err) => console.error('[MSG] command_centers snapshot error:', err.code, err.message)
+            );
 
             // Real-time Users
-            onSnapshot(collection(db, 'users'), (snap) => {
-                users = snap.docs.map(doc => {
-                    const u = doc.data();
-                    return {
-                        id: doc.id,
-                        type: 'user',
-                        name: u.name || 'Unknown',
-                        role: (u.role || 'employee').toLowerCase(),
-                        dept: u.departmentName || u.department || u.departmentId || 'Operations',
-                        initials: (u.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-                        color: stringToColor(u.name || 'U')
-                    };
-                }).filter(u => u.role !== 'team' && u.role !== 'admin' && u.role !== 'hrms' && u.name !== 'HR Support Hub');
-                renderContacts();
-            });
+            onSnapshot(
+                collection(db, 'users'),
+                (snap) => {
+                    users = snap.docs.map(doc => {
+                        const u = doc.data();
+                        return {
+                            id: doc.id,
+                            type: 'user',
+                            name: u.name || 'Unknown',
+                            role: (u.role || 'employee').toLowerCase(),
+                            dept: u.departmentName || u.department || u.departmentId || 'Operations',
+                            initials: (u.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+                            color: stringToColor(u.name || 'U')
+                        };
+                    }).filter(u => u.role !== 'team' && u.role !== 'admin' && u.role !== 'hrms' && u.name !== 'HR Support Hub');
+                    renderContacts();
+                },
+                (err) => console.error('[MSG] users snapshot error:', err.code, err.message)
+            );
 
             // Real-time Teams
-            onSnapshot(collection(db, 'department_teams'), (snap) => {
-                const rawTeams = snap.docs.map(doc => {
-                    const t = doc.data();
-                    const deptId = t.departmentId || 'Cross-Functional';
-                    return {
-                        id: doc.id,
-                        type: 'team',
-                        name: t.name || 'Unnamed Team',
-                        role: 'team',
-                        dept: deptMap[deptId] || t.departmentName || deptId,
-                        initials: (t.name || 'T').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-                        color: '#6366f1'
-                    };
-                });
-                
-                // Deduplicate by name to prevent organizational drift
-                const seen = new Set();
-                teams = rawTeams.filter(t => {
-                    const duplicate = seen.has(t.name);
-                    seen.add(t.name);
-                    return !duplicate;
-                });
-                
-                renderContacts();
-            });
+            onSnapshot(
+                collection(db, 'department_teams'),
+                (snap) => {
+                    const rawTeams = snap.docs.map(doc => {
+                        const t = doc.data();
+                        const deptId = t.departmentId || 'Cross-Functional';
+                        return {
+                            id: doc.id,
+                            type: 'team',
+                            name: t.name || 'Unnamed Team',
+                            role: 'team',
+                            dept: deptMap[deptId] || t.departmentName || deptId,
+                            initials: (t.name || 'T').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+                            color: '#6366f1'
+                        };
+                    });
+                    
+                    // Deduplicate by name to prevent organizational drift
+                    const seen = new Set();
+                    teams = rawTeams.filter(t => {
+                        const duplicate = seen.has(t.name);
+                        seen.add(t.name);
+                        return !duplicate;
+                    });
+                    
+                    renderContacts();
+                },
+                (err) => console.error('[MSG] department_teams snapshot error:', err.code, err.message)
+            );
         }
 
         let unsubscribeMessages = null;
@@ -651,6 +664,11 @@
                     }
                 });
                 chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, (err) => {
+                console.error('[MSG] messages snapshot error:', err.code, err.message);
+                chatMessages.innerHTML = `<div style="text-align:center; color:#ef4444; margin-top:20px; padding:1rem;">
+                    ⚠️ Could not load messages (${err.code}). Please re-login to refresh your session.
+                </div>`;
             });
         }
 

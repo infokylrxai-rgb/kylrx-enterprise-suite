@@ -96,9 +96,12 @@ async function syncAttendanceLog(employeeId, date, time, type) {
     }, { merge: true });
 }
 
-async function createNotification(target, message, priority) {
+async function createNotification(target, message, priority, title = 'Attendance Hub') {
     await addDoc(collection(db, 'notifications'), {
         target,
+        targetUid: target,
+        title,
+        text: message,
         message,
         priority,
         read: false,

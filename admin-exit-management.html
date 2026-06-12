@@ -66,7 +66,7 @@
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="users"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-performance-center.html" class="nav-link"><i data-lucide="trending-up"></i><span>Performance Hub</span></a></div>
+                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link active"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
@@ -81,7 +81,6 @@
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
-                <div class="nav-item"><a href="admin-Dashboard-bulider.html" class="nav-link"><i data-lucide="layout"></i><span>Enterprise Builder</span></a></div>
 
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
@@ -168,27 +167,16 @@
             </div>
 
             <div class="process-checklist">
-                <div class="checklist-card">
-                    <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Offboarding Checklist</h3>
-                    <div class="checklist-item">
-                        <input type="checkbox" checked>
-                        <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Exit Interview Scheduled</p><p style="font-size: 0.7rem; color: var(--text-muted);">G-Meet Link: meet.google.com/abc-xyz</p></div>
-                        <i data-lucide="video" size="16" style="color: var(--primary);"></i>
+                <div class="checklist-card" id="checklistContainer">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h3 style="font-weight: 800;">Offboarding Checklist</h3>
+                        <span id="checklistTargetName" class="badge" style="display: none; background: #eff6ff; color: var(--primary);"></span>
                     </div>
-                    <div class="checklist-item">
-                        <input type="checkbox" checked>
-                        <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Asset Return (Laptop/ID)</p><p style="font-size: 0.7rem; color: var(--text-muted);">Verified by IT Asset Manager</p></div>
-                        <i data-lucide="monitor" size="16"></i>
-                    </div>
-                    <div class="checklist-item">
-                        <input type="checkbox">
-                        <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">NDA Acknowledgement</p><p style="font-size: 0.7rem; color: var(--text-muted);">Awaiting employee signature</p></div>
-                        <i data-lucide="lock" size="16"></i>
-                    </div>
-                    <div class="checklist-item">
-                        <input type="checkbox">
-                        <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Access Revocation</p><p style="font-size: 0.7rem; color: var(--text-muted);">GitHub, Slack, Email, Jira</p></div>
-                        <i data-lucide="shield-off" size="16"></i>
+                    <div id="dynamicChecklist">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">
+                            <i data-lucide="loader" class="animate-spin" size="24" style="margin-bottom: 10px;"></i>
+                            <p>Loading active offboarding tasks...</p>
+                        </div>
                     </div>
                 </div>
 
@@ -270,15 +258,9 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                 <div style="padding: 1.5rem; background: #f8fafc; border-radius: 20px;">
                     <h4 style="font-weight: 800; font-size: 0.9rem; margin-bottom: 1rem;">Exit Distribution</h4>
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem;"><span>Career Growth</span><span style="font-weight: 800;">65%</span></div>
-                        <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: 65%; height: 100%; background: var(--primary);"></div></div>
-                        
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 5px;"><span>Compensation</span><span style="font-weight: 800;">20%</span></div>
-                        <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: 20%; height: 100%; background: var(--secondary);"></div></div>
-                        
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 5px;"><span>Culture/Fit</span><span style="font-weight: 800;">15%</span></div>
-                        <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: 15%; height: 100%; background: #10b981;"></div></div>
+                    <div id="exitDistributionList" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Dynamic distribution will go here -->
+                        <div style="text-align: center; font-size: 0.75rem; color: var(--text-muted);">Loading data...</div>
                     </div>
                 </div>
                 <div style="padding: 1.5rem; background: #eff6ff; border-radius: 20px; border: 1px solid var(--primary-soft);">
@@ -325,6 +307,21 @@
         <span>Exit process initiated successfully.</span>
     </div>
 
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-card" style="width: 400px; text-align: center; padding: 2.5rem 2rem;">
+            <div style="background: #eff6ff; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); margin: 0 auto 1.5rem;">
+                <i data-lucide="help-circle" size="32"></i>
+            </div>
+            <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 10px;" id="confirmTitle">Confirm Action</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; line-height: 1.5;" id="confirmMessage">Are you sure you want to proceed?</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button class="btn btn-outline" style="flex: 1; justify-content: center;" id="btnConfirmCancel">Cancel</button>
+                <button class="btn btn-primary" style="flex: 1; justify-content: center;" id="btnConfirmProceed">Proceed</button>
+            </div>
+        </div>
+    </div>
+
     <style>
         .toast-notification {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -341,10 +338,33 @@
 
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         import { getExits, getExitAnalytics, initiateExit } from "./exit-workflow-service.js";
 
         lucide.createIcons();
+
+        function showConfirm(title, message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('confirmModal');
+                document.getElementById('confirmTitle').textContent = title;
+                document.getElementById('confirmMessage').textContent = message;
+                
+                modal.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                const btnCancel = document.getElementById('btnConfirmCancel');
+                const btnProceed = document.getElementById('btnConfirmProceed');
+                
+                const cleanup = () => {
+                    modal.classList.remove('active');
+                    btnCancel.onclick = null;
+                    btnProceed.onclick = null;
+                };
+
+                btnCancel.onclick = () => { cleanup(); resolve(false); };
+                btnProceed.onclick = () => { cleanup(); resolve(true); };
+            });
+        }
 
         async function initDashboard() {
             loadEmployees();
@@ -375,6 +395,20 @@
                         </div>
                     </div>
                 `;
+
+                // Update Modal Distribution
+                const distList = document.getElementById('exitDistributionList');
+                if (distList && analytics.distribution) {
+                    const colors = ['var(--primary)', 'var(--secondary)', '#10b981'];
+                    if (analytics.distribution.length === 0) {
+                        distList.innerHTML = '<div style="text-align: center; font-size: 0.75rem; color: var(--text-muted);">No exit data available yet.</div>';
+                    } else {
+                        distList.innerHTML = analytics.distribution.map((item, idx) => `
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: ${idx > 0 ? '5px' : '0'};"><span>${item.label}</span><span style="font-weight: 800;">${item.percent}%</span></div>
+                            <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: ${item.percent}%; height: 100%; background: ${colors[idx % colors.length]};"></div></div>
+                        `).join('');
+                    }
+                }
             } catch (err) { console.error("Error rendering analytics:", err); }
         }
 
@@ -416,11 +450,92 @@
                             </div>
                         ` : ''}
                     `;
+                    card.onclick = async () => {
+                        const stages = ['Exit Initiated', 'Notice Period', 'Clearance Pending', 'F&F Pending'];
+                        const idx = stages.indexOf(e.status);
+                        
+                        if (idx !== -1 && idx < stages.length - 1) {
+                            const confirmed = await showConfirm('Advance Stage', `Advance ${e.employeeName || 'Employee'} to ${stages[idx + 1]}?`);
+                            if (confirmed) {
+                                card.style.opacity = '0.5';
+                                try {
+                                    await updateDoc(doc(db, 'employee_exits', e.id), { status: stages[idx + 1] });
+                                    renderPipeline();
+                                } catch (err) { alert('Failed to advance: ' + err.message); }
+                            }
+                        } else if (idx === stages.length - 1) {
+                            const confirmed = await showConfirm('Finalize Offboarding', `Finalize F&F Settlement for ${e.employeeName || 'Employee'} and mark as Exited?`);
+                            if (confirmed) {
+                                card.style.opacity = '0.5';
+                                try {
+                                    await updateDoc(doc(db, 'employee_exits', e.id), { status: 'Closed' });
+                                    await updateDoc(doc(db, 'users', e.employeeId), { onboardingStatus: 'Exited', isActive: false });
+                                    renderPipeline();
+                                } catch (err) { alert('Failed to finalize: ' + err.message); }
+                            }
+                        }
+                    };
+
                     document.getElementById(col.id).appendChild(card);
                 });
 
+                // Render Checklist for most recent active exit
+                const activeExits = exits.filter(e => e.status !== 'Closed').sort((a,b) => {
+                    const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                    const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                    return dateB - dateA;
+                });
+                renderChecklist(activeExits[0]);
+
                 if (window.lucide) lucide.createIcons();
             } catch (err) { console.error("Error rendering pipeline:", err); }
+        }
+
+        window.updateChecklist = async (exitId, field, checked) => {
+            try {
+                await updateDoc(doc(db, 'employee_exits', exitId), {
+                    [`checklist.${field}`]: checked
+                });
+            } catch(e) { console.error("Failed to update checklist:", e); }
+        };
+
+        function renderChecklist(exit) {
+            const container = document.getElementById('dynamicChecklist');
+            const targetName = document.getElementById('checklistTargetName');
+            
+            if (!exit) {
+                targetName.style.display = 'none';
+                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">No active exits in the pipeline.</div>';
+                return;
+            }
+
+            targetName.textContent = exit.employeeName || 'Unknown';
+            targetName.style.display = 'inline-block';
+
+            const c = exit.checklist || {};
+            container.innerHTML = `
+                <div class="checklist-item">
+                    <input type="checkbox" onchange="updateChecklist('${exit.id}', 'exitInterview', this.checked)" ${c.exitInterview ? 'checked' : ''}>
+                    <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Exit Interview Scheduled</p><p style="font-size: 0.7rem; color: var(--text-muted);">${exit.meetingLink || 'Pending Schedule'}</p></div>
+                    <i data-lucide="video" size="16" style="color: ${c.exitInterview ? 'var(--primary)' : 'var(--text-muted)'};"></i>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" onchange="updateChecklist('${exit.id}', 'assetReturn', this.checked)" ${c.assetReturn ? 'checked' : ''}>
+                    <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Asset Return (Laptop/ID)</p><p style="font-size: 0.7rem; color: var(--text-muted);">Verified by IT Asset Manager</p></div>
+                    <i data-lucide="monitor" size="16"></i>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" onchange="updateChecklist('${exit.id}', 'ndaSigned', this.checked)" ${c.ndaSigned ? 'checked' : ''}>
+                    <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">NDA Acknowledgement</p><p style="font-size: 0.7rem; color: var(--text-muted);">Awaiting employee signature</p></div>
+                    <i data-lucide="lock" size="16"></i>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" onchange="updateChecklist('${exit.id}', 'accessRevoked', this.checked)" ${c.accessRevoked ? 'checked' : ''}>
+                    <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Access Revocation</p><p style="font-size: 0.7rem; color: var(--text-muted);">GitHub, Slack, Email, Jira</p></div>
+                    <i data-lucide="shield-off" size="16"></i>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
         }
 
         async function loadEmployees() {
@@ -431,10 +546,18 @@
                 const select = document.getElementById('exitEmp');
                 snap.docs.forEach(doc => {
                     const data = doc.data();
+                    
+                    // Don't show users who have already exited
+                    if (data.onboardingStatus === 'Exited' || data.isActive === false) return;
+
                     const opt = document.createElement('option');
                     opt.value = doc.id;
                     opt.setAttribute('data-name', data.name);
-                    opt.textContent = `${data.name || 'User'} (${data.department || 'Staff'})`;
+                    
+                    // Display the Role appropriately
+                    const roleLabel = data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'Employee';
+                    
+                    opt.textContent = `${data.name || 'User'} (${roleLabel})`;
                     select.appendChild(opt);
                 });
                 if (empId) {

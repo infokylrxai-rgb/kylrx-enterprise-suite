@@ -1093,6 +1093,14 @@ function setupEventListeners() {
         if (modalTitle) modalTitle.textContent = 'New Personnel';
         if (editIdInput) editIdInput.value = '';
         if (editInfoFields) editInfoFields.style.display = 'none';
+        
+        const form = document.getElementById('empForm');
+        if (form) {
+            form.reset();
+            if (window.updateRolesForDept) window.updateRolesForDept();
+            if (window.generatePassword) window.generatePassword();
+        }
+        
         openModal('empModal');
     });
 
@@ -1242,19 +1250,30 @@ function setupEventListeners() {
         const deptField = empForm.querySelector('select[name="departmentId"]');
         const roleField = empForm.querySelector('select[name="roleType"]');
 
+        const updateRolesForDept = () => {
+            if (!deptField || !roleField) return;
+            const isHrms = deptField.value === 'hrms';
+            if (isHrms) {
+                roleField.innerHTML = '<option value="hrms">HRMS Admin</option>';
+                roleField.value = 'hrms';
+            } else {
+                if (!roleField.querySelector('option[value="employee"]')) {
+                    roleField.innerHTML = `
+                        <option value="employee">Employee</option>
+                        <option value="manager">Manager</option>
+                    `;
+                    roleField.value = 'employee';
+                }
+            }
+        };
+        window.updateRolesForDept = updateRolesForDept;
+
         if (nameField) nameField.addEventListener('input', generatePassword);
         
         if (deptField) {
             ['change', 'input', 'click'].forEach(evt => {
-                deptField.addEventListener(evt, (e) => {
-                    if (roleField && e.target.value === 'hrms') {
-                        roleField.value = 'manager';
-                        Array.from(roleField.options).forEach(opt => {
-                            if(opt.value !== 'manager') opt.disabled = true;
-                        });
-                    } else if (roleField) {
-                        Array.from(roleField.options).forEach(opt => opt.disabled = false);
-                    }
+                deptField.addEventListener(evt, () => {
+                    updateRolesForDept();
                     generatePassword();
                 });
             });
@@ -1589,6 +1608,9 @@ window.openEditModal = (id) => {
         form.name.value = emp.name || '';
         form.email.value = emp.email || '';
         form.departmentId.value = emp.departmentId || '';
+        
+        if (window.updateRolesForDept) window.updateRolesForDept();
+        
         form.roleType.value = emp.role || 'employee';
         form.phone.value = emp.phone || '';
         form.salary.value = emp.salary || '';

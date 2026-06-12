@@ -340,9 +340,12 @@ export async function getPerformanceForecast(trendData) {
     return forecast;
 }
 
-async function createNotification(target, message, priority) {
+async function createNotification(target, message, priority, title = 'Performance Hub') {
     await addDoc(collection(db, 'notifications'), {
         target,
+        targetUid: target,
+        title,
+        text: message,
         message,
         priority,
         read: false,
