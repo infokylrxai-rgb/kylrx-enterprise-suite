@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 /**
  * Enterprise Asset Management Service
@@ -151,4 +151,18 @@ async function createNotification(target, message, priority, title = 'Asset Hub'
         read: false,
         timestamp: serverTimestamp()
     });
+}
+
+export async function deleteAsset(assetId) {
+    console.log(`[ASSET] Removing asset ${assetId} from inventory...`);
+    try {
+        const assetRef = doc(db, 'assets', assetId);
+        await deleteDoc(assetRef);
+        // Log transaction
+        await logAssetTransaction(assetId, 'system', 'Deprovisioned', 'admin_it');
+        return { success: true };
+    } catch (err) {
+        console.error('[ASSET] Deletion failed:', err);
+        throw err;
+    }
 }

@@ -103,4 +103,36 @@ router.get('/stats', async (req, res) => {
     }
 });
 
+// 7. Log Attendance automatically to Server-side CSV (Excel compatible)
+const fs = require('fs');
+const path = require('path');
+
+router.post('/log-attendance-excel', async (req, res) => {
+    try {
+        const { date, userId, name, department, punchIn, punchOut, duration, status } = req.body;
+        
+        const logDir = path.join(__dirname, '../logs');
+        if (!fs.existsSync(logDir)) {
+            fs.mkdirSync(logDir, { recursive: true });
+        }
+        
+        const filePath = path.join(logDir, 'attendance_excel_log.csv');
+        const fileExists = fs.existsSync(filePath);
+        
+        if (!fileExists) {
+            const header = 'Date,Employee ID,Employee Name,Department,Punch In,Punch Out,Duration (Hours),Status\n';
+            fs.writeFileSync(filePath, header, 'utf8');
+        }
+        
+        const escapeCsv = (str) => `"${(str || '').replace(/"/g, '""')}"`;
+        const row = `${escapeCsv(date)},${escapeCsv(userId)},${escapeCsv(name)},${escapeCsv(department)},${escapeCsv(punchIn)},${escapeCsv(punchOut)},${escapeCsv(duration)},${escapeCsv(status)}\n`;
+        
+        fs.appendFileSync(filePath, row, 'utf8');
+        
+        res.status(200).json({ success: true, message: 'Attendance stored automatically in server excelsheet (CSV).' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router;

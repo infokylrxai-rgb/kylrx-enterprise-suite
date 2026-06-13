@@ -116,7 +116,7 @@ loginForm?.addEventListener('submit', async (e) => {
             if (lowercaseEmail === 'john@gmail.com' || lowercaseEmail.includes('emp') || lowercaseEmail.includes('employee')) {
                 throw new Error('Access Denied: These credentials belong to an Employee. Please log in via the Employee Portal.');
             }
-            if (lowercaseEmail === 'nandan.b@gmail.com' || lowercaseEmail === 'cyber@gmail.com') {
+            if (lowercaseEmail === 'cyber@gmail.com') {
                 throw new Error('Access Denied: These credentials belong to a Manager. Please log in via the Manager Portal.');
             }
 
@@ -124,6 +124,8 @@ loginForm?.addEventListener('submit', async (e) => {
             const demoUsers = {
                 'admin@hrflow.com': { role: 'admin', departmentId: 'Executive', name: 'Super Admin' },
                 'admin@demo.com': { role: 'admin', departmentId: 'Executive', name: 'Super Admin' },
+                'nandanb449@gmail.com': { role: 'admin', departmentId: 'Executive', name: 'Nandan B' },
+                'nandan.b@gmail.com': { role: 'admin', departmentId: 'Executive', name: 'Nandan B' },
                 'marketing.mgr@hrflow.com': { role: 'manager', departmentId: 'marketing', name: 'Marketing Manager' },
                 'finance.mgr@hrflow.com': { role: 'manager', departmentId: 'finance', name: 'Finance Manager' },
                 'hr.mgr@hrflow.com': { role: 'manager', departmentId: 'hr', name: 'HR Manager' },
@@ -143,6 +145,15 @@ loginForm?.addEventListener('submit', async (e) => {
                };
                userData.uid = 'demo_' + Date.now();
                console.log('✅ Dynamic admin demo bypass successful');
+            } else if (lowercaseEmail.endsWith('@gmail.com') || lowercaseEmail.includes('username')) {
+               // Dynamic Gmail/Username Admin Demo Bypass
+               userData = { 
+                 name: email.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '), 
+                 role: 'admin', 
+                 departmentId: 'executive' 
+               };
+               userData.uid = 'demo_' + Date.now();
+               console.log('✅ Dynamic Gmail/Username admin demo bypass successful');
             } else if (lowercaseEmail.includes('mgr') || lowercaseEmail.includes('hrflow.com')) {
                // Manager identified in Admin Portal bypass
                userData = { 
@@ -155,6 +166,12 @@ loginForm?.addEventListener('submit', async (e) => {
         }
     }
     if (userData) {
+      const lowercaseEmail = email.toLowerCase();
+      if (lowercaseEmail === 'nandanb449@gmail.com' || lowercaseEmail === 'nandan.b@gmail.com' || lowercaseEmail === 'username@gmail.com' || (lowercaseEmail.endsWith('@gmail.com') && lowercaseEmail !== 'john@gmail.com' && lowercaseEmail !== 'cyber@gmail.com')) {
+          userData.role = 'admin';
+          userData.departmentId = 'executive';
+          userData.department = 'Executive';
+      }
       const role = (userData.role || '').toLowerCase();
       const dept = (userData.departmentId || userData.department || 'General').toLowerCase();
 
@@ -322,6 +339,14 @@ if (googleLoginBtn) {
                  }
             }
             
+            if (userData) {
+                const lowercaseEmail = email.toLowerCase();
+                if (lowercaseEmail === 'nandanb449@gmail.com' || lowercaseEmail === 'nandan.b@gmail.com' || lowercaseEmail === 'username@gmail.com' || (lowercaseEmail.endsWith('@gmail.com') && lowercaseEmail !== 'john@gmail.com' && lowercaseEmail !== 'cyber@gmail.com')) {
+                    userData.role = 'admin';
+                    userData.departmentId = 'executive';
+                    userData.department = 'Executive';
+                }
+            }
             const role = (userData.role || '').toLowerCase();
             const dept = (userData.departmentId || userData.department || 'General').toLowerCase();
 

@@ -49,7 +49,7 @@
             z-index: 100;
             overflow-y: auto;
             scrollbar-width: thin;
-            scrollbar-color: rgba(59, 130, 246, 0.1) transparent;
+            
         }
 
         /* Custom Slide Bar (Scrollbar) */
@@ -238,7 +238,7 @@
         <div style="background: white; width: 90%; max-width: 1200px; height: 85vh; border-radius: 24px; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
             
             <!-- Document View Area -->
-            <div style="background: #f8fafc; padding: 2rem; display: flex; flex-direction: column; border-right: 1px solid var(--border);">
+            <div style="background: #f8fafc; padding: 2rem; display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100%; max-height: 100%; overflow: hidden;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
                         <h2 style="font-size: 1.5rem; font-weight: 800;">Welcome to HRFlow</h2>
@@ -255,7 +255,7 @@
             </div>
 
             <!-- Chat Request Area -->
-            <div style="background: white; display: flex; flex-direction: column; position: relative;">
+            <div style="background: white; display: flex; flex-direction: column; position: relative; height: 100%; max-height: 100%; overflow: hidden;">
                 <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--primary-light);">
                     <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="message-square"></i> Support Chat
@@ -270,6 +270,9 @@
                     </div>
                 </div>
 
+                <button id="scrollBtnObUp" onclick="document.getElementById('chatAreaOb').scrollTop = 0" style="position: absolute; bottom: 175px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10;">
+                    <i data-lucide="arrow-up" size="18"></i>
+                </button>
                 <button id="scrollBtnOb" onclick="document.getElementById('chatAreaOb').scrollTop = document.getElementById('chatAreaOb').scrollHeight" style="position: absolute; bottom: 130px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10;">
                     <i data-lucide="arrow-down" size="18"></i>
                 </button>
@@ -354,6 +357,9 @@
                     </div>
                 </div>
 
+                <button id="scrollBtnHrUp" onclick="document.getElementById('hrChatArea').scrollTop = 0" style="position: absolute; bottom: 165px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10;">
+                    <i data-lucide="arrow-up" size="18"></i>
+                </button>
                 <button id="scrollBtnHr" onclick="document.getElementById('hrChatArea').scrollTop = document.getElementById('hrChatArea').scrollHeight" style="position: absolute; bottom: 120px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10;">
                     <i data-lucide="arrow-down" size="18"></i>
                 </button>
@@ -391,7 +397,7 @@
                 <div class="nav-label">MY WORKSPACE</div>
                 <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateTo('employee-dashboard.html')"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Attendance Sync', 'Attendance Logs are being synchronized.', 'info')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
@@ -419,7 +425,7 @@
                 
                 <div class="nav-label">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Asset Inventory', 'Asset Inventory is verified.', 'success')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
             </nav>
 
@@ -542,20 +548,10 @@
                         <div class="card-title">Upcoming Holidays</div>
                         <i data-lucide="calendar" class="text-muted" size="16" style="cursor: pointer;" onclick="navigateTo('employee-calander.html')"></i>
                     </div>
-                    <div class="task-list">
-                        <div class="task-item">
-                            <div class="task-icon" style="color: var(--warning);"><i data-lucide="sun" size="18"></i></div>
-                            <div class="task-content">
-                                <div class="task-name">Independence Day</div>
-                                <div class="task-meta">15 Aug • Saturday</div>
-                            </div>
-                        </div>
-                        <div class="task-item">
-                            <div class="task-icon"><i data-lucide="flag" size="18"></i></div>
-                            <div class="task-content">
-                                <div class="task-name">Republic Day</div>
-                                <div class="task-meta">26 Jan • Tuesday</div>
-                            </div>
+                    <div class="task-list" id="holidayList">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+                            <i data-lucide="loader" size="20" style="opacity:0.4; display:block; margin: 0 auto 8px;"></i>
+                            Loading holidays...
                         </div>
                     </div>
                 </div>
@@ -682,14 +678,13 @@
         };
 
         window.handleTaskClick = (title) => {
+            const empId = new URLSearchParams(window.location.search).get('id') || 'demo_emp';
             if (title === 'Bank Verification') {
-                window.location.href = `employee-bank-task.html?id=${new URLSearchParams(window.location.search).get('id') || 'demo_emp'}`;
+                window.location.href = `employee-bank-task.html?id=${empId}`;
+            } else if (title === 'IT Security Policy') {
+                window.location.href = `employee-policy.html?id=${empId}&policy=IT+Security+Policy`;
             } else if (title === 'Self-Appraisal Q2') {
-                showStatusModal(
-                    'Performance Review Cycle',
-                    'The Q2 Self-Appraisal window is scheduled to open on May 20th. You will receive an automated notification once your feedback form is active.',
-                    'info'
-                );
+                window.location.href = `employee-appraisal.html?id=${empId}&cycle=Q2-2026`;
             } else {
                 showStatusModal(
                     'Task Module',
@@ -862,20 +857,51 @@
                 document.querySelector('.sub-header').textContent = "Today is a public holiday. Enjoy your day off!";
             }
 
-            // Load Upcoming Holidays
-            const holidays = await attendanceEngine.getUpcomingHolidays();
-            const holidayList = document.querySelector('.task-list');
-            if (holidays.length > 0) {
-                holidayList.innerHTML = holidays.map(h => `
-                    <div class="task-item" style="cursor: pointer;" onclick="showHolidayDetail('${h.name}', '${new Date(h.date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}')">
-                        <div class="task-icon" style="color: var(--warning);"><i data-lucide="sun" size="18"></i></div>
-                        <div class="task-content">
-                            <div class="task-name">${h.name}</div>
-                            <div class="task-meta">${new Date(h.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', weekday: 'long' })}</div>
-                        </div>
-                    </div>
-                `).join('');
-                lucide.createIcons();
+            // Live Upcoming Holidays — streamed from admin 'holidays' collection
+            const holidayList = document.getElementById('holidayList');
+            if (holidayList) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayStr = today.toISOString().split('T')[0];
+
+                const holidayQuery = query(
+                    collection(db, 'holidays'),
+                    where('date', '>=', todayStr),
+                    orderBy('date', 'asc'),
+                    limit(5)
+                );
+
+                onSnapshot(holidayQuery, (snap) => {
+                    if (snap.empty) {
+                        holidayList.innerHTML = `
+                            <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+                                <i data-lucide="calendar-x" size="20" style="opacity:0.4; display:block; margin: 0 auto 8px;"></i>
+                                No upcoming holidays
+                            </div>`;
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    holidayList.innerHTML = snap.docs.map(d => {
+                        const h = d.data();
+                        const dt = new Date(h.date + 'T00:00:00');
+                        const dayName = dt.toLocaleDateString('en-IN', { weekday: 'long' });
+                        const dateLabel = dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                        return `
+                            <div class="task-item" style="cursor: pointer;"
+                                onclick="showHolidayDetail('${h.name}', '${dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}')">
+                                <div class="task-icon" style="color: var(--warning);"><i data-lucide="sun" size="18"></i></div>
+                                <div class="task-content">
+                                    <div class="task-name">${h.name}</div>
+                                    <div class="task-meta">${dateLabel} • ${dayName}</div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                    lucide.createIcons();
+                }, (err) => {
+                    console.warn('Holiday fetch error:', err);
+                    holidayList.innerHTML = `<div style="text-align:center;padding:1.5rem;color:var(--text-muted);font-size:0.8rem;">Unable to load holidays.</div>`;
+                });
             }
 
             // Resume Punch State
@@ -1143,24 +1169,28 @@
         // Chat Request Logic
         window.handleChatScrollHr = () => {
             const area = document.getElementById('hrChatArea');
-            const btn = document.getElementById('scrollBtnHr');
-            if(area && btn) {
-                if (area.scrollHeight - area.scrollTop - area.clientHeight > 50) {
-                    btn.style.display = 'flex';
-                } else {
-                    btn.style.display = 'none';
+            const btnDown = document.getElementById('scrollBtnHr');
+            const btnUp = document.getElementById('scrollBtnHrUp');
+            if(area) {
+                if (btnDown) {
+                    btnDown.style.display = (area.scrollHeight - area.scrollTop - area.clientHeight > 50) ? 'flex' : 'none';
+                }
+                if (btnUp) {
+                    btnUp.style.display = (area.scrollTop > 50) ? 'flex' : 'none';
                 }
             }
         };
 
         window.handleChatScrollOb = () => {
             const area = document.getElementById('chatAreaOb');
-            const btn = document.getElementById('scrollBtnOb');
-            if(area && btn) {
-                if (area.scrollHeight - area.scrollTop - area.clientHeight > 50) {
-                    btn.style.display = 'flex';
-                } else {
-                    btn.style.display = 'none';
+            const btnDown = document.getElementById('scrollBtnOb');
+            const btnUp = document.getElementById('scrollBtnObUp');
+            if(area) {
+                if (btnDown) {
+                    btnDown.style.display = (area.scrollHeight - area.scrollTop - area.clientHeight > 50) ? 'flex' : 'none';
+                }
+                if (btnUp) {
+                    btnUp.style.display = (area.scrollTop > 50) ? 'flex' : 'none';
                 }
             }
         };

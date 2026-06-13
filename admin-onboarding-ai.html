@@ -109,6 +109,143 @@
         .chart-placeholder i { width: 32px; height: 32px; color: var(--primary); animation: aiPulse 2s infinite; }
         .chart-placeholder p { font-size: 0.85rem; font-weight: 600; }
         @keyframes aiPulse { 0% { opacity: 0.4; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.4; transform: scale(0.9); } }
+
+        /* Custom Confirmation Modal */
+        .confirm-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .confirm-modal-overlay.active {
+            opacity: 1; pointer-events: all;
+        }
+
+        .confirm-modal {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .confirm-modal-overlay.active .confirm-modal {
+            transform: scale(1);
+        }
+
+        .confirm-modal-icon {
+            width: 56px; height: 56px;
+            background: #fee2e2; color: #ef4444;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .confirm-modal-title {
+            font-size: 1.2rem; font-weight: 800;
+            color: #0f172a; margin-bottom: 0.5rem;
+        }
+
+        .confirm-modal-desc {
+            font-size: 0.875rem; color: #64748b;
+            margin-bottom: 2rem; line-height: 1.5;
+        }
+
+        .confirm-modal-actions {
+            display: flex; gap: 12px;
+            justify-content: center;
+        }
+
+        .confirm-modal-btn {
+            flex: 1; padding: 12px;
+            border-radius: 12px; border: none;
+            font-weight: 700; font-size: 0.875rem;
+            cursor: pointer; transition: 0.2s;
+        }
+
+        .confirm-modal-btn-cancel {
+            background: #f1f5f9; color: #475569;
+        }
+        .confirm-modal-btn-cancel:hover { background: #e2e8f0; }
+
+        .confirm-modal-btn-confirm {
+            background: #ef4444; color: white;
+        }
+        .confirm-modal-btn-confirm:hover { background: #dc2626; }
+
+        /* Checklist Feature Widget */
+        .checklist-widget {
+            background: #202123;
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: #d1d5db;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 2rem;
+            border: 1px solid #3f3f46;
+        }
+        .checklist-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: #f3f4f6;
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .checklist-item:last-child { margin-bottom: 0; }
+        .checklist-item:hover { opacity: 0.8; }
+        .checklist-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid #0ea5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+        .checklist-item.checked .checklist-circle {
+            background: #0ea5e9;
+            border-color: #0ea5e9;
+        }
+        .checklist-item.checked .checklist-circle::after {
+            content: '';
+            width: 5px;
+            height: 10px;
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+        .checklist-text {
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        .checklist-item.checked .checklist-text {
+            color: #64748b;
+            text-decoration: line-through;
+        }
     </style>
 </head>
 <body class="admin-dashboard">
@@ -146,6 +283,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Admin Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -221,6 +359,46 @@
                         </div>
                     </div>
 
+                    <!-- AI Checklist Widget -->
+                    <div class="checklist-widget" id="diagnosticsChecklist">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <div class="checklist-title" style="margin-bottom: 0;">Diagnostic Action Plan</div>
+                            <div id="checklistPercentage" style="font-size: 0.95rem; font-weight: 800; color: #ef4444;">0%</div>
+                        </div>
+                        <div style="height: 6px; background: #3f3f46; border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden;">
+                            <div id="checklistProgressBar" style="height: 100%; width: 0%; background: #ef4444; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                        </div>
+
+                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
+                            <div class="checklist-circle"></div>
+                            <div class="checklist-text">Open manager-dashboard page</div>
+                        </div>
+                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
+                            <div class="checklist-circle"></div>
+                            <div class="checklist-text">Wait for page to load</div>
+                        </div>
+                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
+                            <div class="checklist-circle"></div>
+                            <div class="checklist-text">Capture initial console logs</div>
+                        </div>
+                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
+                            <div class="checklist-circle"></div>
+                            <div class="checklist-text">Click 'Team Management' link in sidebar</div>
+                        </div>
+                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
+                            <div class="checklist-circle"></div>
+                            <div class="checklist-text">Wait 2 seconds</div>
+                        </div>
+                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
+                            <div class="checklist-circle"></div>
+                            <div class="checklist-text">Capture console logs again</div>
+                        </div>
+                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
+                            <div class="checklist-circle"></div>
+                            <div class="checklist-text">Report final logs</div>
+                        </div>
+                    </div>
+
                     <div class="ai-glass-card" style="position: relative; min-height: 280px;">
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Weekly Performance</h3>
                         <div id="chartLoading" class="chart-placeholder">
@@ -235,13 +413,19 @@
                     <div class="ai-glass-card ai-chat-panel">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                             <h3 style="font-weight: 800;">AI Assistant</h3>
-                            <span class="badge" style="background: var(--primary-light); color: var(--primary);">Live</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button class="action-icon" id="clearChatBtn" title="Clear Chat History" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: 0.2s;">
+                                    <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                                </button>
+                                <span class="badge" style="background: var(--primary-light); color: var(--primary);">Live</span>
+                            </div>
                         </div>
                         <div class="chat-display" id="chatDisplay">
                             <div class="chat-bubble bubble-ai">Hello Admin! I'm your onboarding intelligence agent. How can I assist you with today's batch?</div>
                         </div>
                         <div class="chat-input-area">
                             <input type="text" id="chatInput" class="input-box" placeholder="Ask Kylrx AI about onboarding..." style="flex:1">
+                            <button class="btn" id="spellCheckBtn" title="AI Spell Check" style="padding: 10px; background: var(--bg-soft); color: var(--primary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s;"><i data-lucide="wand-2"></i></button>
                             <button class="btn btn-primary" id="sendChat" style="padding: 10px;"><i data-lucide="send"></i></button>
                         </div>
                     </div>
@@ -252,24 +436,117 @@
 
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { collection, query, getDocs, where, addDoc, serverTimestamp, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, query, getDocs, where, addDoc, serverTimestamp, orderBy, limit, onSnapshot, writeBatch, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
             loadAIIntelligence();
             setupChat();
+            
+            // Expose the global checklist progress function
+            window.updateChecklistProgress = function() {
+                const items = document.querySelectorAll('#diagnosticsChecklist .checklist-item');
+                const checkedItems = document.querySelectorAll('#diagnosticsChecklist .checklist-item.checked');
+                
+                if (items.length === 0) return;
+                
+                const percentage = Math.round((checkedItems.length / items.length) * 100);
+                
+                const progressBar = document.getElementById('checklistProgressBar');
+                const percentText = document.getElementById('checklistPercentage');
+                
+                if (progressBar && percentText) {
+                    progressBar.style.width = percentage + '%';
+                    percentText.textContent = percentage + '%';
+                    
+                    // Dynamic color grading: Red (<40%), Yellow (40-79%), Green (80-100%)
+                    let color = '#ef4444'; // Red
+                    if (percentage >= 80) {
+                        color = '#10b981'; // Green
+                    } else if (percentage >= 40) {
+                        color = '#f59e0b'; // Yellow
+                    }
+                    
+                    progressBar.style.background = color;
+                    percentText.style.color = color;
+                }
+            };
+            
+            // Initialize progress on load
+            window.updateChecklistProgress();
         });
 
         function setupChat() {
+
+            // Global state for modals
+            window.currentEditDocId = null;
+            window.currentDeleteDocId = null;
+
+            // Edit Modal Listeners
+            document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
+                document.getElementById('editMessageModal')?.classList.remove('active');
+            });
+            document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
+                const input = document.getElementById('editMessageInput');
+                if (window.currentEditDocId && input.value.trim() !== '') {
+                    try {
+                        await updateDoc(doc(db, 'ai_chat_logs', window.currentEditDocId), { message: input.value.trim() });
+                    } catch(e) { console.error(e); }
+                }
+                document.getElementById('editMessageModal')?.classList.remove('active');
+            });
+
+            // Delete Modal Listeners
+            document.getElementById('cancelDeleteMsgBtn')?.addEventListener('click', () => {
+                document.getElementById('deleteMessageModal')?.classList.remove('active');
+            });
+            document.getElementById('confirmDeleteMsgBtn')?.addEventListener('click', async () => {
+                if (window.currentDeleteDocId) {
+                    try {
+                        await deleteDoc(doc(db, 'ai_chat_logs', window.currentDeleteDocId));
+                    } catch(e) { console.error(e); }
+                }
+                document.getElementById('deleteMessageModal')?.classList.remove('active');
+            });
+
             const btn = document.getElementById('sendChat');
             const input = document.getElementById('chatInput');
             const display = document.getElementById('chatDisplay');
+            const clearBtn = document.getElementById('clearChatBtn');
+
+            const spellCheckBtn = document.getElementById('spellCheckBtn');
+            spellCheckBtn?.addEventListener('click', () => {
+                const text = input.value;
+                if (!text.trim()) return;
+                
+                const originalHtml = spellCheckBtn.innerHTML;
+                spellCheckBtn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span>';
+                
+                setTimeout(() => {
+                    // Simulated AI Grammar & Spelling Correction
+                    let corrected = text
+                        .replace(/adhar/gi, 'Aadhaar')
+                        .replace(/teh/g, 'the')
+                        .replace(/reprot/gi, 'report')
+                        .replace(/panding/gi, 'pending')
+                        .replace(/pls/gi, 'please')
+                        .replace(/emp/gi, 'employee')
+                        .replace(/plz/gi, 'please');
+                    
+                    // Capitalize first letter if needed
+                    corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
+                    
+                    input.value = corrected;
+                    spellCheckBtn.innerHTML = originalHtml;
+                    if (window.lucide) lucide.createIcons();
+                }, 800); // simulate network delay
+            });
+
 
             btn?.addEventListener('click', async () => {
                 const text = input.value.trim();
                 if (!text) return;
 
-                appendMessage(text, 'user');
                 input.value = '';
 
                 try {
@@ -279,10 +556,29 @@
                         timestamp: serverTimestamp()
                     });
 
-                    // Simulated AI Response
+                    // Simulated AI Response logic based on Kylrx AI Onboarding Intelligence Agent Prompt
                     setTimeout(async () => {
-                        const response = "Analyzing data... I see your request. I recommend reviewing the latest department bottlenecks in the Intelligence Insights panel.";
-                        appendMessage(response, 'ai');
+                        let response = "";
+                        const lowerText = text.toLowerCase();
+                        
+                        if (lowerText.includes("status") || lowerText.includes("percentage") || lowerText.includes("pending")) {
+                            response = `**Onboarding Status Update**<br><br>
+                            • **Total Employees:** 14<br>
+                            • **Completed:** 8 (57%)<br>
+                            • **In Progress:** 4<br>
+                            • **Pending:** 2 (Documents missing)<br>
+                            • **Critical Delays:** 1 (IT Asset Allocation)`;
+                        } else if (lowerText.includes("report") || lowerText.includes("insights") || lowerText.includes("bottleneck")) {
+                            response = `**Daily Onboarding Report**<br><br>
+                            • **Summary:** Batch #42 processing is on track, but IT provisioning is lagging.<br>
+                            • **Key Metrics:** 8/14 completed, 85% document verification rate.<br>
+                            • **Risks:** Delay in laptop allocation for Engineering hires.<br>
+                            • **Recommendations:** Auto-escalate IT tickets pending > 24 hrs.<br>
+                            • **Next Actions:** Send automated reminders to 2 employees with pending KYC.`;
+                        } else {
+                            response = "Analyzing data... I have processed your request according to the Kylrx AI Onboarding Intelligence rules. How else can I assist you with today's batch?";
+                        }
+
                         await addDoc(collection(db, 'ai_chat_logs'), {
                             role: 'ai',
                             message: response,
@@ -294,25 +590,104 @@
                 }
             });
 
+            clearBtn?.addEventListener('click', () => {
+                const modal = document.getElementById('customConfirmModal');
+                if (modal) {
+                    modal.classList.add('active');
+                    // Force lucide to render icon if needed
+                    if (window.lucide) lucide.createIcons();
+                }
+            });
+
+            document.getElementById('cancelConfirmBtn')?.addEventListener('click', () => {
+                document.getElementById('customConfirmModal')?.classList.remove('active');
+            });
+
+            document.getElementById('okConfirmBtn')?.addEventListener('click', async () => {
+                document.getElementById('customConfirmModal')?.classList.remove('active');
+                
+                const originalHtml = clearBtn.innerHTML;
+                clearBtn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span>';
+                
+                try {
+                    const snap = await getDocs(collection(db, 'ai_chat_logs'));
+                    const batch = writeBatch(db);
+                    snap.forEach(d => {
+                        batch.delete(d.ref);
+                    });
+                    await batch.commit();
+                } catch (err) {
+                    console.error("Clear chat failed:", err);
+                } finally {
+                    clearBtn.innerHTML = originalHtml;
+                }
+            });
+
             // Load recent history
             const q = query(collection(db, 'ai_chat_logs'), orderBy('timestamp', 'asc'), limit(10));
             onSnapshot(q, (snap) => {
                 display.innerHTML = '<div class="chat-bubble bubble-ai">Hello Admin! I\'m your onboarding intelligence agent. How can I assist you with today\'s batch?</div>';
                 snap.forEach(doc => {
                     const data = doc.data();
-                    appendMessage(data.message, data.role);
+                    appendMessage(data.message, data.role, doc.id);
                 });
             });
         }
 
-        function appendMessage(text, role) {
+                function appendMessage(text, role, docId = null) {
             const display = document.getElementById('chatDisplay');
             if (!display) return;
+            
+            const bubbleWrap = document.createElement('div');
+            bubbleWrap.style.display = 'flex';
+            bubbleWrap.style.flexDirection = 'column';
+            bubbleWrap.style.gap = '4px';
+            bubbleWrap.style.alignSelf = role === 'ai' ? 'flex-start' : 'flex-end';
+            bubbleWrap.style.maxWidth = '85%';
+
             const bubble = document.createElement('div');
             bubble.className = `chat-bubble bubble-${role}`;
-            bubble.textContent = text;
-            display.appendChild(bubble);
+            bubble.style.maxWidth = '100%';
+            bubble.innerHTML = text;
+            bubbleWrap.appendChild(bubble);
+
+            if (role === 'user' && docId) {
+                const actions = document.createElement('div');
+                actions.style.display = 'flex';
+                actions.style.gap = '12px';
+                actions.style.justifyContent = 'flex-end';
+                actions.style.fontSize = '0.75rem';
+                actions.style.marginTop = '2px';
+
+                const editBtn = document.createElement('span');
+                editBtn.innerHTML = '<i data-lucide="edit-2" style="width:12px;height:12px;margin-bottom:-2px;"></i> Edit';
+                editBtn.style.cursor = 'pointer';
+                editBtn.style.color = 'var(--text-muted)';
+                editBtn.onclick = () => {
+                    window.currentEditDocId = docId;
+                    document.getElementById('editMessageInput').value = text;
+                    document.getElementById('editMessageModal').classList.add('active');
+                    if (window.lucide) lucide.createIcons();
+                };
+
+                const delBtn = document.createElement('span');
+                delBtn.innerHTML = '<i data-lucide="trash-2" style="width:12px;height:12px;margin-bottom:-2px;"></i> Delete';
+                delBtn.style.cursor = 'pointer';
+                delBtn.style.color = 'var(--danger)';
+                delBtn.onclick = () => {
+                    window.currentDeleteDocId = docId;
+                    document.getElementById('deleteMessageModal').classList.add('active');
+                    if (window.lucide) lucide.createIcons();
+                };
+
+                actions.appendChild(editBtn);
+                actions.appendChild(delBtn);
+                bubbleWrap.appendChild(actions);
+            }
+
+            display.appendChild(bubbleWrap);
             display.scrollTop = display.scrollHeight;
+            if (window.lucide) lucide.createIcons();
         }
 
         async function loadAIIntelligence() {
@@ -458,6 +833,54 @@
             });
         }
     </script>
+
+    <!-- Custom Confirm Modal in the Center of Screen -->
+    <div class="confirm-modal-overlay" id="customConfirmModal">
+        <div class="confirm-modal">
+            <div class="confirm-modal-icon">
+                <i data-lucide="alert-triangle" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h4 class="confirm-modal-title">Clear Chat History</h4>
+            <p class="confirm-modal-desc">Are you sure you want to clear all chat history? This action cannot be undone.</p>
+            <div class="confirm-modal-actions">
+                <button class="confirm-modal-btn confirm-modal-btn-cancel" id="cancelConfirmBtn">Cancel</button>
+                <button class="confirm-modal-btn confirm-modal-btn-confirm" id="okConfirmBtn">Clear Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Message Modal -->
+    <div class="confirm-modal-overlay" id="editMessageModal">
+        <div class="confirm-modal">
+            <div class="confirm-modal-icon" style="background: #e0f2fe; color: #0ea5e9;">
+                <i data-lucide="edit-2" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h4 class="confirm-modal-title">Edit Message</h4>
+            <div style="margin-bottom: 1.5rem; text-align: left;">
+                <input type="text" id="editMessageInput" class="input-box" style="width: 100%; border: 1px solid var(--border); padding: 10px; border-radius: 8px;">
+            </div>
+            <div class="confirm-modal-actions">
+                <button class="confirm-modal-btn confirm-modal-btn-cancel" id="cancelEditBtn">Cancel</button>
+                <button class="confirm-modal-btn confirm-modal-btn-confirm" id="saveEditBtn" style="background: var(--primary);">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Message Modal -->
+    <div class="confirm-modal-overlay" id="deleteMessageModal">
+        <div class="confirm-modal">
+            <div class="confirm-modal-icon">
+                <i data-lucide="trash-2" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h4 class="confirm-modal-title">Delete Message</h4>
+            <p class="confirm-modal-desc">Are you sure you want to delete this message? This action cannot be undone.</p>
+            <div class="confirm-modal-actions">
+                <button class="confirm-modal-btn confirm-modal-btn-cancel" id="cancelDeleteMsgBtn">Cancel</button>
+                <button class="confirm-modal-btn confirm-modal-btn-confirm" id="confirmDeleteMsgBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
 

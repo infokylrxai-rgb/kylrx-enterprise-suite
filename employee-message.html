@@ -51,7 +51,7 @@
             z-index: 100;
             overflow-y: auto;
             scrollbar-width: thin;
-            scrollbar-color: rgba(59, 130, 246, 0.1) transparent;
+            
         }
 
         .sidebar::-webkit-scrollbar { width: 5px; }
@@ -491,14 +491,14 @@
                 <div class="nav-label">MY WORKSPACE</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Attendance Sync', 'Attendance Logs are being synchronized.', 'info')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 
                 <div class="nav-label">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showStatusModal('Asset Inventory', 'Asset Inventory is verified.', 'success')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="selectChannel('hr')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
             </nav>
 
@@ -586,7 +586,10 @@
                         <div style="text-align: center; color: var(--text-muted); padding: 2rem; font-size: 0.85rem;">Connecting secure messaging streams...</div>
                     </div>
 
-                    <!-- Scroll to bottom button -->
+                    <!-- Scroll to top and bottom buttons -->
+                    <button id="scrollBtnUp" onclick="document.getElementById('chatArea').scrollTop = 0" style="position: absolute; bottom: 155px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10; transition: 0.3s;">
+                        <i data-lucide="arrow-up" size="18"></i>
+                    </button>
                     <button class="scroll-down-btn" id="scrollBtn" onclick="scrollToBottom()">
                         <i data-lucide="arrow-down" size="18"></i>
                     </button>
@@ -612,7 +615,12 @@
                                 <i data-lucide="plus" size="20"></i>
                             </button>
                             <input type="text" id="chatInputText" placeholder="Type your message..." class="chat-input-box">
-                            <button class="action-btn-chat ai-refine" id="aiToneBtn" title="AI Sentence Formality Fix">
+                            
+                            <button class="action-btn-chat" id="clearChatHistoryBtn" title="Clear All Chat History" onclick="clearAllChatHistory()" style="color: #ef4444; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); width: auto; padding: 0 14px; gap: 6px; display: flex; align-items: center;">
+                            <i data-lucide="trash-2" style="pointer-events: none; width: 16px; height: 16px;"></i>
+                            Clear All
+                        </button>
+<button class="action-btn-chat ai-refine" id="aiToneBtn" title="AI Sentence Formality Fix">
                                 <i data-lucide="sparkles" size="16"></i>
                                 AI Fix
                             </button>
@@ -895,31 +903,42 @@
             }
         });
 
-        // AI Fix logic (Gemini API)
-        document.getElementById('aiFixBtn').addEventListener('click', async () => {
+        // AI Fix logic (OpenAI GPT API)
+        document.getElementById('aiToneBtn').addEventListener('click', async () => {
             const val = inputTextBox.value.trim();
             if(!val) return;
             
-            const btn = document.getElementById('aiFixBtn');
+            const btn = document.getElementById('aiToneBtn');
             const originalHtml = btn.innerHTML;
             btn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Fixing...';
             
             try {
-                const apiKey = 'YOUR_GEMINI_API_KEY';
+                const apiKey = 'YOUR_OPENAI_API_KEY_HERE';
                 
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: `Fix the grammar and spelling of this text. Maintain the exact original meaning and tone. Only return the corrected text and nothing else:\n\n${val}` }]
-                        }]
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are an AI that fixes grammar, spelling, and refines message tone to be highly professional. Only return the corrected text, with no introduction, explanations, quotes, or formatting.'
+                            },
+                            {
+                                role: 'user',
+                                content: val
+                            }
+                        ]
                     })
                 });
                 
                 const data = await response.json();
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    inputTextBox.value = data.candidates[0].content.parts[0].text.trim();
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    inputTextBox.value = data.choices[0].message.content.trim();
                 } else {
                     inputTextBox.value = val.charAt(0).toUpperCase() + val.slice(1) + (val.endsWith('.') ? '' : '.');
                 }
@@ -1010,7 +1029,7 @@
                             <span>${labelName}</span>
                             <span class="bubble-time">${date}</span>
                         </div>
-                        <div>${m.text || ''}</div>
+                        <div>${(m.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>')}</div>
                     `;
 
                     // Hydrate attachment previews
@@ -1023,6 +1042,12 @@
                         bodyHtml += `<div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">${atts}</div>`;
                     }
 
+                    if (isMe) {
+                        bodyHtml += `<div style="display:flex; gap:12px; margin-top:8px; font-size:0.7rem; opacity:0.8; justify-content:center;">
+                            <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${m.id}', \`${(m.text || '').replace(/`/g, '\\`')}\`)">Edit</span>
+                            <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${m.id}')">Clear</span>
+                        </div>`;
+                    }
                     bubble.innerHTML = bodyHtml;
                     chatArea.appendChild(bubble);
                 });
@@ -1161,14 +1186,18 @@
             if (area) area.scrollTop = area.scrollHeight;
         };
 
-        // Scroll listener for down button
+        // Scroll listener for up and down buttons
         const chatArea = document.getElementById('chatArea');
         chatArea.onscroll = () => {
-            const btn = document.getElementById('scrollBtn');
-            if (chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight > 100) {
-                btn.style.display = 'flex';
-            } else {
-                btn.style.display = 'none';
+            const btnDown = document.getElementById('scrollBtn');
+            const btnUp = document.getElementById('scrollBtnUp');
+            if (chatArea) {
+                if (btnDown) {
+                    btnDown.style.display = (chatArea.scrollHeight - chatArea.scrollTop - chatArea.clientHeight > 100) ? 'flex' : 'none';
+                }
+                if (btnUp) {
+                    btnUp.style.display = (chatArea.scrollTop > 100) ? 'flex' : 'none';
+                }
             }
         };
 
@@ -1184,6 +1213,130 @@
                 window.location.href = 'index.html';
             }
         };
-    </script>
+        
+        // Create modal container
+        const ensureModals = () => {
+            if (document.getElementById('customEditModal')) return;
+            
+            const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
+            const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
+            
+            // Edit Modal
+            const editModal = document.createElement('div');
+            editModal.id = 'customEditModal';
+            editModal.style.cssText = modalStyle;
+            editModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:16px; color:#1e293b; font-size:1.1rem; font-weight:700;">Edit Message</h3>
+                    <textarea id="customEditInput" style="width:100%; height:100px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; resize:none; font-family:inherit; box-sizing:border-box; outline:none; font-size:0.9rem;"></textarea>
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:16px;">
+                        <button id="customEditCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, #3b82f6); color:white;">Save Changes</button>
+                    </div>
+                </div>
+            `;
+            
+            // Delete Modal
+            const delModal = document.createElement('div');
+            delModal.id = 'customDelModal';
+            delModal.style.cssText = modalStyle;
+            delModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear Message</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear this message? This action cannot be undone.</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customDelCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customDelConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Message</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(editModal);
+            document.body.appendChild(delModal);
+            // Clear All Modal
+            const clearAllModal = document.createElement('div');
+            clearAllModal.id = 'customClearAllModal';
+            clearAllModal.style.cssText = modalStyle;
+            clearAllModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear All History</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear the entire conversation? This action cannot be undone.</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customClearAllCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Chat</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(clearAllModal);
+
+        };
+
+        
+        window.clearAllChatHistory = async () => {
+            let chatId = null;
+            if (typeof buildChatId === 'function' && buildChatId.length === 0) {
+                try { chatId = buildChatId(); } catch(e) {}
+            }
+            if (!chatId && typeof selectedUserIds !== 'undefined' && selectedUserIds.size === 1) {
+                const targetId = Array.from(selectedUserIds)[0];
+                chatId = ['hr_support', targetId].sort().join('_');
+            }
+            if (!chatId && typeof currentChatId !== 'undefined') {
+                chatId = currentChatId;
+            }
+            if (!chatId) {
+                alert("Please select a chat first.");
+                return;
+            }
+
+            ensureModals();
+            const modal = document.getElementById('customClearAllModal');
+            if(modal) modal.style.display = 'flex';
+            
+            document.getElementById('customClearAllCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customClearAllConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                const { collection, query, where, getDocs, deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
+                const snap = await getDocs(q);
+                const deletePromises = snap.docs.map(d => deleteDoc(doc(db, 'messages', d.id)));
+                await Promise.all(deletePromises);
+            };
+        };
+
+        window.clearMessage = async (msgId) => {
+            ensureModals();
+            const modal = document.getElementById('customDelModal');
+            modal.style.display = 'flex';
+            
+            document.getElementById('customDelCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customDelConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                await deleteDoc(doc(db, 'messages', msgId));
+            };
+        };
+
+        window.editMessage = async (msgId, oldText) => {
+            ensureModals();
+            const modal = document.getElementById('customEditModal');
+            const input = document.getElementById('customEditInput');
+            input.value = oldText;
+            modal.style.display = 'flex';
+            input.focus();
+            
+            document.getElementById('customEditCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customEditSave').onclick = async () => {
+                const newText = input.value;
+                if (newText !== null && newText.trim() !== "" && newText !== oldText) {
+                    const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                    await updateDoc(doc(db, 'messages', msgId), { text: newText.trim() });
+                }
+                modal.style.display = 'none';
+            };
+        };
+
+        </script>
 </body>
 </html>

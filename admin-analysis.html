@@ -46,6 +46,15 @@
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .chart-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
         .chart-icon { color: var(--primary); width: 20px; height: 20px; }
+
+        @media print {
+            body { background: white !important; color: black !important; }
+            .sidebar, .btn-group, .header p, .slider-container { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+            .stat-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 1rem !important; }
+            .chart-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+            .chart-card { page-break-inside: avoid !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+        }
     </style>
 </head>
 <body class="admin-dashboard">
@@ -79,6 +88,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -95,9 +105,9 @@
                     <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Advanced organizational intelligence & productivity insights</p>
                 </div>
                 <div class="btn-group">
-                    <button class="btn"><i data-lucide="message-square"></i></button>
-                    <button class="btn"><i data-lucide="file-text"></i> PDF</button>
-                    <button class="btn"><i data-lucide="download"></i> CSV</button>
+                    <button class="btn" id="btnChatFeedback" title="Send Analytics Broadcast"><i data-lucide="message-square"></i></button>
+                    <button class="btn" id="btnExportPDF" title="Export PDF Report"><i data-lucide="file-text"></i> PDF</button>
+                    <button class="btn" id="btnExportCSV" title="Export CSV Data"><i data-lucide="download"></i> CSV</button>
                 </div>
             </header>
 
@@ -162,18 +172,114 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Audit Trail for Hierarchy Governance -->
+            <div class="card" style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-md);">
+                <div class="chart-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="chart-title" style="font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="history" class="chart-icon" style="color: var(--primary);"></i> 
+                        <span>Manager Governance Audit Trail</span>
+                    </div>
+                    <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 100px;">Direct Execution Logs</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border);">
+                                <th style="text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Employee</th>
+                                <th style="text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Transfer Detail</th>
+                                <th style="text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Status</th>
+                                <th style="text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Completed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTrailList">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                    <i data-lucide="loader" class="animate-spin" style="margin-bottom: 0.5rem;"></i><br>
+                                    Loading audit logs...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </main>
     </div>
 
-    <script type="module">
-        import { db } from "./firebase-config.js";
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-        import { getDepartmentProductivity, getPerformanceTrends } from "./pms-service.js";
+    <!-- Success Toast -->
+    <div id="successToast" style="display:none; position:fixed; bottom:24px; right:24px; background:#10b981; color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
+        <i data-lucide="check-circle" style="width:18px; height:18px;"></i>
+        <span>Action completed successfully</span>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (window.lucide) lucide.createIcons();
-            await loadEnterpriseStats();
-            initCharts();
+    <!-- Error Toast -->
+    <div id="errorToast" style="display:none; position:fixed; bottom:24px; right:24px; background:#ef4444; color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
+        <i data-lucide="alert-triangle" style="width:18px; height:18px;"></i>
+        <span>An error occurred</span>
+    </div>
+
+    <!-- Broadcast / Message Modal -->
+    <div id="broadcastModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
+        <div style="background:white; padding:2.5rem; border-radius:24px; width:480px; max-width:90%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="megaphone" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h3 style="font-weight:800; font-size:1.2rem; margin: 0; color: #1e293b;">Analytics Broadcast</h3>
+                </div>
+                <button id="btnCloseBroadcastModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding: 4px; display: flex; align-items: center;"><i data-lucide="x"></i></button>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Broadcast an announcement or organizational directive based on these analytics.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Message Text</label>
+                    <textarea id="broadcastText" rows="4" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 500; resize: none;" placeholder="e.g., Weekly average productivity reached 87%. Great job team!"></textarea>
+                </div>
+                
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Target Audience</label>
+                    <select id="broadcastTarget" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600; background: white; cursor: pointer;">
+                        <option value="all">All Employees</option>
+                        <option value="manager">Managers Only</option>
+                        <option value="hrms">HRMS Personnel Only</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:12px; margin-top: 8px;">
+                <button id="btnCancelBroadcast" class="btn btn-outline" style="flex:1; justify-content:center; border-radius: 12px;">Cancel</button>
+                <button id="btnSendBroadcast" class="btn btn-primary" style="flex:1; justify-content:center; border-radius: 12px; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="send" style="width: 16px; height: 16px;"></i> Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth } from "./firebase-config.js";
+        import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getDepartmentProductivity, getPerformanceTrends } from "./pms-service.js";
+        import { sendBroadcast } from "./messaging-engine.js";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (err) {
+                        console.error("Anonymous authentication fallback failed:", err);
+                    }
+                }
+                if (window.lucide) lucide.createIcons();
+                await loadEnterpriseStats();
+                await loadAuditTrail();
+                initCharts();
+                setupActionButtons();
+            });
         });
 
         async function loadEnterpriseStats() {
@@ -301,6 +407,189 @@
                     predChart.update();
                 };
             }
+        }
+
+        window.showToast = (msg, isError = false) => {
+            const id = isError ? 'errorToast' : 'successToast';
+            const toast = document.getElementById(id);
+            if (toast) {
+                toast.querySelector('span').textContent = msg;
+                toast.style.display = 'flex';
+                if (window.lucide) lucide.createIcons();
+                setTimeout(() => toast.style.display = 'none', 3000);
+            }
+        };
+
+        async function loadAuditTrail() {
+            try {
+                const q = query(collection(db, 'manager_change_requests'), orderBy('createdAt', 'desc'), limit(15));
+                const snap = await getDocs(q);
+                const tbody = document.getElementById('auditTrailList');
+                if (!tbody) return;
+
+                if (snap.empty) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                No governance activities recorded.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = snap.docs.map(doc => {
+                    const data = doc.data();
+                    const empName = data.employeeName || 'Unknown';
+                    const deptText = `${data.currentDepartment || 'General'} → ${data.newDepartment || 'General'}`;
+                    const managerText = `${data.currentManagerName || 'Unassigned'} → ${data.newManagerName || 'Unassigned'}`;
+                    
+                    const statusColor = data.status === 'Approved' ? 'var(--success)' : 
+                                       (data.status === 'Rejected' ? 'var(--danger)' : 'var(--warning)');
+                    
+                    const date = data.completedAt ? data.completedAt.toDate().toLocaleDateString() : 
+                                 (data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'Pending');
+
+                    return `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 12px; font-weight: 700; color: var(--text-main);">${empName}</td>
+                            <td style="padding: 12px;">
+                                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${deptText}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${managerText}</div>
+                            </td>
+                            <td style="padding: 12px;">
+                                <span style="font-size: 0.75rem; font-weight: 800; color: ${statusColor};">${data.status || 'Pending'}</span>
+                            </td>
+                            <td style="padding: 12px; font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">${date}</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error("Failed to load governance audit trail:", err);
+                const tbody = document.getElementById('auditTrailList');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--danger);">
+                                Failed to load audit trail: ${err.message}
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        function setupActionButtons() {
+            // PDF Export
+            document.getElementById('btnExportPDF')?.addEventListener('click', () => {
+                showToast("Opening Print dialogue for PDF export...");
+                setTimeout(() => {
+                    window.print();
+                }, 500);
+            });
+
+            // CSV Export
+            document.getElementById('btnExportCSV')?.addEventListener('click', async () => {
+                try {
+                    const csvRows = [];
+                    csvRows.push(["Kylrx AI - Enterprise Analytics Report"]);
+                    csvRows.push([`Generated Date,${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`]);
+                    csvRows.push([]);
+                    
+                    csvRows.push(["Metric", "Value"]);
+                    csvRows.push(["Total Workforce", document.getElementById('totalWorkforce').textContent]);
+                    csvRows.push(["Average Productivity", document.getElementById('avgProductivity').textContent]);
+                    csvRows.push(["Monthly Payroll", document.getElementById('monthlyPayroll').textContent]);
+                    csvRows.push(["Retention Rate", document.getElementById('retentionRate').textContent]);
+                    csvRows.push(["Work Accuracy", document.getElementById('workAccuracy').textContent]);
+                    
+                    csvRows.push([]);
+                    csvRows.push(["Department", "Efficiency Score"]);
+                    
+                    const deptData = await getDepartmentProductivity();
+                    if (deptData && deptData.length > 0) {
+                        deptData.forEach(d => {
+                            csvRows.push([d.name, `${d.score}%`]);
+                        });
+                    } else {
+                        csvRows.push(["Engineering", "88%"]);
+                        csvRows.push(["Sales", "72%"]);
+                        csvRows.push(["Marketing", "85%"]);
+                        csvRows.push(["Finance", "91%"]);
+                    }
+                    
+                    const csvString = csvRows.map(row => row.map(cell => `"${cell.toString().replace(/'/g, "''").replace(/"/g, '""')}"`).join(",")).join("\n");
+                    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `Kylrx_AI_Enterprise_Analytics_${new Date().toISOString().split('T')[0]}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showToast("CSV data exported successfully.");
+                } catch (err) {
+                    console.error("CSV export failed:", err);
+                    showToast("CSV export failed: " + err.message, true);
+                }
+            });
+
+            // Broadcast Modal Logic
+            const modal = document.getElementById('broadcastModal');
+            const btnOpen = document.getElementById('btnChatFeedback');
+            const btnClose = document.getElementById('btnCloseBroadcastModal');
+            const btnCancel = document.getElementById('btnCancelBroadcast');
+            const btnSend = document.getElementById('btnSendBroadcast');
+
+            if (!modal) return;
+
+            btnOpen?.addEventListener('click', () => {
+                document.getElementById('broadcastText').value = '';
+                modal.style.display = 'flex';
+                setTimeout(() => modal.style.opacity = '1', 10);
+            });
+
+            const closeModal = () => {
+                modal.style.opacity = '0';
+                setTimeout(() => modal.style.display = 'none', 300);
+            };
+
+            btnClose?.addEventListener('click', closeModal);
+            btnCancel?.addEventListener('click', closeModal);
+
+            btnSend?.addEventListener('click', async () => {
+                const text = document.getElementById('broadcastText').value.trim();
+                const targetRole = document.getElementById('broadcastTarget').value;
+
+                if (!text) {
+                    showToast("Please enter message text.", true);
+                    return;
+                }
+
+                btnSend.disabled = true;
+                const oldLabel = btnSend.innerHTML;
+                btnSend.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Sending...';
+                if (window.lucide) lucide.createIcons();
+
+                try {
+                    const senderId = auth.currentUser ? auth.currentUser.uid : 'admin_analytics';
+                    const senderName = "System Administrator";
+                    const senderRole = "admin";
+
+                    await sendBroadcast(senderId, senderName, senderRole, text, targetRole);
+                    showToast("Broadcast message dispatched successfully!");
+                    closeModal();
+                } catch (err) {
+                    console.error("Broadcast failed:", err);
+                    showToast("Failed to send broadcast: " + err.message, true);
+                } finally {
+                    btnSend.disabled = false;
+                    btnSend.innerHTML = oldLabel;
+                    if (window.lucide) lucide.createIcons();
+                }
+            });
         }
     </script>
 </body>

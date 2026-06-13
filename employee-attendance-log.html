@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Log | HRFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2.5rem;
+            overflow-x: hidden;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .back-btn:hover { color: var(--text); }
+
+        .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-top: 0.75rem; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            transition: 0.2s;
+        }
+        .summary-card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.07); }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+        }
+        .summary-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar select, .filter-bar input {
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--card);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            outline: none;
+            transition: 0.2s;
+        }
+        .filter-bar select:focus, .filter-bar input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        /* Table */
+        .table-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            text-align: left;
+            padding: 1.25rem 1.5rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #fcfdfe;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: #fafbfc; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-present { background: #dcfce7; color: #166534; }
+        .status-short { background: #fef3c7; color: #92400e; }
+        .status-absent { background: #fee2e2; color: #991b1b; }
+        .status-holiday { background: var(--primary-light); color: var(--primary); }
+        .status-leave { background: #f3e8ff; color: #6b21a8; }
+
+        .duration-pill {
+            font-family: monospace;
+            font-weight: 800;
+            font-size: 0.88rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            color: var(--text-muted);
+        }
+        .empty-state i { width: 48px; height: 48px; opacity: 0.3; margin-bottom: 1rem; }
+        .empty-state p { font-size: 0.9rem; font-weight: 600; }
+
+        /* Month header row */
+        .month-header td {
+            background: var(--bg);
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 1.5rem; }
+            thead th:nth-child(3), tbody td:nth-child(3),
+            thead th:nth-child(5), tbody td:nth-child(5) { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <header class="page-header">
+            <div>
+                <a href="#" class="back-btn" id="backBtn">
+                    <i data-lucide="arrow-left" size="16"></i> Back to Dashboard
+                </a>
+                <h1 class="page-title">Attendance Log</h1>
+                <p class="page-subtitle" id="empSubtitle">Your complete attendance history</p>
+            </div>
+            <select id="monthFilter" onchange="applyFilter()" style="padding:10px 16px;border:1px solid var(--border);border-radius:12px;background:white;font-family:inherit;font-weight:600;font-size:0.85rem;outline:none;">
+                <option value="">All Records</option>
+            </select>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-value" id="totalDays" style="color:var(--primary);">—</div>
+                <div class="summary-label">Total Days</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="presentDays" style="color:var(--success);">—</div>
+                <div class="summary-label">Present</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="shortDays" style="color:var(--warning);">—</div>
+                <div class="summary-label">Short Hours</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="absentDays" style="color:var(--danger);">—</div>
+                <div class="summary-label">Absent</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="avgHours" style="color:var(--text);">—</div>
+                <div class="summary-label">Avg Hours/Day</div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <span style="font-size:0.8rem;font-weight:700;color:var(--text-muted);">FILTER BY STATUS:</span>
+            <select id="statusFilter" onchange="applyFilter()">
+                <option value="">All Statuses</option>
+                <option value="Present">Present</option>
+                <option value="Short Hours">Short Hours</option>
+                <option value="Absent">Absent</option>
+                <option value="Holiday">Holiday</option>
+            </select>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Punch In</th>
+                        <th>Punch Out</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceBody">
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i data-lucide="loader"></i>
+                                <p>Loading attendance records...</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const empId = urlParams.get('id') || localStorage.getItem('employee_uid') || 'demo_emp';
+
+        // Back button
+        document.getElementById('backBtn').href = `employee-dashboard.html?id=${empId}`;
+
+        let allRecords = [];
+
+        // Populate month filter dropdown
+        const populateMonthFilter = (records) => {
+            const months = [...new Set(records.map(r => r.date.substring(0, 7)))].sort().reverse();
+            const sel = document.getElementById('monthFilter');
+            months.forEach(m => {
+                const dt = new Date(m + '-01');
+                const label = dt.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = label;
+                sel.appendChild(opt);
+            });
+        };
+
+        // Format time from Firestore timestamp
+        const fmtTime = (ts) => {
+            if (!ts) return '—';
+            const d = ts.toDate ? ts.toDate() : (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
+            return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        };
+
+        // Format duration in hours
+        const fmtDuration = (hours) => {
+            if (hours == null) return '—';
+            const h = Math.floor(hours);
+            const m = Math.round((hours - h) * 60);
+            return `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`;
+        };
+
+        // Status badge HTML
+        const statusBadge = (status) => {
+            const map = {
+                'Present':     ['status-present', 'check-circle'],
+                'Short Hours': ['status-short',   'alert-triangle'],
+                'Absent':      ['status-absent',  'x-circle'],
+                'Holiday':     ['status-holiday', 'sun'],
+                'Leave':       ['status-leave',   'umbrella'],
+            };
+            const [cls, icon] = map[status] || ['status-short', 'minus'];
+            return `<span class="status-badge ${cls}"><i data-lucide="${icon}" style="width:11px;height:11px;"></i>${status}</span>`;
+        };
+
+        // Render table with filtered records
+        window.applyFilter = () => {
+            const monthVal = document.getElementById('monthFilter').value;
+            const statusVal = document.getElementById('statusFilter').value;
+
+            let filtered = allRecords;
+            if (monthVal) filtered = filtered.filter(r => r.date.startsWith(monthVal));
+            if (statusVal) filtered = filtered.filter(r => r.status === statusVal);
+
+            renderTable(filtered);
+        };
+
+        const renderTable = (records) => {
+            const tbody = document.getElementById('attendanceBody');
+
+            if (!records.length) {
+                tbody.innerHTML = `<tr><td colspan="5">
+                    <div class="empty-state">
+                        <i data-lucide="calendar-x"></i>
+                        <p>No attendance records found for the selected filters.</p>
+                    </div></td></tr>`;
+                lucide.createIcons();
+                return;
+            }
+
+            // Group by month
+            let html = '';
+            let lastMonth = '';
+            records.forEach(r => {
+                const month = r.date.substring(0, 7);
+                if (month !== lastMonth) {
+                    const label = new Date(month + '-01').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+                    html += `<tr class="month-header"><td colspan="5">${label}</td></tr>`;
+                    lastMonth = month;
+                }
+                const dt = new Date(r.date);
+                const dayLabel = dt.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+                html += `<tr>
+                    <td style="font-weight:700;">${dayLabel}</td>
+                    <td>${fmtTime(r.punchIn)}</td>
+                    <td>${fmtTime(r.punchOut)}</td>
+                    <td class="duration-pill">${fmtDuration(r.durationHours)}</td>
+                    <td>${statusBadge(r.status || 'Short Hours')}</td>
+                </tr>`;
+            });
+
+            tbody.innerHTML = html;
+            lucide.createIcons();
+        };
+
+        // Update summary cards
+        const updateSummary = (records) => {
+            const total = records.length;
+            const present = records.filter(r => r.status === 'Present').length;
+            const short = records.filter(r => r.status === 'Short Hours').length;
+            const absent = records.filter(r => r.status === 'Absent').length;
+            const hoursArr = records.filter(r => r.durationHours != null).map(r => r.durationHours);
+            const avg = hoursArr.length ? (hoursArr.reduce((a, b) => a + b, 0) / hoursArr.length) : 0;
+
+            document.getElementById('totalDays').textContent = total;
+            document.getElementById('presentDays').textContent = present;
+            document.getElementById('shortDays').textContent = short;
+            document.getElementById('absentDays').textContent = absent;
+            document.getElementById('avgHours').textContent = fmtDuration(avg);
+        };
+
+        // Load from Firestore
+        const load = async () => {
+            try {
+                const q = query(
+                    collection(db, 'attendance'),
+                    where('userId', '==', empId),
+                    orderBy('date', 'desc')
+                );
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    document.getElementById('attendanceBody').innerHTML = `<tr><td colspan="5">
+                        <div class="empty-state">
+                            <i data-lucide="calendar-x"></i>
+                            <p>No attendance records found. Records will appear here after you start punching in.</p>
+                        </div></td></tr>`;
+                    lucide.createIcons();
+                    return;
+                }
+
+                allRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                populateMonthFilter(allRecords);
+                updateSummary(allRecords);
+                renderTable(allRecords);
+
+                // Show employee name
+                const name = allRecords[0]?.userName;
+                if (name) {
+                    document.getElementById('empSubtitle').textContent = `${name}'s attendance history`;
+                }
+
+            } catch (err) {
+                console.error('Attendance load error:', err);
+                document.getElementById('attendanceBody').innerHTML = `<tr><td colspan="5">
+                    <div class="empty-state">
+                        <i data-lucide="wifi-off"></i>
+                        <p>Unable to load records. Please check your connection.</p>
+                    </div></td></tr>`;
+                lucide.createIcons();
+            }
+        };
+
+        load();
+    </script>
+</body>
+</html>

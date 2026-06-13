@@ -20,6 +20,13 @@ async function check() {
     notifSnap.forEach(doc => {
         console.log(`Notification ID: ${doc.id} =>`, doc.data());
     });
+
+    console.log("\n=== Fetching manager_change_requests from Firestore ===");
+    const reqSnap = await db.collection('manager_change_requests').get();
+    console.log(`Total requests found: ${reqSnap.size}`);
+    reqSnap.forEach(doc => {
+        console.log(`Request ID: ${doc.id} =>`, doc.data());
+    });
 }
 
 check().catch(console.error);

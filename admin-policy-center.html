@@ -26,10 +26,9 @@
         }
 
         .policy-item {
-            display: grid; grid-template-columns: 50px 1fr 120px 100px;
+            display: grid; grid-template-columns: 50px 1fr 120px 100px 40px;
             padding: 1.25rem; background: #f8fafc; border-radius: 16px;
             align-items: center; border: 1px solid transparent; transition: 0.2s;
-            cursor: pointer;
         }
 
         .policy-item:hover { border-color: var(--primary-soft); background: white; }
@@ -125,6 +124,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -225,6 +225,22 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Policy Delete Confirm Modal -->
+    <div class="modal-overlay" id="policyDeleteModal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div style="background: #fef2f2; color: #ef4444; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
+                <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: #ef4444;"></i>
+            </div>
+            <h3 style="font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem; color: #1e293b;">Retire Policy?</h3>
+            <p id="policyDeleteMsg" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to permanently delete this policy? All signature records and active requirements will be revoked.</p>
+            
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="togglePolicyDeleteModal(false)">Cancel</button>
+                <button class="btn btn-primary" id="btnConfirmDeletePolicy" style="flex: 1; justify-content: center; background: #ef4444; border-color: #ef4444;">Delete</button>
+            </div>
+        </div>
     </div>
 
     <!-- Success Toast -->
@@ -395,7 +411,7 @@
     <script type="module">
         import { auth, db } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getActivePolicies, getPolicyAuditLogs, createPolicy, updateSelectiveRouting, createCustomCompliancePlan, listenToAuditLogs, getCompliancePulse, updateAutoAssignConfig, getAutoAssignConfig } from "./policy-service.js";
+        import { getActivePolicies, getPolicyAuditLogs, createPolicy, updateSelectiveRouting, createCustomCompliancePlan, listenToAuditLogs, getCompliancePulse, updateAutoAssignConfig, getAutoAssignConfig, deletePolicy } from "./policy-service.js";
         import { getDepartments } from "./pms-service.js";
 
         window.toggleModal = (show) => {
@@ -712,6 +728,7 @@
                             <div class="progress-bar"><div class="progress-fill" style="width: ${policy.signedPercentage}%; background: ${color};"></div></div>
                         </div>
                         <span class="assignment-badge">${policy.scope}</span>
+                        <button class="action-icon" style="color: #ef4444; border: 1px solid #fca5a5; background: #fff5f5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;" onclick="deletePolicyConfirm('${policy.id}', '${(policy.title || '').replace(/'/g, "\\'")}')" title="Delete Policy"><i data-lucide="trash-2" size="14"></i></button>
                     `;
                     list.appendChild(item);
                 });
@@ -821,6 +838,46 @@
                 console.error("Failed to load Auto-Assign state", err);
             }
         }
+        let activePolicyIdForDeletion = null;
+
+        window.deletePolicyConfirm = (policyId, policyTitle) => {
+            activePolicyIdForDeletion = policyId;
+            document.getElementById('policyDeleteMsg').textContent = `Are you sure you want to permanently delete "${policyTitle}"? All signature records and active requirements will be revoked.`;
+            togglePolicyDeleteModal(true);
+        };
+
+        window.togglePolicyDeleteModal = (show) => {
+            const modal = document.getElementById('policyDeleteModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        document.getElementById('btnConfirmDeletePolicy')?.addEventListener('click', async () => {
+            if (!activePolicyIdForDeletion) return;
+            const btn = document.getElementById('btnConfirmDeletePolicy');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Deleting...';
+            if (window.lucide) lucide.createIcons();
+            
+            try {
+                await deletePolicy(activePolicyIdForDeletion);
+                const toast = document.getElementById('successToast');
+                toast.querySelector('span').textContent = 'Policy retired and deleted successfully.';
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                togglePolicyDeleteModal(false);
+                loadActivePolicies();
+                
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Deletion failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Delete';
+                if (window.lucide) lucide.createIcons();
+            }
+        });
     </script>
 </body>
 </html>

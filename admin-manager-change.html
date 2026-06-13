@@ -56,7 +56,7 @@
             flex-direction: column;
             overflow-y: auto;
             scrollbar-width: thin;
-            scrollbar-color: var(--primary-soft) transparent;
+            
         }
 
         .sidebar::-webkit-scrollbar { width: 5px; }
@@ -167,6 +167,8 @@
         .bpm-node.completed .bpm-circle { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
         .bpm-node.active .bpm-circle { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
         .bpm-node.pending .bpm-circle { color: var(--text-muted); background: var(--bg); }
+        .bpm-node.rejected .bpm-circle { background: var(--danger); border-color: var(--danger); color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .bpm-circle i, .bpm-circle svg { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
 
         .node-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
         .bpm-node.active .node-label { color: var(--primary); }
@@ -245,6 +247,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -294,7 +297,7 @@
                     <div class="m-box">
                         <p>Current Reporting</p>
                         <h4 id="currMgr">Sarah Wilson</h4>
-                        <p style="font-size: 0.7rem;">Marketing Operations</p>
+                        <p style="font-size: 0.7rem;" id="currMgrSub">Marketing Operations</p>
                     </div>
                     <div style="text-align: center; color: var(--primary);">
                         <i data-lucide="arrow-right-circle" size="32"></i>
@@ -303,36 +306,28 @@
                     <div class="m-box target">
                         <p style="color: var(--primary);">Upcoming Reporting</p>
                         <h4 id="nextMgr">Michael Chen</h4>
-                        <p style="font-size: 0.7rem;">Growth Engineering</p>
+                        <p style="font-size: 0.7rem;" id="nextMgrSub">Growth Engineering</p>
                     </div>
                 </div>
 
-                <div class="bpm-rail" id="bpmRail">
-                    <div class="bpm-node completed">
-                        <div class="bpm-circle"><i data-lucide="check" size="20"></i></div>
-                        <div class="node-label">Business Head</div>
-                        <div class="node-actor">Robert Vance</div>
+                <div class="transfer-path" style="margin-top: -2rem; margin-bottom: 4rem; border-top: 1px dashed var(--border); padding-top: 2rem;">
+                    <div class="m-box" style="background: #fafafa;">
+                        <p>Old Department</p>
+                        <h4 id="oldDept" style="font-size: 1.1rem; font-weight: 800; margin-top: 6px;">Marketing</h4>
                     </div>
-                    <div class="bpm-node active">
-                        <div class="bpm-circle"><i data-lucide="user-check" size="20"></i></div>
-                        <div class="node-label">HR Manager</div>
-                        <div class="node-actor">Jessica Lane</div>
+                    <div style="text-align: center; color: var(--primary);">
+                        <i data-lucide="chevrons-right" size="28"></i>
+                        <p style="font-size: 0.6rem; font-weight: 800; margin-top: 4px;">REASSIGN</p>
                     </div>
-                    <div class="bpm-node pending">
-                        <div class="bpm-circle">3</div>
-                        <div class="node-label">Prev. Manager</div>
-                        <div class="node-actor">Sarah Wilson</div>
-                    </div>
-                    <div class="bpm-node pending">
-                        <div class="bpm-circle">4</div>
-                        <div class="node-label">New Manager</div>
-                        <div class="node-actor">Michael Chen</div>
+                    <div class="m-box target" style="background: #eff6ff; border-color: var(--primary-soft);">
+                        <p style="color: var(--primary);">New Department</p>
+                        <h4 id="newDept" style="font-size: 1.1rem; font-weight: 800; margin-top: 6px;">Sales</h4>
                     </div>
                 </div>
 
                 <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 4rem;">
                     <button class="btn btn-danger" onclick="processAction('reject')"><i data-lucide="x-circle"></i> Reject</button>
-                    <button class="btn btn-primary" style="padding: 12px 40px;" onclick="processAction('approve')"><i data-lucide="shield-check"></i> Approve & Forward</button>
+                    <button class="btn btn-primary" style="padding: 12px 40px;" onclick="processAction('approve')"><i data-lucide="shield-check"></i> Approve & Execute</button>
                 </div>
             </div>
 
@@ -368,17 +363,37 @@
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                <div>
-                    <label class="nav-label">TARGET EMPLOYEE</label>
-                    <select id="targetEmp" class="input-box" style="width: 100%; margin-top: 8px;">
-                        <option value="">Loading employees...</option>
-                    </select>
+                 <div>
+                    <label class="nav-label">ENTER EMPLOYEE ID</label>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <input type="text" id="targetEmpId" class="input-box" placeholder="e.g. FS_oa4x4yinz" style="flex: 1; margin: 0;">
+                        <button class="btn btn-outline" id="btnSearchEmpId" style="padding: 10px 16px; display: flex; align-items: center; justify-content: center;" type="button">
+                            <i data-lucide="search" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                </div>
+                 <div>
+                    <label class="nav-label">EMPLOYEE NAME</label>
+                    <input type="text" id="targetEmpName" class="input-box" placeholder="Employee Name (Auto-populated)" style="width: 100%; margin-top: 8px; background: #f8fafc;" readonly>
+                    <div id="currentEmpDetails" style="display: none; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-top: 8px;">
+                        <p style="font-size: 0.72rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Current Placement</p>
+                        <div style="font-size: 0.8rem; margin-top: 6px; color: #1e293b;">
+                            <strong>Dept:</strong> <span id="lblCurrentDept">-</span>
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <label class="nav-label">NEW REPORTING MANAGER</label>
                     <select id="newMgrSelect" class="input-box" style="width: 100%; margin-top: 8px;">
                         <option value="">Loading managers...</option>
                     </select>
+                </div>
+                <div>
+                    <label class="nav-label">NEW DEPARTMENT</label>
+                    <select id="newDepartmentSelect" class="input-box" style="width: 100%; margin-top: 8px;" onchange="this.value === 'ADD_NEW' ? document.getElementById('newDepartmentInput').style.display = 'block' : document.getElementById('newDepartmentInput').style.display = 'none'">
+                        <option value="">Select Department</option>
+                    </select>
+                    <input type="text" id="newDepartmentInput" class="input-box" placeholder="Enter new department name..." style="width: 100%; margin-top: 8px; display: none;">
                 </div>
                 <div>
                     <label class="nav-label">REASON FOR TRANSFER</label>
@@ -420,9 +435,11 @@
     </style>
 
     <script type="module">
-        import { db } from "./firebase-config.js";
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
         import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-        import { getManagers } from "./pms-service.js";
+        import { getManagers, getDepartments } from "./pms-service.js";
+        import { managerChangeService } from "./manager-change-service.js";
 
         lucide.createIcons();
 
@@ -439,38 +456,109 @@
         };
 
         async function loadModalData() {
-            const empSelect = document.getElementById('targetEmp');
             const mgrSelect = document.getElementById('newMgrSelect');
+            const deptSelect = document.getElementById('newDepartmentSelect');
+            
+            // Clear custom inputs
+            document.getElementById('targetEmpId').value = '';
+            document.getElementById('targetEmpName').value = '';
+            document.getElementById('newDepartmentInput').value = '';
+            document.getElementById('newDepartmentInput').style.display = 'none';
+            document.getElementById('currentEmpDetails').style.display = 'none';
             
             try {
-                // Fetch all employees
-                const empSnap = await getDocs(collection(db, 'users'));
-                empSelect.innerHTML = '<option value="">Select Employee</option>';
-                empSnap.docs.forEach(d => {
-                    const data = d.data();
-                    empSelect.innerHTML += `<option value="${d.id}">${data.name} (${data.department || 'N/A'})</option>`;
-                });
-
                 // Fetch managers using the new service
                 const managers = await getManagers();
                 mgrSelect.innerHTML = '<option value="">Select New Manager</option>';
                 managers.forEach(m => {
                     mgrSelect.innerHTML += `<option value="${m.id}">${m.name}</option>`;
                 });
+
+                // Fetch departments dynamically from Firebase
+                const depts = await getDepartments();
+                deptSelect.innerHTML = '<option value="">Select Department</option>';
+                depts.forEach(d => {
+                    const deptName = d.name || d.departmentName || d.id;
+                    deptSelect.innerHTML += `<option value="${deptName}">${deptName}</option>`;
+                });
+                deptSelect.innerHTML += '<option value="ADD_NEW">+ Enter New Department...</option>';
             } catch (err) {
                 console.error("Error loading modal data:", err);
             }
         }
 
+        const performSearch = async () => {
+            const inputVal = document.getElementById('targetEmpId').value.trim();
+            const nameInput = document.getElementById('targetEmpName');
+            const detailsDiv = document.getElementById('currentEmpDetails');
+            
+            if (!inputVal) {
+                nameInput.value = '';
+                detailsDiv.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const empSnap = await getDocs(collection(db, 'users'));
+                let foundDoc = null;
+                const searchLower = inputVal.toLowerCase();
+                
+                for (const docObj of empSnap.docs) {
+                    const docId = docObj.id.toLowerCase();
+                    const dataObj = docObj.data();
+                    const uidVal = (dataObj.uid || '').toLowerCase();
+                    
+                    if (docId.startsWith(searchLower) || uidVal.startsWith(searchLower)) {
+                        foundDoc = docObj;
+                        break;
+                    }
+                }
+                
+                if (foundDoc) {
+                    const data = foundDoc.data();
+                    document.getElementById('targetEmpId').value = foundDoc.id;
+                    nameInput.value = data.name || 'Unknown Name';
+                    document.getElementById('lblCurrentDept').textContent = data.department || data.departmentName || 'General';
+                    detailsDiv.style.display = 'block';
+                    showToast("Employee details loaded successfully.");
+                } else {
+                    nameInput.value = '';
+                    detailsDiv.style.display = 'none';
+                    showToast("Employee ID not found in database.", true);
+                }
+            } catch (err) {
+                showToast("Error searching database: " + err.message, true);
+            }
+        };
+
+        document.getElementById('targetEmpId').addEventListener('blur', performSearch);
+        document.getElementById('btnSearchEmpId').addEventListener('click', performSearch);
+        document.getElementById('targetEmpId').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+
         document.getElementById('btnInitiateChange').addEventListener('click', () => toggleChangeModal(true));
 
         document.getElementById('btnSubmitChange').addEventListener('click', async function() {
-            const empId = document.getElementById('targetEmp').value;
+            const empId = document.getElementById('targetEmpId').value.trim();
+            const empName = document.getElementById('targetEmpName').value;
             const mgrId = document.getElementById('newMgrSelect').value;
             const reason = document.getElementById('transferReason').value;
 
-            if (!empId || !mgrId) {
-                alert("Please select both an employee and a new manager.");
+            let newDept = document.getElementById('newDepartmentSelect').value;
+            if (newDept === 'ADD_NEW') {
+                newDept = document.getElementById('newDepartmentInput').value.trim();
+                if (!newDept) {
+                    showToast("Please enter a custom department name.", true);
+                    return;
+                }
+            }
+
+            if (!empId || !empName || !mgrId) {
+                showToast("Please enter a valid Employee ID and select a new manager.", true);
                 return;
             }
 
@@ -484,23 +572,26 @@
                 const empData = empSnap.data();
                 const mgrData = mgrSnap.data();
 
-                await addDoc(collection(db, 'manager_change_requests'), {
-                    employeeId: empId,
+                await managerChangeService.initiateChange(empId, {
                     employeeName: empData.name,
-                    currentManagerName: empData.reportingManagerName || 'Unassigned',
+                    currentManagerId: empData.reportingManagerId || '',
+                    currentManagerName: empData.reportingManagerName || empData.reportingManager || 'Unassigned',
+                    currentDepartment: empData.department || empData.departmentName || 'General',
+                    currentDesignation: empData.designation || 'Staff',
                     newManagerId: mgrId,
                     newManagerName: mgrData.name,
+                    newDepartment: newDept || empData.department || empData.departmentName || 'General',
+                    newDesignation: empData.designation || 'Staff',
                     reason,
-                    status: 'Pending',
-                    currentStage: 'Business Head',
-                    timestamp: serverTimestamp()
+                    businessHeadName: 'Robert Vance',
+                    hrManagerName: 'Jessica Lane'
                 });
 
-                alert("Change request submitted successfully.");
+                showToast("Change request submitted successfully.");
                 toggleChangeModal(false);
                 loadQueue();
             } catch (err) {
-                alert("Submission failed: " + err.message);
+                showToast("Submission failed: " + err.message, true);
             } finally {
                 this.disabled = false;
                 this.innerHTML = '<i data-lucide="send"></i> Propose Transfer';
@@ -523,7 +614,10 @@
                 return `
                     <tr>
                         <td style="font-weight: 700;">${data.employeeName}</td>
-                        <td style="font-size: 0.75rem;">${data.currentManagerName} → ${data.newManagerName}</td>
+                        <td style="font-size: 0.75rem; line-height: 1.4;">
+                            <div><strong>Mgr:</strong> ${data.currentManagerName} → ${data.newManagerName}</div>
+                            <div style="color: var(--text-muted);"><strong>Dept:</strong> ${data.currentDepartment || 'General'} → ${data.newDepartment || 'General'}</div>
+                        </td>
                         <td><span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">${data.currentStage}</span></td>
                         <td style="color: var(--text-muted);">Recent</td>
                         <td><button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;" onclick="viewRequest('${d.id}')">Review BPM</button></td>
@@ -540,20 +634,77 @@
 
             document.getElementById('reqTitle').textContent = `Request #MGR-${id.slice(0,4).toUpperCase()}: ${data.employeeName}`;
             document.getElementById('currMgr').textContent = data.currentManagerName;
+            document.getElementById('currMgrSub').textContent = `${data.currentDesignation || 'Staff'} (${data.currentDepartment || 'General'})`;
             document.getElementById('nextMgr').textContent = data.newManagerName;
+            document.getElementById('nextMgrSub').textContent = `${data.newDesignation || 'Staff'} (${data.newDepartment || 'General'})`;
+
+            document.getElementById('oldDept').textContent = data.currentDepartment || 'General';
+            document.getElementById('newDept').textContent = data.newDepartment || 'General';
 
             document.getElementById('activeRequest').style.display = 'block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         window.processAction = async (action) => {
-            alert(`Request ${activeRequestId} has been ${action}ed.`);
-            document.getElementById('activeRequest').style.display = 'none';
-            loadQueue();
+            if (!activeRequestId) return;
+            try {
+                if (action === 'approve') {
+                    await managerChangeService.approveAndExecute(activeRequestId, 'Administrator', 'Approved and executed via Governance Dashboard');
+                    showToast(`Request #MGR-${activeRequestId.slice(0,4).toUpperCase()} approved and executed.`);
+                } else if (action === 'reject') {
+                    await managerChangeService.rejectRequest(activeRequestId, 'Administrator', 'Rejected via Governance Dashboard');
+                    showToast(`Request #MGR-${activeRequestId.slice(0,4).toUpperCase()} has been rejected.`, true);
+                }
+                
+                document.getElementById('activeRequest').style.display = 'none';
+                loadQueue();
+            } catch (err) {
+                console.error("Action execution failed:", err);
+                showToast("Action failed: " + err.message, true);
+            }
         };
 
-        loadQueue();
+        window.showToast = (msg, isError = false) => {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toastMsg.textContent = msg;
+            toast.style.background = isError ? 'rgba(239, 68, 68, 0.95)' : 'rgba(16, 185, 129, 0.95)';
+            toastIcon.setAttribute('data-lucide', isError ? 'x-circle' : 'check-circle');
+            
+            toast.style.display = 'inline-flex';
+            if (window.lucide) lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                try {
+                    await signInAnonymously(auth);
+                } catch (err) {
+                    console.error("Anonymous authentication fallback failed:", err);
+                }
+            }
+            loadQueue();
+        });
     </script>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); color: white; padding: 16px 32px; border-radius: 20px; font-weight: 700; font-size: 1rem; z-index: 9999; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.1); animation: toastFade 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);">
+        <i id="toastIcon" data-lucide="info" style="width: 20px; height: 20px;"></i>
+        <span id="toastMessage">Message</span>
+    </div>
+
+    <style>
+        @keyframes toastFade {
+            from { opacity: 0; transform: translate(-50%, -40%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
 </body>
 </html>
 

@@ -59,8 +59,12 @@
 
         .qr-placeholder {
             width: 40px; height: 40px; background: #f8fafc; border: 1px solid var(--border);
-            border-radius: 6px; display: flex; align-items: center; justify-content: center;
-            color: var(--text-muted);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;
+        }
+        .qr-placeholder:hover {
+            border-color: var(--primary); color: var(--primary); background: #eff6ff;
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -99,6 +103,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -244,6 +249,62 @@
         </div>
     </div>
 
+    <!-- Allocate Asset Modal -->
+    <div class="modal-overlay" id="allocateModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Allocate Asset</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);" id="allocateModalSubtitle">Assign hardware to an active employee</p>
+                </div>
+                <button class="action-icon" onclick="toggleAllocateModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label class="nav-label">SELECT EMPLOYEE</label>
+                    <select id="allocateEmployeeSelect" class="input-box" style="width: 100%; margin-top: 8px;">
+                        <!-- Dynamically populated employees -->
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="btnConfirmAllocate" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="user-check"></i> Complete Assignment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View QR Modal -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
+                <h3 style="font-weight: 800; font-size: 1.2rem; margin: 0; text-align: left;" id="qrModalTitle">Asset QR Code</h3>
+                <button class="action-icon" onclick="toggleQrModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            <div style="background: #f8fafc; padding: 2rem; border-radius: 20px; border: 1px solid var(--border); display: inline-block; margin-bottom: 1.5rem;">
+                <img id="qrModalImage" src="" alt="Asset QR Code" style="width: 200px; height: 200px; display: block; border-radius: 8px; margin: 0 auto;">
+            </div>
+            <p id="qrModalTag" style="font-weight: 800; font-size: 1.1rem; color: var(--text-main); margin-bottom: 4px;">HRF-LP-2026-108</p>
+            <p id="qrModalName" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Samsung Galaxy S26 Ultra</p>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div style="background: #fef2f2; color: #ef4444; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
+                <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: #ef4444;"></i>
+            </div>
+            <h3 style="font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem; color: #1e293b;">Deprovision Asset?</h3>
+            <p id="deleteConfirmMsg" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to permanently remove this asset from the organization database? This action cannot be undone.</p>
+            
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="toggleDeleteModal(false)">Cancel</button>
+                <button class="btn btn-primary" id="btnConfirmDeleteAsset" style="flex: 1; justify-content: center; background: #ef4444; border-color: #ef4444;">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Success Toast -->
     <div class="toast-notification" id="successToast">
         <i data-lucide="check-circle"></i>
@@ -291,8 +352,9 @@
     </style>
 
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { getAssets, getAssetStats, getAssetLogs, addAsset } from "./asset-service.js";
+        import { db, auth } from "./firebase-config.js";
+        import { getAssets, getAssetStats, getAssetLogs, addAsset, allocateAsset, deleteAsset } from "./asset-service.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
         lucide.createIcons();
 
@@ -342,14 +404,15 @@
                                     <p style="font-size: 0.8rem; font-weight: 700;">${a.assignedToName || 'Unassigned'}</p>
                                     <p style="font-size: 0.65rem; color: var(--text-muted);">${a.assignedTo ? 'Allocated' : 'In Warehouse'}</p>
                                 </div>
-                                <div class="qr-placeholder"><i data-lucide="qr-code" size="20"></i></div>
+                                <div class="qr-placeholder" onclick="viewAssetQR('${a.tag}', '${(a.name || '').replace(/'/g, "\\'")}')" title="View Asset QR Label"><i data-lucide="qr-code" size="20"></i></div>
                             </div>
                             
                             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
                                 ${a.status === 'In Stock' ? 
-                                    `<button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;">Assign to Employee</button>` :
-                                    `<button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;">Re-Allocate</button>
-                                     <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;">Retire</button>`
+                                    `<button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;" onclick="showAllocationModal('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Assign to Employee</button>
+                                     <button class="btn btn-outline" style="font-size: 0.7rem; padding: 8px; color: #ef4444; border-color: #fca5a5; display: flex; align-items: center; justify-content: center;" onclick="deleteAssetConfirm('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')" title="Delete Asset"><i data-lucide="trash-2" size="14"></i></button>` :
+                                    `<button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;" onclick="showAllocationModal('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Re-Allocate</button>
+                                     <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;" onclick="deleteAssetConfirm('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Retire</button>`
                                 }
                             </div>
                         </div>
@@ -467,6 +530,132 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="save"></i> Initialize Asset';
                 lucide.createIcons();
+            }
+        });
+
+        let activeAssetIdForAllocation = null;
+
+        window.viewAssetQR = (tag, name) => {
+            const modal = document.getElementById('qrModal');
+            const img = document.getElementById('qrModalImage');
+            const txtTag = document.getElementById('qrModalTag');
+            const txtName = document.getElementById('qrModalName');
+            
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(tag)}`;
+            txtTag.textContent = tag;
+            txtName.textContent = name;
+            
+            modal.classList.add('active');
+        };
+
+        window.toggleQrModal = (show) => {
+            const modal = document.getElementById('qrModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        window.showAllocationModal = async (assetId, assetName) => {
+            activeAssetIdForAllocation = assetId;
+            document.getElementById('allocateModalSubtitle').textContent = `Assigning hardware: ${assetName}`;
+            
+            const select = document.getElementById('allocateEmployeeSelect');
+            select.innerHTML = '<option value="">Loading active personnel...</option>';
+            toggleAllocateModal(true);
+            
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                select.innerHTML = '';
+                usersSnap.forEach(doc => {
+                    const u = doc.data();
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = `${u.name || 'Unknown'} (${u.department || 'Staff'})`;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Failed to load user directory:", err);
+                select.innerHTML = '<option value="">Failed to load employees</option>';
+            }
+        };
+
+        window.toggleAllocateModal = (show) => {
+            const modal = document.getElementById('allocateModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        document.getElementById('btnConfirmAllocate')?.addEventListener('click', async () => {
+            const employeeId = document.getElementById('allocateEmployeeSelect').value;
+            if (!employeeId || !activeAssetIdForAllocation) {
+                alert('Please select a valid employee.');
+                return;
+            }
+            
+            const btn = document.getElementById('btnConfirmAllocate');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Processing...';
+            lucide.createIcons();
+            
+            try {
+                const adminId = auth.currentUser ? auth.currentUser.uid : 'admin_it';
+                await allocateAsset(activeAssetIdForAllocation, employeeId, adminId);
+                
+                const toast = document.getElementById('successToast');
+                toast.querySelector('span').textContent = 'Asset allocated to employee successfully.';
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                toggleAllocateModal(false);
+                initDashboard();
+                
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Allocation failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="user-check"></i> Complete Assignment';
+                lucide.createIcons();
+            }
+        });
+
+        let activeAssetIdForDeletion = null;
+
+        window.deleteAssetConfirm = (assetId, assetName) => {
+            activeAssetIdForDeletion = assetId;
+            document.getElementById('deleteConfirmMsg').textContent = `Are you sure you want to permanently remove "${assetName}" from the organization database? This action cannot be undone.`;
+            toggleDeleteModal(true);
+        };
+
+        window.toggleDeleteModal = (show) => {
+            const modal = document.getElementById('deleteConfirmModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        document.getElementById('btnConfirmDeleteAsset')?.addEventListener('click', async () => {
+            if (!activeAssetIdForDeletion) return;
+            const btn = document.getElementById('btnConfirmDeleteAsset');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Deleting...';
+            if (window.lucide) lucide.createIcons();
+            
+            try {
+                await deleteAsset(activeAssetIdForDeletion);
+                const toast = document.getElementById('successToast');
+                toast.querySelector('span').textContent = 'Asset removed from inventory successfully.';
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                toggleDeleteModal(false);
+                initDashboard();
+                
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Deletion failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Delete';
+                if (window.lucide) lucide.createIcons();
             }
         });
 

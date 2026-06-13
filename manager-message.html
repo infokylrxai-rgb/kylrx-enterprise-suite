@@ -53,7 +53,7 @@
         .sidebar {
             overflow-y: auto;
             scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
+            
         }
         .sidebar::-webkit-scrollbar { width: 5px; }
         .sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -260,7 +260,7 @@
                 <div class="nav-label">MY WORKSPACE</div>
                 <div class="nav-item"><a href="#" class="nav-link" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Attendance Log', 'Attendance Logs are being synchronized.')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-attendance-monitor.html'"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('My Documents', 'Document Vault is secured.')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
 
                 <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
@@ -277,8 +277,8 @@
 
                 <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Policy Hub', 'Policy Hub is updated.')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Asset Inventory', 'Asset Inventory is verified.')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Support Hub', 'Support Hub is online.')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-asset-management.html'"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-message.html'"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
             </nav>
 
             <div class="sidebar-footer" style="padding-top: 2rem;">
@@ -380,7 +380,12 @@
                             <i data-lucide="plus"></i>
                         </button>
                         <input type="text" class="input-box" id="messageInput" placeholder="Type @ to mention someone...">
-                        <button class="ai-btn" id="aiCorrectBtn" title="AI Sentence Correction">
+                        
+                        <button class="ai-btn" id="clearChatHistoryBtn" title="Clear All Chat History" onclick="clearAllChatHistory()" style="color: #ef4444; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); width: auto; padding: 0 14px; gap: 6px; display: flex; align-items: center;">
+                            <i data-lucide="trash-2" style="pointer-events: none; width: 16px; height: 16px;"></i>
+                            Clear All
+                        </button>
+<button class="ai-btn" id="aiCorrectBtn" title="AI Sentence Correction">
                             <i data-lucide="sparkles" size="16"></i>
                             AI Fix
                         </button>
@@ -700,7 +705,7 @@
                     const labelColor = isSent ? '#475569' : 'var(--primary)';
 
                     let htmlContent = `<div style="font-size:0.65rem;font-weight:800;color:${labelColor};margin-bottom:4px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>${senderLabel}</span><span style="font-weight:400;opacity:0.8">${ts}</span></div>`;
-                    htmlContent += msg.text || '';
+                    htmlContent += (msg.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>');
 
                     if (msg.attachments && msg.attachments.length > 0) {
                         const attHtml = msg.attachments.map(att =>
@@ -711,6 +716,12 @@
                         htmlContent += `<div style="display:flex; flex-direction:column;">${attHtml}</div>`;
                     }
 
+                    if (isSent) {
+                        htmlContent += `<div style="display:flex; gap:12px; margin-top:8px; font-size:0.7rem; opacity:0.8; justify-content:center;">
+                            <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${msg.id}', \`${(msg.text || '').replace(/`/g, '\\`')}\`)">Edit</span>
+                            <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${msg.id}')">Clear</span>
+                        </div>`;
+                    }
                     msgDiv.innerHTML = htmlContent;
                     chatMessages.appendChild(msgDiv);
 
@@ -821,7 +832,7 @@
         // Initialize
         setupRealtimeDirectory();
 
-        // AI Correction Implementation (Gemini API)
+        // AI Correction Implementation (OpenAI GPT API)
         document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
             const text = input.value.trim();
             if (!text) return;
@@ -831,22 +842,32 @@
             btn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Fixing...';
             
             try {
-                // Replace 'YOUR_GEMINI_API_KEY' with a valid key.
-                const apiKey = 'YOUR_GEMINI_API_KEY';
+                const apiKey = 'YOUR_OPENAI_API_KEY_HERE';
                 
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: `Fix the grammar and spelling of this text. Maintain the exact original meaning and tone. Only return the corrected text and nothing else:\n\n${text}` }]
-                        }]
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are an AI that fixes grammar, spelling, and refines message tone to be highly professional. Only return the corrected text, with no introduction, explanations, quotes, or formatting.'
+                            },
+                            {
+                                role: 'user',
+                                content: text
+                            }
+                        ]
                     })
                 });
                 
                 const data = await response.json();
-                if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                    input.value = data.candidates[0].content.parts[0].text.trim();
+                if (data.choices && data.choices[0] && data.choices[0].message) {
+                    input.value = data.choices[0].message.content.trim();
                 } else {
                     input.value = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
                 }
@@ -1048,6 +1069,130 @@
         }
 
         window.filterContacts = () => renderContacts();
+
+        
+        // Create modal container
+        const ensureModals = () => {
+            if (document.getElementById('customEditModal')) return;
+            
+            const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
+            const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
+            
+            // Edit Modal
+            const editModal = document.createElement('div');
+            editModal.id = 'customEditModal';
+            editModal.style.cssText = modalStyle;
+            editModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:16px; color:#1e293b; font-size:1.1rem; font-weight:700;">Edit Message</h3>
+                    <textarea id="customEditInput" style="width:100%; height:100px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; resize:none; font-family:inherit; box-sizing:border-box; outline:none; font-size:0.9rem;"></textarea>
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:16px;">
+                        <button id="customEditCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, #3b82f6); color:white;">Save Changes</button>
+                    </div>
+                </div>
+            `;
+            
+            // Delete Modal
+            const delModal = document.createElement('div');
+            delModal.id = 'customDelModal';
+            delModal.style.cssText = modalStyle;
+            delModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear Message</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear this message? This action cannot be undone.</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customDelCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customDelConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Message</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(editModal);
+            document.body.appendChild(delModal);
+            // Clear All Modal
+            const clearAllModal = document.createElement('div');
+            clearAllModal.id = 'customClearAllModal';
+            clearAllModal.style.cssText = modalStyle;
+            clearAllModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear All History</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear the entire conversation? This action cannot be undone.</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customClearAllCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Chat</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(clearAllModal);
+
+        };
+
+        
+        window.clearAllChatHistory = async () => {
+            let chatId = null;
+            if (typeof buildChatId === 'function' && buildChatId.length === 0) {
+                try { chatId = buildChatId(); } catch(e) {}
+            }
+            if (!chatId && typeof selectedUserIds !== 'undefined' && selectedUserIds.size === 1) {
+                const targetId = Array.from(selectedUserIds)[0];
+                chatId = ['hr_support', targetId].sort().join('_');
+            }
+            if (!chatId && typeof currentChatId !== 'undefined') {
+                chatId = currentChatId;
+            }
+            if (!chatId) {
+                alert("Please select a chat first.");
+                return;
+            }
+
+            ensureModals();
+            const modal = document.getElementById('customClearAllModal');
+            if(modal) modal.style.display = 'flex';
+            
+            document.getElementById('customClearAllCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customClearAllConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                const { collection, query, where, getDocs, deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
+                const snap = await getDocs(q);
+                const deletePromises = snap.docs.map(d => deleteDoc(doc(db, 'messages', d.id)));
+                await Promise.all(deletePromises);
+            };
+        };
+
+        window.clearMessage = async (msgId) => {
+            ensureModals();
+            const modal = document.getElementById('customDelModal');
+            modal.style.display = 'flex';
+            
+            document.getElementById('customDelCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customDelConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                await deleteDoc(doc(db, 'messages', msgId));
+            };
+        };
+
+        window.editMessage = async (msgId, oldText) => {
+            ensureModals();
+            const modal = document.getElementById('customEditModal');
+            const input = document.getElementById('customEditInput');
+            input.value = oldText;
+            modal.style.display = 'flex';
+            input.focus();
+            
+            document.getElementById('customEditCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customEditSave').onclick = async () => {
+                const newText = input.value;
+                if (newText !== null && newText.trim() !== "" && newText !== oldText) {
+                    const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                    await updateDoc(doc(db, 'messages', msgId), { text: newText.trim() });
+                }
+                modal.style.display = 'none';
+            };
+        };
 
         lucide.createIcons();
     </script>

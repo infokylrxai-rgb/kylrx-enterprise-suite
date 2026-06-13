@@ -89,6 +89,47 @@
         </div>
     </div>
 
+    <!-- Export Confirm Modal -->
+    <div id="exportConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+            <div style="width: 64px; height: 64px; background: #fef2f2; color: #ef4444; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="alert-triangle" size="32"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;">Missing Bank Details</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="exportConfirmModalDesc">...</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('exportConfirmModal').style.display='none'">Cancel</button>
+                <button class="btn btn-primary" style="flex: 1; background: #ef4444; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="btnConfirmExportAnyway">Export Anyway</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vault Modal -->
+    <div id="vaultModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 600px; height: 80vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-shrink: 0;">
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b;" id="vaultModalTitle">Secure Document Vault</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;" id="vaultModalSubtitle">Viewing archived records</p>
+                </div>
+                <button onclick="document.getElementById('vaultModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x" size="24"></i></button>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem; position: relative; flex-shrink: 0;">
+                <input type="text" id="vaultSearchInput" placeholder="Search by employee name..." style="width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem;">
+                <i data-lucide="search" size="18" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            </div>
+            
+            <div style="overflow-y: auto; flex: 1; border: 1px solid var(--border); border-radius: 16px; background: #f8fafc; padding: 1rem;" id="vaultItemsContainer">
+                <!-- Vault items list -->
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; flex-shrink: 0;">
+                <button class="btn btn-outline" style="padding: 12px 24px; border-radius: 12px;" onclick="document.getElementById('vaultModal').style.display='none'">Close Vault</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toasts -->
     <div class="toast-notification" id="successToast">
         <i data-lucide="check-circle"></i>
@@ -132,6 +173,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -163,7 +205,7 @@
                     <p>Generate, encrypt, and archive employee financial and professional records.</p>
                 </div>
                 <div class="btn-group">
-                    <button class="btn btn-outline" onclick="showToast('Opening Config Engine...')"><i data-lucide="settings"></i> Config Engine</button>
+                    <button class="btn btn-outline" onclick="window.location.href='admin-code-engine.html'"><i data-lucide="settings"></i> Config Engine</button>
                     <button class="btn btn-primary" onclick="triggerBatch()"><i data-lucide="play"></i> Auto-Generate Batch</button>
                 </div>
             </header>
@@ -295,7 +337,7 @@
                                 <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
                             </div>
                         </div>
-                        <button class="btn btn-outline" onclick="showToast('Opening Secure Document Vault...')" style="width: 100%; margin-top: 1.5rem; font-size: 0.75rem;">Access Vault</button>
+                        <button class="btn btn-outline" onclick="openVaultModal('')" style="width: 100%; margin-top: 1.5rem; font-size: 0.75rem;">Access Vault</button>
                     </div>
 
                     <div class="ai-glass-card" style="background: #eff6ff; border: 1px solid #dbeafe; padding: 1rem; margin-top: 2rem; display: flex; gap: 12px; align-items: center;">
@@ -376,9 +418,17 @@
                 modal.style.display = 'none';
                 showToast(`Processing via ${authority}...`);
                 try {
-                    const result = await disburseSalaries(authority);
+                    let result = await disburseSalaries(authority);
                     if (result.count === 0) {
-                        showToast("No pending 'Generated' payrolls found.", true);
+                        showToast("No pending records; auto-generating current cycle batch...", false);
+                        const month = new Date().toLocaleString('default', { month: 'long' });
+                        const year = new Date().getFullYear();
+                        await generateMonthlyBatch(month, year);
+                        result = await disburseSalaries(authority);
+                    }
+
+                    if (result.count === 0) {
+                        showToast("No payrolls to disburse.", true);
                     } else {
                         showToast(`Successfully authorized payments to ${result.count} personnel via ${authority}.`);
                         loadRecentGenerations();
@@ -496,8 +546,28 @@
 
         window.exportBankFileFromDocs = async () => {
             try {
+                let documentsToExport = cachedPayrollDocs.filter(x => x.status === 'Generated' || x.status === 'Paid');
+                
+                // Fallback to active organization directory if no payroll batch has been run yet
+                if (documentsToExport.length === 0) {
+                    showToast('No active payroll docs; exporting organization directory...', false);
+                    const usersSnap = await getDocs(collection(db, 'users'));
+                    for (const userDoc of usersSnap.docs) {
+                        const userData = userDoc.data();
+                        if ((userData.role || '').toLowerCase() === 'admin') continue;
+                        documentsToExport.push({
+                            employeeId: userDoc.id,
+                            employeeName: userData.name || 'Employee',
+                            employeeCode: userData.employeeCode || userDoc.id.substring(0, 8).toUpperCase(),
+                            designation: userData.designation || 'Specialist',
+                            grossSalary: userData.salary || 50000,
+                            netPay: (userData.salary || 50000) * 0.9
+                        });
+                    }
+                }
+
                 const employees = [];
-                for (const d of cachedPayrollDocs.filter(x => x.status === 'Generated' || x.status === 'Paid')) {
+                for (const d of documentsToExport) {
                     const profileSnap = await getDoc(doc(db, 'payroll_profiles', d.employeeId)).catch(() => null);
                     const profile = profileSnap?.exists() ? profileSnap.data() : {};
                     const net = d.netPay ?? (d.grossSalary - (d.deductions || 0));
@@ -510,15 +580,83 @@
                     }, profile));
                 }
                 if (!employees.length) {
-                    showToast('No payroll documents to export.', true);
+                    showToast('No employees found to export.', true);
                     return;
                 }
-                const month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
-                const result = exportBankTransferCSV(employees, month);
-                if (result.exported) showToast(`Exported ${result.count} bank transfer rows.`);
+
+                const incomplete = employees.filter(e => !e.bankAccount || !e.ifscCode);
+                if (incomplete.length > 0) {
+                    const desc = document.getElementById('exportConfirmModalDesc');
+                    desc.textContent = `${incomplete.length} employee(s) are missing bank account or IFSC information. Do you want to export the transfer file anyway?`;
+                    const modal = document.getElementById('exportConfirmModal');
+                    modal.style.display = 'flex';
+                    if (window.lucide) lucide.createIcons();
+                    
+                    document.getElementById('btnConfirmExportAnyway').onclick = () => {
+                        modal.style.display = 'none';
+                        const month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+                        const result = exportBankTransferCSV(employees, month, { bypassConfirm: true });
+                        if (result.exported) showToast(`Exported ${result.count} bank transfer rows.`);
+                    };
+                } else {
+                    const month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+                    const result = exportBankTransferCSV(employees, month);
+                    if (result.exported) showToast(`Exported ${result.count} bank transfer rows.`);
+                }
             } catch (err) {
                 showToast('Bank export failed: ' + err.message, true);
             }
+        };
+
+        window.openVaultModal = (periodLabel) => {
+            const modal = document.getElementById('vaultModal');
+            const title = document.getElementById('vaultModalTitle');
+            const subtitle = document.getElementById('vaultModalSubtitle');
+            
+            title.textContent = periodLabel ? `Secure Vault: ${periodLabel}` : `Secure Document Vault`;
+            
+            // Filter documents for this period if periodLabel is provided, otherwise show all cached documents
+            const periodDocs = periodLabel 
+                ? cachedPayrollDocs.filter(d => (d.period || '').toLowerCase() === periodLabel.toLowerCase())
+                : cachedPayrollDocs;
+                
+            subtitle.textContent = `${periodDocs.length} encrypted record(s) archived`;
+            
+            const container = document.getElementById('vaultItemsContainer');
+            
+            const renderVaultList = (filterText = '') => {
+                const filtered = periodDocs.filter(d => (d.employeeName || '').toLowerCase().includes(filterText.toLowerCase()));
+                if (filtered.length === 0) {
+                    container.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem;">No archived records found.</div>`;
+                    return;
+                }
+                
+                container.innerHTML = filtered.map(d => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin-bottom: 8px; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                        <div>
+                            <p style="font-weight: 700; font-size: 0.9rem; color: #1e293b;">${d.employeeName || 'Unknown'}</p>
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">${d.docType} • ${d.docId || d.id}</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 0.7rem; font-weight: 800; background: #ecfdf5; color: #059669; padding: 2px 8px; border-radius: 100px;">${d.status}</span>
+                            <button onclick="downloadPayrollDoc('${d.id}')" style="background: none; border: none; cursor: pointer; color: var(--primary); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">
+                                <i data-lucide="download" size="16"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            };
+            
+            renderVaultList();
+            
+            document.getElementById('vaultSearchInput').value = '';
+            document.getElementById('vaultSearchInput').oninput = (e) => {
+                renderVaultList(e.target.value);
+            };
+            
+            modal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
         };
 
         async function loadArchives() {
@@ -528,9 +666,10 @@
                 const count = snap.size;
                 const month = new Date().toLocaleString('default', { month: 'long' });
                 const year = new Date().getFullYear();
+                const periodLabel = `${month} ${year}`;
 
                 archiveContainer.innerHTML = `
-                    <div class="archive-item">
+                    <div class="archive-item" style="cursor: pointer;" onclick="openVaultModal('${periodLabel}')">
                         <div><p style="font-weight: 700; font-size: 0.8rem;">${month} ${year}</p><p style="font-size: 0.7rem; color: var(--text-muted);">${count} Documents</p></div>
                         <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
                     </div>

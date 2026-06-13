@@ -75,7 +75,8 @@
         @media (max-width: 1024px) {
             :root { --sidebar-width: 80px; }
             .dept-name, .dept-code, .nav-link span, .nav-label { display: none; }
-            .sidebar { padding: 2.5rem 1rem; align-items: center; }
+            .sidebar {
+ padding: 2.5rem 1rem; align-items: center; }
             .nav-link { justify-content: center; padding: 14px; }
             .dept-branding { padding: 1.5rem 0.5rem; }
             .dept-icon-box { margin-bottom: 0; }
@@ -123,7 +124,7 @@
             box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
             border: 1px solid rgba(37, 99, 235, 0.05);
         }
-        .dept-name { font-weight: 800; font-size: 1.2rem; margin-bottom: 6px; letter-spacing: -0.5px; color: var(--text-main); }
+        .dept-name { font-weight: 800; font-size: 1.2rem; margin-bottom: 6px; letter-spacing: -0.5px; color: var(--text-main); word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
         .dept-code { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.7; }
  
         .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 2rem 0 1rem 0.5rem; opacity: 0.6; }
@@ -370,7 +371,7 @@
                 <div class="nav-label">MY WORKSPACE</div>
                 <div class="nav-item"><a href="#" class="nav-link active" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Attendance Log', 'Attendance Logs are being synchronized.')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-attendance-monitor.html'"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('My Documents', 'Document Vault is secured.')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
 
                 <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
@@ -395,8 +396,8 @@
 
                 <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Policy Hub', 'Policy Hub is updated.')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Asset Inventory', 'Asset Inventory is verified.')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="showModuleInfo('Support Hub', 'Support Hub is online.')"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-asset-management.html'"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='admin-message.html'"><i data-lucide="help-circle"></i><span>Support Hub</span></a></div>
             </nav>
 
             <div class="sidebar-footer">
@@ -574,49 +575,101 @@
             if (centerId) {
                 // Fetch specific command center config
                 try {
-                    const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
-                    if (centerDoc.exists()) {
+                    let centerDoc = await getDoc(doc(db, 'command_centers', centerId));
+                    if (!centerDoc.exists()) {
+                        // Fallback to legacy departments collection
+                        centerDoc = await getDoc(doc(db, 'departments', centerId));
+                    }
+                    
+                    // Case-insensitive recovery for corrupted URL parameters
+                    if (!centerDoc.exists()) {
+                        const allSnap = await getDocs(collection(db, 'command_centers'));
+                        const match = allSnap.docs.find(d => d.id.toLowerCase() === centerId.toLowerCase());
+                        if (match) {
+                            centerDoc = match;
+                            // Clean up the URL quietly without reloading
+                            window.history.replaceState({}, '', `manager-dashboard.html?id=${match.id}`);
+                        }
+                    }
+
+                    if (centerDoc && centerDoc.exists && centerDoc.exists()) {
                         const config = centerDoc.data();
                         currentDeptConfig = config;
                         hydrateDashboard(config);
+                    } else {
+                        console.warn("Command center not found:", centerId);
                     }
                 } catch (e) { console.error("Error fetching center config:", e); }
             } else {
                 // Dynamically look up the command center matching the manager's department
                 try {
-                    const q = query(collection(db, 'command_centers'), where('name', '==', userData.department));
-                    const snap = await getDocs(q);
+                    // 1. Try exact ID match first (New architecture)
+                    if (userData.departmentId) {
+                        let directDoc = await getDoc(doc(db, 'command_centers', userData.departmentId));
+                        if (!directDoc.exists()) {
+                            directDoc = await getDoc(doc(db, 'departments', userData.departmentId));
+                        }
+                        
+                        // Case-insensitive recovery for corrupted localStorage IDs
+                        if (!directDoc.exists()) {
+                            const allSnap = await getDocs(collection(db, 'command_centers'));
+                            const match = allSnap.docs.find(d => d.id.toLowerCase() === userData.departmentId.toLowerCase());
+                            if (match) {
+                                directDoc = match;
+                            }
+                        }
+
+                        if (directDoc && directDoc.exists && directDoc.exists()) {
+                            window.location.href = `manager-dashboard.html?id=${directDoc.id}`;
+                            return;
+                        }
+                    }
+
+                    // 2. Fallback to name query (Legacy architecture)
+                    let q = query(collection(db, 'command_centers'), where('name', '==', userData.department));
+                    let snap = await getDocs(q);
+                    
+                    if (snap.empty) {
+                        q = query(collection(db, 'departments'), where('name', '==', userData.department));
+                        snap = await getDocs(q);
+                    }
                     if (!snap.empty) {
                         const docId = snap.docs[0].id;
                         window.location.href = `manager-dashboard.html?id=${docId}`;
                         return;
                     } else {
-                        // Fallback: If no matching department command center exists, fetch the very first command center
-                        const allSnap = await getDocs(collection(db, 'command_centers'));
-                        if (!allSnap.empty) {
-                            window.location.href = `manager-dashboard.html?id=${allSnap.docs[0].id}`;
-                            return;
+                        // 3. Fallback: Auto-generate a generic command center profile based on user's actual department
+                        console.log("No command center found for:", userData.department, "- Auto-generating profile.");
+                        
+                        // Sanitize department name to prevent raw Firestore IDs from showing up in the UI
+                        let displayDept = userData.department || 'General';
+                        if (displayDept.length === 20 && !displayDept.includes(' ')) {
+                            displayDept = 'Operations'; // Fallback if it's a raw ID
                         }
+                        
+                        const generatedConfig = {
+                            id: userData.departmentId || 'custom-' + Date.now(),
+                            name: displayDept,
+                            unitId: 'UNIT-' + displayDept.substring(0,3).toUpperCase() + '-' + Math.floor(Math.random() * 900 + 100),
+                            icon: 'shield',
+                            color: '#3b82f6',
+                            activeAgents: 1
+                        };
+                        currentDeptConfig = generatedConfig;
+                        hydrateDashboard(generatedConfig);
                     }
                 } catch (err) {
                     console.error("Error finding manager command center:", err);
                 }
-                
-                // Fallback to user's department
-                const sideDeptName = document.getElementById('sideDeptName');
-                const sideDeptCode = document.getElementById('sideDeptCode');
-                if (sideDeptName) sideDeptName.textContent = userData.department;
-                if (sideDeptCode) sideDeptCode.textContent = (userData.department.substring(0, 3) + '-UNIT').toUpperCase();
-                const welcomeTitle = document.querySelector('.header h1');
-                const welcomeSub = document.querySelector('.header .sub-header');
-                if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${userData.name}`;
-                if (welcomeSub) welcomeSub.textContent = `${userData.department} Command Center - Real-time operational intelligence`;
             }
 
             if (user && (userData.role || '').toLowerCase() !== 'manager' && !centerId) {
                 window.location.href = 'index.html';
                 return;
             }
+
+            // Initialize Apps after auth state is completely resolved
+            initApps();
 
             const activeUserId = user ? user.uid : localStorage.getItem('hr_user_id') || 'manager_demo';
             restoreManagerSession(activeUserId);
@@ -691,6 +744,12 @@
         }
 
         function hydrateDashboard(config) {
+            // Sanitize config name in case database contains raw 20-character Firestore ID instead of real name
+            if (config && config.name && config.name.length === 20 && !config.name.includes(' ')) {
+                console.warn("Sanitizing raw ID found in config.name:", config.name);
+                config.name = 'Operations';
+            }
+
             const sideDeptName = document.getElementById('sideDeptName');
             const sideDeptCode = document.getElementById('sideDeptCode');
             const welcomeTitle = document.querySelector('.header h1');
@@ -709,6 +768,16 @@
             if (navAnalysisLink && centerId) navAnalysisLink.href = `manager-analysis.html?id=${centerId}`;
             if (navNotifLink && centerId) navNotifLink.href = `manager-notification.html?id=${centerId}`;
             if (navMsgLink && centerId) navMsgLink.href = `manager-message.html?id=${centerId}`;
+            
+            // Ensure global compatibility for DBAC
+            window.currentUnitIds = Array.from(new Set([
+                currentUnitId, 
+                config.name, 
+                config.name.toLowerCase(), 
+                config.name.toLowerCase().replace(/\s+/g, '-'),
+                (config.unitId || '').toLowerCase()
+            ])).filter(Boolean);
+
             if (sideDeptName) sideDeptName.textContent = config.name;
             if (sideDeptCode) sideDeptCode.textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
             if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${localStorage.getItem('userName') || 'Manager'}`;
@@ -731,14 +800,16 @@
                 const { collection, query, where, onSnapshot } = mod;
                 const today = new Date().toISOString().split('T')[0];
                 
-                // DBAC Layer: Strict bind to currentUnitId
-                const q = query(
-                    collection(db, 'users'), 
-                    where('departmentId', '==', currentUnitId)
-                );
-                
-                onSnapshot(q, (snapshot) => {
-                    const rawUsers = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                // DBAC Layer: Strict bind to currentUnitId (Client-side filtering to bypass 400 errors)
+                onSnapshot(collection(db, 'users'), (snapshot) => {
+                    const rawUsers = snapshot.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .filter(u => {
+                            // Only include users matching the current dashboard's units
+                            return window.currentUnitIds.includes(u.departmentId) || 
+                                   window.currentUnitIds.includes(u.departmentName) ||
+                                   window.currentUnitIds.includes(u.departmentCode);
+                        });
                     
                     // Listen to today's attendance
                     onSnapshot(collection(db, 'attendance'), (attSnap) => {
@@ -831,12 +902,10 @@
 
             import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(mod => {
                 const { collection, query, where, onSnapshot, limit, orderBy } = mod;
-                // Fetch alerts relevant to this department or system-wide
+                // Fetch alerts relevant to this department or system-wide without composite index
                 const q = query(
                     collection(db, 'alertEvents'),
-                    where('departmentId', 'in', [deptName, 'SYS', 'GLOBAL']),
-                    orderBy('timestamp', 'desc'),
-                    limit(1)
+                    where('departmentId', 'in', [deptName, 'SYS', 'GLOBAL'])
                 );
 
                 onSnapshot(q, (snapshot) => {
@@ -851,7 +920,15 @@
                         return;
                     }
 
-                    const al = snapshot.docs[0].data();
+                    // Sort client-side to avoid Firestore composite index requirement (400 Error)
+                    const docs = snapshot.docs.map(d => d.data());
+                    docs.sort((a, b) => {
+                        const tA = a.timestamp?.seconds || 0;
+                        const tB = b.timestamp?.seconds || 0;
+                        return tB - tA; // desc
+                    });
+
+                    const al = docs[0];
                     const color = al.severity === 'critical' ? 'var(--danger)' : 'var(--primary)';
                     const bg = al.severity === 'critical' ? '#fff1f2' : 'var(--primary-light)';
 
@@ -1162,26 +1239,36 @@
         };
 
         window.openTeamManager = async () => {
-            document.getElementById('teamManagerModal').style.display = 'flex';
-            loadTeams();
+            try {
+                const modal = document.getElementById('teamManagerModal');
+                if (modal) modal.style.display = 'flex';
+                await loadTeams();
+            } catch (err) {
+                console.error("Error opening Team Manager:", err);
+                alert("Could not load Team Manager: " + err.message);
+            }
         };
 
         window.loadTeams = async () => {
-            const { collection, query, where, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-            const teamList = document.getElementById('teamsList');
+            const { collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
             
-            // STRICT TEAM ISOLATION: No cross-department visibility
-            const q = query(collection(db, 'department_teams'), where('departmentId', '==', currentUnitId));
-            
-            onSnapshot(q, (snapshot) => {
-                const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // STRICT TEAM ISOLATION: Client-side filtering to bypass 400 errors
+            onSnapshot(collection(db, 'department_teams'), (snapshot) => {
+                const teamsList = document.getElementById('teamsList');
+                if (!teamsList) return;
+                
+                const safeUnitIds = window.currentUnitIds || [];
+
+                const teams = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(t => safeUnitIds.includes(t.departmentId));
                 
                 if (teams.length === 0) {
-                    teamList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 0.85rem; border: 2px dashed var(--border); border-radius: 20px;">No teams initialized in this secure unit.</div>';
+                    teamsList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 0.85rem; border: 2px dashed var(--border); border-radius: 20px;">No teams initialized in this secure unit.</div>';
                     return;
                 }
 
-                teamList.innerHTML = teams.map(t => `
+                teamsList.innerHTML = teams.map(t => `
                     <div class="team-card" onclick="viewTeam('${t.id}')" style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 16px; cursor: pointer; transition: 0.3s; margin-bottom: 12px; position: relative; overflow: hidden;">
                         <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary);"></div>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1200,12 +1287,16 @@
         window.showNewTeamForm = async () => {
             const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
             
-            // ISOLATED PERSONNEL DISCOVERY: Only current department ID allowed
-            const snap = await getDocs(query(collection(db, 'users'), where('departmentId', '==', currentUnitId)));
-            const deptUsers = snap.docs.map(doc => {
-                const u = doc.data();
-                return { id: doc.id, publicId: u.id || 'N/A', name: u.name, clearance: u.securityClearance || 'Level 1' };
-            });
+            // ISOLATED PERSONNEL DISCOVERY: Client-side filtering
+            const safeUnitIds = window.currentUnitIds || [];
+            const snap = await getDocs(collection(db, 'users'));
+            const deptUsers = snap.docs
+                .map(doc => {
+                    const u = doc.data();
+                    return { id: doc.id, publicId: u.id || 'N/A', name: u.name, clearance: u.securityClearance || 'Level 1', departmentId: u.departmentId, departmentName: u.departmentName, departmentCode: u.departmentCode };
+                })
+                .filter(u => safeUnitIds.includes(u.departmentId) || safeUnitIds.includes(u.departmentName) || safeUnitIds.includes(u.departmentCode));
+
 
             const editor = document.getElementById('teamEditor');
             editor.innerHTML = `
@@ -1285,7 +1376,7 @@
                 const t = snapshot.data();
                 
                 // DBAC VALIDATION: Block cross-department view attempts
-                if (t.departmentId !== currentUnitId) {
+                if (!window.currentUnitIds.includes(t.departmentId)) {
                     alert("Unauthorized access attempt detected. Access Denied.");
                     return;
                 }
@@ -1348,12 +1439,16 @@
         window.openMemberPicker = async (teamId, roleType) => {
             const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
             
-            // STRICT VAULT DISCOVERY: No cross-department leakage
-            const snap = await getDocs(query(collection(db, 'users'), where('departmentId', '==', currentUnitId)));
-            const deptUsers = snap.docs.map(doc => {
-                const u = doc.data();
-                return { id: doc.id, publicId: u.id || 'N/A', name: u.name, clearance: u.securityClearance || 'Level 1' };
-            });
+            // STRICT VAULT DISCOVERY: Client-side filtering
+            const safeUnitIds = window.currentUnitIds || [];
+            const snap = await getDocs(collection(db, 'users'));
+            const deptUsers = snap.docs
+                .map(doc => {
+                    const u = doc.data();
+                    return { id: doc.id, publicId: u.id || 'N/A', name: u.name, clearance: u.securityClearance || 'Level 1', departmentId: u.departmentId, departmentName: u.departmentName, departmentCode: u.departmentCode };
+                })
+                .filter(u => safeUnitIds.includes(u.departmentId) || safeUnitIds.includes(u.departmentName) || safeUnitIds.includes(u.departmentCode));
+
             
             const title = document.getElementById('pickerTitle');
             title.textContent = roleType === 'leader' ? 'Assign Team Leader' : (roleType === 'subManager' ? 'Assign Sub-Manager' : 'Add Operator');
@@ -1375,7 +1470,7 @@
             
             try {
                 const teamSnap = await getDoc(doc(db, 'department_teams', teamId));
-                if (teamSnap.data().departmentId !== currentUnitId) {
+                if (!window.currentUnitIds.includes(teamSnap.data().departmentId)) {
                     alert("Security Breach Detected: Unauthorized cross-department assignment blocked.");
                     return;
                 }
@@ -1399,7 +1494,7 @@
             const { doc, getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
             try {
                 const teamDoc = await getDoc(doc(db, 'department_teams', teamId));
-                if (teamDoc.data().departmentId !== currentUnitId) return;
+                if (!window.currentUnitIds.includes(teamDoc.data().departmentId)) return;
 
                 const currentMembers = teamDoc.data().members || [];
                 const updatedMembers = currentMembers.filter(m => m.id !== userId);
@@ -1421,7 +1516,7 @@
                 const { doc, deleteDoc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
                 try {
                     const teamSnap = await getDoc(doc(db, 'department_teams', id));
-                    if (teamSnap.data().departmentId === currentUnitId) {
+                    if (window.currentUnitIds.includes(teamSnap.data().departmentId)) {
                         await deleteDoc(doc(db, 'department_teams', id));
                         modal.style.display = 'none';
                         document.getElementById('teamEditor').innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; text-align: center; border: 2px dashed var(--border); border-radius: 20px;">Unit decommissioned successfully.</div>';
@@ -1431,7 +1526,7 @@
         };
 
         // Initialize Apps after ensuring auth is checked
-        setTimeout(initApps, 1000);
+        // (Moved to onAuthStateChanged)
 
         // ── EOD Approval Workflow ─────────────────────────────
         async function loadMgrEodList() {

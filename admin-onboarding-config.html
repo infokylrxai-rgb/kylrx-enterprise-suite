@@ -192,6 +192,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link active"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom" style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border);">
@@ -281,7 +282,14 @@
         const canvas = document.getElementById('workflowCanvas');
         const paletteItems = document.querySelectorAll('.block-item');
         const btnPublish = document.getElementById('btnPublish');
+        const btnPreview = document.getElementById('btnPreview');
         const CONFIG_ID = 'global_onboarding_flow';
+
+        if (btnPreview) {
+            btnPreview.onclick = () => {
+                window.open('onboarding-wizard.html?id=demo_emp', '_blank');
+            };
+        }
 
         // Initialize Sortable
         new Sortable(canvas, {
@@ -390,8 +398,6 @@
         // Initialize
         loadFlow();
     </script>
-</body>
-</html>
 </body>
 </html>
 

@@ -1,9 +1,11 @@
 import { db } from "./firebase-config.js";
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, addDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, addDoc, orderBy, limit, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-// Configuration
-const THRESHOLD_SUSPEND_HOURS = 3;
-const THRESHOLD_TRASH_DAYS = 3;
+// Configuration (will be fetched dynamically from Firestore)
+let THRESHOLD_SUSPEND_HOURS = 3;
+let THRESHOLD_TRASH_DAYS = 3;
+let autoEmailReminders = true;
+let managerEscalations = true;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
@@ -16,8 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function startMonitor() {
     console.log("[INACTIVITY] Monitoring engine active...");
+    await loadAutomationRules();
     await refreshDashboard();
     await loadLiveLogs();
+    setupRulesModal();
 }
 
 async function refreshDashboard(filter = 'all') {
@@ -277,4 +281,122 @@ function renderLogs(msg) {
     entry.style.borderLeft = '2px solid var(--primary)';
     entry.innerHTML = `<span class="log-timestamp">[${time}]</span> ${msg}`;
     container.prepend(entry);
+}
+
+async function loadAutomationRules() {
+    try {
+        const docRef = doc(db, 'system_configs', 'inactivity_rules');
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+            const data = snap.data();
+            THRESHOLD_SUSPEND_HOURS = Number(data.thresholdSuspendHours) || 3;
+            THRESHOLD_TRASH_DAYS = Number(data.thresholdTrashDays) || 3;
+            autoEmailReminders = data.emailReminders !== false;
+            managerEscalations = data.escalations !== false;
+            console.log(`[INACTIVITY] Rules loaded: Suspend = ${THRESHOLD_SUSPEND_HOURS}h, Trash = ${THRESHOLD_TRASH_DAYS}d`);
+        } else {
+            await setDoc(docRef, {
+                thresholdSuspendHours: 3,
+                thresholdTrashDays: 3,
+                emailReminders: true,
+                escalations: true,
+                updatedAt: serverTimestamp()
+            });
+            console.log("[INACTIVITY] Default rules seeded in Firestore system_configs.");
+        }
+        
+        const hoursInput = document.getElementById('ruleSuspendHours');
+        const daysInput = document.getElementById('ruleTrashDays');
+        const emailCheck = document.getElementById('ruleEmailReminders');
+        const escCheck = document.getElementById('ruleEscalations');
+        
+        if (hoursInput) hoursInput.value = THRESHOLD_SUSPEND_HOURS;
+        if (daysInput) daysInput.value = THRESHOLD_TRASH_DAYS;
+        if (emailCheck) emailCheck.checked = autoEmailReminders;
+        if (escCheck) escCheck.checked = managerEscalations;
+
+        const cardWarning = document.querySelector('.tvc-card.danger p.tvc-trend');
+        const cardTrash = document.querySelector('.tvc-card:nth-child(3) p.tvc-label');
+        if (cardWarning) cardWarning.innerHTML = `<i data-lucide="clock"></i> ${THRESHOLD_SUSPEND_HOURS}hr Threshold Hit`;
+        if (cardTrash) cardTrash.textContent = `In Trash (${THRESHOLD_TRASH_DAYS}-Day Limit)`;
+        if (window.lucide) lucide.createIcons();
+    } catch (err) {
+        console.error("Failed to load automation rules:", err);
+    }
+}
+
+function setupRulesModal() {
+    const modal = document.getElementById('automationRulesModal');
+    const btnOpen = document.getElementById('btnOpenRules');
+    const btnClose = document.getElementById('btnCloseRulesModal');
+    const btnCancel = document.getElementById('btnCancelRules');
+    const btnSave = document.getElementById('btnSaveRules');
+
+    if (!modal) return;
+
+    btnOpen?.addEventListener('click', () => {
+        document.getElementById('ruleSuspendHours').value = THRESHOLD_SUSPEND_HOURS;
+        document.getElementById('ruleTrashDays').value = THRESHOLD_TRASH_DAYS;
+        document.getElementById('ruleEmailReminders').checked = autoEmailReminders;
+        document.getElementById('ruleEscalations').checked = managerEscalations;
+
+        modal.style.display = 'flex';
+        setTimeout(() => modal.style.opacity = '1', 10);
+    });
+
+    const closeModal = () => {
+        modal.style.opacity = '0';
+        setTimeout(() => modal.style.display = 'none', 300);
+    };
+
+    btnClose?.addEventListener('click', closeModal);
+    btnCancel?.addEventListener('click', closeModal);
+
+    btnSave?.addEventListener('click', async () => {
+        btnSave.disabled = true;
+        const oldLabel = btnSave.innerHTML;
+        btnSave.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Saving...';
+        if (window.lucide) lucide.createIcons();
+
+        const newHours = Number(document.getElementById('ruleSuspendHours').value) || 3;
+        const newDays = Number(document.getElementById('ruleTrashDays').value) || 3;
+        const newEmail = document.getElementById('ruleEmailReminders').checked;
+        const newEsc = document.getElementById('ruleEscalations').checked;
+
+        try {
+            const docRef = doc(db, 'system_configs', 'inactivity_rules');
+            await setDoc(docRef, {
+                thresholdSuspendHours: newHours,
+                thresholdTrashDays: newDays,
+                emailReminders: newEmail,
+                escalations: newEsc,
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            THRESHOLD_SUSPEND_HOURS = newHours;
+            THRESHOLD_TRASH_DAYS = newDays;
+            autoEmailReminders = newEmail;
+            managerEscalations = newEsc;
+
+            await logAutomationEvent('RULE_UPDATE', 'system', `Updated rules: Suspend = ${newHours}h, Trash = ${newDays}d`);
+            showToast("Automation rules updated successfully.");
+            closeModal();
+            await refreshDashboard();
+            await loadLiveLogs();
+            
+            // Re-render UI indicators to reflect updated values
+            const cardWarning = document.querySelector('.tvc-card.danger p.tvc-trend');
+            const cardTrash = document.querySelector('.tvc-card:nth-child(3) p.tvc-label');
+            if (cardWarning) cardWarning.innerHTML = `<i data-lucide="clock"></i> ${THRESHOLD_SUSPEND_HOURS}hr Threshold Hit`;
+            if (cardTrash) cardTrash.textContent = `In Trash (${THRESHOLD_TRASH_DAYS}-Day Limit)`;
+            if (window.lucide) lucide.createIcons();
+        } catch (err) {
+            console.error("Save rules failed:", err);
+            showToast("Failed to save rules: " + err.message, true);
+        } finally {
+            btnSave.disabled = false;
+            btnSave.innerHTML = oldLabel;
+            if (window.lucide) lucide.createIcons();
+        }
+    });
 }

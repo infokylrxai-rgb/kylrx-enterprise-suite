@@ -33,6 +33,7 @@
             background-color: var(--bg);
             color: var(--text-main);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .layout { display: flex; min-height: 100vh; }
@@ -171,7 +172,7 @@
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 32px;
-            overflow: hidden;
+            overflow-x: auto;
             box-shadow: var(--shadow-sm);
         }
 
@@ -220,6 +221,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link active"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -328,33 +330,35 @@
                     <h2>Generation Audit Logs</h2>
                     <span style="font-size: 0.8rem; color: var(--text-muted);">Last 50 generations</span>
                 </div>
-                <table class="audit-table">
-                    <thead>
-                        <tr>
-                            <th>Timestamp</th>
-                            <th>Employee Name</th>
-                            <th>Target Type</th>
-                            <th>Generated Code</th>
-                            <th>Operator</th>
-                        </tr>
-                    </thead>
-                    <tbody id="auditLogsBody">
-                        <tr>
-                            <td>Today, 12:05 PM</td>
-                            <td>Rohan Sharma</td>
-                            <td>Full-Time</td>
-                            <td style="font-weight: 800; color: var(--primary);">FT-ENG-2026-0012</td>
-                            <td>System (Onboarding)</td>
-                        </tr>
-                        <tr>
-                            <td>Yesterday, 04:30 PM</td>
-                            <td>Aditi Singh</td>
-                            <td>Intern</td>
-                            <td style="font-weight: 800; color: var(--primary);">INT-HR-2026-0008</td>
-                            <td>HR Admin (Manual)</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="audit-table-container">
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Employee Name</th>
+                                <th>Target Type</th>
+                                <th>Generated Code</th>
+                                <th>Operator</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditLogsBody">
+                            <tr>
+                                <td>Today, 12:05 PM</td>
+                                <td>Rohan Sharma</td>
+                                <td>Full-Time</td>
+                                <td style="font-weight: 800; color: var(--primary);">FT-ENG-2026-0012</td>
+                                <td>System (Onboarding)</td>
+                            </tr>
+                            <tr>
+                                <td>Yesterday, 04:30 PM</td>
+                                <td>Aditi Singh</td>
+                                <td>Intern</td>
+                                <td style="font-weight: 800; color: var(--primary);">INT-HR-2026-0008</td>
+                                <td>HR Admin (Manual)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </main>
     </div>

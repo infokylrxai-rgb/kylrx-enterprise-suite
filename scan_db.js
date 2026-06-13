@@ -2,7 +2,7 @@ const { db } = require('./config/firebase');
 
 async function scanFirebase() {
     console.log("--- 🔍 FIREBASE DATA REPORT ---");
-    const collections = ['employees', 'attendance', 'users', 'activities'];
+    const collections = ['employees', 'attendance', 'users', 'activities', 'system_intelligence', 'employee_eods', 'intelligence_insights', 'ai_chat_logs'];
     
     for (const collName of collections) {
         try {

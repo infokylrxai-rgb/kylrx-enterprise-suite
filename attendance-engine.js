@@ -20,22 +20,8 @@ class AttendanceEngine {
     }
 
     async initHolidays() {
-        // Sample holidays for 2026
-        const holidays = [
-            { name: "Independence Day", date: "2026-08-15" },
-            { name: "Republic Day", date: "2026-01-26" },
-            { name: "Diwali", date: "2026-11-01" },
-            { name: "Christmas", date: "2026-12-25" },
-            { name: "New Year", date: "2026-01-01" }
-        ];
-
-        const snap = await getDocs(this.holidayColl);
-        if (snap.empty) {
-            console.log("Initializing holidays collection...");
-            for (const h of holidays) {
-                await addDoc(this.holidayColl, h);
-            }
-        }
+        // Holidays are managed exclusively via the Admin/HRMS Calendar.
+        // No static seed data — all entries come from the 'holidays' Firestore collection.
     }
 
     async isTodayHoliday() {
@@ -144,8 +130,8 @@ class AttendanceEngine {
                     let warningToManager = null;
                     if (durationHours < requiredHours) {
                         warningToManager = mandated8Hours 
-                            ? `Warning: Employee failed their mandated 8-hour shift today (worked ${durationHours.toFixed(1)}h).`
-                            : `Employee worked less than standard required 4 hours today (${durationHours.toFixed(1)}h).`;
+                            ? `Warning: ${userName} (ID: ${userId}, Dept: ${department}) failed their mandated 8-hour shift today (worked ${durationHours.toFixed(1)}h).`
+                            : `${userName} (ID: ${userId}, Dept: ${department}) worked less than standard required 4 hours today (${durationHours.toFixed(1)}h).`;
                     }
 
                     // Update the attendance record with calculated fields
@@ -155,6 +141,29 @@ class AttendanceEngine {
                         mandate8Hours: mandated8Hours,
                         warningSent: !!warningToManager
                     }, { merge: true });
+
+                    // Log to server-side Excel CSV automatically
+                    try {
+                        const inTimeStr = new Date(punchInMs).toISOString();
+                        const outTimeStr = new Date(punchOutMs).toISOString();
+                        await fetch('http://localhost:3000/api/data/log-attendance-excel', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                date: todayStr,
+                                userId: userId,
+                                name: userName,
+                                department: department,
+                                punchIn: inTimeStr,
+                                punchOut: outTimeStr,
+                                duration: durationHours.toFixed(2),
+                                status: status
+                            })
+                        });
+                        console.log('[EXCEL LOG] Logged attendance punchOut to server excel sheet.');
+                    } catch (err) {
+                        console.error('[EXCEL LOG] Failed to log automatically to server excel sheet:', err);
+                    }
 
                     // Create a notification for the manager
                     if (warningToManager) {

@@ -136,6 +136,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -379,8 +380,19 @@
                         <option value="week">This Week (7 Days)</option>
                         <option value="month">This Month</option>
                         <option value="year">This Year</option>
+                        <option value="custom">Custom Date Range</option>
                         <option value="All">All-Time</option>
                     </select>
+                    <div id="customDateRangeContainer" style="display:none; gap:10px; margin-top:10px;">
+                        <div style="flex:1;">
+                            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted); margin-bottom:3px; display:block;">Start Date</label>
+                            <input type="date" id="filterStartDate" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; font-family:inherit; background: white;">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted); margin-bottom:3px; display:block;">End Date</label>
+                            <input type="date" id="filterEndDate" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; font-family:inherit; background: white;">
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -420,6 +432,9 @@
                         if (filters.period === 'today') {
                             const todayStr = today.toISOString().split('T')[0];
                             if (log.date !== todayStr) match = false;
+                        } else if (filters.period === 'custom') {
+                            if (filters.startDate && log.date < filters.startDate) match = false;
+                            if (filters.endDate && log.date > filters.endDate) match = false;
                         } else if (filters.period === 'week') {
                             // Within last 7 days
                             const diffTime = Math.abs(today - logDate);
@@ -630,6 +645,15 @@
         function setupActionButtons() {
             // Filter Modal Logic
             const filterModal = document.getElementById('filterModal');
+            
+            // Toggle Custom Date inputs
+            document.getElementById('filterPeriod')?.addEventListener('change', (e) => {
+                const container = document.getElementById('customDateRangeContainer');
+                if (container) {
+                    container.style.display = e.target.value === 'custom' ? 'flex' : 'none';
+                }
+            });
+
             document.getElementById('btnFilters')?.addEventListener('click', () => {
                 filterModal.style.display = 'flex';
                 setTimeout(() => filterModal.style.opacity = '1', 10);
@@ -643,7 +667,9 @@
                 const status = document.getElementById('filterStatus').value;
                 const type = document.getElementById('filterType').value;
                 const period = document.getElementById('filterPeriod').value;
-                loadAttendanceLogs({ status, type, period });
+                const startDate = document.getElementById('filterStartDate').value;
+                const endDate = document.getElementById('filterEndDate').value;
+                loadAttendanceLogs({ status, type, period, startDate, endDate });
                 filterModal.style.opacity = '0';
                 setTimeout(() => filterModal.style.display = 'none', 300);
                 showToast("Filters applied.");
@@ -653,6 +679,9 @@
                 document.getElementById('filterStatus').value = 'All';
                 document.getElementById('filterType').value = 'All';
                 document.getElementById('filterPeriod').value = 'today';
+                document.getElementById('filterStartDate').value = '';
+                document.getElementById('filterEndDate').value = '';
+                document.getElementById('customDateRangeContainer').style.display = 'none';
                 loadAttendanceLogs({ status: 'All', type: 'All', period: 'today' });
                 filterModal.style.opacity = '0';
                 setTimeout(() => filterModal.style.display = 'none', 300);
@@ -695,11 +724,58 @@
                         return;
                     }
 
-                    let csv = 'Date,User ID,Punch In,Punch Out,Type,Status\n';
-                    logs.forEach(log => {
-                        const inTime = log.punchIn?.toDate ? log.punchIn.toDate().toISOString() : (log.punchIn || '');
-                        const outTime = log.punchOut?.toDate ? log.punchOut.toDate().toISOString() : (log.punchOut || '');
-                        csv += `${log.date},${log.userId},${inTime},${outTime},${log.type || 'Office'},${log.status}\n`;
+                    // Get current filter values to do customized Excel/CSV download!
+                    const status = document.getElementById('filterStatus').value;
+                    const type = document.getElementById('filterType').value;
+                    const period = document.getElementById('filterPeriod').value;
+                    const startDate = document.getElementById('filterStartDate').value;
+                    const endDate = document.getElementById('filterEndDate').value;
+
+                    // Filter the logs exactly as shown in UI
+                    const filteredLogs = logs.filter(log => {
+                        let match = true;
+                        if (status !== 'All' && log.status !== status) match = false;
+                        const logType = log.type || 'Office';
+                        if (type !== 'All' && logType !== type) match = false;
+                        
+                        if (period && period !== 'All') {
+                            const logDate = new Date(log.date);
+                            const today = new Date();
+                            
+                            if (period === 'today') {
+                                const todayStr = today.toISOString().split('T')[0];
+                                if (log.date !== todayStr) match = false;
+                            } else if (period === 'custom') {
+                                if (startDate && log.date < startDate) match = false;
+                                if (endDate && log.date > endDate) match = false;
+                            } else if (period === 'week') {
+                                const diffTime = Math.abs(today - logDate);
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                if (diffDays > 7) match = false;
+                            } else if (period === 'month') {
+                                if (logDate.getMonth() !== today.getMonth() || logDate.getFullYear() !== today.getFullYear()) match = false;
+                            } else if (period === 'year') {
+                                if (logDate.getFullYear() !== today.getFullYear()) match = false;
+                            }
+                        }
+                        return match;
+                    });
+
+                    if (filteredLogs.length === 0) {
+                        showToast("No logs matching the selected filters.", true);
+                        return;
+                    }
+
+                    let csv = 'Date,Employee ID,Employee Name,Department,Punch In,Punch Out,Type,Status\n';
+                    filteredLogs.forEach(log => {
+                        const punchIn = log.punchIn?.toDate ? log.punchIn.toDate() : (log.punchIn ? new Date(log.punchIn) : null);
+                        const punchOut = log.punchOut?.toDate ? log.punchOut.toDate() : (log.punchOut ? new Date(log.punchOut) : null);
+                        
+                        const inTime = punchIn ? punchIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        const outTime = punchOut ? punchOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        
+                        const escapeCsv = (str) => `"${(str || '').replace(/"/g, '""')}"`;
+                        csv += `${escapeCsv(log.date)},${escapeCsv(log.userId || log.employeeId || '')},${escapeCsv(log.userName || 'Employee')},${escapeCsv(log.department || 'General')},${escapeCsv(inTime)},${escapeCsv(outTime)},${escapeCsv(log.type || 'Office')},${escapeCsv(log.status)}\n`;
                     });
 
                     const blob = new Blob([csv], { type: 'text/csv' });
@@ -707,7 +783,7 @@
                     const a = document.createElement('a');
                     a.setAttribute('hidden', '');
                     a.setAttribute('href', url);
-                    a.setAttribute('download', `Attendance_Logs_${new Date().toISOString().split('T')[0]}.csv`);
+                    a.setAttribute('download', `Attendance_Logs_Custom_${new Date().toISOString().split('T')[0]}.csv`);
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);

@@ -168,8 +168,6 @@
 
         .sidebar {
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
             transition: all 0.3s ease;
         }
 
@@ -262,42 +260,6 @@
         .password-cell:hover {
             background: var(--primary-light) !important;
             color: var(--primary);
-        }
-
-        @media (max-width: 1024px) {
-            :root {
-                --sidebar-width: 80px;
-            }
-
-            .sidebar {
-                width: 80px;
-                padding: 1.5rem 0.5rem;
-                align-items: center;
-            }
-
-            .logo-text,
-            .nav-link span,
-            .nav-label {
-                display: none;
-            }
-
-            .logo-icon {
-                margin-bottom: 0;
-            }
-
-            .nav-link {
-                justify-content: center;
-                padding: 12px;
-            }
-
-            .main-content {
-                margin-left: 80px;
-                padding: 1.5rem;
-            }
-
-            .active-command-icon {
-                margin: 0 auto;
-            }
         }
 
         /* Main Content Area */
@@ -1207,47 +1169,6 @@
             }
         }
 
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 80px;
-                padding: 1.5rem 0.75rem;
-                align-items: center;
-            }
-
-            .logo {
-                margin-bottom: 2rem;
-                justify-content: center;
-                width: 100%;
-            }
-
-            .logo-text,
-            .nav-link span,
-            .nav-label {
-                display: none;
-            }
-
-            .nav-link {
-                justify-content: center;
-                padding: 12px;
-            }
-
-            .main-content {
-                margin-left: 80px;
-                padding: 1.5rem;
-            }
-
-            .header-actions {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1.5rem;
-            }
-
-            .top-right-actions {
-                width: 100%;
-                justify-content: space-between;
-            }
-        }
-
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -1277,55 +1198,7 @@
             }
         }
 
-        @media (max-width: 480px) {
-            .main-content {
-                margin-left: 0;
-                padding-top: 5rem;
-            }
-
-            .sidebar {
-                width: 100%;
-                height: 60px;
-                flex-direction: row;
-                bottom: 0;
-                top: auto;
-                border-right: none;
-                border-top: 1px solid var(--border);
-                padding: 0 1rem;
-                justify-content: space-around;
-                z-index: 1001;
-            }
-
-            .logo {
-                display: none;
-            }
-
-            .nav-menu {
-                display: flex;
-                width: 100%;
-                justify-content: space-around;
-            }
-
-            .nav-item {
-                margin-bottom: 0;
-            }
-
-            .sidebar-bottom {
-                display: none;
-            }
-
-            .top-right-actions {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: white;
-                padding: 1rem;
-                border-bottom: 1px solid var(--border);
-                z-index: 1000;
-            }
-        }
-    </style>
+        </style>
 </head>
 
 <body>
@@ -1334,7 +1207,8 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
-                <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
             </a>
 
             <nav class="nav-menu">
@@ -1380,6 +1254,8 @@
                             data-lucide="mail"></i><span>Admin Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i
                             data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i
+                            data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i
                             data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>

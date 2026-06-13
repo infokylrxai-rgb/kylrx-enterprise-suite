@@ -31,11 +31,11 @@ export function buildBankTransferRows(employees, periodLabel) {
 }
 
 export function exportBankTransferCSV(employees, periodLabel, options = {}) {
-    const { skipIncomplete = false } = options;
+    const { skipIncomplete = false, bypassConfirm = false } = options;
     const rows = buildBankTransferRows(employees, periodLabel);
     const incomplete = rows.filter((r) => !r.bankAccount || !r.ifscCode);
 
-    if (incomplete.length && !skipIncomplete) {
+    if (incomplete.length && !skipIncomplete && !bypassConfirm) {
         const proceed = confirm(
             `${incomplete.length} employee(s) missing bank info. Export anyway?`
         );

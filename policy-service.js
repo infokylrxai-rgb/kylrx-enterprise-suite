@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, query, getDocs, doc, getDoc, setDoc, updateDoc, serverTimestamp, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, query, getDocs, doc, getDoc, setDoc, updateDoc, serverTimestamp, where, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 export async function getActivePolicies() {
     console.log('[POLICY] Fetching active rollouts...');
@@ -117,5 +117,17 @@ export async function getCompliancePulse() {
     } catch (err) {
         console.error('[POLICY] Error fetching compliance pulse:', err);
         return { overallRate: 0, overdueCount: 0, blockedCount: 0 };
+    }
+}
+
+export async function deletePolicy(policyId) {
+    console.log(`[POLICY] Deleting policy ${policyId}...`);
+    try {
+        const policyRef = doc(db, 'policies', policyId);
+        await deleteDoc(policyRef);
+        return { success: true };
+    } catch (err) {
+        console.error('[POLICY] Error deleting policy:', err);
+        throw err;
     }
 }

@@ -121,6 +121,28 @@
         }
 
         .recover-btn { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
+
+        /* Switch Toggle styling */
+        .switch input:checked + .slider {
+            background-color: var(--primary) !important;
+        }
+        .switch input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary);
+        }
+        .switch input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .4s;
+        }
     </style>
 </head>
 <body class="admin-dashboard">
@@ -169,6 +191,7 @@
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-code-engine.html" class="nav-link"><i data-lucide="settings"></i><span>Config Engine</span></a></div>
                 <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
             </nav>
             <div class="sidebar-bottom">
@@ -211,7 +234,7 @@
                     </div>
                     <div class="btn-group">
                         <button class="btn btn-outline" id="runSimulation"><i data-lucide="play"></i> Run Sync Now</button>
-                        <button class="btn btn-primary" onclick="showToast('Opening Automation Rule Engine...')"><i data-lucide="settings"></i> Automation Rules</button>
+                        <button class="btn btn-primary" id="btnOpenRules"><i data-lucide="settings"></i> Automation Rules</button>
                     </div>
                 </div>
             </header>
@@ -324,6 +347,66 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Automation Rules Modal -->
+    <div id="automationRulesModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
+        <div style="background:white; padding:2.5rem; border-radius:24px; width:480px; max-width:90%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h3 style="font-weight:800; font-size:1.2rem; margin: 0; color: #1e293b;">Automation Rules</h3>
+                </div>
+                <button id="btnCloseRulesModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding: 4px; display: flex; align-items: center;"><i data-lucide="x"></i></button>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Configure thresholds and trigger policies for candidate inactivity management.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Inactivity Threshold (Hours)</label>
+                    <input type="number" id="ruleSuspendHours" min="1" max="168" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;" placeholder="3">
+                    <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">Time before a pending invitation is marked Suspended.</span>
+                </div>
+                
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Non-Responsive Threshold (Days)</label>
+                    <input type="number" id="ruleTrashDays" min="1" max="30" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;" placeholder="3">
+                    <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">Suspension time before moving to candidate trash.</span>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: 8px;">
+                    <div>
+                        <span style="font-size: 0.8rem; font-weight: 700; display: block; color: #1e293b;">Email Reminders</span>
+                        <span style="font-size: 0.65rem; color: var(--text-muted);">Send automated email reminders before link expiry.</span>
+                    </div>
+                    <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
+                        <input type="checkbox" id="ruleEmailReminders" checked style="opacity: 0; width: 0; height: 0;">
+                        <span class="slider" style="position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1; border-radius: 34px; transition: .4s;"></span>
+                    </label>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0;">
+                    <div>
+                        <span style="font-size: 0.8rem; font-weight: 700; display: block; color: #1e293b;">Manager Escalations</span>
+                        <span style="font-size: 0.65rem; color: var(--text-muted);">Route warning logs to target manager dashboard.</span>
+                    </div>
+                    <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
+                        <input type="checkbox" id="ruleEscalations" checked style="opacity: 0; width: 0; height: 0;">
+                        <span class="slider" style="position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1; border-radius: 34px; transition: .4s;"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:12px; margin-top: 8px;">
+                <button id="btnCancelRules" class="btn btn-outline" style="flex:1; justify-content:center; border-radius: 12px;">Cancel</button>
+                <button id="btnSaveRules" class="btn btn-primary" style="flex:1; justify-content:center; border-radius: 12px; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="check" style="width: 16px; height: 16px;"></i> Save Rules
+                </button>
+            </div>
+        </div>
     </div>
 
     <script type="module">
