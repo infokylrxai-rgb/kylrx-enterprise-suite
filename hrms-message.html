@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure administrative messages and communications.">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Messages | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+        const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+        if (!isLoggedIn || (userRole !== 'admin' && userRole !== 'hrms')) window.location.href = 'index.html';
+    </script>
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <style>
+        .sidebar {overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
+
+        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; display: flex; flex-direction: column; }
+        .header { margin-bottom: 2.5rem; }
+        .header h1 { font-size: 2rem; font-weight: 700; }
+        .chat-container { flex: 1; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: grid; grid-template-columns: 320px 1fr; overflow: hidden; }
+        .contacts-list { border-right: 1px solid var(--border); background: #fcfdfe; overflow-y: auto; }
+        .contact-item { padding: 1.25rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; display: flex; gap: 12px; align-items: center; }
+        .contact-item:hover { background: #f1f5f9; }
+        .contact-item.active { background: #eff6ff; border-left: 4px solid var(--primary); }
+        .contact-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .contact-info { flex: 1; overflow: hidden; }
+        .contact-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
+        .contact-last { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-window { display: flex; flex-direction: column; background: white; }
+        .chat-header { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+        .chat-messages { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: #efeae2; }
+        .message { max-width: 70%; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); color: #111b21; position: relative; }
+        .message.received { background: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
+        .message.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
+        .chat-input { padding: 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; position: relative; }
+        .input-box { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; }
+        .ai-btn { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; }
+        .ai-btn:hover { background: #fce7f3; transform: scale(1.05); }
+        .send-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .send-btn:hover { background: var(--primary-dark); }
+        .attach-btn { background: #f8fafc; color: var(--text-muted); border: 1px solid var(--border); padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; height: 100%; }
+        .attach-btn:hover { background: #e2e8f0; color: #1e293b; }
+
+        .file-pill { background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: #334155; }
+        .file-pill .remove { cursor: pointer; color: #ef4444; width: 14px; height: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+        .file-pill .remove:hover { transform: scale(1.1); }
+
+        /* Mentions Dropdown */
+        .mentions-dropdown {
+            position: absolute; bottom: 100%; left: 1.5rem; width: 240px; background: white;
+            border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
+            display: none; flex-direction: column; overflow: hidden; z-index: 1000; margin-bottom: 8px;
+        }
+        .mentions-dropdown.active { display: flex; }
+        .mention-item { padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .mention-item:hover { background: #f1f5f9; }
+        .mention-avatar { width: 24px; height: 24px; border-radius: 6px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
+
+        /* New Filter & Selection Styles */
+        .contacts-header { padding: 1.5rem; border-bottom: 1px solid var(--border); background: white; }
+        .bulk-options { display: flex; gap: 8px; margin-bottom: 1rem; }
+        .bulk-btn { flex: 1; padding: 10px 4px; border-radius: 10px; border: 1px solid var(--border); background: #f8fafc; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.2s; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .bulk-btn i { width: 16px; height: 16px; }
+        .bulk-btn:hover, .bulk-btn.active { background: #eff6ff; color: var(--primary); border-color: var(--primary); }
+        
+        .search-filter { position: relative; margin-top: 1rem; }
+        .search-filter input { width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; transition: 0.2s; }
+        .search-filter input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        .search-filter i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); }
+        
+        .filter-btn { 
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
+            background: white; border: 1px solid var(--border); border-radius: 8px; 
+            padding: 6px; cursor: pointer; color: var(--text-muted); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .filter-btn:hover { color: var(--primary); border-color: var(--primary); background: #eff6ff; }
+        .filter-btn i { width: 16px; height: 16px; }
+        
+        .selection-info { padding: 10px 1.5rem; background: #eff6ff; border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.85rem; animation: slideDown 0.3s ease; }
+        .selection-info.active { display: flex; }
+        .clear-selection { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
+        
+        .contact-item.selected { background: #eff6ff; border-left: 4px solid var(--primary); }
+        
+        .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-top: 4px; display: inline-block; }
+        .badge.manager { background: #fee2e2; color: #ef4444; }
+        .badge.employee { background: #dcfce7; color: #10b981; }
+        .badge.admin { background: #eff6ff; color: #3b82f6; }
+        .badge.hrms { background: #faf5ff; color: #a855f7; }
+
+        .icon-btn { 
+            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .action-icon:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--border);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-icon i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2px;
+        }
+
+        /* Customization Sidebar */
+        .config-sidebar {
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            background: rgba(255, 255, 255, 0.98); border-left: 1px solid var(--border);
+            z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(25px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+        }
+        .config-sidebar.active { right: 0; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .config-header h2 { font-weight: 800; font-size: 1.25rem; }
+        .config-section { margin-bottom: 2rem; }
+        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option span { font-size: 0.9rem; font-weight: 600; }
+
+        /* Switches */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+
+        /* Chat Modern Style */
+        .modern-bubbles .message { border-radius: 20px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .no-avatars .contact-avatar, .no-avatars .chat-header .contact-avatar { display: none; }
+        
+        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Toasts */
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+
+        /* Dept Dropdown */
+        .dept-dropdown {
+            position: absolute; top: 100%; right: 0; width: 220px; background: white;
+            border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg);
+            display: none; flex-direction: column; overflow: hidden; z-index: 1000; margin-top: 8px;
+            animation: slideDown 0.2s ease;
+        }
+        .dept-dropdown.active { display: flex; }
+        .dept-item { padding: 12px 16px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-main); transition: 0.2s; border-bottom: 1px solid #f1f5f9; }
+        .dept-item:last-child { border-bottom: none; }
+        .dept-item:hover { background: #eff6ff; color: var(--primary); }
+        .dept-item.active { background: #eff6ff; color: var(--primary); border-left: 3px solid var(--primary); }
+
+        /* iframe overrides */
+        body.in-iframe .sidebar { display: none !important; }
+        body.in-iframe .main-content { margin-left: 0 !important; padding: 1rem !important; }
+        body.in-iframe .header { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Toasts -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Action completed successfully!</span>
+    </div>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="hrms-dashboard.html" class="logo">
+                <img src="logo.jpg" alt="Kylrx AI Logo" style="height: 36px; width: 36px; object-fit: contain; border-radius: 10px;">
+                <span class="logo-text">Kylrx AI</span>
+            </a>
+
+            <nav class="nav-menu">
+                <div class="nav-label">Strategic Hub</div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html" class="nav-link">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard Overview</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#bulk-onboarding" class="nav-link">
+                        <i data-lucide="user-plus"></i>
+                        <span>Onboarding Engine</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#compliance" class="nav-link">
+                        <i data-lucide="shield-check"></i>
+                        <span>Compliance Tracker</span>
+                    </a>
+                </div>
+
+
+                <div class="nav-label">Operations</div>
+                <div class="nav-item">
+                    <a href="hrms-calendar.html" class="nav-link">
+                        <i data-lucide="calendar-check"></i>
+                        <span>Leave & Attendance</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#payroll" class="nav-link">
+                        <i data-lucide="banknote"></i>
+                        <span>Payroll &amp; Finances</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#pms" class="nav-link">
+                        <i data-lucide="trending-up"></i>
+                        <span>Performance (PMS)</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Intelligence</div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#recruitment" class="nav-link">
+                        <i data-lucide="user-search"></i>
+                        <span>Recruitment (ATS)</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#analytics" class="nav-link">
+                        <i data-lucide="brain-circuit"></i>
+                        <span>AI Insights</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#expenses" class="nav-link">
+                        <i data-lucide="receipt"></i>
+                        <span>Expense Claims</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Communication</div>
+                <div class="nav-item">
+                    <a href="hrms-message.html" class="nav-link active">
+                        <i data-lucide="message-square"></i>
+                        <span>Messages</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-notification.html" class="nav-link">
+                        <i data-lucide="bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </div>
+
+                <div class="nav-label">Lifecycle</div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#lifecycle" class="nav-link">
+                        <i data-lucide="briefcase"></i>
+                        <span>Employee Lifecycle</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#assets" class="nav-link">
+                        <i data-lucide="laptop"></i>
+                        <span>Asset Management</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="hrms-dashboard.html#org-structure" class="nav-link">
+                        <i data-lucide="building-2"></i>
+                        <span>Org Structure</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a href="#" class="nav-link" style="color: #ef4444;" onclick="localStorage.clear(); window.location.href = 'index.html';">
+                    <i data-lucide="log-out"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
+                <div style="flex: 1;">
+                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Admin Communications</h1>
+                    <p style="color: var(--text-muted); font-weight: 500;">Secure messaging with managers and personnel</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='hrms-message.html'">
+                        <i data-lucide="message-square"></i>
+                        <span class="action-icon-badge" id="headerMsgBadge"></span>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='hrms-notification.html'">
+                        <i data-lucide="bell"></i>
+                        <span class="action-icon-badge" id="headerNotifBadge"></span>
+                    </button>
+                </div>
+            </header>
+            <div class="chat-container">
+                <div class="contacts-list">
+                    <div class="contacts-header">
+                        <div class="bulk-options">
+                            <button class="bulk-btn" onclick="selectByRole('all')" id="btnAllDept">
+                                <i data-lucide="layers"></i>
+                                <span>All Depts</span>
+                            </button>
+                            <button class="bulk-btn" onclick="selectByRole('manager')" id="btnManagers">
+                                <i data-lucide="shield-check"></i>
+                                <span>Managers</span>
+                            </button>
+                            <button class="bulk-btn" onclick="selectByRole('employee')" id="btnEmployees">
+                                <i data-lucide="users"></i>
+                                <span>Employees</span>
+                            </button>
+                            <button class="bulk-btn" onclick="selectByRole('admin')" id="btnAdmins">
+                                <i data-lucide="shield"></i>
+                                <span>Admins</span>
+                            </button>
+                            <button class="bulk-btn" onclick="selectByRole('team')" id="btnTeams">
+                                <i data-lucide="users-2"></i>
+                                <span>Teams</span>
+                            </button>
+                        </div>
+                        <div class="search-filter">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="contactSearch" placeholder="Search people or depts..." oninput="filterContacts()">
+                            <button class="filter-btn" id="filterOptionsBtn" title="Filter options" onclick="toggleDeptDropdown(event)">
+                                <i data-lucide="sliders-horizontal"></i>
+                            </button>
+                            <div class="dept-dropdown" id="deptDropdown">
+                                <div class="dept-item active" onclick="filterByDept('all')">All Departments</div>
+                                <div id="deptListContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="selection-info" id="selectionInfo">
+                        <span id="selectionCount">0 people selected</span>
+                        <span class="clear-selection" onclick="clearSelection()">Clear All</span>
+                    </div>
+                    <div id="contactsContainer">
+                        <!-- Dynamic contacts will be injected here -->
+                    </div>
+                </div>
+                <div class="chat-window">
+                    <div class="chat-header" id="chatWindowHeader">
+                        <p style="color: var(--text-muted)">Select a person to start messaging</p>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Real-time messages will be streamed here -->
+                    </div>
+                    
+                    <div id="attachmentPreview" style="padding: 1rem 1.5rem 0; display: none; gap: 8px; flex-wrap: wrap; background: white; border-top: 1px solid var(--border);"></div>
+                    
+                    <div class="chat-input" id="chatInputArea" style="border-top: 1px solid var(--border);">
+                        <div class="mentions-dropdown" id="mentionsDropdown">
+                            <!-- Dynamically populated from Firestore users -->
+                        </div>
+                        <input type="file" id="fileUploadInput" style="display: none;" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.png,.jpg,.jpeg,.gif,.webp,.zip" onchange="handleFileUpload(event)">
+                        <button class="attach-btn" id="attachBtn" title="Attach Document" onclick="document.getElementById('fileUploadInput').click()">
+                            <i data-lucide="plus"></i>
+                        </button>
+                        <input type="text" class="input-box" id="messageInput" placeholder="Type @ to mention someone...">
+                        
+                        <button class="ai-btn" id="clearChatHistoryBtn" title="Clear All Chat History" onclick="clearAllChatHistory()" style="color: #ef4444; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); width: auto; padding: 0 14px; gap: 6px; display: flex; align-items: center;">
+                            <i data-lucide="trash-2" style="pointer-events: none; width: 16px; height: 16px;"></i>
+                            Clear All
+                        </button>
+<button class="ai-btn" id="aiCorrectBtn" title="AI Sentence Correction">
+                            <i data-lucide="sparkles" size="16"></i>
+                            AI Fix
+                        </button>
+                        <button class="send-btn" id="sendBtn"><i data-lucide="send"></i></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Customization Sidebar -->
+        <aside class="config-sidebar" id="configSidebar">
+            <div class="config-header">
+                <div>
+                    <h2>Communication UI</h2>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">PERSONALIZATION</p>
+                </div>
+                <button style="background:transparent; border:none; cursor:pointer;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="config-section">
+                <h3>Visual Theme</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="btn-theme active" onclick="setTheme('light', this)">Modern Light</div>
+                    <div class="btn-theme" onclick="setTheme('glass', this)">Glass Chat</div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>Bubble Styling</h3>
+                <div class="config-option">
+                    <span>Modern Rounded</span>
+                    <label class="switch"><input type="checkbox" id="checkModern"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Show Avatars</span>
+                    <label class="switch"><input type="checkbox" checked id="checkAvatars"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>AI Refinement</h3>
+                <div class="config-option">
+                    <span>Auto-Correct Tone</span>
+                    <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+                </div>
+                <div style="padding: 1rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;">
+                        <span>AI Formality Level</span>
+                        <span>High</span>
+                    </div>
+                    <input type="range" style="width: 100%;" min="0" max="100" value="80">
+                </div>
+            </div>
+
+            <button class="btn" style="background: var(--primary); color: white; margin-top: auto; width: 100%; justify-content: center; padding:12px; border:none; border-radius: 12px; cursor: pointer;" onclick="toggleConfig(false)">
+                Save Interface
+            </button>
+        </aside>
+    </div>
+    <script type="module">
+        import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion } from "./firebase-config.js";
+
+        // UI State
+        let currentContactId = null;
+        let selectedContacts = new Set();
+        let currentRoleFilter = 'all';
+        let currentDeptFilter = 'all';
+        let allUsers = [];
+
+        window.openAttachment = async (el) => {
+            const dataUrl = el.getAttribute('data-url');
+            if (!dataUrl) return;
+            try {
+                const res = await fetch(dataUrl);
+                const blob = await res.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                window.open(blobUrl, '_blank');
+            } catch (err) {
+                console.error("Failed to open attachment:", err);
+                const newWindow = window.open();
+                if (newWindow) {
+                    newWindow.document.write(`<iframe src="${dataUrl}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                }
+            }
+        };
+
+        window.showToast = (msg) => {
+            const toast = document.getElementById('successToast');
+            if (!toast) return;
+            toast.querySelector('span').textContent = msg;
+            toast.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        };
+
+        // Customization Logic
+        const configSidebar = document.getElementById('configSidebar');
+        window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
+        const btnCustom = document.getElementById('btnCustom');
+        if (btnCustom) {
+            btnCustom.onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+        }
+
+        window.setTheme = (theme, el) => {
+            document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            if (theme === 'glass') {
+                document.body.style.background = "linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)";
+                document.querySelector('.chat-container').style.backdropFilter = "blur(15px)";
+                document.querySelector('.chat-container').style.background = "rgba(255,255,255,0.7)";
+            } else {
+                document.body.style.background = "";
+                document.querySelector('.chat-container').style.backdropFilter = "";
+                document.querySelector('.chat-container').style.background = "";
+            }
+        };
+
+        document.getElementById('checkModern').onchange = (e) => {
+            document.querySelector('.chat-messages').classList.toggle('modern-bubbles', e.target.checked);
+        };
+
+        document.getElementById('checkAvatars').onchange = (e) => {
+            document.body.classList.toggle('no-avatars', !e.target.checked);
+        };
+
+        // Existing functionality remains below...
+        lucide.createIcons();
+
+        const input = document.getElementById('messageInput');
+        const mentions = document.getElementById('mentionsDropdown');
+        const chatMessages = document.getElementById('chatMessages');
+        const contactsContainer = document.getElementById('contactsContainer');
+        const selectionInfo = document.getElementById('selectionInfo');
+        const selectionCount = document.getElementById('selectionCount');
+        const contactSearch = document.getElementById('contactSearch');
+
+        const API_BASE = 'http://localhost:3000/api';
+        let rawToken = localStorage.getItem('hr_access_token');
+        if (rawToken === 'null' || rawToken === 'undefined' || !rawToken) {
+            rawToken = 'demo-static-token';
+        }
+        const token = rawToken;
+
+        let users = [];
+        let teams = [];
+        let selectedUserIds = new Set();
+        // Start with localStorage fallback; will be replaced by real Auth UID below
+        let currentUserId = localStorage.getItem('hr_user_id') || localStorage.getItem('adminUid') || 'ADMIN_GLOBAL';
+
+        function syncHeaderBadges(userId) {
+            const msgBadge = document.getElementById('headerMsgBadge');
+            const notifBadge = document.getElementById('headerNotifBadge');
+
+            // 1. Listen for unread messages (admin/hrms reads hr_support receiverId)
+            const msgQuery = query(
+                collection(db, 'messages'),
+                where('receiverId', '==', 'hr_support'),
+                where('read', '==', false)
+            );
+            onSnapshot(msgQuery, (snap) => {
+                if (msgBadge) {
+                    const count = snap.size;
+                    msgBadge.textContent = count > 9 ? '9+' : count;
+                    msgBadge.style.display = count > 0 ? 'flex' : 'none';
+                }
+            });
+
+            // 2. Listen for notifications
+            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
+            onSnapshot(notifQuery, (snap) => {
+                const unreadNotifs = snap.docs.filter(d => {
+                    const data = d.data();
+                    if (data.read) return false;
+                    const clearedBy = data.clearedBy || [];
+                    if (clearedBy.includes(userId)) return false;
+                    const tgt = (data.target || data.departmentId || '').toLowerCase();
+                    const type = (data.type || '').toLowerCase();
+                    return tgt === 'hrms' || type === 'employee_help' || type === 'employee_help_approved';
+                });
+                if (notifBadge) {
+                    const count = unreadNotifs.length;
+                    notifBadge.textContent = count > 9 ? '9+' : count;
+                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
+                }
+            });
+        }
+
+        // Resolve real Firebase Auth UID so chatId matches across dashboards
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUserId = user.uid;
+                localStorage.setItem('hr_user_id', user.uid);
+                localStorage.setItem('adminUid', user.uid);
+            }
+            syncHeaderBadges(currentUserId);
+        });
+
+
+        function setupRealtimeDirectory() {
+            let deptMap = {};
+
+            // Real-time Departments (Command Centers)
+            onSnapshot(collection(db, 'command_centers'), (snap) => {
+                const deptList = document.getElementById('deptListContainer');
+                if (deptList) deptList.innerHTML = '';
+                
+                snap.docs.forEach(doc => {
+                    const d = doc.data();
+                    let name = d.departmentName || d.name || 'Unknown Unit';
+                    if (d.targetType) {
+                        const targetSuffix = d.targetType === 'Manager Suite' ? 'Manager' : 'Employee';
+                        if (!name.toLowerCase().includes('manager') && !name.toLowerCase().includes('employee')) {
+                            name = `${name} ${targetSuffix}`;
+                        }
+                    }
+                    deptMap[doc.id] = name;
+                    
+                    if (deptList) {
+                        const item = document.createElement('div');
+                        item.className = 'dept-item';
+                        item.textContent = name;
+                        item.onclick = () => filterByDept(name);
+                        deptList.appendChild(item);
+                    }
+                });
+                renderContacts();
+            });
+
+            // Real-time Users
+            onSnapshot(collection(db, 'users'), (snap) => {
+                const rawUsers = snap.docs.map(doc => {
+                    const u = doc.data();
+                    return {
+                        id: doc.id,
+                        type: 'user',
+                        name: u.name || 'Unknown',
+                        email: u.email || '',
+                        role: (u.role || 'employee').toLowerCase(),
+                        dept: u.departmentName || u.department || u.departmentId || 'Operations',
+                        initials: (u.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+                        color: stringToColor(u.name || 'U')
+                    };
+                }).filter(u => u.role !== 'team' && u.name !== 'HR Support Hub');
+                
+                const seen = new Set();
+                users = rawUsers.filter(u => {
+                    const key = `${u.name.toLowerCase()}_${u.email.toLowerCase()}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+                
+                renderContacts();
+            });
+
+            // Real-time Teams
+            onSnapshot(collection(db, 'department_teams'), (snap) => {
+                const rawTeams = snap.docs.map(doc => {
+                    const t = doc.data();
+                    const deptId = t.departmentId || 'Cross-Functional';
+                    return {
+                        id: doc.id,
+                        type: 'team',
+                        name: t.name || 'Unnamed Team',
+                        role: 'team',
+                        dept: deptMap[deptId] || t.departmentName || deptId,
+                        initials: (t.name || 'T').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+                        color: '#6366f1'
+                    };
+                });
+                
+                // Deduplicate by name to prevent organizational drift
+                const seen = new Set();
+                teams = rawTeams.filter(t => {
+                    const duplicate = seen.has(t.name);
+                    seen.add(t.name);
+                    return !duplicate;
+                });
+                
+                renderContacts();
+            });
+        }
+
+        let unsubscribeMessages = null;
+
+        async function fetchMessages(recipientId) {
+            if (unsubscribeMessages) unsubscribeMessages();
+            
+            chatMessages.innerHTML = '<div style="text-align:center; padding:20px;">Streaming history...</div>';
+
+            // Build the same deterministic chatId used by employee dashboard
+            const chatId = ['hr_support', recipientId].sort().join('_');
+
+            // Query by chatId — works without composite index, matches employee schema
+            const q = query(
+                collection(db, 'messages'),
+                where('chatId', '==', chatId),
+                limit(100)
+            );
+
+            let isInitialChatLoad = true;
+            let previousMessageIds = new Set();
+
+            unsubscribeMessages = onSnapshot(q, (snap) => {
+                const allMsgs = snap.docs
+                    .filter(d => {
+                        const clearedBy = d.data().clearedBy || [];
+                        return !clearedBy.includes(currentUserId);
+                    })
+                    .map(d => ({ id: d.id, ...d.data() }));
+
+                if (!isInitialChatLoad) {
+                    const hasNew = allMsgs.some(m => m.senderId !== currentUserId && !previousMessageIds.has(m.id));
+                    if (hasNew) {
+                        const audio = new Audio('notification.mp3');
+                        audio.play().catch(e => console.log('Audio playback blocked:', e));
+                    }
+                }
+                previousMessageIds = new Set(allMsgs.map(m => m.id));
+                isInitialChatLoad = false;
+
+                // Sort client-side by timestamp
+                const pairMsgs = allMsgs.sort((a, b) => {
+                    return (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0);
+                });
+
+                chatMessages.innerHTML = '';
+                if (pairMsgs.length === 0) {
+                    chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">No messages yet. Start the conversation!</div>';
+                    return;
+                }
+
+                pairMsgs.forEach(msg => {
+                    const msgDiv = document.createElement('div');
+                    const isSent = msg.senderId === currentUserId || msg.senderId === 'hr_support';
+                    msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+
+                    // Timestamp label
+                    const ts = msg.timestamp?.toDate
+                        ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : '';
+                    const senderLabel = isSent ? 'Admin' : (msg.senderName || 'Employee');
+                    const labelColor = isSent ? '#475569' : 'var(--primary)';
+
+                    let htmlContent = `<div style="font-size:0.65rem;font-weight:800;color:${labelColor};margin-bottom:4px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>${senderLabel}</span><span style="font-weight:400;opacity:0.8">${ts}</span></div>`;
+                    htmlContent += (msg.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>');
+
+                    if (msg.attachments && msg.attachments.length > 0) {
+                        const attHtml = msg.attachments.map(att => `
+                            <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.85); padding:10px 14px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:8px; font-size:0.83rem; font-weight:600; color:#1e293b; flex-wrap:wrap;">
+                                <span style="display:flex; align-items:center; gap:6px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                    📎 <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${att.name}</span>
+                                </span>
+                                <div style="display:flex; gap:6px; flex-shrink:0;">
+                                    <a href="#" onclick="window.openAttachment(this); return false;" data-url="${att.dataUrl}" data-name="${att.name}" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:5px 11px; border-radius:6px; font-size:0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                        <i data-lucide="eye" style="width:14px; height:14px;"></i> Open
+                                    </a>
+                                    <a href="${att.dataUrl}" download="${att.name}" style="display:inline-flex; align-items:center; gap:4px; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:5px 11px; border-radius:6px; font-size:0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                                        <i data-lucide="download" style="width:14px; height:14px;"></i> Download
+                                    </a>
+                                </div>
+                            </div>`
+                        ).join('');
+                        htmlContent += `<div style="display:flex; flex-direction:column;">${attHtml}</div>`;
+                    }
+
+
+                    if (isSent) {
+                        htmlContent += `<div style="display:flex; gap:12px; margin-top:8px; font-size:0.7rem; opacity:0.8; justify-content:center;">
+                            <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${msg.id}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
+                            <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${msg.id}')">Clear</span>
+                        </div>`;
+                    }
+                    msgDiv.innerHTML = htmlContent;
+                    chatMessages.appendChild(msgDiv);
+
+                    // Mark as read if received
+                    if (!isSent && !msg.read) {
+                        updateDoc(doc(db, 'messages', msg.id), { read: true }).catch(() => {});
+                    }
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                if (window.lucide) { lucide.createIcons(); }
+            });
+        }
+
+        let pendingFiles = [];
+
+        // Helper to convert file to base64 Data URL
+        const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
+
+        window.handleSendMessage = async () => {
+            const text = input.value.trim();
+            if ((!text && pendingFiles.length === 0) || selectedUserIds.size === 0) return;
+
+            const sendBtn = document.getElementById('sendBtn');
+            const originalBtn = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<div class="spinner" style="width:16px; height:16px; border:2px solid white; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>';
+            sendBtn.disabled = true;
+
+            try {
+                // Convert all pending files to base64 Data URLs
+                const processedAttachments = [];
+                for (const file of pendingFiles) {
+                    if (file.size > 600000) { // Keep under ~800KB after base64 encoding
+                        showToast(`⚠️ "${file.name}" is too large (max 600KB). Please compress it first.`);
+                        continue;
+                    }
+                    const dataUrl = await fileToDataUrl(file);
+                    processedAttachments.push({
+                        name: file.name,
+                        dataUrl: dataUrl
+                    });
+                }
+
+                const recipients = Array.from(selectedUserIds);
+                for (const recipientId of recipients) {
+                    // Build the same deterministic chatId used by employee dashboard
+                    const chatId = ['hr_support', recipientId].sort().join('_');
+                    const senderName = localStorage.getItem('userName') || 'Admin';
+                    await addDoc(collection(db, 'messages'), {
+                        chatId,
+                        senderId: 'hr_support',
+                        senderName,
+                        senderRole: 'admin',
+                        receiverId: recipientId,
+                        participants: [currentUserId, recipientId],
+                        text: text,
+                        attachments: processedAttachments,
+                        timestamp: serverTimestamp(),
+                        read: false
+                    });
+                    
+                    // Add generic notification for the recipient
+                    await addDoc(collection(db, 'notifications'), {
+                        title: `New Message from ${senderName}`,
+                        message: text.length > 50 ? text.substring(0, 50) + '...' : text,
+                        timestamp: serverTimestamp(),
+                        target: recipientId,
+                        priority: 'normal'
+                    });
+
+                    // Add specific notification for mentioned users
+                    const mentionedUsers = users.filter(u => text.includes(`@${u.name}`));
+                    for (const mu of mentionedUsers) {
+                        if (mu.id !== recipientId) { // Prevent duplicate notification
+                            await addDoc(collection(db, 'notifications'), {
+                                title: `You were mentioned by ${senderName}`,
+                                message: `"${text}"`,
+                                timestamp: serverTimestamp(),
+                                target: mu.id,
+                                priority: 'high'
+                            });
+                        }
+                    }
+                }
+                input.value = '';
+                pendingFiles = [];
+                renderAttachmentPreview();
+            } catch (error) {
+                console.error('Error sending message:', error);
+            } finally {
+                sendBtn.innerHTML = originalBtn;
+                sendBtn.disabled = false;
+                lucide.createIcons();
+            }
+        };
+
+        document.getElementById('sendBtn').onclick = window.handleSendMessage;
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.handleSendMessage();
+        });
+
+        // Initialize
+        setupRealtimeDirectory();
+
+        // AI Correction Implementation (OpenAI GPT API)
+        document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
+            const text = input.value.trim();
+            if (!text) return;
+
+            const btn = document.getElementById('aiCorrectBtn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Fixing...';
+            
+            try {
+                let corrected = text.trim();
+                corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
+                if (!/[.!?]$/.test(corrected)) corrected += '.';
+
+                const patterns = [
+                    { regex: /\bhelo\b/gi, replacement: 'Hello' },
+                    { regex: /\bi am\b/gi, replacement: 'I am' },
+                    { regex: /\bu\b/gi, replacement: 'you' },
+                    { regex: /\br\b/gi, replacement: 'are' },
+                    { regex: /\bpls\b/gi, replacement: 'please' },
+                    { regex: /\bthx\b|\btks\b/gi, replacement: 'thank you' },
+                    { regex: /\basap\b/gi, replacement: 'as soon as possible' },
+                    { regex: /\bgonna\b/gi, replacement: 'going to' },
+                    { regex: /\bwanna\b/gi, replacement: 'want to' },
+                    { regex: /\bcan u fix\b/gi, replacement: 'Could you please rectify this?' },
+                    { regex: /\bbudget done\b/gi, replacement: 'The budget report has been finalized.' },
+                    { regex: /\bi am busy\b/gi, replacement: 'I am currently occupied with other tasks.' },
+                    { regex: /\bsend me\b/gi, replacement: 'Please provide me with' },
+                    { regex: /\bhow r u\b/gi, replacement: 'How are you doing?' },
+                    { regex: /\bhey\b/gi, replacement: 'Hello,' }
+                ];
+
+                patterns.forEach(p => {
+                    corrected = corrected.replace(p.regex, p.replacement);
+                });
+
+                corrected = corrected.replace(/\bi\b/g, 'I');
+                
+                if (corrected.split(' ').length < 4 && !corrected.includes(',')) {
+                    if (corrected.toLowerCase().startsWith('i am')) {
+                        const name = corrected.split(' ').slice(2).join(' ').replace('.', '');
+                        if (name) {
+                            corrected = `Hello, I am ${name.charAt(0).toUpperCase() + name.slice(1)}.`;
+                        }
+                    }
+                }
+
+                // Simulate a slight delay to show the "Fixing..." animation
+                await new Promise(r => setTimeout(r, 600));
+                input.value = corrected;
+            } catch (err) {
+                console.error("AI Fix Error:", err);
+                input.value = text.charAt(0).toUpperCase() + text.slice(1) + (text.endsWith('.') ? '' : '.');
+            } finally {
+                btn.innerHTML = originalHtml;
+            }
+        });
+
+        // Mentions Logic
+        input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            const match = val.match(/@([a-zA-Z0-9_ ]*)$/);
+            if (match) {
+                const searchStr = match[1].toLowerCase();
+                const filtered = users.filter(u => u.name.toLowerCase().includes(searchStr)).slice(0, 5);
+                mentions.innerHTML = filtered.map(u => `
+                    <div class="mention-item" onclick="insertMention('${u.name}')">
+                        <div class="mention-avatar" style="background:${u.color}">${u.initials}</div>
+                        <span>${u.name} (${u.role})</span>
+                    </div>
+                `).join('');
+                mentions.classList.add('active');
+            } else {
+                mentions.classList.remove('active');
+            }
+        });
+
+        window.insertMention = (name) => {
+            const val = input.value;
+            input.value = val.slice(0, val.lastIndexOf('@')) + '@' + name + ' ';
+            mentions.classList.remove('active');
+            input.focus();
+        };
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.onclick = (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            };
+        }
+
+        function stringToColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            const colors = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e'];
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        function renderContacts() {
+            contactsContainer.innerHTML = '';
+            const searchText = contactSearch.value.toLowerCase();
+            
+            const displayList = currentRoleFilter === 'team' ? teams : users;
+
+            const filtered = displayList.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchText) || item.dept.toLowerCase().includes(searchText);
+                const matchesRole = currentRoleFilter === 'all' || 
+                                    item.role === currentRoleFilter || 
+                                    (currentRoleFilter === 'admin' && (item.role === 'admin' || item.role === 'hrms')) ||
+                                    currentRoleFilter === 'team';
+                const matchesDept = currentDeptFilter === 'all' || item.dept === currentDeptFilter;
+                return matchesSearch && matchesRole && matchesDept;
+            });
+
+            filtered.forEach(item => {
+                const isSelected = selectedUserIds.has(item.id);
+                const div = document.createElement('div');
+                div.className = `contact-item ${isSelected ? 'selected' : ''}`;
+                div.onclick = () => window.toggleSelection(item.id);
+                
+                div.innerHTML = `
+                    <div class="contact-avatar" style="background: ${item.color}">${item.initials}</div>
+                    <div class="contact-info">
+                        <div class="contact-name">${item.name}</div>
+                        <div class="contact-last">${item.dept}</div>
+                        <span class="badge ${item.role}">${item.role}</span>
+                    </div>
+                `;
+                contactsContainer.appendChild(div);
+            });
+        }
+
+        window.toggleSelection = (id) => {
+            selectedUserIds.clear();
+            selectedUserIds.add(id);
+            updateSelectionUI();
+        };
+
+        window.selectByRole = (role) => {
+            currentRoleFilter = role;
+            currentDeptFilter = 'all'; // Reset dept filter when choosing role
+            document.querySelectorAll('.bulk-btn').forEach(btn => btn.classList.remove('active'));
+            if (role === 'all') document.getElementById('btnAllDept').classList.add('active');
+            else if (role === 'manager') document.getElementById('btnManagers').classList.add('active');
+            else if (role === 'employee') document.getElementById('btnEmployees').classList.add('active');
+            else if (role === 'admin') document.getElementById('btnAdmins').classList.add('active');
+            else if (role === 'team') document.getElementById('btnTeams').classList.add('active');
+            
+            renderContacts();
+        };
+
+        window.filterByDept = (dept) => {
+            currentDeptFilter = dept;
+            currentRoleFilter = 'all';
+            
+            // UI Updates
+            document.querySelectorAll('.bulk-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btnAllDept').classList.add('active');
+            
+            document.querySelectorAll('.dept-item').forEach(item => {
+                item.classList.toggle('active', item.textContent === dept || (dept === 'all' && item.textContent === 'All Departments'));
+            });
+            
+            document.getElementById('deptDropdown').classList.remove('active');
+            renderContacts();
+        };
+
+        window.handleFileUpload = (e) => {
+            if (e.target.files.length > 0) {
+                pendingFiles = [...pendingFiles, ...Array.from(e.target.files)];
+                renderAttachmentPreview();
+                e.target.value = '';
+            }
+        };
+
+        window.removeAttachment = (index) => {
+            pendingFiles.splice(index, 1);
+            renderAttachmentPreview();
+        };
+
+        window.renderAttachmentPreview = () => {
+            const preview = document.getElementById('attachmentPreview');
+            const chatInputArea = document.getElementById('chatInputArea');
+            if (pendingFiles.length === 0) {
+                preview.style.display = 'none';
+                preview.innerHTML = '';
+                chatInputArea.style.borderTop = '1px solid var(--border)';
+                return;
+            }
+            
+            preview.style.display = 'flex';
+            chatInputArea.style.borderTop = 'none';
+            preview.innerHTML = pendingFiles.map((f, i) => `
+                <div class="file-pill">
+                    <i data-lucide="file-text" style="width:14px; height:14px;"></i>
+                    <span>${f.name}</span>
+                    <i data-lucide="x" class="remove" onclick="removeAttachment(${i})"></i>
+                </div>
+            `).join('');
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.toggleDeptDropdown = (e) => {
+            e.stopPropagation();
+            document.getElementById('deptDropdown').classList.toggle('active');
+        };
+
+        document.addEventListener('click', () => {
+            const dd = document.getElementById('deptDropdown');
+            if (dd) dd.classList.remove('active');
+        });
+
+        window.clearSelection = () => {
+            selectedUserIds.clear();
+            updateSelectionUI();
+        };
+
+        function updateSelectionUI() {
+            renderContacts();
+            const chatHeader = document.getElementById('chatWindowHeader');
+            if (selectedUserIds.size > 0) {
+                // selectionInfo.classList.add('active'); // Hide bulk selection UI like WhatsApp
+                // selectionCount.innerText = `${selectedUserIds.size} people selected`;
+                if (selectedUserIds.size === 1) {
+                    const selId = Array.from(selectedUserIds)[0];
+                    const entity = users.find(u => u.id === selId) || teams.find(t => t.id === selId);
+                    if (!entity) return;
+
+                    chatHeader.innerHTML = `
+                        <div class="contact-avatar" style="background: ${entity.color}">${entity.initials}</div>
+                        <div><div class="contact-name">${entity.name}</div><div style="font-size:0.75rem; color:#10b981; font-weight:600;">${entity.type === 'team' ? 'Team Broadcast' : 'Direct Message'}</div></div>
+                    `;
+                    fetchMessages(entity.id);
+                } else {
+                    chatHeader.innerHTML = `
+                        <div class="contact-avatar" style="background:var(--primary)"><i data-lucide="megaphone"></i></div>
+                        <div><div class="contact-name">Broadcast Message</div><div style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Sending to ${selectedUserIds.size} recipients</div></div>
+                    `;
+                    chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top:20px;">Ready to send broadcast...</div>';
+                    if (unsubscribeMessages) unsubscribeMessages();
+                    lucide.createIcons();
+                }
+            } else {
+                selectionInfo.classList.remove('active');
+                chatHeader.innerHTML = `<p style="color: var(--text-muted)">Select a person to start messaging</p>`;
+                chatMessages.innerHTML = '';
+                if (unsubscribeMessages) unsubscribeMessages();
+            }
+        }
+
+        window.filterContacts = () => renderContacts();
+
+        
+        // Create modal container
+        const ensureModals = () => {
+            if (document.getElementById('customEditModal')) return;
+            
+            const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
+            const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
+            
+            // Edit Modal
+            const editModal = document.createElement('div');
+            editModal.id = 'customEditModal';
+            editModal.style.cssText = modalStyle;
+            editModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:12px; color:#1e293b; font-size:1.1rem; font-weight:700;">Edit Message</h3>
+                    <textarea id="customEditInput" style="width:100%; height:100px; padding:12px; border:1px solid #cbd5e1; border-radius:8px; resize:none; font-family:inherit; box-sizing:border-box; outline:none; font-size:0.9rem;"></textarea>
+                    <button id="customEditAIFix" style="margin-top:10px; width:100%; padding:10px 16px; border-radius:8px; border:none; background:linear-gradient(135deg,#db2777,#9333ea); color:white; font-weight:700; font-size:0.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:0.2s; font-family:inherit;">
+                        <span style="font-size:1rem;">✨</span> AI Fix
+                    </button>
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
+                        <button id="customEditCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, #3b82f6); color:white;">Save Changes</button>
+                    </div>
+                </div>
+            `;
+            
+            // Delete Modal
+            const delModal = document.createElement('div');
+            delModal.id = 'customDelModal';
+            delModal.style.cssText = modalStyle;
+            delModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear Message</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear this message? This action cannot be undone.</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customDelCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customDelConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Message</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(editModal);
+            document.body.appendChild(delModal);
+
+            // Wire AI Fix button once modals are in DOM
+            document.getElementById('customEditAIFix').addEventListener('click', async () => {
+                const ta = document.getElementById('customEditInput');
+                const btn = document.getElementById('customEditAIFix');
+                const original = ta.value.trim();
+                if (!original) return;
+                btn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span> Fixing...';
+                btn.disabled = true;
+                await new Promise(r => setTimeout(r, 500));
+                const patterns = [
+                    { regex: /\bhelo\b/gi, replacement: 'Hello' },
+                    { regex: /\bi am\b/gi, replacement: 'I am' },
+                    { regex: /\bu\b/gi, replacement: 'you' },
+                    { regex: /\br\b/gi, replacement: 'are' },
+                    { regex: /\bpls\b/gi, replacement: 'please' },
+                    { regex: /\bthx\b|\btks\b/gi, replacement: 'thank you' },
+                    { regex: /\basap\b/gi, replacement: 'as soon as possible' },
+                    { regex: /\bgonna\b/gi, replacement: 'going to' },
+                    { regex: /\bwanna\b/gi, replacement: 'want to' },
+                    { regex: /\bcan u fix\b/gi, replacement: 'Could you please rectify this?' },
+                    { regex: /\bbudget done\b/gi, replacement: 'The budget report has been finalized.' },
+                    { regex: /\bi am busy\b/gi, replacement: 'I am currently occupied with other tasks.' },
+                    { regex: /\bsend me\b/gi, replacement: 'Please provide me with' },
+                    { regex: /\bhow r u\b/gi, replacement: 'How are you doing?' },
+                    { regex: /\bhey\b/gi, replacement: 'Hello,' }
+                ];
+                let fixed = original.charAt(0).toUpperCase() + original.slice(1);
+                patterns.forEach(p => { fixed = fixed.replace(p.regex, p.replacement); });
+                fixed = fixed.replace(/\bi\b/g, 'I');
+                if (!/[.!?]$/.test(fixed)) fixed += '.';
+                ta.value = fixed;
+                btn.innerHTML = '<span style="font-size:1rem;">✨</span> AI Fix';
+                btn.disabled = false;
+            });
+
+            // Clear All Modal
+            const clearAllModal = document.createElement('div');
+            clearAllModal.id = 'customClearAllModal';
+            clearAllModal.style.cssText = modalStyle;
+            clearAllModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear All History</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear the entire conversation? This action cannot be undone.</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customClearAllCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear Chat</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(clearAllModal);
+
+        };
+
+        
+        window.clearAllChatHistory = async () => {
+            let chatId = null;
+            if (typeof buildChatId === 'function' && buildChatId.length === 0) {
+                try { chatId = buildChatId(); } catch(e) {}
+            }
+            if (!chatId && typeof selectedUserIds !== 'undefined' && selectedUserIds.size === 1) {
+                const targetId = Array.from(selectedUserIds)[0];
+                chatId = ['hr_support', targetId].sort().join('_');
+            }
+            if (!chatId && typeof currentChatId !== 'undefined') {
+                chatId = currentChatId;
+            }
+            if (!chatId) {
+                alert("Please select a chat first.");
+                return;
+            }
+
+            ensureModals();
+            const modal = document.getElementById('customClearAllModal');
+            if(modal) modal.style.display = 'flex';
+            
+            document.getElementById('customClearAllCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customClearAllConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                try {
+                    const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
+                    const snap = await getDocs(q);
+                    const updatePromises = snap.docs.map(d => updateDoc(doc(db, 'messages', d.id), {
+                        clearedBy: arrayUnion(currentUserId)
+                    }));
+                    await Promise.all(updatePromises);
+                } catch(e) { console.error('Error clearing chat history:', e); }
+            };
+        };
+
+        window.clearMessage = async (msgId) => {
+            ensureModals();
+            const modal = document.getElementById('customDelModal');
+            modal.style.display = 'flex';
+            
+            document.getElementById('customDelCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customDelConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                try {
+                    await updateDoc(doc(db, 'messages', msgId), {
+                        clearedBy: arrayUnion(currentUserId)
+                    });
+                } catch(e) { console.error('Error clearing message:', e); }
+            };
+        };
+
+        window.editMessage = async (msgId, oldText) => {
+            ensureModals();
+            const modal = document.getElementById('customEditModal');
+            const input = document.getElementById('customEditInput');
+            input.value = oldText;
+            modal.style.display = 'flex';
+            input.focus();
+            
+            document.getElementById('customEditCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customEditSave').onclick = async () => {
+                const newText = input.value;
+                if (newText !== null && newText.trim() !== "" && newText !== oldText) {
+                    await updateDoc(doc(db, 'messages', msgId), { text: newText.trim() });
+                }
+                modal.style.display = 'none';
+            };
+        };
+
+        if (window.self !== window.top) {
+            document.body.classList.add('in-iframe');
+        }
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+

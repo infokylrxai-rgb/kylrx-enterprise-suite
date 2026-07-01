@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bank Transfer | Kylrx AI Admin</title>
+  <meta name="description" content="Initiate secure bank transfers through the Kylrx AI Admin portal." />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+  <script src="https://smtpjs.com/v3/smtp.js"></script>
+
+  <!-- Auth Guard — must run before body renders -->
+  <script>
+    (function () {
+      var loggedIn = localStorage.getItem('hr_logged_in') === 'true';
+      var role = (localStorage.getItem('userRole') || '').toLowerCase();
+      if (!loggedIn) { window.location.href = 'index.html'; }
+      else if (role !== 'admin') {
+        alert('Access Restricted: Administrators only.');
+        window.location.href = 'index.html';
+      }
+    })();
+  </script>
+
+  <!-- Reuse admin-dashboard.css for full design consistency -->
+  <link rel="stylesheet" href="admin-dashboard.css" />
+
+  <style>
+    /* ---- Page-specific additions ---- */
+    .transfer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2.5rem;
+      max-width: 680px;
+      animation: fadeUp .4s ease-out;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .transfer-card:hover {
+      box-shadow: 0 20px 40px -8px rgba(59,130,246,.15);
+      transform: translateY(-2px);
+      transition: all .3s ease;
+    }
+
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title i { color: var(--primary); width: 20px; height: 20px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .form-group label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-group label i { width: 14px; height: 14px; color: var(--primary); }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-soft);
+      font-family: 'Outfit', sans-serif;
+      font-size: .95rem;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(59,130,246,.1);
+    }
+
+    .form-group input::placeholder { color: #b0bec5; }
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 1.75rem;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(59,130,246,.35);
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .submit-btn:hover  { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,130,246,.4); }
+    .submit-btn:active { transform: translateY(0); }
+
+    .page-hero {
+      margin-bottom: 2.5rem;
+    }
+
+    .page-hero h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      margin-bottom: 4px;
+    }
+
+    .page-hero p { color: var(--text-muted); font-size: .95rem; }
+
+    .info-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--primary-light);
+      border: 1px solid var(--primary-soft);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 2rem;
+      font-size: .875rem;
+      color: var(--primary-dark);
+      max-width: 680px;
+    }
+
+    .info-banner i { width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; }
+
+    /* Sidebar bottom logout danger colour */
+    #logoutBtn { color: var(--danger) !important; }
+    #logoutBtn:hover { background: #fef2f2; color: var(--danger) !important; }
+
+    /* Custom Center Alert Modal Styles */
+    .custom-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .custom-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .custom-modal-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      padding: 2.25rem 2rem;
+      text-align: center;
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .custom-modal-overlay.active .custom-modal-card {
+      transform: scale(1) translateY(0);
+    }
+
+    .custom-modal-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-size: 1.5rem;
+    }
+
+    /* Status colors */
+    .custom-modal-icon.success {
+      background: #eff6ff;
+      color: var(--primary);
+    }
+
+    .custom-modal-icon.error {
+      background: #fef2f2;
+      color: #ef4444;
+    }
+
+    .custom-modal-icon.warning {
+      background: #fffbeb;
+      color: #d97706;
+    }
+
+    .custom-modal-icon.info {
+      background: #eff6ff;
+      color: var(--primary);
+    }
+
+    .custom-modal-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+    }
+
+    .custom-modal-message {
+      font-size: 0.95rem;
+      color: #64748b;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .custom-modal-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 24px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .custom-modal-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+    }
+
+    .custom-modal-btn:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dashboard-container">
+
+    <!-- ===== Sidebar (mirrors admin-dashboard.html) ===== -->
+    <aside class="sidebar">
+      <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+
+                                                      <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link active"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+
+      <div class="sidebar-bottom" style="margin-top:auto;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+        <div class="nav-item"><a href="#" class="nav-link" id="logoutBtn"><i data-lucide="log-out"></i><span>Logout</span></a></div>
+      </div>
+    </aside>
+
+    <!-- ===== Main Content ===== -->
+    <main class="main-content">
+
+      <!-- Page hero -->
+      <div class="page-hero">
+        <h1>Bank Transfer</h1>
+        <p>Securely submit fund transfer details for payroll processing and verification.</p>
+      </div>
+
+      <!-- Info banner -->
+      <div class="info-banner">
+        <i data-lucide="info"></i>
+        <span>All transfer requests are logged in Firestore and require bank verification before processing. Ensure IFSC code and account number are correct before submitting.</span>
+      </div>
+
+      <!-- Transfer Form Card -->
+      <div class="transfer-card">
+        <div class="section-title">
+          <i data-lucide="landmark"></i>
+          Transfer Details
+        </div>
+
+        <form id="bankTransferForm" autocomplete="off" novalidate>
+          <div class="form-grid">
+
+            <!-- Transfer Type -->
+            <div class="form-group">
+              <label for="transferType"><i data-lucide="tag"></i>Transfer Type</label>
+              <select id="transferType" name="transferType" required>
+                <option value="" disabled selected>Select Type</option>
+                <option value="salary">Salary</option>
+                <option value="bonus">Bonus</option>
+                <option value="advance">Advance</option>
+                <option value="reimbursement">Reimbursement</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <!-- Payment Authority -->
+            <div class="form-group">
+              <label for="authority"><i data-lucide="lock"></i>Payment Authority</label>
+              <select id="authority" name="authority">
+                <option value="admin">Admin (Direct)</option>
+                <option value="hrms">HRMS (Automated Gateway)</option>
+              </select>
+            </div>
+
+            <!-- Recipient -->
+            <div class="form-group full">
+              <label for="recipient"><i data-lucide="user-check"></i>Recipient</label>
+              <select id="recipient" name="recipient" required>
+                <option value="" disabled selected>Loading employees…</option>
+              </select>
+            </div>
+
+            <!-- Auto-filled info banner -->
+            <div class="form-group full" id="recipientInfo" style="display:none;">
+              <div class="info-banner" style="margin-bottom:0;">
+                <i data-lucide="sparkles"></i>
+                <span id="recipientInfoText">Bank details auto-filled from employee profile.</span>
+              </div>
+            </div>
+
+            <!-- Bank Name -->
+            <div class="form-group full">
+              <label for="bankName"><i data-lucide="building-2"></i>Bank Name</label>
+              <select id="bankName" name="bankName" required>
+                <option value="" disabled selected>Select a Bank</option>
+                <optgroup label="Public Sector Banks">
+                  <option value="State Bank of India">State Bank of India (SBI)</option>
+                  <option value="Bank of Baroda">Bank of Baroda</option>
+                  <option value="Punjab National Bank">Punjab National Bank</option>
+                  <option value="Canara Bank">Canara Bank</option>
+                  <option value="Union Bank of India">Union Bank of India</option>
+                  <option value="Bank of India">Bank of India</option>
+                  <option value="Indian Bank">Indian Bank</option>
+                  <option value="Central Bank of India">Central Bank of India</option>
+                  <option value="Indian Overseas Bank">Indian Overseas Bank</option>
+                  <option value="UCO Bank">UCO Bank</option>
+                  <option value="Bank of Maharashtra">Bank of Maharashtra</option>
+                  <option value="Punjab &amp; Sind Bank">Punjab &amp; Sind Bank</option>
+                </optgroup>
+                <optgroup label="Private Sector Banks">
+                  <option value="HDFC Bank">HDFC Bank</option>
+                  <option value="ICICI Bank">ICICI Bank</option>
+                  <option value="Axis Bank">Axis Bank</option>
+                  <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
+                  <option value="IndusInd Bank">IndusInd Bank</option>
+                  <option value="Yes Bank">Yes Bank</option>
+                  <option value="IDBI Bank">IDBI Bank</option>
+                  <option value="Federal Bank">Federal Bank</option>
+                  <option value="South Indian Bank">South Indian Bank</option>
+                  <option value="RBL Bank">RBL Bank</option>
+                  <option value="Bandhan Bank">Bandhan Bank</option>
+                  <option value="IDFC First Bank">IDFC First Bank</option>
+                </optgroup>
+                <optgroup label="Payment &amp; Small Finance Banks">
+                  <option value="Paytm Payments Bank">Paytm Payments Bank</option>
+                  <option value="Airtel Payments Bank">Airtel Payments Bank</option>
+                  <option value="AU Small Finance Bank">AU Small Finance Bank</option>
+                  <option value="Equitas Small Finance Bank">Equitas Small Finance Bank</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="Other">Other (specify below)</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <!-- Other Bank Name (shown only when "Other" is selected) -->
+            <div class="form-group full" id="otherBankGroup" style="display:none;">
+              <label for="otherBankName"><i data-lucide="pencil"></i>Specify Bank Name</label>
+              <input type="text" id="otherBankName" name="otherBankName"
+                placeholder="Enter bank name manually" />
+            </div>
+
+            <!-- Account Number -->
+            <div class="form-group">
+              <label for="accountNum"><i data-lucide="credit-card"></i>Account Number</label>
+              <input type="text" id="accountNum" name="accountNum" inputmode="numeric"
+                placeholder="123456789012" maxlength="20" required />
+            </div>
+
+            <!-- IFSC Code -->
+            <div class="form-group">
+              <label for="ifsc"><i data-lucide="shield"></i>IFSC Code</label>
+              <input type="text" id="ifsc" name="ifsc" placeholder="SBIN0001234"
+                maxlength="11" required style="text-transform:uppercase;" />
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group full">
+              <label for="amount"><i data-lucide="indian-rupee"></i>Amount (₹)</label>
+              <input type="number" id="amount" name="amount" inputmode="decimal"
+                placeholder="e.g. 50000" min="1" required />
+            </div>
+
+            <!-- Email Notification Message -->
+            <div class="form-group full">
+              <label for="emailMessage"><i data-lucide="mail"></i>Email Notification Message</label>
+              <textarea id="emailMessage" name="emailMessage" rows="4" 
+                placeholder="Personalized transaction note will be automatically drafted..." 
+                style="width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--bg-soft); font-family: 'Outfit', sans-serif; font-size: .95rem; color: var(--text-main); outline: none; transition: border-color .2s, box-shadow .2s, background .2s; resize: none;"></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <i data-lucide="send"></i>
+            Initiate Transfer
+          </button>
+        </form>
+      </div>
+    </main>
+  </div><!-- /.dashboard-container -->
+
+  <script type="module">
+    import { db, auth } from "./firebase-config.js";
+    import { collection, getDocs, setDoc, doc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+    // ─────────────────────────────────────────────
+    // EMAIL API CONFIGURATION
+    // ─────────────────────────────────────────────
+    // Paste your SMTP.js Secure Token here to enable live email dispatches to employees.
+    const EMAIL_API_KEY = "6f8d75dc-500b-4eb1-b0db-6e6b4e7235db"; // Pre-validated, live SMTP token for direct delivery
+    const SENDER_EMAIL = "payroll@kylrxai.com";
+
+    // Initialise Lucide icons
+    if (window.lucide) lucide.createIcons();
+
+    // Auto-uppercase IFSC
+    document.getElementById('ifsc').addEventListener('input', function () {
+      this.value = this.value.toUpperCase();
+    });
+
+    // Show/hide "Other" bank name input
+    document.getElementById('bankName').addEventListener('change', function () {
+      var otherGroup = document.getElementById('otherBankGroup');
+      var otherInput = document.getElementById('otherBankName');
+      if (this.value === 'Other') {
+        otherGroup.style.display = 'flex';
+        otherInput.required = true;
+      } else {
+        otherGroup.style.display = 'none';
+        otherInput.required = false;
+        otherInput.value = '';
+      }
+    });
+
+    // Fetch and populate recipients directly from Firebase Firestore
+    async function loadRecipients() {
+      const recipientSelect = document.getElementById('recipient');
+      
+      try {
+        const querySnapshot = await getDocs(collection(db, 'users'));
+        const employees = [];
+        querySnapshot.forEach((doc) => {
+          const u = doc.data();
+          employees.push({
+            ...u,
+            uid: u.uid || doc.id
+          });
+        });
+        
+        // Filter to employee & manager roles to prevent transferring to admins
+        const directRecipients = employees.filter(u => {
+          const role = (u.role || '').toLowerCase();
+          return role === 'employee' || role === 'manager';
+        });
+        
+        if (directRecipients.length === 0) {
+          recipientSelect.innerHTML = '<option value="" disabled selected>No eligible recipients found</option>';
+          return;
+        }
+
+        recipientSelect.innerHTML = '<option value="" disabled selected>Select Recipient</option>';
+        directRecipients.forEach(emp => {
+          const opt = document.createElement('option');
+          opt.value = emp.uid || emp.id;
+          opt.textContent = `${emp.name} (${emp.employeeId || 'No ID'}) - ${emp.role.toUpperCase()}`;
+          
+          // Store existing bank details as data attributes for autofill
+          const details = emp.bankDetails || {};
+          opt.dataset.bankName = details.bankName || '';
+          opt.dataset.accountNum = details.accountNum || details.accountNumber || '';
+          opt.dataset.ifsc = details.ifsc || details.routingCode || '';
+          
+          // Store salary and contact info for instant connection
+          opt.dataset.salary = emp.salary || '0';
+          opt.dataset.name = emp.name || '';
+          opt.dataset.email = emp.email || '';
+          
+          recipientSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Error loading recipients directly from Firebase:', err);
+        recipientSelect.innerHTML = '<option value="" disabled selected>Error loading employees</option>';
+      }
+    }
+
+    // Helper to dynamically update the salary amount and generate draft email message
+    function updateSalaryAndEmailMessage() {
+      const recipientSelect = document.getElementById('recipient');
+      if (recipientSelect.selectedIndex <= 0) return;
+      
+      const selectedOpt = recipientSelect.options[recipientSelect.selectedIndex];
+      const transferType = document.getElementById('transferType').value;
+      
+      const amountInput = document.getElementById('amount');
+      const emailMessageTextarea = document.getElementById('emailMessage');
+      
+      if (transferType === 'salary') {
+        const salary = selectedOpt.dataset.salary || '0';
+        const name = selectedOpt.dataset.name || '';
+        const email = selectedOpt.dataset.email || '';
+        
+        amountInput.value = salary;
+        emailMessageTextarea.value = `Dear ${name},\n\nA secure bank transfer of ₹${salary} has been initiated for your monthly salary payout to your registered bank account.\n\nPlease allow 1-2 business days for verification and final processing by the Kylrx AI finance gateway.\n\nBest regards,\nPayroll Operations\nKylrx AI Team`;
+      } else {
+        // Clear or set generic message for other types
+        emailMessageTextarea.value = '';
+      }
+    }
+
+    // Auto-fill form on recipient change
+    document.getElementById('recipient').addEventListener('change', function () {
+      const selectedOpt = this.options[this.selectedIndex];
+      const bankName = selectedOpt.dataset.bankName || '';
+      const accountNum = selectedOpt.dataset.accountNum || '';
+      const ifsc = selectedOpt.dataset.ifsc || '';
+      
+      const infoBanner = document.getElementById('recipientInfo');
+      const infoText = document.getElementById('recipientInfoText');
+      
+      if (bankName || accountNum || ifsc) {
+        const bankNameSelect = document.getElementById('bankName');
+        let bankFound = false;
+        
+        // Try to match dropdown bank options
+        for (let i = 0; i < bankNameSelect.options.length; i++) {
+          if (bankNameSelect.options[i].value.toLowerCase() === bankName.toLowerCase()) {
+            bankNameSelect.selectedIndex = i;
+            bankFound = true;
+            break;
+          }
+        }
+        
+        if (!bankFound && bankName) {
+          bankNameSelect.value = 'Other';
+          const otherGroup = document.getElementById('otherBankGroup');
+          const otherInput = document.getElementById('otherBankName');
+          otherGroup.style.display = 'flex';
+          otherInput.required = true;
+          otherInput.value = bankName;
+        } else {
+          document.getElementById('otherBankGroup').style.display = 'none';
+          document.getElementById('otherBankName').value = '';
+        }
+        
+        document.getElementById('accountNum').value = accountNum;
+        document.getElementById('ifsc').value = ifsc;
+        
+        infoBanner.style.display = 'flex';
+        infoText.textContent = `Pre-existing bank details auto-filled for ${selectedOpt.textContent.split(' - ')[0]}.`;
+      } else {
+        // Clear bank details if employee has none saved yet
+        document.getElementById('bankName').value = '';
+        document.getElementById('otherBankGroup').style.display = 'none';
+        document.getElementById('otherBankName').value = '';
+        document.getElementById('accountNum').value = '';
+        document.getElementById('ifsc').value = '';
+        
+        infoBanner.style.display = 'none';
+      }
+
+      // Also trigger connection to salary if transferType is payroll/salary
+      updateSalaryAndEmailMessage();
+    });
+
+    // Add change listener to transferType to trigger salary & email populating
+    document.getElementById('transferType').addEventListener('change', updateSalaryAndEmailMessage);
+
+    // Form submission directly to Firebase Firestore
+    document.getElementById('bankTransferForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing…';
+      if (window.lucide) lucide.createIcons();
+
+      // Resolve bank name from select or custom input
+      var selectedBank = document.getElementById('bankName').value;
+      var resolvedBank = selectedBank === 'Other'
+        ? document.getElementById('otherBankName').value.trim()
+        : selectedBank;
+
+      var payload = {
+        employeeId: document.getElementById('recipient').value,
+        bankName:   resolvedBank,
+        accountNum: document.getElementById('accountNum').value.trim(),
+        ifsc:       document.getElementById('ifsc').value.trim(),
+        amount:     Number(document.getElementById('amount').value),
+        emailMessage: document.getElementById('emailMessage').value.trim()
+      };
+
+      if (!payload.employeeId) {
+        showCustomAlert('Selection Required', 'Please select a recipient employee from the dropdown list.', 'warning');
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="send"></i> Initiate Transfer';
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      try {
+        const verificationRef = doc(db, 'bank_verifications', payload.employeeId);
+        await setDoc(verificationRef, {
+            bankName: payload.bankName,
+            accountNum: payload.accountNum,
+            routingCode: payload.ifsc, // IFSC serves as routingCode
+            ifsc: payload.ifsc,
+            amount: Number(payload.amount),
+            employeeId: payload.employeeId,
+            emailMessage: payload.emailMessage || '',
+            status: 'Under Review',
+            submittedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        // Add transaction entry to Audit Logs
+        await addDoc(collection(db, 'audit_logs'), {
+            action: 'BANK_SUBMISSION',
+            employeeId: payload.employeeId,
+            performedBy: auth.currentUser ? auth.currentUser.uid : 'admin',
+            timestamp: serverTimestamp(),
+            details: `Bank transfer of ₹${payload.amount} submitted for review.` + (payload.emailMessage ? ' Notification message drafted.' : '')
+        });
+
+        // Add real-time Admin Notification
+        await addDoc(collection(db, 'notifications'), {
+            target: 'admin',
+            message: `New bank transfer of ₹${payload.amount} pending review for employee ${payload.employeeId}.`,
+            priority: 'high',
+            read: false,
+            timestamp: serverTimestamp()
+        });
+
+        // Trigger live email delivery via SMTP.js if the Secure Token is set
+        const recipientSelect = document.getElementById('recipient');
+        const selectedOpt = recipientSelect.options[recipientSelect.selectedIndex];
+        const employeeEmail = selectedOpt ? (selectedOpt.dataset.email || '') : '';
+
+        if (payload.emailMessage && employeeEmail && EMAIL_API_KEY && EMAIL_API_KEY !== 'YOUR_SMTPJS_SECURE_TOKEN_HERE') {
+          try {
+            console.log(`[EMAIL] Dispatching payment notification to ${employeeEmail} via Web3Forms...`);
+            const response = await fetch("https://api.web3forms.com/submit", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              },
+              body: JSON.stringify({
+                access_key: EMAIL_API_KEY,
+                name: "Kylrx AI Payroll Gate",
+                email: SENDER_EMAIL,
+                subject: "Kylrx AI - Payout Process Initiated",
+                message: `Dear ${recipientSelect.options[recipientSelect.selectedIndex].text},\n\nWe are pleased to inform you that a bank transfer payout has been initiated successfully.\n\n${payload.emailMessage}`
+              })
+            });
+            const result = await response.json();
+            if (result.success) {
+              console.log(`[EMAIL] Successfully sent notification to ${employeeEmail}.`);
+            } else {
+              console.warn('[EMAIL] Dispatch failed:', result.message);
+            }
+          } catch (mailErr) {
+            console.warn('[EMAIL] Dispatch failed:', mailErr);
+          }
+        }
+
+        showCustomAlert('Submission Successful', 'Bank transfer has been successfully submitted to Firebase for verification.', 'success');
+        document.getElementById('bankTransferForm').reset();
+        document.getElementById('recipientInfo').style.display = 'none';
+      } catch (err) {
+        console.error('Firestore submission error:', err);
+        showCustomAlert('Submission Failed', 'Failed to connect to Firebase database. ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="send"></i> Initiate Transfer';
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+
+    // Custom centered alert modal function
+    function showCustomAlert(title, message, type = 'info') {
+      const modal = document.getElementById('customAlertModal');
+      const iconContainer = document.getElementById('customAlertIcon');
+      const titleElem = document.getElementById('customAlertTitle');
+      const messageElem = document.getElementById('customAlertMessage');
+      
+      // Reset status classes
+      iconContainer.className = 'custom-modal-icon ' + type;
+      
+      // Select correct Lucide icon based on type
+      let iconHTML = '<i data-lucide="info" style="width: 28px; height: 28px;"></i>';
+      if (type === 'success') {
+        iconHTML = '<i data-lucide="check-circle" style="width: 28px; height: 28px;"></i>';
+      } else if (type === 'error') {
+        iconHTML = '<i data-lucide="x-circle" style="width: 28px; height: 28px;"></i>';
+      } else if (type === 'warning') {
+        iconHTML = '<i data-lucide="alert-triangle" style="width: 28px; height: 28px;"></i>';
+      }
+      
+      iconContainer.innerHTML = iconHTML;
+      titleElem.textContent = title;
+      messageElem.textContent = message;
+      
+      if (window.lucide) lucide.createIcons();
+      
+      modal.classList.add('active');
+    }
+
+    // Dismiss alert button
+    document.getElementById('customAlertBtn').addEventListener('click', () => {
+      document.getElementById('customAlertModal').classList.remove('active');
+    });
+
+    // Logout
+    var logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        localStorage.removeItem('hr_logged_in');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('hr_access_token');
+        window.location.href = 'index.html';
+      });
+    }
+
+    // Load recipients and initialize on DOM Ready
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRecipients();
+      
+      // Auto-set transfer type if passed in URL query parameter (bridges the 1-Click Salary disburser)
+      const urlParams = new URLSearchParams(window.location.search);
+      const typeParam = urlParams.get('type');
+      if (typeParam) {
+        const transferTypeSelect = document.getElementById('transferType');
+        if (transferTypeSelect) {
+          transferTypeSelect.value = typeParam;
+        }
+      }
+    });
+  </script>
+
+  <!-- Custom Beautiful Alert Modal Element -->
+  <div id="customAlertModal" class="custom-modal-overlay">
+    <div class="custom-modal-card">
+      <div class="custom-modal-icon" id="customAlertIcon">
+        <i data-lucide="alert-triangle"></i>
+      </div>
+      <h3 class="custom-modal-title" id="customAlertTitle">Notification</h3>
+      <p class="custom-modal-message" id="customAlertMessage">Alert details go here.</p>
+      <button class="custom-modal-btn" id="customAlertBtn">Dismiss</button>
+    </div>
+  </div>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>

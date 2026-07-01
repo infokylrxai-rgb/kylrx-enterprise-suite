@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Documents | HRFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --radius: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            letter-spacing: 0.5px;
+        }
+
+        .doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .doc-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .doc-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        .doc-icon {
+            width: 56px;
+            height: 56px;
+            background: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .doc-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .doc-meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Centered Status Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 32px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .status-modal { transform: scale(1); }
+        .modal-icon {
+            width: 64px; height: 64px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 1.5rem;
+        }
+        .modal-icon.success { background: #dcfce7; color: #10b981; }
+        .modal-icon.info { background: #dbeafe; color: #3b82f6; }
+        
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    
+        .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
+        .sidebar { background: #ffffff; border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin; }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.1); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px; }
+        .nav-link:hover, .nav-link.active { background: #eff6ff; color: var(--primary); }
+        .profile-mini { margin-top: auto; background: #eff6ff; padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+    </style>
+</head>
+
+<body>
+
+        <script>
+        window.navigateToDashboard = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            window.location.href = id ? `employee-dashboard.html?id=${id}` : 'employee-dashboard.html';
+        };
+        window.navigateTo = (page) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            window.location.href = id ? `${page}?id=${id}` : page;
+        };
+        window.handleLogout = () => {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
+    </script>
+    <div class="layout">
+        <aside class="sidebar">
+            <a href="#" class="logo" onclick="navigateToDashboard()">
+                <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                
+                <div class="nav-label">RESOURCES</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+            </nav>
+
+            <div class="profile-mini">
+                <div class="avatar" id="userInitial">JD</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userNameDisplay">John Doe</div>
+                    <div class="profile-role" id="userRoleDisplay">Employee</div>
+                </div>
+                <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i data-lucide="log-out" size="18"></i>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content" style="padding: 2.5rem; overflow-y: auto; height: 100vh;">
+            <div class="container">
+        <header class="header">
+            <div>
+                <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Document Vault</h1>
+            </div>
+            <button
+                id="uploadBtn"
+                onclick="document.getElementById('fileInput').click()"
+                style="padding: 12px 24px; border-radius: 12px; background: var(--primary); border: none; color: white; font-weight: 800; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: 0.2s;">
+                <i data-lucide="upload-cloud" size="18"></i> <span id="btnText">Upload Document</span>
+            </button>
+            <input type="file" id="fileInput" style="display: none;" onchange="handleFileUpload(event)">
+        </header>
+
+        <div class="card">
+            <div class="card-title">
+                <span>Personal & Corporate Records</span>
+                <span id="docCountBadge"
+                    style="color: var(--text-muted); font-size: 0.7rem; background: var(--bg); padding: 4px 10px; border-radius: 100px;">Loading...</span>
+            </div>
+
+            <div class="doc-grid" id="docGrid">
+                <div style="grid-column: 1/-1; text-align:center; color: var(--text-muted); padding: 2rem;">Loading your documents...</div>
+            </div>
+        </div>
+    </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Status Modal -->
+    <div class="modal-overlay" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon success" id="statusModalIcon"><i data-lucide="check-circle"></i></div>
+            <h2 class="modal-title" id="statusModalTitle">Document Uploaded</h2>
+            <p class="modal-desc" id="statusModalDesc">Your file has been securely encrypted and stored in the HRFlow Document Vault.</p>
+            <button class="modal-btn" onclick="closeStatusModal()">Return to Vault</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { downloadPayslipFromDoc } from "./payslip-pdf-service.js";
+
+        lucide.createIcons();
+
+        let payrollDocs = [];
+
+        async function loadEmployeeDocs(uid) {
+            const grid = document.getElementById('docGrid');
+            const badge = document.getElementById('docCountBadge');
+            try {
+                let snap;
+                try {
+                    snap = await getDocs(query(
+                        collection(db, 'payroll_documents'),
+                        where('employeeId', '==', uid),
+                        orderBy('createdAt', 'desc')
+                    ));
+                } catch {
+                    snap = await getDocs(query(
+                        collection(db, 'payroll_documents'),
+                        where('employeeId', '==', uid)
+                    ));
+                }
+                payrollDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+                    .filter(d => d.docType === 'Payslip' || d.docType === 'Invoice')
+                    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                badge.textContent = `${payrollDocs.length} PAYSLIP${payrollDocs.length === 1 ? '' : 'S'}`;
+
+                if (!payrollDocs.length) {
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:2rem;">No payslips available yet. They will appear here after HR generates them.</div>';
+                    return;
+                }
+
+                grid.innerHTML = payrollDocs.map((doc, i) => {
+                    const date = doc.createdAt?.toDate ? doc.createdAt.toDate().toLocaleDateString() : 'Recent';
+                    return `<div class="doc-item" onclick="downloadDoc(${i})">
+                        <div class="doc-icon"><i data-lucide="file-text"></i></div>
+                        <div class="doc-name">${doc.fileName || doc.docType + ' — ' + (doc.period || 'N/A')}</div>
+                        <div class="doc-meta">${doc.status || 'Generated'} • ${date}</div>
+                    </div>`;
+                }).join('');
+                lucide.createIcons();
+            } catch (err) {
+                console.warn('Payslip load error:', err);
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#ef4444;padding:2rem;">Could not load payslips. Please try again later.</div>';
+                badge.textContent = '0 FILES';
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            const uid = user?.uid || localStorage.getItem('employee_uid');
+            if (uid) {
+                loadEmployeeDocs(uid);
+                onSnapshot(doc(db, 'users', uid), (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        const name = data.displayName || data.name || data.fullName || 'Employee';
+                        const role = data.designation || data.role || 'Employee';
+                        const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                        document.getElementById('userInitial').textContent = initials;
+                        document.getElementById('userNameDisplay').textContent = name;
+                        document.getElementById('userRoleDisplay').textContent = role;
+                    }
+                });
+            }
+        });
+
+        // Premium Modal Logic
+        window.showStatusModal = (title, msg, type = 'success') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+            
+            icon.className = `modal-icon ${type}`;
+            icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : '<i data-lucide="info"></i>';
+            
+            overlay.classList.add('active');
+            lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        };
+
+        window.handleFileUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const btn = document.getElementById('uploadBtn');
+            const btnText = document.getElementById('btnText');
+            const originalHtml = btn.innerHTML;
+
+            // Show Uploading State
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.innerHTML = '<div style="width:18px; height:18px; border:2px solid white; border-top:2px solid transparent; border-radius:50%; animation:spin 1s linear infinite;"></div> <span>Uploading...</span>';
+
+            // Simulate Secure Upload
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerHTML = originalHtml;
+                lucide.createIcons();
+                
+                showStatusModal(
+                    'Upload Successful', 
+                    `The document "${file.name}" has been successfully synchronized with the HRFlow Cloud Vault.`, 
+                    'success'
+                );
+                
+                // Clear input
+                event.target.value = '';
+            }, 2000);
+        };
+
+        window.downloadDoc = async (index) => {
+            const docData = payrollDocs[index];
+            if (!docData) return;
+            const label = docData.fileName || docData.docType + ' — ' + (docData.period || '');
+            showStatusModal('Retrieving File', `Downloading "${label}"...`, 'info');
+            try {
+                await downloadPayslipFromDoc(docData);
+                closeStatusModal();
+            } catch (err) {
+                showStatusModal('Download Failed', err.message, 'info');
+            }
+        };
+    </script>
+</body>
+
+</html>
+

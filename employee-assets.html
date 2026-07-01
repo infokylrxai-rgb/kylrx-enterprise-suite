@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Assets | HRFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; overflow-x: hidden; }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
+        .back-btn { display: flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: 0.2s; }
+        .back-btn:hover { color: var(--text); }
+        .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-top: 0.75rem; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        /* Summary */
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+        .summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+        .summary-value { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+        .summary-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Asset Cards */
+        .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+
+        .asset-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+        .asset-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: var(--primary-soft); }
+
+        .asset-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+        .asset-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .asset-icon i { width: 24px; height: 24px; }
+
+        .asset-status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-allocated { background: #dcfce7; color: #166534; }
+        .status-repair    { background: #fef3c7; color: #92400e; }
+        .status-missing   { background: #fee2e2; color: #991b1b; }
+        .status-pending   { background: var(--primary-light); color: var(--primary); }
+
+        .asset-name { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+        .asset-id   { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; font-family: monospace; margin-bottom: 1.25rem; }
+
+        .asset-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+        .asset-meta-row { display: flex; justify-content: space-between; font-size: 0.82rem; }
+        .meta-label { color: var(--text-muted); font-weight: 600; }
+        .meta-value { font-weight: 700; color: var(--text); }
+
+        .decl-bar {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+        }
+        .decl-signed   { color: var(--success); font-weight: 700; }
+        .decl-pending  { color: var(--warning); font-weight: 700; }
+
+        .btn-report {
+            width: 100%;
+            padding: 11px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .btn-report:hover { border-color: var(--danger); color: var(--danger); background: #fff5f5; }
+
+        /* Empty */
+        .empty-state { text-align: center; padding: 5rem 2rem; color: var(--text-muted); background: var(--card); border: 1px solid var(--border); border-radius: 24px; }
+        .empty-state i { width: 52px; height: 52px; opacity: 0.25; margin-bottom: 1rem; }
+        .empty-state p { font-size: 0.9rem; font-weight: 600; }
+
+        /* Issue Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 28px; overflow: hidden; width: 90%; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--border); transform: scale(0.95); transition: 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem; }
+        .modal select, .modal textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-family: inherit; font-size: 0.88rem; font-weight: 600; color: var(--text); outline: none; transition: 0.2s; margin-bottom: 1rem; }
+        .modal select:focus, .modal textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .modal textarea { resize: vertical; min-height: 100px; }
+        .modal-actions { display: flex; gap: 1rem; margin-top: 0.5rem; }
+        .btn-cancel { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: transparent; font-family: inherit; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-cancel:hover { background: var(--bg); }
+        .btn-submit { flex: 2; padding: 12px; border-radius: 12px; border: none; background: var(--danger); color: white; font-family: inherit; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-submit:hover { filter: brightness(1.05); }
+
+        /* Success modal */
+        .success-modal { text-align: center; }
+        .success-icon { width: 64px; height: 64px; background: #dcfce7; color: var(--success); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
+        .btn-done { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--primary); color: white; font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 1.5rem; }
+    
+        .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
+        .sidebar {background: #ffffff; border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.1); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-label:not(:first-of-type) { margin-top: 0.75rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px; }
+        .nav-link:hover, .nav-link.active { background: #eff6ff; color: var(--primary); }
+        .profile-mini { margin-top: auto; background: #eff6ff; padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+    </style>
+</head>
+<body>
+        <script>
+        window.navigateToDashboard = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            window.location.href = id ? `employee-dashboard.html?id=${id}` : 'employee-dashboard.html';
+        };
+        window.navigateTo = (page) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            window.location.href = id ? `${page}?id=${id}` : page;
+        };
+        window.handleLogout = () => {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
+
+        window.toggleAppsMenu = () => {
+            const dropdown = document.getElementById('appsDropdown');
+            const chevron = document.getElementById('appsChevron');
+            if (!dropdown || !chevron) return;
+            
+            const isVisible = dropdown.style.display === 'flex';
+            dropdown.style.display = isVisible ? 'none' : 'flex';
+            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        const loadLocalApps = () => {
+            const list = document.getElementById('customAppsList');
+            if (!list) return;
+            
+            const stored = localStorage.getItem('employee_apps');
+            const defaultApps = [
+                { name: "GITHUB", url: "https://github.com" },
+                { name: "CANVAS", url: "https://canvas.instructure.com" },
+                { name: "SLACK", url: "https://slack.com" },
+                { name: "JIRA", url: "https://atlassian.com" }
+            ];
+            
+            const apps = stored ? JSON.parse(stored) : defaultApps;
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative; margin-bottom: 2px;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                        <span>${app.name}</span>
+                    </a>
+                </div>
+            `).join('');
+            
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        };
+
+        // Profile Hydration
+        document.addEventListener('DOMContentLoaded', () => {
+            const userName = localStorage.getItem('userName') || 'Employee';
+            const userRole = localStorage.getItem('userRole') || 'Staff';
+            
+            const nameDisplay = document.getElementById('userNameDisplay');
+            const roleDisplay = document.getElementById('userRoleDisplay');
+            const initialDisplay = document.getElementById('userInitial');
+            
+            if (nameDisplay) nameDisplay.textContent = userName;
+            if (roleDisplay) roleDisplay.textContent = userRole;
+            if (initialDisplay) {
+                initialDisplay.textContent = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            }
+            
+            loadLocalApps();
+        });
+    </script>
+
+
+    <div class="layout">
+                <aside class="sidebar">
+            <a href="#" class="logo" onclick="navigateToDashboard()">
+                <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item">
+                    <div class="nav-link" style="cursor: pointer; justify-content: space-between;" onclick="toggleAppsMenu()">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i data-lucide="grid"></i>
+                            <span>Apps</span>
+                        </div>
+                        <i data-lucide="chevron-down" id="appsChevron" style="width: 16px; transition: 0.3s;"></i>
+                    </div>
+                    <!-- Collapsible Apps Dropdown -->
+                    <div id="appsDropdown" style="display: none; flex-direction: column; padding-left: 2rem; margin-top: 4px; gap: 4px;">
+                        <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;">
+                            <!-- Dynamic Apps from localStorage will render here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-label">RESOURCES</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link active" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                
+            </nav>
+
+            <div class="profile-mini">
+                <div class="avatar" id="userInitial">--</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userNameDisplay">--</div>
+                    <div class="profile-role" id="userRoleDisplay">--</div>
+                </div>
+                <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i data-lucide="log-out" size="18"></i>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content" style="padding: 2.5rem; overflow-y: auto; height: 100vh;">
+            <div class="container">
+        <header class="page-header">
+            <div>
+                <h1 class="page-title">My Assets</h1>
+                <p class="page-subtitle">Company equipment assigned to you</p>
+            </div>
+        </header>
+
+        <!-- Summary -->
+        <div class="summary-grid" id="summaryGrid" style="display:none;">
+            <div class="summary-card">
+                <div class="summary-value" id="totalAssets" style="color:var(--primary);">0</div>
+                <div class="summary-label">Total Assigned</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="activeAssets" style="color:var(--success);">0</div>
+                <div class="summary-label">Active</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="pendingDecl" style="color:var(--warning);">0</div>
+                <div class="summary-label">Pending Declaration</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="inRepair" style="color:var(--danger);">0</div>
+                <div class="summary-label">In Repair</div>
+            </div>
+        </div>
+
+        <!-- Asset Grid -->
+        <div class="asset-grid" id="assetGrid">
+            <div class="empty-state" style="grid-column:1/-1;">
+                <i data-lucide="loader"></i>
+                <p>Loading your assets...</p>
+            </div>
+        </div>
+    </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Report Issue Modal -->
+    <div class="modal-overlay" id="issueModal">
+        <div class="modal">
+            <h3>Report an Issue</h3>
+            <p id="issueAssetName">Asset: —</p>
+            <select id="issueType">
+                <option value="">Select issue type...</option>
+                <option value="Damage">Physical Damage</option>
+                <option value="Malfunction">Malfunction / Not Working</option>
+                <option value="Loss">Lost / Missing</option>
+                <option value="Theft">Theft</option>
+                <option value="Other">Other</option>
+            </select>
+            <textarea id="issueDesc" placeholder="Describe the issue in detail..."></textarea>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeIssueModal()">Cancel</button>
+                <button class="btn-submit" onclick="submitIssue()"><i data-lucide="send" size="14"></i> Submit Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal success-modal">
+            <div class="success-icon"><i data-lucide="check-circle"></i></div>
+            <h3 id="successTitle">Report Submitted</h3>
+            <p id="successDesc">Your issue has been reported to the IT team and will be resolved shortly.</p>
+            <button class="btn-done" onclick="document.getElementById('successModal').classList.remove('active')">Done</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const empId = urlParams.get('id') || localStorage.getItem('employee_uid') || 'demo_emp';
+
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) {
+            backBtn.href = `employee-dashboard.html?id=${empId}`;
+        }
+
+        let currentAssetId = null;
+
+        // Icon + color per category
+        const categoryStyle = (category = '') => {
+            const c = category.toLowerCase();
+            if (c.includes('laptop') || c.includes('computer')) return { icon: 'laptop', bg: '#eff6ff', color: '#3b82f6' };
+            if (c.includes('phone') || c.includes('mobile'))     return { icon: 'smartphone', bg: '#f0fdf4', color: '#10b981' };
+            if (c.includes('monitor') || c.includes('display'))  return { icon: 'monitor', bg: '#fdf4ff', color: '#8b5cf6' };
+            if (c.includes('keyboard') || c.includes('mouse'))   return { icon: 'mouse-pointer', bg: '#fffbeb', color: '#f59e0b' };
+            if (c.includes('headset') || c.includes('audio'))    return { icon: 'headphones', bg: '#fff1f2', color: '#ef4444' };
+            return { icon: 'package', bg: '#f8fafc', color: '#64748b' };
+        };
+
+        const fmtDate = (ts) => {
+            if (!ts) return '—';
+            const d = ts.toDate ? ts.toDate() : (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
+            return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        };
+
+        const renderAssets = (assets) => {
+            const grid = document.getElementById('assetGrid');
+
+            if (!assets.length) {
+                document.getElementById('summaryGrid').style.display = 'none';
+                grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+                    <i data-lucide="package-x"></i>
+                    <p>No assets have been assigned to you yet.<br>Contact your IT administrator for equipment requests.</p>
+                </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            // Always show summary with real counts
+            document.getElementById('summaryGrid').style.display = 'grid';
+            document.getElementById('totalAssets').textContent = assets.length;
+            document.getElementById('activeAssets').textContent  = assets.filter(a => a.status === 'Allocated').length;
+            document.getElementById('pendingDecl').textContent   = assets.filter(a => a.declarationStatus === 'Pending').length;
+            document.getElementById('inRepair').textContent      = assets.filter(a => a.status === 'Repair').length;
+
+            grid.innerHTML = assets.map(a => {
+                const { icon, bg, color } = categoryStyle(a.category || a.assetType || '');
+                const statusClass = {
+                    'Allocated': 'status-allocated',
+                    'Repair':    'status-repair',
+                    'Missing':   'status-missing',
+                }[a.status] || 'status-pending';
+
+                const declHtml = a.declarationStatus === 'Verified'
+                    ? `<div class="decl-bar"><span>Declaration</span><span class="decl-signed"><i data-lucide="check-circle" style="width:12px;height:12px;display:inline;"></i> Signed</span></div>`
+                    : `<div class="decl-bar"><span>Declaration</span><span class="decl-pending">⚠️ Pending Signature</span></div>`;
+
+                return `<div class="asset-card">
+                    <div class="asset-card-header">
+                        <div class="asset-icon" style="background:${bg};color:${color};"><i data-lucide="${icon}"></i></div>
+                        <span class="asset-status ${statusClass}">${a.status || 'Allocated'}</span>
+                    </div>
+                    <div class="asset-name">${a.name || a.assetName || 'Asset'}</div>
+                    <div class="asset-id">#${a.id || a.assetCode || '—'}</div>
+                    <div class="asset-meta">
+                        <div class="asset-meta-row"><span class="meta-label">Category</span><span class="meta-value">${a.category || a.assetType || '—'}</span></div>
+                        <div class="asset-meta-row"><span class="meta-label">Assigned On</span><span class="meta-value">${fmtDate(a.assignedAt)}</span></div>
+                        <div class="asset-meta-row"><span class="meta-label">Serial No.</span><span class="meta-value" style="font-family:monospace;">${a.serialNumber || '—'}</span></div>
+                        <div class="asset-meta-row"><span class="meta-label">Condition</span><span class="meta-value">${a.condition || 'Good'}</span></div>
+                    </div>
+                    ${declHtml}
+                    <button class="btn-report" onclick="openIssueModal('${a.id}', '${(a.name || a.assetName || 'Asset').replace(/'/g,'&apos;')}')">
+                        <i data-lucide="alert-triangle" size="14"></i> Report an Issue
+                    </button>
+                </div>`;
+            }).join('');
+
+            lucide.createIcons();
+        };
+
+        // Load assets from Firestore
+        const load = async () => {
+            try {
+                const q = query(collection(db, 'assets'), where('assignedTo', '==', empId));
+                const snap = await getDocs(q);
+                const assets = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderAssets(assets);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('assetGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+                    <i data-lucide="wifi-off"></i>
+                    <p>Unable to load assets. Please check your connection.</p>
+                </div>`;
+                lucide.createIcons();
+            }
+        };
+
+        // Issue modal
+        window.openIssueModal = (assetId, assetName) => {
+            currentAssetId = assetId;
+            document.getElementById('issueAssetName').textContent = `Asset: ${assetName}`;
+            document.getElementById('issueType').value = '';
+            document.getElementById('issueDesc').value = '';
+            document.getElementById('issueModal').classList.add('active');
+        };
+
+        window.closeIssueModal = () => {
+            document.getElementById('issueModal').classList.remove('active');
+        };
+
+        window.submitIssue = async () => {
+            const type = document.getElementById('issueType').value;
+            const desc = document.getElementById('issueDesc').value.trim();
+
+            if (!type) { alert('Please select an issue type.'); return; }
+            if (!desc)  { alert('Please describe the issue.'); return; }
+
+            try {
+                await addDoc(collection(db, 'asset_issue_reports'), {
+                    assetId: currentAssetId,
+                    employeeId: empId,
+                    issueType: type,
+                    description: desc,
+                    timestamp: serverTimestamp(),
+                    status: 'Open'
+                });
+
+                // Notify IT admin
+                await addDoc(collection(db, 'notifications'), {
+                    target: 'admin_it',
+                    targetUid: 'admin_it',
+                    title: 'Asset Issue Reported',
+                    message: `Asset #${currentAssetId}: ${type} reported by ${empId}. "${desc.substring(0,80)}"`,
+                    priority: type === 'Theft' || type === 'Loss' ? 'high' : 'normal',
+                    read: false,
+                    timestamp: serverTimestamp()
+                });
+
+                closeIssueModal();
+                document.getElementById('successTitle').textContent = 'Report Submitted';
+                document.getElementById('successDesc').textContent = `Your ${type.toLowerCase()} report for asset #${currentAssetId} has been sent to the IT team. You'll be notified once resolved.`;
+                document.getElementById('successModal').classList.add('active');
+                lucide.createIcons();
+            } catch (err) {
+                console.error(err);
+                alert('Failed to submit. Please try again.');
+            }
+        };
+
+        load();
+    </script>
+</body>
+</html>

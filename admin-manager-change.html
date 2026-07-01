@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Hierarchy Governance | Kylrx AI Enterprise</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔄</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #3b82f6; /* Light Blue */
+            --primary-dark: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-width: 280px;
+            --radius: 28px;
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .layout { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 2.5rem 1.5rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary-soft); }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
+
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin: 2rem 0 1rem 0.5rem; opacity: 0.8; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 4px;
+        }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
+        .nav-link i { width: 20px; height: 20px; stroke-width: 2px; }
+
+        .sidebar-bottom { margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--border); }
+
+        /* Main Content */
+        .main-content { 
+            margin-left: var(--sidebar-width); 
+            flex: 1; 
+            padding: 3rem; 
+            max-width: calc(100vw - var(--sidebar-width));
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3.5rem; }
+        h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; color: #1e293b; margin-bottom: 8px; }
+
+        /* BPM Workflow Card */
+        .bpm-container {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 3rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .workflow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .transfer-path {
+            display: grid;
+            grid-template-columns: 1fr 100px 1fr;
+            gap: 2rem;
+            align-items: center;
+            margin-bottom: 4rem;
+        }
+
+        .m-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .m-box.target { border-color: var(--primary-soft); background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); }
+
+        .m-box h4 { font-size: 1.25rem; font-weight: 800; margin-bottom: 4px; color: #1e293b; }
+        .m-box p { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        .bpm-rail {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            padding: 0 20px;
+        }
+
+        .bpm-rail::before {
+            content: '';
+            position: absolute;
+            top: 25px; left: 50px; right: 50px;
+            height: 2px;
+            background: var(--border);
+            z-index: 1;
+        }
+
+        .bpm-node {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+
+        .bpm-circle {
+            width: 54px; height: 54px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 18px;
+            margin: 0 auto 1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 800;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .bpm-node.completed .bpm-circle { background: var(--success); border-color: var(--success); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .bpm-node.active .bpm-circle { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3); }
+        .bpm-node.pending .bpm-circle { color: var(--text-muted); background: var(--bg); }
+        .bpm-node.rejected .bpm-circle { background: var(--danger); border-color: var(--danger); color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .bpm-circle i, .bpm-circle svg { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
+
+        .node-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+        .bpm-node.active .node-label { color: var(--primary); }
+        .node-actor { font-size: 0.9rem; font-weight: 700; color: #1e293b; }
+
+        /* Table */
+        .table-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .request-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+        }
+
+        .request-table th { text-align: left; padding: 1.5rem 1rem; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); background: #fcfdfe; letter-spacing: 0.5px; }
+        .request-table td { padding: 1.5rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; font-weight: 600; color: #334155; }
+        .request-table tr:last-child td { border-bottom: none; }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            display: inline-flex; align-items: center; gap: 10px;
+            font-family: inherit;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 12px 20px rgba(59, 130, 246, 0.4); }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-2px); }
+        .btn-danger { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; }
+        .btn-danger:hover { background: var(--danger); color: white; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link active"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1>Reporting Hierarchy Governance</h1>
+                    <p style="color: var(--text-muted);">Execute multi-tier approval workflows for manager updates.</p>
+                </div>
+                <button class="btn btn-primary" id="btnInitiateChange"><i data-lucide="plus"></i> New Change Request</button>
+            </header>
+
+            <div class="bpm-container" id="activeRequest" style="display: none;">
+                <div class="workflow-header">
+                    <div>
+                        <h2 id="reqTitle" style="font-size: 1.5rem; font-weight: 800;">Request #MGR-2201: Jonathan Smith</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Initiated by Admin • May 10, 2026</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 4px;">PRIORITY</div>
+                        <span style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 800;">CRITICAL</span>
+                    </div>
+                </div>
+
+                <div class="transfer-path">
+                    <div class="m-box">
+                        <p>Current Reporting</p>
+                        <h4 id="currMgr">Sarah Wilson</h4>
+                        <p style="font-size: 0.7rem;" id="currMgrSub">Marketing Operations</p>
+                    </div>
+                    <div style="text-align: center; color: var(--primary);">
+                        <i data-lucide="arrow-right-circle" size="32"></i>
+                        <p style="font-size: 0.6rem; font-weight: 800; margin-top: 8px;">TRANSFER</p>
+                    </div>
+                    <div class="m-box target">
+                        <p style="color: var(--primary);">Upcoming Reporting</p>
+                        <h4 id="nextMgr">Michael Chen</h4>
+                        <p style="font-size: 0.7rem;" id="nextMgrSub">Growth Engineering</p>
+                    </div>
+                </div>
+
+                <div class="transfer-path" style="margin-top: -2rem; margin-bottom: 4rem; border-top: 1px dashed var(--border); padding-top: 2rem;">
+                    <div class="m-box" style="background: #fafafa;">
+                        <p>Old Department</p>
+                        <h4 id="oldDept" style="font-size: 1.1rem; font-weight: 800; margin-top: 6px;">Marketing</h4>
+                    </div>
+                    <div style="text-align: center; color: var(--primary);">
+                        <i data-lucide="chevrons-right" size="28"></i>
+                        <p style="font-size: 0.6rem; font-weight: 800; margin-top: 4px;">REASSIGN</p>
+                    </div>
+                    <div class="m-box target" style="background: #eff6ff; border-color: var(--primary-soft);">
+                        <p style="color: var(--primary);">New Department</p>
+                        <h4 id="newDept" style="font-size: 1.1rem; font-weight: 800; margin-top: 6px;">Sales</h4>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 4rem;">
+                    <button class="btn btn-danger" onclick="processAction('reject')"><i data-lucide="x-circle"></i> Reject</button>
+                    <button class="btn btn-primary" style="padding: 12px 40px;" onclick="processAction('approve')"><i data-lucide="shield-check"></i> Approve & Execute</button>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1.5rem;">Governance Queue</h3>
+                <table class="request-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Current → Target</th>
+                            <th>Workflow Stage</th>
+                            <th>Time in Stage</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="queueBody">
+                        <!-- Dynamic rows -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Initiate Change Modal -->
+    <div class="modal-overlay" id="changeModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Initiate Hierarchy Change</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Execute an organizational reporting transfer</p>
+                </div>
+                <button class="action-icon" onclick="toggleChangeModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                 <div>
+                    <label class="nav-label">ENTER EMPLOYEE ID</label>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <input type="text" id="targetEmpId" class="input-box" placeholder="e.g. FS_oa4x4yinz" style="flex: 1; margin: 0;">
+                        <button class="btn btn-outline" id="btnSearchEmpId" style="padding: 10px 16px; display: flex; align-items: center; justify-content: center;" type="button">
+                            <i data-lucide="search" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                </div>
+                 <div>
+                    <label class="nav-label">EMPLOYEE NAME</label>
+                    <input type="text" id="targetEmpName" class="input-box" placeholder="Employee Name (Auto-populated)" style="width: 100%; margin-top: 8px; background: #f8fafc;" readonly>
+                    <div id="currentEmpDetails" style="display: none; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-top: 8px;">
+                        <p style="font-size: 0.72rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Current Placement</p>
+                        <div style="font-size: 0.8rem; margin-top: 6px; color: #1e293b;">
+                            <strong>Dept:</strong> <span id="lblCurrentDept">-</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="nav-label">NEW REPORTING MANAGER</label>
+                    <select id="newMgrSelect" class="input-box" style="width: 100%; margin-top: 8px;">
+                        <option value="">Loading managers...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="nav-label">NEW DEPARTMENT</label>
+                    <select id="newDepartmentSelect" class="input-box" style="width: 100%; margin-top: 8px;" onchange="this.value === 'ADD_NEW' ? document.getElementById('newDepartmentInput').style.display = 'block' : document.getElementById('newDepartmentInput').style.display = 'none'">
+                        <option value="">Select Department</option>
+                    </select>
+                    <input type="text" id="newDepartmentInput" class="input-box" placeholder="Enter new department name..." style="width: 100%; margin-top: 8px; display: none;">
+                </div>
+                <div>
+                    <label class="nav-label">REASON FOR TRANSFER</label>
+                    <textarea id="transferReason" class="input-box" placeholder="e.g. Departmental Restructuring" style="width: 100%; margin-top: 8px; min-height: 80px; padding: 12px;"></textarea>
+                </div>
+                <button class="btn btn-primary" id="btnSubmitChange" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="send"></i> Propose Transfer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: white; border-radius: 32px; padding: 3rem;
+            width: 500px; max-width: 95%; box-shadow: var(--shadow-lg);
+            animation: modalSlide 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        @keyframes modalSlide { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .input-box {
+            background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit;
+            font-weight: 600; font-size: 0.9rem; color: #1e293b; outline: none;
+            transition: 0.2s;
+        }
+        .input-box:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
+        .action-icon {
+            background: #f1f5f9; border: none; width: 32px; height: 32px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: #64748b; cursor: pointer; transition: 0.2s;
+        }
+        .action-icon:hover { background: #e2e8f0; color: #1e293b; }
+    </style>
+
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, getDocs, query, where, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getManagers, getDepartments } from "./pms-service.js";
+        import { managerChangeService } from "./manager-change-service.js";
+
+        lucide.createIcons();
+
+        let activeRequestId = null;
+
+        window.toggleChangeModal = (show) => {
+            const modal = document.getElementById('changeModal');
+            if (show) {
+                modal.classList.add('active');
+                loadModalData();
+            } else {
+                modal.classList.remove('active');
+            }
+        };
+
+        async function loadModalData() {
+            const mgrSelect = document.getElementById('newMgrSelect');
+            const deptSelect = document.getElementById('newDepartmentSelect');
+            
+            // Clear custom inputs
+            document.getElementById('targetEmpId').value = '';
+            document.getElementById('targetEmpName').value = '';
+            document.getElementById('newDepartmentInput').value = '';
+            document.getElementById('newDepartmentInput').style.display = 'none';
+            document.getElementById('currentEmpDetails').style.display = 'none';
+            
+            try {
+                // Fetch managers using the new service
+                const managers = await getManagers();
+                mgrSelect.innerHTML = '<option value="">Select New Manager</option>';
+                managers.forEach(m => {
+                    mgrSelect.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+                });
+
+                // Fetch departments dynamically from Firebase
+                const depts = await getDepartments();
+                deptSelect.innerHTML = '<option value="">Select Department</option>';
+                depts.forEach(d => {
+                    const deptName = d.name || d.departmentName || d.id;
+                    deptSelect.innerHTML += `<option value="${deptName}">${deptName}</option>`;
+                });
+                deptSelect.innerHTML += '<option value="ADD_NEW">+ Enter New Department...</option>';
+            } catch (err) {
+                console.error("Error loading modal data:", err);
+            }
+        }
+
+        const performSearch = async () => {
+            const inputVal = document.getElementById('targetEmpId').value.trim();
+            const nameInput = document.getElementById('targetEmpName');
+            const detailsDiv = document.getElementById('currentEmpDetails');
+            
+            if (!inputVal) {
+                nameInput.value = '';
+                detailsDiv.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const empSnap = await getDocs(collection(db, 'users'));
+                let foundDoc = null;
+                const searchLower = inputVal.toLowerCase();
+                
+                for (const docObj of empSnap.docs) {
+                    const docId = docObj.id.toLowerCase();
+                    const dataObj = docObj.data();
+                    const uidVal = (dataObj.uid || '').toLowerCase();
+                    
+                    if (docId.startsWith(searchLower) || uidVal.startsWith(searchLower)) {
+                        foundDoc = docObj;
+                        break;
+                    }
+                }
+                
+                if (foundDoc) {
+                    const data = foundDoc.data();
+                    document.getElementById('targetEmpId').value = foundDoc.id;
+                    nameInput.value = data.name || 'Unknown Name';
+                    document.getElementById('lblCurrentDept').textContent = data.department || data.departmentName || 'General';
+                    detailsDiv.style.display = 'block';
+                    showToast("Employee details loaded successfully.");
+                } else {
+                    nameInput.value = '';
+                    detailsDiv.style.display = 'none';
+                    showToast("Employee ID not found in database.", true);
+                }
+            } catch (err) {
+                showToast("Error searching database: " + err.message, true);
+            }
+        };
+
+        document.getElementById('targetEmpId').addEventListener('blur', performSearch);
+        document.getElementById('btnSearchEmpId').addEventListener('click', performSearch);
+        document.getElementById('targetEmpId').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+
+        document.getElementById('btnInitiateChange').addEventListener('click', () => toggleChangeModal(true));
+
+        document.getElementById('btnSubmitChange').addEventListener('click', async function() {
+            const empId = document.getElementById('targetEmpId').value.trim();
+            const empName = document.getElementById('targetEmpName').value;
+            const mgrId = document.getElementById('newMgrSelect').value;
+            const reason = document.getElementById('transferReason').value;
+
+            let newDept = document.getElementById('newDepartmentSelect').value;
+            if (newDept === 'ADD_NEW') {
+                newDept = document.getElementById('newDepartmentInput').value.trim();
+                if (!newDept) {
+                    showToast("Please enter a custom department name.", true);
+                    return;
+                }
+            }
+
+            if (!empId || !empName || !mgrId) {
+                showToast("Please enter a valid Employee ID and select a new manager.", true);
+                return;
+            }
+
+            this.disabled = true;
+            this.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Submitting...';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const empSnap = await getDoc(doc(db, 'users', empId));
+                const mgrSnap = await getDoc(doc(db, 'users', mgrId));
+                const empData = empSnap.data();
+                const mgrData = mgrSnap.data();
+
+                await managerChangeService.initiateChange(empId, {
+                    employeeName: empData.name,
+                    currentManagerId: empData.reportingManagerId || '',
+                    currentManagerName: empData.reportingManagerName || empData.reportingManager || 'Unassigned',
+                    currentDepartment: empData.department || empData.departmentName || 'General',
+                    currentDesignation: empData.designation || 'Staff',
+                    newManagerId: mgrId,
+                    newManagerName: mgrData.name,
+                    newDepartment: newDept || empData.department || empData.departmentName || 'General',
+                    newDesignation: empData.designation || 'Staff',
+                    reason,
+                    businessHeadName: 'Robert Vance',
+                    hrManagerName: 'Jessica Lane'
+                });
+
+                showToast("Change request submitted successfully.");
+                toggleChangeModal(false);
+                loadQueue();
+            } catch (err) {
+                showToast("Submission failed: " + err.message, true);
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '<i data-lucide="send"></i> Propose Transfer';
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+
+        async function loadQueue() {
+            const q = query(collection(db, 'manager_change_requests'), where('status', '==', 'Pending'));
+            const snap = await getDocs(q);
+            
+            const body = document.getElementById('queueBody');
+            if (snap.empty) {
+                body.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:3rem; color:var(--text-muted);">No pending requests in the governance queue.</td></tr>';
+                return;
+            }
+
+            body.innerHTML = snap.docs.map(d => {
+                const data = d.data();
+                return `
+                    <tr>
+                        <td style="font-weight: 700;">${data.employeeName}</td>
+                        <td style="font-size: 0.75rem; line-height: 1.4;">
+                            <div><strong>Mgr:</strong> ${data.currentManagerName} → ${data.newManagerName}</div>
+                            <div style="color: var(--text-muted);"><strong>Dept:</strong> ${data.currentDepartment || 'General'} → ${data.newDepartment || 'General'}</div>
+                        </td>
+                        <td><span style="background: var(--primary-light); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800;">${data.currentStage}</span></td>
+                        <td style="color: var(--text-muted);">Recent</td>
+                        <td><button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.75rem;" onclick="viewRequest('${d.id}')">Review BPM</button></td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        window.viewRequest = async (id) => {
+            activeRequestId = id;
+            const docSnap = await getDoc(doc(db, 'manager_change_requests', id));
+            const data = docSnap.data();
+
+            document.getElementById('reqTitle').textContent = `Request #MGR-${id.slice(0,4).toUpperCase()}: ${data.employeeName}`;
+            document.getElementById('currMgr').textContent = data.currentManagerName;
+            document.getElementById('currMgrSub').textContent = `${data.currentDesignation || 'Staff'} (${data.currentDepartment || 'General'})`;
+            document.getElementById('nextMgr').textContent = data.newManagerName;
+            document.getElementById('nextMgrSub').textContent = `${data.newDesignation || 'Staff'} (${data.newDepartment || 'General'})`;
+
+            document.getElementById('oldDept').textContent = data.currentDepartment || 'General';
+            document.getElementById('newDept').textContent = data.newDepartment || 'General';
+
+            document.getElementById('activeRequest').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.processAction = async (action) => {
+            if (!activeRequestId) return;
+            try {
+                if (action === 'approve') {
+                    await managerChangeService.approveAndExecute(activeRequestId, 'Administrator', 'Approved and executed via Governance Dashboard');
+                    showToast(`Request #MGR-${activeRequestId.slice(0,4).toUpperCase()} approved and executed.`);
+                } else if (action === 'reject') {
+                    await managerChangeService.rejectRequest(activeRequestId, 'Administrator', 'Rejected via Governance Dashboard');
+                    showToast(`Request #MGR-${activeRequestId.slice(0,4).toUpperCase()} has been rejected.`, true);
+                }
+                
+                document.getElementById('activeRequest').style.display = 'none';
+                loadQueue();
+            } catch (err) {
+                console.error("Action execution failed:", err);
+                showToast("Action failed: " + err.message, true);
+            }
+        };
+
+        window.showToast = (msg, isError = false) => {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toastMsg.textContent = msg;
+            toast.style.background = isError ? 'rgba(239, 68, 68, 0.95)' : 'rgba(16, 185, 129, 0.95)';
+            toastIcon.setAttribute('data-lucide', isError ? 'x-circle' : 'check-circle');
+            
+            toast.style.display = 'inline-flex';
+            if (window.lucide) lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                try {
+                    await signInAnonymously(auth);
+                } catch (err) {
+                    console.error("Anonymous authentication fallback failed:", err);
+                }
+            }
+            loadQueue();
+        });
+    </script>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); color: white; padding: 16px 32px; border-radius: 20px; font-weight: 700; font-size: 1rem; z-index: 9999; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.1); animation: toastFade 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);">
+        <i id="toastIcon" data-lucide="info" style="width: 20px; height: 20px;"></i>
+        <span id="toastMessage">Message</span>
+    </div>
+
+    <style>
+        @keyframes toastFade {
+            from { opacity: 0; transform: translate(-50%, -40%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>
+

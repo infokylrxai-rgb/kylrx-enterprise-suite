@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holiday Calendar | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous">
+        window.toggleAppsMenu = () => {
+            const dropdown = document.getElementById('appsDropdown');
+            const chevron = document.getElementById('appsChevron');
+            if (!dropdown || !chevron) return;
+            
+            const isVisible = dropdown.style.display === 'flex';
+            dropdown.style.display = isVisible ? 'none' : 'flex';
+            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        window.loadLocalApps = () => {
+            const list = document.getElementById('customAppsList');
+            if (!list) return;
+            
+            const stored = localStorage.getItem('employee_apps');
+            const defaultApps = [
+                { name: "GITHUB", url: "https://github.com" },
+                { name: "CANVAS", url: "https://canvas.instructure.com" },
+                { name: "SLACK", url: "https://slack.com" },
+                { name: "JIRA", url: "https://atlassian.com" }
+            ];
+            
+            const apps = stored ? JSON.parse(stored) : defaultApps;
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative; margin-bottom: 2px;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                        <span>${app.name}</span>
+                    </a>
+                </div>
+            `).join('');
+            
+            if (window.lucide) lucide.createIcons();
+        };
+        document.addEventListener('DOMContentLoaded', window.loadLocalApps);
+
+</script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --sidebar-width: 280px;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 2.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
+
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-label:not(:first-of-type) { margin-top: 0.75rem; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px;
+        }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+
+        .profile-mini {
+            margin-top: auto;
+            background: var(--primary-light);
+            padding: 1rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+
+        /* Main Content */
+        .main-content { padding: 3rem; overflow-y: auto; }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+        .sub-header { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+
+        /* Calendar Widget Layout */
+        .calendar-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        /* Calendar Grid */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-nav-btn {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-main);
+        }
+        .calendar-nav-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .current-month-year {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .weekdays-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1.1;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            cursor: pointer;
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            border-color: transparent;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .calendar-day.weekend {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .day-number {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .day-holiday-tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Holiday Types */
+        .holiday-national {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .holiday-regional {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+        .holiday-optional {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .holiday-list-panel h3 {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .holiday-list-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .holiday-item-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            transition: 0.2s;
+        }
+        .holiday-item-card:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .holiday-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 100px;
+        }
+
+        /* Centered Status Modal */
+        .modal-overlay-status {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .modal-overlay-status.active { display: flex; }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 32px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay-status.active .status-modal { transform: scale(1); }
+        .modal-icon-status {
+            width: 64px; height: 64px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 1.5rem;
+        }
+        .modal-icon-status.success { background: #dcfce7; color: #10b981; }
+        .modal-icon-status.info { background: #dbeafe; color: #3b82f6; }
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <!-- Sidebar -->
+                <aside class="sidebar">
+            <a href="#" class="logo" onclick="navigateToDashboard()">
+                <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item">
+                    <div class="nav-link" style="cursor: pointer; justify-content: space-between;" onclick="toggleAppsMenu()">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i data-lucide="grid"></i>
+                            <span>Apps</span>
+                        </div>
+                        <i data-lucide="chevron-down" id="appsChevron" style="width: 16px; transition: 0.3s;"></i>
+                    </div>
+                    <!-- Collapsible Apps Dropdown -->
+                    <div id="appsDropdown" style="display: none; flex-direction: column; padding-left: 2rem; margin-top: 4px; gap: 4px;">
+                        <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;">
+                            <!-- Dynamic Apps from localStorage will render here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-label">RESOURCES</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                
+            </nav>
+
+            <div class="profile-mini">
+                <div class="avatar" id="userInitial">--</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userNameDisplay">--</div>
+                    <div class="profile-role" id="userRoleDisplay">--</div>
+                </div>
+                <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i data-lucide="log-out" size="18"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1>Holiday Calendar</h1>
+                    <p class="sub-header">Official organization closures and public holidays.</p>
+                </div>
+            </header>
+
+            <div class="calendar-container">
+                <!-- Calendar Card -->
+                <div class="card">
+                    <div class="calendar-header">
+                        <h2 class="current-month-year" id="currentMonthYear">May 2026</h2>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="calendar-nav-btn" onclick="prevMonth()"><i data-lucide="chevron-left"></i></button>
+                            <button class="calendar-nav-btn" onclick="nextMonth()"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="weekdays-grid">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+
+                    <div class="days-grid" id="daysGrid">
+                        <!-- Populated Dynamically -->
+                    </div>
+                </div>
+
+                <!-- Holiday List Panel -->
+                <div class="card holiday-list-panel">
+                    <h3 id="panelListTitle">Holidays in May</h3>
+                    <div class="holiday-list-items" id="holidayListItems">
+                        <!-- Populated Dynamically -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Status Modal Overlay -->
+    <div class="modal-overlay-status" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon-status" id="statusModalIcon"><i data-lucide="check-circle"></i></div>
+            <h2 class="modal-title" id="statusModalTitle">Request Submitted</h2>
+            <p class="modal-desc" id="statusModalDesc">Your request is processed.</p>
+            <button class="modal-btn" onclick="closeStatusModal()">Dismiss</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth } from './firebase-config.js';
+        import { collection, onSnapshot, query, doc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+        lucide.createIcons();
+
+        // Premium Modal Logic
+        window.showStatusModal = (title, msg, type = 'success') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+            
+            icon.className = `modal-icon-status ${type}`;
+            icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : '<i data-lucide="info"></i>';
+            
+            overlay.classList.add('active');
+            lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        };
+
+        window.navigateTo = (page) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            window.location.href = id ? `${page}?id=${id}` : page;
+        };
+
+        window.navigateToDashboard = () => {
+            navigateTo('employee-dashboard.html');
+        };
+
+        // User Hydration
+        onAuthStateChanged(auth, (user) => {
+            const activeUid = user ? user.uid : localStorage.getItem('employee_uid') || 'demo_emp';
+            if (activeUid === 'demo_emp') {
+                document.getElementById('userInitial').textContent = 'JD';
+                document.getElementById('userNameDisplay').textContent = 'John Doe';
+                document.getElementById('userRoleDisplay').textContent = 'Cybersecurity Specialist';
+            } else {
+                import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(mod => {
+                    const { doc, getDoc } = mod;
+                    getDoc(doc(db, 'users', activeUid)).then(snap => {
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            document.getElementById('userInitial').textContent = (data.name || 'EE').substring(0,2).toUpperCase();
+                            document.getElementById('userNameDisplay').textContent = data.name || 'Employee';
+                            document.getElementById('userRoleDisplay').textContent = data.designation || data.role || 'Specialist';
+                        }
+                    });
+                });
+            }
+        });
+
+        // Calendar Logic
+        let currentDate = new Date();
+        let holidayData = [];
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        // Listen for Holidays in Real-time from Firestore
+        onSnapshot(collection(db, "holidays"), (snapshot) => {
+            holidayData = snapshot.docs.map(doc => doc.data());
+            renderCalendar();
+        });
+
+        // Listen for weekly off configuration in Real-time
+        onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
+            const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
+            localStorage.setItem('weekly_off_config', val);
+            renderCalendar();
+        });
+
+        window.prevMonth = () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        };
+
+        window.nextMonth = () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        };
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById('currentMonthYear').textContent = `${monthNames[month]} ${year}`;
+            document.getElementById('panelListTitle').textContent = `Holidays in ${monthNames[month]}`;
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const lastDay = new Date(year, month + 1, 0).getDate();
+
+            const daysGrid = document.getElementById('daysGrid');
+            daysGrid.innerHTML = '';
+
+            // Blank spaces for previous month's days
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day empty';
+                daysGrid.appendChild(emptyCell);
+            }
+
+            // Month days
+            const currentMonthHolidays = [];
+            for (let i = 1; i <= lastDay; i++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+
+                const dayOfWeek = new Date(year, month, i).getDay();
+                const weeklyOff = localStorage.getItem('weekly_off_config') || 'sat-sun';
+                let isWeeklyOff = false;
+                if (weeklyOff === 'sat-sun') {
+                    isWeeklyOff = (dayOfWeek === 0 || dayOfWeek === 6);
+                } else if (weeklyOff === 'sun') {
+                    isWeeklyOff = (dayOfWeek === 0);
+                } else if (weeklyOff === 'sat') {
+                    isWeeklyOff = (dayOfWeek === 6);
+                }
+
+                if (isWeeklyOff) {
+                    dayCell.classList.add('weekend');
+                }
+
+                const dayNum = document.createElement('span');
+                dayNum.className = 'day-number';
+                dayNum.textContent = i;
+                dayCell.appendChild(dayNum);
+
+                // Format current day's date string
+                const monthStr = String(month + 1).padStart(2, '0');
+                const dayStr = String(i).padStart(2, '0');
+                const formattedDate = `${year}-${monthStr}-${dayStr}`;
+
+                // Check if this date is a holiday
+                const dayHoliday = holidayData.find(h => h.date === formattedDate);
+                if (dayHoliday) {
+                    currentMonthHolidays.push(dayHoliday);
+                    
+                    // Mark the entire cell as yellow as requested
+                    dayCell.style.background = '#fef9c3';
+                    dayCell.style.borderColor = '#f59e0b';
+                    dayCell.style.borderWidth = '1.5px';
+                    
+                    const holidayTag = document.createElement('span');
+                    holidayTag.className = `day-holiday-tag holiday-${(dayHoliday.type || 'National').toLowerCase()}`;
+                    holidayTag.textContent = dayHoliday.name;
+                    dayCell.appendChild(holidayTag);
+
+                    dayCell.addEventListener('click', () => {
+                        showStatusModal(
+                            dayHoliday.name,
+                            `Type: ${dayHoliday.type || 'National'} Public Holiday\nDate: ${dayHoliday.date}\nEnjoy your official day off!`,
+                            'success'
+                        );
+                    });
+                } else {
+                    dayCell.addEventListener('click', () => {
+                        showStatusModal(
+                            `Work Day`,
+                            `Date: ${formattedDate} is a regular working day.`,
+                            'info'
+                        );
+                    });
+                }
+
+                daysGrid.appendChild(dayCell);
+            }
+
+            // Update holiday sidebar list
+            const sidebarList = document.getElementById('holidayListItems');
+            sidebarList.innerHTML = '';
+            if (currentMonthHolidays.length === 0) {
+                sidebarList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem;">No holidays scheduled for this month.</div>`;
+            } else {
+                currentMonthHolidays.forEach(h => {
+                    const card = document.createElement('div');
+                    card.className = 'holiday-item-card';
+                    
+                    const info = document.createElement('div');
+                    info.innerHTML = `
+                        <div style="font-weight: 800; font-size: 0.9rem;">${h.name}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">${new Date(h.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                    `;
+
+                    const badge = document.createElement('span');
+                    badge.className = `holiday-badge holiday-${(h.type || 'National').toLowerCase()}`;
+                    badge.textContent = h.type || 'National';
+
+                    card.appendChild(info);
+                    card.appendChild(badge);
+                    sidebarList.appendChild(card);
+                });
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+    
+        window.toggleAppsMenu = () => {
+            const dropdown = document.getElementById('appsDropdown');
+            const chevron = document.getElementById('appsChevron');
+            if (!dropdown || !chevron) return;
+            
+            const isVisible = dropdown.style.display === 'flex';
+            dropdown.style.display = isVisible ? 'none' : 'flex';
+            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        window.loadLocalApps = () => {
+            const list = document.getElementById('customAppsList');
+            if (!list) return;
+            
+            const stored = localStorage.getItem('employee_apps');
+            const defaultApps = [
+                { name: "GITHUB", url: "https://github.com" },
+                { name: "CANVAS", url: "https://canvas.instructure.com" },
+                { name: "SLACK", url: "https://slack.com" },
+                { name: "JIRA", url: "https://atlassian.com" }
+            ];
+            
+            const apps = stored ? JSON.parse(stored) : defaultApps;
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative; margin-bottom: 2px;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                        <span>${app.name}</span>
+                    </a>
+                </div>
+            `).join('');
+            
+            if (window.lucide) lucide.createIcons();
+        };
+        document.addEventListener('DOMContentLoaded', window.loadLocalApps);
+
+</script>
+</body>
+</html>

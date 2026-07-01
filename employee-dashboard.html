@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kylrx AI Employee Portal. Access your employee dashboard, log shift hours, request leave, review pay documents, and connect with HR support.">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Employee Portal | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👤</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --sidebar-width: 280px;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            padding: 2.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+
+        /* Custom Slide Bar (Scrollbar) */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .sidebar:hover::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
+        .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
+
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-label:not(:first-of-type) { margin-top: 0.75rem; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px;
+        }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+
+        /* Header Actions & Hub */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; position: relative; }
+        .header-right { display: flex; align-items: center; gap: 1.5rem; }
+        .header-actions { display: flex; gap: 0.75rem; }
+        .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: white; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; position: relative; }
+        .icon-btn:hover { background: var(--bg); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .icon-badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: #ef4444; color: white; border-radius: 50%; font-size: 0.65rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+
+        /* Notification Dropdown */
+        .notif-dropdown { position: absolute; top: 100%; right: 0; width: 320px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 100; margin-top: 12px; animation: dropdownFade 0.3s ease; }
+        .notif-dropdown.active { display: flex; }
+        .notif-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .notif-title { font-size: 0.9rem; font-weight: 800; color: var(--text-main); }
+        .notif-list { max-height: 400px; overflow-y: auto; padding: 0.5rem; }
+        .notif-item { padding: 1rem; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; }
+        .notif-item:hover { background: var(--bg); }
+        .notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
+        .notif-content { flex: 1; }
+        .notif-text { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+        .notif-time { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+
+        @keyframes dropdownFade { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .profile-mini {
+            margin-top: auto;
+            background: var(--primary-light);
+            padding: 1rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+
+        /* Main Content */
+        .main-content { padding: 3rem; overflow-y: auto; }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+        .sub-header { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+
+        .date-box { text-align: right; }
+        .date-today { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+        .date-status { font-size: 0.75rem; color: var(--success); font-weight: 800; margin-top: 4px; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+
+        /* Widget Grid */
+        .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
+        .col-8 { grid-column: span 8; }
+        .col-4 { grid-column: span 4; }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-2px); border-color: var(--primary-light); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .card-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Attendance Widget */
+        .attendance-hero { display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+        .timer-display { font-size: 3.5rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--primary); letter-spacing: -2px; }
+        .punch-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1.25rem 2.5rem;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+        .punch-btn:hover { transform: translateY(-2px); background: var(--primary-dark); }
+        .punch-btn.active { background: var(--danger); box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3); }
+
+        /* Stats Row */
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem; }
+        .stat-item { background: var(--bg); border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px; text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
+        .stat-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Task List */
+        .task-item { display: flex; align-items: center; gap: 16px; padding: 1rem; background: var(--bg); border-radius: 14px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        .task-item:hover { border-color: var(--primary); transform: translateX(4px); }
+        .task-icon { width: 40px; height: 40px; border-radius: 10px; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+        .task-content { flex: 1; }
+        .task-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+        .task-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+        .task-action { color: var(--primary); cursor: pointer; border: none; background: none; }
+
+        /* Quick Actions */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .action-card {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .action-card:hover { border-color: var(--primary); background: var(--primary-light); }
+        .action-icon { width: 48px; height: 48px; background: var(--bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--primary); }
+        .action-card h3 { font-size: 0.85rem; font-weight: 700; }
+
+        .badge { background: #fee2e2; color: #ef4444; padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; }
+
+        /* Centered Status Modal */
+        .modal-overlay-status {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .modal-overlay-status.active { display: flex; }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 32px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay-status.active .status-modal { transform: scale(1); }
+        .modal-icon-status {
+            width: 64px; height: 64px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 1.5rem;
+        }
+        .modal-icon-status.error { background: #fee2e2; color: #ef4444; }
+        .modal-icon-status.success { background: #dcfce7; color: #10b981; }
+        .modal-icon-status.info { background: #dbeafe; color: #3b82f6; }
+        
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+    <!-- Onboarding Flow Modal Overlay -->
+    <div id="onboardingModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background: white; width: 90%; max-width: 1200px; height: 85vh; border-radius: 24px; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+            
+            <!-- Document View Area -->
+            <div style="background: #f8fafc; padding: 2rem; display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100%; max-height: 100%; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800;">Welcome to HRFlow</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Official Onboarding Flow Document</p>
+                    </div>
+                </div>
+                
+                <div style="flex: 1; background: white; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+                    <i data-lucide="file-text" style="width: 64px; height: 64px; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;" id="obDocTitle">Employee_Handbook_2026.pdf</h3>
+                    <p style="color: var(--text-muted); max-width: 400px; font-size: 0.9rem; margin-bottom: 2rem;">Please review the company policies, benefits, and IT compliance guidelines thoroughly. Acknowledge once completed.</p>
+                    <button class="punch-btn" style="padding: 10px 24px; font-size: 0.9rem; border-radius: 10px; box-shadow: none;" onclick="document.getElementById('onboardingModal').style.display='none'">I have read and acknowledge</button>
+                </div>
+            </div>
+
+            <!-- Chat Request Area -->
+            <div style="background: white; display: flex; flex-direction: column; position: relative; height: 100%; max-height: 100%; overflow: hidden;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--primary-light);">
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="message-square"></i> Support Chat
+                    </h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Ask HR or the AI Assistant</p>
+                </div>
+                
+                <div style="flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth;" id="chatAreaOb" onscroll="window.handleChatScrollOb && window.handleChatScrollOb()">
+                    <div style="align-self: flex-start; background: #f8fafc; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.9rem; border: 1px solid var(--border); max-width: 85%;">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><i data-lucide="bot" size="12"></i> AI Assistant</div>
+                        Hello! Welcome aboard. I'm here to help answer any questions you have about the onboarding document. Would you like to connect with a human HR rep?
+                    </div>
+                </div>
+
+                <button id="scrollBtnObUp" onclick="document.getElementById('chatAreaOb').scrollTop = 0" style="position: absolute; bottom: 175px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10;">
+                    <i data-lucide="arrow-up" size="18"></i>
+                </button>
+                <button id="scrollBtnOb" onclick="document.getElementById('chatAreaOb').scrollTop = document.getElementById('chatAreaOb').scrollHeight" style="position: absolute; bottom: 130px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10;">
+                    <i data-lucide="arrow-down" size="18"></i>
+                </button>
+
+                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: white;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button style="flex: 1; background: #ecfdf5; color: #10b981; border: 1px solid #a7f3d0; padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'What is the leave policy?'; sendObChat();">Ask AI</button>
+                        <button style="flex: 1; background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'Connect to HR please.'; sendObChat();">Request HR</button>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="chatInputOb" placeholder="Type your question..." style="flex: 1; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.9rem;">
+                        <button onclick="sendObChat()" style="background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i data-lucide="send" size="18"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- HR Message Hub Modal (Dual Pane Refactor) -->
+    <div id="hrMessageModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+        <div style="background: white; width: 95%; max-width: 900px; height: 650px; border-radius: 32px; display: flex; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalFadeIn 0.3s ease;">
+            
+            <!-- Left Pane: Communication Channels -->
+            <div style="width: 280px; background: #f8fafc; border-right: 1px solid var(--border); display: flex; flex-direction: column;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: white;">
+                    <h2 style="font-size: 1.1rem; font-weight: 800; color: var(--text-main);">Messages</h2>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Organizational Sync</p>
+                </div>
+                
+                <div style="flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 8px;" id="modalSidebarChannels">
+                    <div class="msg-channel active" onclick="switchChat('hr', this)" style="padding: 12px; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; align-items: center;">
+                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;"><i data-lucide="shield-check" size="20"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">HR Support</div>
+                            <div style="font-size: 0.7rem; color: var(--primary); font-weight: 600;">Official Channel</div>
+                        </div>
+                    </div>
+                    
+                    <div class="msg-channel" onclick="switchChat('manager', this)" style="padding: 12px; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; align-items: center;">
+                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center;"><i data-lucide="user" size="20"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">My Manager</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">Nandan.B</div>
+                        </div>
+                    </div>
+
+                    <div class="msg-channel" onclick="switchChat('team', this)" style="padding: 12px; border-radius: 16px; transition: 0.2s; cursor: pointer; display: flex; gap: 12px; align-items: center;">
+                        <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: #dcfce7; color: #10b981; display: flex; align-items: center; justify-content: center;"><i data-lucide="users" size="20"></i></div>
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">Team Group</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;" id="deptLabelMsg">Cybersecurity</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1rem 0 0.5rem 0.5rem;">Direct Messages</div>
+                    <div id="directMsgList" style="display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Real-time departmental colleagues will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Pane: Active Messaging Suite -->
+            <div style="flex: 1; display: flex; flex-direction: column; background: white; position: relative;">
+                <!-- Header -->
+                <div style="padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--success);"></div>
+                        <div>
+                            <h2 style="font-size: 1rem; font-weight: 800; color: var(--text-main);" id="activeChatPartner">HR Support Hub</h2>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;" id="activeChatStatus">Active Session • Secure Line</p>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('hrMessageModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x" size="20"></i></button>
+                </div>
+
+                <!-- Chat Area -->
+                <div style="flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: #f0f7ff; scroll-behavior: smooth;" id="hrChatArea" onscroll="window.handleChatScrollHr && window.handleChatScrollHr()">
+                    <div style="align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.85rem; border: 1px solid #e0e7ff; max-width: 85%; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <div style="font-size: 0.7rem; font-weight: 800; color: var(--primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">SYSTEM ASSISTANT</div>
+                        Hello! I'm your HR assistant. How can I help you today?
+                    </div>
+                </div>
+
+                <button id="scrollBtnHrUp" onclick="document.getElementById('hrChatArea').scrollTop = 0" style="position: absolute; bottom: 165px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10;">
+                    <i data-lucide="arrow-up" size="18"></i>
+                </button>
+                <button id="scrollBtnHr" onclick="document.getElementById('hrChatArea').scrollTop = document.getElementById('hrChatArea').scrollHeight" style="position: absolute; bottom: 120px; right: 20px; background: var(--primary); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3); z-index: 10;">
+                    <i data-lucide="arrow-down" size="18"></i>
+                </button>
+
+                <!-- Input Area -->
+                <div style="padding: 1.5rem 2rem; border-top: 1px solid var(--border); background: white;">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <input type="file" id="msgAttachmentInput" style="display: none;" onchange="handleMessageAttachment(this)">
+                        <button onclick="document.getElementById('msgAttachmentInput').click()" style="background: var(--bg); border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted);"><i data-lucide="plus" size="20"></i></button>
+                        <input type="text" id="hrChatInput" placeholder="Type your message..." style="flex: 1; padding: 12px 1.25rem; border-radius: 14px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.9rem; font-weight: 500; background: #f8fafc;">
+                        <button onclick="sendHrMessage()" style="background: var(--primary); color: white; border: none; width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(59,130,246,0.25);"><i data-lucide="send" size="20"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Modal Overlay -->
+    <div class="modal-overlay-status" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon-status" id="statusModalIcon"><i data-lucide="info"></i></div>
+            <h2 class="modal-title" id="statusModalTitle">Status</h2>
+            <p class="modal-desc" id="statusModalDesc">Message content goes here.</p>
+            <button class="modal-btn" onclick="closeStatusModal()">Dismiss</button>
+        </div>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <a href="#" class="logo" onclick="navigateToDashboard()">
+                <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item">
+                    <div class="nav-link" style="cursor: pointer; justify-content: space-between;" onclick="toggleAppsMenu()">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i data-lucide="grid"></i>
+                            <span>Apps</span>
+                        </div>
+                        <i data-lucide="chevron-down" id="appsChevron" style="width: 16px; transition: 0.3s;"></i>
+                    </div>
+                    <!-- Collapsible Apps Dropdown -->
+                    <div id="appsDropdown" style="display: none; flex-direction: column; padding-left: 2rem; margin-top: 4px; gap: 4px;">
+                        <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;">
+                            <!-- Dynamic Apps from Firebase will render here -->
+                        </div>
+                        
+                        <!-- Add Custom App Input -->
+                        <div style="padding: 8px 12px; display: flex; gap: 6px; align-items: center;">
+                            <input type="text" id="appUrlInput" placeholder="Add URL (e.g. canvas.com)" style="flex: 1; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.75rem; outline: none; width: 100%;">
+                            <button onclick="addCustomApp()" style="background: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">Add</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-label">RESOURCES</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                
+            </nav>
+
+            <div class="profile-mini">
+                <div class="avatar" id="userInitial">--</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userNameDisplay">--</div>
+                    <div class="profile-role" id="userRoleDisplay">--</div>
+                </div>
+                <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i data-lucide="log-out" size="18"></i>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1 id="greeting">Good Morning, John!</h1>
+                    <p class="sub-header">You have 3 tasks that need your attention today.</p>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="icon-btn" onclick="navigateTo('employee-message.html')">
+                            <i data-lucide="message-square" size="20"></i>
+                            <div class="icon-badge" id="msgBadge">0</div>
+                        </button>
+                        <div style="position: relative;">
+                            <button class="icon-btn" onclick="navigateTo('employee-notifications.html')">
+                                <i data-lucide="bell" size="20"></i>
+                                <div class="icon-badge">3</div>
+                            </button>
+                            <div class="notif-dropdown" id="notifDropdown">
+                                <div class="notif-header">
+                                    <span class="notif-title">Notifications</span>
+                                    <span style="font-size: 0.7rem; color: var(--primary); font-weight: 800; cursor: pointer;">Mark all read</span>
+                                </div>
+                                <div class="notif-list">
+                                    <div class="notif-item">
+                                        <div class="notif-dot"></div>
+                                        <div class="notif-content">
+                                            <div class="notif-text">Payroll process for May has been initiated.</div>
+                                            <div class="notif-time">2 hours ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="notif-item">
+                                        <div class="notif-dot"></div>
+                                        <div class="notif-content">
+                                            <div class="notif-text">New IT Policy updated. Please review.</div>
+                                            <div class="notif-time">5 hours ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="notif-item" style="opacity: 0.6;">
+                                        <div style="width: 8px;"></div>
+                                        <div class="notif-content">
+                                            <div class="notif-text">Leave request for June Approved.</div>
+                                            <div class="notif-time">Yesterday</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="padding: 1rem; text-align: center; border-top: 1px solid var(--border);">
+                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 800; cursor: pointer;" onclick="navigateTo('employee-notifications.html')">View All Notifications</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="date-box">
+                        <div class="date-today" id="currentDate">Monday, 11 May</div>
+                        <div class="date-status">
+                            <i data-lucide="check-circle" size="14"></i>
+                            <span>On Track for May</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid">
+                <!-- Attendance Card -->
+                <div class="card col-8">
+                    <div class="card-header">
+                        <div class="card-title">Attendance Tracking</div>
+                        <i data-lucide="info" class="text-muted" size="16"></i>
+                    </div>
+                    <div id="mandateAlert" style="display: none; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 10px 14px; margin: 0 1.5rem 15px 1.5rem; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 700; color: #b45309;">
+                        <i data-lucide="alert-triangle" style="color: #d97706; width: 18px; height: 18px;"></i>
+                        <span>Strict 8-Hour Mandate Active today due to short-hours (<4h) yesterday!</span>
+                    </div>
+                    <div class="attendance-hero">
+                        <div class="timer-display" id="timer">00:00:00</div>
+                        <div style="display: flex; gap: 12px; flex: 1; min-width: 200px;">
+                            <button class="punch-btn" id="punchBtn" style="flex: 1;">
+                                <i data-lucide="log-in" id="punchIcon"></i>
+                                <span id="punchText">Punch In</span>
+                            </button>
+                            <button class="punch-btn" id="breakBtn" disabled style="flex: 1; background: #f59e0b; opacity: 0.5; display: none;">
+                                <i data-lucide="coffee"></i>
+                                <span>Break</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-val" style="color: var(--primary);">08:30</div>
+                            <div class="stat-label">Shift Start</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-val" id="totalLoggedTime">--:--</div>
+                            <div class="stat-label">Logged Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-val" style="color: var(--success);" id="dashboardLeaveBal">--</div>
+                            <div class="stat-label">Leave Bal.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Holidays -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div class="card-title">Upcoming Holidays</div>
+                        <i data-lucide="calendar" class="text-muted" size="16" style="cursor: pointer;" onclick="navigateTo('employee-calendar.html')"></i>
+                    </div>
+                    <div class="task-list" id="holidayList">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+                            <i data-lucide="loader" size="20" style="opacity:0.4; display:block; margin: 0 auto 8px;"></i>
+                            Loading holidays...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Tasks -->
+                <div class="card col-8">
+                    <div class="card-header">
+                        <div class="card-title">Pending Tasks</div>
+                        <span class="badge">3 URGENT</span>
+                    </div>
+                    <div class="task-list">
+                        <div class="task-item" onclick="handleTaskClick('Bank Verification')">
+                            <div class="task-icon"><i data-lucide="landmark" size="18"></i></div>
+                            <div class="task-content">
+                                <div class="task-name">Update Bank Details</div>
+                                <div class="task-meta">Required for May payroll processing</div>
+                            </div>
+                            <div class="task-action"><i data-lucide="chevron-right"></i></div>
+                        </div>
+                        <div class="task-item" onclick="handleTaskClick('IT Security Policy')">
+                            <div class="task-icon"><i data-lucide="shield-check" size="18"></i></div>
+                            <div class="task-content">
+                                <div class="task-name">Sign IT Security Policy</div>
+                                <div class="task-meta">Annual compliance update</div>
+                            </div>
+                            <div class="task-action"><i data-lucide="chevron-right"></i></div>
+                        </div>
+                        <div class="task-item" onclick="handleTaskClick('Self-Appraisal Q2')">
+                            <div class="task-icon"><i data-lucide="user-check" size="18"></i></div>
+                            <div class="task-content">
+                                <div class="task-name">Self-Appraisal Q2</div>
+                                <div class="task-meta">Performance review cycle</div>
+                            </div>
+                            <div class="task-action"><i data-lucide="chevron-right"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div class="card-title">Quick Actions</div>
+                    </div>
+                    <div class="action-grid">
+                        <a href="#" onclick="navigateTo('employee-leave.html')" class="action-card">
+                            <div class="action-icon"><i data-lucide="plus-circle"></i></div>
+                            <h3>Apply Leave</h3>
+                        </a>
+                        <a href="#" onclick="navigateTo('employee-docs.html')" class="action-card">
+                            <div class="action-icon"><i data-lucide="download"></i></div>
+                            <h3>Payslip</h3>
+                        </a>
+                        <a href="#" class="action-card" onclick="navigateTo('employee-message.html')">
+                            <div class="action-icon"><i data-lucide="message-square"></i></div>
+                            <h3>HR Message</h3>
+                        </a>
+                        <a href="#" onclick="navigateTo('employee-policy.html')" class="action-card">
+                            <div class="action-icon"><i data-lucide="info"></i></div>
+                            <h3>Policy</h3>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- My Team Widget -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div class="card-title">My Team</div>
+                        <span id="deptBadge" style="font-size: 0.65rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 100px; text-transform: uppercase;">--</span>
+                    </div>
+                    <div id="teamList" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="text-align: center; color: var(--text-muted); padding: 1rem; font-size: 0.8rem;">Synchronizing team...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { attendanceEngine } from "./attendance-engine.js";
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, orderBy, limit, doc, setDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+        
+        window.navigateTo = (page) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            if (id) {
+                window.location.href = `${page}?id=${id}`;
+            } else {
+                window.location.href = page;
+            }
+        };
+
+        window.navigateToDashboard = () => {
+            navigateTo('employee-dashboard.html');
+        };
+
+        // Premium Modal Logic
+        window.showStatusModal = (title, msg, type = 'info') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+            
+            icon.className = `modal-icon-status ${type}`;
+            icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : 
+                            (type === 'error' ? '<i data-lucide="x-circle"></i>' : '<i data-lucide="info"></i>');
+            
+            overlay.classList.add('active');
+            lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        };
+
+        window.showHolidayDetail = (name, date) => {
+            showStatusModal(
+                'Holiday Detail',
+                `"${name}" on ${date} is a recognized organizational holiday. All offices will remain closed, and automated attendance logging will be paused.`,
+                'info'
+            );
+        };
+
+        window.handleTaskClick = (title) => {
+            const empId = new URLSearchParams(window.location.search).get('id') || 'demo_emp';
+            if (title === 'Bank Verification') {
+                window.location.href = `employee-bank-task.html?id=${empId}`;
+            } else if (title === 'IT Security Policy') {
+                window.location.href = `employee-policy.html?id=${empId}&policy=IT+Security+Policy`;
+            } else if (title === 'Self-Appraisal Q2') {
+                window.location.href = `employee-appraisal.html?id=${empId}&cycle=Q2-2026`;
+            } else {
+                showStatusModal(
+                    'Task Module',
+                    `The "${title}" module is currently being synchronized with your profile. Please check back in a moment.`,
+                    'info'
+                );
+            }
+        };
+
+        window.mandated8HoursToday = false;
+        async function checkPreviousDayMandate(uid) {
+            try {
+                const q = query(
+                    collection(db, 'attendance'),
+                    where('userId', '==', uid)
+                );
+                const pastSnaps = await getDocs(q);
+                const logs = pastSnaps.docs.map(doc => doc.data()).sort((a, b) => b.date.localeCompare(a.date));
+                const todayStr = new Date().toISOString().split('T')[0];
+                const lastCompletedDay = logs.find(l => l.date !== todayStr && l.durationHours !== undefined);
+                if (lastCompletedDay && lastCompletedDay.durationHours < 4) {
+                    window.mandated8HoursToday = true;
+                    const mandateAlert = document.getElementById('mandateAlert');
+                    if (mandateAlert) mandateAlert.style.display = 'flex';
+                }
+            } catch (e) {
+                console.error("Error checking previous day's duration:", e);
+            }
+        }
+
+        let currentUser = null;
+        // --- Dynamic Dashboard Hydration ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const centerId = urlParams.get('id');
+
+        onAuthStateChanged(auth, async (user) => {
+            const activeUid = user ? user.uid : localStorage.getItem('employee_uid');
+            
+            if (activeUid) {
+                const userDocRef = doc(db, 'users', activeUid);
+                
+                // Live Dashboard & Profile Sync
+                onSnapshot(userDocRef, (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        const fullData = { uid: activeUid, ...data };
+                        currentUser = fullData;
+                        loadDashboardData(fullData);
+                        
+                        // Check if yesterday was a short workday (<4h) to mandate 8h today
+                        checkPreviousDayMandate(activeUid);
+                        
+                        // Hydrate Leave
+                        const balances = data.leaveBalances || { paid: 12, sick: 4, comp: 2 };
+                        const total = (balances.paid || 0) + (balances.sick || 0) + (balances.comp || 0);
+                        const leaveBalEl = document.getElementById('dashboardLeaveBal');
+                        if (leaveBalEl) leaveBalEl.textContent = total;
+                        
+                        // Hydrate Team
+                        const dept = data.departmentName || data.department || 'Cybersecurity';
+                        const deptBadge = document.getElementById('deptBadge');
+                        if (deptBadge) deptBadge.textContent = dept;
+                        loadTeamMembers(dept);
+                        
+                        syncNotifications(activeUid);
+                        syncMessagesCount(activeUid);
+                        initApps();
+                    }
+                });
+            } else {
+                // Authoritative Demo Fallback
+                const demoData = {
+                    uid: 'demo_emp',
+                    name: 'John Doe',
+                    role: 'Cybersecurity Specialist',
+                    department: 'Cybersecurity'
+                };
+                currentUser = demoData;
+                loadDashboardData(demoData);
+                
+                const deptBadge = document.getElementById('deptBadge');
+                if (deptBadge) deptBadge.textContent = demoData.department;
+                loadTeamMembers(demoData.department);
+                syncNotifications(demoData.uid);
+                syncMessagesCount(demoData.uid);
+                initApps();
+            }
+
+            if (centerId) {
+                try {
+                    const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
+                    if (centerDoc.exists()) {
+                        hydrateEmployeePortal(centerDoc.data());
+                    }
+                } catch (e) { console.error("Error fetching center config:", e); }
+            }
+        });
+
+        window.handleLogout = async () => {
+            try {
+                localStorage.removeItem('employee_uid');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('userDept');
+                await auth.signOut();
+                window.location.href = 'index.html';
+            } catch (e) {
+                console.error("Logout Error:", e);
+                window.location.href = 'index.html';
+            }
+        };
+
+        function hydrateEmployeePortal(config) {
+            window.commandCenterLoaded = true;
+            const logoText = document.querySelector('.logo-text');
+            const logoIcon = document.querySelector('.logo-icon');
+            const greeting = document.getElementById('greeting');
+
+            if (logoText) logoText.textContent = config.name;
+            if (greeting) greeting.textContent = `Welcome to ${config.name}`;
+            
+            if (config.primaryColor) {
+                document.documentElement.style.setProperty('--primary', config.primaryColor);
+                if (logoIcon) logoIcon.style.background = config.primaryColor;
+            }
+
+            if (config.icon && logoIcon) {
+                logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
+            }
+
+            // Authoritatively bind and render Enterprise Builder configured Apps
+            if (config.apps && Array.isArray(config.apps)) {
+                if (appsListener) {
+                    appsListener(); // Terminate user-level personal listener
+                    appsListener = null;
+                }
+                const formattedApps = config.apps.map(app => ({
+                    name: app.name,
+                    url: app.link || app.url
+                }));
+                renderAppsUI(formattedApps, true);
+            }
+
+            lucide.createIcons();
+        }
+
+        async function loadDashboardData(user) {
+            const userName = user.displayName || user.name || user.fullName || 'Employee';
+            const userRole = user.designation || user.role || 'Employee';
+            const userDept = user.department || 'General';
+            
+            const greetEl = document.getElementById('greeting');
+            if (greetEl && !window.commandCenterLoaded) greetEl.textContent = `Good Morning, ${userName.split(' ')[0]}!`;
+            
+            document.getElementById('userNameDisplay').textContent = userName;
+            document.getElementById('userRoleDisplay').textContent = userRole;
+            document.getElementById('userInitial').textContent = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+            
+            localStorage.setItem('userName', userName);
+            localStorage.setItem('userRole', userRole);
+            
+            // Hydrate Dept Label in Messages if exists
+            const deptLabelMsg = document.getElementById('deptLabelMsg');
+            if(deptLabelMsg) deptLabelMsg.textContent = userDept;
+
+            // Check Holiday Status
+            await attendanceEngine.initHolidays();
+            const isHoliday = await attendanceEngine.isTodayHoliday();
+            if (isHoliday) {
+                document.getElementById('punchBtn').disabled = true;
+                document.getElementById('punchText').textContent = "Public Holiday";
+                document.getElementById('punchBtn').style.opacity = "0.5";
+                document.getElementById('timer').textContent = "OFF DUTY";
+                document.querySelector('.sub-header').textContent = "Today is a public holiday. Enjoy your day off!";
+            }
+
+            // Live Upcoming Holidays — streamed from admin 'holidays' collection
+            const holidayList = document.getElementById('holidayList');
+            if (holidayList) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayStr = today.toISOString().split('T')[0];
+
+                const holidayQuery = query(
+                    collection(db, 'holidays'),
+                    where('date', '>=', todayStr),
+                    orderBy('date', 'asc'),
+                    limit(5)
+                );
+
+                onSnapshot(holidayQuery, (snap) => {
+                    if (snap.empty) {
+                        holidayList.innerHTML = `
+                            <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+                                <i data-lucide="calendar-x" size="20" style="opacity:0.4; display:block; margin: 0 auto 8px;"></i>
+                                No upcoming holidays
+                            </div>`;
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    holidayList.innerHTML = snap.docs.map(d => {
+                        const h = d.data();
+                        const dt = new Date(h.date + 'T00:00:00');
+                        const dayName = dt.toLocaleDateString('en-IN', { weekday: 'long' });
+                        const dateLabel = dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                        return `
+                            <div class="task-item" style="cursor: pointer;"
+                                onclick="showHolidayDetail('${h.name}', '${dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}')">
+                                <div class="task-icon" style="color: var(--warning);"><i data-lucide="sun" size="18"></i></div>
+                                <div class="task-content">
+                                    <div class="task-name">${h.name}</div>
+                                    <div class="task-meta">${dateLabel} • ${dayName}</div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                    lucide.createIcons();
+                }, (err) => {
+                    console.warn('Holiday fetch error:', err);
+                    holidayList.innerHTML = `<div style="text-align:center;padding:1.5rem;color:var(--text-muted);font-size:0.8rem;">Unable to load holidays.</div>`;
+                });
+            }
+
+            // Resume Punch State
+            const uid = user.uid || user.id || localStorage.getItem('employee_uid') || 'demo_emp';
+            const punchStatus = await attendanceEngine.getTodayPunchStatus(uid);
+            if (punchStatus && punchStatus.punchIn) {
+                const punchInTime = punchStatus.punchIn.toDate ? punchStatus.punchIn.toDate().getTime() : (punchStatus.punchIn.seconds ? punchStatus.punchIn.seconds * 1000 : punchStatus.punchIn);
+                const punchOutTime = punchStatus.punchOut ? (punchStatus.punchOut.toDate ? punchStatus.punchOut.toDate().getTime() : (punchStatus.punchOut.seconds ? punchStatus.punchOut.seconds * 1000 : punchStatus.punchOut)) : 0;
+                
+                if (punchInTime > punchOutTime) {
+                    isPunchedIn = true;
+                    const punchBtn = document.getElementById('punchBtn');
+                    const punchText = document.getElementById('punchText');
+                    const punchIcon = document.getElementById('punchIcon');
+                    const breakBtn = document.getElementById('breakBtn');
+                    
+                    punchBtn.classList.add('active');
+                    punchText.textContent = 'Punch Out';
+                    punchIcon.setAttribute('data-lucide', 'log-out');
+                    breakBtn.style.display = 'flex';
+                    breakBtn.disabled = false;
+                    breakBtn.style.opacity = '1';
+
+                    startTime = punchInTime;
+                    startTimer();
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        async function loadTeamMembers(dept) {
+            const teamListEl = document.getElementById('teamList');
+            
+            try {
+                const q = query(collection(db, 'users'), where('department', '==', dept));
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    teamListEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem;">No teammates found in your department.</div>';
+                    return;
+                }
+
+                const members = snap.docs.map(doc => doc.data());
+                const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+                
+                teamListEl.innerHTML = members.map((m, index) => {
+                    const avatarColor = colors[index % colors.length];
+                    const name = m.name || 'Unnamed Employee';
+                    const role = m.role || 'Employee';
+                    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+                    const isManager = role.toLowerCase() === 'manager';
+                    
+                    return `
+                        <div style="display: flex; align-items: center; gap: 1rem; padding: 12px; border-radius: 16px; transition: 0.2s; border: 1px solid transparent; cursor: pointer;" onmouseover="this.style.background='rgba(59,130,246,0.05)'" onmouseout="this.style.background='transparent'" onclick="openDirectChatFromWidget('${name.replace(/'/g, "\\'")}', '${role.replace(/'/g, "\\'")}')">
+                            <div style="width: 42px; height: 42px; border-radius: 12px; background: ${avatarColor}; color: white; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 800; box-shadow: 0 4px 6px -1px ${avatarColor}33;">
+                                ${initials}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                                    ${name}
+                                    ${m.uid === (currentUser?.uid) ? '<span style="font-size: 0.65rem; color: var(--primary); background: var(--primary-light); padding: 2px 6px; border-radius: 4px;">YOU</span>' : ''}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">${m.department || dept}</div>
+                                <div style="display: inline-block; font-size: 0.6rem; font-weight: 800; padding: 3px 10px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px; background: ${isManager ? '#fee2e2' : '#dcfce7'}; color: ${isManager ? '#991b1b' : '#15803d'};">
+                                    ${role}
+                                </div>
+                            </div>
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--success); border: 2px solid white; box-shadow: 0 0 0 1px var(--success);"></div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Inject into Message Modal Sidebar
+                const directMsgList = document.getElementById('directMsgList');
+                if(directMsgList) {
+                    directMsgList.innerHTML = members.filter(m => m.uid !== currentUser?.uid).map(m => {
+                        const name = m.name || 'Unnamed Employee';
+                        const role = m.role || 'Employee';
+                        const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+                        
+                        return `
+                            <div class="msg-channel" onclick="switchChat('direct', '${name.replace(/'/g, "\\'")}', '${role.replace(/'/g, "\\'")}')" style="padding: 10px; border-radius: 12px; transition: 0.2s; cursor: pointer; display: flex; gap: 10px; align-items: center;">
+                                <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">
+                                    ${initials}
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">${name}</div>
+                                    <div style="font-size: 0.65rem; color: var(--text-muted);">${role}</div>
+                                </div>
+                                <div style="width: 6px; height: 6px; border-radius: 50%; background: var(--success);"></div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                lucide.createIcons();
+            } catch (e) {
+                console.error("Team Sync Error:", e);
+                teamListEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem;">Error loading team.</div>';
+            }
+        }
+
+        // Notification & Message Sync Logic
+        const syncNotifications = (uid) => {
+            const notifListEl = document.querySelector('.notif-list');
+            
+            // Listen for notifications
+            const q = query(
+                collection(db, "notifications"), 
+                where("targetUid", "in", [uid, "global"]),
+                limit(30)
+            );
+
+            onSnapshot(q, (snap) => {
+                let notifs = snap.docs.map(doc => doc.data());
+                
+                // Sort client-side to avoid index requirement
+                notifs.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                
+                const unreadCount = notifs.filter(n => !n.read).length;
+                
+                // Update Badge
+                const bellBadge = document.querySelector('.header-actions div:nth-child(2) .icon-badge');
+                if(unreadCount > 0) {
+                    bellBadge.style.display = 'flex';
+                    bellBadge.textContent = unreadCount;
+                } else {
+                    bellBadge.style.display = 'none';
+                }
+
+                // Update List
+                if(notifs.length === 0) {
+                    notifListEl.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                            No new notifications
+                        </div>
+                    `;
+                    return;
+                }
+
+                notifListEl.innerHTML = notifs.map(n => `
+                    <div class="notif-item" style="${n.read ? 'opacity: 0.6;' : ''}">
+                        ${!n.read ? '<div class="notif-dot"></div>' : '<div style="width: 8px;"></div>'}
+                        <div class="notif-content">
+                            <div class="notif-text">${n.text}</div>
+                            <div class="notif-time">${n.timestamp?.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) || 'Just now'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        };
+
+
+
+        // Punch In/Out Logic
+        const punchBtn = document.getElementById('punchBtn');
+        const breakBtn = document.getElementById('breakBtn');
+        const punchText = document.getElementById('punchText');
+        const punchIcon = document.getElementById('punchIcon');
+        const timerDisplay = document.getElementById('timer');
+        
+        let isPunchedIn = false;
+        let isOnBreak = false;
+        let timerInterval;
+        let startTime;
+        let totalPausedTime = 0;
+        let breakStartTime;
+
+        punchBtn.onclick = async () => {
+            const uid = currentUser ? currentUser.uid : (localStorage.getItem('hr_user_id') || 'demo_user');
+            
+            isPunchedIn = !isPunchedIn;
+            if (isPunchedIn) {
+                punchBtn.classList.add('active');
+                punchText.textContent = 'Punch Out';
+                punchIcon.setAttribute('data-lucide', 'log-out');
+                
+                breakBtn.style.display = 'flex';
+                breakBtn.disabled = false;
+                breakBtn.style.opacity = '1';
+
+                startTime = Date.now() - totalPausedTime;
+                startTimer();
+                
+                // Sync with Firebase
+                await attendanceEngine.syncPunch(uid, 'in');
+            } else {
+                punchBtn.classList.remove('active');
+                punchText.textContent = 'Punch In';
+                punchIcon.setAttribute('data-lucide', 'log-in');
+                
+                breakBtn.style.display = 'none';
+                breakBtn.disabled = true;
+
+                const totalTime = Date.now() - startTime;
+                clearInterval(timerInterval);
+                
+                // Sync with Firebase
+                await attendanceEngine.syncPunch(uid, 'out');
+                
+                totalPausedTime = 0; // Reset for next session
+
+                // 8 Hour Quota Check
+                const eightHoursMs = 8 * 3600000;
+                if (window.mandated8HoursToday && totalTime < eightHoursMs) {
+                    const diff = eightHoursMs - totalTime;
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    showStatusModal('Mandated Shift Violation', `CRITICAL WARNING: You have failed your mandated 8-hour shift requirement today (due to a short-hours <4h workday yesterday). Remaining: ${h}h ${m}m. Your manager has been notified.`, 'error');
+                } else if (totalTime < eightHoursMs) {
+                    const diff = eightHoursMs - totalTime;
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    showStatusModal('Shift Compliance Warning', `Attention: You are punching out before completing your 8-hour shift. Remaining: ${h}h ${m}m.`, 'error');
+                }
+            }
+            lucide.createIcons();
+        };
+        
+        breakBtn.onclick = async () => {
+            const uid = currentUser ? currentUser.uid : (localStorage.getItem('hr_user_id') || 'demo_user');
+            isOnBreak = !isOnBreak;
+            
+            if (isOnBreak) {
+                clearInterval(timerInterval);
+                breakStartTime = Date.now();
+                breakBtn.innerHTML = '<i data-lucide="play"></i><span>Resume</span>';
+                breakBtn.style.background = "#3b82f6";
+                await attendanceEngine.syncPunch(uid, 'break');
+            } else {
+                totalPausedTime += (Date.now() - breakStartTime);
+                startTime = Date.now() - (Date.now() - startTime + (Date.now() - breakStartTime));
+                startTimer();
+                breakBtn.innerHTML = '<i data-lucide="coffee"></i><span>Break</span>';
+                breakBtn.style.background = "#f59e0b";
+                await attendanceEngine.syncPunch(uid, 'in');
+            }
+            lucide.createIcons();
+        };
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const diff = Date.now() - startTime;
+                const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                timerDisplay.textContent = `${h}:${m}:${s}`;
+                
+                // Dynamic Progress Update
+                const eightHoursMs = 8 * 3600000;
+                if (diff >= eightHoursMs) {
+                    timerDisplay.style.color = "var(--success)";
+                    document.getElementById('totalLoggedTime').textContent = "Quota Met";
+                } else {
+                    document.getElementById('totalLoggedTime').textContent = attendanceEngine.formatTime(diff);
+                }
+            }, 1000);
+        }
+
+        // Set Date
+        const now = new Date();
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        // Trigger Onboarding Flow if not completed
+        setTimeout(() => {
+            if (!localStorage.getItem('obFlowCompleted')) {
+                document.getElementById('onboardingModal').style.display = 'flex';
+                // Mark completed once shown
+                localStorage.setItem('obFlowCompleted', 'true');
+            }
+        }, 1500);
+
+        // Chat Request Logic
+        window.handleChatScrollHr = () => {
+            const area = document.getElementById('hrChatArea');
+            const btnDown = document.getElementById('scrollBtnHr');
+            const btnUp = document.getElementById('scrollBtnHrUp');
+            if(area) {
+                if (btnDown) {
+                    btnDown.style.display = (area.scrollHeight - area.scrollTop - area.clientHeight > 50) ? 'flex' : 'none';
+                }
+                if (btnUp) {
+                    btnUp.style.display = (area.scrollTop > 50) ? 'flex' : 'none';
+                }
+            }
+        };
+
+        window.handleChatScrollOb = () => {
+            const area = document.getElementById('chatAreaOb');
+            const btnDown = document.getElementById('scrollBtnOb');
+            const btnUp = document.getElementById('scrollBtnObUp');
+            if(area) {
+                if (btnDown) {
+                    btnDown.style.display = (area.scrollHeight - area.scrollTop - area.clientHeight > 50) ? 'flex' : 'none';
+                }
+                if (btnUp) {
+                    btnUp.style.display = (area.scrollTop > 50) ? 'flex' : 'none';
+                }
+            }
+        };
+
+        window.sendObChat = () => {
+            const input = document.getElementById('chatInputOb');
+            const area = document.getElementById('chatAreaOb');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            // User Message
+            const userMsg = document.createElement('div');
+            userMsg.style = "align-self: flex-end; background: var(--primary); color: white; padding: 12px 16px; border-radius: 16px; border-bottom-right-radius: 4px; font-size: 0.9rem; max-width: 85%; box-shadow: 0 4px 6px -1px rgba(59,130,246,0.2);";
+            userMsg.innerHTML = `<div style="font-size: 0.75rem; font-weight: 700; color: #bfdbfe; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">You <i data-lucide="user" size="12"></i></div>${msg}`;
+            area.appendChild(userMsg);
+            input.value = "";
+            lucide.createIcons();
+            area.scrollTop = area.scrollHeight;
+
+            // AI/HR Response
+            setTimeout(() => {
+                const isHrReq = msg.toLowerCase().includes('hr') || msg.toLowerCase().includes('connect');
+                const botMsg = document.createElement('div');
+                
+                if(isHrReq) {
+                    botMsg.style = "align-self: flex-start; background: #fff1f2; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.9rem; border: 1px solid #fecdd3; max-width: 85%;";
+                    botMsg.innerHTML = `<div style="font-size: 0.75rem; font-weight: 700; color: #e11d48; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><i data-lucide="user-check" size="12"></i> HR Representative</div>Your request has been routed to the HR team. An agent will join this chat momentarily.`;
+                } else {
+                    botMsg.style = "align-self: flex-start; background: #f8fafc; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.9rem; border: 1px solid var(--border); max-width: 85%;";
+                    botMsg.innerHTML = `<div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px;"><i data-lucide="bot" size="12"></i> AI Assistant</div>I have verified the document. Employees are entitled to 20 days of paid leave annually as per clause 4.2. Let me know if you need anything else!`;
+                }
+                
+                area.appendChild(botMsg);
+                lucide.createIcons();
+                area.scrollTop = area.scrollHeight;
+            }, 1000);
+        };
+
+        window.openDirectChatFromWidget = (name, role) => {
+            const modal = document.getElementById('hrMessageModal');
+            modal.style.display = 'flex';
+            
+            // Find the element in the sidebar if it exists, or just call switchChat
+            const channels = document.querySelectorAll('.msg-channel');
+            let targetEl = null;
+            channels.forEach(c => {
+                if(c.textContent.includes(name)) targetEl = c;
+            });
+            
+            window.switchChat('direct', targetEl, name, role);
+        };
+
+        window.handleMessageAttachment = (input) => {
+            if(input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                showStatusModal(
+                    'Secure Attachment Sync',
+                    `Your file "${fileName}" is being encrypted and synchronized with the organizational messaging backend. This process ensures enterprise-grade security compliance.`,
+                    'success'
+                );
+                input.value = ""; // Clear for next selection
+            }
+        };
+
+        let activeChatPartnerId = 'hr_support';
+        let activeChatType = 'hr'; // 'hr' | 'manager' | 'team' | 'direct'
+        let messageListener = null;
+        let typingListener = null;
+        let typingTimer = null;
+
+        // ── Typing indicator helpers ──
+        async function setTyping(chatId, isTyping) {
+            if (!currentUser) return;
+            try {
+                const { setDoc, doc: _doc, deleteField } = await import('https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js');
+                await setDoc(_doc(db, 'typing_indicators', chatId), {
+                    [currentUser.uid]: isTyping ? new Date().toISOString() : deleteField()
+                }, { merge: true });
+            } catch(e) {}
+        }
+
+        function listenTyping(chatId) {
+            if (typingListener) typingListener();
+            const indicator = document.getElementById('typingIndicator');
+            if (!indicator || !currentUser) return;
+            typingListener = onSnapshot(doc(db, 'typing_indicators', chatId), snap => {
+                if (!snap.exists()) { indicator.style.display = 'none'; return; }
+                const data = snap.data();
+                const others = Object.keys(data).filter(uid => uid !== currentUser.uid);
+                if (others.length > 0) {
+                    indicator.style.display = 'flex';
+                    indicator.innerHTML = '<span style="display:flex;gap:3px;align-items:center">'
+                        + '<span style="width:6px;height:6px;border-radius:50%;background:var(--primary);animation:typingDot 1.2s ease infinite"></span>'
+                        + '<span style="width:6px;height:6px;border-radius:50%;background:var(--primary);animation:typingDot 1.2s ease 0.2s infinite"></span>'
+                        + '<span style="width:6px;height:6px;border-radius:50%;background:var(--primary);animation:typingDot 1.2s ease 0.4s infinite"></span>'
+                        + '</span><span style="font-size:0.7rem;color:var(--text-muted);font-weight:600;margin-left:6px">typing...</span>';
+                } else {
+                    indicator.style.display = 'none';
+                }
+            });
+        }
+
+        // ── Inject typing indicator + @keyframes into modal ──
+        (function injectTypingCSS() {
+            const style = document.createElement('style');
+            style.textContent = `@keyframes typingDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}`;
+            document.head.appendChild(style);
+            // Inject typing bar above input
+            const inputArea = document.querySelector('#hrMessageModal div[style*="padding: 1.5rem 2rem"]');
+            if (inputArea) {
+                const bar = document.createElement('div');
+                bar.id = 'typingIndicator';
+                bar.style = 'display:none;align-items:center;gap:4px;padding:0 2rem 0.5rem;height:24px;';
+                inputArea.parentElement.insertBefore(bar, inputArea);
+            }
+        })();
+
+        // ── Input typing events ──
+        const hrChatInput = document.getElementById('hrChatInput');
+        if (hrChatInput) {
+            hrChatInput.addEventListener('input', () => {
+                const chatId = buildChatId();
+                if (!chatId) return;
+                setTyping(chatId, true);
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(() => setTyping(chatId, false), 2500);
+            });
+            hrChatInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') { clearTimeout(typingTimer); setTyping(buildChatId(), false); window.sendHrMessage(); }
+            });
+        }
+
+        function buildChatId() {
+            if (!currentUser) return null;
+            if (activeChatType === 'team') return 'group_' + (currentUser.department || currentUser.departmentName || 'general').toLowerCase().replace(/\s+/g, '_');
+            // Use real admin UID if available so chatId matches admin-message.html
+            if (activeChatType === 'hr') {
+                return [currentUser.uid, 'hr_support'].sort().join('_');
+            }
+            return [currentUser.uid, activeChatPartnerId].sort().join('_');
+        }
+
+        // ── Send message ──
+        window.sendHrMessage = async () => {
+            const input = document.getElementById('hrChatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const uid = currentUser ? currentUser.uid : localStorage.getItem('employee_uid') || 'demo_emp';
+            const senderName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.fullName || 'Employee') : 'Employee';
+            const chatId = buildChatId();
+            if (!chatId) { input.value = ''; return; }
+
+            // Optimistic UI
+            appendMessageBubble(msg, true, senderName);
+            input.value = '';
+            clearTimeout(typingTimer);
+            setTyping(chatId, false);
+
+            try {
+                await addDoc(collection(db, 'messages'), {
+                    chatId,
+                    senderId: uid,
+                    senderName,
+                    receiverId: activeChatPartnerId,
+                    chatType: activeChatType,
+                    text: msg,
+                    timestamp: serverTimestamp(),
+                    read: false
+                });
+
+                // Add generic notification for the recipient
+                await addDoc(collection(db, 'notifications'), {
+                    title: `New Message from ${senderName}`,
+                    message: msg.length > 50 ? msg.substring(0, 50) + '...' : msg,
+                    timestamp: serverTimestamp(),
+                    target: activeChatPartnerId,
+                    priority: 'normal'
+                });
+
+                // Detect Mentions
+                if (msg.includes('@')) {
+                    const snap = await getDocs(collection(db, 'users'));
+                    const allUsers = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    const mentionedUsers = allUsers.filter(u => u.name && msg.includes(`@${u.name}`));
+                    for (const mu of mentionedUsers) {
+                        if (mu.id !== activeChatPartnerId && mu.id !== uid) {
+                            await addDoc(collection(db, 'notifications'), {
+                                title: `You were mentioned by ${senderName}`,
+                                message: `"${msg}"`,
+                                timestamp: serverTimestamp(),
+                                target: mu.id,
+                                priority: 'high'
+                            });
+                        }
+                    }
+                }
+            } catch(e) { console.error('Message error:', e); }
+        };
+
+        function appendMessageBubble(text, isMe, label) {
+            const area = document.getElementById('hrChatArea');
+            if (!area) return;
+            const div = document.createElement('div');
+            div.style = isMe
+                ? 'align-self:flex-end;background:#d9fdd3;color:#111b21;padding:0.75rem 1rem;border-radius:8px;border-top-right-radius:0;font-size:0.95rem;max-width:85%;box-shadow:0 1px 0.5px rgba(11,20,26,.13);'
+                : 'align-self:flex-start;background:#ffffff;color:#111b21;padding:0.75rem 1rem;border-radius:8px;border-top-left-radius:0;font-size:0.95rem;max-width:85%;box-shadow:0 1px 0.5px rgba(11,20,26,.13);';
+            const labelColor = isMe ? '#475569' : 'var(--primary)';
+            const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            div.innerHTML = `<div style="font-size:0.7rem;font-weight:800;color:${labelColor};margin-bottom:4px;text-transform:uppercase;display:flex;justify-content:space-between;">`
+                + `<span>${isMe ? 'You' : label}</span><span style="opacity:0.6;font-weight:500">${ts}</span></div>${text}`;
+            area.appendChild(div);
+            area.scrollTop = area.scrollHeight;
+        }
+
+        // ── switchChat: load real Firestore messages ──
+        window.switchChat = async (target, element, name, role) => {
+            const partner = document.getElementById('activeChatPartner');
+            const status  = document.getElementById('activeChatStatus');
+            const area    = document.getElementById('hrChatArea');
+            document.querySelectorAll('.msg-channel').forEach(c => c.classList.remove('active'));
+            if (element && typeof element !== 'string') element.classList.add('active');
+
+            activeChatType = target;
+
+            if (target === 'hr') {
+                activeChatPartnerId = 'hr_support';
+                if (partner) partner.textContent = 'HR Support Hub';
+                if (status)  status.textContent  = 'Active Session • Secure Line';
+            } else if (target === 'manager') {
+                // Resolve real manager name
+                let managerName = 'My Manager';
+                if (currentUser && currentUser.managerId) {
+                    try {
+                        const mSnap = await getDoc(doc(db, 'users', currentUser.managerId));
+                        if (mSnap.exists()) managerName = mSnap.data().name || managerName;
+                    } catch(e) {}
+                } else if (currentUser && currentUser.managerName) {
+                    managerName = currentUser.managerName;
+                }
+                activeChatPartnerId = currentUser?.managerId || 'manager_support';
+                if (partner) partner.textContent = managerName;
+                if (status)  status.textContent  = 'Manager • Direct Line';
+                // Update sidebar label
+                const sideLabel = document.querySelector('#hrMessageModal .msg-channel:nth-child(2) div div:last-child');
+                if (sideLabel) sideLabel.textContent = managerName;
+            } else if (target === 'team') {
+                const dept = currentUser?.department || currentUser?.departmentName || 'General';
+                activeChatPartnerId = 'group_' + dept.toLowerCase().replace(/\s+/g,'_');
+                if (partner) partner.textContent = dept + ' Team';
+                if (status)  status.textContent  = 'Group Channel • ' + dept;
+                const deptLabel = document.getElementById('deptLabelMsg');
+                if (deptLabel) deptLabel.textContent = dept;
+            } else if (target === 'direct') {
+                activeChatPartnerId = name;
+                if (partner) partner.textContent = name;
+                if (status)  status.textContent  = (role || 'Teammate') + ' • Direct Message';
+            }
+
+            const chatId = buildChatId();
+            if (!chatId) return;
+
+            // ── Real-time message stream ──
+            if (messageListener) messageListener();
+            if (area) area.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.8rem;">Loading messages...</div>';
+
+            const q = query(
+                collection(db, 'messages'),
+                where('chatId', '==', chatId),
+                limit(60)
+            );
+
+            messageListener = onSnapshot(q, snap => {
+                const msgs = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+
+                if (!area) return;
+                area.innerHTML = '';
+
+                if (msgs.length === 0) {
+                    area.innerHTML = '<div style="align-self:flex-start;background:white;padding:12px 16px;border-radius:16px;border-bottom-left-radius:4px;font-size:0.85rem;border:1px solid #e0e7ff;max-width:85%;">'
+                        + '<div style="font-size:0.7rem;font-weight:800;color:var(--primary);margin-bottom:4px;text-transform:uppercase;">SYSTEM ASSISTANT</div>'
+                        + 'Hello! I\'m your HR assistant. How can I help you today?</div>';
+                    return;
+                }
+
+                msgs.forEach(m => {
+                    const uid = currentUser ? currentUser.uid : 'demo_emp';
+                    const isMe = m.senderId === uid;
+                    const ts = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    const div = document.createElement('div');
+                    div.style = isMe
+                        ? 'align-self:flex-end;background:#d9fdd3;color:#111b21;padding:0.75rem 1rem;border-radius:8px;border-top-right-radius:0;font-size:0.95rem;max-width:85%;box-shadow:0 1px 0.5px rgba(11,20,26,.13);'
+                        : 'align-self:flex-start;background:#ffffff;color:#111b21;padding:0.75rem 1rem;border-radius:8px;border-top-left-radius:0;font-size:0.95rem;max-width:85%;box-shadow:0 1px 0.5px rgba(11,20,26,.13);';
+                    const lbl = isMe ? 'You' : (m.senderName || (target === 'hr' ? 'HR Assistant' : partner?.textContent || 'Team'));
+                    const labelColor = isMe ? '#475569' : 'var(--primary)';
+                    div.innerHTML = `<div style="font-size:0.7rem;font-weight:800;color:${labelColor};margin-bottom:4px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>${lbl}</span><span style="opacity:0.6;font-weight:500">${ts}</span></div>${m.text}`;
+                    area.appendChild(div);
+                });
+                area.scrollTop = area.scrollHeight;
+
+                // Mark unread as read
+                if (currentUser) {
+                    const uid = currentUser.uid;
+                    snap.docs.forEach(async d => {
+                        if (!d.data().read && d.data().senderId !== uid) {
+                            try { await updateDoc(d.ref, { read: true }); } catch(e) {}
+                        }
+                    });
+                }
+            });
+
+            listenTyping(chatId);
+        };
+
+        // ── openMessaging: show modal + auto-load channel ──
+        window.openMessaging = (channel = 'hr') => {
+            const modal = document.getElementById('hrMessageModal');
+            modal.style.display = 'flex';
+            // Small delay to let modal render before injecting typing bar
+            setTimeout(() => window.switchChat(channel, null), 50);
+        };
+
+        // ── Unread message badge (real-time) ──
+        const syncMessagesCount = (uid) => {
+            const badge = document.getElementById('msgBadge');
+            if (!badge) return;
+            const q = query(
+                collection(db, 'messages'),
+                where('receiverId', '==', uid),
+                where('read', '==', false)
+            );
+            onSnapshot(q, snap => {
+                const count = snap.size;
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+            });
+        };
+
+        // ── Notifications toggle ──
+        window.toggleNotifications = () => {
+            const dd = document.getElementById('notifDropdown');
+            if (dd) dd.classList.toggle('active');
+        };
+        document.addEventListener('click', e => {
+            const dd = document.getElementById('notifDropdown');
+            if (dd && !e.target.closest('.header-actions')) dd.classList.remove('active');
+        });
+
+        // --- Connected Apps Hub (Cloud-Synchronized) ---
+        const DEFAULT_APPS = [
+            { name: "GITHUB", url: "https://github.com" },
+            { name: "CANVAS", url: "https://canvas.instructure.com" },
+            { name: "SLACK", url: "https://slack.com" },
+            { name: "JIRA", url: "https://atlassian.com" }
+        ];
+
+        let appsListener = null;
+
+        window.initApps = async () => {
+            if (appsListener) appsListener();
+            const userId = currentUser ? currentUser.uid : 'demo_emp';
+            const appsRef = doc(db, "employee_apps", userId);
+
+            // Listen for real-time updates from Firestore
+            appsListener = onSnapshot(appsRef, async (snapshot) => {
+                let apps = [];
+                if (snapshot.exists()) {
+                    apps = snapshot.data().apps || [];
+                } else {
+                    // Seed with defaults on first load
+                    await setDoc(appsRef, { apps: DEFAULT_APPS });
+                    apps = DEFAULT_APPS;
+                }
+                renderAppsUI(apps);
+            });
+        };
+
+        function renderAppsUI(apps, isAuthoritative = false) {
+            localStorage.setItem('employee_apps', JSON.stringify(apps));
+            const list = document.getElementById('customAppsList');
+            if (!list) return;
+            
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative; margin-bottom: 2px;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    ${isAuthoritative ? '' : `
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.4; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.4'">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                    `}
+                </div>
+            `).join('');
+
+            // Hide or show the custom app addition form based on authority
+            const addForm = document.querySelector('#appsDropdown > div:last-child');
+            if (addForm) {
+                addForm.style.display = isAuthoritative ? 'none' : 'flex';
+            }
+
+            lucide.createIcons();
+        }
+
+        window.addCustomApp = async () => {
+            const input = document.getElementById('appUrlInput');
+            const url = input.value.trim();
+            if (!url) return;
+
+            try {
+                let cleanUrl = url;
+                if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+                const urlObj = new URL(cleanUrl);
+                const domain = urlObj.hostname.replace('www.', '');
+                const appName = domain.split('.')[0].toUpperCase();
+
+                const userId = currentUser ? currentUser.uid : 'demo_emp';
+                const appsRef = doc(db, "employee_apps", userId);
+
+                await setDoc(appsRef, {
+                    apps: arrayUnion({ name: appName, url: cleanUrl })
+                }, { merge: true });
+
+                input.value = '';
+            } catch (e) {
+                alert("Please enter a valid URL structure.");
+            }
+        };
+
+        window.removeAppFromServer = async (url, name) => {
+            const userId = currentUser ? currentUser.uid : 'demo_emp';
+            const appsRef = doc(db, "employee_apps", userId);
+            await setDoc(appsRef, {
+                apps: arrayRemove({ name: name, url: url })
+            }, { merge: true });
+        };
+
+        window.toggleAppsMenu = () => {
+            const dropdown = document.getElementById('appsDropdown');
+            const chevron = document.getElementById('appsChevron');
+            if (!dropdown || !chevron) return;
+            
+            const isVisible = dropdown.style.display === 'flex';
+            dropdown.style.display = isVisible ? 'none' : 'flex';
+            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+    </script>
+</body>
+</html>
+

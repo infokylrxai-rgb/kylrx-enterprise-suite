@@ -1,0 +1,383 @@
+const { admin, db } = require('../config/firebase');
+const { generateEmployeeId } = require('../utils/idGenerator');
+const { generateSecurePassword } = require('../utils/passwordGenerator');
+
+/**
+ * Helper to get next sequential ID for departments
+ */
+const getNextDeptId = async () => {
+    const counterRef = db.collection('counters').doc('department');
+    return await db.runTransaction(async (t) => {
+        const doc = await t.get(counterRef);
+        const count = (doc.exists ? doc.data().count : 0) + 1;
+        t.set(counterRef, { count }, { merge: true });
+        return `DEP${count.toString().padStart(3, '0')}`;
+    });
+};
+
+/**
+ * POST /departments
+ * Create a new department
+ */
+exports.createDepartment = async (req, res, next) => {
+    try {
+        const { departmentName, departmentCode } = req.body;
+        
+        const departmentId = await getNextDeptId();
+        const deptData = {
+            departmentId,
+            departmentName,
+            departmentCode: departmentCode.toUpperCase(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('departments').doc(departmentId).set(deptData);
+        
+        res.status(201).json({
+            status: 'success',
+            message: 'Department created successfully',
+            data: deptData
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /employees
+ * Create a new employee with Auth and Firestore record
+ */
+exports.createEmployee = async (req, res, next) => {
+    try {
+        const { name, email, phone, departmentId, role, salary, bankDetails, joiningDate } = req.body;
+
+        // 1. Get Department Code
+        const deptDoc = await db.collection('departments').doc(departmentId).get();
+        if (!deptDoc.exists) throw new Error('Invalid Department ID');
+        const deptCode = deptDoc.data().departmentCode;
+
+        // 2. Generate ID and Password
+        const employeeId = await generateEmployeeId(deptCode);
+        const password = generateSecurePassword(name);
+
+        // 3. Create Firebase Auth User
+        let userRecord;
+        try {
+            userRecord = await admin.auth().createUser({
+                email,
+                password,
+                displayName: name
+            });
+        } catch (authError) {
+            if (authError.code === 'auth/email-already-in-use') {
+                return res.status(400).json({ status: 'error', message: 'The email address is already in use by another account.' });
+            }
+            throw authError;
+        }
+
+        // 4. Set Claims
+        await admin.auth().setCustomUserClaims(userRecord.uid, { role: role || 'employee', departmentId });
+
+        // 6. Save to Firestore
+        const employeeData = {
+            uid: userRecord.uid,
+            employeeId,
+            name,
+            email,
+            phone,
+            address: req.body.address || '',
+            tempPassword: password, // Storing for admin visibility
+            departmentId,
+            role: role || "employee",
+            salary,
+            bankDetails: bankDetails || {},
+            joiningDate: joiningDate || new Date().toISOString(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            status: "active"
+        };
+        await db.collection('users').doc(userRecord.uid).set(employeeData);
+
+        res.status(201).json({
+            status: 'success',
+            data: { employeeId, email, tempPassword: password }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /managers
+ * Create a manager (same as employee but with manager role)
+ */
+exports.createManager = async (req, res, next) => {
+    req.body.role = 'manager';
+    return exports.createEmployee(req, res, next);
+};
+
+/**
+ * PUT /employees/:id
+ * Update an existing employee record
+ */
+exports.updateEmployee = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+        
+        // 1. Update Firebase Authentication if email or password is changed
+        const authUpdates = {};
+        if (updateData.email) authUpdates.email = updateData.email;
+        if (updateData.password) authUpdates.password = updateData.password;
+        
+        if (Object.keys(authUpdates).length > 0) {
+            await admin.auth().updateUser(id, authUpdates);
+        }
+
+        // 2. Clean up data for Firestore
+        const tempPassword = updateData.password; // Keep track for visibility
+        delete updateData.employeeId;
+        delete updateData.uid;
+        delete updateData.createdAt;
+        delete updateData.password; // Don't store plain password, store in tempPassword field
+
+        await db.collection('users').doc(id).update({
+            ...updateData,
+            ...(tempPassword ? { tempPassword } : {}),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        res.json({ status: 'success', message: 'Employee and Auth records updated successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET /employees
+ * List all employees
+ */
+exports.getAllEmployees = async (req, res, next) => {
+    try {
+        const snapshot = await db.collection('users').orderBy('createdAt', 'desc').get();
+        const employees = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                uid: data.uid || doc.id // Fallback to doc.id if uid is missing (e.g. bulk upload)
+            };
+        });
+        res.json({ status: 'success', data: employees });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * DELETE /employees/:id
+ * Delete an employee from Auth and Firestore
+ */
+exports.deleteEmployee = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        
+        // 1. Delete from Firebase Authentication
+        try {
+            await admin.auth().deleteUser(id);
+        } catch (authError) {
+            console.warn(`Auth user not found or already deleted: ${id}`);
+        }
+
+        // 2. Delete from Firestore
+        await db.collection('users').doc(id).delete();
+
+        res.json({ status: 'success', message: 'Employee deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET /departments
+ * List all departments
+ */
+exports.getAllDepartments = async (req, res, next) => {
+    try {
+        const snapshot = await db.collection('departments').get();
+        const departments = snapshot.docs.map(doc => doc.data());
+        res.json({ status: 'success', data: departments });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET /analytics
+ * Get aggregated workforce statistics
+ */
+exports.getAnalytics = async (req, res, next) => {
+    try {
+        const [empSnap, deptSnap] = await Promise.all([
+            db.collection('users').get(),
+            db.collection('departments').get()
+        ]);
+
+        const employees = empSnap.docs.map(doc => doc.data()).filter(u => (u.role || '').toLowerCase() !== 'admin');
+        const departments = deptSnap.docs.map(doc => doc.data());
+
+        // Calculate Stats
+        const totalWorkforce = employees.length;
+        const totalSalary = employees.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0);
+        const avgSalary = totalWorkforce > 0 ? totalSalary / totalWorkforce : 0;
+
+        // Department Distribution
+        const deptCounts = {};
+        departments.forEach(d => {
+            const count = employees.filter(e => e.departmentId === d.departmentId).length;
+            deptCounts[d.departmentName] = count;
+        });
+
+        // Salary by Department
+        const deptSalaries = {};
+        departments.forEach(d => {
+            const empsInDept = employees.filter(e => e.departmentId === d.departmentId);
+            const avg = empsInDept.length > 0 ? empsInDept.reduce((acc, curr) => acc + (Number(curr.salary) || 0), 0) / empsInDept.length : 0;
+            deptSalaries[d.departmentName] = avg;
+        });
+
+        res.json({
+            status: 'success',
+            data: {
+                stats: {
+                    totalWorkforce,
+                    avgSalary: Math.round(avgSalary),
+                    growthRate: "+12.5%", // Mocked for now
+                    retentionRate: "94.2%" // Mocked for now
+                },
+                charts: {
+                    departmentDistribution: deptCounts,
+                    salaryByDepartment: deptSalaries,
+                    performance: [85, 90, 78, 82, 75, 88], // Mocked
+                    hiringSources: [12, 19, 7, 5, 3] // Mocked
+                }
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /sync-database
+ * Synchronize and initialize core database collections
+ */
+exports.syncDatabase = async (req, res, next) => {
+    try {
+        logger.info('Database synchronization initiated by admin');
+        
+        // 1. Initialize Departments if empty
+        const deptSnap = await db.collection('departments').get();
+        if (deptSnap.empty) {
+            const initialDepts = [
+                { departmentId: 'DEP001', departmentName: 'Engineering', departmentCode: 'ENG', createdAt: admin.firestore.FieldValue.serverTimestamp() },
+                { departmentId: 'DEP002', departmentName: 'Marketing', departmentCode: 'MKT', createdAt: admin.firestore.FieldValue.serverTimestamp() },
+                { departmentId: 'DEP003', departmentName: 'Finance', departmentCode: 'FIN', createdAt: admin.firestore.FieldValue.serverTimestamp() },
+                { departmentId: 'DEP004', departmentName: 'Human Resources', departmentCode: 'HR', createdAt: admin.firestore.FieldValue.serverTimestamp() }
+            ];
+            
+            const batch = db.batch();
+            initialDepts.forEach(d => {
+                const ref = db.collection('departments').doc(d.departmentId);
+                batch.set(ref, d);
+            });
+            await batch.commit();
+        }
+
+        // 2. Initialize Finance Metrics if empty
+        const finSnap = await db.collection('financeMetrics').get();
+        if (finSnap.empty) {
+            const metrics = [
+                { departmentId: 'engineering', payrollTotal: 450000, expenseTotal: 25000, revenue: 0, budgetLimit: 500000 },
+                { departmentId: 'marketing', payrollTotal: 280000, expenseTotal: 150000, revenue: 800000, budgetLimit: 300000 },
+                { departmentId: 'sales', payrollTotal: 320000, expenseTotal: 45000, revenue: 1200000, budgetLimit: 400000 }
+            ];
+            const batch = db.batch();
+            metrics.forEach(m => {
+                const ref = db.collection('financeMetrics').doc(m.departmentId);
+                batch.set(ref, m);
+            });
+            await batch.commit();
+        }
+
+        // 3. Log System Event
+        await db.collection('alertEvents').add({
+            type: 'system',
+            severity: 'info',
+            message: 'Enterprise Database Synchronized via Backend API',
+            departmentId: 'system',
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        res.json({
+            status: 'success',
+            message: 'Enterprise database synchronized successfully',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ===============================
+// Bank Transfer Flow for Admin
+// ===============================
+/**
+ * POST /admin/bank/transfer
+ * Handles bank transfer submission by admin.
+ * Expected payload: { employeeId, bankName, accountNum, ifsc, amount }
+ */
+exports.transferBank = async (req, res, next) => {
+    try {
+        const { employeeId, bankName, accountNum, ifsc, amount, emailMessage } = req.body;
+        if (!employeeId || !bankName || !accountNum || !ifsc || !amount) {
+            return res.status(400).json({ success: false, error: 'Missing required bank details.' });
+        }
+
+        // Securely write bank verification details to Firestore via Admin SDK
+        const verificationRef = db.collection('bank_verifications').doc(employeeId);
+        await verificationRef.set({
+            bankName,
+            accountNum,
+            routingCode: ifsc, // IFSC serves as the routingCode in Indian banking
+            ifsc: ifsc,
+            amount: Number(amount),
+            employeeId,
+            emailMessage: emailMessage || '',
+            status: 'Under Review',
+            submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // Add transaction entry to Audit Logs
+        await db.collection('audit_logs').add({
+            action: 'BANK_SUBMISSION',
+            employeeId,
+            performedBy: req.user.id || 'admin',
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            details: `Bank transfer of ₹${amount} submitted for review by ${req.user.name || 'Admin'}.${emailMessage ? ' Notification message drafted.' : ''}`
+        });
+
+        // Add real-time Admin Notification
+        await db.collection('notifications').add({
+            target: 'admin',
+            message: `New bank transfer of ₹${amount} pending review for employee ${employeeId}.`,
+            priority: 'high',
+            read: false,
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        return res.status(200).json({ success: true, message: 'Bank transfer details submitted for verification.' });
+    } catch (err) {
+        console.error('[ADMIN] Bank Transfer error:', err);
+        next(err);
+    }
+};

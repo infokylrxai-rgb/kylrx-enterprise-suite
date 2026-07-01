@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login – Kylrx AI Automation</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+  <link rel="stylesheet" href="login.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://unpkg.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.gstatic.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com http://localhost:3000 http://127.0.0.1:3000 http://127.0.0.1:5500 http://127.0.0.1:5501 ws://127.0.0.1:5501 https://unpkg.com https://cdn.jsdelivr.net; frame-src 'self' https://planning-with-ai-c026b.firebaseapp.com https://apis.google.com;">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <a href="index.html" class="logo">
+          <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+          <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+        </a>
+        <h1>Welcome Back</h1>
+        <p>Please enter your credentials to continue</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div class="input-wrapper">
+            <i data-lucide="mail" class="icon-sm"></i>
+            <input type="email" id="email" placeholder="admin@kylrx.ai" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="label-row">
+            <label for="password">Password</label>
+            <a href="javascript:void(0)" class="forgot-link" id="forgotPasswordLink">Forgot Password?</a>
+          </div>
+          <div class="input-wrapper">
+            <i data-lucide="lock" class="icon-sm"></i>
+            <input type="password" id="password" placeholder="••••" required>
+          </div>
+        </div>
+
+        <div id="errorMessage" class="error-msg">Invalid login credentials</div>
+
+        <button type="submit" class="login-btn" id="loginBtn">
+          <span>Login to Dashboard</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+
+        <div class="divider" style="display: flex; align-items: center; margin: 1.5rem 0; color: #64748b; font-size: 0.875rem;">
+          <div style="flex-grow: 1; height: 1px; background: #e2e8f0;"></div>
+          <span style="padding: 0 1rem;">OR</span>
+          <div style="flex-grow: 1; height: 1px; background: #e2e8f0;"></div>
+        </div>
+
+        <button type="button" class="google-btn" id="googleLoginBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 0.875rem; background: white; border: 1px solid #e2e8f0; border-radius: 12px; font-weight: 500; color: #0f172a; cursor: pointer; transition: all 0.2s;">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 20px; height: 20px;">
+          <span>Sign in with Google</span>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p>New Admin? <a href="signup.html">Create Admin Account</a></p>
+      </div>
+    </div>
+    
+    <div class="bg-shape shape-2"></div>
+  </div>
+
+  <!-- Custom Alert Overlay -->
+  <div id="customOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999;">
+    <div id="alertCard" style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:400px; text-align:center; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); transition: all 0.3s ease;">
+      <div id="alertIcon" style="font-size:2.5rem; color:#ef4444; margin-bottom:1.5rem;"></div>
+      <h2 id="alertTitle" style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem; color:#0f172a;">Access Restricted</h2>
+      <p id="alertMsg" style="color:#64748b; margin-bottom:2rem; line-height:1.6;"></p>
+      <button id="alertBtn" onclick="document.getElementById('customOverlay').style.display='none'" style="background:#2563eb; color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer;">Understood</button>
+    </div>
+  </div>
+
+  <!-- Google Fallback Simulation Modal -->
+  <div id="fallbackModalOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999;">
+    <div style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:440px; text-align:left; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+      <div style="font-size:2.5rem; color:#2563eb; margin-bottom:1.5rem;"><i data-lucide="shield-alert"></i></div>
+      <h2 style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem; color:#0f172a;">Google Sign-In Simulation</h2>
+      <p style="color:#64748b; margin-bottom:1.5rem; line-height:1.6; font-size:0.95rem;">Google Sign-In is not enabled on this environment. Please enter a corporate email to simulate Google Authentication:</p>
+      
+      <div class="form-group" style="margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 0.75rem; font-weight: 600; color: #4b5563; text-transform: uppercase; letter-spacing: 0.5px;">Corporate Email Address</label>
+        <input type="email" id="fallbackEmailInput" value="admin@kylrx.ai" style="width: 100%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; color: #0f172a; font-family: inherit; font-weight: 500; outline: none; transition: 0.2s;" placeholder="admin@kylrx.ai">
+      </div>
+      
+      <div style="display: flex; gap: 12px; margin-top: 2rem;">
+        <button type="button" id="fallbackCancelBtn" style="background:#f8fafc; color:#0f172a; border:1px solid #e2e8f0; flex: 1; padding:0.875rem; border-radius:12px; font-weight:600; cursor:pointer;">Cancel</button>
+        <button type="button" id="fallbackConfirmBtn" style="background:#2563eb; color:white; border:none; flex: 1; padding:0.875rem; border-radius:12px; font-weight:600; cursor:pointer;">Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Forgot Password Modal ────────────────────────── -->
+  <div id="forgotPwdOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.45); backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; z-index:10000; animation: fadeIn 0.2s ease;">
+    <div style="background:#fff; padding:2.5rem; border-radius:24px; width:90%; max-width:420px; border:1px solid #dbeafe; box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);">
+      <!-- Icon -->
+      <div style="width:56px; height:56px; background:linear-gradient(135deg,#eff6ff,#dbeafe); border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem;">
+        <i data-lucide="key-round" style="color:#2563eb; width:26px; height:26px;"></i>
+      </div>
+      <h2 style="font-size:1.4rem; font-weight:800; color:#0f172a; margin-bottom:0.4rem;">Reset Your Password</h2>
+      <p style="color:#64748b; font-size:0.88rem; margin-bottom:1.75rem; line-height:1.6;">Enter your registered email address and we'll send you a secure reset link instantly. Works for all lakhs of users automatically.</p>
+
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:0.8rem; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Email Address</label>
+        <div style="display:flex; align-items:center; border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; transition:0.2s;" id="forgotEmailWrapper">
+          <i data-lucide="mail" style="margin-left:14px; color:#94a3b8; flex-shrink:0; width:18px; height:18px;"></i>
+          <input type="email" id="forgotEmailInput" placeholder="your@email.com"
+            style="width:100%; padding:12px 14px; border:none; outline:none; font-size:0.9rem; font-family:inherit; color:#0f172a; background:transparent;"
+            onfocus="document.getElementById('forgotEmailWrapper').style.borderColor='#2563eb'; document.getElementById('forgotEmailWrapper').style.boxShadow='0 0 0 4px #dbeafe';"
+            onblur="document.getElementById('forgotEmailWrapper').style.borderColor='#e2e8f0'; document.getElementById('forgotEmailWrapper').style.boxShadow='none';"
+          >
+        </div>
+      </div>
+
+      <div id="forgotPwdStatus" style="display:none; padding:10px 14px; border-radius:10px; font-size:0.82rem; font-weight:600; margin-bottom:1rem;"></div>
+
+      <div style="display:flex; gap:10px; margin-top:1.5rem;">
+        <button id="forgotCancelBtn" style="flex:1; padding:12px; background:#f8fafc; color:#374151; border:1.5px solid #e2e8f0; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; transition:0.2s;"
+          onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">Cancel</button>
+        <button id="forgotSubmitBtn" style="flex:2; padding:12px; background:linear-gradient(135deg,#2563eb,#1d4ed8); color:white; border:none; border-radius:12px; font-weight:700; font-size:0.88rem; cursor:pointer; transition:0.2s; display:flex; align-items:center; justify-content:center; gap:8px;"
+          onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+          <i data-lucide="send" style="width:16px; height:16px;"></i>
+          Send Reset Link
+        </button>
+      </div>
+
+      <p style="text-align:center; margin-top:1.25rem; font-size:0.78rem; color:#94a3b8;">🔒 Reset link expires in 1 hour. Check your spam folder if not received.</p>
+    </div>
+  </div>
+
+  <script type="module" src="login.js"></script>
+  <script>if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }</script>
+</body>
+</html>
+
+

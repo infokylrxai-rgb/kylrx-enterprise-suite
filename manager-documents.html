@@ -1,0 +1,1658 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Command Center | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        /* Custom Alert Styles */
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .custom-alert-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            animation: alertPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        @keyframes alertPop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .alert-btn {
+            margin-top: 2rem; width: 100%; padding: 14px;
+            background: var(--primary); color: white; border: none;
+            border-radius: 14px; font-weight: 700; cursor: pointer;
+            transition: 0.2s;
+        }
+        .alert-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+        .btn-delete:hover { background: #fecaca !important; transform: translateY(-2px); }
+
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-width: 280px;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+        
+        @media (max-width: 1024px) {
+            :root { --sidebar-width: 280px; }
+            .dept-name, .dept-code, .nav-link span, .nav-label { display: none; }
+            .sidebar {padding: 2.5rem 1rem; align-items: center;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+            .nav-link { justify-content: center; padding: 14px; }
+            .dept-branding { padding: 1.5rem 0.5rem; }
+            .dept-icon-box { margin-bottom: 0; }
+        }
+
+        /* Sidebar */
+        .sidebar {background: white;
+            border-right: 1px solid var(--border);
+            padding: 2.5rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+
+        /* Custom Slide Bar (Scrollbar) */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .sidebar:hover::-webkit-scrollbar-thumb {
+            background: rgba(37, 99, 235, 0.2);
+        }
+
+        .dept-branding {
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 100%);
+            border-radius: 24px;
+            padding: 2.25rem 1.5rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
+        }
+        .dept-icon-box {
+            width: 60px; height: 60px; background: white; border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; color: var(--primary);
+            box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.05);
+        }
+        .dept-name { font-weight: 800; font-size: 1.2rem; margin-bottom: 6px; letter-spacing: -0.5px; color: var(--text-main); word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
+        .dept-code { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.7; }
+ 
+        .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 2rem 0 1rem 0.5rem; opacity: 0.6; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.3s; margin-bottom: 6px;
+        }
+        .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
+        .nav-link.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25); }
+
+        .sidebar-footer { margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--border); }
+
+        /* Main Content */
+        .main-content { padding: 3rem; overflow-y: auto; }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3.5rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
+        .sub-header { color: var(--text-muted); font-size: 1rem; font-weight: 500; }
+
+        .ai-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 800; color: var(--success); background: #dcfce7; padding: 6px 12px; border-radius: 100px; }
+        .ai-pulse { width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* Widget Grid */
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .card-header h2 { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Insight Contents */
+        .insight-content { min-height: 140px; }
+
+        .telemetry-row { display: flex; gap: 1rem; width: 100%; }
+        .tele-box {
+            flex: 1; padding: 1.5rem; border-radius: 16px;
+            display: flex; flex-direction: column; gap: 4px;
+            border: 1px solid var(--border); background: var(--bg);
+        }
+        .tele-box.active { border-color: var(--primary-light); color: var(--primary); }
+        .tele-val { font-size: 1.75rem; font-weight: 800; }
+        .tele-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+
+        .alert-box {
+            background: #fff1f2;
+            border: 1px solid #fecaca;
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        .alert-icon { color: var(--danger); }
+        .alert-title { font-size: 0.85rem; font-weight: 800; color: #991b1b; margin-bottom: 4px; }
+        .alert-msg { font-size: 0.75rem; color: #b91c1c; font-weight: 500; }
+
+        .payroll-card {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+        .burn-val { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+        .burn-trend { font-size: 0.75rem; font-weight: 700; color: var(--success); }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 1rem; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 1rem; font-size: 0.85rem; font-weight: 600; border-bottom: 1px solid var(--border); }
+
+        .btn-ghost { padding: 8px; border-radius: 50%; background: var(--bg); border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
+        
+        /* Icon Sizing */
+        i[data-lucide], svg[data-lucide] {
+            width: 20px;
+            height: 20px;
+        }
+        .dept-icon-box i, .dept-icon-box svg {
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <div id="teamManagerModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 800px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Team Management</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Organize your workforce into specialized units</p>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('teamManagerModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Team List -->
+                <div style="border-right: 1px solid var(--border); padding-right: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Active Teams</h3>
+                        <button onclick="showNewTeamForm()" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 4px 12px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">+ Create Team</button>
+                    </div>
+                    <div id="teamsList" style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
+                        <!-- Teams dynamic list -->
+                    </div>
+                </div>
+
+                <!-- Team Detail / Form -->
+                <div id="teamEditor">
+                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; text-align: center; border: 2px dashed var(--border); border-radius: 20px;">
+                        Select a team to view details or create a new one
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.25rem;">Custom App Registry</h2>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem;">
+                </div>
+                <button onclick="addCustomApp()" style="background: var(--primary); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; width: 100%;">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
+                <h3 style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div id="notificationsModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-weight: 800; font-size: 1.25rem;">Notifications</h2>
+                <button class="btn-ghost" onclick="document.getElementById('notificationsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            <div id="notificationsList" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="padding: 1rem; background: var(--bg); border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px;">Security Patch Required</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">A new security update is available for Region 4 servers.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Modal -->
+    <div id="messagesModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-weight: 800; font-size: 1.25rem;">Direct Messages</h2>
+                <button class="btn-ghost" onclick="document.getElementById('messagesModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            <div id="messagesList" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="padding: 1rem; background: var(--bg); border-radius: 12px; border: 1px solid var(--border); display: flex; gap: 12px; align-items: center;">
+                    <div style="width: 32px; height: 32px; background: var(--primary); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.7rem;">AK</div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 0.85rem;">Arvind Kumar</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Sir, I've completed the Q2 report.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 400px;">
+            <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="alert-triangle" size="32"></i>
+            </div>
+            <h2 style="font-weight: 800; margin-bottom: 12px;">Are you sure?</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 2rem;">This action will permanently delete the team and all its internal configurations. This cannot be undone.</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="alert-btn" style="background: var(--bg); color: var(--text-main); margin-top: 0; flex: 1;" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+                <button id="confirmBtn" class="alert-btn" style="background: #ef4444; margin-top: 0; flex: 1;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Confirmation Modal -->
+    <div id="confirmDocDeleteModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 400px;">
+            <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="trash-2" size="32" style="color: #ef4444;"></i>
+            </div>
+            <h2 style="font-weight: 800; margin-bottom: 12px;">Delete Document?</h2>
+            <p id="confirmDocDeleteMsg" style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 2rem;">Are you sure you want to permanently delete this document? This cannot be undone.</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="alert-btn" style="background: var(--bg); color: var(--text-main); margin-top: 0; flex: 1;" onclick="document.getElementById('confirmDocDeleteModal').style.display='none'">Cancel</button>
+                <button id="confirmDocDeleteBtn" class="alert-btn" style="background: #ef4444; margin-top: 0; flex: 1;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Picker Modal -->
+    <div id="memberPickerModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 400px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 id="pickerTitle" style="font-weight: 800; font-size: 1.25rem;">Assign Member</h2>
+                <button class="btn-ghost" onclick="document.getElementById('memberPickerModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            <div id="pickerList" style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto;">
+                <!-- Personnel options dynamic list -->
+            </div>
+        </div>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="dept-branding">
+                
+                <div class="dept-name" id="sideDeptName">Cybersecurity</div>
+                <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link active" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="openTeamManager()"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
+                <div class="nav-item"><a href="manager-policy.html" class="nav-link" id="navPolicyLink"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="manager-assets.html" class="nav-link" id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                            </nav>
+
+            <div class="sidebar-footer">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="logout()" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i><span>Sign Out</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1>Document Vault</h1>
+                    <p class="sub-header">Secure file access and management</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="ai-status">
+                        <div class="ai-pulse"></div>
+                        <span>AI ENGINE ACTIVE</span>
+                    </div>
+                </div>
+            </header>
+            
+<div class="widget-grid" style="grid-template-columns: 1fr;">
+    <div class="card">
+        <div class="card-header">
+            <h2>Department Document Vault</h2>
+            <i data-lucide="folder-lock" class="text-muted" size="16"></i>
+        </div>
+        <div class="insight-content" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div id="doc-item-pdf" style="padding: 1.5rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i data-lucide="file-text" style="color: var(--primary);"></i>
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.9rem;">Q2 Performance Reviews.pdf</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Confidential • 2.4 MB</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-ghost" onclick="downloadPdfDoc()" title="Download PDF"><i data-lucide="download"></i></button>
+                    <button class="btn-ghost" onclick="deleteDocItem('doc-item-pdf', 'Q2 Performance Reviews.pdf')" style="color: var(--danger);" title="Delete Document"><i data-lucide="trash-2"></i></button>
+                </div>
+            </div>
+            <div id="doc-item-xlsx" style="padding: 1.5rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <i data-lucide="file-spreadsheet" style="color: var(--success);"></i>
+                    <div>
+                        <div style="font-weight: 800; font-size: 0.9rem;">Budget Allocation 2026.xlsx</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Financials • 1.1 MB</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-ghost" onclick="downloadExcelDoc()" title="Download Excel"><i data-lucide="download"></i></button>
+                    <button class="btn-ghost" onclick="deleteDocItem('doc-item-xlsx', 'Budget Allocation 2026.xlsx')" style="color: var(--danger);" title="Delete Document"><i data-lucide="trash-2"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        </main>
+    </div>
+
+    <script type="module">
+        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs } from "./firebase-config.js";
+        import { getPendingReviews, scorePerformance } from "./pms-service.js";
+        import { managerAttendanceService } from "./manager-attendance-service.js";
+        
+        let currentDeptConfig = null;
+        const currentUnitId = ((v) => v === 'null' || v === 'undefined' ? null : v)(new URLSearchParams(window.location.search).get('id'));
+
+        lucide.createIcons();
+
+        // Global Link Hydration
+        (function hydrateSidebar() {
+            const centerId = ((v) => v === 'null' || v === 'undefined' ? null : v)(new URLSearchParams(window.location.search).get('id'));
+            const overviewLink = document.getElementById('overviewLink');
+            const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
+            const navConsoleLink = document.getElementById('navConsoleLink');
+            const navAnalysisLink = document.getElementById('navAnalysisLink');
+            const navNotifLink = document.getElementById('navNotifLink');
+            const navMsgLink = document.getElementById('navMsgLink');
+            const navDocsLink = document.getElementById('navDocsLink');
+            const navWorkforceLink = document.getElementById('navWorkforceLink');
+            const navSecurityLink = document.getElementById('navSecurityLink');
+            const navPerformanceLink = document.getElementById('navPerformanceLink');
+            const navAttendanceLink = document.getElementById('navAttendanceLink');
+            const navPolicyLink = document.getElementById('navPolicyLink');
+            const navAssetsLink = document.getElementById('navAssetsLink');
+
+            if (overviewLink) overviewLink.href = centerId ? `manager-dashboard.html?id=${centerId}` : `manager-dashboard.html`;
+            if (leaveHolidaysLink) leaveHolidaysLink.href = centerId ? `manager-calendar.html?id=${centerId}` : `manager-calendar.html`;
+            if (navConsoleLink) navConsoleLink.href = centerId ? `manager-console.html?id=${centerId}` : `manager-console.html`;
+            if (navAnalysisLink) navAnalysisLink.href = centerId ? `manager-analysis.html?id=${centerId}` : `manager-analysis.html`;
+            if (navNotifLink) navNotifLink.href = centerId ? `manager-notification.html?id=${centerId}` : `manager-notification.html`;
+            if (navMsgLink) navMsgLink.href = centerId ? `manager-message.html?id=${centerId}` : `manager-message.html`;
+            if (navDocsLink) navDocsLink.href = centerId ? `manager-documents.html?id=${centerId}` : `manager-documents.html`;
+            if (navWorkforceLink) navWorkforceLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+            if (navSecurityLink) navSecurityLink.href = centerId ? `manager-security.html?id=${centerId}` : `manager-security.html`;
+            if (navPerformanceLink) navPerformanceLink.href = centerId ? `manager-performance.html?id=${centerId}` : `manager-performance.html`;
+            if (navAttendanceLink) navAttendanceLink.href = centerId ? `manager-attendance.html?id=${centerId}` : `manager-attendance.html`;
+            if (navPolicyLink) navPolicyLink.href = centerId ? `manager-policy.html?id=${centerId}` : `manager-policy.html`;
+            if (navAssetsLink) navAssetsLink.href = centerId ? `manager-assets.html?id=${centerId}` : `manager-assets.html`;
+                {
+                    const _navTeamLink = document.getElementById('navTeamLink');
+                    if (_navTeamLink) {
+                        if (typeof openTeamManager === 'undefined') {
+                            _navTeamLink.removeAttribute('onclick');
+                            _navTeamLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+                        }
+                    }
+                }
+        })();
+
+
+        // --- Dynamic Dashboard Hydration ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const centerId = ((v) => v === 'null' || v === 'undefined' ? null : v)(urlParams.get('id'));
+
+        onAuthStateChanged(auth, async (user) => {
+            let userData = null;
+            if (user) {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists()) userData = userDoc.data();
+            }
+
+            // Fallback for demo or admin viewing
+            if (!userData) {
+                userData = {
+                    name: localStorage.getItem('userName') || 'Manager',
+                    role: localStorage.getItem('userRole') || 'manager',
+                    department: localStorage.getItem('userDept') || 'General'
+                };
+            }
+
+            if (centerId) {
+                // Fetch specific command center config
+                try {
+                    let centerDoc = await getDoc(doc(db, 'command_centers', centerId));
+                    if (!centerDoc.exists()) {
+                        // Fallback to legacy departments collection
+                        centerDoc = await getDoc(doc(db, 'departments', centerId));
+                    }
+                    
+                    // Case-insensitive recovery for corrupted URL parameters
+                    if (!centerDoc.exists()) {
+                        const allSnap = await getDocs(collection(db, 'command_centers'));
+                        const match = allSnap.docs.find(d => d.id.toLowerCase() === centerId.toLowerCase());
+                        if (match) {
+                            centerDoc = match;
+                            // Clean up the URL quietly without reloading
+                            window.history.replaceState({}, '', `manager-dashboard.html?id=${match.id}`);
+                        }
+                    }
+
+                    if (centerDoc && centerDoc.exists && centerDoc.exists()) {
+                        const config = centerDoc.data();
+                        currentDeptConfig = config;
+                        hydrateDashboard(config);
+                    } else {
+                        console.warn("Command center not found:", centerId);
+                    }
+                } catch (e) { console.error("Error fetching center config:", e); }
+            } else {
+                // Dynamically look up the command center matching the manager's department
+                try {
+                    // 1. Try exact ID match first (New architecture)
+                    if (userData.departmentId) {
+                        let directDoc = await getDoc(doc(db, 'command_centers', userData.departmentId));
+                        if (!directDoc.exists()) {
+                            directDoc = await getDoc(doc(db, 'departments', userData.departmentId));
+                        }
+                        
+                        // Case-insensitive recovery for corrupted localStorage IDs
+                        if (!directDoc.exists()) {
+                            const allSnap = await getDocs(collection(db, 'command_centers'));
+                            const match = allSnap.docs.find(d => d.id.toLowerCase() === userData.departmentId.toLowerCase());
+                            if (match) {
+                                directDoc = match;
+                            }
+                        }
+
+                        if (directDoc && directDoc.exists && directDoc.exists()) {
+                            window.location.href = `manager-dashboard.html?id=${directDoc.id}`;
+                            return;
+                        }
+                    }
+
+                    // 2. Fallback to name query (Legacy architecture)
+                    let q = query(collection(db, 'command_centers'), where('name', '==', userData.department));
+                    let snap = await getDocs(q);
+                    
+                    if (snap.empty) {
+                        q = query(collection(db, 'departments'), where('name', '==', userData.department));
+                        snap = await getDocs(q);
+                    }
+                    if (!snap.empty) {
+                        const docId = snap.docs[0].id;
+                        window.location.href = `manager-dashboard.html?id=${docId}`;
+                        return;
+                    } else {
+                        // 3. Fallback: Auto-generate a generic command center profile based on user's actual department
+                        console.log("No command center found for:", userData.department, "- Auto-generating profile.");
+                        
+                        // Sanitize department name to prevent raw Firestore IDs from showing up in the UI
+                        let displayDept = userData.department || 'General';
+                        if (displayDept.length === 20 && !displayDept.includes(' ')) {
+                            displayDept = 'Operations'; // Fallback if it's a raw ID
+                        }
+                        
+                        const generatedConfig = {
+                            id: userData.departmentId || 'custom-' + Date.now(),
+                            name: displayDept,
+                            unitId: 'UNIT-' + displayDept.substring(0,3).toUpperCase() + '-' + Math.floor(Math.random() * 900 + 100),
+                            icon: 'shield',
+                            color: '#3b82f6',
+                            activeAgents: 1
+                        };
+                        currentDeptConfig = generatedConfig;
+                        hydrateDashboard(generatedConfig);
+                    }
+                } catch (err) {
+                    console.error("Error finding manager command center:", err);
+                }
+            }
+
+            if (user && (userData.role || '').toLowerCase() !== 'manager' && !centerId) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Initialize Apps after auth state is completely resolved
+            initApps();
+
+            const activeUserId = user ? user.uid : localStorage.getItem('hr_user_id') || 'manager_demo';
+            managerAttendanceService.restoreManagerSession(activeUserId);
+        });
+
+        function hydrateDashboard(config) {
+            // Sanitize config name in case database contains raw 20-character Firestore ID instead of real name
+            if (config && config.name && config.name.length === 20 && !config.name.includes(' ')) {
+                console.warn("Sanitizing raw ID found in config.name:", config.name);
+                config.name = 'Operations';
+            }
+
+            const sideDeptName = document.getElementById('sideDeptName');
+            const sideDeptCode = document.getElementById('sideDeptCode');
+            const welcomeTitle = document.querySelector('.header h1');
+            const deptIcon = document.getElementById('deptIcon');
+            const customAppsList = document.getElementById('customAppsList');
+            const overviewLink = document.getElementById('overviewLink');
+            const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
+            const navConsoleLink = document.getElementById('navConsoleLink');
+            const navAnalysisLink = document.getElementById('navAnalysisLink');
+            const navNotifLink = document.getElementById('navNotifLink');
+            const navMsgLink = document.getElementById('navMsgLink');
+            const navDocsLink = document.getElementById('navDocsLink');
+            const navWorkforceLink = document.getElementById('navWorkforceLink');
+            const navSecurityLink = document.getElementById('navSecurityLink');
+            const navPerformanceLink = document.getElementById('navPerformanceLink');
+            const navAttendanceLink = document.getElementById('navAttendanceLink');
+
+            if (overviewLink) overviewLink.href = centerId ? `manager-dashboard.html?id=${centerId}` : `manager-dashboard.html`;
+            if (leaveHolidaysLink) leaveHolidaysLink.href = centerId ? `manager-calendar.html?id=${centerId}` : `manager-calendar.html`;
+            if (navConsoleLink) navConsoleLink.href = centerId ? `manager-console.html?id=${centerId}` : `manager-console.html`;
+            if (navAnalysisLink) navAnalysisLink.href = centerId ? `manager-analysis.html?id=${centerId}` : `manager-analysis.html`;
+            if (navNotifLink) navNotifLink.href = centerId ? `manager-notification.html?id=${centerId}` : `manager-notification.html`;
+            if (navMsgLink) navMsgLink.href = centerId ? `manager-message.html?id=${centerId}` : `manager-message.html`;
+            if (navDocsLink) navDocsLink.href = centerId ? `manager-documents.html?id=${centerId}` : `manager-documents.html`;
+            if (navWorkforceLink) navWorkforceLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+            if (navSecurityLink) navSecurityLink.href = centerId ? `manager-security.html?id=${centerId}` : `manager-security.html`;
+            if (navPerformanceLink) navPerformanceLink.href = centerId ? `manager-performance.html?id=${centerId}` : `manager-performance.html`;
+            if (navAttendanceLink) navAttendanceLink.href = centerId ? `manager-attendance.html?id=${centerId}` : `manager-attendance.html`;
+                {
+                    const _navTeamLink = document.getElementById('navTeamLink');
+                    if (_navTeamLink) {
+                        if (typeof openTeamManager === 'undefined') {
+                            _navTeamLink.removeAttribute('onclick');
+                            _navTeamLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+                        }
+                    }
+                }
+            
+            // Ensure global compatibility for DBAC
+            window.currentUnitIds = Array.from(new Set([
+                currentUnitId, 
+                config.name, 
+                config.name.toLowerCase(), 
+                config.name.toLowerCase().replace(/\s+/g, '-'),
+                (config.unitId || '').toLowerCase()
+            ])).filter(Boolean);
+
+            if (sideDeptName) sideDeptName.textContent = config.name;
+            if (sideDeptCode) sideDeptCode.textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
+            if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${localStorage.getItem('userName') || 'Manager'}`;
+            const welcomeSub = document.querySelector('.header .sub-header');
+            if (welcomeSub) welcomeSub.textContent = `${config.name} Command Center - Real-time operational intelligence`;
+            if (deptIcon) {
+                deptIcon.innerHTML = `<i data-lucide="${config.icon || 'shield'}"></i>`;
+                deptIcon.style.color = config.primaryColor || 'var(--primary)';
+            }
+
+            // Apply Theme Colors
+            if (config.primaryColor) {
+                document.documentElement.style.setProperty('--primary', config.primaryColor);
+                document.documentElement.style.setProperty('--primary-light', config.primaryColor + '15');
+            }
+            if (deptIcon) deptIcon.innerHTML = `<i data-lucide="${config.icon || 'shield'}"></i>`;
+
+            // SECURE DEPARTMENT SYNC: Strict isolation enforced at Firestore level
+            const today = new Date().toISOString().split('T')[0];
+            
+            // DBAC Layer: Strict bind to currentUnitId (Client-side filtering to bypass 400 errors)
+            onSnapshot(collection(db, 'users'), (snapshot) => {
+                    const rawUsers = snapshot.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .filter(u => {
+                            // Only include users matching the current dashboard's units
+                            return window.currentUnitIds.includes(u.departmentId) || 
+                                   window.currentUnitIds.includes(u.departmentName) ||
+                                   window.currentUnitIds.includes(u.departmentCode);
+                        });
+                    
+                    // Listen to today's attendance
+                    onSnapshot(collection(db, 'attendance'), (attSnap) => {
+                        const attendanceMap = {};
+                        attSnap.docs.forEach(doc => {
+                            if (doc.id.includes(today)) {
+                                const empId = doc.id.split('_')[0];
+                                attendanceMap[empId] = doc.data();
+                            }
+                        });
+
+                        const usersWithStatus = rawUsers.map(u => {
+                            const att = attendanceMap[u.id];
+                            let liveStatus = u.status || 'Active';
+                            if (att && att.punchIn) {
+                                 liveStatus = att.punchOut ? 'Shift Completed' : 'Online';
+                            } else if (u.status === 'Completed' || !u.status) {
+                                liveStatus = 'Available (Offline)';
+                            }
+                            return { ...u, status: liveStatus };
+                        });
+
+                        renderWorkforceData(usersWithStatus);
+                        calculatePayroll(usersWithStatus, config.budget || 500000);
+                        updateTeleStats(usersWithStatus);
+                        updateEfficiency(usersWithStatus);
+                        updateSecurityAlerts(config.name);
+                    });
+                });
+
+            lucide.createIcons();
+        }
+
+        function updateTeleStats(users) {
+            const activeCount = users.filter(u => u.status === 'Online').length;
+            const offlineCount = users.length - activeCount;
+            
+            const activeBox = document.querySelector('.tele-box.active .tele-val');
+            const offlineBox = document.querySelector('.tele-box:not(.active) .tele-val');
+            
+            if (activeBox) activeBox.textContent = activeCount.toString().padStart(2, '0');
+            if (offlineBox) offlineBox.textContent = offlineCount.toString().padStart(2, '0');
+        }
+
+        function renderWorkforceData(users) {
+            const tbody = document.querySelector('table tbody');
+            if (!tbody) return;
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:2rem; color:var(--text-muted);">No personnel assigned to this unit</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.slice(0, 5).map(u => `
+                <tr>
+                    <td>${u.name || 'Unknown Employee'}</td>
+                    <td>${u.designation || u.role || 'Personnel'}</td>
+                    <td><span style="color:${(u.status || '').includes('Online') || u.status === 'Active' ? 'var(--success)' : 'var(--text-muted)'}">● ${u.status || 'Active'}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function updateEfficiency(users) {
+            const box = document.getElementById('manager-efficiency-box');
+            if (!box) return;
+
+            const scores = users.map(u => Number(u.aiProductivityScore) || 0).filter(s => s > 0);
+            if (scores.length === 0) {
+                box.innerHTML = `
+                    <div style="font-size: 3.5rem; font-weight: 800; color: var(--text-muted);">--</div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Awaiting Telemetry</div>
+                `;
+                return;
+            }
+
+            const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+            const trend = avg > 70 ? 'Optimal' : (avg > 40 ? 'Stable' : 'Risk');
+            const color = avg > 70 ? 'var(--success)' : (avg > 40 ? 'var(--primary)' : 'var(--danger)');
+
+            box.innerHTML = `
+                <div style="font-size: 3.5rem; font-weight: 800; color: ${color};">${avg}%</div>
+                <div style="font-size: 0.8rem; font-weight: 700; color: ${color};">${trend} Efficiency</div>
+            `;
+        }
+
+        function updateSecurityAlerts(deptName) {
+            const list = document.getElementById('manager-security-list');
+            const statusContainer = document.getElementById('tvcConnectionStatus');
+            if (!list) return;
+            // Client-side filtering ensures we bypass any 400 indexing errors and catch all unit match variants
+            onSnapshot(collection(db, 'alertEvents'), (rawSnapshot) => {
+                const validUnits = Array.from(new Set([...(window.currentUnitIds || []), deptName, 'SYS', 'GLOBAL', 'ALL']));
+                
+                const matchedDocs = rawSnapshot.docs.map(d => d.data()).filter(data => {
+                    const targetId = data.departmentId || data.department || data.unitId || data.target || 'GLOBAL';
+                    return validUnits.some(u => typeof targetId === 'string' && typeof u === 'string' && (targetId.includes(u) || u.includes(targetId)));
+                });
+                
+                // Create a mock snapshot object for the rest of the code
+                const snapshot = {
+                    empty: matchedDocs.length === 0,
+                    docs: matchedDocs.map(d => ({ data: () => d }))
+                };
+
+                if (statusContainer) {
+                    statusContainer.innerHTML = `
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--success); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                            <span style="width: 6px; height: 6px; background: var(--success); border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
+                            LIVE SYNC
+                        </span>
+                        <i data-lucide="database" style="color: var(--success); width: 16px; height: 16px;"></i>
+                    `;
+                }
+
+                if (snapshot.empty) {
+                    list.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 1.25rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; color: #166534; width: 100%;">
+                            <i data-lucide="shield-check" size="20"></i>
+                            <div style="font-size: 0.85rem; font-weight: 700;">System Integrity Normal — No Active Threats Detected</div>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                // Sort client-side to avoid Firestore composite index requirement (400 Error)
+                const docs = snapshot.docs.map(d => d.data());
+                docs.sort((a, b) => {
+                    const tA = a.timestamp?.seconds || 0;
+                    const tB = b.timestamp?.seconds || 0;
+                    return tB - tA; // desc
+                });
+
+                // Render recent alerts (limit to last 5)
+                list.innerHTML = docs.slice(0, 5).map(al => {
+                    let severity = (al.severity || al.level || 'info').toLowerCase();
+                    let bg = '#f0fdf4';
+                    let border = '#bbf7d0';
+                    let titleColor = '#166534';
+                    let msgColor = '#15803d';
+                    let icon = 'shield-check';
+
+                    if (severity === 'critical' || severity === 'high' || severity === 'error') {
+                        bg = '#fff1f2';
+                        border = '#fecaca';
+                        titleColor = '#991b1b';
+                        msgColor = '#ef4444';
+                        icon = 'shield-alert';
+                    } else if (severity === 'warning' || severity === 'medium') {
+                        bg = '#fef3c7';
+                        border = '#fde68a';
+                        titleColor = '#92400e';
+                        msgColor = '#d97706';
+                        icon = 'alert-triangle';
+                    }
+
+                    return `
+                        <div class="alert-box" style="background: ${bg}; border: 1px solid ${border}; border-radius: 16px; padding: 1.25rem; display: flex; gap: 12px; align-items: flex-start; transition: 0.2s; width: 100%;">
+                            <i data-lucide="${icon}" class="alert-icon" style="color: ${titleColor};"></i>
+                            <div>
+                                <div class="alert-title" style="font-size: 0.85rem; font-weight: 800; color: ${titleColor}; margin-bottom: 4px;">${al.title || (severity.toUpperCase() + ' ALERT')}</div>
+                                <div class="alert-msg" style="font-size: 0.75rem; color: ${msgColor}; font-weight: 500;">${al.message}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                lucide.createIcons();
+            }, (error) => {
+                console.error("TVC sync failed:", error);
+                if (statusContainer) {
+                    statusContainer.innerHTML = `
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--danger); text-transform: uppercase;">Disconnected</span>
+                        <i data-lucide="wifi-off" style="color: var(--danger); width: 16px; height: 16px;"></i>
+                    `;
+                }
+            });
+        }
+
+        function calculatePayroll(users, budget = 500000) {
+            const burnVal = document.querySelector('.burn-val');
+            const burnTrend = document.querySelector('.burn-trend');
+            if (!burnVal || !burnTrend) return;
+
+            const total = users.reduce((acc, u) => {
+                const salary = parseFloat((u.salary || '0').toString().replace(/[^0-9.]/g, '')) || 0;
+                return acc + salary;
+            }, 0);
+
+            // Format for display
+            if (total >= 1000) {
+                burnVal.textContent = `₹${(total / 1000).toFixed(1)}K`;
+            } else {
+                burnVal.textContent = `₹${total}`;
+            }
+
+            // Compare with Budget
+            if (total > budget) {
+                burnTrend.textContent = `₹${((total - budget) / 1000).toFixed(1)}K Above Allocation`;
+                burnTrend.style.color = 'var(--danger)';
+            } else {
+                burnTrend.textContent = "Within Budget Allocation";
+                burnTrend.style.color = 'var(--success)';
+            }
+        }
+
+        window.logout = async () => {
+            await signOut(auth);
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
+
+        // --- Manager Session & Backend Sync ---
+        // Manager attendance session, breaks, and compliance checking are managed by managerAttendanceService
+        
+        // --- Apps Logic (Firebase Connected) ---
+
+        const DEFAULT_APPS = [
+            { name: "SLACK", url: "https://slack.com" },
+            { name: "GITHUB", url: "https://github.com" },
+            { name: "JIRA", url: "https://atlassian.com" }
+        ];
+
+                async function initApps() {
+            const centerId = ((v) => v === 'null' || v === 'undefined' ? null : v)(new URLSearchParams(window.location.search).get('id'));
+            if (!centerId) return;
+            
+            const appsRef = doc(db, "command_centers", centerId);
+
+            onSnapshot(appsRef, async (snapshot) => {
+                let apps = [];
+                if (snapshot.exists()) {
+                    apps = snapshot.data().customApps || [];
+                    if (apps.length === 0 && !snapshot.data().customAppsInitialized) {
+                        try {
+                            await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                            apps = DEFAULT_APPS;
+                        } catch(e) {}
+                    }
+                }
+                renderAppsUI(apps);
+            });
+        }
+
+        function renderAppsUI(apps) {
+            const list = document.getElementById('customAppsList');
+            if (list) {
+                list.innerHTML = apps.map((app, index) => `
+                    <div class="nav-item" style="position: relative;">
+                        <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                            <i data-lucide="external-link"></i>
+                            <span>${app.name}</span>
+                        </a>
+                        <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                            <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            const registryList = document.getElementById('registryAppsList');
+            if (registryList) {
+                registryList.innerHTML = apps.map((app) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                            <i data-lucide="external-link" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0;"></i>
+                            <span style="font-weight: 700; font-size: 0.8rem;">${app.name}</span>
+                        </div>
+                        <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+        }
+
+        window.openAppRegistryModal = () => {
+            const modal = document.getElementById('customAppsModal');
+            if (modal) modal.style.display = 'flex';
+            lucide.createIcons();
+        };
+
+                window.addCustomApp = async () => {
+            const urlInput = document.getElementById('appUrlInput');
+            const nameInput = document.getElementById('appNameInput');
+            if (!urlInput) return;
+            
+            const url = urlInput.value.trim();
+            const customName = nameInput ? nameInput.value.trim() : '';
+            if (!url) return;
+
+            try {
+                let cleanUrl = url;
+                if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+                const urlObj = new URL(cleanUrl);
+                const domain = urlObj.hostname.replace('www.', '');
+                const appName = customName || domain.split('.')[0].toUpperCase();
+
+                const centerId = ((v) => v === 'null' || v === 'undefined' ? null : v)(new URLSearchParams(window.location.search).get('id'));
+                if (!centerId) return;
+                
+                const appsRef = doc(db, "command_centers", centerId);
+
+                await setDoc(appsRef, {
+                    customApps: arrayUnion({ name: appName, url: cleanUrl })
+                }, { merge: true });
+
+                urlInput.value = '';
+                if (nameInput) nameInput.value = '';
+            } catch (e) {
+                alert("Invalid URL structure.");
+            }
+        };
+
+                window.removeAppFromServer = async (url, name) => {
+            const centerId = ((v) => v === 'null' || v === 'undefined' ? null : v)(new URLSearchParams(window.location.search).get('id'));
+            if (!centerId) return;
+            const appsRef = doc(db, "command_centers", centerId);
+            await setDoc(appsRef, {
+                customApps: arrayRemove({ name: name, url: url })
+            }, { merge: true });
+        };
+
+        window.toggleAppsMenu = () => {
+            const dropdown = document.getElementById('appsDropdown');
+            const chevron = document.getElementById('appsChevron');
+            const isVisible = dropdown.style.display === 'flex';
+            
+            dropdown.style.display = isVisible ? 'none' : 'flex';
+            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        window.showModuleInfo = (title, msg) => {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMsg').textContent = msg;
+            document.getElementById('moduleAlertOverlay').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        // --- Operations Handlers ---
+        window.showNotifications = () => {
+            document.getElementById('notificationsModal').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.showMessages = () => {
+            document.getElementById('messagesModal').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.openTeamManager = async () => {
+            try {
+                const modal = document.getElementById('teamManagerModal');
+                if (modal) modal.style.display = 'flex';
+                await loadTeams();
+            } catch (err) {
+                console.error("Error opening Team Manager:", err);
+                alert("Could not load Team Manager: " + err.message);
+            }
+        };
+
+        window.loadTeams = async () => {
+            // Using centralized imports
+            
+            // STRICT TEAM ISOLATION: Client-side filtering to bypass 400 errors
+            onSnapshot(collection(db, 'department_teams'), (snapshot) => {
+                const teamsList = document.getElementById('teamsList');
+                if (!teamsList) return;
+                
+                const safeUnitIds = Array.from(window.currentUnitIds || []);
+                if (!currentUnitId) {
+                    safeUnitIds.push(null, undefined, "");
+                }
+
+                const teams = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(t => safeUnitIds.includes(t.departmentId));
+                
+                if (teams.length === 0) {
+                    teamsList.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 0.85rem; border: 2px dashed var(--border); border-radius: 20px;">No teams initialized in this secure unit.</div>';
+                    return;
+                }
+
+                teamsList.innerHTML = teams.map(t => `
+                    <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 16px; margin-bottom: 10px; position: relative; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: box-shadow 0.2s;">
+                        <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #2563eb; border-radius: 4px 0 0 4px;"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 12px 14px 20px;">
+                            <div onclick="viewTeam('${t.id}')" style="flex: 1; cursor: pointer; min-width: 0;">
+                                <h4 style="font-weight: 800; font-size: 0.88rem; text-transform: capitalize; color: #0f172a; margin: 0 0 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</h4>
+                                <p style="font-size: 0.68rem; color: #64748b; margin: 0;">${t.memberCount || 0} Operators &bull; ${t.leader ? 1 : (t.leaders?.length || 0)} Leader(s)</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: 8px;">
+                                <button onclick="event.stopPropagation(); viewTeam('${t.id}')" title="View" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#2563eb; border:1.5px solid #bfdbfe; border-radius:8px; padding:5px 9px; font-size:0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg>
+                                    View
+                                </button>
+                                <button onclick="event.stopPropagation(); showEditTeamForm('${t.id}')" title="Edit" style="display:inline-flex; align-items:center; gap:4px; background:#fffbeb; color:#b45309; border:1.5px solid #fde68a; border-radius:8px; padding:5px 9px; font-size:0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#fef3c7'" onmouseout="this.style.background='#fffbeb'">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                                    Edit
+                                </button>
+                                <button onclick="event.stopPropagation(); deleteTeam('${t.id}')" title="Delete" style="display:inline-flex; align-items:center; gap:4px; background:#fff1f2; color:#dc2626; border:1.5px solid #fecaca; border-radius:8px; padding:5px 9px; font-size:0.7rem; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fff1f2'">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        };
+
+        window.showNewTeamForm = async () => {
+            // Using centralized imports
+            
+            // ISOLATED PERSONNEL DISCOVERY: Client-side filtering
+            const safeUnitIds = window.currentUnitIds || [];
+            const snap = await getDocs(collection(db, 'users'));
+            const deptUsers = snap.docs
+                .map(doc => {
+                    const u = doc.data();
+                    return { id: doc.id, publicId: u.id || 'N/A', name: u.name, clearance: u.securityClearance || 'Level 1', departmentId: u.departmentId, departmentName: u.departmentName, departmentCode: u.departmentCode };
+                })
+                .filter(u => safeUnitIds.includes(u.departmentId) || safeUnitIds.includes(u.departmentName) || safeUnitIds.includes(u.departmentCode));
+
+
+            const editor = document.getElementById('teamEditor');
+            editor.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 500px; overflow-y: auto; padding-right: 10px;">
+                    <div style="background: rgba(59, 130, 246, 0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--primary); display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="lock" style="width: 16px; color: var(--primary);"></i>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">Secure Unit Initialization</span>
+                    </div>
+                    
+                    <div>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Mission Parameters (Team Name)</label>
+                        <input type="text" id="newTeamName" placeholder="e.g. Threat Response Unit" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px;">
+                    </div>
+                    
+                    <div>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Operational Goals</label>
+                        <textarea id="newTeamGoal" placeholder="Define the mission objective..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; height: 80px;"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Team Leader Assignment</label>
+                        <div style="position: relative; margin-top: 8px; margin-bottom: 8px;">
+                            <select id="newTeamLeaderSelect" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.8rem;">
+                                <option value="">-- Assign Team Leader (Optional) --</option>
+                                ${deptUsers.length > 0 ? deptUsers.map(u => `
+                                    <option value="${u.id}" data-name="${u.name}">
+                                        ${u.name} [${u.publicId}] — ${u.clearance}
+                                    </option>
+                                `).join('') : '<option disabled>Zero available personnel in this secure vault.</option>'}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Operator Assignment</label>
+                        <div style="position: relative; margin-top: 8px;">
+                            <select id="initialMemberSelect" multiple style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; height: 180px; font-family: inherit; font-size: 0.8rem;">
+                                ${deptUsers.length > 0 ? deptUsers.map(u => `
+                                    <option value="${u.id}" data-name="${u.name}">
+                                        ${u.name} [${u.publicId}] — ${u.clearance}
+                                    </option>
+                                `).join('') : '<option disabled>Zero available personnel in this secure vault.</option>'}
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="saveTeam()" style="background: var(--primary); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; position: sticky; bottom: 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.05);">Deploy Team</button>
+                </div>
+            `;
+            lucide.createIcons();
+        };
+
+        window.saveTeam = async () => {
+            const name = document.getElementById('newTeamName').value.trim();
+            const goal = document.getElementById('newTeamGoal').value.trim();
+            if (!name) return;
+
+            const select = document.getElementById('initialMemberSelect');
+            const members = Array.from(select.selectedOptions).map(opt => ({
+                id: opt.value,
+                name: opt.getAttribute('data-name')
+            }));
+
+            const leaderSelect = document.getElementById('newTeamLeaderSelect');
+            const selectedLeaderOpt = leaderSelect?.options[leaderSelect.selectedIndex];
+            const leader = selectedLeaderOpt && selectedLeaderOpt.value ? {
+                id: selectedLeaderOpt.value,
+                name: selectedLeaderOpt.getAttribute('data-name')
+            } : null;
+
+            // Using centralized imports
+            
+            try {
+                // ATOMIC ISOLATION: Department bind enforced on creation
+                await addDoc(collection(db, 'department_teams'), {
+                    name,
+                    goal,
+                    departmentId: currentUnitId,
+                    departmentCode: currentDeptConfig?.unitId || 'SEC',
+                    businessUnit: currentDeptConfig?.businessUnit || 'Global Operations',
+                    createdBy: auth.currentUser?.uid || 'manager',
+                    createdAt: serverTimestamp(),
+                    memberCount: members.length,
+                    members: members,
+                    leader: leader,
+                    leaders: leader ? [leader] : [],
+                    subManagers: [],
+                    subManager: null
+                });
+                loadTeams();
+                document.getElementById('teamEditor').innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--success); font-weight: 800; text-align: center;">Mission parameters successfully deployed.</div>';
+            } catch (e) { console.error("Deployment failed:", e); }
+        };
+
+        
+        window.showEditTeamForm = async (id) => {
+            try {
+                const teamSnap = await getDoc(doc(db, 'department_teams', id));
+                if (!teamSnap.exists()) return;
+                const t = teamSnap.data();
+                const editor = document.getElementById('teamEditor');
+                editor.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 500px; overflow-y: auto; padding-right: 10px;">
+                        <div style="background: rgba(234, 179, 8, 0.08); padding: 12px; border-radius: 12px; border: 1px solid #ca8a04; display: flex; align-items: center; gap: 10px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            <span style="font-size: 0.7rem; font-weight: 800; color: #ca8a04; text-transform: uppercase;">Edit Team Configuration</span>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Team Name</label>
+                            <input type="text" id="editTeamName" value="${t.name || ''}" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.9rem; font-weight: 700;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Operational Goal</label>
+                            <textarea id="editTeamGoal" rows="3" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; resize: none;">${t.goal || ''}</textarea>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 4px;">
+                            <button onclick="saveTeamEdit('${id}')" style="flex: 1; background: #2563eb; color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 800; cursor: pointer; font-size: 0.85rem;">Save Changes</button>
+                            <button onclick="viewTeam('${id}')" style="flex: 0.5; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">Cancel</button>
+                        </div>
+                    </div>
+                `;
+            } catch(e) { console.error('Edit form failed:', e); }
+        };
+        window.saveTeamEdit = async (id) => {
+            try {
+                const name = document.getElementById('editTeamName')?.value?.trim();
+                const goal = document.getElementById('editTeamGoal')?.value?.trim();
+                if (!name) { alert('Team name is required.'); return; }
+                await updateDoc(doc(db, 'department_teams', id), { name, goal });
+                viewTeam(id);
+            } catch(e) { console.error('Save edit failed:', e); }
+        };
+window.viewTeam = async (id) => {
+            // Using centralized imports
+            
+            onSnapshot(doc(db, 'department_teams', id), (snapshot) => {
+                if (!snapshot.exists()) return;
+                const t = snapshot.data();
+                
+                // DBAC VALIDATION: Block cross-department view attempts
+                const safeUnitIds = Array.from(window.currentUnitIds || []);
+                if (!currentUnitId) {
+                    safeUnitIds.push(null, undefined, "");
+                }
+                if (!safeUnitIds.includes(t.departmentId)) {
+                    alert("Unauthorized access attempt detected. Access Denied.");
+                    return;
+                }
+
+                const editor = document.getElementById('teamEditor');
+                editor.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem; animation: slideIn 0.3s ease-out;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h3 style="font-weight: 800; font-size: 1.2rem; text-transform: capitalize;">${t.name}</h3>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.5;">${t.goal || 'No objective defined.'}</p>
+                            </div>
+                            <div style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 800;">ACTIVE UNIT</div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="role-box" onclick="openMemberPicker('${id}', 'leader')" style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 16px; cursor: pointer; transition: 0.2s;">
+                                <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Team Leader</div>
+                                <div style="font-weight: 700; font-size: 0.9rem; margin-top: 8px; color: ${t.leader ? 'var(--text)' : 'var(--text-muted)'};">
+                                    ${t.leader ? t.leader.name : 'Assign Leader'}
+                                </div>
+                            </div>
+                            <div class="role-box" onclick="openMemberPicker('${id}', 'subManager')" style="background: var(--bg); border: 1px solid var(--border); padding: 16px; border-radius: 16px; cursor: pointer; transition: 0.2s;">
+                                <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Sub-Manager</div>
+                                <div style="font-weight: 700; font-size: 0.9rem; margin-top: 8px; color: ${t.subManager ? 'var(--text)' : 'var(--text-muted)'};">
+                                    ${t.subManager ? t.subManager.name : 'Assign Support'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Assigned Workforce</label>
+                                <button onclick="openMemberPicker('${id}', 'member')" style="background: none; border: none; color: var(--primary); font-size: 0.7rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Add Operator
+                                </button>
+                            </div>
+                            <div id="teamMembersList" style="display: flex; flex-direction: column; gap: 8px;">
+                                ${t.members && t.members.length > 0 ? t.members.map(m => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="width: 32px; height: 32px; border-radius: 10px; background: var(--border); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; color: var(--primary);">${m.name.charAt(0)}</div>
+                                            <span style="font-size: 0.85rem; font-weight: 600;">${m.name}</span>
+                                        </div>
+                                        <button onclick="removeTeamMember('${id}', '${m.id}')" style="background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.6; transition: 0.2s;"><i data-lucide="x-circle" style="width: 18px;"></i></button>
+                                    </div>
+                                `).join('') : '<p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 20px;">No operators deployed.</p>'}
+                            </div>
+                        </div>
+
+                        <button onclick="deleteTeam('${id}')" style="margin-top: 10px; background: rgba(239, 68, 68, 0.05); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i data-lucide="trash-2" style="width: 18px;"></i> Decommission Team
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+            });
+        };
+
+        window.openMemberPicker = async (teamId, roleType) => {
+            // Using centralized imports
+            
+            // STRICT VAULT DISCOVERY: Client-side filtering
+            const safeUnitIds = window.currentUnitIds || [];
+            const snap = await getDocs(collection(db, 'users'));
+            const deptUsers = snap.docs
+                .map(doc => {
+                    const u = doc.data();
+                    return { id: doc.id, publicId: u.id || 'N/A', name: u.name, clearance: u.securityClearance || 'Level 1', departmentId: u.departmentId, departmentName: u.departmentName, departmentCode: u.departmentCode };
+                })
+                .filter(u => safeUnitIds.includes(u.departmentId) || safeUnitIds.includes(u.departmentName) || safeUnitIds.includes(u.departmentCode));
+
+            
+            const title = document.getElementById('pickerTitle');
+            title.textContent = roleType === 'leader' ? 'Assign Team Leader' : (roleType === 'subManager' ? 'Assign Sub-Manager' : 'Add Operator');
+            
+            const list = document.getElementById('pickerList');
+            list.innerHTML = deptUsers.map(u => `
+                <div onclick="assignMember('${teamId}', '${roleType}', '${u.id}', '${u.name}')" style="padding: 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); cursor: pointer; transition: 0.2s; margin-bottom: 8px;">
+                    <div style="font-weight: 700; font-size: 0.85rem;">${u.name}</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">${u.publicId} • ${u.clearance}</div>
+                </div>
+            `).join('');
+            
+            document.getElementById('memberPickerModal').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        window.assignMember = async (teamId, roleType, userId, userName) => {
+            // Using centralized imports
+            
+            try {
+                const teamSnap = await getDoc(doc(db, 'department_teams', teamId));
+                const safeUnitIds = Array.from(window.currentUnitIds || []);
+                if (!currentUnitId) {
+                    safeUnitIds.push(null, undefined, "");
+                }
+                if (!safeUnitIds.includes(teamSnap.data()?.departmentId)) {
+                    alert("Security Breach Detected: Unauthorized cross-department assignment blocked.");
+                    return;
+                }
+
+                if (roleType === 'member') {
+                    await updateDoc(doc(db, 'department_teams', teamId), {
+                        members: arrayUnion({ id: userId, name: userName }),
+                        memberCount: (parseInt(document.getElementById('teamMembersList')?.children.length) || 0) + 1
+                    });
+                } else {
+                    const updateData = {};
+                    updateData[roleType] = { id: userId, name: userName };
+                    await updateDoc(doc(db, 'department_teams', teamId), updateData);
+                }
+                document.getElementById('memberPickerModal').style.display = 'none';
+                viewTeam(teamId);
+            } catch (e) { console.error("Assignment failed:", e); }
+        };
+
+        window.removeTeamMember = async (teamId, userId) => {
+            // Using centralized imports
+            try {
+                const teamDoc = await getDoc(doc(db, 'department_teams', teamId));
+                const safeUnitIds = Array.from(window.currentUnitIds || []);
+                if (!currentUnitId) {
+                    safeUnitIds.push(null, undefined, "");
+                }
+                if (!safeUnitIds.includes(teamDoc.data()?.departmentId)) return;
+
+                const currentMembers = teamDoc.data().members || [];
+                const updatedMembers = currentMembers.filter(m => m.id !== userId);
+                
+                await updateDoc(doc(db, 'department_teams', teamId), {
+                    members: updatedMembers,
+                    memberCount: updatedMembers.length
+                });
+                viewTeam(teamId);
+            } catch (e) { console.error("Removal failed:", e); }
+        };
+
+        window.deleteTeam = async (id) => {
+            const modal = document.getElementById('confirmModal');
+            const confirmBtn = document.getElementById('confirmBtn');
+            modal.style.display = 'flex';
+            
+            confirmBtn.onclick = async () => {
+                // Using centralized imports
+                try {
+                    const teamSnap = await getDoc(doc(db, 'department_teams', id));
+                    const safeUnitIds = Array.from(window.currentUnitIds || []);
+                    if (!currentUnitId) {
+                        safeUnitIds.push(null, undefined, "");
+                    }
+                    if (safeUnitIds.includes(teamSnap.data()?.departmentId)) {
+                        await deleteDoc(doc(db, 'department_teams', id));
+                        modal.style.display = 'none';
+                        document.getElementById('teamEditor').innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; text-align: center; border: 2px dashed var(--border); border-radius: 20px;">Unit decommissioned successfully.</div>';
+                    }
+                } catch (e) { console.error("Decommissioning failed:", e); }
+            };
+        };
+
+        // Initialize Apps after ensuring auth is checked
+        // (Moved to onAuthStateChanged)
+
+        // ── EOD Approval Workflow ─────────────────────────────
+        async function loadMgrEodList() {
+            const listEl = document.getElementById('mgrEodList');
+            const badge = document.getElementById('mgrEodBadge');
+            if (!listEl) return;
+            try {
+                const reviews = await getPendingReviews();
+                if (badge) {
+                    badge.textContent = `${reviews.length} Pending`;
+                    badge.style.background = reviews.length > 0 ? '#fee2e2' : '#ecfdf5';
+                    badge.style.color = reviews.length > 0 ? '#ef4444' : '#10b981';
+                }
+                if (reviews.length === 0) {
+                    listEl.innerHTML = '<div style="text-align:center; color:#10b981; font-size:0.8rem; padding:1.5rem;">✅ All team EODs reviewed!</div>';
+                    return;
+                }
+                listEl.innerHTML = reviews.slice(0, 5).map(r => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; padding:8px 12px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
+                        <div>
+                            <span style="font-weight:700;">${r.employeeName || 'Team Member'}</span>
+                            <span style="color:#64748b; font-size:0.75rem; margin-left:6px;">${(r.summary || 'No summary').substring(0, 40)}...</span>
+                        </div>
+                        <span style="background:#fef3c7; color:#d97706; font-size:0.65rem; font-weight:800; padding:2px 7px; border-radius:6px; white-space:nowrap;">Pending</span>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            } catch(err) {
+                if(listEl) listEl.innerHTML = '<div style="color:#ef4444; font-size:0.8rem; text-align:center; padding:1rem;">Unable to load EODs.</div>';
+            }
+        }
+
+        async function openMgrEodModal() {
+            const modal = document.getElementById('mgrEodAuditModal');
+            const listEl = document.getElementById('mgrEodAuditList');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            listEl.innerHTML = '<div style="text-align:center; padding:2rem; color:#64748b;"><i data-lucide="loader" class="animate-spin"></i> Loading team reviews...</div>';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const reviews = await getPendingReviews();
+                if (reviews.length === 0) {
+                    listEl.innerHTML = '<div style="text-align:center; padding:2.5rem; color:#10b981; font-weight:700; font-size:0.9rem;">✅ No pending reviews. Your team is all caught up!</div>';
+                    return;
+                }
+                listEl.innerHTML = reviews.map(r => `
+                    <div id="mgr-eod-${r.id}" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                            <div>
+                                <div style="font-weight:800; font-size:0.9rem;">${r.employeeName || 'Team Member'}</div>
+                                <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">${r.submittedAt ? new Date(r.submittedAt.seconds * 1000).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}) : 'Time unknown'}</div>
+                            </div>
+                            <span style="background:#fef3c7; color:#d97706; font-size:0.7rem; font-weight:800; padding:4px 10px; border-radius:100px;">Pending</span>
+                        </div>
+                        <p style="font-size:0.82rem; color:#475569; line-height:1.6; margin-bottom:1rem; background:white; padding:10px 12px; border-radius:10px; border:1px solid #e2e8f0;">${r.summary || r.tasks || 'No summary provided.'}</p>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="number" id="mgr-score-${r.id}" min="0" max="100" placeholder="0-100" style="width:80px; border:1px solid #e2e8f0; border-radius:8px; padding:7px 10px; font-size:0.8rem; outline:none; text-align:center;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                            <input type="text" id="mgr-comment-${r.id}" placeholder="Add feedback..." style="flex:1; border:1px solid #e2e8f0; border-radius:8px; padding:7px 10px; font-size:0.8rem; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+                            <button onclick="mgrSubmitScore('${r.id}')" style="background:#3b82f6; color:white; border:none; border-radius:8px; padding:7px 14px; font-size:0.75rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">✓ Approve</button>
+                        </div>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            } catch(err) {
+                listEl.innerHTML = `<div style="color:#ef4444; text-align:center; padding:2rem;">Error: ${err.message}</div>`;
+            }
+        }
+
+        window.mgrSubmitScore = async (eodId) => {
+            const scoreEl = document.getElementById(`mgr-score-${eodId}`);
+            const commentEl = document.getElementById(`mgr-comment-${eodId}`);
+            const score = parseFloat(scoreEl.value);
+            const comment = commentEl.value.trim() || 'Reviewed by Manager.';
+            if (isNaN(score) || score < 0 || score > 100) {
+                alert('Please enter a valid score between 0 and 100.');
+                return;
+            }
+            const managerId = auth.currentUser?.uid || localStorage.getItem('hr_user_id') || 'manager';
+            const approveBtn = scoreEl.closest('div[style*="gap"]')?.querySelector('button');
+            try {
+                if(approveBtn) { approveBtn.textContent = 'Saving...'; approveBtn.disabled = true; }
+                await scorePerformance(eodId, score, comment, managerId);
+                const item = document.getElementById(`mgr-eod-${eodId}`);
+                if(item) {
+                    item.style.transition = '0.4s';
+                    item.style.opacity = '0.5';
+                    setTimeout(() => {
+                        item.innerHTML = `<div style="text-align:center; color:#10b981; font-weight:700; padding:1rem; font-size:0.85rem;">✅ Scored ${score}/100 — Approved & Synced to Firebase</div>`;
+                        item.style.opacity = '1';
+                    }, 300);
+                }
+                loadMgrEodList();
+            } catch(err) {
+                alert('Failed: ' + err.message);
+                if(approveBtn) { approveBtn.textContent = '✓ Approve'; approveBtn.disabled = false; }
+            }
+        };
+
+        document.getElementById('btnMgrAuditEod')?.addEventListener('click', openMgrEodModal);
+        loadMgrEodList();
+        setInterval(loadMgrEodList, 120000);
+
+        // Auto-open Team Management if openTeam param is present
+        if (new URLSearchParams(window.location.search).get('openTeam') === '1') {
+            setTimeout(() => {
+                window.openTeamManager();
+            }, 800);
+        }
+
+        window.downloadPdfDoc = () => {
+            const filename = "Q2 Performance Reviews.pdf";
+            const content = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << >> /Contents 4 0 R >>\nendobj\n4 0 obj\n<< /Length 50 >>\nstream\nBT /F1 12 Tf 70 700 Td (Q2 Department Performance Reviews - Kylrx AI) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f\n0000000009 00000 n\n0000000062 00000 n\n0000000119 00000 n\n0000000222 00000 n\ntrailer\n<< /Size 5 >>\nstartxref\n321\n%%EOF";
+            const blob = new Blob([content], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
+        window.downloadExcelDoc = () => {
+            const filename = "Budget Allocation 2026.csv";
+            const content = "Category,Budget,Allocated,Remaining\nEngineering,500000,320000,180000\nDesign,200000,150000,50000\nOperations,100000,90000,10000\nMarketing,150000,120000,30000\nTotal,950000,680000,270000\n";
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
+        window.deleteDocItem = (elementId, docName) => {
+            const modal = document.getElementById('confirmDocDeleteModal');
+            const msg = document.getElementById('confirmDocDeleteMsg');
+            const confirmBtn = document.getElementById('confirmDocDeleteBtn');
+            
+            if (msg) msg.textContent = `Are you sure you want to permanently delete "${docName}"? This action cannot be undone.`;
+            
+            modal.style.display = 'flex';
+            
+            confirmBtn.onclick = () => {
+                const docElement = document.getElementById(elementId);
+                if (docElement) {
+                    docElement.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    docElement.style.opacity = '0';
+                    docElement.style.transform = 'scale(0.9) translateY(10px)';
+                    setTimeout(() => {
+                        docElement.remove();
+                        // Check if all elements are deleted
+                        const insightContent = document.querySelector('.insight-content');
+                        if (insightContent && insightContent.querySelectorAll('[id^="doc-item-"]').length === 0) {
+                            insightContent.innerHTML = `
+                                <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 12px; background: #f8fafc; border: 2px dashed var(--border); border-radius: 16px;">
+                                    <i data-lucide="folder-open" style="width: 48px; height: 48px; opacity: 0.3; color: var(--text-muted);"></i>
+                                    <span style="font-weight: 600; font-size: 0.95rem;">No Documents Available</span>
+                                    <span style="font-size: 0.8rem; opacity: 0.8;">The secure unit vault is currently empty.</span>
+                                </div>
+                            `;
+                            lucide.createIcons();
+                        }
+                    }, 400);
+                }
+                modal.style.display = 'none';
+            };
+        };
+    </script>
+
+    <!-- Manager EOD Audit Modal -->
+    <div id="mgrEodAuditModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; border-radius:28px; padding:2.5rem; width:92%; max-width:620px; max-height:82vh; overflow-y:auto; box-shadow:0 25px 60px -10px rgba(0,0,0,0.3);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <div>
+                    <h2 style="font-weight:800; font-size:1.2rem; letter-spacing:-0.5px;">Team EOD Review</h2>
+                    <p style="font-size:0.78rem; color:#64748b; margin-top:4px;">Score and approve your team's end-of-day submissions</p>
+                </div>
+                <button onclick="document.getElementById('mgrEodAuditModal').style.display='none'" style="background:#f1f5f9; border:none; border-radius:12px; width:36px; height:36px; cursor:pointer; font-size:1.1rem; color:#64748b;">✕</button>
+            </div>
+            <div id="mgrEodAuditList" style="display:flex; flex-direction:column; gap:1rem;"></div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+

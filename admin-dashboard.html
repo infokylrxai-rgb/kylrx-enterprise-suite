@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kylrx AI Admin Console. Complete workforce administration, system customization, leave management, and live activity streams.">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Management | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+
+    <script>
+        // Immediate Auth Guard
+        if (localStorage.getItem('hr_logged_in') !== 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <style>
+        /* Sidebar active item vertical highlight line */
+        .sidebar .nav-link {
+            padding: 12px 1rem;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .sidebar .nav-link:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(2px);
+        }
+        .sidebar .nav-link.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .sidebar .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Custom layouts for theme modes */
+        body.layout-grid #dashboardGrid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+        body.layout-sidebar #dashboardGrid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        body.layout-tv {
+            background: #090d16;
+            color: #00ff66;
+        }
+        body.layout-tv .main-content {
+            background: #090d16;
+        }
+        body.layout-tv .widget-card {
+            background: rgba(16, 24, 48, 0.95);
+            border-color: #00ff66;
+            color: #00ff66;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.2);
+        }
+        body.layout-tv .widget-title {
+            color: #00ff66 !important;
+        }
+        body.layout-tv .nav-link:not(.active) {
+            color: #4b6584;
+        }
+        body.layout-tv .sidebar {background: #0d1321;
+            border-color: #1e272e;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+        body.layout-tv .logo-text {
+            color: #fff;
+        }
+
+        /* Widgets Sizing & Ordering */
+        body.layout-grid .widget-card.w-full {
+            grid-column: span 12;
+        }
+        /* Make Productivity Analytics (~60%) and Live Activity (~40%) sit side-by-side in grid */
+        body.layout-grid .widget-card:has(#widget-productivity) {
+            grid-column: span 7;
+        }
+        body.layout-grid .widget-card:has(#widget-activity) {
+            grid-column: span 5;
+        }
+        /* Make Row 3 widgets span exactly 4 columns each */
+        body.layout-grid .widget-card.w-md {
+            grid-column: span 4;
+        }
+        
+        @media (max-width: 1024px) {
+            body.layout-grid .widget-card:has(#widget-productivity),
+            body.layout-grid .widget-card:has(#widget-activity) {
+                grid-column: span 12;
+            }
+            body.layout-grid .widget-card.w-md {
+                grid-column: span 6;
+            }
+        }
+        @media (max-width: 768px) {
+            body.layout-grid .widget-card.w-md {
+                grid-column: span 12;
+            }
+        }
+
+        .widget-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
+        }
+        .widget-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-soft);
+        }
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.25rem;
+        }
+        .widget-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .widget-title i {
+            color: var(--primary);
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Stats Card & Grid Layout matching user screenshot */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+        }
+        .stat-card {
+            background: var(--bg-soft) !important;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            transition: all 0.2s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+            border-color: var(--primary-soft);
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .stat-icon.blue {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+        .stat-icon.green {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+        .stat-icon.purple {
+            background: #f5f3ff;
+            color: #a855f7;
+        }
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .stat-info h3 {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0;
+        }
+        .stat-info p {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1;
+        }
+
+        /* Chart backgrounds and spacing */
+        #productivity-trend-chart, #payroll-forecast-chart {
+            background: transparent !important;
+            padding: 0 !important;
+            gap: 12px !important;
+        }
+
+        /* Personnel Directory Table Styles */
+        #employeeDataTable table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #employeeDataTable th, #employeeDataTable td {
+            padding: 14px 16px;
+            vertical-align: middle;
+        }
+        #employeeDataTable tr {
+            border-bottom: 1px solid var(--border);
+        }
+        #employeeDataTable thead tr {
+            border-bottom: 2px solid var(--border);
+        }
+        #employeeDataTable tbody tr:hover {
+            background-color: var(--bg-soft);
+        }
+        
+        /* Badges style overrides */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+        
+        /* Action buttons style overrides */
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-action:hover {
+            color: var(--primary);
+            border-color: var(--primary-soft);
+            background: var(--primary-light);
+            transform: translateY(-1px);
+        }
+        .btn-action.delete:hover {
+            color: var(--danger);
+            border-color: #fecaca;
+            background: #fff1f2;
+        }
+        .btn-action i, .btn-action svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Config Sidebar overlay */
+        .config-sidebar {
+            position: fixed;
+            top: 0;
+            right: -360px;
+            width: 360px;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
+            z-index: 2000;
+            padding: 2.5rem;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+        }
+        .config-sidebar.active {
+            right: 0;
+        }
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .close-settings {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-soft);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .close-settings:hover {
+            color: var(--danger);
+            background: #fee2e2;
+        }
+
+        /* Toggles layout */
+        .layout-toggle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .layout-toggle-btn {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            background: white;
+        }
+        .layout-toggle-btn:hover {
+            background: var(--bg-soft);
+            color: var(--primary);
+        }
+        .layout-toggle-btn.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* Widget Toggles */
+        .widget-toggle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: calc(100vh - 280px);
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .toggle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: var(--bg-soft);
+            border-radius: 12px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .toggle-item:hover {
+            border-color: var(--border);
+        }
+        .toggle-item.active {
+            background: white;
+            border-color: var(--primary-soft);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 100px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        /* Modals style */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .modal {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+        .close-modal {
+            position: absolute;
+            top: 24px; right: 24px;
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: var(--bg-soft);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .close-modal:hover {
+            color: var(--danger);
+            background: #fee2e2;
+        }
+        .modal-header {
+            margin-bottom: 2rem;
+        }
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-soft);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px var(--primary-soft);
+        }
+
+        /* Success & Error Icons */
+        .success-icon {
+            width: 64px; height: 64px;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        .error-icon {
+            width: 64px; height: 64px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        /* Profile Dropdown Layout */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid var(--border);
+            background: white;
+        }
+        .user-profile:hover {
+            background: var(--bg-soft);
+            border-color: var(--primary-soft);
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+        .user-name { font-size: 0.85rem; font-weight: 700; }
+        .user-role { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* Toast notifications */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: -320px;
+            width: 300px;
+            background: white;
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid var(--border);
+            transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active {
+            right: 24px;
+        }
+    </style>
+</head>
+<body class="admin-dashboard layout-grid">
+
+    <!-- Toast Success Notification -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle" style="color: #10b981;"></i>
+        <span style="font-weight: 700; color: #1e293b;">Action completed!</span>
+    </div>
+
+    <!-- Toast Error Notification -->
+    <div class="toast-notification" id="errorToast" style="border-color: #fecaca;">
+        <i data-lucide="alert-circle" style="color: #ef4444;"></i>
+        <span style="font-weight: 700; color: #b91c1c;">Operation failed.</span>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+            
+                                                            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link active"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <!-- Breadcrumbs -->
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); flex: 1;">
+                    <span>HRFlow</span>
+                    <span>/</span>
+                    <span style="color: var(--text-main);">Admin Console</span>
+                </div>
+                
+                <!-- Search bar in the center -->
+                <div style="position: relative; width: 280px; margin: 0 auto; flex: 1; display: flex; justify-content: center;">
+                    <div style="position: relative; width: 100%; max-width: 320px;">
+                        <input type="text" class="top-search-input" placeholder="Search commands or personnel..." style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.85rem; background: var(--bg-soft);" id="empSearchInput">
+                        <i data-lucide="search" class="search-icon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer; width: 16px; height: 16px;"></i>
+                    </div>
+                </div>
+                
+                <!-- Action Controls and Profile on the right -->
+                <div style="display: flex; align-items: center; gap: 1.5rem; flex: 1; justify-content: flex-end;">
+                    <!-- Controls -->
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <!-- Buttons -->
+                        <button class="action-icon" title="Bulk Onboard" id="btnBulkOnboard" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                            <i data-lucide="upload-cloud" style="width: 20px; height: 20px;"></i>
+                        </button>
+                        <button id="btnAddEmp" title="New Personnel" style="width: 36px; height: 36px; border-radius: 10px; background: var(--primary); border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;">
+                            <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+                        </button>
+                        <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                            <i data-lucide="message-square" style="width: 20px; height: 20px;"></i>
+                        </button>
+                        <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                            <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+                        </button>
+                        
+                        <!-- Avatar -->
+                        <div id="profileTrigger" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; cursor: pointer;" class="p-avatar">N.</div>
+                    </div>
+
+                    <!-- Custom Apps Link -->
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); cursor: pointer;" onclick="openAppRegistryModal()">
+                        <span>CUSTOM APPS</span>
+                        <i data-lucide="settings" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Profile state indicators (hidden elements to capture data sync in admin-app.js without rendering profile details in top header) -->
+            <span class="p-name" style="display: none;"></span>
+            <span class="p-role" style="display: none;"></span>
+
+            <!-- Welcome message and configuration action button -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div class="welcome-text">
+                    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Welcome back, Nandan 👋</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Live workforce overview and administrative controls</p>
+                </div>
+                <button class="btn btn-outline" id="btnConfigureDepts" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--border); background: white; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='var(--bg-soft)'" onmouseout="this.style.background='white'">
+                    <i data-lucide="layers" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                    <span>Configure Departments</span>
+                </button>
+            </div>
+
+            <!-- Dynamic Widgets Grid -->
+            <div id="dashboardGrid" class="dashboard-grid">
+                <div style="grid-column: span 12; text-align: center; padding: 4rem 0;">
+                    <i data-lucide="loader" class="spin" style="width: 32px; height: 32px; color: var(--primary); margin: 0 auto 1rem;"></i>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Initializing administrator dashboard stream...</p>
+                </div>
+            </div>
+
+            <!-- Personnel Directory Table Section (Visible by default) -->
+            <div id="employeeDataTable" style="display: block; margin-top: 2.5rem; background: white; padding: 2.25rem; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                <!-- Search and Filters Bar -->
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <div style="position: relative; width: 280px;">
+                        <input type="text" id="empSearch" placeholder="Search employees..." style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.85rem; background: white; transition: 0.2s;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';" />
+                        <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 16px; height: 16px;"></i>
+                    </div>
+                    
+                    <select id="filterDept" style="padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; background: white; min-width: 160px;"></select>
+                    
+                    <select id="filterRole" style="padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; background: white; min-width: 140px;">
+                        <option value="">All Roles</option>
+                        <option value="employee">Employee</option>
+                        <option value="manager">Manager</option>
+                    </select>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <th style="padding: 12px 16px;">Personnel</th>
+                                <th style="padding: 12px 16px;">ID</th>
+                                <th style="padding: 12px 16px;">Department</th>
+                                <th style="padding: 12px 16px;">Role</th>
+                                <th style="padding: 12px 16px;">Password</th>
+                                <th style="padding: 12px 16px;">Salary</th>
+                                <th style="padding: 12px 16px;">Contact</th>
+                                <th style="padding: 12px 16px;">Joined</th>
+                                <th style="padding: 12px 16px;">Status</th>
+                                <th style="padding: 12px 16px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employee-table-body">
+                            <!-- Populated dynamically by admin-app.js -->
+                            <tr>
+                                <td colspan="10" style="text-align:center; padding:3rem; color:var(--text-muted);">
+                                    <i data-lucide="loader" class="spin" style="margin-bottom: 0.5rem;"></i><br>
+                                    Loading employee records...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Customization Config Sidebar -->
+    <div class="config-sidebar" id="configSidebar">
+        <div class="settings-header">
+            <div>
+                <h2 style="font-weight: 800; font-size: 1.25rem;">Customization</h2>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Manage console layout and visibility parameters</p>
+            </div>
+            <div class="close-settings" id="closeSettingsBtn"><i data-lucide="x"></i></div>
+        </div>
+
+        <span class="nav-label" style="margin: 1.5rem 0 0.75rem; display: block;">Console Layout</span>
+        <div class="layout-toggle-grid">
+            <button class="layout-toggle-btn layout-toggle" id="layout-grid" data-layout="grid">Grid</button>
+            <button class="layout-toggle-btn layout-toggle" id="layout-sidebar" data-layout="sidebar">Sidebar</button>
+            <button class="layout-toggle-btn layout-toggle" id="layout-tv" data-layout="tv">TV Console</button>
+        </div>
+
+        <span class="nav-label" style="margin: 1rem 0 0.75rem; display: block;">System Themes</span>
+        <div class="layout-toggle-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <button class="layout-toggle-btn theme-toggle" data-theme="light">Solid White</button>
+            <button class="layout-toggle-btn theme-toggle" data-theme="glass">Glassmorphism</button>
+        </div>
+
+        <span class="nav-label" style="margin: 1.5rem 0 0.75rem; display: block;">Dashboard Widgets</span>
+        <div class="widget-toggle-list" id="widgetToggles">
+            <!-- Dynamically populated toggles by admin-app.js -->
+        </div>
+
+        <div style="margin-top: auto; padding-top: 2rem;">
+            <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;" id="btnSaveConfig">
+                <i data-lucide="save"></i> Preserve Preferences
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal: New/Edit Personnel -->
+    <div class="modal-overlay" id="empModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="close-modal" data-close="empModal"><i data-lucide="x"></i></div>
+            <div class="modal-header">
+                <h2 id="empModalTitle">New Personnel</h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Initialize role parameters and database values</p>
+            </div>
+            <form id="empForm">
+                <input type="hidden" name="editId" id="editEmpId">
+                
+                <div id="editInfoFields" style="display: none; margin-bottom: 1.5rem; padding: 1.25rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>System UUID</label>
+                            <input type="text" id="displayEmpId" readonly style="background: #cbd5e1; cursor: not-allowed; font-family: monospace;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Access Key</label>
+                            <input type="text" id="displayPassword" readonly style="background: #cbd5e1; cursor: not-allowed; font-family: monospace;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="john@hrflow.com" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select name="departmentId" id="deptSelect" required>
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select name="roleType" id="roleType" required>
+                            <option value="employee">Employee</option>
+                            <option value="manager">Manager</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" name="phone" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="form-group">
+                        <label>Joining Date</label>
+                        <input type="date" name="joiningDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Residential Address</label>
+                    <input type="text" name="address" placeholder="123 Street, City, State">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Annual Salary (₹)</label>
+                        <input type="number" name="salary" placeholder="50000">
+                    </div>
+                    <div class="form-group">
+                        <label>Set Password</label>
+                        <input type="text" name="password" placeholder="Pass123!" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center; padding: 14px;">
+                    <i data-lucide="save"></i> Save Personnel Record
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: New Department -->
+    <div class="modal-overlay" id="deptModal">
+        <div class="modal">
+            <div class="close-modal" data-close="deptModal"><i data-lucide="x"></i></div>
+            <div class="modal-header">
+                <h2>New Department</h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Provision a new business unit and code tracking</p>
+            </div>
+            <form id="deptForm">
+                <div class="form-group">
+                    <label>Department Name</label>
+                    <input type="text" name="departmentName" id="deptNameInput" placeholder="e.g. Engineering" required>
+                </div>
+                <div class="form-group">
+                    <label>Department Code</label>
+                    <input type="text" name="departmentCode" id="deptCodeInput" placeholder="e.g. ENG" required maxlength="4">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center; padding: 14px;">
+                    <i data-lucide="plus"></i> Create Department
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Success Result -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div class="success-icon">
+                <i data-lucide="check-circle" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h2 id="successTitle" style="margin-bottom: 0.5rem; font-weight: 800;">Success!</h2>
+            <p id="successMessage" style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;"></p>
+            <div id="successDetails" style="background: #f8fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; text-align: left; font-size: 0.85rem; border: 1px solid var(--border);"></div>
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" data-close="successModal">Great!</button>
+        </div>
+    </div>
+
+    <!-- Modal: Error Result -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal" style="max-width: 400px; text-align: center;">
+            <div class="error-icon">
+                <i data-lucide="alert-circle" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; color: var(--danger); font-weight: 800;">Action Failed</h2>
+            <p id="errorMessage" style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;"></p>
+            <button class="btn btn-outline" style="width: 100%; justify-content: center;" data-close="errorModal">Try Again</button>
+        </div>
+    </div>
+
+    <!-- Modal: Delete Confirmation -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width: 400px; text-align: center; padding: 2.25rem;">
+            <div class="error-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">
+                <i data-lucide="trash-2" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; color: var(--text-dark); font-weight: 800;">Confirm Delete</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem; line-height: 1.5;">Are you sure you want to delete <span id="deleteTargetName" style="font-weight: 700; color: var(--text-main);"></span>? This action cannot be undone.</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <button class="btn btn-outline" style="width: 100%; justify-content: center;" data-close="deleteModal">Cancel</button>
+                <button class="btn" style="width: 100%; background: var(--danger); color: white; justify-content: center; font-weight: 700;" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Bulk CSV Upload -->
+    <div class="modal-overlay" id="csvModal">
+        <div class="modal" style="max-width: 450px;">
+            <div class="close-modal" data-close="csvModal"><i data-lucide="x"></i></div>
+            <div class="modal-header">
+                <h2>Bulk Onboard</h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Upload employee credentials CSV for bulk user provisioning</p>
+            </div>
+            <form id="csvForm">
+                <div class="form-group" style="border: 2px dashed var(--border); padding: 2rem; border-radius: 16px; text-align: center; cursor: pointer; transition: 0.2s;" onclick="document.getElementById('csvFileInput').click()">
+                    <i data-lucide="upload-cloud" style="width: 40px; height: 40px; color: var(--primary); margin: 0 auto 10px;"></i>
+                    <p id="csvFileName" style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Choose CSV File</p>
+                    <p style="font-size: 0.7rem; color: var(--text-muted);">or drag and drop here</p>
+                    <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" id="btnDownloadSampleCSV" style="flex: 1; justify-content: center;"><i data-lucide="download"></i> Sample CSV</button>
+                    <button type="submit" class="btn btn-primary" id="btnUploadCsv" style="flex: 1; justify-content: center;"><i data-lucide="upload"></i> Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+
+    <!-- Global Modal Helpers -->
+    <script>
+        window.openModal = (id) => {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('active'), 10);
+            }
+        };
+        window.closeModal = (id) => {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('active');
+                setTimeout(() => modal.style.display = 'none', 300);
+            }
+        };
+    </script>
+
+    
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+<script type="module" src="admin-app.js"></script>
+</body>
+
+</html>

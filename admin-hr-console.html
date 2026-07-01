@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategic HR Console | Admin Command Center</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    <style>
+        .console-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .ai-glass-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-glass-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .ai-pulse {
+            width: 8px; height: 8px; background: #10b981; border-radius: 50%;
+            display: inline-block; margin-right: 8px;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .candidate-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .candidate-row:hover {
+            background: white;
+            border-color: var(--primary-soft);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(4px);
+        }
+
+        .stage-badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 100px;
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link active"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Strategic HR Console</h1>
+                    <p>Organization-wide talent analytics, recruitment pipeline, and retention metrics.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="ai-status">
+                        <span class="ai-pulse"></span>
+                        <span>AI RETENTION ENGINE ON</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="stat-grid">
+                <div class="ai-glass-card">
+                    <div class="card-header"><h2 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Turnover Rate</h2></div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #10b981;">1.2%</div>
+                    <div style="font-size: 0.8rem; color: #10b981; font-weight: 700; margin-top: 5px;">Below industry average (1.5%)</div>
+                </div>
+                <div class="ai-glass-card">
+                    <div class="card-header"><h2 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Open Positions</h2></div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);" id="openPositionsCount">14</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-top: 5px;">Across 5 active departments</div>
+                </div>
+                <div class="ai-glass-card">
+                    <div class="card-header"><h2 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Talent AI Score</h2></div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #8b5cf6;">High</div>
+                    <div style="font-size: 0.8rem; color: #8b5cf6; font-weight: 700; margin-top: 5px;">Excellent overall retention indicators</div>
+                </div>
+            </div>
+
+            <div class="console-grid">
+                <!-- Recruitment Copilot -->
+                <div class="doc-left">
+                    <div class="ai-glass-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <h3 style="font-weight: 800;">Kylrx AI - Recruitment Copilot</h3>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Real-time applicant database and profiles sync</p>
+                            </div>
+                            
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <select id="adminDeptFilter" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit; font-size: 0.8rem; font-weight: 600; outline: none; background: white; cursor: pointer;">
+                                    <option value="all">All Departments</option>
+                                    <option value="cybersecurity">Cybersecurity</option>
+                                    <option value="engineering">Engineering</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="sales">Sales</option>
+                                    <option value="hr">HR</option>
+                                </select>
+                                <div id="recruitmentConnectionStatus" style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Syncing...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="recruitmentCopilotBody" style="min-height: 200px;">
+                            <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem; width: 32px; height: 32px;"></i>
+                                <p>Connecting to recruitment pipelines...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pipeline Chart -->
+                <div class="doc-right">
+                    <div class="ai-glass-card">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Pipeline Stages Breakdown</h3>
+                        <div style="position: relative; height: 260px; width: 100%;">
+                            <canvas id="stageChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: #eff6ff; border: 1px solid #dbeafe; padding: 1.25rem; margin-top: 2rem; display: flex; gap: 12px; align-items: flex-start;">
+                        <i data-lucide="info" style="color: var(--primary); flex-shrink: 0; margin-top: 2px;"></i>
+                        <p style="font-size: 0.75rem; color: var(--primary-dark); line-height: 1.5;">
+                            <strong>AI Copilot Intel:</strong> Candidates are evaluated using natural language modeling against standard job requirements. Recommended profiles are flagged for Manager Review.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <div class="modal" style="text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.25rem;">Custom App Registry</h2>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem;">
+                </div>
+                <div>
+                    <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem;">
+                </div>
+                <button onclick="addCustomApp()" style="background: var(--primary); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; width: 100%;">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
+                <h3 style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth } from "./firebase-config.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, onSnapshot, doc, getDoc, arrayUnion, arrayRemove, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        let allCandidates = [];
+        let filterDept = 'all';
+        let stageChart = null;
+
+        // Logout logic
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await signOut(auth);
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
+        // Department Filter change
+        document.getElementById('adminDeptFilter').addEventListener('change', (e) => {
+            filterDept = e.target.value;
+            renderCandidates();
+        });
+
+        // Sync Candidates
+        onSnapshot(collection(db, 'candidates'), (snapshot) => {
+            allCandidates = snapshot.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(c => c.status !== 'archived');
+            
+            document.getElementById('recruitmentConnectionStatus').innerHTML = `
+                <span style="font-size: 0.7rem; font-weight: 800; color: var(--success); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                    <span style="width: 6px; height: 6px; background: var(--success); border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
+                    LIVE SYNC
+                </span>
+                <i data-lucide="database" style="color: var(--success); width: 14px; height: 14px;"></i>
+            `;
+            lucide.createIcons();
+
+            renderCandidates();
+            updateChart();
+        }, (error) => {
+            console.error("Candidates sync failed:", error);
+        });
+
+        function renderCandidates() {
+            const body = document.getElementById('recruitmentCopilotBody');
+            if (!body) return;
+
+            const filtered = allCandidates.filter(c => {
+                if (filterDept === 'all') return true;
+                const candDept = (c.department || '').toLowerCase();
+                return candDept.includes(filterDept) || filterDept.includes(candDept);
+            });
+
+            // Update Open Positions Count badge dynamically
+            document.getElementById('openPositionsCount').textContent = filtered.length || 0;
+
+            if (filtered.length === 0) {
+                body.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                        <i data-lucide="user-plus" class="animate-pulse" style="opacity: 0.2; margin-bottom: 1rem; width: 48px; height: 48px;"></i>
+                        <p style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">No Candidates Found</p>
+                        <p style="font-size: 0.8rem;">No active candidate profiles mapped under the selected department filters.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            body.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; padding-right: 6px;">
+                    ${filtered.map(c => {
+                        let stageColor = 'var(--primary)';
+                        let stageBg = 'var(--primary-light)';
+                        const stage = c.stage || 'Applied';
+                        
+                        if (stage === 'Interview') {
+                            stageColor = '#f59e0b';
+                            stageBg = '#f59e0b15';
+                        } else if (stage === 'Offer' || stage === 'Hired') {
+                            stageColor = 'var(--success)';
+                            stageBg = '#dcfce7';
+                        } else if (stage === 'Rejected') {
+                            stageColor = 'var(--danger)';
+                            stageBg = '#fff1f2';
+                        }
+
+                        const dateStr = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) : (c.createdAt ? new Date(c.createdAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) : 'Just now');
+
+                        return `
+                            <div class="candidate-row">
+                                <div style="display: flex; gap: 14px; align-items: center;">
+                                    <div style="width: 40px; height: 40px; background: ${stageBg}; color: ${stageColor}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">
+                                        ${(c.name || 'C').substring(0, 1).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">${c.name}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                            <span style="font-weight: 700; color: var(--primary); text-transform: uppercase;">${c.department || 'General'}</span>
+                                            <span>•</span>
+                                            <span>${c.role}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span class="stage-badge" style="background: ${stageBg}; color: ${stageColor};">
+                                        ${stage}
+                                    </span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">${dateStr}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function updateChart() {
+            const stages = { 'Applied': 0, 'Interview': 0, 'Offer': 0, 'Hired': 0, 'Rejected': 0 };
+            allCandidates.forEach(c => {
+                const s = c.stage || 'Applied';
+                if (stages[s] !== undefined) {
+                    stages[s]++;
+                } else {
+                    stages['Applied']++;
+                }
+            });
+
+            const labels = Object.keys(stages);
+            const dataValues = Object.values(stages);
+
+            const canvas = document.getElementById('stageChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (stageChart) {
+                stageChart.destroy();
+            }
+
+            stageChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { family: 'Outfit', size: 11, weight: '600' },
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Custom Apps Injection
+        const DEFAULT_APPS = [
+            { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+            { name: "DATADOG", url: "https://app.datadoghq.com" }
+        ];
+
+        async function initAdminApps() {
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            onSnapshot(appsRef, async (snapshot) => {
+                let apps = [];
+                if (snapshot.exists()) {
+                    apps = snapshot.data().customApps || [];
+                } else {
+                    try {
+                        await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                        apps = DEFAULT_APPS;
+                    } catch(e) {}
+                }
+                renderAppsUI(apps);
+            });
+        }
+
+        function renderAppsUI(apps) {
+            const list = document.getElementById('customAppsList');
+            if (list) {
+                list.innerHTML = apps.map((app) => `
+                    <div class="nav-item" style="position: relative;">
+                        <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                            <i data-lucide="external-link"></i>
+                            <span>${app.name}</span>
+                        </a>
+                        <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                            <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            const registryList = document.getElementById('registryAppsList');
+            if (registryList) {
+                registryList.innerHTML = apps.map((app) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                            <i data-lucide="external-link" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0;"></i>
+                            <span style="font-weight: 700; font-size: 0.8rem;">${app.name}</span>
+                        </div>
+                        <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+            if(window.lucide) lucide.createIcons();
+        }
+
+        window.openAppRegistryModal = () => {
+            const modal = document.getElementById('customAppsModal');
+            if (modal) modal.style.display = 'flex';
+            if(window.lucide) lucide.createIcons();
+        };
+
+        window.addCustomApp = async () => {
+            const urlInput = document.getElementById('appUrlInput');
+            const nameInput = document.getElementById('appNameInput');
+            if (!urlInput) return;
+            
+            const url = urlInput.value.trim();
+            const customName = nameInput ? nameInput.value.trim() : '';
+            if (!url) return;
+
+            try {
+                let cleanUrl = url;
+                if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+                const urlObj = new URL(cleanUrl);
+                const domain = urlObj.hostname.replace('www.', '');
+                const appName = customName || domain.split('.')[0].toUpperCase();
+
+                const appsRef = doc(db, "system_configs", "admin_custom_apps");
+                await setDoc(appsRef, {
+                    customApps: arrayUnion({ name: appName, url: cleanUrl })
+                }, { merge: true });
+
+                urlInput.value = '';
+                if (nameInput) nameInput.value = '';
+            } catch (e) {
+                alert("Invalid URL structure.");
+            }
+        };
+
+        window.removeAppFromServer = async (url, name) => {
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayRemove({ name: name, url: url })
+            }, { merge: true });
+        };
+
+        initAdminApps();
+    </script>
+</body>
+</html>

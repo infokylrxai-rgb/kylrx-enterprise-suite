@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inactivity Automation | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏳</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        .tvc-monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .tvc-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tvc-card.danger { border-left: 4px solid var(--danger); }
+        .tvc-card.warning { border-left: 4px solid var(--warning); }
+
+        .tvc-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .tvc-value { font-size: 2rem; font-weight: 800; margin: 0.5rem 0; color: var(--text-main); }
+        .tvc-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        
+        .automation-log-panel {
+            background: #ffffff;
+            border-radius: 24px;
+            color: var(--text-muted);
+            padding: 1.5rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .log-entry { margin-bottom: 8px; border-bottom: 1px solid var(--bg); padding-bottom: 4px; }
+        .log-timestamp { color: var(--primary); font-weight: 700; margin-right: 8px; }
+        .log-action { color: #1e293b; font-weight: 800; text-transform: uppercase; }
+        .log-entity { color: var(--primary); font-weight: 700; }
+
+        /* Toasts */
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+
+        /* Heartbeat */
+        @keyframes heartbeat {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .heartbeat { animation: heartbeat 2s infinite; display: inline-block; }
+
+        .inactivity-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .profile-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: 0.3s;
+        }
+
+        .profile-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+
+        .profile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+        .profile-avatar { width: 48px; height: 48px; border-radius: 14px; background: var(--bg-soft); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary); }
+        
+        .timer-badge {
+            background: #fef2f2;
+            color: #ef4444;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .action-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .trash-section {
+            margin-top: 4rem;
+            padding: 2rem;
+            background: #f8fafc;
+            border-radius: 24px;
+            border: 2px dashed var(--border);
+        }
+
+        .recover-btn { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
+
+        /* Switch Toggle styling */
+        .switch input:checked + .slider {
+            background-color: var(--primary) !important;
+        }
+        .switch input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary);
+        }
+        .switch input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: .4s;
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <!-- Toasts -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Action completed successfully!</span>
+    </div>
+
+    <div class="toast-notification" id="errorToast" style="border-color: #fecaca;">
+        <i data-lucide="alert-circle" style="color: #ef4444;"></i>
+        <span style="color: #b91c1c;">Operation failed.</span>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link active"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Employee Inactivity Radar</h1>
+                    <p>Automated lifecycle management for non-responsive candidates.</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                        <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                            <i data-lucide="message-square"></i>
+                        </button>
+                        <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                        <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
+                            <i data-lucide="bell"></i>
+                        </button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-outline" id="runSimulation"><i data-lucide="play"></i> Run Sync Now</button>
+                        <button class="btn btn-primary" id="btnOpenRules"><i data-lucide="settings"></i> Automation Rules</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="tvc-monitor-grid">
+                <div class="tvc-card warning">
+                    <p class="tvc-label">Pending Response</p>
+                    <h3 class="tvc-value" id="countPending">30</h3>
+                    <p class="tvc-trend" style="color: var(--warning);"><i data-lucide="alert-circle"></i> Requires Attention</p>
+                </div>
+                <div class="tvc-card danger">
+                    <p class="tvc-label">Suspended Today</p>
+                    <h3 class="tvc-value" id="countSuspended">12</h3>
+                    <p class="tvc-trend" style="color: var(--danger);"><i data-lucide="clock"></i> 3hr Threshold Hit</p>
+                </div>
+                <div class="tvc-card">
+                    <p class="tvc-label">In Trash (3-Day Limit)</p>
+                    <h3 class="tvc-value" id="countTrash">5</h3>
+                    <p class="tvc-trend" style="color: var(--text-muted);"><i data-lucide="trash-2"></i> Auto-Purge active</p>
+                </div>
+                <div class="tvc-card">
+                    <p class="tvc-label">System Uptime</p>
+                    <h3 class="tvc-value">99.9%</h3>
+                    <p class="tvc-trend" style="color: var(--primary);"><i data-lucide="shield" class="heartbeat"></i> Cron Engine Active</p>
+                </div>
+            </div>
+
+            <h3 style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase;">Automation Engine Live Logs</h3>
+            <div class="automation-log-panel" id="automationLogs">
+                <div class="log-entry"><span class="log-timestamp">[23:05:01]</span> <span class="log-action">SCAN_START</span>: Analyzing 100 pending onboarding profiles...</div>
+                <div class="log-entry"><span class="log-timestamp">[23:05:05]</span> <span class="log-action">SUSPENDED</span>: <span class="log-entity">user_8829</span> - 3 hour threshold exceeded. Link expired.</div>
+                <div class="log-entry"><span class="log-timestamp">[23:05:06]</span> <span class="log-action">NOTIFICATION</span>: Reminder sent to personal email for <span class="log-entity">user_8829</span>.</div>
+                <div class="log-entry"><span class="log-timestamp">[23:05:10]</span> <span class="log-action">TRASHED</span>: <span class="log-entity">user_7701</span> - 3 day threshold exceeded. Profile archived.</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="font-size: 1.25rem; font-weight: 800;">Critical Inactivity Alerts</h2>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-outline" id="filterAll" style="padding: 6px 12px; font-size: 0.75rem;">All Profiles</button>
+                    <button class="btn btn-outline" id="filterSuspended" style="padding: 6px 12px; font-size: 0.75rem; background: #fef2f2; color: #ef4444;">Suspended Only</button>
+                </div>
+            </div>
+
+            <div class="inactivity-list" id="inactivityList">
+                <!-- Example Card 1 -->
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">AS</div>
+                        <span class="timer-badge"><i data-lucide="clock"></i> 4h 20m Overdue</span>
+                    </div>
+                    <h4 style="font-weight: 800; margin-bottom: 4px;">Alice Stevens</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">alice.s@company.com • Engineering</p>
+                    
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 12px; font-size: 0.75rem;">
+                        <p><strong>Status:</strong> <span style="color: var(--danger); font-weight: 700;">Suspended</span></p>
+                        <p><strong>Last Action:</strong> Invitation Sent (Oct 12, 10:00)</p>
+                    </div>
+
+                    <div class="action-btns">
+                        <button class="btn btn-outline" style="font-size: 0.75rem;">Resend Link</button>
+                        <button class="btn btn-primary" style="font-size: 0.75rem;">Force Active</button>
+                    </div>
+                </div>
+
+                <!-- Example Card 2 -->
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">TM</div>
+                        <span class="timer-badge" style="background: #fff7ed; color: #f97316;"><i data-lucide="alert-triangle"></i> 2h 45m Overdue</span>
+                    </div>
+                    <h4 style="font-weight: 800; margin-bottom: 4px;">Tom Miller</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">t.miller@company.com • Sales</p>
+                    
+                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 12px; font-size: 0.75rem;">
+                        <p><strong>Status:</strong> <span style="color: var(--warning); font-weight: 700;">Pending Approval</span></p>
+                        <p><strong>Auto-Suspend in:</strong> 15 minutes</p>
+                    </div>
+
+                    <div class="action-btns">
+                        <button class="btn btn-outline" style="font-size: 0.75rem;">Contact Emp</button>
+                        <button class="btn btn-primary" style="font-size: 0.75rem;">Extend Time</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="trash-section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="font-weight: 800;"><i data-lucide="trash-2" style="vertical-align: middle;"></i> Candidate Trash Bin</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);">Profiles in this bin will be permanently deleted after 30 days.</p>
+                    </div>
+                    <button class="btn btn-outline" onclick="window.emptyTrashHandler()" style="border-color: var(--danger); color: var(--danger);">Empty Trash</button>
+                </div>
+                
+                <div style="margin-top: 1.5rem;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="text-align: left; font-size: 0.75rem; color: var(--text-muted);">
+                            <th style="padding: 1rem 0;">NAME</th>
+                            <th style="padding: 1rem 0;">REASON</th>
+                            <th style="padding: 1rem 0;">REMAINING</th>
+                            <th style="padding: 1rem 0; text-align: right;">ACTION</th>
+                        </tr>
+                        <tr style="font-size: 0.85rem; border-top: 1px solid var(--border);">
+                            <td style="padding: 1rem 0; font-weight: 700;">Robert Downy</td>
+                            <td style="padding: 1rem 0;">3-Day Inactivity</td>
+                            <td style="padding: 1rem 0; color: var(--danger);">28 Days</td>
+                            <td style="padding: 1rem 0; text-align: right;"><span class="recover-btn">Restore Profile</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Automation Rules Modal -->
+    <div id="automationRulesModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
+        <div style="background:white; padding:2.5rem; border-radius:24px; width:480px; max-width:90%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h3 style="font-weight:800; font-size:1.2rem; margin: 0; color: #1e293b;">Automation Rules</h3>
+                </div>
+                <button id="btnCloseRulesModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding: 4px; display: flex; align-items: center;"><i data-lucide="x"></i></button>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Configure thresholds and trigger policies for candidate inactivity management.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Inactivity Threshold (Hours)</label>
+                    <input type="number" id="ruleSuspendHours" min="1" max="168" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;" placeholder="3">
+                    <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">Time before a pending invitation is marked Suspended.</span>
+                </div>
+                
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Non-Responsive Threshold (Days)</label>
+                    <input type="number" id="ruleTrashDays" min="1" max="30" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;" placeholder="3">
+                    <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">Suspension time before moving to candidate trash.</span>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: 8px;">
+                    <div>
+                        <span style="font-size: 0.8rem; font-weight: 700; display: block; color: #1e293b;">Email Reminders</span>
+                        <span style="font-size: 0.65rem; color: var(--text-muted);">Send automated email reminders before link expiry.</span>
+                    </div>
+                    <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
+                        <input type="checkbox" id="ruleEmailReminders" checked style="opacity: 0; width: 0; height: 0;">
+                        <span class="slider" style="position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1; border-radius: 34px; transition: .4s;"></span>
+                    </label>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0;">
+                    <div>
+                        <span style="font-size: 0.8rem; font-weight: 700; display: block; color: #1e293b;">Manager Escalations</span>
+                        <span style="font-size: 0.65rem; color: var(--text-muted);">Route warning logs to target manager dashboard.</span>
+                    </div>
+                    <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
+                        <input type="checkbox" id="ruleEscalations" checked style="opacity: 0; width: 0; height: 0;">
+                        <span class="slider" style="position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1; border-radius: 34px; transition: .4s;"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:12px; margin-top: 8px;">
+                <button id="btnCancelRules" class="btn btn-outline" style="flex:1; justify-content:center; border-radius: 12px;">Cancel</button>
+                <button id="btnSaveRules" class="btn btn-primary" style="flex:1; justify-content:center; border-radius: 12px; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="check" style="width: 16px; height: 16px;"></i> Save Rules
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        window.showToast = (msg, isError = false) => {
+            const id = isError ? 'errorToast' : 'successToast';
+            const toast = document.getElementById(id);
+            toast.querySelector('span').textContent = msg;
+            toast.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        };
+    </script>
+    <script type="module" src="admin-inactivity-monitor.js"></script>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>
+

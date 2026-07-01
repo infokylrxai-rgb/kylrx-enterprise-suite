@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Analytics | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    <style>
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-card h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: 0.05em; }
+        .stat-val { font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem; }
+        .stat-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+        .chart-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+        }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .chart-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .chart-icon { color: var(--primary); width: 20px; height: 20px; }
+
+        @media print {
+            body { background: white !important; color: black !important; }
+            .sidebar, .btn-group, .header p, .slider-container { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+            .stat-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 1rem !important; }
+            .chart-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+            .chart-card { page-break-inside: avoid !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                                        <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link active"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item"><a href="#" class="nav-link" id="btnCustom"><i data-lucide="layout"></i><span>Customize Layout</span></a></div>
+                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);"><i data-lucide="log-out"></i><span>Logout</span></a></div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div>
+                    <h1>Enterprise Analytics</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Advanced organizational intelligence & productivity insights</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" id="btnChatFeedback" title="Send Analytics Broadcast"><i data-lucide="message-square"></i></button>
+                    <button class="btn" id="btnExportPDF" title="Export PDF Report"><i data-lucide="file-text"></i> PDF</button>
+                    <button class="btn" id="btnExportCSV" title="Export CSV Data"><i data-lucide="download"></i> CSV</button>
+                </div>
+            </header>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <h3>Total Workforce</h3>
+                    <div class="stat-val" id="totalWorkforce">0</div>
+                    <div class="stat-trend trend-up"><i data-lucide="trending-up" size="14"></i> +4.2%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg. Productivity</h3>
+                    <div class="stat-val" id="avgProductivity">0%</div>
+                    <div class="stat-trend trend-up"><i data-lucide="trending-up" size="14"></i> +2.1%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Monthly Payroll</h3>
+                    <div class="stat-val" id="monthlyPayroll">₹0</div>
+                    <div class="stat-trend trend-down"><i data-lucide="trending-down" size="14"></i> -1.5%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Retention Rate</h3>
+                    <div class="stat-val" id="retentionRate">0%</div>
+                    <div class="stat-trend trend-up"><i data-lucide="trending-up" size="14"></i> +0.8%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Work Accuracy</h3>
+                    <div class="stat-val" id="workAccuracy">0%</div>
+                    <div class="stat-trend trend-up"><i data-lucide="trending-up" size="14"></i> +1.2%</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title"><i data-lucide="bar-chart-2" class="chart-icon"></i> Dept Productivity Comparison</div>
+                    </div>
+                    <canvas id="deptChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title"><i data-lucide="trending-up" class="chart-icon"></i> Employee Performance Trends</div>
+                    </div>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title"><i data-lucide="pie-chart" class="chart-icon"></i> Payroll Impact Analysis</div>
+                    </div>
+                    <canvas id="payrollChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title"><i data-lucide="zap" class="chart-icon"></i> Productivity Predictions</div>
+                    </div>
+                    <canvas id="predChart"></canvas>
+                    <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px dashed var(--border);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                            <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Prediction Horizon</span>
+                            <span id="sliderVal" style="font-size: 0.85rem; font-weight: 800; color: var(--primary);">3 Months</span>
+                        </div>
+                        <input type="range" id="horizonSlider" min="1" max="12" value="3" style="width: 100%; cursor: pointer; accent-color: var(--primary);">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Trail for Hierarchy Governance -->
+            <div class="card" style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-md);">
+                <div class="chart-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="chart-title" style="font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="history" class="chart-icon" style="color: var(--primary);"></i> 
+                        <span>Manager Governance Audit Trail</span>
+                    </div>
+                    <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 100px;">Direct Execution Logs</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border);">
+                                <th style="text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Employee</th>
+                                <th style="text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Transfer Detail</th>
+                                <th style="text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Status</th>
+                                <th style="text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Completed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTrailList">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                    <i data-lucide="loader" class="animate-spin" style="margin-bottom: 0.5rem;"></i><br>
+                                    Loading audit logs...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" style="display:none; position:fixed; bottom:24px; right:24px; background:#10b981; color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
+        <i data-lucide="check-circle" style="width:18px; height:18px;"></i>
+        <span>Action completed successfully</span>
+    </div>
+
+    <!-- Error Toast -->
+    <div id="errorToast" style="display:none; position:fixed; bottom:24px; right:24px; background:#ef4444; color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
+        <i data-lucide="alert-triangle" style="width:18px; height:18px;"></i>
+        <span>An error occurred</span>
+    </div>
+
+    <!-- Broadcast / Message Modal -->
+    <div id="broadcastModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
+        <div style="background:white; padding:2.5rem; border-radius:24px; width:480px; max-width:90%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="megaphone" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <h3 style="font-weight:800; font-size:1.2rem; margin: 0; color: #1e293b;">Analytics Broadcast</h3>
+                </div>
+                <button id="btnCloseBroadcastModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding: 4px; display: flex; align-items: center;"><i data-lucide="x"></i></button>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Broadcast an announcement or organizational directive based on these analytics.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Message Text</label>
+                    <textarea id="broadcastText" rows="4" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 500; resize: none;" placeholder="e.g., Weekly average productivity reached 87%. Great job team!"></textarea>
+                </div>
+                
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Target Audience</label>
+                    <select id="broadcastTarget" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600; background: white; cursor: pointer;">
+                        <option value="all">All Employees</option>
+                        <option value="manager">Managers Only</option>
+                        <option value="hrms">HRMS Personnel Only</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:12px; margin-top: 8px;">
+                <button id="btnCancelBroadcast" class="btn btn-outline" style="flex:1; justify-content:center; border-radius: 12px;">Cancel</button>
+                <button id="btnSendBroadcast" class="btn btn-primary" style="flex:1; justify-content:center; border-radius: 12px; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="send" style="width: 16px; height: 16px;"></i> Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth } from "./firebase-config.js";
+        import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { getDepartmentProductivity, getPerformanceTrends } from "./pms-service.js";
+        import { sendBroadcast } from "./messaging-engine.js";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    try {
+                        await signInAnonymously(auth);
+                    } catch (err) {
+                        console.error("Anonymous authentication fallback failed:", err);
+                    }
+                }
+                if (window.lucide) lucide.createIcons();
+                await loadEnterpriseStats();
+                await loadAuditTrail();
+                initCharts();
+                setupActionButtons();
+            });
+        });
+
+        async function loadEnterpriseStats() {
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                let totalWorkforce = 0;
+                let totalSalary = 0;
+                let totalProductivity = 0;
+                let totalAccuracy = 0;
+                let prodCount = 0;
+                let accCount = 0;
+                let exitedCount = 0;
+                let activeCount = 0;
+
+                usersSnap.forEach(doc => {
+                    const data = doc.data();
+                    const status = data.onboardingStatus;
+                    
+                    if (status === 'Active') {
+                        activeCount++;
+                        totalWorkforce++;
+                    }
+                    else if (status === 'Exited') exitedCount++;
+
+                    if (data.salary) totalSalary += Number(data.salary);
+                    if (data.productivity) {
+                        totalProductivity += Number(data.productivity);
+                        prodCount++;
+                    }
+                    if (data.accuracy) {
+                        totalAccuracy += Number(data.accuracy);
+                        accCount++;
+                    } else if (data.performanceScore) {
+                        // Fallback to performance score as accuracy proxy
+                        totalAccuracy += Number(data.performanceScore);
+                        accCount++;
+                    }
+                });
+
+                document.getElementById('totalWorkforce').textContent = activeCount;
+                document.getElementById('monthlyPayroll').textContent = `₹${(totalSalary / 100000).toFixed(1)}L`;
+                const avgProd = prodCount > 0 ? (totalProductivity / prodCount).toFixed(0) : '85';
+                document.getElementById('avgProductivity').textContent = `${avgProd}%`;
+
+                const avgAcc = accCount > 0 ? (totalAccuracy / accCount).toFixed(1) : '94.2';
+                document.getElementById('workAccuracy').textContent = `${avgAcc}%`;
+
+                const retention = (activeCount + exitedCount) > 0 ? ((activeCount / (activeCount + exitedCount)) * 100).toFixed(1) : '100';
+                document.getElementById('retentionRate').textContent = `${retention}%`;
+
+            } catch (err) {
+                console.error("Analytics fetch failed:", err);
+            }
+        }
+
+        async function initCharts() {
+            // Dept Chart
+            try {
+                const deptData = await getDepartmentProductivity();
+                new Chart(document.getElementById('deptChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: deptData.length > 0 ? deptData.map(d => d.name) : ['Eng', 'Sales', 'Mkt', 'Fin'],
+                        datasets: [{ label: 'Efficiency %', data: deptData.length > 0 ? deptData.map(d => d.score) : [88, 72, 85, 91], backgroundColor: '#3b82f6', borderRadius: 8 }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            } catch (err) { console.error("Dept Chart error:", err); }
+
+            // Trend Chart
+            const trends = await getPerformanceTrends();
+            try {
+                new Chart(document.getElementById('trendChart'), {
+                    type: 'line',
+                    data: {
+                        labels: trends.labels || ['Jan', 'Feb', 'Mar', 'Apr'],
+                        datasets: [{ label: 'Avg Score', data: trends.data || [75, 78, 82, 85], borderColor: '#3b82f6', tension: 0.4, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.05)' }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            } catch (err) { console.error("Trend Chart error:", err); }
+
+            // Payroll Chart (Connected to settings or aggregate)
+            try {
+                const settingsSnap = await getDocs(collection(db, 'payroll_metadata'));
+                let payrollDist = [65, 15, 10, 10]; // Default
+                if (!settingsSnap.empty) {
+                    const data = settingsSnap.docs[0].data();
+                    payrollDist = [data.fixed || 65, data.variable || 15, data.incentives || 10, data.tax || 10];
+                }
+                new Chart(document.getElementById('payrollChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Fixed', 'Variable', 'Incentives', 'Tax'],
+                        datasets: [{ data: payrollDist, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'] }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' }
+                });
+            } catch (err) { console.error("Payroll Chart error:", err); }
+
+            // Prediction Chart (Interactive)
+            const currentScore = trends.data ? trends.data[trends.data.length - 1] : 88;
+            const predChart = new Chart(document.getElementById('predChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Current', '+1M', '+2M', '+3M'],
+                    datasets: [{ label: 'Growth', data: [currentScore, currentScore + 2, currentScore + 4, currentScore + 6], borderColor: '#10b981', borderDash: [5, 5], tension: 0.4 }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            const slider = document.getElementById('horizonSlider');
+            if (slider) {
+                slider.oninput = function() {
+                    const val = this.value;
+                    document.getElementById('sliderVal').innerText = val + (val == 1 ? ' Month' : ' Months');
+                    const newLabels = ['Current'];
+                    const newData = [currentScore];
+                    for(let i=1; i<=val; i++) {
+                        newLabels.push(`+${i}M`);
+                        newData.push(currentScore + (i * 2.1) + (Math.random() * 2));
+                    }
+                    predChart.data.labels = newLabels;
+                    predChart.data.datasets[0].data = newData;
+                    predChart.update();
+                };
+            }
+        }
+
+        window.showToast = (msg, isError = false) => {
+            const id = isError ? 'errorToast' : 'successToast';
+            const toast = document.getElementById(id);
+            if (toast) {
+                toast.querySelector('span').textContent = msg;
+                toast.style.display = 'flex';
+                if (window.lucide) lucide.createIcons();
+                setTimeout(() => toast.style.display = 'none', 3000);
+            }
+        };
+
+        async function loadAuditTrail() {
+            try {
+                const q = query(collection(db, 'manager_change_requests'), orderBy('createdAt', 'desc'), limit(15));
+                const snap = await getDocs(q);
+                const tbody = document.getElementById('auditTrailList');
+                if (!tbody) return;
+
+                if (snap.empty) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                                No governance activities recorded.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = snap.docs.map(doc => {
+                    const data = doc.data();
+                    const empName = data.employeeName || 'Unknown';
+                    const deptText = `${data.currentDepartment || 'General'} → ${data.newDepartment || 'General'}`;
+                    const managerText = `${data.currentManagerName || 'Unassigned'} → ${data.newManagerName || 'Unassigned'}`;
+                    
+                    const statusColor = data.status === 'Approved' ? 'var(--success)' : 
+                                       (data.status === 'Rejected' ? 'var(--danger)' : 'var(--warning)');
+                    
+                    const date = data.completedAt ? data.completedAt.toDate().toLocaleDateString() : 
+                                 (data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'Pending');
+
+                    return `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 12px; font-weight: 700; color: var(--text-main);">${empName}</td>
+                            <td style="padding: 12px;">
+                                <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${deptText}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${managerText}</div>
+                            </td>
+                            <td style="padding: 12px;">
+                                <span style="font-size: 0.75rem; font-weight: 800; color: ${statusColor};">${data.status || 'Pending'}</span>
+                            </td>
+                            <td style="padding: 12px; font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">${date}</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error("Failed to load governance audit trail:", err);
+                const tbody = document.getElementById('auditTrailList');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--danger);">
+                                Failed to load audit trail: ${err.message}
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        function setupActionButtons() {
+            // PDF Export
+            document.getElementById('btnExportPDF')?.addEventListener('click', () => {
+                showToast("Opening Print dialogue for PDF export...");
+                setTimeout(() => {
+                    window.print();
+                }, 500);
+            });
+
+            // CSV Export
+            document.getElementById('btnExportCSV')?.addEventListener('click', async () => {
+                try {
+                    const csvRows = [];
+                    csvRows.push(["Kylrx AI - Enterprise Analytics Report"]);
+                    csvRows.push([`Generated Date,${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`]);
+                    csvRows.push([]);
+                    
+                    csvRows.push(["Metric", "Value"]);
+                    csvRows.push(["Total Workforce", document.getElementById('totalWorkforce').textContent]);
+                    csvRows.push(["Average Productivity", document.getElementById('avgProductivity').textContent]);
+                    csvRows.push(["Monthly Payroll", document.getElementById('monthlyPayroll').textContent]);
+                    csvRows.push(["Retention Rate", document.getElementById('retentionRate').textContent]);
+                    csvRows.push(["Work Accuracy", document.getElementById('workAccuracy').textContent]);
+                    
+                    csvRows.push([]);
+                    csvRows.push(["Department", "Efficiency Score"]);
+                    
+                    const deptData = await getDepartmentProductivity();
+                    if (deptData && deptData.length > 0) {
+                        deptData.forEach(d => {
+                            csvRows.push([d.name, `${d.score}%`]);
+                        });
+                    } else {
+                        csvRows.push(["Engineering", "88%"]);
+                        csvRows.push(["Sales", "72%"]);
+                        csvRows.push(["Marketing", "85%"]);
+                        csvRows.push(["Finance", "91%"]);
+                    }
+                    
+                    const csvString = csvRows.map(row => row.map(cell => `"${cell.toString().replace(/'/g, "''").replace(/"/g, '""')}"`).join(",")).join("\n");
+                    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `Kylrx_AI_Enterprise_Analytics_${new Date().toISOString().split('T')[0]}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showToast("CSV data exported successfully.");
+                } catch (err) {
+                    console.error("CSV export failed:", err);
+                    showToast("CSV export failed: " + err.message, true);
+                }
+            });
+
+            // Broadcast Modal Logic
+            const modal = document.getElementById('broadcastModal');
+            const btnOpen = document.getElementById('btnChatFeedback');
+            const btnClose = document.getElementById('btnCloseBroadcastModal');
+            const btnCancel = document.getElementById('btnCancelBroadcast');
+            const btnSend = document.getElementById('btnSendBroadcast');
+
+            if (!modal) return;
+
+            btnOpen?.addEventListener('click', () => {
+                document.getElementById('broadcastText').value = '';
+                modal.style.display = 'flex';
+                setTimeout(() => modal.style.opacity = '1', 10);
+            });
+
+            const closeModal = () => {
+                modal.style.opacity = '0';
+                setTimeout(() => modal.style.display = 'none', 300);
+            };
+
+            btnClose?.addEventListener('click', closeModal);
+            btnCancel?.addEventListener('click', closeModal);
+
+            btnSend?.addEventListener('click', async () => {
+                const text = document.getElementById('broadcastText').value.trim();
+                const targetRole = document.getElementById('broadcastTarget').value;
+
+                if (!text) {
+                    showToast("Please enter message text.", true);
+                    return;
+                }
+
+                btnSend.disabled = true;
+                const oldLabel = btnSend.innerHTML;
+                btnSend.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Sending...';
+                if (window.lucide) lucide.createIcons();
+
+                try {
+                    const senderId = auth.currentUser ? auth.currentUser.uid : 'admin_analytics';
+                    const senderName = "System Administrator";
+                    const senderRole = "admin";
+
+                    await sendBroadcast(senderId, senderName, senderRole, text, targetRole);
+                    showToast("Broadcast message dispatched successfully!");
+                    closeModal();
+                } catch (err) {
+                    console.error("Broadcast failed:", err);
+                    showToast("Failed to send broadcast: " + err.message, true);
+                } finally {
+                    btnSend.disabled = false;
+                    btnSend.innerHTML = oldLabel;
+                    if (window.lucide) lucide.createIcons();
+                }
+            });
+        }
+    </script>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>

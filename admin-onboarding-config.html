@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Builder | Kylrx AI Enterprise</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --sidebar-width: 280px;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 320px 1fr; height: 100vh; }
+
+        /* Full Sidebar */
+        .sidebar {background: white;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2.5rem; text-decoration: none; color: var(--text-main); }
+        .logo-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; }
+        .logo-text { font-size: 1.25rem; font-weight: 800; letter-spacing: -1px; }
+
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.25rem 0 0.5rem 0.5rem; }
+        .nav-link {
+            display: flex; align-items: center; gap: 12px; padding: 8px 0.75rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.85rem; border-radius: 12px; transition: 0.2s; margin-bottom: 2px;
+        }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+
+        /* Block Palette */
+        .block-palette {
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+        }
+
+        .section-title { font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; }
+
+        .block-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 12px;
+            cursor: grab;
+            transition: 0.2s;
+        }
+        .block-item:hover { border-color: var(--primary); transform: translateX(4px); box-shadow: var(--shadow); }
+
+        .block-icon { width: 32px; height: 32px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid var(--border); }
+        .block-info h4 { font-size: 0.85rem; font-weight: 700; }
+        .block-info p { font-size: 0.7rem; color: var(--text-muted); }
+
+        /* Canvas */
+        .canvas {
+            padding: 3rem;
+            overflow-y: auto;
+            background-image: 
+                radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .canvas-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+
+        .drop-zone {
+            min-height: 400px;
+            border: 2px dashed var(--border);
+            border-radius: 32px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: 0.3s;
+        }
+        .drop-zone:empty::after {
+            content: 'Drag components here to build your onboarding flow';
+            display: flex; align-items: center; justify-content: center;
+            height: 300px; color: var(--text-muted); font-weight: 600;
+        }
+        .drop-zone.drag-over { border-color: var(--primary); background: var(--primary-light); }
+
+        .workflow-step {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            display: flex; align-items: center; gap: 1.5rem;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .step-handle { cursor: grab; color: var(--text-muted); }
+        .step-num { width: 36px; height: 36px; background: var(--primary-light); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        /* Notification Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .notif-modal {
+            background: white; width: 400px; border-radius: 32px; padding: 2.5rem;
+            text-align: center; border: 1px solid var(--border); box-shadow: var(--shadow);
+            animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes modalPop { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .success-icon-container {
+            width: 72px; height: 72px; background: #ecfdf5; color: #10b981;
+            border-radius: 24px; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link active"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom" style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <aside class="block-palette">
+            <div class="section-title">Onboarding Blocks</div>
+            <div id="paletteList">
+                <div class="block-item" draggable="true" data-type="profile">
+                    <div class="block-icon"><i data-lucide="user"></i></div>
+                    <div class="block-info"><h4>Personal Profile</h4><p>Name, DOB, Bio</p></div>
+                </div>
+                <div class="block-item" draggable="true" data-type="residence">
+                    <div class="block-icon"><i data-lucide="map-pin"></i></div>
+                    <div class="block-info"><h4>Residence Details</h4><p>Current & Permanent</p></div>
+                </div>
+                <div class="block-item" draggable="true" data-type="ids">
+                    <div class="block-icon"><i data-lucide="shield"></i></div>
+                    <div class="block-info"><h4>Government IDs</h4><p>Identity Verification</p></div>
+                </div>
+                <div class="block-item" draggable="true" data-type="payroll">
+                    <div class="block-icon"><i data-lucide="credit-card"></i></div>
+                    <div class="block-info"><h4>Payroll & Bank</h4><p>Account Setup</p></div>
+                </div>
+                <div class="block-item" draggable="true" data-type="academic">
+                    <div class="block-icon"><i data-lucide="graduation-cap"></i></div>
+                    <div class="block-info"><h4>Academic Records</h4><p>Degrees & Certs</p></div>
+                </div>
+                <div class="block-item" draggable="true" data-type="custom_fields">
+                    <div class="block-icon"><i data-lucide="list-plus"></i></div>
+                    <div class="block-info"><h4>Recruiter Custom Fields</h4><p>Emergency Contact, T-Shirt, etc.</p></div>
+                </div>
+                <div class="block-item" draggable="true" data-type="roles_access">
+                    <div class="block-icon"><i data-lucide="shield-alert"></i></div>
+                    <div class="block-info"><h4>Custom Roles &amp; Access</h4><p>HR Module Access Roles</p></div>
+                </div>
+                <div class="block-item" draggable="true" data-type="probation">
+                    <div class="block-icon"><i data-lucide="bell"></i></div>
+                    <div class="block-info"><h4>Probation &amp; Alerts</h4><p>Period & Notification setup</p></div>
+                </div>
+                <div class="block-item" draggable="true" data-type="work_settings">
+                    <div class="block-icon"><i data-lucide="calendar-range"></i></div>
+                    <div class="block-info"><h4>Work Location &amp; Roster</h4><p>Office, Shift, Leave Plan</p></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="canvas">
+            <header class="canvas-header">
+                <div>
+                    <h1>Flow Designer</h1>
+                    <p style="color: var(--text-muted);">Build dynamic onboarding journeys with drag-and-drop ease.</p>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-outline" id="btnPreview"><i data-lucide="eye"></i> Preview</button>
+                    <button class="btn btn-primary" id="btnPublish"><i data-lucide="send"></i> Publish Flow</button>
+                </div>
+            </header>
+
+            <div class="drop-zone" id="workflowCanvas">
+                <!-- Drop steps here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="notif-modal">
+            <div class="success-icon-container">
+                <i data-lucide="check-circle" size="32"></i>
+            </div>
+            <h2 style="font-weight: 800; margin-bottom: 8px; color: #1e293b;">Workflow Published</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">The onboarding journey has been updated and synchronized across all regional nodes.</p>
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        const canvas = document.getElementById('workflowCanvas');
+        const paletteItems = document.querySelectorAll('.block-item');
+        const btnPublish = document.getElementById('btnPublish');
+        const btnPreview = document.getElementById('btnPreview');
+        const CONFIG_ID = 'global_onboarding_flow';
+
+        if (btnPreview) {
+            btnPreview.onclick = () => {
+                window.open('onboarding-wizard.html?id=demo_emp', '_blank');
+            };
+        }
+
+        // Initialize Sortable
+        new Sortable(canvas, {
+            animation: 150,
+            ghostClass: 'primary-light-bg',
+            handle: '.step-handle',
+            onEnd: () => updateStepNumbers()
+        });
+
+        // Load existing flow
+        async function loadFlow() {
+            try {
+                const snap = await getDoc(doc(db, 'onboarding_config', CONFIG_ID));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    canvas.innerHTML = '';
+                    data.steps.forEach(stepData => {
+                        addStepToCanvas(stepData);
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load flow:', err);
+            }
+        }
+
+        paletteItems.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/json', JSON.stringify({
+                    type: item.dataset.type,
+                    title: item.querySelector('h4').innerText,
+                    desc: item.querySelector('p').innerText
+                }));
+            });
+        });
+
+        canvas.addEventListener('dragover', (e) => e.preventDefault());
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const data = JSON.parse(e.dataTransfer.getData('text/json'));
+            addStepToCanvas(data);
+        });
+
+        function addStepToCanvas(data) {
+            const step = document.createElement('div');
+            step.className = 'workflow-step';
+            step.dataset.type = data.type;
+            step.innerHTML = `
+                <div class="step-handle"><i data-lucide="grip-vertical"></i></div>
+                <div class="step-num">${canvas.children.length + 1}</div>
+                <div style="flex: 1;">
+                    <h4 style="font-weight: 800;">${data.title}</h4>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">${data.desc}</p>
+                </div>
+                <button class="icon-btn" onclick="this.parentElement.remove(); window.updateStepNumbers();" style="background: none; border: none; cursor: pointer; color: #ef4444;"><i data-lucide="trash-2"></i></button>
+            `;
+            canvas.appendChild(step);
+            lucide.createIcons();
+            updateStepNumbers();
+        }
+
+        window.updateStepNumbers = () => {
+            Array.from(canvas.children).forEach((child, index) => {
+                child.querySelector('.step-num').innerText = index + 1;
+            });
+        };
+
+        btnPublish.onclick = async () => {
+            const steps = Array.from(canvas.children).map(child => ({
+                type: child.dataset.type,
+                title: child.querySelector('h4').innerText,
+                desc: child.querySelector('p').innerText
+            }));
+
+            btnPublish.disabled = true;
+            btnPublish.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Publishing...';
+            lucide.createIcons();
+
+            try {
+                await setDoc(doc(db, 'onboarding_config', CONFIG_ID), {
+                    steps,
+                    lastUpdated: serverTimestamp(),
+                    updatedBy: localStorage.getItem('userName') || 'Admin'
+                });
+                document.getElementById('successModal').style.display = 'flex';
+                lucide.createIcons();
+            } catch (err) {
+                console.error('Publish failed:', err);
+                alert('Publish failed. Check console for details.');
+            } finally {
+                btnPublish.disabled = false;
+                btnPublish.innerHTML = '<i data-lucide="send"></i> Publish Flow';
+                lucide.createIcons();
+            }
+        };
+
+        window.closeModal = () => {
+            document.getElementById('successModal').style.display = 'none';
+        };
+
+        document.getElementById('logoutBtn').onclick = (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
+
+        // Initialize
+        loadFlow();
+    </script>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>
+
