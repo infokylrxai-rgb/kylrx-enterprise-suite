@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Kylrx AI Employee Onboarding Wizard and Profile Setup.">
+    <title>Onboarding Wizard | Kylrx AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #4fa9ff;
+            --primary-dark: #2d8de4;
+            --primary-light: #e5f2ff;
+            --bg: #f0f7ff;
+            --card: #ffffff;
+            --border: #d1e7ff;
+            --text-main: #1a2842;
+            --text-muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(circle at 0% 0%, var(--primary-light) 0%, transparent 40%);
+        }
+
+        .wizard-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Progress Header */
+        .progress-header {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 1rem;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(79, 169, 255, .05);
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(79, 169, 255, 0.15);
+            border-radius: 4px;
+            margin: 0 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(79, 169, 255, 0.4);
+        }
+
+        .completion-pct {
+            font-weight: 800;
+            color: var(--primary-dark);
+            font-size: 1.25rem;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 3rem;
+            box-shadow: 0 10px 30px rgba(79, 169, 255, 0.08);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-indicator {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            background: #f8fbff;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            font-family: inherit;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(79, 169, 255, 0.15);
+        }
+
+        .btn-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 14px rgba(79, 169, 255, .35);
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 169, 255, .4);
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-back:hover {
+            color: var(--text-main);
+            background: rgba(79, 169, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: span 1;
+            }
+
+            .wizard-container {
+                padding: 1rem;
+            }
+
+            .form-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Success Overlay */
+        #successScreen {
+            display: none;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        #successScreen>div {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 4rem;
+            box-shadow: 0 10px 30px rgba(79, 169, 255, 0.08);
+        }
+
+        /* Custom Centered Dialog Modal */
+        .modal-overlay-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 40, 66, 0.3);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay-dialog.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .dialog-modal {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 20px 25px -5px rgba(79, 169, 255, 0.1), 0 10px 10px -5px rgba(79, 169, 255, 0.04);
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay-dialog.active .dialog-modal {
+            transform: scale(1);
+        }
+
+        .dialog-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .dialog-icon.error {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .dialog-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .dialog-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .dialog-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            background: var(--primary-dark);
+            color: white;
+        }
+
+        .dialog-btn:hover {
+            filter: brightness(0.95);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wizard-container" id="wizardBody">
+        <header class="progress-header">
+            <div id="currentStepName" style="font-weight: 700; font-size: 0.9rem; min-width: 150px;">Step 1: Personal
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="completion-pct" id="pctLabel">0%</div>
+        </header>
+
+        <div class="form-card">
+            <span class="step-indicator" id="stepCounter">Phase 01 of 08</span>
+            <h2 id="stepTitle">Personal Profile</h2>
+
+            <form id="wizardForm">
+                <div id="formContent" class="form-grid">
+                    <!-- Dynamic fields will be injected here -->
+                </div>
+
+                <div class="btn-row">
+                    <button type="button" class="btn btn-back" id="btnBack"><i data-lucide="chevron-left"></i>
+                        Previous</button>
+                    <button type="button" class="btn btn-next" id="btnNext">Save & Continue <i
+                            data-lucide="chevron-right"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="wizard-container" id="successScreen">
+        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 32px; padding: 4rem;">
+            <div
+                style="width: 80px; height: 80px; background: #10b981; border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; color: white;">
+                <i data-lucide="party-popper" size="40"></i>
+            </div>
+            <h2>Onboarding Complete!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Your digital dossier has been submitted for
+                final verification. You will receive access credentials once the IT team provisions your assets.</p>
+            <button class="btn btn-next" style="margin: 0 auto;" id="btnGoDashboard" onclick="goDashboard()">Go to
+                Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Save Draft Toast -->
+    <div id="saveDraftToast" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; align-items: center; gap: 12px; background: #ffffff; border: 1px solid #bbf7d0; border-radius: 16px; padding: 14px 20px; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.1), 0 8px 16px -6px rgba(16, 185, 129, 0.05); opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none;">
+        <div style="width: 28px; height: 28px; border-radius: 8px; background: #dcfce7; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <i data-lucide="check" style="color: #15803d; width: 16px; height: 16px;"></i>
+        </div>
+        <div>
+            <div style="font-size: 0.85rem; font-weight: 700; color: #14532d; line-height: 1.2;">Draft Saved</div>
+            <div style="font-size: 0.75rem; color: #166534; margin-top: 1px;">Progress synced with cloud</div>
+        </div>
+    </div>
+
+    <!-- Custom Centered Error/Notification Modal -->
+    <div class="modal-overlay-dialog" id="customDialogModal">
+        <div class="dialog-modal">
+            <div class="dialog-icon error" id="dialogIcon">
+                <i data-lucide="alert-circle" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h4 class="dialog-title" id="dialogTitle">Finalize Failed</h4>
+            <p class="dialog-desc" id="dialogDesc">Code engine might not be configured.</p>
+            <button class="dialog-btn" id="closeDialogBtn">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        let currentStepIdx = 0;
+        let flowSteps = [];
+        let formData = {};
+        window.onboardingHrConfig = {};
+        const empId = new URLSearchParams(window.location.search).get('id') || 'demo_emp';
+
+        async function initWizard() {
+            try {
+                // 1. Fetch Template
+                const templateSnap = await getDoc(doc(db, 'onboarding_config', 'global_onboarding_flow'));
+                flowSteps = templateSnap.exists() ? templateSnap.data().steps : [
+                    { type: 'profile', name: 'Personal Profile' },
+                    { type: 'residence', name: 'Residence Details' },
+                    { type: 'ids', name: 'Identity Proofs' },
+                    { type: 'payroll', name: 'Bank Details' }
+                ];
+
+                // Fetch onboarding_hr config
+                try {
+                    const hrSnap = await getDoc(doc(db, 'system_config', 'onboarding_hr'));
+                    if (hrSnap.exists()) {
+                        window.onboardingHrConfig = hrSnap.data();
+                    }
+                } catch (hrErr) {
+                    console.warn("Failed to load onboarding_hr config:", hrErr);
+                }
+
+                // 2. Load Draft Data from Firestore first, then fallback/merge with localStorage
+                const empRef = doc(db, 'users', empId);
+                const empSnap = await getDoc(empRef);
+                if (empSnap.exists()) {
+                    formData = { ...empSnap.data() };
+                }
+                const draft = localStorage.getItem(`onboarding_draft_${empId}`);
+                if (draft) {
+                    formData = { ...formData, ...JSON.parse(draft) };
+                }
+
+                renderStep();
+            } catch (err) {
+                console.error(err);
+                alert("Failed to load onboarding sequence.");
+            }
+        }
+
+        function renderStep() {
+            const step = flowSteps[currentStepIdx];
+            document.getElementById('currentStepName').innerText = `Step ${currentStepIdx + 1}: ${step.title || step.name}`;
+            document.getElementById('stepTitle').innerText = step.title || step.name;
+            document.getElementById('stepCounter').innerText = `Phase ${String(currentStepIdx + 1).padStart(2, '0')} of ${String(flowSteps.length).padStart(2, '0')}`;
+
+            const pct = Math.round(((currentStepIdx + 1) / flowSteps.length) * 100);
+            document.getElementById('progressFill').style.width = `${pct}%`;
+            document.getElementById('pctLabel').innerText = `${pct}%`;
+
+            renderFields(step.type);
+            document.getElementById('btnBack').style.visibility = currentStepIdx === 0 ? 'hidden' : 'visible';
+            document.getElementById('btnNext').innerHTML = currentStepIdx === flowSteps.length - 1 ? 'Finalize Onboarding <i data-lucide="check"></i>' : 'Save & Continue <i data-lucide="chevron-right"></i>';
+            lucide.createIcons();
+        }
+
+        function renderFields(type) {
+            const content = document.getElementById('formContent');
+            let html = '';
+
+            switch (type) {
+                case 'personal':
+                case 'profile':
+                    html = `
+                        <div class="form-group"><label>Full Legal Name</label><input type="text" name="fullName" required value="${formData.fullName || ''}"></div>
+                        <div class="form-group"><label>Date of Birth</label><input type="date" name="dob" required value="${formData.dob || ''}"></div>
+                        <div class="form-group"><label>Gender</label><select name="gender">
+                            <option value="" ${!formData.gender ? 'selected' : ''}>Select</option>
+                            <option value="Male" ${formData.gender === 'Male' ? 'selected' : ''}>Male</option>
+                            <option value="Female" ${formData.gender === 'Female' ? 'selected' : ''}>Female</option>
+                            <option value="Other" ${formData.gender === 'Other' ? 'selected' : ''}>Other</option>
+                        </select></div>
+                        <div class="form-group"><label>Nationality</label><select name="nationality">
+                            <option value="" ${!formData.nationality ? 'selected' : ''}>Select</option>
+                            <option value="Indian" ${formData.nationality === 'Indian' ? 'selected' : ''}>Indian</option>
+                            <option value="American" ${formData.nationality === 'American' ? 'selected' : ''}>American</option>
+                            <option value="British" ${formData.nationality === 'British' ? 'selected' : ''}>British</option>
+                            <option value="Canadian" ${formData.nationality === 'Canadian' ? 'selected' : ''}>Canadian</option>
+                            <option value="Australian" ${formData.nationality === 'Australian' ? 'selected' : ''}>Australian</option>
+                            <option value="Singaporean" ${formData.nationality === 'Singaporean' ? 'selected' : ''}>Singaporean</option>
+                            <option value="German" ${formData.nationality === 'German' ? 'selected' : ''}>German</option>
+                            <option value="French" ${formData.nationality === 'French' ? 'selected' : ''}>French</option>
+                            <option value="Other" ${formData.nationality === 'Other' ? 'selected' : ''}>Other</option>
+                        </select></div>
+                    `;
+                    break;
+                case 'address':
+                case 'residence':
+                    html = `
+                        <div class="form-group full"><label>Permanent Address</label><input type="text" name="addr_perm" value="${formData.addr_perm || ''}"></div>
+                        <div class="form-group"><label>City</label><input type="text" name="city" value="${formData.city || ''}"></div>
+                        <div class="form-group"><label>Postal Code</label><input type="text" name="zip" value="${formData.zip || ''}"></div>
+                    `;
+                    break;
+                case 'bank':
+                case 'payroll':
+                    html = `
+                        <div class="form-group full"><label>Account Holder Name</label><input type="text" name="bank_name" value="${formData.bank_name || ''}"></div>
+                        <div class="form-group"><label>Account Number</label><input type="text" name="bank_acc" value="${formData.bank_acc || ''}"></div>
+                        <div class="form-group"><label>IFSC / SWIFT Code</label><input type="text" name="bank_ifsc" value="${formData.bank_ifsc || ''}"></div>
+                    `;
+                    break;
+                case 'ids':
+                    html = `
+                        <div class="form-group full" style="border: 1px solid var(--border); padding: 1.5rem; border-radius: 16px; margin-bottom: 1rem;">
+                            <label style="font-weight: 800; font-size: 1rem; color: var(--text-main);">Identity Proof (Aadhar / PAN / Passport) *</label>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Upload a scanned copy of your official identity card.</p>
+                            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 10px;">
+                                <input type="file" id="file_identity" onchange="simulateDocUpload('Identity Proof', this)" style="display: none;">
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('file_identity').click()" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px;">
+                                    <i data-lucide="upload-cloud" style="width: 16px;"></i> Choose File
+                                </button>
+                                <span id="status_identity" style="font-size: 0.85rem; font-weight: 600; color: ${(formData.uploadedDocs || []).includes('Identity Proof') ? '#10b981' : '#f59e0b'};">
+                                    ${(formData.uploadedDocs || []).includes('Identity Proof') ? '✅ Uploaded' : '⚠️ Pending'}
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="skip_identity" onchange="toggleDocSkip('Identity Proof', this.checked)" ${(formData.skippedDocs || []).includes('Identity Proof') ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;">
+                                <label for="skip_identity" style="margin: 0; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">Skip document for now (if currently unavailable)</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group full" style="border: 1px solid var(--border); padding: 1.5rem; border-radius: 16px;">
+                            <label style="font-weight: 800; font-size: 1rem; color: var(--text-main);">Address Proof (Passport / Utility Bill / Rent Agreement) *</label>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Upload a scanned copy containing your permanent address.</p>
+                            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 10px;">
+                                <input type="file" id="file_address" onchange="simulateDocUpload('Address Proof', this)" style="display: none;">
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('file_address').click()" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px;">
+                                    <i data-lucide="upload-cloud" style="width: 16px;"></i> Choose File
+                                </button>
+                                <span id="status_address" style="font-size: 0.85rem; font-weight: 600; color: ${(formData.uploadedDocs || []).includes('Address Proof') ? '#10b981' : '#f59e0b'};">
+                                    ${(formData.uploadedDocs || []).includes('Address Proof') ? '✅ Uploaded' : '⚠️ Pending'}
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="skip_address" onchange="toggleDocSkip('Address Proof', this.checked)" ${(formData.skippedDocs || []).includes('Address Proof') ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;">
+                                <label for="skip_address" style="margin: 0; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">Skip document for now (if currently unavailable)</label>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'academic':
+                    html = `
+                        <div class="form-group full" style="border: 1px solid var(--border); padding: 1.5rem; border-radius: 16px;">
+                            <label style="font-weight: 800; font-size: 1rem; color: var(--text-main);">Academic Certificates (Degree / Graduation Certificate) *</label>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Upload a scanned copy of your highest educational degree.</p>
+                            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 10px;">
+                                <input type="file" id="file_academic" onchange="simulateDocUpload('Academic Certificates', this)" style="display: none;">
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('file_academic').click()" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px;">
+                                    <i data-lucide="upload-cloud" style="width: 16px;"></i> Choose File
+                                </button>
+                                <span id="status_academic" style="font-size: 0.85rem; font-weight: 600; color: ${(formData.uploadedDocs || []).includes('Academic Certificates') ? '#10b981' : '#f59e0b'};">
+                                    ${(formData.uploadedDocs || []).includes('Academic Certificates') ? '✅ Uploaded' : '⚠️ Pending'}
+                                </span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="skip_academic" onchange="toggleDocSkip('Academic Certificates', this.checked)" ${(formData.skippedDocs || []).includes('Academic Certificates') ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;">
+                                <label for="skip_academic" style="margin: 0; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">Skip document for now (if currently unavailable)</label>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'custom_fields':
+                    {
+                        let fields = JSON.parse(window.onboardingHrConfig.custom_fields_json || '[]');
+                        if (fields.length === 0) {
+                            html = `<div style="grid-column: span 2; text-align: center; color: var(--text-muted); padding: 2rem;">No custom recruiter fields configured. Press Save & Continue to proceed.</div>`;
+                        } else {
+                            html = fields.map(f => {
+                                const val = formData[f.name] || '';
+                                if (f.type === 'dropdown') {
+                                    return `
+                                        <div class="form-group"><label>${f.name}</label>
+                                            <select name="${f.name}">
+                                                <option value="">Select</option>
+                                                ${f.choices.map(c => `<option value="${c}" ${val === c ? 'selected' : ''}>${c}</option>`).join('')}
+                                            </select>
+                                        </div>
+                                    `;
+                                } else if (f.type === 'number') {
+                                    return `<div class="form-group"><label>${f.name}</label><input type="number" name="${f.name}" value="${val}"></div>`;
+                                } else {
+                                    return `<div class="form-group"><label>${f.name}</label><input type="text" name="${f.name}" value="${val}"></div>`;
+                                }
+                            }).join('');
+                        }
+                    }
+                    break;
+                case 'roles_access':
+                    {
+                        let roles = JSON.parse(window.onboardingHrConfig.custom_roles_json || '[]');
+                        let currentRole = roles.find(r => r.title.toLowerCase() === (formData.designation || '').toLowerCase()) || roles[0];
+                        if (!currentRole) {
+                            currentRole = { title: formData.designation || 'Staff Employee', desc: 'Standard member role', access: { candidates: false, leaves: true, exits: false, assets: true, security: false } };
+                        }
+                        const modules = Object.keys(currentRole.access).filter(k => currentRole.access[k]).map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(', ') || 'Standard Employee Self-Service';
+                        html = `
+                            <div class="form-group full" style="background: var(--primary-light); border: 1px solid var(--border); padding: 2rem; border-radius: 24px; display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 44px; height: 44px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary-dark); border: 1px solid var(--border);"><i data-lucide="shield-check"></i></div>
+                                    <div>
+                                        <h3 style="font-weight: 800; font-size: 1.15rem; color: var(--text-main);">${currentRole.title}</h3>
+                                        <p style="font-size: 0.8rem; color: var(--text-muted);">${currentRole.desc}</p>
+                                    </div>
+                                </div>
+                                <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+                                    <h4 style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 8px;">System Privileges &amp; Module Access</h4>
+                                    <p style="font-size: 0.9rem; font-weight: 700; color: var(--primary-dark);">${modules}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+                case 'probation':
+                    {
+                        const probationMonths = window.onboardingHrConfig.default_probation_months || 3;
+                        const alertsEnabled = window.onboardingHrConfig.probation_alerts_enabled !== false;
+                        html = `
+                            <div class="form-group full" style="border: 1px solid var(--border); padding: 2rem; border-radius: 24px; background: #fffbeb; border-color: #fde68a; margin-top: 1rem;">
+                                <h3 style="font-weight: 800; font-size: 1.1rem; color: #92400e; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><i data-lucide="award"></i> Probation Policy Consent</h3>
+                                <p style="font-size: 0.85rem; color: #b45309; line-height: 1.6; margin-bottom: 1.5rem;">
+                                    Your employment is subject to a standard probation period of <strong>${probationMonths} Months</strong> starting from your date of joining. Upon successful evaluation, your status will be converted to a confirmed permanent position.
+                                </p>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; color: #b45309; font-weight: 600;">
+                                    <input type="checkbox" name="probation_consent" checked required style="width: 18px; height: 18px;"> I acknowledge and consent to the probation period guidelines.
+                                </label>
+                                ${alertsEnabled ? `<p style="font-size: 0.75rem; color: #d97706; margin-top: 10px; font-style: italic;">* Automatic completion alerts are configured to notify HR and your Reporting Manager.</p>` : ''}
+                            </div>
+                        `;
+                    }
+                    break;
+                case 'work_settings':
+                    {
+                        let offices = JSON.parse(window.onboardingHrConfig.work_locations_json || '["HQ Bangalore", "Delhi Office", "Remote"]');
+                        let plans = JSON.parse(window.onboardingHrConfig.leave_plans_json || '["Standard Annual Plan", "Flexible Leave Plan"]');
+                        let defaultWeekoff = window.onboardingHrConfig.default_weekoff || 'sat-sun';
+                        
+                        html = `
+                            <div class="form-group"><label>Work Office Location</label>
+                                <select name="work_location" required>
+                                    <option value="">Select Location</option>
+                                    ${offices.map(o => `<option value="${o}" ${formData.work_location === o ? 'selected' : ''}>${o}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Assigned Leave Plan</label>
+                                <select name="leave_plan" required>
+                                    <option value="">Select Leave Plan</option>
+                                    ${plans.map(p => `<option value="${p}" ${formData.leave_plan === p ? 'selected' : ''}>${p}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Preferred Shift / Roster Type</label>
+                                <select name="roster_type" required>
+                                    <option value="General Shift" ${formData.roster_type === 'General Shift' ? 'selected' : ''}>General Shift (9 AM - 6 PM)</option>
+                                    <option value="Rotational Shift" ${formData.roster_type === 'Rotational Shift' ? 'selected' : ''}>Rotational Shift (Support Rostered)</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Weekly Off Days</label>
+                                <select name="week_off" required>
+                                    <option value="sat-sun" ${formData.week_off === 'sat-sun' || defaultWeekoff === 'sat-sun' ? 'selected' : ''}>Saturday &amp; Sunday</option>
+                                    <option value="sun-only" ${formData.week_off === 'sun-only' || defaultWeekoff === 'sun-only' ? 'selected' : ''}>Sunday Only</option>
+                                    <option value="fri-sat" ${formData.week_off === 'fri-sat' || defaultWeekoff === 'fri-sat' ? 'selected' : ''}>Friday &amp; Saturday</option>
+                                    <option value="rotational" ${formData.week_off === 'rotational' || defaultWeekoff === 'rotational' ? 'selected' : ''}>Rotational</option>
+                                </select>
+                            </div>
+                        `;
+                    }
+                    break;
+                default:
+                    html = `
+                        <div class="form-group full" style="grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px dashed var(--border); border-radius: 20px; padding: 3rem 2rem; text-align: center; background: rgba(79, 169, 255, 0.02);">
+                            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem;">
+                                <i data-lucide="help-circle" style="width: 28px; height: 28px;"></i>
+                            </div>
+                            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;">Unknown Step: "${type}"</h3>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 420px; margin-bottom: 1.5rem; line-height: 1.6;">
+                                This onboarding phase is not recognized or has not been configured in the wizard. You can skip this step to continue your profile setup.
+                            </p>
+                            <button type="button" class="btn btn-next" onclick="window.skipUnknownStep()" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3); padding: 0.75rem 1.5rem; border-radius: 12px; font-size: 0.875rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                                Skip Step <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                    `;
+            }
+
+            content.innerHTML = html;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        document.getElementById('btnNext').onclick = async () => {
+            // Save current form data
+            const inputs = document.querySelectorAll('#wizardForm input, #wizardForm select');
+            inputs.forEach(i => {
+                if (i.name) {
+                    formData[i.name] = i.value;
+                }
+            });
+            localStorage.setItem(`onboarding_draft_${empId}`, JSON.stringify(formData));
+
+            // Sync with backend firebase
+            try {
+                const empRef = doc(db, 'users', empId);
+                await updateDoc(empRef, {
+                    ...formData,
+                    updatedAt: serverTimestamp()
+                });
+                showSaveDraftToast();
+            } catch (e) {
+                console.error("Firestore draft sync error:", e);
+            }
+
+            if (currentStepIdx < flowSteps.length - 1) {
+                currentStepIdx++;
+                renderStep();
+            } else {
+                await finalize();
+            }
+        };
+
+        document.getElementById('btnBack').onclick = () => {
+            if (currentStepIdx > 0) {
+                currentStepIdx--;
+                renderStep();
+            }
+        };
+
+        import { codeEngine } from "./code-engine-service.js";
+
+        async function finalize() {
+            document.getElementById('btnNext').disabled = true;
+            document.getElementById('btnNext').innerText = "Syncing with Enterprise Cloud...";
+
+            try {
+                // 1. Generate Employee Code
+                const empDoc = await getDoc(doc(db, 'users', empId));
+                const empData = empDoc.data();
+                const type = (empData.employmentType || 'full-time').toLowerCase();
+                const dept = empData.department || 'General';
+
+                const generatedId = await codeEngine.generateCode(empId, type, dept);
+                console.log(`🚀 Generated Employee ID: ${generatedId}`);
+
+                // 2. Update Firestore
+                await updateDoc(doc(db, 'users', empId), {
+                    ...formData,
+                    employeeId: generatedId,
+                    onboardingStatus: "Completed",
+                    status: "Completed",
+                    onboardingCompletedAt: serverTimestamp()
+                });
+
+                document.getElementById('wizardBody').style.display = 'none';
+                document.getElementById('successScreen').style.display = 'block';
+                lucide.createIcons();
+
+                // Store destination URL
+                window._dashboardUrl = 'index.html';
+            } catch (err) {
+                console.error(err);
+                showError(err.message || "Code engine might not be configured.", "Finalize Failed");
+                document.getElementById('btnNext').disabled = false;
+            }
+        }
+
+        function showError(message, title = "Finalize Failed") {
+            document.getElementById('dialogTitle').innerText = title;
+            document.getElementById('dialogDesc').innerText = message;
+            const modal = document.getElementById('customDialogModal');
+            modal.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        document.getElementById('closeDialogBtn')?.addEventListener('click', () => {
+            document.getElementById('customDialogModal')?.classList.remove('active');
+        });
+
+        window.simulateDocUpload = async (docName, inputEl) => {
+            const file = inputEl.files[0];
+            if (!file) return;
+
+            const nameSuffix = inputEl.id.split('_')[1];
+            const statusEl = document.getElementById(`status_${nameSuffix}`);
+            if (statusEl) {
+                statusEl.innerText = "🔄 Uploading...";
+                statusEl.style.color = "#3b82f6";
+            }
+
+            setTimeout(async () => {
+                if (!formData.uploadedDocs) formData.uploadedDocs = [];
+                if (!formData.uploadedDocs.includes(docName)) {
+                    formData.uploadedDocs.push(docName);
+                }
+
+                if (formData.skippedDocs) {
+                    formData.skippedDocs = formData.skippedDocs.filter(d => d !== docName);
+                }
+
+                const allMandatory = ['Identity Proof', 'Address Proof', 'Academic Certificates'];
+                const pending = allMandatory.filter(d => !formData.uploadedDocs.includes(d));
+                formData.pendingDocuments = pending;
+
+                localStorage.setItem(`onboarding_draft_${empId}`, JSON.stringify(formData));
+
+                try {
+                    const empRef = doc(db, 'users', empId);
+                    await updateDoc(empRef, {
+                        uploadedDocs: formData.uploadedDocs,
+                        skippedDocs: formData.skippedDocs || [],
+                        pendingDocuments: pending,
+                        updatedAt: serverTimestamp()
+                    });
+                    showSaveDraftToast();
+                } catch (e) {
+                    console.error("Firestore sync error:", e);
+                }
+
+                if (statusEl) {
+                    statusEl.innerText = "✅ Uploaded (" + file.name + ")";
+                    statusEl.style.color = "#10b981";
+                }
+
+                const skipCheck = document.getElementById(`skip_${nameSuffix}`);
+                if (skipCheck) skipCheck.checked = false;
+            }, 1000);
+        };
+
+        window.toggleDocSkip = async (docName, checked) => {
+            if (!formData.skippedDocs) formData.skippedDocs = [];
+
+            if (checked) {
+                if (!formData.skippedDocs.includes(docName)) {
+                    formData.skippedDocs.push(docName);
+                }
+                if (formData.uploadedDocs) {
+                    formData.uploadedDocs = formData.uploadedDocs.filter(d => d !== docName);
+                }
+            } else {
+                formData.skippedDocs = formData.skippedDocs.filter(d => d !== docName);
+            }
+
+            const allMandatory = ['Identity Proof', 'Address Proof', 'Academic Certificates'];
+            const pending = allMandatory.filter(d => !formData.uploadedDocs.includes(d));
+            formData.pendingDocuments = pending;
+
+            localStorage.setItem(`onboarding_draft_${empId}`, JSON.stringify(formData));
+
+            try {
+                const empRef = doc(db, 'users', empId);
+                await updateDoc(empRef, {
+                    uploadedDocs: formData.uploadedDocs || [],
+                    skippedDocs: formData.skippedDocs,
+                    pendingDocuments: pending,
+                    updatedAt: serverTimestamp()
+                });
+                showSaveDraftToast();
+
+                const nameSuffix = docName.toLowerCase().split(' ')[0];
+                const statusEl = document.getElementById(`status_${nameSuffix}`);
+                if (statusEl && !checked) {
+                    statusEl.innerText = "⚠️ Pending";
+                    statusEl.style.color = "#f59e0b";
+                } else if (statusEl && checked) {
+                    statusEl.innerText = "⏭️ Skipped";
+                    statusEl.style.color = "#94a3b8";
+                }
+            } catch (e) {
+                console.error("Firestore sync error:", e);
+            }
+        };
+
+        let toastTimeout;
+        function showSaveDraftToast() {
+            const toast = document.getElementById('saveDraftToast');
+            if (!toast) return;
+            
+            // Clear any active transitions or timeouts
+            clearTimeout(toastTimeout);
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+            
+            toastTimeout = setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+            }, 2500);
+        }
+
+        window.skipUnknownStep = () => {
+            if (currentStepIdx < flowSteps.length - 1) {
+                currentStepIdx++;
+                renderStep();
+            } else {
+                finalize();
+            }
+        };
+
+        // Navigate to index.html after onboarding completes
+        window.goDashboard = () => {
+            window.location.href = 'index.html';
+        };
+
+        initWizard();
+    </script>
+</body>
+
+</html>

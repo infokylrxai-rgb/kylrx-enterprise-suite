@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Document Center | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    <style>
+        .doc-center-grid {
+            display: grid; grid-template-columns: 1fr 380px; gap: 2rem;
+        }
+
+        .doc-card {
+            background: white; border-radius: 24px; padding: 2rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+
+        .doc-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .doc-category-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-top: 2rem;
+        }
+
+        .category-item {
+            padding: 1.5rem; background: #f8fafc; border-radius: 20px;
+            text-align: center; border: 1px solid transparent; transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .category-item:hover { background: white; border-color: var(--primary-soft); box-shadow: var(--shadow-sm); }
+        .category-item i { color: var(--primary); margin-bottom: 12px; }
+
+        .doc-table {
+            width: 100%; border-collapse: collapse; margin-top: 2rem;
+        }
+
+        .doc-table th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .doc-table td { padding: 1.25rem 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+
+        .security-badge {
+            background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 100px;
+            font-size: 0.65rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        .archive-list {
+            display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;
+        }
+
+        .archive-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border);
+        }
+
+        /* Toasts */
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <!-- Confirm Modal -->
+    <div id="disburseModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+            <div style="width: 64px; height: 64px; background: #eff6ff; color: #3b82f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="send" size="32"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="disburseModalTitle">Confirm Disbursement</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="disburseModalDesc">...</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('disburseModal').style.display='none'">Cancel</button>
+                <button class="btn btn-primary" style="flex: 1; background: #10b981; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmDisburseBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Confirm Modal -->
+    <div id="exportConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+            <div style="width: 64px; height: 64px; background: #fef2f2; color: #ef4444; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i data-lucide="alert-triangle" size="32"></i>
+            </div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;">Missing Bank Details</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="exportConfirmModalDesc">...</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('exportConfirmModal').style.display='none'">Cancel</button>
+                <button class="btn btn-primary" style="flex: 1; background: #ef4444; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="btnConfirmExportAnyway">Export Anyway</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vault Modal -->
+    <div id="vaultModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 600px; height: 80vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-shrink: 0;">
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b;" id="vaultModalTitle">Secure Document Vault</h2>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;" id="vaultModalSubtitle">Viewing archived records</p>
+                </div>
+                <button onclick="document.getElementById('vaultModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x" size="24"></i></button>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem; position: relative; flex-shrink: 0;">
+                <input type="text" id="vaultSearchInput" placeholder="Search by employee name..." style="width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem;">
+                <i data-lucide="search" size="18" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+            </div>
+            
+            <div style="overflow-y: auto; flex: 1; border: 1px solid var(--border); border-radius: 16px; background: #f8fafc; padding: 1rem;" id="vaultItemsContainer">
+                <!-- Vault items list -->
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; flex-shrink: 0;">
+                <button class="btn btn-outline" style="padding: 12px 24px; border-radius: 12px;" onclick="document.getElementById('vaultModal').style.display='none'">Close Vault</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasts -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Action completed successfully!</span>
+    </div>
+
+    <div class="toast-notification" id="errorToast" style="border-color: #fecaca;">
+        <i data-lucide="alert-circle" style="color: #ef4444;"></i>
+        <span style="color: #b91c1c;">Operation failed.</span>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link active"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Payroll Document Center</h1>
+                    <p>Generate, encrypt, and archive employee financial and professional records.</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="triggerBatch()"><i data-lucide="play"></i> Auto-Generate Batch</button>
+                </div>
+            </header>
+
+            <div class="doc-center-grid">
+                <div class="doc-left">
+                    <div class="doc-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="font-weight: 800;">Batch Generation Command</h3>
+                            <div class="security-badge"><i data-lucide="shield" size="12"></i> AES-256 Encrypted</div>
+                        </div>
+                        
+                        <div class="doc-category-grid">
+                            <div class="category-item" onclick="filterDocsByType('Payslip')">
+                                <i data-lucide="file-spreadsheet" size="32"></i>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">Monthly Payslips</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Full-Time Employees</p>
+                            </div>
+                            <div class="category-item" onclick="filterDocsByType('Invoice')">
+                                <i data-lucide="receipt" size="32"></i>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">Service Invoices</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Interns & Consultants</p>
+                            </div>
+                            <div class="category-item" onclick="filterDocsByType('F&F Settlement')">
+                                <i data-lucide="award" size="32"></i>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">Experience Letters</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">F&amp;F &amp; Settlements</p>
+                            </div>
+                            <div class="category-item" onclick="window.location.href='hrms-dashboard.html#payroll'">
+                                <i data-lucide="trending-up" size="32"></i>
+                                <h4 style="font-size: 0.9rem; font-weight: 800;">HRMS Pay Slip Hub</h4>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Generate &amp; Export</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="doc-card" style="margin-top: 2rem; border-color: #10b981;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3 style="font-weight: 800; color: #059669;">1-Click Salary Disbursement</h3>
+                            <div class="security-badge" style="background: #eff6ff; color: #3b82f6;"><i data-lucide="lock" size="12"></i> Admin Controlled</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                            <label style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; font-weight: 700;">
+                                Payment Authority
+                                <select id="paymentAuthority" style="padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit;" onchange="document.getElementById('disbursementTargetContainer').style.display = this.value === 'Admin' ? 'flex' : 'none'">
+                                    <option value="HRMS">HRMS (Automated Gateway)</option>
+                                    <option value="Admin">Admin (Direct Bank Transfer)</option>
+                                </select>
+                            </label>
+                            <label id="disbursementTargetContainer" style="display: none; flex-direction: column; gap: 8px; font-size: 0.85rem; font-weight: 700;">
+                                Disbursement Target
+                                <select style="padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit;">
+                                    <option>All Employees & Managers</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; justify-content: center; background: #10b981; border: none; font-size: 1rem; padding: 14px;" onclick="triggerDisbursement()">
+                            <i data-lucide="banknote"></i> Pay Salaries Now (1-Click)
+                        </button>
+                        <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 12px; font-size: 0.9rem; padding: 12px;" onclick="exportBankFileFromDocs()">
+                            <i data-lucide="landmark"></i> Export Bank Transfer CSV
+                        </button>
+                    </div>
+
+                    <div class="doc-card" style="margin-top: 2rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Recent Generations</h3>
+                        <table class="doc-table">
+                            <thead>
+                                <tr>
+                                    <th>EMPLOYEE</th>
+                                    <th>TYPE</th>
+                                    <th>ID / NO.</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: 700;">Arjun Mehta</td>
+                                    <td>Payslip (Oct 2026)</td>
+                                    <td>PS-2026-1042</td>
+                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">Generated</span></td>
+                                    <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 700;">Sarah Jenkins</td>
+                                    <td>Invoice (Oct 2026)</td>
+                                    <td>INV-2026-882</td>
+                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">Generated</span></td>
+                                    <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 700;">Michael Scott</td>
+                                    <td>F&F Settlement</td>
+                                    <td>FF-2026-012</td>
+                                    <td><span class="badge" style="background: #fff7ed; color: #f97316; font-size: 0.65rem;">Draft</span></td>
+                                    <td><i data-lucide="edit" size="16" style="cursor: pointer; color: var(--text-muted);"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="doc-right">
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; cursor: pointer; transition: all 0.2s ease;" onclick="window.location.href='admin-dashboard-builder.html'" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='none';">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Payroll Distribution</h3>
+                        <canvas id="payrollChart" height="250"></canvas>
+                        <div style="margin-top: 1.5rem; display: grid; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                                <span style="color: var(--text-muted);">Total Disbursed</span>
+                                <span id="totalDisbursed" style="font-weight: 800;">₹0.00</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                                <span style="color: var(--text-muted);">Tax Deductions (TDS)</span>
+                                <span id="totalTDS" style="font-weight: 800; color: #ef4444;">₹0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1rem;">Automated Archives</h3>
+                        <div class="archive-list">
+                            <div class="archive-item">
+                                <div><p style="font-weight: 700; font-size: 0.8rem;">September 2026</p><p style="font-size: 0.7rem; color: var(--text-muted);">842 Documents</p></div>
+                                <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
+                            </div>
+                            <div class="archive-item">
+                                <div><p style="font-weight: 700; font-size: 0.8rem;">August 2026</p><p style="font-size: 0.7rem; color: var(--text-muted);">838 Documents</p></div>
+                                <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" onclick="openVaultModal('')" style="width: 100%; margin-top: 1.5rem; font-size: 0.75rem;">Access Vault</button>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: #eff6ff; border: 1px solid #dbeafe; padding: 1rem; margin-top: 2rem; display: flex; gap: 12px; align-items: center;">
+                        <i data-lucide="info" style="color: var(--primary);"></i>
+                        <p style="font-size: 0.75rem; color: var(--primary-dark); line-height: 1.4;"><strong>SLA:</strong> Document generation for the current cycle is <strong>98% complete</strong>. 12 invoices pending approval.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { collection, query, orderBy, limit, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { generateMonthlyBatch, disburseSalaries } from "./payroll-doc-service.js";
+        import { downloadPayslipFromDoc } from "./payslip-pdf-service.js";
+        import { exportBankTransferCSV, enrichEmployeeBankDetails } from "./bank-export-service.js";
+
+        let cachedPayrollDocs = [];
+        let docTypeFilter = null;
+
+        // ─────────────────────────────────────────────
+        // EMAIL API CONFIGURATION
+        // ─────────────────────────────────────────────
+        const EMAIL_API_KEY = "6f8d75dc-500b-4eb1-b0db-6e6b4e7235db"; // Pre-validated, live SMTP token for direct delivery
+        const SENDER_EMAIL = "payroll@kylrxai.com";
+
+        window.showToast = (msg, isError = false) => {
+            const id = isError ? 'errorToast' : 'successToast';
+            const toast = document.getElementById(id);
+            toast.querySelector('span').textContent = msg;
+            toast.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        };
+
+        window.triggerBatch = async () => {
+            showToast('Initiating Monthly Batch Generation...');
+            try {
+                const month = new Date().toLocaleString('default', { month: 'long' });
+                const year = new Date().getFullYear();
+                const result = await generateMonthlyBatch(month, year);
+                showToast(`Successfully generated ${result.count} documents.`);
+                loadRecentGenerations();
+            } catch (err) {
+                showToast("Batch generation failed: " + err.message, true);
+            }
+        };
+
+        window.triggerDisbursement = () => {
+            const authority = document.getElementById('paymentAuthority').value;
+            const modal = document.getElementById('disburseModal');
+            const title = document.getElementById('disburseModalTitle');
+            const desc = document.getElementById('disburseModalDesc');
+            const total = document.getElementById('totalDisbursed').textContent;
+
+            if (authority === 'HRMS') {
+                title.textContent = 'Transfer to HRMS Gateway';
+                desc.textContent = `You are authorizing a total lump sum transfer of ${total} to the automated HRMS Gateway. HRMS will handle distribution to employees and managers.`;
+            } else {
+                title.textContent = 'Direct Admin Disbursement';
+                desc.textContent = `You are taking manual control. You will directly disburse a total of ${total} to all managers and employees via bank transfer.`;
+            }
+
+            modal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+            
+            document.getElementById('confirmDisburseBtn').onclick = async () => {
+                if (authority === 'Admin') {
+                    modal.style.display = 'none';
+                    showToast("Redirecting to Bank Transfer Center...");
+                    setTimeout(() => {
+                        window.location.href = 'admin-bank-transfer.html?type=salary';
+                    }, 1200);
+                    return;
+                }
+                modal.style.display = 'none';
+                showToast(`Processing via ${authority}...`);
+                try {
+                    let result = await disburseSalaries(authority);
+                    if (result.count === 0) {
+                        showToast("No pending records; auto-generating current cycle batch...", false);
+                        const month = new Date().toLocaleString('default', { month: 'long' });
+                        const year = new Date().getFullYear();
+                        await generateMonthlyBatch(month, year);
+                        result = await disburseSalaries(authority);
+                    }
+
+                    if (result.count === 0) {
+                        showToast("No payrolls to disburse.", true);
+                    } else {
+                        showToast(`Successfully authorized payments to ${result.count} personnel via ${authority}.`);
+                        loadRecentGenerations();
+                    }
+                } catch (err) {
+                    showToast("Disbursement failed: " + err.message, true);
+                }
+            };
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    loadRecentGenerations();
+                    loadPayrollStats();
+                } else {
+                    // window.location.href = 'login.html';
+                }
+            });
+            if (window.lucide) lucide.createIcons();
+        });
+
+        async function loadPayrollStats() {
+            try {
+                const q = query(collection(db, 'payroll_documents'));
+                const snap = await getDocs(q);
+                let total = 0;
+                let tds = 0;
+                let breakdown = { basic: 0, hra: 0, variable: 0, tax: 0 };
+                
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    total += Number(data.grossSalary || 0);
+                    tds += Number(data.deductions || 0);
+                    
+                    if (data.breakdown) {
+                        breakdown.basic += data.breakdown.basic || 0;
+                        breakdown.hra += data.breakdown.hra || 0;
+                        breakdown.variable += data.breakdown.variable || 0;
+                        breakdown.tax += data.breakdown.tax || 0;
+                    }
+                });
+
+                document.getElementById('totalDisbursed').textContent = `₹${(total / 100000).toFixed(2)}L`;
+                document.getElementById('totalTDS').textContent = `₹${(tds / 100000).toFixed(2)}L`;
+
+                // Update Chart with real aggregated data
+                const chartData = total > 0 
+                    ? [breakdown.basic, breakdown.hra, breakdown.variable, breakdown.tax]
+                    : [45, 25, 20, 10]; // Fallback to template ratio if no data
+                
+                initCharts(chartData);
+            } catch (err) {
+                console.error("Failed to load payroll stats:", err);
+                initCharts([45, 25, 20, 10]);
+            }
+        }
+
+        window.filterDocsByType = (type) => {
+            docTypeFilter = type;
+            renderRecentDocsTable();
+            showToast(`Showing ${type} documents`);
+        };
+
+        window.downloadPayrollDoc = async (docId) => {
+            const data = cachedPayrollDocs.find(d => d.id === docId);
+            if (!data) return;
+            try {
+                showToast('Preparing download...');
+                await downloadPayslipFromDoc(data);
+            } catch (err) {
+                showToast('Download failed: ' + err.message, true);
+            }
+        };
+
+        function renderRecentDocsTable() {
+            const tbody = document.querySelector('.doc-table tbody');
+            const docs = docTypeFilter
+                ? cachedPayrollDocs.filter(d => d.docType === docTypeFilter)
+                : cachedPayrollDocs.slice(0, 10);
+
+            tbody.innerHTML = '';
+            if (!docs.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">No documents found.</td></tr>';
+                return;
+            }
+            docs.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 700;">${data.employeeName || 'Unknown'}</td>
+                    <td>${data.docType} (${data.period || 'N/A'})</td>
+                    <td>${data.docId || data.id}</td>
+                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">${data.status}</span></td>
+                    <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);" onclick="downloadPayrollDoc('${data.id}')"></i></td>
+                `;
+                tbody.appendChild(row);
+            });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function loadRecentGenerations() {
+            const tbody = document.querySelector('.doc-table tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Fetching generation logs...</td></tr>';
+            try {
+                const q = query(collection(db, 'payroll_documents'), orderBy('createdAt', 'desc'), limit(50));
+                const snap = await getDocs(q);
+                cachedPayrollDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderRecentDocsTable();
+                loadArchives();
+            } catch (err) {
+                console.error("Failed to load documents:", err);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #ef4444;">Failed to load logs.</td></tr>';
+            }
+        }
+
+        window.exportBankFileFromDocs = async () => {
+            try {
+                let documentsToExport = cachedPayrollDocs.filter(x => x.status === 'Generated' || x.status === 'Paid');
+                
+                // Fallback to active organization directory if no payroll batch has been run yet
+                if (documentsToExport.length === 0) {
+                    showToast('No active payroll docs; exporting organization directory...', false);
+                    const usersSnap = await getDocs(collection(db, 'users'));
+                    for (const userDoc of usersSnap.docs) {
+                        const userData = userDoc.data();
+                        if ((userData.role || '').toLowerCase() === 'admin') continue;
+                        documentsToExport.push({
+                            employeeId: userDoc.id,
+                            employeeName: userData.name || 'Employee',
+                            employeeCode: userData.employeeCode || userDoc.id.substring(0, 8).toUpperCase(),
+                            designation: userData.designation || 'Specialist',
+                            grossSalary: userData.salary || 50000,
+                            netPay: (userData.salary || 50000) * 0.9
+                        });
+                    }
+                }
+
+                const employees = [];
+                for (const d of documentsToExport) {
+                    const profileSnap = await getDoc(doc(db, 'payroll_profiles', d.employeeId)).catch(() => null);
+                    const profile = profileSnap?.exists() ? profileSnap.data() : {};
+                    const net = d.netPay ?? (d.grossSalary - (d.deductions || 0));
+                    employees.push(enrichEmployeeBankDetails({
+                        id: d.employeeId,
+                        name: d.employeeName,
+                        employeeCode: d.employeeCode,
+                        department: d.designation,
+                        net
+                    }, profile));
+                }
+                if (!employees.length) {
+                    showToast('No employees found to export.', true);
+                    return;
+                }
+
+                const incomplete = employees.filter(e => !e.bankAccount || !e.ifscCode);
+                if (incomplete.length > 0) {
+                    const desc = document.getElementById('exportConfirmModalDesc');
+                    desc.textContent = `${incomplete.length} employee(s) are missing bank account or IFSC information. Do you want to export the transfer file anyway?`;
+                    const modal = document.getElementById('exportConfirmModal');
+                    modal.style.display = 'flex';
+                    if (window.lucide) lucide.createIcons();
+                    
+                    document.getElementById('btnConfirmExportAnyway').onclick = () => {
+                        modal.style.display = 'none';
+                        const month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+                        const result = exportBankTransferCSV(employees, month, { bypassConfirm: true });
+                        if (result.exported) showToast(`Exported ${result.count} bank transfer rows.`);
+                    };
+                } else {
+                    const month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+                    const result = exportBankTransferCSV(employees, month);
+                    if (result.exported) showToast(`Exported ${result.count} bank transfer rows.`);
+                }
+            } catch (err) {
+                showToast('Bank export failed: ' + err.message, true);
+            }
+        };
+
+        window.openVaultModal = (periodLabel) => {
+            const modal = document.getElementById('vaultModal');
+            const title = document.getElementById('vaultModalTitle');
+            const subtitle = document.getElementById('vaultModalSubtitle');
+            
+            title.textContent = periodLabel ? `Secure Vault: ${periodLabel}` : `Secure Document Vault`;
+            
+            // Filter documents for this period if periodLabel is provided, otherwise show all cached documents
+            const periodDocs = periodLabel 
+                ? cachedPayrollDocs.filter(d => (d.period || '').toLowerCase() === periodLabel.toLowerCase())
+                : cachedPayrollDocs;
+                
+            subtitle.textContent = `${periodDocs.length} encrypted record(s) archived`;
+            
+            const container = document.getElementById('vaultItemsContainer');
+            
+            const renderVaultList = (filterText = '') => {
+                const filtered = periodDocs.filter(d => (d.employeeName || '').toLowerCase().includes(filterText.toLowerCase()));
+                if (filtered.length === 0) {
+                    container.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem;">No archived records found.</div>`;
+                    return;
+                }
+                
+                container.innerHTML = filtered.map(d => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin-bottom: 8px; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                        <div>
+                            <p style="font-weight: 700; font-size: 0.9rem; color: #1e293b;">${d.employeeName || 'Unknown'}</p>
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">${d.docType} • ${d.docId || d.id}</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 0.7rem; font-weight: 800; background: #ecfdf5; color: #059669; padding: 2px 8px; border-radius: 100px;">${d.status}</span>
+                            <button onclick="downloadPayrollDoc('${d.id}')" style="background: none; border: none; cursor: pointer; color: var(--primary); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">
+                                <i data-lucide="download" size="16"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            };
+            
+            renderVaultList();
+            
+            document.getElementById('vaultSearchInput').value = '';
+            document.getElementById('vaultSearchInput').oninput = (e) => {
+                renderVaultList(e.target.value);
+            };
+            
+            modal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+        };
+
+        async function loadArchives() {
+            const archiveContainer = document.querySelector('.archive-list');
+            try {
+                const snap = await getDocs(collection(db, 'payroll_documents'));
+                const count = snap.size;
+                const month = new Date().toLocaleString('default', { month: 'long' });
+                const year = new Date().getFullYear();
+                const periodLabel = `${month} ${year}`;
+
+                archiveContainer.innerHTML = `
+                    <div class="archive-item" style="cursor: pointer;" onclick="openVaultModal('${periodLabel}')">
+                        <div><p style="font-weight: 700; font-size: 0.8rem;">${month} ${year}</p><p style="font-size: 0.7rem; color: var(--text-muted);">${count} Documents</p></div>
+                        <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error("Archive sync failed:", err);
+            }
+        }
+
+        function initCharts(chartData) {
+            const canvas = document.getElementById('payrollChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.myPayrollChart) window.myPayrollChart.destroy();
+
+            window.myPayrollChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Basic', 'HRA', 'Variable', 'PF/Tax'],
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#ef4444'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                }
+            });
+        }
+    </script>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>
+

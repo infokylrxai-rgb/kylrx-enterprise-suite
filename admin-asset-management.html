@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Asset Management | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💻</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        .asset-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;
+        }
+
+        .asset-stat-card {
+            background: white; border-radius: 20px; padding: 1.5rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            display: flex; align-items: center; gap: 1rem;
+        }
+
+        .asset-stat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .asset-item-card {
+            background: white; border-radius: 24px; padding: 1.5rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+
+        .asset-item-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .asset-tag {
+            position: absolute; top: 1.5rem; right: 1.5rem;
+            padding: 4px 10px; border-radius: 100px; font-size: 0.65rem; font-weight: 800;
+        }
+
+        .asset-type-badge {
+            background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px;
+            font-size: 0.65rem; font-weight: 700; display: inline-block; margin-bottom: 8px;
+        }
+
+        .allocation-history {
+            margin-top: 2rem; background: white; border-radius: 24px; padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 0; border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child { border-bottom: none; }
+
+        .qr-placeholder {
+            width: 40px; height: 40px; background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;
+        }
+        .qr-placeholder:hover {
+            border-color: var(--primary); color: var(--primary); background: #eff6ff;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link active"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Enterprise Asset Inventory</h1>
+                    <p>Track hardware lifecycle, manage allocations, and orchestrate employee declarations.</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline" onclick="togglePrintModal(true)"><i data-lucide="printer"></i> Print Labels</button>
+                    <button class="btn btn-primary" onclick="toggleAssetModal(true)"><i data-lucide="plus"></i> Add New Asset</button>
+                </div>
+            </header>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div class="asset-stat-card">
+                    <div class="asset-stat-icon" style="background: #eff6ff; color: #3b82f6;"><i data-lucide="cpu"></i></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Total Assets</p><h3 style="font-weight: 800;" id="statTotal">...</h3></div>
+                </div>
+                <div class="asset-stat-card">
+                    <div class="asset-stat-icon" style="background: #f0fdf4; color: #22c55e;"><i data-lucide="user-check"></i></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Allocated</p><h3 style="font-weight: 800;" id="statAllocated">...</h3></div>
+                </div>
+                <div class="asset-stat-card">
+                    <div class="asset-stat-icon" style="background: #fff7ed; color: #f59e0b;"><i data-lucide="wrench"></i></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">In Repair</p><h3 style="font-weight: 800;" id="statRepair">...</h3></div>
+                </div>
+                <div class="asset-stat-card">
+                    <div class="asset-stat-icon" style="background: #fef2f2; color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
+                    <div><p style="font-size: 0.75rem; color: var(--text-muted);">Missing/Lost</p><h3 style="font-weight: 800;" id="statMissing">...</h3></div>
+                </div>
+            </div>
+
+            <div class="asset-grid" id="assetGrid">
+                <!-- Asset Cards Dynamically Injected -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 5rem;">
+                    <i data-lucide="loader" class="animate-spin" size="32" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <p style="color: var(--text-muted);">Syncing organizational inventory...</p>
+                </div>
+            </div>
+
+            <div class="allocation-history">
+                <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Recent Asset Transactions</h3>
+                <div id="transactionHistory">
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">Retrieving transaction audit logs...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Asset Modal -->
+    <div class="modal-overlay" id="assetModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Provision New Asset</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Onboard new hardware into the enterprise ecosystem</p>
+                </div>
+                <button class="action-icon" onclick="toggleAssetModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label class="nav-label">ASSET NAME</label>
+                    <input type="text" id="assetName" class="input-box" placeholder="e.g. MacBook Pro M3" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="nav-label">TYPE</label>
+                        <select id="assetType" class="input-box" style="width: 100%; margin-top: 8px;">
+                            <option>Laptop</option>
+                            <option>Mobile</option>
+                            <option>Peripheral</option>
+                            <option>Furniture</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="nav-label">ASSET TAG</label>
+                        <div style="position: relative; margin-top: 8px;">
+                            <input type="text" id="assetTag" class="input-box" placeholder="HRF-LP-2026-XXX" style="width: 100%; padding-right: 40px;">
+                            <button id="btnGenTag" class="action-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; color: var(--primary);" title="Auto-generate Tag">
+                                <i data-lucide="refresh-cw" size="14"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btnSaveAsset" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="save"></i> Initialize Asset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Labels Modal -->
+    <div class="modal-overlay" id="printModal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Asset Labelling Hub</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Generate QR labels for physical hardware tracking</p>
+                </div>
+                <button class="action-icon" onclick="togglePrintModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="labelPreviewGrid">
+                <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center;">
+                    <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <p style="font-weight: 800; font-size: 0.9rem;">HRF-LP-084</p>
+                    <p style="font-size: 0.65rem; color: var(--text-muted);">MacBook Pro M2</p>
+                </div>
+                <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center;">
+                    <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <p style="font-weight: 800; font-size: 0.9rem;">HRF-MB-112</p>
+                    <p style="font-size: 0.65rem; color: var(--text-muted);">iPhone 15 Pro</p>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 2rem; justify-content: center; padding: 1rem;" onclick="window.print()">
+                <i data-lucide="printer"></i> Send to Asset Printer
+            </button>
+        </div>
+    </div>
+
+    <!-- Allocate Asset Modal -->
+    <div class="modal-overlay" id="allocateModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Allocate Asset</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);" id="allocateModalSubtitle">Assign hardware to an active employee</p>
+                </div>
+                <button class="action-icon" onclick="toggleAllocateModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label class="nav-label">SELECT EMPLOYEE</label>
+                    <select id="allocateEmployeeSelect" class="input-box" style="width: 100%; margin-top: 8px;">
+                        <!-- Dynamically populated employees -->
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="btnConfirmAllocate" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="user-check"></i> Complete Assignment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View QR Modal -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
+                <h3 style="font-weight: 800; font-size: 1.2rem; margin: 0; text-align: left;" id="qrModalTitle">Asset QR Code</h3>
+                <button class="action-icon" onclick="toggleQrModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            <div style="background: #f8fafc; padding: 2rem; border-radius: 20px; border: 1px solid var(--border); display: inline-block; margin-bottom: 1.5rem;">
+                <img id="qrModalImage" src="" alt="Asset QR Code" style="width: 200px; height: 200px; display: block; border-radius: 8px; margin: 0 auto;">
+            </div>
+            <p id="qrModalTag" style="font-weight: 800; font-size: 1.1rem; color: var(--text-main); margin-bottom: 4px;">HRF-LP-2026-108</p>
+            <p id="qrModalName" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Samsung Galaxy S26 Ultra</p>
+        </div>
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div style="background: #fef2f2; color: #ef4444; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
+                <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: #ef4444;"></i>
+            </div>
+            <h3 style="font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem; color: #1e293b;">Deprovision Asset?</h3>
+            <p id="deleteConfirmMsg" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to permanently remove this asset from the organization database? This action cannot be undone.</p>
+            
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="toggleDeleteModal(false)">Cancel</button>
+                <button class="btn btn-primary" id="btnConfirmDeleteAsset" style="flex: 1; justify-content: center; background: #ef4444; border-color: #ef4444;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Asset initialized in enterprise database.</span>
+    </div>
+
+    <style>
+        .toast-notification {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+            display: none; align-items: center; gap: 12px; z-index: 5000;
+            border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast-notification.active { display: flex; }
+        .toast-notification i { color: #10b981; width: 24px; height: 24px; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: white; border-radius: 32px; padding: 3rem;
+            width: 500px; max-width: 95%; box-shadow: var(--shadow-lg);
+            animation: modalSlide 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        @keyframes modalSlide { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .input-box {
+            background: #f8fafc; border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.75rem 1rem; font-family: inherit;
+            font-weight: 600; font-size: 0.9rem; color: #1e293b; outline: none;
+            transition: 0.2s;
+        }
+        .input-box:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05); }
+        .action-icon {
+            background: #f1f5f9; border: none; width: 32px; height: 32px;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            color: #64748b; cursor: pointer; transition: 0.2s;
+        }
+        .action-icon:hover { background: #e2e8f0; color: #1e293b; }
+    </style>
+
+    <script type="module">
+        import { db, auth } from "./firebase-config.js";
+        import { getAssets, getAssetStats, getAssetLogs, addAsset, allocateAsset, deleteAsset } from "./asset-service.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        async function initDashboard() {
+            loadStats();
+            renderAssets();
+            loadHistory();
+        }
+
+        async function loadStats() {
+            try {
+                const stats = await getAssetStats();
+                document.getElementById('statTotal').textContent = stats.total.toLocaleString();
+                document.getElementById('statAllocated').textContent = stats.allocated.toLocaleString();
+                document.getElementById('statRepair').textContent = stats.repair.toLocaleString();
+                document.getElementById('statMissing').textContent = stats.missing.toLocaleString();
+            } catch (err) {
+                console.error("Error loading stats:", err);
+            }
+        }
+
+        async function renderAssets() {
+            const grid = document.getElementById('assetGrid');
+            try {
+                const assets = await getAssets();
+                if (assets.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 5rem; color: var(--text-muted);">No assets registered in the cloud.</div>';
+                    return;
+                }
+
+                grid.innerHTML = assets.map(a => {
+                    const tagColor = a.status === 'Allocated' ? '#059669' : a.status === 'In Stock' ? '#3b82f6' : '#f59e0b';
+                    const tagBg = a.status === 'Allocated' ? '#ecfdf5' : a.status === 'In Stock' ? '#eff6ff' : '#fff7ed';
+                    
+                    return `
+                        <div class="asset-item-card">
+                            <span class="asset-tag" style="background: ${tagBg}; color: ${tagColor};">${a.status}</span>
+                            <div class="asset-type-badge">${a.type}</div>
+                            <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">${a.name}</h4>
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: ${a.tag}</p>
+                            
+                            <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                                    <i data-lucide="${a.assignedTo ? 'user' : 'package'}" size="16"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <p style="font-size: 0.8rem; font-weight: 700;">${a.assignedToName || 'Unassigned'}</p>
+                                    <p style="font-size: 0.65rem; color: var(--text-muted);">${a.assignedTo ? 'Allocated' : 'In Warehouse'}</p>
+                                </div>
+                                <div class="qr-placeholder" onclick="viewAssetQR('${a.tag}', '${(a.name || '').replace(/'/g, "\\'")}')" title="View Asset QR Label"><i data-lucide="qr-code" size="20"></i></div>
+                            </div>
+                            
+                            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
+                                ${a.status === 'In Stock' ? 
+                                    `<button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;" onclick="showAllocationModal('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Assign to Employee</button>
+                                     <button class="btn btn-outline" style="font-size: 0.7rem; padding: 8px; color: #ef4444; border-color: #fca5a5; display: flex; align-items: center; justify-content: center;" onclick="deleteAssetConfirm('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')" title="Delete Asset"><i data-lucide="trash-2" size="14"></i></button>` :
+                                    `<button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;" onclick="showAllocationModal('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Re-Allocate</button>
+                                     <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;" onclick="deleteAssetConfirm('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Retire</button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Error rendering assets:", err);
+            }
+        }
+
+        async function loadHistory() {
+            const hist = document.getElementById('transactionHistory');
+            try {
+                const logs = await getAssetLogs();
+                if (logs.length === 0) {
+                    hist.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">No recent transactions recorded.</div>';
+                    return;
+                }
+
+                hist.innerHTML = logs.map(l => `
+                    <div class="history-item">
+                        <div><p style="font-weight: 700; font-size: 0.9rem;">${l.action} Recorded</p><p style="font-size: 0.75rem; color: var(--text-muted);">Asset: ${l.assetId}</p></div>
+                        <div style="text-align: right;">
+                            <p style="font-weight: 800; color: #3b82f6;">PROCESSED</p>
+                            <p style="font-size: 0.65rem; color: var(--text-muted);">${l.timestamp?.toDate().toLocaleString() || 'Recent'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Error loading history:", err);
+            }
+        }
+
+        window.toggleAssetModal = (show) => {
+            const modal = document.getElementById('assetModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        window.togglePrintModal = async (show) => {
+            const modal = document.getElementById('printModal');
+            if (show) {
+                modal.classList.add('active');
+                await renderPrintLabels();
+            } else {
+                modal.classList.remove('active');
+            }
+        };
+
+        async function renderPrintLabels() {
+            const grid = document.getElementById('labelPreviewGrid');
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;"><i data-lucide="loader" class="animate-spin" size="24" style="color: var(--primary);"></i><p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">Loading labels...</p></div>';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const assets = await getAssets();
+                if (assets.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">No assets found in the inventory to label.</div>';
+                    return;
+                }
+
+                grid.innerHTML = assets.slice(0, 8).map(a => `
+                    <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; background: #f8fafc;">
+                        <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                        <p style="font-weight: 800; font-size: 0.9rem;">${a.tag || 'NO-TAG'}</p>
+                        <p style="font-size: 0.65rem; color: var(--text-muted);">${a.name || a.type}</p>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error("Error rendering print labels:", err);
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #ef4444; font-size: 0.85rem;">Failed to load asset labels from database.</div>';
+            }
+        }
+
+        document.getElementById('btnGenTag')?.addEventListener('click', () => {
+            const type = document.getElementById('assetType').value || 'Asset';
+            const prefix = type === 'Laptop' ? 'LP' : type === 'Mobile' ? 'MB' : type === 'Peripheral' ? 'PR' : 'HW';
+            const year = new Date().getFullYear();
+            const rand = Math.floor(100 + Math.random() * 900);
+            const tag = `HRF-${prefix}-${year}-${rand}`;
+            
+            const input = document.getElementById('assetTag');
+            input.value = tag;
+        });
+
+        document.getElementById('btnSaveAsset')?.addEventListener('click', async () => {
+            const btn = document.getElementById('btnSaveAsset');
+            const data = {
+                name: document.getElementById('assetName').value,
+                type: document.getElementById('assetType').value,
+                tag: document.getElementById('assetTag').value
+            };
+
+            if (!data.name || !data.tag) return alert('Please complete all fields.');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Initializing...';
+            lucide.createIcons();
+
+            try {
+                await addAsset(data);
+                const toast = document.getElementById('successToast');
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                toggleAssetModal(false);
+                initDashboard();
+
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Save failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="save"></i> Initialize Asset';
+                lucide.createIcons();
+            }
+        });
+
+        let activeAssetIdForAllocation = null;
+
+        window.viewAssetQR = (tag, name) => {
+            const modal = document.getElementById('qrModal');
+            const img = document.getElementById('qrModalImage');
+            const txtTag = document.getElementById('qrModalTag');
+            const txtName = document.getElementById('qrModalName');
+            
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(tag)}`;
+            txtTag.textContent = tag;
+            txtName.textContent = name;
+            
+            modal.classList.add('active');
+        };
+
+        window.toggleQrModal = (show) => {
+            const modal = document.getElementById('qrModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        window.showAllocationModal = async (assetId, assetName) => {
+            activeAssetIdForAllocation = assetId;
+            document.getElementById('allocateModalSubtitle').textContent = `Assigning hardware: ${assetName}`;
+            
+            const select = document.getElementById('allocateEmployeeSelect');
+            select.innerHTML = '<option value="">Loading active personnel...</option>';
+            toggleAllocateModal(true);
+            
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                select.innerHTML = '';
+                usersSnap.forEach(doc => {
+                    const u = doc.data();
+                    const opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = `${u.name || 'Unknown'} (${u.department || 'Staff'})`;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Failed to load user directory:", err);
+                select.innerHTML = '<option value="">Failed to load employees</option>';
+            }
+        };
+
+        window.toggleAllocateModal = (show) => {
+            const modal = document.getElementById('allocateModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        document.getElementById('btnConfirmAllocate')?.addEventListener('click', async () => {
+            const employeeId = document.getElementById('allocateEmployeeSelect').value;
+            if (!employeeId || !activeAssetIdForAllocation) {
+                alert('Please select a valid employee.');
+                return;
+            }
+            
+            const btn = document.getElementById('btnConfirmAllocate');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Processing...';
+            lucide.createIcons();
+            
+            try {
+                const adminId = auth.currentUser ? auth.currentUser.uid : 'admin_it';
+                await allocateAsset(activeAssetIdForAllocation, employeeId, adminId);
+                
+                const toast = document.getElementById('successToast');
+                toast.querySelector('span').textContent = 'Asset allocated to employee successfully.';
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                toggleAllocateModal(false);
+                initDashboard();
+                
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Allocation failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="user-check"></i> Complete Assignment';
+                lucide.createIcons();
+            }
+        });
+
+        let activeAssetIdForDeletion = null;
+
+        window.deleteAssetConfirm = (assetId, assetName) => {
+            activeAssetIdForDeletion = assetId;
+            document.getElementById('deleteConfirmMsg').textContent = `Are you sure you want to permanently remove "${assetName}" from the organization database? This action cannot be undone.`;
+            toggleDeleteModal(true);
+        };
+
+        window.toggleDeleteModal = (show) => {
+            const modal = document.getElementById('deleteConfirmModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        document.getElementById('btnConfirmDeleteAsset')?.addEventListener('click', async () => {
+            if (!activeAssetIdForDeletion) return;
+            const btn = document.getElementById('btnConfirmDeleteAsset');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Deleting...';
+            if (window.lucide) lucide.createIcons();
+            
+            try {
+                await deleteAsset(activeAssetIdForDeletion);
+                const toast = document.getElementById('successToast');
+                toast.querySelector('span').textContent = 'Asset removed from inventory successfully.';
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                toggleDeleteModal(false);
+                initDashboard();
+                
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Deletion failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Delete';
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+
+        initDashboard();
+    </script>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>
+

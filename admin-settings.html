@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        // Immediate Auth Guard
+        if (localStorage.getItem('hr_logged_in') !== 'true') {
+            window.location.href = 'index.html';
+        }
+    </script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            --primary-dark: #2563eb;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --bg: #ffffff;
+            --bg-soft: #f8fafc;
+            --sidebar: #ffffff;
+            --card: rgba(255, 255, 255, 0.8);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius: 20px;
+            --glass: blur(12px);
+            --sidebar-width: 280px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text-main); overflow-x: hidden; }
+
+        .dashboard-container { display: flex; min-height: 100vh; }        /* Sidebar Styling */
+        .sidebar {width: var(--sidebar-width); background: var(--sidebar); border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem; display: flex; flex-direction: column; position: fixed; height: 100vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .sidebar:hover::-webkit-scrollbar-thumb {
+            background: var(--primary);
+        }
+        
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; }
+        .logo-icon {
+            width: 40px; height: 40px; background: var(--primary); color: white;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+        }
+        .logo-text { font-size: 1.25rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+
+        .nav-menu { flex: 1; list-style: none; }
+        .nav-item { margin-bottom: 0.5rem; }
+        .nav-link {display: flex; align-items: center; gap: 12px; padding: 12px 1rem; text-decoration: none;
+            color: var(--text-muted); border-radius: 14px; font-weight: 600; transition: all 0.2s ease;
+            font-size: 0.9rem;}
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); }
+        .nav-label { 
+            color: var(--text-muted); font-size: 0.65rem; font-weight: 800; 
+            text-transform: uppercase; letter-spacing: 0.08em; padding: 1.5rem 1rem 0.75rem; 
+            opacity: 0.8; 
+        }
+        .nav-link i { width: 20px; height: 20px; }
+
+        .sidebar-bottom { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+
+        /* Main Content Area */
+        .main-content { margin-left: var(--sidebar-width); flex: 1; padding: 2.5rem; background: var(--bg-soft); min-height: 100vh; }
+
+        .header-actions { margin-bottom: 2.5rem; }
+        .welcome-text h1 { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
+        .welcome-text p { color: var(--text-muted); }        /* Settings Layout */
+        .settings-grid { display: grid; grid-template-columns: 280px 1fr; gap: 2.5rem; align-items: start; }
+        
+        .settings-nav {
+            background: white; border-radius: var(--radius); border: 1px solid var(--border);
+            padding: 1rem; position: sticky; top: 2.5rem; box-shadow: var(--shadow-sm);
+        }
+        
+        .snav-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none;
+            color: var(--text-muted); border-radius: 12px; font-weight: 600; margin-bottom: 4px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent;
+        }
+        .snav-item:hover { background: var(--bg-soft); color: var(--text-main); }
+        .snav-item.active { background: var(--primary-light); color: var(--primary); border-color: var(--primary-soft); }
+        
+        .settings-content {
+            display: flex; flex-direction: column; gap: 2rem;
+        }
+        
+        .settings-card {
+            background: var(--card); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass);
+            border-radius: var(--radius); border: 1px solid var(--border); padding: 2.5rem;
+            box-shadow: var(--shadow); transition: transform 0.3s ease;
+        }
+        .settings-card:hover { transform: translateY(-2px); }
+        
+        .tab-content { display: none; animation: fadeIn 0.4s ease-out; }
+        .tab-content.active { display: flex; flex-direction: column; gap: 2rem; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .section-header { margin-bottom: 2rem; }
+        .section-header h2 { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+        .section-header p { color: var(--text-muted); font-size: 0.95rem; }
+        
+        /* Form Styling */
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group.full { grid-column: span 2; }
+        .form-group label { font-size: 0.9rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        
+        .form-control {
+            padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border);
+            background: var(--bg-soft); color: var(--text-main); font-family: inherit;
+            font-size: 0.95rem; transition: all 0.2s; outline: none;
+        }
+        .form-control:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px var(--primary-soft); }
+        
+        /* Switches and Sliders */
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border); }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info h4 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+        .setting-info p { font-size: 0.85rem; color: var(--text-muted); }
+        
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+            border-radius: 12px; font-weight: 700; cursor: pointer; border: none;
+            transition: all 0.2s; font-family: inherit; font-size: 0.95rem;
+        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3); }
+
+        .icon-btn { 
+            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .action-icon:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--border);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-icon i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2px;
+        }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4); }
+        
+        .danger-zone {
+            margin-top: 1rem; border: 1px solid #fee2e2; background: #fff1f2;
+            padding: 1.5rem; border-radius: var(--radius);
+        }
+
+        /* Centered Modal Styling */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 24px;
+            width: 400px; text-align: center; box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-overlay.active .status-modal { transform: scale(1); }
+        .modal-icon {
+            width: 64px; height: 64px; border-radius: 50%; background: var(--primary-light);
+            color: var(--primary); display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 2rem;
+        }
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.5; }
+
+        @media (max-width: 1024px) {
+            .sidebar {width: 80px; padding: 1.5rem 1rem;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+            .logo-text, .nav-link span { display: none; }
+            .main-content { margin-left: 80px; }
+            .settings-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+            
+                                                            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link active">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+                <div class="welcome-text">
+                    <h1>Configuration</h1>
+                    <p>Manage organization settings and system preferences</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                        <i data-lucide="message-square"></i>
+                    </button>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
+                        <i data-lucide="bell"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="settings-grid">
+                <div class="settings-nav">
+                    <a href="#" class="snav-item active" data-tab="general"><i data-lucide="building-2"></i> General</a>
+                    <a href="#" class="snav-item" data-tab="dashboard"><i data-lucide="layout"></i> Dashboard</a>
+                    <a href="#" class="snav-item" data-tab="ai"><i data-lucide="sparkles"></i> AI & Monitoring</a>
+                    <a href="#" class="snav-item" data-tab="payroll"><i data-lucide="banknote"></i> Payroll</a>
+                    <a href="#" class="snav-item" data-tab="tvc"><i data-lucide="tv"></i> TVC Config</a>
+                    <a href="#" class="snav-item" data-tab="security"><i data-lucide="shield"></i> Security</a>
+                    <a href="#" class="snav-item" data-tab="email"><i data-lucide="mail"></i> Email Config</a>
+                    <a href="#" class="snav-item" data-tab="onboarding_hr"><i data-lucide="user-plus"></i> Onboarding &amp; Roles</a>
+                </div>
+
+                <div class="settings-content">
+                    <!-- General Settings -->
+                    <div id="general" class="tab-content active">
+                        <form class="settings-card settingsForm" data-collection="general">
+                            <div class="section-header">
+                                <h2>General Configuration</h2>
+                                <p>Manage your company branding and system localization</p>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group full">
+                                    <label>Company Name</label>
+                                    <input type="text" class="form-control" name="company_name" placeholder="Kylrx AI Enterprise">
+                                </div>
+                                <div class="form-group">
+                                    <label>Timezone</label>
+                                    <select class="form-control" name="timezone">
+                                        <option value="IST">Asia/Kolkata (IST)</option>
+                                        <option value="UTC">UTC (Greenwich)</option>
+                                        <option value="EST">Eastern Time (EST)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Primary Language</label>
+                                    <select class="form-control" name="language">
+                                        <option value="en">English (US)</option>
+                                        <option value="hi">Hindi</option>
+                                        <option value="es">Spanish</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full">
+                                    <label>System Branding Color</label>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="color" name="brand_color" value="#3b82f6" style="width: 50px; height: 50px; border: none; padding: 0; background: none; cursor: pointer;">
+                                        <span style="font-size: 0.9rem; color: var(--text-muted);">Pick your corporate highlight color</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save General Settings</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Dashboard Settings -->
+                    <div id="dashboard" class="tab-content">
+                        <form class="settings-card settingsForm" data-collection="dashboard">
+                            <div class="section-header">
+                                <h2>Dashboard Configuration</h2>
+                                <p>Define default widgets and layout themes for admins</p>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <h4>Default Layout</h4>
+                                    <p>Choose the starting layout for new administrator accounts</p>
+                                </div>
+                                <select class="form-control" name="default_layout" style="width: 150px;">
+                                    <option value="grid">Grid View</option>
+                                    <option value="sidebar">Extended Sidebar</option>
+                                    <option value="tv">TV Monitor</option>
+                                </select>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <h4>Enable Glassmorphism</h4>
+                                    <p>Apply frosted glass effects across all dashboard cards</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" name="glass_mode" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <h4>Department Themes</h4>
+                                    <p>Allow departments to have custom color-coded styles</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" name="dept_themes">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save Layout Defaults</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- AI Settings -->
+                    <div id="ai" class="tab-content">
+                        <form class="settings-card settingsForm" data-collection="ai">
+                            <div class="section-header">
+                                <h2>AI & Focus Engine</h2>
+                                <p>Configure thresholds for productivity scoring and focus detection</p>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Productivity Threshold (%)</label>
+                                    <input type="number" class="form-control" name="prod_threshold" value="70">
+                                </div>
+                                <div class="form-group">
+                                    <label>Focus Detection Sensitivity</label>
+                                    <select class="form-control" name="focus_sensitivity">
+                                        <option value="low">Low (Relaxed)</option>
+                                        <option value="medium">Medium (Standard)</option>
+                                        <option value="high">High (Strict)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full">
+                                    <div class="setting-row">
+                                        <div class="setting-info">
+                                            <h4>AI Recommendations</h4>
+                                            <p>Enable automated AI suggestions for workforce improvement</p>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" name="ai_tips" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                    <div class="setting-row">
+                                        <div class="setting-info">
+                                            <h4>Automatic Warnings</h4>
+                                            <p>Trigger warnings when productivity drops below threshold</p>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" name="auto_warn">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save AI Config</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Payroll Settings -->
+                    <div id="payroll" class="tab-content">
+                        <form class="settings-card settingsForm" data-collection="payroll">
+                            <div class="section-header">
+                                <h2>Payroll Automation</h2>
+                                <p>Set up rules for performance-linked bonuses and penalties</p>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>High Performance Bonus (%)</label>
+                                    <input type="number" class="form-control" name="bonus_pct" value="10">
+                                </div>
+                                <div class="form-group">
+                                    <label>Focus Loss Penalty (%)</label>
+                                    <input type="number" class="form-control" name="penalty_pct" value="5">
+                                </div>
+                                <div class="form-group full">
+                                    <div class="setting-row">
+                                        <div class="setting-info">
+                                            <h4>Enable Auto-Payroll</h4>
+                                            <p>Automatically calculate and finalize payroll based on productivity</p>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" name="auto_payroll">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save Payroll Rules</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- TVC Settings -->
+                    <div id="tvc" class="tab-content">
+                        <form class="settings-card settingsForm" data-collection="tvc">
+                            <div class="section-header">
+                                <h2>TVC Monitoring Panel</h2>
+                                <p>Configure full-screen monitoring and rotation settings</p>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Rotation Interval (Sec)</label>
+                                    <input type="number" class="form-control" name="rotation_sec" value="30">
+                                </div>
+                                <div class="form-group">
+                                    <label>Ticker Speed</label>
+                                    <select class="form-control" name="ticker_speed">
+                                        <option value="slow">Slow</option>
+                                        <option value="normal">Normal</option>
+                                        <option value="fast">Fast</option>
+                                    </select>
+                                </div>
+                                <div class="form-group full">
+                                    <div class="setting-row">
+                                        <div class="setting-info">
+                                            <h4>Show Restricted Alerts</h4>
+                                            <p>Display real-time alerts when restricted apps are accessed</p>
+                                        </div>
+                                        <label class="switch">
+                                            <input type="checkbox" name="show_alerts" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save TVC Config</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Security Settings -->
+                    <div id="security" class="tab-content">
+                        <div class="settings-card">
+                            <form class="settingsForm" data-collection="security">
+                                <div class="section-header">
+                                    <h2>Security & Access Control</h2>
+                                    <p>Manage system safety and administrative locks</p>
+                                </div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Session Timeout (Min)</label>
+                                        <input type="number" class="form-control" name="session_timeout" value="60">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Password Policy</label>
+                                        <select class="form-control" name="pwd_policy">
+                                            <option value="standard">Standard (6+ Chars)</option>
+                                            <option value="strong">Strong (8+ Chars, Mix)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                                    <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Update Security</button>
+                                </div>
+                            </form>
+
+                            <div class="danger-zone" style="margin-top: 2.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                                    <div>
+                                        <h3 style="color: var(--danger); font-size: 1.1rem; margin-bottom: 8px;">Global System Lock</h3>
+                                        <p style="font-size: 0.85rem; color: #9f1239; line-height: 1.5;">
+                                            Prevent all non-admin users from accessing the system.
+                                        </p>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" id="systemLockToggle">
+                                        <span class="slider" style="background-color: #fecaca;"></span>
+                                    </label>
+                                </div>
+                                <p id="lockStatusText" style="margin-top: 10px; font-weight: 700; color: #be123c; font-size: 0.9rem;">Status: UNLOCKED</p>
+                            </div>
+                        </div>
+                    </div>
+
+                                        <!-- Onboarding & HR Rules Settings -->
+                    <div id="onboarding_hr" class="tab-content">
+                        <form class="settings-card settingsForm" data-collection="onboarding_hr" id="onboardingHrForm">
+                            <div class="section-header">
+                                <h2>👥 Onboarding, Roles &amp; Rules Configuration</h2>
+                                <p>Manage recruiter custom fields, custom roles created, probation rules, roster management, rotational week-offs, and company office locations.</p>
+                            </div>
+
+                            <!-- Recruiters Custom Fields -->
+                            <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem;">
+                                <h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-main); display: flex; align-items: center; gap: 8px;"><i data-lucide="list-plus" style="color: var(--primary);"></i> Recruiter Custom Fields</h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Define custom fields that recruiters can set for candidates during onboarding (e.g. LinkedIn Profile, T-Shirt Size, emergency contact details).</p>
+                                
+                                <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
+                                    <input type="text" id="newFieldName" class="form-control" placeholder="Field Label (e.g. T-Shirt Size)" style="flex: 1;">
+                                    <select id="newFieldType" class="form-control" style="width: 150px;" onchange="toggleFieldChoices()">
+                                        <option value="text">Text Input</option>
+                                        <option value="number">Number Input</option>
+                                        <option value="dropdown">Dropdown Options</option>
+                                    </select>
+                                    <input type="text" id="newFieldChoices" class="form-control" placeholder="Choices (comma separated)" style="flex: 1; display: none;">
+                                    <button type="button" class="btn btn-primary" onclick="addCustomFieldConfig()" style="font-size: 0.8rem; padding: 0 20px;"><i data-lucide="plus"></i> Add</button>
+                                </div>
+
+                                <div id="customFieldsList" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <!-- Dynamic fields list -->
+                                </div>
+                                <input type="hidden" name="custom_fields_json" id="customFieldsJson" value="[]">
+                            </div>
+
+                            <!-- Custom Roles & HR Access -->
+                            <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem;">
+                                <h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-main); display: flex; align-items: center; gap: 8px;"><i data-lucide="shield-alert" style="color: var(--primary);"></i> Custom Roles &amp; Access Controls</h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Configure custom roles and specify module access permissions across the HR team and employees.</p>
+                                
+                                <div style="background: var(--bg-soft); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 1.5rem;">
+                                    <div class="form-grid" style="margin-bottom: 1rem;">
+                                        <div class="form-group">
+                                            <label>Role Title</label>
+                                            <input type="text" id="newRoleTitle" class="form-control" placeholder="e.g. Leave Coordinator">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Description</label>
+                                            <input type="text" id="newRoleDesc" class="form-control" placeholder="e.g. Manages leave approvals">
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;">
+                                        <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">Module Access: </label>
+                                        <label><input type="checkbox" id="accessCandidates" style="margin-right: 4px;"> Candidates</label>
+                                        <label><input type="checkbox" id="accessLeaves" style="margin-right: 4px;"> Leaves</label>
+                                        <label><input type="checkbox" id="accessExits" style="margin-right: 4px;"> Exits</label>
+                                        <label><input type="checkbox" id="accessAssets" style="margin-right: 4px;"> Assets</label>
+                                        <label><input type="checkbox" id="accessSecurity" style="margin-right: 4px;"> Security</label>
+                                    </div>
+                                    <button type="button" class="btn btn-primary" onclick="addCustomRoleConfig()" style="font-size: 0.8rem; padding: 10px 20px;"><i data-lucide="plus"></i> Add Custom Role</button>
+                                </div>
+
+                                <div id="customRolesList" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <!-- Dynamic roles list -->
+                                </div>
+                                <input type="hidden" name="custom_roles_json" id="customRolesJson" value="[]">
+                            </div>
+
+                            <!-- Probation Config & Alerts -->
+                            <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 2rem;">
+                                <h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-main); display: flex; align-items: center; gap: 8px;"><i data-lucide="bell" style="color: var(--primary);"></i> Probation &amp; Completion Alerts</h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Configure employee probation rules and automated notifications for completion dates.</p>
+                                
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Default Probation Period</label>
+                                        <select class="form-control" name="default_probation_months">
+                                            <option value="1">1 Month</option>
+                                            <option value="3">3 Months (Standard)</option>
+                                            <option value="6">6 Months</option>
+                                            <option value="12">12 Months</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="justify-content: center;">
+                                        <div class="setting-row" style="border: none; padding: 0;">
+                                            <div class="setting-info">
+                                                <h4>Probation Completion Alerts</h4>
+                                                <p>Trigger automatic manager alerts 7 days before probation ends</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" name="probation_alerts_enabled" checked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Roster & Work Locations Config -->
+                            <div style="margin-bottom: 2rem;">
+                                <h3 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; color: var(--text-main); display: flex; align-items: center; gap: 8px;"><i data-lucide="calendar-range" style="color: var(--primary);"></i> Roster, Week-Offs &amp; Office Locations</h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Enable rotational rosters, set custom week-offs, specify active leave plans, and register official office locations.</p>
+                                
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <h4>Roster Management</h4>
+                                        <p>Enable shift schedules, roster views, and attendance rules for departments</p>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="roster_management_enabled" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <div class="setting-row">
+                                    <div class="setting-info">
+                                        <h4>Rotational Week-Off Options</h4>
+                                        <p>Enable week-off scheduling adjustments and rotational rest days</p>
+                                    </div>
+                                    <label class="switch">
+                                        <input type="checkbox" name="rotational_weekoffs_enabled" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+
+                                <div class="form-grid" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                                    <div class="form-group">
+                                        <label>Default Custom Week-Offs</label>
+                                        <select class="form-control" name="default_weekoff">
+                                            <option value="sat-sun">Saturday &amp; Sunday (Standard)</option>
+                                            <option value="sun-only">Sunday Only</option>
+                                            <option value="fri-sat">Friday &amp; Saturday</option>
+                                            <option value="rotational">Rotational (Determined by Roster)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-grid" style="margin-bottom: 1.5rem;">
+                                    <div class="form-group">
+                                        <label>Register Office Locations</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="newOfficeLocation" class="form-control" placeholder="e.g. Bangalore Tech Park">
+                                            <button type="button" class="btn btn-outline" onclick="addOfficeLocationConfig()"><i data-lucide="plus"></i></button>
+                                        </div>
+                                        <div id="officeLocationsList" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                                        <input type="hidden" name="work_locations_json" id="workLocationsJson" value="[]">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Available Leave Plans</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="newLeavePlan" class="form-control" placeholder="e.g. Unlimited PTO Plan">
+                                            <button type="button" class="btn btn-outline" onclick="addLeavePlanConfig()"><i data-lucide="plus"></i></button>
+                                        </div>
+                                        <div id="leavePlansList" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                                        <input type="hidden" name="leave_plans_json" id="leavePlansJson" value="[]">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save Onboarding &amp; Roles</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Email Configuration Settings -->
+                    <div id="email" class="tab-content">
+                        <form class="settings-card settingsForm" data-collection="email" id="emailConfigForm">
+                            <div class="section-header">
+                                <h2>📧 Email Configuration</h2>
+                                <p>Configure your organization's email domain so all system emails are sent from your own address (e.g. <strong>hr@yourcompany.com</strong>) instead of a generic Gmail.</p>
+                            </div>
+
+                            <!-- Info Banner -->
+                            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; gap: 14px; align-items: flex-start;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #dbeafe; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #2563eb;">
+                                    <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #1e40af; margin-bottom: 4px;">Why configure this?</div>
+                                    <div style="font-size: 0.85rem; color: #1d4ed8; line-height: 1.5;">Without this, onboarding emails go to <strong>Spam</strong> because they're sent from a shared Gmail. Set your organization's SMTP or Resend API here so all emails — onboarding, payroll, leave approvals — land directly in the inbox with <em>your company's email domain</em>.</div>
+                                </div>
+                            </div>
+
+                            <!-- Method Selector -->
+                            <div class="form-group full" style="margin-bottom: 2rem;">
+                                <label><i data-lucide="settings-2" style="width:16px;height:16px;"></i> Sending Method</label>
+                                <select class="form-control" name="email_method" id="emailMethod" onchange="toggleEmailMethod()">
+                                    <option value="smtp">SMTP (Gmail / Outlook / Custom Mail Server)</option>
+                                    <option value="resend">Resend API (Recommended — Custom Domain)</option>
+                                </select>
+                            </div>
+
+                            <!-- Shared: Sender Name + From Email -->
+                            <div class="form-grid" style="margin-bottom: 1.5rem;">
+                                <div class="form-group">
+                                    <label><i data-lucide="user" style="width:14px;height:14px;"></i> Sender Display Name</label>
+                                    <input type="text" class="form-control" name="email_sender_name" placeholder="e.g. HR Team — Acme Corp">
+                                </div>
+                                <div class="form-group">
+                                    <label><i data-lucide="at-sign" style="width:14px;height:14px;"></i> From Email Address</label>
+                                    <input type="email" class="form-control" name="email_from" placeholder="e.g. hr@yourcompany.com">
+                                    <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">This is what employees will see as the sender.</span>
+                                </div>
+                            </div>
+
+                            <!-- SMTP Fields -->
+                            <div id="smtpFields">
+                                <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">SMTP Server Details</div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>SMTP Host</label>
+                                        <input type="text" class="form-control" name="smtp_host" placeholder="smtp.gmail.com or smtp.office365.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>SMTP Port</label>
+                                        <select class="form-control" name="smtp_port">
+                                            <option value="587">587 (TLS — Recommended)</option>
+                                            <option value="465">465 (SSL)</option>
+                                            <option value="25">25 (Plain — Not Recommended)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>SMTP Username / Email</label>
+                                        <input type="email" class="form-control" name="smtp_user" placeholder="hr@yourcompany.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>SMTP Password / App Password</label>
+                                        <input type="password" class="form-control" name="smtp_pass" placeholder="••••••••••••">
+                                        <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">For Gmail: use an <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color: var(--primary);">App Password</a>, not your login password.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resend Fields -->
+                            <div id="resendFields" style="display: none;">
+                                <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Resend API Details</div>
+                                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #166534; line-height: 1.5;">
+                                    ✅ <strong>Resend</strong> gives you the best inbox delivery. Sign up at <a href="https://resend.com" target="_blank" style="color: #15803d; font-weight: 700;">resend.com</a>, verify your domain, and paste your API key below. Emails will come from your domain with full SPF/DKIM.
+                                </div>
+                                <div class="form-grid">
+                                    <div class="form-group full">
+                                        <label>Resend API Key</label>
+                                        <input type="password" class="form-control" name="resend_api_key" placeholder="re_xxxxxxxxxxxxxxxxxxxx">
+                                        <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">Found in your Resend dashboard → API Keys.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Test Email -->
+                            <div style="background: var(--bg-soft); border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem 1.5rem; margin-top: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                                <div>
+                                    <div style="font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Send a Test Email</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-muted);">Verify your configuration works before going live.</div>
+                                </div>
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                    <input type="email" id="testEmailAddr" class="form-control" placeholder="your@email.com" style="width: 220px;">
+                                    <button type="button" class="btn" id="sendTestEmailBtn" onclick="sendTestEmail()" style="background: #10b981; color: white; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.3);">
+                                        <i data-lucide="send"></i> Send Test
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Save Email Config</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { auth } from "./firebase-config.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+        onAuthStateChanged(auth, (user) => { if (!user) window.location.href = 'index.html'; });
+
+        document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault(); await signOut(auth); localStorage.removeItem('hr_logged_in'); window.location.href = 'index.html';
+        });
+
+        // Tab Switching Logic
+        const tabBtns = document.querySelectorAll('.snav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetTab = btn.getAttribute('data-tab');
+                
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+
+        // Form Submit to Firestore
+        document.querySelectorAll('.settingsForm').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const collectionName = form.getAttribute('data-collection');
+                const btn = e.target.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                
+                // Collect Form Data
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    // Handle checkboxes
+                    if (form.elements[key].type === 'checkbox') {
+                        data[key] = form.elements[key].checked;
+                    } else {
+                        data[key] = value;
+                    }
+                });
+                
+                btn.innerHTML = '<i data-lucide="loader" class="spin"></i> Saving...';
+                btn.disabled = true;
+                if (window.lucide) lucide.createIcons();
+
+                try {
+                    await setDoc(doc(db, 'system_config', collectionName), {
+                        ...data,
+                        updatedAt: new Date().toISOString(),
+                        updatedBy: auth.currentUser ? auth.currentUser.email : 'Admin'
+                    }, { merge: true });
+
+                    btn.innerHTML = '<i data-lucide="check"></i> Saved!';
+                    btn.style.background = '#10b981';
+                    if (window.lucide) lucide.createIcons();
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.disabled = false;
+                        if (window.lucide) lucide.createIcons();
+                    }, 2000);
+                } catch (err) {
+                    console.error("Save failed:", err);
+                    btn.innerHTML = '<i data-lucide="alert-circle"></i> Error';
+                    btn.style.background = '#ef4444';
+                    if (window.lucide) lucide.createIcons();
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.style.background = '';
+                        btn.disabled = false;
+                        if (window.lucide) lucide.createIcons();
+                    }, 2000);
+                }
+            });
+        });
+
+        // Load Settings from Firestore
+        
+        // Helper Functions for Onboarding & Roles Configuration
+        window.toggleFieldChoices = function() {
+            const type = document.getElementById('newFieldType').value;
+            const choicesInput = document.getElementById('newFieldChoices');
+            if (type === 'dropdown') {
+                choicesInput.style.display = 'block';
+            } else {
+                choicesInput.style.display = 'none';
+            }
+        };
+
+        let customFields = [];
+        window.addCustomFieldConfig = function() {
+            const nameInput = document.getElementById('newFieldName');
+            const typeSelect = document.getElementById('newFieldType');
+            const choicesInput = document.getElementById('newFieldChoices');
+            
+            const name = nameInput.value.trim();
+            const type = typeSelect.value;
+            let choices = [];
+            
+            if (!name) return;
+            if (type === 'dropdown') {
+                choices = choicesInput.value.split(',').map(s => s.trim()).filter(Boolean);
+                if (choices.length === 0) {
+                    alert("Please enter comma separated choices.");
+                    return;
+                }
+            }
+            
+            customFields.push({ id: 'cf_' + Math.random().toString(36).substr(2, 9), name, type, choices });
+            nameInput.value = '';
+            choicesInput.value = '';
+            choicesInput.style.display = 'none';
+            typeSelect.value = 'text';
+            
+            renderCustomFieldsUI();
+        };
+
+        window.removeCustomFieldConfig = function(id) {
+            customFields = customFields.filter(f => f.id !== id);
+            renderCustomFieldsUI();
+        };
+
+        function renderCustomFieldsUI() {
+            const list = document.getElementById('customFieldsList');
+            const jsonField = document.getElementById('customFieldsJson');
+            if (!list) return;
+            
+            list.innerHTML = customFields.map(f => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem;">
+                    <div>
+                        <span style="font-weight: 700;">${f.name}</span>
+                        <span style="color: var(--text-muted); font-size: 0.75rem; margin-left: 8px;">(${f.type.toUpperCase()}${f.choices.length ? ': ' + f.choices.join(', ') : ''})</span>
+                    </div>
+                    <button type="button" onclick="removeCustomFieldConfig('${f.id}')" style="background: none; border: none; color: var(--danger); cursor: pointer;"><i data-lucide="trash-2" style="width: 16px;"></i></button>
+                </div>
+            `).join('');
+            
+            jsonField.value = JSON.stringify(customFields);
+            if (window.lucide) lucide.createIcons();
+        }
+
+        let customRoles = [];
+        window.addCustomRoleConfig = function() {
+            const titleInput = document.getElementById('newRoleTitle');
+            const descInput = document.getElementById('newRoleDesc');
+            
+            const title = titleInput.value.trim();
+            const desc = descInput.value.trim();
+            if (!title) return;
+            
+            const access = {
+                candidates: document.getElementById('accessCandidates').checked,
+                leaves: document.getElementById('accessLeaves').checked,
+                exits: document.getElementById('accessExits').checked,
+                assets: document.getElementById('accessAssets').checked,
+                security: document.getElementById('accessSecurity').checked
+            };
+            
+            customRoles.push({
+                id: 'role_' + Math.random().toString(36).substr(2, 9),
+                title,
+                desc,
+                access
+            });
+            
+            titleInput.value = '';
+            descInput.value = '';
+            document.getElementById('accessCandidates').checked = false;
+            document.getElementById('accessLeaves').checked = false;
+            document.getElementById('accessExits').checked = false;
+            document.getElementById('accessAssets').checked = false;
+            document.getElementById('accessSecurity').checked = false;
+            
+            renderCustomRolesUI();
+        };
+
+        window.removeCustomRoleConfig = function(id) {
+            customRoles = customRoles.filter(r => r.id !== id);
+            renderCustomRolesUI();
+        };
+
+        function renderCustomRolesUI() {
+            const list = document.getElementById('customRolesList');
+            const jsonField = document.getElementById('customRolesJson');
+            if (!list) return;
+            
+            list.innerHTML = customRoles.map(r => {
+                const modules = Object.keys(r.access).filter(k => r.access[k]).map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(', ');
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px; font-size: 0.85rem;">
+                        <div>
+                            <div style="font-weight: 700;">${r.title}</div>
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">${r.desc || 'No description'}</div>
+                            <div style="color: var(--primary); font-size: 0.7rem; font-weight: 700; margin-top: 4px;">Access: ${modules || 'None'}</div>
+                        </div>
+                        <button type="button" onclick="removeCustomRoleConfig('${r.id}')" style="background: none; border: none; color: var(--danger); cursor: pointer;"><i data-lucide="trash-2" style="width: 16px;"></i></button>
+                    </div>
+                `;
+            }).join('');
+            
+            jsonField.value = JSON.stringify(customRoles);
+            if (window.lucide) lucide.createIcons();
+        }
+
+        let officeLocations = [];
+        window.addOfficeLocationConfig = function() {
+            const locInput = document.getElementById('newOfficeLocation');
+            const val = locInput.value.trim();
+            if (!val || officeLocations.includes(val)) return;
+            officeLocations.push(val);
+            locInput.value = '';
+            renderOfficeLocationsUI();
+        };
+
+        window.removeOfficeLocationConfig = function(val) {
+            officeLocations = officeLocations.filter(l => l !== val);
+            renderOfficeLocationsUI();
+        };
+
+        function renderOfficeLocationsUI() {
+            const list = document.getElementById('officeLocationsList');
+            const jsonField = document.getElementById('workLocationsJson');
+            if (!list) return;
+            
+            list.innerHTML = officeLocations.map(l => `
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--primary-light); color: var(--primary); border-radius: 20px; font-size: 0.8rem; font-weight: 700;">
+                    <span>${l}</span>
+                    <i data-lucide="x" onclick="removeOfficeLocationConfig('${l}')" style="width: 14px; height: 14px; cursor: pointer;"></i>
+                </div>
+            `).join('');
+            
+            jsonField.value = JSON.stringify(officeLocations);
+            if (window.lucide) lucide.createIcons();
+        }
+
+        let leavePlans = [];
+        window.addLeavePlanConfig = function() {
+            const planInput = document.getElementById('newLeavePlan');
+            const val = planInput.value.trim();
+            if (!val || leavePlans.includes(val)) return;
+            leavePlans.push(val);
+            planInput.value = '';
+            renderLeavePlansUI();
+        };
+
+        window.removeLeavePlanConfig = function(val) {
+            leavePlans = leavePlans.filter(p => p !== val);
+            renderLeavePlansUI();
+        };
+
+        function renderLeavePlansUI() {
+            const list = document.getElementById('leavePlansList');
+            const jsonField = document.getElementById('leavePlansJson');
+            if (!list) return;
+            
+            list.innerHTML = leavePlans.map(p => `
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--primary-light); color: var(--primary); border-radius: 20px; font-size: 0.8rem; font-weight: 700;">
+                    <span>${p}</span>
+                    <i data-lucide="x" onclick="removeLeavePlanConfig('${p}')" style="width: 14px; height: 14px; cursor: pointer;"></i>
+                </div>
+            `).join('');
+            
+            jsonField.value = JSON.stringify(leavePlans);
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function loadAllSettings() {
+            const collections = ['general', 'dashboard', 'ai', 'payroll', 'tvc', 'security', 'email', 'onboarding_hr'];
+            for (const col of collections) {
+                try {
+                    const snap = await getDoc(doc(db, 'system_config', col));
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        const form = document.querySelector(`.settingsForm[data-collection="${col}"]`);
+                        if (form) {
+                            
+                        if (col === 'onboarding_hr') {
+                            customFields = JSON.parse(data.custom_fields_json || '[]');
+                            customRoles = JSON.parse(data.custom_roles_json || '[]');
+                            officeLocations = JSON.parse(data.work_locations_json || '[]');
+                            leavePlans = JSON.parse(data.leave_plans_json || '[]');
+                            renderCustomFieldsUI();
+                            renderCustomRolesUI();
+                            renderOfficeLocationsUI();
+                            renderLeavePlansUI();
+                        }
+
+                            Object.keys(data).forEach(key => {
+                                const element = form.elements[key];
+                                if (element) {
+                                    if (element.type === 'checkbox') {
+                                        element.checked = data[key];
+                                    } else {
+                                        element.value = data[key];
+                                    }
+                                }
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.warn(`Failed to load settings for ${col}:`, err);
+                }
+            }
+        }
+        loadAllSettings();
+
+        // System Lock Logic
+        import { db } from "./firebase-config.js";
+        import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        const lockToggle = document.getElementById('systemLockToggle');
+        const lockText = document.getElementById('lockStatusText');
+
+        async function loadLockState() {
+            try {
+                const lockDoc = await getDoc(doc(db, 'system_config', 'global_lock'));
+                if (lockDoc.exists()) {
+                    const isLocked = lockDoc.data().isLocked;
+                    lockToggle.checked = isLocked;
+                    updateLockUI(isLocked);
+                }
+            } catch (err) {
+                console.error("Failed to load lock state:", err);
+            }
+        }
+
+        function updateLockUI(isLocked) {
+            if (isLocked) {
+                lockText.textContent = "SYSTEM LOCKED";
+                lockText.style.color = "#ef4444";
+            } else {
+                lockText.textContent = "System Unlocked";
+                lockText.style.color = "#be123c";
+            }
+        }
+
+        lockToggle?.addEventListener('change', async (e) => {
+            const isLocked = e.target.checked;
+            updateLockUI(isLocked);
+            
+            try {
+                await setDoc(doc(db, 'system_config', 'global_lock'), {
+                    isLocked: isLocked,
+                    updatedBy: auth.currentUser ? auth.currentUser.uid : 'Admin',
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                
+                showStatusModal(
+                    `System ${isLocked ? 'Locked' : 'Unlocked'}`,
+                    `The global access control has been successfully updated. All non-admin sessions are now ${isLocked ? 'restricted' : 'active'}.`,
+                    isLocked ? 'lock' : 'unlock',
+                    isLocked ? '#ef4444' : '#10b981'
+                );
+            } catch (err) {
+                console.error("Failed to update lock state:", err);
+                showStatusModal('Action Failed', 'Failed to update system lock. Please check your administrative permissions.', 'alert-triangle', '#ef4444');
+                // Revert UI
+                lockToggle.checked = !isLocked;
+                updateLockUI(!isLocked);
+            }
+        });
+
+        loadLockState();
+
+        if (window.lucide) { lucide.createIcons(); } else { console.error("Lucide failed to load"); }
+    </script>
+
+    <!-- Centered Success Modal -->
+    <div class="modal-overlay" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon" id="statusModalIcon"><i data-lucide="check-circle"></i></div>
+            <div class="modal-title" id="statusModalTitle">System Updated</div>
+            <p class="modal-desc" id="statusModalDesc">Operational parameters have been successfully synchronized with the cloud.</p>
+            <button class="btn btn-primary" style="width: 100%;" onclick="closeStatusModal()">Dismiss</button>
+        </div>
+    </div>
+
+    <script>
+        function showStatusModal(title, desc, icon = 'check-circle', color = '#3b82f6') {
+            const overlay = document.getElementById('statusModalOverlay');
+            document.getElementById('statusModalTitle').textContent = title;
+            document.getElementById('statusModalDesc').textContent = desc;
+            document.getElementById('statusModalIcon').innerHTML = `<i data-lucide="${icon}"></i>`;
+            document.getElementById('statusModalIcon').style.color = color;
+            document.getElementById('statusModalIcon').style.background = color + '20';
+            overlay.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+        }
+        function closeStatusModal() {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        }
+
+        // Toggle SMTP vs Resend fields
+        function toggleEmailMethod() {
+            const method = document.getElementById('emailMethod')?.value;
+            const smtpFields = document.getElementById('smtpFields');
+            const resendFields = document.getElementById('resendFields');
+            if (!smtpFields || !resendFields) return;
+            if (method === 'resend') {
+                smtpFields.style.display = 'none';
+                resendFields.style.display = 'block';
+            } else {
+                smtpFields.style.display = 'block';
+                resendFields.style.display = 'none';
+            }
+        }
+
+        // Send Test Email via backend
+        async function sendTestEmail() {
+            const toEmail = document.getElementById('testEmailAddr')?.value?.trim();
+            if (!toEmail) {
+                showStatusModal('Missing Email', 'Please enter a recipient email address to send the test to.', 'alert-circle', '#f59e0b');
+                return;
+            }
+            const btn = document.getElementById('sendTestEmailBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader"></i> Sending...';
+            if (window.lucide) lucide.createIcons();
+
+            // Always target the backend API server (port 3000), not the static file server
+            const apiBase = window.location.port === '3000'
+                ? ''
+                : 'http://127.0.0.1:3000';
+
+            try {
+                const res = await fetch(`${apiBase}/api/email/test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ to: toEmail })
+                });
+                const data = await res.json();
+                if (res.ok && (data.success || data.id)) {
+                    showStatusModal('Test Email Sent! ✅', `A test email was successfully dispatched to ${toEmail}. Please check your inbox.`, 'check-circle', '#10b981');
+                } else {
+                    // Safely extract a readable error message (avoid [object Object])
+                    let errMsg = typeof data.error === 'string'
+                        ? data.error
+                        : (data.message || data.error?.message || JSON.stringify(data.error) || 'Could not send the test email. Please verify your email configuration.');
+                    showStatusModal('Send Failed', errMsg, 'alert-circle', '#ef4444');
+                }
+            } catch (err) {
+                showStatusModal('Connection Error', 'Could not reach the backend server. Make sure it is running on port 3000.', 'wifi-off', '#ef4444');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="send"></i> Send Test';
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    </script>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>
+
+

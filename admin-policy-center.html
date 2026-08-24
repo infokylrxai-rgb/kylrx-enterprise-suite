@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Policy Center | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        .policy-grid {
+            display: grid; grid-template-columns: 1fr 350px; gap: 2rem;
+        }
+
+        .policy-card {
+            background: white; border-radius: 24px; padding: 2rem;
+            border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+
+        .policy-list {
+            display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;
+        }
+
+        .policy-item {
+            display: grid; grid-template-columns: 50px 1fr 120px 100px 40px;
+            padding: 1.25rem; background: #f8fafc; border-radius: 16px;
+            align-items: center; border: 1px solid transparent; transition: 0.2s;
+        }
+
+        .policy-item:hover { border-color: var(--primary-soft); background: white; }
+
+        .rollout-stat {
+            display: flex; flex-direction: column; gap: 6px;
+        }
+
+        .progress-bar {
+            height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;
+        }
+
+        .progress-fill { height: 100%; background: var(--primary); }
+
+        .assignment-badge {
+            padding: 4px 10px; border-radius: 100px; font-size: 0.65rem; font-weight: 800;
+            background: var(--bg-soft); color: var(--text-muted); text-transform: uppercase;
+        }
+
+        .type-icon {
+            width: 32px; height: 32px; border-radius: 8px; background: white;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary); border: 1px solid var(--border);
+        }
+
+        .audit-list {
+            display: flex; flex-direction: column; gap: 12px; margin-top: 1.5rem;
+        }
+
+        .audit-item {
+            display: flex; align-items: center; gap: 10px; font-size: 0.75rem;
+            padding: 8px; border-bottom: 1px solid var(--border);
+        }
+
+        /* Modal System */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center; z-index: 3000;
+            opacity: 0; transition: 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-card {
+            background: white; width: 500px; border-radius: 32px; padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: translateY(20px); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed; top: 2rem; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: #10b981; color: white; padding: 1rem 2rem; border-radius: 100px;
+            font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            z-index: 4000; opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast-notification.active { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body class="admin-dashboard">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link active"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header-actions">
+                <div class="welcome-text">
+                    <h1>Enterprise Policy Center</h1>
+                    <p>Govern organizational compliance, roll out mandatory agreements, and track digital acknowledgements.</p>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline" onclick="toggleVersionModal(true)"><i data-lucide="history"></i> Version History</button>
+                    <button class="btn btn-primary" onclick="toggleModal(true)"><i data-lucide="plus"></i> New Policy</button>
+                </div>
+            </header>
+
+            <div class="policy-grid">
+                <div class="policy-left">
+                    <div class="policy-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h3 style="font-weight: 800;">Active Rollouts</h3>
+                            <div class="btn-group">
+                                <button class="btn btn-outline" style="font-size: 0.75rem;">All Types</button>
+                                <button class="btn btn-outline" style="font-size: 0.75rem;">In Progress</button>
+                            </div>
+                        </div>
+
+                        <div class="policy-list">
+                            <p style="text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.85rem;">No active policy rollouts detected.</p>
+                        </div>
+                    </div>
+
+                    <div class="card" style="padding: 2rem; border-radius: 24px; background: white; border: 1px solid var(--border);">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Policy Assignment Engine</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                            <div class="assignment-card active" id="btnAutoAssign" style="padding: 1.25rem; background: #eff6ff; border-radius: 16px; cursor: pointer; border: 2px solid var(--primary-soft); transition: 0.2s;">
+                                <p class="nav-label" style="margin:0">Newly Joined</p>
+                                <h4 style="font-weight: 800; color: var(--primary); margin-top: 4px;">Auto-Assign</h4>
+                            </div>
+                            <div class="assignment-card" id="btnSelective" style="padding: 1.25rem; background: #f8fafc; border-radius: 16px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;">
+                                <p class="nav-label" style="margin:0">Dept Wise</p>
+                                <h4 style="font-weight: 800; color: var(--text-muted); margin-top: 4px;">Selective</h4>
+                            </div>
+                            <div class="assignment-card" id="btnCustomPlans" style="padding: 1.25rem; background: #f8fafc; border-radius: 16px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;">
+                                <p class="nav-label" style="margin:0">Legal Entities</p>
+                                <h4 style="font-weight: 800; color: var(--text-muted); margin-top: 4px;">Custom Plans</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doc-right">
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Acknowledgement Audit</h3>
+                        <div class="audit-list">
+                            <p style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem;">Awaiting organizational activity...</p>
+                        </div>
+                        <button class="btn btn-outline" style="width:100%; margin-top: 1.5rem; font-size: 0.75rem;" onclick="toggleAuditModal(true)">View Full Logs</button>
+                    </div>
+
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Compliance Pulse</h3>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.85rem; font-weight: 600;">Overall Compliance</span>
+                                <span style="font-size: 1.25rem; font-weight: 800; background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.15));" id="complianceRate">--%</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.85rem; font-weight: 600;">Overdue (SLA)</span>
+                                <span style="font-size: 0.85rem; font-weight: 800; color: #ef4444;" id="overdueCount">12 Emp</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1.5rem; padding: 1rem; background: #fff1f2; border-radius: 12px; border: 1px solid #fecaca; display: flex; gap: 10px; align-items: start;">
+                            <i data-lucide="shield-alert" size="18" style="color: #ef4444; flex-shrink: 0;"></i>
+                            <p style="font-size: 0.7rem; color: #991b1b; line-height: 1.4;" id="blockedMsg"><strong>Critical Block:</strong> 4 employees have blocked system access due to unacknowledged Security Policies.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Policy Delete Confirm Modal -->
+    <div class="modal-overlay" id="policyDeleteModal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div style="background: #fef2f2; color: #ef4444; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
+                <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: #ef4444;"></i>
+            </div>
+            <h3 style="font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem; color: #1e293b;">Retire Policy?</h3>
+            <p id="policyDeleteMsg" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to permanently delete this policy? All signature records and active requirements will be revoked.</p>
+            
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="togglePolicyDeleteModal(false)">Cancel</button>
+                <button class="btn btn-primary" id="btnConfirmDeletePolicy" style="flex: 1; justify-content: center; background: #ef4444; border-color: #ef4444;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="toast-notification" id="successToast">
+        <i data-lucide="check-circle"></i>
+        <span>Policy deployed successfully!</span>
+    </div>
+
+    <!-- Full Audit Logs Modal -->
+    <div class="modal-overlay" id="auditLogsModal">
+        <div class="modal-card" style="max-width: 800px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Audit Intelligence Hub</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Comprehensive organizational compliance logs</p>
+                </div>
+                <button class="action-icon" onclick="toggleAuditModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;" id="fullAuditList">
+                <!-- Dynamically populated with all logs -->
+                <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                    <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem;"></i>
+                    <p style="font-size: 0.8rem;">Retrieving full audit history...</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Showing last 50 events</p>
+                <button class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 0.8rem;">
+                    <i data-lucide="download"></i> Export Audit Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Version History Modal -->
+    <div class="modal-overlay" id="versionModal">
+        <div class="modal-card" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Policy Version History</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Audit organizational mandate iterations</p>
+                </div>
+                <button class="action-icon" onclick="toggleVersionModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem;" id="versionList">
+                <!-- Versions injected here -->
+                <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    <i data-lucide="clock" size="32" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p style="font-size: 0.85rem;">No previous versions archived.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Custom Plan Builder Modal -->
+    <div class="modal-overlay" id="customPlanModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Compliance Builder</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Create entity-specific governance plans</p>
+                </div>
+                <button class="action-icon" onclick="toggleCustomModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label class="nav-label">PLAN NAME</label>
+                    <input type="text" id="planName" class="input-box" placeholder="e.g. SEZ Entity A - Core Policies" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div>
+                    <label class="nav-label">LEGAL ENTITY</label>
+                    <select id="planEntity" class="input-box" style="width: 100%; margin-top: 8px;">
+                        <option>Main Corp LLC</option>
+                        <option>Subsidiary Global</option>
+                        <option>Regional Partner</option>
+                    </select>
+                </div>
+                <div id="logicContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Logic rows injected here -->
+                </div>
+                <div id="btnAddLogic" style="padding: 1.25rem; background: #f8fafc; border-radius: 16px; border: 1px dashed var(--border); text-align: center; cursor: pointer; transition: 0.2s;">
+                    <i data-lucide="plus-circle" style="color: var(--primary); margin-bottom: 8px;"></i>
+                    <p style="font-size: 0.75rem; font-weight: 600;">Add Requirement Logic</p>
+                </div>
+                <button class="btn btn-primary" id="btnSaveCustomPlan" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="save"></i> Save Compliance Plan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Selection Modal -->
+    <div class="modal-overlay" id="deptModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Selective Routing</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Target specific business units</p>
+                </div>
+                <button class="action-icon" onclick="toggleDeptModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <label class="nav-label">SELECT DEPARTMENTS</label>
+                <div id="deptChecklist" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <!-- Dynamically populated -->
+                    <div style="padding: 12px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; gap: 8px; grid-column: span 2;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Syncing departments...</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btnApplyRouting" style="width: 100%; justify-content: center; padding: 1rem; margin-top: 1rem;">
+                    <i data-lucide="filter"></i> Apply Selective Routing
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deployment Wizard Modal -->
+    <div class="modal-overlay" id="policyModal">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Deployment Wizard</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Configure organizational policy rollout</p>
+                </div>
+                <button class="action-icon" onclick="toggleModal(false)"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div>
+                    <label class="nav-label">POLICY TITLE</label>
+                    <input type="text" id="policyTitle" class="input-box" placeholder="e.g. 2026 IT Security SLA" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="nav-label">CATEGORY</label>
+                        <select id="policyCategory" class="input-box" style="width: 100%; margin-top: 8px;">
+                            <option>HR Policies</option>
+                            <option>Security</option>
+                            <option>Legal</option>
+                            <option>Remote Work</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="nav-label">SCOPE</label>
+                        <select id="policyScope" class="input-box" style="width: 100%; margin-top: 8px;">
+                            <option>Global</option>
+                            <option>Departmental</option>
+                            <option>Specific Role</option>
+                            <option>Hybrid Only</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="nav-label">VERSION</label>
+                    <input type="text" id="policyVersion" class="input-box" value="1.0" style="width: 100%; margin-top: 8px;">
+                </div>
+                <button class="btn btn-primary" id="btnDeployNow" style="width: 100%; justify-content: center; padding: 1rem;">
+                    <i data-lucide="rocket"></i> Deploy Policy Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { getActivePolicies, getPolicyAuditLogs, createPolicy, updateSelectiveRouting, createCustomCompliancePlan, listenToAuditLogs, getCompliancePulse, updateAutoAssignConfig, getAutoAssignConfig, deletePolicy } from "./policy-service.js";
+        import { getDepartments } from "./pms-service.js";
+
+        window.toggleModal = (show) => {
+            const modal = document.getElementById('policyModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        window.toggleDeptModal = (show) => {
+            const modal = document.getElementById('deptModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        window.toggleCustomModal = (show) => {
+            const modal = document.getElementById('customPlanModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        window.toggleAuditModal = (show) => {
+            const modal = document.getElementById('auditLogsModal');
+            if (show) {
+                modal.classList.add('active');
+                renderFullAuditLogs();
+            } else {
+                modal.classList.remove('active');
+            }
+        };
+
+        window.toggleVersionModal = (show) => {
+            const modal = document.getElementById('versionModal');
+            if (show) {
+                modal.classList.add('active');
+                loadVersionHistory();
+            } else {
+                modal.classList.remove('active');
+            }
+        };
+
+        async function loadVersionHistory() {
+            const list = document.getElementById('versionList');
+            try {
+                const q = query(collection(db, 'policy_versions'), orderBy('timestamp', 'desc'), limit(20));
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    list.innerHTML = `
+                        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            <i data-lucide="clock" size="32" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p style="font-size: 0.85rem;">No previous versions archived.</p>
+                        </div>
+                    `;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
+
+                list.innerHTML = snap.docs.map(d => {
+                    const data = d.data();
+                    const date = data.timestamp?.toDate().toLocaleDateString() || 'Recent';
+                    return `
+                        <div style="padding: 1.25rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="font-weight: 800; font-size: 0.9rem;">${data.title}</h4>
+                                <p style="font-size: 0.75rem; color: var(--text-muted);">v${data.version} • ${data.category}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <p style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">${date}</p>
+                                <p style="font-size: 0.65rem; color: var(--text-muted);">Archived</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error("Error fetching versions:", err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+            
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    loadActivePolicies();
+                    loadDepartments();
+                    loadAutoAssignState();
+                    loadCompliancePulse();
+                    
+                    // Real-time Audit Listener
+                    listenToAuditLogs((logs) => {
+                        updateAuditListUI(logs);
+                        if (document.getElementById('auditLogsModal').classList.contains('active')) {
+                            updateFullAuditUI(logs);
+                        }
+                    });
+                }
+            });
+
+            // View Full Logs Button
+            const allBtns = document.querySelectorAll('button');
+            allBtns.forEach(btn => {
+                if (btn.textContent.includes("View Full Logs")) {
+                    btn.addEventListener('click', () => toggleAuditModal(true));
+                }
+            });
+
+            const createBtn = document.querySelector('.btn-primary');
+            if (createBtn) {
+                createBtn.addEventListener('click', () => toggleModal(true));
+            }
+
+            // Assignment Engine Interactivity
+            document.getElementById('btnAutoAssign').addEventListener('click', async function() {
+                const isActive = this.classList.toggle('active');
+                this.style.background = isActive ? '#eff6ff' : '#f8fafc';
+                this.style.borderColor = isActive ? 'var(--primary-soft)' : 'transparent';
+                this.querySelector('h4').style.color = isActive ? 'var(--primary)' : 'var(--text-muted)';
+                
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.7';
+                try {
+                    await updateAutoAssignConfig(isActive);
+                    const toast = document.getElementById('successToast');
+                    toast.querySelector('span').textContent = isActive ? 'Auto-Assignment Enabled' : 'Auto-Assignment Disabled';
+                    toast.classList.add('active');
+                    setTimeout(() => toast.classList.remove('active'), 3000);
+                } catch (err) {
+                    console.error("Error updating auto assign:", err);
+                    alert("Failed to update setting");
+                    // Revert UI on failure
+                    const reverted = this.classList.toggle('active');
+                    this.style.background = reverted ? '#eff6ff' : '#f8fafc';
+                    this.style.borderColor = reverted ? 'var(--primary-soft)' : 'transparent';
+                    this.querySelector('h4').style.color = reverted ? 'var(--primary)' : 'var(--text-muted)';
+                } finally {
+                    this.style.pointerEvents = 'auto';
+                    this.style.opacity = '1';
+                }
+            });
+
+            document.getElementById('btnSelective').addEventListener('click', () => {
+                toggleDeptModal(true);
+            });
+
+            document.getElementById('btnApplyRouting').addEventListener('click', async function() {
+                const selected = [];
+                document.querySelectorAll('#deptModal input[type="checkbox"]').forEach(cb => {
+                    if (cb.checked) selected.push(cb.nextElementSibling.textContent);
+                });
+
+                this.disabled = true;
+                this.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Syncing...';
+                if (window.lucide) lucide.createIcons();
+
+                try {
+                    await updateSelectiveRouting(selected);
+                    
+                    const toast = document.getElementById('successToast');
+                    toast.querySelector('span').textContent = 'Selective Routing Updated';
+                    toast.classList.add('active');
+                    setTimeout(() => toast.classList.remove('active'), 3000);
+                    
+                    toggleDeptModal(false);
+                } catch (err) {
+                    alert("Sync failed: " + err.message);
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '<i data-lucide="filter"></i> Apply Selective Routing';
+                    if (window.lucide) lucide.createIcons();
+                }
+            });
+
+            document.getElementById('btnCustomPlans').addEventListener('click', () => {
+                toggleCustomModal(true);
+            });
+
+            document.getElementById('btnAddLogic').addEventListener('click', () => {
+                const container = document.getElementById('logicContainer');
+                const row = document.createElement('div');
+                row.style = "display: grid; grid-template-columns: 1fr 1fr 40px; gap: 8px; align-items: center; background: #f1f5f9; padding: 10px; border-radius: 12px;";
+                row.innerHTML = `
+                    <select class="input-box" style="padding: 6px; font-size: 0.75rem;">
+                        <option>If Dept is...</option>
+                        <option>If Role is...</option>
+                        <option>If Location is...</option>
+                    </select>
+                    <input type="text" class="input-box" placeholder="Value" style="padding: 6px; font-size: 0.75rem;">
+                    <button class="action-icon" style="color: #ef4444;"><i data-lucide="trash-2" size="14"></i></button>
+                `;
+                
+                row.querySelector('button').addEventListener('click', () => row.remove());
+                container.appendChild(row);
+                if (window.lucide) lucide.createIcons();
+            });
+
+            document.getElementById('btnSaveCustomPlan').addEventListener('click', async function() {
+                const name = document.getElementById('planName').value;
+                const entity = document.getElementById('planEntity').value;
+                const logic = [];
+                
+                document.querySelectorAll('#logicContainer > div').forEach(row => {
+                    logic.push({
+                        condition: row.querySelector('select').value,
+                        value: row.querySelector('input').value
+                    });
+                });
+
+                if (!name) {
+                    alert("Please enter a plan name.");
+                    return;
+                }
+
+                this.disabled = true;
+                this.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Saving...';
+                if (window.lucide) lucide.createIcons();
+
+                try {
+                    await createCustomCompliancePlan({
+                        name, entity, logic,
+                        createdBy: auth.currentUser.uid
+                    });
+                    
+                    const toast = document.getElementById('successToast');
+                    toast.querySelector('span').textContent = 'Compliance Plan Saved';
+                    toast.classList.add('active');
+                    setTimeout(() => toast.classList.remove('active'), 3000);
+                    
+                    toggleCustomModal(false);
+                } catch (err) {
+                    alert("Save failed: " + err.message);
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = '<i data-lucide="save"></i> Save Compliance Plan';
+                    if (window.lucide) lucide.createIcons();
+                }
+            });
+
+            // Deploy Now Action
+            const deployBtn = document.getElementById('btnDeployNow');
+            if (deployBtn) {
+                deployBtn.addEventListener('click', async () => {
+                    const title = document.getElementById('policyTitle').value;
+                    const category = document.getElementById('policyCategory').value;
+                    const scope = document.getElementById('policyScope').value;
+                    const version = document.getElementById('policyVersion').value;
+
+                    if (!title) {
+                        alert("Please enter a policy title.");
+                        return;
+                    }
+
+                    deployBtn.disabled = true;
+                    deployBtn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Deploying...';
+                    if (window.lucide) lucide.createIcons();
+
+                    try {
+                        await createPolicy({
+                            title, category, scope, version,
+                            deployedBy: auth.currentUser.uid
+                        });
+                        
+                        // Show Success Toast
+                        const toast = document.getElementById('successToast');
+                        toast.classList.add('active');
+                        setTimeout(() => toast.classList.remove('active'), 3000);
+
+                        toggleModal(false);
+                        loadActivePolicies();
+                    } catch (err) {
+                        alert("Deployment failed: " + err.message);
+                    } finally {
+                        deployBtn.disabled = false;
+                        deployBtn.innerHTML = '<i data-lucide="rocket"></i> Deploy Policy Now';
+                        if (window.lucide) lucide.createIcons();
+                    }
+                });
+            }
+
+            // Refresh pulse every 5 minutes
+            setInterval(loadCompliancePulse, 300000);
+        });
+
+        async function loadCompliancePulse() {
+            try {
+                const pulse = await getCompliancePulse();
+                document.getElementById('complianceRate').textContent = `${pulse.overallRate}%`;
+                document.getElementById('overdueCount').textContent = `${pulse.overdueCount} Emp`;
+                document.getElementById('blockedMsg').innerHTML = `<strong>Critical Block:</strong> ${pulse.blockedCount} employees have blocked system access due to unacknowledged Security Policies.`;
+            } catch (err) {
+                console.error("Error loading compliance pulse:", err);
+            }
+        }
+
+        async function loadActivePolicies() {
+            const list = document.querySelector('.policy-list');
+            try {
+                const policies = await getActivePolicies();
+                list.innerHTML = '';
+                
+                policies.forEach(policy => {
+                    const color = policy.signedPercentage === 100 ? '#10b981' : (policy.signedPercentage < 50 ? '#f59e0b' : 'var(--primary)');
+                    const icon = policy.category === 'Security' ? 'shield' : (policy.category === 'Remote Work' ? 'home' : 'file-text');
+                    
+                    const item = document.createElement('div');
+                    item.className = 'policy-item';
+                    item.innerHTML = `
+                        <div class="type-icon"><i data-lucide="${icon}" size="16"></i></div>
+                        <div>
+                            <h4 style="font-size: 0.9rem; font-weight: 700;">${policy.title}</h4>
+                            <p style="font-size: 0.7rem; color: var(--text-muted);">v${policy.version} • ${policy.category}</p>
+                        </div>
+                        <div class="rollout-stat">
+                            <p style="font-size: 0.7rem; font-weight: 800; color: ${color};">${policy.signedPercentage}% ${policy.signedPercentage === 100 ? 'Final' : 'Signed'}</p>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${policy.signedPercentage}%; background: ${color};"></div></div>
+                        </div>
+                        <span class="assignment-badge">${policy.scope}</span>
+                        <button class="action-icon" style="color: #ef4444; border: 1px solid #fca5a5; background: #fff5f5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;" onclick="deletePolicyConfirm('${policy.id}', '${(policy.title || '').replace(/'/g, "\\'")}')" title="Delete Policy"><i data-lucide="trash-2" size="14"></i></button>
+                    `;
+                    list.appendChild(item);
+                });
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                console.error("Error loading policies:", err);
+            }
+        }
+
+        function updateAuditListUI(logs) {
+            const list = document.querySelector('.audit-list');
+            if (logs.length > 0) {
+                list.innerHTML = '';
+                logs.forEach(log => {
+                    const item = document.createElement('div');
+                    item.className = 'audit-item';
+                    item.innerHTML = `
+                        <i data-lucide="${log.type === 'violation' ? 'alert-circle' : 'check-circle'}" size="14" style="color: ${log.type === 'violation' ? '#ef4444' : '#10b981'};"></i>
+                        <div style="flex: 1;"><strong>${log.employeeName}</strong> ${log.action}</div>
+                        <span style="color: var(--text-muted); font-size: 0.6rem;">${log.timeAgo || 'Recent'}</span>
+                    `;
+                    list.appendChild(item);
+                });
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        async function renderFullAuditLogs() {
+            const list = document.getElementById('fullAuditList');
+            try {
+                const logs = await getPolicyAuditLogs();
+                updateFullAuditUI(logs);
+            } catch (err) {
+                console.error("Error fetching full audit logs:", err);
+                list.innerHTML = '<p style="text-align: center; color: #ef4444;">Failed to retrieve audit history.</p>';
+            }
+        }
+
+        function updateFullAuditUI(logs) {
+            const list = document.getElementById('fullAuditList');
+            list.innerHTML = '';
+            
+            if (logs.length === 0) {
+                list.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--text-muted);">No audit history found.</p>';
+                return;
+            }
+
+            logs.forEach(log => {
+                const item = document.createElement('div');
+                item.style = "padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px;";
+                item.innerHTML = `
+                    <div style="width: 32px; height: 32px; background: ${log.type === 'violation' ? '#fef2f2' : '#f0fdf4'}; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="${log.type === 'violation' ? 'alert-circle' : 'check-circle'}" size="16" style="color: ${log.type === 'violation' ? '#ef4444' : '#10b981'};"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <h4 style="font-size: 0.9rem; font-weight: 700;">${log.employeeName}</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">${log.action}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">${log.timeAgo || 'Recently'}</p>
+                        <span style="font-size: 0.6rem; color: var(--text-muted); opacity: 0.5;">ID: ${log.id.slice(0,8)}</span>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        async function loadDepartments() {
+            const list = document.getElementById('deptChecklist');
+            try {
+                const depts = await getDepartments();
+                list.innerHTML = '';
+                
+                depts.forEach(dept => {
+                    const name = dept.name || dept.departmentName || 'Unnamed';
+                    const div = document.createElement('div');
+                    div.style = "padding: 12px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; gap: 8px;";
+                    div.innerHTML = `
+                        <input type="checkbox"> 
+                        <span style="font-size: 0.8rem; font-weight: 600;">${name}</span>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (err) {
+                console.error("Error loading departments:", err);
+                list.innerHTML = '<p style="font-size: 0.7rem; color: #ef4444;">Failed to load units.</p>';
+            }
+        }
+
+        async function loadAutoAssignState() {
+            try {
+                const isEnabled = await getAutoAssignConfig();
+                const btn = document.getElementById('btnAutoAssign');
+                if (isEnabled) {
+                    btn.classList.add('active');
+                    btn.style.background = '#eff6ff';
+                    btn.style.borderColor = 'var(--primary-soft)';
+                    btn.querySelector('h4').style.color = 'var(--primary)';
+                } else {
+                    btn.classList.remove('active');
+                    btn.style.background = '#f8fafc';
+                    btn.style.borderColor = 'transparent';
+                    btn.querySelector('h4').style.color = 'var(--text-muted)';
+                }
+            } catch (err) {
+                console.error("Failed to load Auto-Assign state", err);
+            }
+        }
+        let activePolicyIdForDeletion = null;
+
+        window.deletePolicyConfirm = (policyId, policyTitle) => {
+            activePolicyIdForDeletion = policyId;
+            document.getElementById('policyDeleteMsg').textContent = `Are you sure you want to permanently delete "${policyTitle}"? All signature records and active requirements will be revoked.`;
+            togglePolicyDeleteModal(true);
+        };
+
+        window.togglePolicyDeleteModal = (show) => {
+            const modal = document.getElementById('policyDeleteModal');
+            if (show) modal.classList.add('active');
+            else modal.classList.remove('active');
+        };
+
+        document.getElementById('btnConfirmDeletePolicy')?.addEventListener('click', async () => {
+            if (!activePolicyIdForDeletion) return;
+            const btn = document.getElementById('btnConfirmDeletePolicy');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Deleting...';
+            if (window.lucide) lucide.createIcons();
+            
+            try {
+                await deletePolicy(activePolicyIdForDeletion);
+                const toast = document.getElementById('successToast');
+                toast.querySelector('span').textContent = 'Policy retired and deleted successfully.';
+                toast.classList.add('active');
+                if (window.lucide) lucide.createIcons();
+                
+                togglePolicyDeleteModal(false);
+                loadActivePolicies();
+                
+                setTimeout(() => toast.classList.remove('active'), 3000);
+            } catch (err) {
+                alert('Deletion failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Delete';
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+    </script>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>
+

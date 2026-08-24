@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Center | HRFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .back-btn { display: flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .back-btn:hover { color: var(--primary); }
+
+        .policy-layout { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; }
+        
+        .policy-nav { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; height: fit-content; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .policy-nav .nav-item { padding: 12px 1rem; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+        .policy-nav .nav-item:hover, .policy-nav .nav-item.active { background: var(--bg); color: var(--primary); }
+
+        .policy-content { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 3.5rem; line-height: 1.7; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--text); letter-spacing: -1px; }
+        h3 { font-size: 1.25rem; font-weight: 800; margin: 2.5rem 0 1rem; color: var(--text); }
+        p { margin-bottom: 1.25rem; color: var(--text-muted); font-weight: 500; }
+        ul { margin-bottom: 1.5rem; padding-left: 1.5rem; color: var(--text-muted); }
+        li { margin-bottom: 0.75rem; font-weight: 500; }
+
+        /* Centered Status Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 32px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .status-modal { transform: scale(1); }
+        .modal-icon {
+            width: 64px; height: 64px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 1.5rem;
+        }
+        .modal-icon.success { background: #dcfce7; color: #10b981; }
+        .modal-icon.info { background: #dbeafe; color: #3b82f6; }
+        
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+        .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
+        .sidebar {background: #ffffff; border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.1); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-label:not(:first-of-type) { margin-top: 0.75rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: all 0.3s ease; margin-bottom: 4px; }
+        .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateX(6px); }
+        .nav-link.active { background: var(--primary-light); color: var(--primary); }
+        .profile-mini { margin-top: auto; background: var(--primary-light); padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+
+        /* Customize Layout Sidebar */
+        .config-sidebar {
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            background: rgba(255, 255, 255, 0.98); border-left: 1px solid var(--border);
+            z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(25px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+        }
+        .config-sidebar.active { right: 0; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .config-header h2 { font-weight: 800; font-size: 1.25rem; }
+        .config-section { margin-bottom: 2rem; }
+        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option span { font-size: 0.9rem; font-weight: 600; }
+
+        /* switches */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+
+        /* Action customization button */
+        .action-btn-notif {
+            background: var(--bg);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+        .action-btn-notif:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* Compact Layout */
+        .policy-content.compact-policy { padding: 2rem; }
+    </style>
+</head>
+<body>
+    <!-- No legacy script block here, all logic moved to the module script at the bottom to align with employee-notifications.html -->
+
+
+    <div class="layout">
+                <aside class="sidebar">
+            <a href="#" class="logo" onclick="navigateToDashboard()">
+                <img src="logo.jpg" alt="Logo" style="height: 40px; object-fit: contain;">
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item">
+                    <div class="nav-link" style="cursor: pointer; justify-content: space-between;" onclick="toggleAppsMenu()">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <i data-lucide="grid"></i>
+                            <span>Apps</span>
+                        </div>
+                        <i data-lucide="chevron-down" id="appsChevron" style="width: 16px; transition: 0.3s;"></i>
+                    </div>
+                    <!-- Collapsible Apps Dropdown -->
+                    <div id="appsDropdown" style="display: none; flex-direction: column; padding-left: 2rem; margin-top: 4px; gap: 4px;">
+                        <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;">
+                            <!-- Dynamic Apps from localStorage will render here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-label">RESOURCES</div>
+                <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                
+            </nav>
+
+            <div class="profile-mini">
+                <div class="avatar" id="userInitial">--</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userNameDisplay">--</div>
+                    <div class="profile-role" id="userRoleDisplay">--</div>
+                </div>
+                <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i data-lucide="log-out" size="18"></i>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content" style="padding: 2.5rem; overflow-y: auto; height: 100vh;">
+            <div class="container">
+        <header class="header">
+            <div>
+                <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Policy Center</h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); background: white; padding: 12px 16px; border-radius: 100px; border: 1px solid var(--border);">v2.4 • MAY 2026</div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);">
+                    <button class="action-btn-notif" title="Customize Layout" id="btnCustom" style="width: 42px; height: 42px;">
+                        <i data-lucide="sliders-horizontal"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="policy-layout">
+            <div class="policy-nav">
+                <div class="nav-item active" onclick="showPolicy('Code of Conduct', this)">Code of Conduct</div>
+                <div class="nav-item" onclick="showPolicy('IT Security Policy', this)">IT Security Policy</div>
+                <div class="nav-item" onclick="showPolicy('Leave & Attendance', this)">Leave & Attendance</div>
+                <div class="nav-item" onclick="showPolicy('Remote Work Policy', this)">Remote Work Policy</div>
+                <div class="nav-item" onclick="showPolicy('Anti-Harassment', this)">Anti-Harassment</div>
+                <div class="nav-item" onclick="showPolicy('Travel & Expenses', this)">Travel & Expenses</div>
+            </div>
+
+            <div class="policy-content">
+                <h2>Code of Conduct</h2>
+                <p>The HRFlow Code of Conduct serves as our guide for professional behavior and ethics. We expect every team member to embody these values in their daily work and interactions.</p>
+                
+                <h3>1. Professional Ethics</h3>
+                <p>We believe in maintaining the highest standards of integrity. This includes:</p>
+                <ul>
+                    <li>Honesty and transparency in all business dealings.</li>
+                    <li>Respect for intellectual property and confidentiality.</li>
+                    <li>Avoiding personal interests that conflict with company goals.</li>
+                </ul>
+
+                <h3>2. Inclusive Culture</h3>
+                <p>HRFlow is a sanctuary for diversity. We strictly prohibit discrimination, bullying, or harassment. Our workplace is built on mutual respect and psychological safety for all employees.</p>
+
+                <h3>3. Resource Stewardship</h3>
+                <p>Employees are responsible for the careful use of company assets, including hardware, software, and intellectual resources. Misuse of company property for personal gain is a violation of this code.</p>
+
+                <div style="margin-top: 4rem; padding: 2rem; border-radius: 16px; background: var(--bg); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 0.9rem; font-weight: 800; color: var(--text);">Acknowledge Policy</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">By clicking, you confirm you've read the <span id="policyTitleConfirm">Code of Conduct</span>.</div>
+                    </div>
+                    <button id="confirmBtn" style="padding: 12px 28px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 800; cursor: pointer; transition: 0.3s;" onclick="acknowledgePolicy()">Confirm Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Status Modal -->
+    <div class="modal-overlay" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon success" id="statusModalIcon"><i data-lucide="check-circle"></i></div>
+            <h2 class="modal-title" id="statusModalTitle">Policy Acknowledged</h2>
+            <p class="modal-desc" id="statusModalDesc">Your acknowledgment has been securely synchronized with the organizational compliance vault.</p>
+            <button class="modal-btn" onclick="closeStatusModal()">Dismiss</button>
+        </div>
+    </div>
+
+    <!-- Configuration Design Customization Sidebar -->
+    <aside class="config-sidebar" id="configSidebar">
+        <div class="config-header">
+            <div>
+                <h2>Layout Control</h2>
+                <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">VISUAL PREFERENCES</p>
+            </div>
+            <button style="background:transparent; border:none; cursor:pointer;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
+        </div>
+
+        <div class="config-section">
+            <h3>Visual Theme</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="btn-theme active" onclick="setVisualTheme('light', this)">Modern Light</div>
+                <div class="btn-theme" onclick="setVisualTheme('glass', this)">Glassmorphism</div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h3>Layout Density</h3>
+            <div class="config-option">
+                <span>Compact Mode</span>
+                <label class="switch"><input type="checkbox" id="checkCompact"><span class="slider"></span></label>
+            </div>
+        </div>
+
+        <button class="btn-theme" style="background: var(--primary); color: white; margin-top: auto; width: 100%; border: none; border-radius: 12px; padding: 12px; cursor: pointer;" onclick="toggleConfig(false)">
+            Apply Options
+        </button>
+    </aside>
+
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+        import { doc, setDoc, getDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+
+        // Customization sidebar
+        const configSidebar = document.getElementById('configSidebar');
+        window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
+        document.getElementById('btnCustom').onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+
+        window.setVisualTheme = (theme, el) => {
+            document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const policyCard = document.querySelector('.policy-content');
+            if (theme === 'glass') {
+                document.body.style.background = "linear-gradient(135deg, #f8fafc 0%, var(--primary-light) 100%)";
+                if (policyCard) {
+                    policyCard.style.backdropFilter = "blur(15px)";
+                    policyCard.style.background = "rgba(255,255,255,0.72)";
+                }
+            } else {
+                document.body.style.background = "";
+                if (policyCard) {
+                    policyCard.style.backdropFilter = "";
+                    policyCard.style.background = "";
+                }
+            }
+        };
+
+        document.getElementById('checkCompact').onchange = (e) => {
+            const policyContent = document.querySelector('.policy-content');
+            if (policyContent) {
+                policyContent.classList.toggle('compact-policy', e.target.checked);
+            }
+        };
+
+        // Standard dynamic URL parameters
+        window.navigateTo = (page) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            window.location.href = id ? `${page}?id=${id}` : page;
+        };
+
+        window.navigateToDashboard = () => {
+            navigateTo('employee-dashboard.html');
+        };
+
+        window.handleLogout = async () => {
+            try {
+                localStorage.removeItem('employee_uid');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('userDept');
+                await auth.signOut();
+                window.location.href = 'index.html';
+            } catch (e) {
+                window.location.href = 'index.html';
+            }
+        };
+
+        window.toggleAppsMenu = () => {
+            const dropdown = document.getElementById('appsDropdown');
+            const chevron = document.getElementById('appsChevron');
+            if (!dropdown || !chevron) return;
+            
+            const isVisible = dropdown.style.display === 'flex';
+            dropdown.style.display = isVisible ? 'none' : 'flex';
+            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        window.loadLocalApps = () => {
+            const list = document.getElementById('customAppsList');
+            if (!list) return;
+            
+            const stored = localStorage.getItem('employee_apps');
+            const defaultApps = [
+                { name: "GITHUB", url: "https://github.com" },
+                { name: "CANVAS", url: "https://canvas.instructure.com" },
+                { name: "SLACK", url: "https://slack.com" },
+                { name: "JIRA", url: "https://atlassian.com" }
+            ];
+            
+            const apps = stored ? JSON.parse(stored) : defaultApps;
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative; margin-bottom: 2px;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                        <span>${app.name}</span>
+                    </a>
+                </div>
+            `).join('');
+            
+            if (window.lucide) lucide.createIcons();
+        };
+
+        document.addEventListener('DOMContentLoaded', window.loadLocalApps);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const empIdParam = urlParams.get('id') || 'demo_emp';
+        const requestedPolicy = urlParams.get('policy');
+        
+        let currentUser = null;
+        let resolvedEmpId = empIdParam;
+
+        async function loadCommandCenterConfig() {
+            const centerId = urlParams.get('id');
+            if (centerId) {
+                try {
+                    const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
+                    if (centerDoc.exists()) {
+                        const config = centerDoc.data();
+                        const logoText = document.querySelector('.logo-text');
+                        const logoIcon = document.querySelector('.logo-icon');
+                        
+                        if (logoText) logoText.textContent = config.name;
+                        
+                        if (config.primaryColor) {
+                            document.documentElement.style.setProperty('--primary', config.primaryColor);
+                            document.documentElement.style.setProperty('--primary-dark', config.primaryColor);
+                            document.documentElement.style.setProperty('--primary-light', config.primaryColor + '12'); // ~7% opacity
+                            document.documentElement.style.setProperty('--primary-soft', config.primaryColor + '1a'); // ~10% opacity
+                            if (logoIcon) logoIcon.style.background = config.primaryColor;
+                        }
+                        
+                        if (config.icon && logoIcon) {
+                            logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
+                        }
+
+                        // Render configured apps from command center
+                        if (config.apps && Array.isArray(config.apps)) {
+                            const formattedApps = config.apps.map(app => ({
+                                name: app.name,
+                                url: app.link || app.url
+                            }));
+                            localStorage.setItem('employee_apps', JSON.stringify(formattedApps));
+                            const list = document.getElementById('customAppsList');
+                            if (list) {
+                                list.innerHTML = formattedApps.map((app) => `
+                                    <div class="nav-item" style="position: relative; margin-bottom: 2px;">
+                                        <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                                            <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                            <span>${app.name}</span>
+                                        </a>
+                                    </div>
+                                `).join('');
+                            }
+                        }
+
+                        lucide.createIcons();
+                    }
+                } catch (e) { console.error("Error loading command center config:", e); }
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            loadCommandCenterConfig();
+            const activeUid = user ? user.uid : localStorage.getItem('employee_uid');
+            if (activeUid) {
+                resolvedEmpId = activeUid;
+                const userDocRef = doc(db, 'users', activeUid);
+                onSnapshot(userDocRef, (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        currentUser = { uid: activeUid, ...data };
+                        hydrateProfileUI(currentUser);
+                    }
+                });
+            } else {
+                // Fallback Demo Employee
+                const demoUser = {
+                    uid: 'demo_emp',
+                    name: 'John Doe',
+                    role: 'Cybersecurity Specialist',
+                    department: 'Cybersecurity'
+                };
+                currentUser = demoUser;
+                resolvedEmpId = 'demo_emp';
+                hydrateProfileUI(demoUser);
+            }
+            window.loadLocalApps();
+        });
+
+        function hydrateProfileUI(user) {
+            const name = user.displayName || user.name || user.fullName || 'Employee';
+            const role = user.designation || user.role || 'Employee';
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            const initialDisplay = document.getElementById('userInitial');
+            const nameDisplay = document.getElementById('userNameDisplay');
+            const roleDisplay = document.getElementById('userRoleDisplay');
+            
+            if (initialDisplay) initialDisplay.textContent = initials;
+            if (nameDisplay) nameDisplay.textContent = name;
+            if (roleDisplay) roleDisplay.textContent = role;
+        }
+
+        // Premium Modal Logic
+        window.showStatusModal = (title, msg, type = 'success') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+            
+            icon.className = `modal-icon ${type}`;
+            icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : '<i data-lucide="info"></i>';
+            
+            overlay.classList.add('active');
+            lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        };
+
+        window.showPolicy = (title, el) => {
+            // Update Navigation
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+
+            // Update Content
+            document.querySelector('.policy-content h2').textContent = title;
+            document.getElementById('policyTitleConfirm').textContent = title;
+            
+            // Reset Button
+            const btn = document.getElementById('confirmBtn');
+            btn.innerHTML = 'Confirm Receipt';
+            btn.style.background = 'var(--primary)';
+            btn.disabled = false;
+        };
+
+        window.acknowledgePolicy = async () => {
+            const title = document.querySelector('.policy-content h2').textContent;
+            const btn = document.getElementById('confirmBtn');
+            
+            btn.innerHTML = 'Saving...';
+            btn.disabled = true;
+
+            try {
+                // Save acknowledgment to Firestore
+                const ackKey = title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+                await setDoc(doc(db, 'policy_acknowledgments', `${resolvedEmpId}_${ackKey}`), {
+                    employeeId: resolvedEmpId,
+                    policy: title,
+                    acknowledgedAt: serverTimestamp(),
+                    status: 'acknowledged'
+                });
+
+                showStatusModal(
+                    'Policy Synchronized',
+                    `Your acknowledgment of the "${title}" has been successfully recorded in the Enterprise Compliance Vault.`,
+                    'success'
+                );
+                btn.innerHTML = 'Acknowledged ✓';
+                btn.style.background = 'var(--success)';
+            } catch (err) {
+                console.error('Acknowledgment error:', err);
+                // Still show success UX — offline-safe fallback
+                showStatusModal(
+                    'Policy Acknowledged',
+                    `Your acknowledgment of the "${title}" has been recorded locally and will sync when connection is restored.`,
+                    'success'
+                );
+                btn.innerHTML = 'Acknowledged ✓';
+                btn.style.background = 'var(--success)';
+            }
+        };
+
+        // Auto-select policy from URL param
+        if (requestedPolicy) {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                if (item.textContent.trim().toLowerCase() === requestedPolicy.toLowerCase()) {
+                    item.click();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

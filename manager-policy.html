@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Center | HRFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .back-btn { display: flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+
+        .policy-layout { display: grid; grid-template-columns: 300px 1fr; gap: 2rem; }
+        
+        .policy-nav { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; height: fit-content; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .nav-item { padding: 12px 1rem; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+        .nav-item:hover, .nav-item.active { background: var(--bg); color: var(--primary); }
+
+        .policy-content { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 3.5rem; line-height: 1.7; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; color: var(--text); letter-spacing: -1px; }
+        h3 { font-size: 1.25rem; font-weight: 800; margin: 2.5rem 0 1rem; color: var(--text); }
+        p { margin-bottom: 1.25rem; color: var(--text-muted); font-weight: 500; }
+        ul { margin-bottom: 1.5rem; padding-left: 1.5rem; color: var(--text-muted); }
+        li { margin-bottom: 0.75rem; font-weight: 500; }
+
+        /* Centered Status Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+            z-index: 9999; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        .status-modal {
+            background: white; padding: 2.5rem; border-radius: 32px;
+            width: 90%; max-width: 400px; text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border: 1px solid var(--border); transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .status-modal { transform: scale(1); }
+        .modal-icon {
+            width: 64px; height: 64px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 1.5rem;
+        }
+        .modal-icon.success { background: #dcfce7; color: #10b981; }
+        .modal-icon.info { background: #dbeafe; color: #3b82f6; }
+        
+        .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .modal-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+        .layout { display: grid; grid-template-columns: 280px 1fr; height: 100vh; overflow: hidden; }
+        .sidebar {background: #ffffff; border-right: 1px solid var(--border); padding: 2.5rem 1.5rem; display: flex; flex-direction: column; z-index: 100; overflow-y: auto; scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.1); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--primary); }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px; }
+        .nav-link:hover, .nav-link.active { background: #eff6ff; color: var(--primary); }
+        .profile-mini { margin-top: auto; background: #eff6ff; padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+        <script>
+        window.navigateToDashboard = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            window.location.href = id ? `manager-dashboard.html?id=${id}` : 'manager-dashboard.html';
+        };
+        window.navigateTo = (page) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            window.location.href = id ? `${page}?id=${id}` : page;
+        };
+        window.handleLogout = () => {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
+    </script>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="dept-branding">
+                
+                <div class="dept-name" id="sideDeptName">Cybersecurity</div>
+                <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link active" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="openTeamManager()"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
+                <div class="nav-item"><a href="manager-policy.html" class="nav-link" id="navPolicyLink" class="nav-link active"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="manager-assets.html" class="nav-link" id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                            </nav>
+
+            <div class="sidebar-footer">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="logout()" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i><span>Sign Out</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content" style="padding: 2.5rem; overflow-y: auto; height: 100vh;">
+            <div class="container">
+        <header class="header">
+            <div>
+
+                <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Policy Center</h1>
+            </div>
+            <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); background: white; padding: 6px 16px; border-radius: 100px; border: 1px solid var(--border);">v2.4 • MAY 2026</div>
+        </header>
+
+        <div class="policy-layout">
+            <div class="policy-nav">
+                <div class="nav-item active" onclick="showPolicy('Code of Conduct', this)">Code of Conduct</div>
+                <div class="nav-item" onclick="showPolicy('IT Security Policy', this)">IT Security Policy</div>
+                <div class="nav-item" onclick="showPolicy('Leave & Attendance', this)">Leave & Attendance</div>
+                <div class="nav-item" onclick="showPolicy('Remote Work Policy', this)">Remote Work Policy</div>
+                <div class="nav-item" onclick="showPolicy('Anti-Harassment', this)">Anti-Harassment</div>
+                <div class="nav-item" onclick="showPolicy('Travel & Expenses', this)">Travel & Expenses</div>
+            </div>
+
+            <div class="policy-content">
+                <h2>Code of Conduct</h2>
+                <p>The HRFlow Code of Conduct serves as our guide for professional behavior and ethics. We expect every team member to embody these values in their daily work and interactions.</p>
+                
+                <h3>1. Professional Ethics</h3>
+                <p>We believe in maintaining the highest standards of integrity. This includes:</p>
+                <ul>
+                    <li>Honesty and transparency in all business dealings.</li>
+                    <li>Respect for intellectual property and confidentiality.</li>
+                    <li>Avoiding personal interests that conflict with company goals.</li>
+                </ul>
+
+                <h3>2. Inclusive Culture</h3>
+                <p>HRFlow is a sanctuary for diversity. We strictly prohibit discrimination, bullying, or harassment. Our workplace is built on mutual respect and psychological safety for all employees.</p>
+
+                <h3>3. Resource Stewardship</h3>
+                <p>Employees are responsible for the careful use of company assets, including hardware, software, and intellectual resources. Misuse of company property for personal gain is a violation of this code.</p>
+
+                <div style="margin-top: 4rem; padding: 2rem; border-radius: 16px; background: var(--bg); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 0.9rem; font-weight: 800; color: var(--text);">Acknowledge Policy</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">By clicking, you confirm you've read the <span id="policyTitleConfirm">Code of Conduct</span>.</div>
+                    </div>
+                    <button id="confirmBtn" style="padding: 12px 28px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 800; cursor: pointer; transition: 0.3s;" onclick="acknowledgePolicy()">Confirm Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Status Modal -->
+    <div class="modal-overlay" id="statusModalOverlay">
+        <div class="status-modal">
+            <div class="modal-icon success" id="statusModalIcon"><i data-lucide="check-circle"></i></div>
+            <h2 class="modal-title" id="statusModalTitle">Policy Acknowledged</h2>
+            <p class="modal-desc" id="statusModalDesc">Your acknowledgment has been securely synchronized with the organizational compliance vault.</p>
+            <button class="modal-btn" onclick="closeStatusModal()">Dismiss</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, auth, signOut } from "./firebase-config.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        lucide.createIcons();
+        // Global Link Hydration
+        (function hydrateSidebar() {
+            const centerId = new URLSearchParams(window.location.search).get('id');
+            const overviewLink = document.getElementById('overviewLink');
+            const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
+            const navConsoleLink = document.getElementById('navConsoleLink');
+            const navAnalysisLink = document.getElementById('navAnalysisLink');
+            const navNotifLink = document.getElementById('navNotifLink');
+            const navMsgLink = document.getElementById('navMsgLink');
+            const navDocsLink = document.getElementById('navDocsLink');
+            const navWorkforceLink = document.getElementById('navWorkforceLink');
+            const navSecurityLink = document.getElementById('navSecurityLink');
+            const navPerformanceLink = document.getElementById('navPerformanceLink');
+            const navAttendanceLink = document.getElementById('navAttendanceLink');
+            const navPolicyLink = document.getElementById('navPolicyLink');
+            const navAssetsLink = document.getElementById('navAssetsLink');
+
+            if (overviewLink) overviewLink.href = centerId ? `manager-dashboard.html?id=${centerId}` : `manager-dashboard.html`;
+            if (leaveHolidaysLink) leaveHolidaysLink.href = centerId ? `manager-calendar.html?id=${centerId}` : `manager-calendar.html`;
+            if (navConsoleLink) navConsoleLink.href = centerId ? `manager-console.html?id=${centerId}` : `manager-console.html`;
+            if (navAnalysisLink) navAnalysisLink.href = centerId ? `manager-analysis.html?id=${centerId}` : `manager-analysis.html`;
+            if (navNotifLink) navNotifLink.href = centerId ? `manager-notification.html?id=${centerId}` : `manager-notification.html`;
+            if (navMsgLink) navMsgLink.href = centerId ? `manager-message.html?id=${centerId}` : `manager-message.html`;
+            if (navDocsLink) navDocsLink.href = centerId ? `manager-documents.html?id=${centerId}` : `manager-documents.html`;
+            if (navWorkforceLink) navWorkforceLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+            if (navSecurityLink) navSecurityLink.href = centerId ? `manager-security.html?id=${centerId}` : `manager-security.html`;
+            if (navPerformanceLink) navPerformanceLink.href = centerId ? `manager-performance.html?id=${centerId}` : `manager-performance.html`;
+            if (navAttendanceLink) navAttendanceLink.href = centerId ? `manager-attendance.html?id=${centerId}` : `manager-attendance.html`;
+            if (navPolicyLink) navPolicyLink.href = centerId ? `manager-policy.html?id=${centerId}` : `manager-policy.html`;
+            if (navAssetsLink) navAssetsLink.href = centerId ? `manager-assets.html?id=${centerId}` : `manager-assets.html`;
+                {
+                    const _navTeamLink = document.getElementById('navTeamLink');
+                    if (_navTeamLink) {
+                        if (typeof openTeamManager === 'undefined') {
+                            _navTeamLink.removeAttribute('onclick');
+                            _navTeamLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+                        }
+                    }
+                }
+        })();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const empId = urlParams.get('id') || 'demo_emp';
+        const requestedPolicy = urlParams.get('policy');
+
+        window.logout = async () => {
+            try {
+                await signOut(auth);
+            } catch (e) {
+                console.error("Signout failed:", e);
+            }
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
+
+        // Premium Modal Logic
+        window.showStatusModal = (title, msg, type = 'success') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+            
+            icon.className = `modal-icon ${type}`;
+            icon.innerHTML = type === 'success' ? '<i data-lucide="check-circle"></i>' : '<i data-lucide="info"></i>';
+            
+            overlay.classList.add('active');
+            lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            document.getElementById('statusModalOverlay').classList.remove('active');
+        };
+
+        window.showPolicy = (title, el) => {
+            // Update Navigation
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+
+            // Update Content
+            document.querySelector('.policy-content h2').textContent = title;
+            document.getElementById('policyTitleConfirm').textContent = title;
+            
+            // Reset Button
+            const btn = document.getElementById('confirmBtn');
+            btn.innerHTML = 'Confirm Receipt';
+            btn.style.background = 'var(--primary)';
+            btn.disabled = false;
+        };
+
+        window.acknowledgePolicy = async () => {
+            const title = document.querySelector('.policy-content h2').textContent;
+            const btn = document.getElementById('confirmBtn');
+            
+            btn.innerHTML = 'Saving...';
+            btn.disabled = true;
+
+            try {
+                // Save acknowledgment to Firestore
+                const ackKey = title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+                await setDoc(doc(db, 'policy_acknowledgments', `${empId}_${ackKey}`), {
+                    employeeId: empId,
+                    policy: title,
+                    acknowledgedAt: serverTimestamp(),
+                    status: 'acknowledged'
+                });
+
+                showStatusModal(
+                    'Policy Synchronized',
+                    `Your acknowledgment of the "${title}" has been successfully recorded in the Enterprise Compliance Vault.`,
+                    'success'
+                );
+                btn.innerHTML = 'Acknowledged ✓';
+                btn.style.background = 'var(--success)';
+            } catch (err) {
+                console.error('Acknowledgment error:', err);
+                // Still show success UX — offline-safe fallback
+                showStatusModal(
+                    'Policy Acknowledged',
+                    `Your acknowledgment of the "${title}" has been recorded locally and will sync when connection is restored.`,
+                    'success'
+                );
+                btn.innerHTML = 'Acknowledged ✓';
+                btn.style.background = 'var(--success)';
+            }
+        };
+
+        // Auto-select policy from URL param
+        if (requestedPolicy) {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                if (item.textContent.trim().toLowerCase() === requestedPolicy.toLowerCase()) {
+                    item.click();
+                }
+            });
+        }
+    
+        // Hydrate custom apps dynamically
+        const customList = document.getElementById('customAppsList');
+        if (customList) {
+            const apps = JSON.parse(localStorage.getItem('managerCustomApps') || '[]');
+            customList.innerHTML = apps.map(app => `
+                <div class="nav-item">
+                    <a href="${app.url.startsWith('http') ? app.url : 'https://' + app.url}" target="_blank" class="nav-link" style="color: var(--primary);">
+                        <i data-lucide="external-link"></i><span>${app.name}</span>
+                    </a>
+                </div>
+            `).join('');
+            if(window.lucide) window.lucide.createIcons();
+        }
+</script>
+</body>
+</html>

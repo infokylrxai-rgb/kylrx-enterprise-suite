@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notifications | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+        const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+        if (!isLoggedIn || userRole !== 'admin') window.location.href = 'index.html';
+    </script>
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <style>
+        .sidebar {overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
+
+        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
+        .header { margin-bottom: 2.5rem; }
+        .header h1 { font-size: 2rem; font-weight: 700; }
+        .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
+        .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif-content { flex: 1; }
+        .notif-title { font-weight: 600; margin-bottom: 4px; }
+        .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+        .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+
+        .icon-btn { 
+            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .action-icon:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--border);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-icon i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2px;
+        }
+
+        /* Customization Sidebar */
+        .config-sidebar {
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border);
+            z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+        }
+        .config-sidebar.active { right: 0; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .config-header h2 { font-weight: 800; font-size: 1.25rem; }
+        .config-section { margin-bottom: 2rem; }
+        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option span { font-size: 0.9rem; font-weight: 600; }
+
+        /* Switches */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+
+        /* Density Modes */
+        .tight .notif-item { padding: 1rem; }
+        .tight .notif-desc { display: none; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <a href="admin-dashboard-builder.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+                                                            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-label">APPROVALS & SETTINGS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link active"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+                
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
+                <div style="flex: 1;">
+                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">System Notifications</h1>
+                    <p style="color: var(--text-muted); font-weight: 500;">Manage and view all administrative alerts</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
+                        <i data-lucide="message-square"></i>
+                        <span class="action-icon-badge" id="headerMsgBadge"></span>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
+                        <i data-lucide="bell"></i>
+                        <span class="action-icon-badge" id="headerNotifBadge"></span>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Clear All Notifications" onclick="clearAllNotifications()" style="color: #ef4444;">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </header>
+            <div class="card">
+                <div class="notif-item">
+                    <div class="notif-icon"><i data-lucide="info"></i></div>
+                    <div class="notif-content">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">System Update Successful</div>
+                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            </div>
+                        <div class="notif-desc">The HRFlow enterprise core has been updated to version 3.0.1. All systems are stable.</div>
+                        <div class="notif-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i data-lucide="user-plus"></i></div>
+                    <div class="notif-content">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">New Manager Registered</div>
+                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            </div>
+                        <div class="notif-desc">Sarah Wilson has been registered as the new Marketing Manager.</div>
+                        <div class="notif-time">5 hours ago</div>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
+                    <div class="notif-content">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">Critical: System Lock Active</div>
+                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            </div>
+                        <div class="notif-desc">The global system lock was enabled for maintenance by an administrator.</div>
+                        <div class="notif-time">1 day ago</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Customization Sidebar -->
+        <aside class="config-sidebar" id="configSidebar">
+            <div class="config-header">
+                <div>
+                    <h2>Personalize</h2>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">INTERFACE CONTROL</p>
+                </div>
+                <button style="background:transparent; border:none; cursor:pointer;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="config-section">
+                <h3>Visual Theme</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="btn-theme active" onclick="setTheme('light', this)">Modern Light</div>
+                    <div class="btn-theme" onclick="setTheme('glass', this)">Enterprise Glass</div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>Notification Layout</h3>
+                <div class="config-option">
+                    <span>Compact Mode</span>
+                    <label class="switch"><input type="checkbox" id="checkTight"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Show Decriptions</span>
+                    <label class="switch"><input type="checkbox" checked id="checkDesc"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>AI Filters</h3>
+                <div class="config-option">
+                    <span>Hide Low Priority</span>
+                    <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Smart Grouping</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <button class="btn" style="background: var(--primary); color: white; margin-top: auto; width: 100%; justify-content: center;" onclick="toggleConfig(false)">
+                Save Preferences
+            </button>
+        </aside>
+    </div>
+    <script type="module">
+        import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, where, updateDoc, arrayUnion } from "./firebase-config.js";
+
+        function syncHeaderBadges(userId) {
+            const msgBadge = document.getElementById('headerMsgBadge');
+            const notifBadge = document.getElementById('headerNotifBadge');
+
+            // 1. Listen for unread messages (admin reads hr_support receiverId)
+            const msgQuery = query(
+                collection(db, 'messages'),
+                where('receiverId', '==', 'hr_support'),
+                where('read', '==', false)
+            );
+            onSnapshot(msgQuery, (snap) => {
+                if (msgBadge) {
+                    const count = snap.size;
+                    msgBadge.textContent = count > 9 ? '9+' : count;
+                    msgBadge.style.display = count > 0 ? 'flex' : 'none';
+                }
+            });
+
+            // 2. Listen for notifications
+            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
+            onSnapshot(notifQuery, (snap) => {
+                const unreadNotifs = snap.docs.filter(d => {
+                    const data = d.data();
+                    if (data.read) return false;
+                    const clearedBy = data.clearedBy || [];
+                    return !clearedBy.includes(userId);
+                });
+                if (notifBadge) {
+                    const count = unreadNotifs.length;
+                    notifBadge.textContent = count > 9 ? '9+' : count;
+                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
+                }
+            });
+        }
+
+        onAuthStateChanged(auth, user => {
+            const currentUserId = user ? user.uid : (localStorage.getItem('hr_user_id') || 'admin_demo');
+            syncHeaderBadges(currentUserId);
+        });
+
+        if (window.lucide) lucide.createIcons();
+        
+        const configSidebar = document.getElementById('configSidebar');
+        window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
+        document.getElementById('btnCustom').onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+
+        const notifContainer = document.querySelector('.card');
+
+        // Real-time notification listener
+        const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
+        onSnapshot(q, (snap) => {
+            const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'admin_demo');
+            const visibleDocs = snap.docs.filter(d => {
+                const data = d.data();
+                const clearedBy = data.clearedBy || [];
+                return !clearedBy.includes(currentUserId);
+            });
+
+            window.visibleNotifIds = visibleDocs.map(d => d.id);
+
+            if (visibleDocs.length === 0) {
+                notifContainer.innerHTML = '<div style="text-align: center; padding: 5rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            notifContainer.innerHTML = visibleDocs.map(doc => {
+                const data = doc.data();
+                const date = data.timestamp?.toDate().toLocaleString() || 'Recent';
+                const priority = (data.priority || 'normal').toLowerCase();
+                
+                const icon = priority === 'high' || priority === 'critical' ? 'alert-triangle' : (data.target === 'admin_hr' ? 'shield' : 'bell');
+                const color = priority === 'high' || priority === 'critical' ? '#ef4444' : (data.target === 'admin_hr' ? '#3b82f6' : '#10b981');
+                const bg = priority === 'high' || priority === 'critical' ? 'rgba(239, 68, 68, 0.1)' : (data.target === 'admin_hr' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)');
+
+                return `
+                    <div class="notif-item">
+                        <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
+                        <div class="notif-content">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">${data.title || (priority.toUpperCase() + ' ALERT')}</div>
+                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            </div>
+                            <div class="notif-desc">${data.message || 'No details provided.'}</div>
+                            <div class="notif-time">${date} • Target: ${data.target || 'General'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            if (window.lucide) lucide.createIcons();
+        });
+
+        window.setTheme = (theme, el) => {
+            document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            if (theme === 'glass') {
+                document.body.style.background = "linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)";
+                document.querySelectorAll('.card').forEach(c => {
+                    c.style.background = "rgba(255,255,255,0.7)";
+                    c.style.backdropFilter = "blur(10px)";
+                });
+            } else {
+                document.body.style.background = "";
+                document.querySelectorAll('.card').forEach(c => {
+                    c.style.background = "";
+                    c.style.backdropFilter = "";
+                });
+            }
+        };
+
+        document.getElementById('checkTight').onchange = (e) => {
+            document.querySelector('.card').classList.toggle('tight', e.target.checked);
+        };
+
+        document.getElementById('checkDesc').onchange = (e) => {
+            document.querySelectorAll('.notif-desc').forEach(d => {
+                d.style.display = e.target.checked ? 'block' : 'none';
+            });
+        };
+
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+    
+        const ensureNotifModals = () => {
+            if (document.getElementById('customDelNotifModal')) return;
+            const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
+            const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
+            
+            const delModal = document.createElement('div');
+            delModal.id = 'customDelNotifModal';
+            delModal.style.cssText = modalStyle;
+            delModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear Notification</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear this notification?</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear</button>
+                    </div>
+                </div>
+            `;
+            
+            const clearAllModal = document.createElement('div');
+            clearAllModal.id = 'customClearAllNotifModal';
+            clearAllModal.style.cssText = modalStyle;
+            clearAllModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear All Notifications</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear All</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(delModal);
+            document.body.appendChild(clearAllModal);
+        };
+
+        window.deleteNotification = async (id) => {
+            ensureNotifModals();
+            const modal = document.getElementById('customDelNotifModal');
+            modal.style.display = 'flex';
+            document.getElementById('customDelNotifCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customDelNotifConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                try {
+                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'admin_demo');
+                    await updateDoc(doc(db, 'notifications', id), {
+                        clearedBy: arrayUnion(currentUserId)
+                    });
+                } catch(e) { console.error('Error deleting:', e); }
+            };
+        };
+
+        window.clearAllNotifications = async () => {
+            ensureNotifModals();
+            const modal = document.getElementById('customClearAllNotifModal');
+            modal.style.display = 'flex';
+            document.getElementById('customClearAllNotifCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customClearAllNotifConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                try {
+                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'admin_demo');
+                    const ids = window.visibleNotifIds || [];
+                    const promises = ids.map(id => updateDoc(doc(db, 'notifications', id), {
+                        clearedBy: arrayUnion(currentUserId)
+                    }));
+                    await Promise.all(promises);
+                } catch(e) { console.error('Error clearing all:', e); }
+            };
+        };
+</script>
+
+    
+
+
+
+    <!-- Custom App Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay">
+        <style>
+            #customAppsModal.modal-overlay {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(15, 23, 42, 0.4);
+                backdrop-filter: blur(8px);
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+            }
+            #customAppsModal .modal {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 2.5rem;
+                border-radius: 24px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e2e8f0;
+                position: relative;
+                text-align: left;
+            }
+            #customAppsModal .modal h2 {
+                font-weight: 800;
+                font-size: 1.25rem;
+                color: #0f172a !important;
+                margin-bottom: 4px;
+                margin-top: 0;
+            }
+            #customAppsModal .modal p {
+                font-size: 0.75rem;
+                color: #64748b !important;
+                margin: 0;
+            }
+            #customAppsModal .modal .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 1rem;
+            }
+            #customAppsModal .modal label {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                display: block;
+                margin-bottom: 4px;
+            }
+            #customAppsModal .modal input {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid #cbd5e1 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                outline: none;
+                margin-top: 4px;
+                font-family: inherit;
+                font-size: 0.85rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+            #customAppsModal .modal input:focus {
+                border-color: #3b82f6 !important;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            }
+            #customAppsModal .modal input::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8;
+            }
+            #customAppsModal .modal button.map-btn {
+                background: #3b82f6;
+                color: white !important;
+                border: none;
+                border-radius: 12px;
+                padding: 14px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: 0.2s;
+                text-align: center;
+                width: 100%;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+            #customAppsModal .modal button.map-btn:hover {
+                background: #2563eb;
+                transform: translateY(-1px);
+            }
+            #customAppsModal .modal h3 {
+                font-size: 0.7rem;
+                font-weight: 800;
+                color: #64748b !important;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+                margin-top: 0;
+            }
+            #customAppsModal .close-modal {
+                position: absolute;
+                top: 24px;
+                right: 24px;
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                color: #64748b !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: 0.2s;
+                border: none;
+            }
+            #customAppsModal .close-modal:hover {
+                color: #ef4444 !important;
+                background: #fee2e2;
+            }
+        </style>
+        <div class="modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Custom App Registry</h2>
+                    <p>Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                    <label>Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
+                </div>
+                <div class="form-group">
+                    <label>External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
+                </div>
+                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3>Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Mapped apps inside the registry panel -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Custom Apps Injection Script -->
+<script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const DEFAULT_APPS = [
+        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+        { name: "DATADOG", url: "https://app.datadoghq.com" }
+    ];
+
+    async function initAdminApps() {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        onSnapshot(appsRef, async (snapshot) => {
+            let apps = [];
+            if (snapshot.exists()) {
+                apps = snapshot.data().customApps || [];
+            } else {
+                try {
+                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                    apps = DEFAULT_APPS;
+                } catch(e) {}
+            }
+            renderAppsUI(apps);
+        });
+    }
+
+    function renderAppsUI(apps) {
+        const list = document.getElementById('customAppsList');
+        if (list) {
+            list.innerHTML = apps.map((app) => `
+                <div class="nav-item" style="position: relative;">
+                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                        <i data-lucide="external-link"></i>
+                        <span>${app.name}</span>
+                    </a>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        const registryList = document.getElementById('registryAppsList');
+        if (registryList) {
+            registryList.innerHTML = apps.map((app) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                    </div>
+                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        if(window.lucide) lucide.createIcons();
+    }
+
+    window.openAppRegistryModal = () => {
+        const modal = document.getElementById('customAppsModal');
+        if (modal) modal.style.display = 'flex';
+        if(window.lucide) lucide.createIcons();
+    };
+
+    window.addCustomApp = async () => {
+        const urlInput = document.getElementById('appUrlInput');
+        const nameInput = document.getElementById('appNameInput');
+        if (!urlInput) return;
+        
+        const url = urlInput.value.trim();
+        const customName = nameInput ? nameInput.value.trim() : '';
+        if (!url) return;
+
+        try {
+            let cleanUrl = url;
+            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+            const urlObj = new URL(cleanUrl);
+            const domain = urlObj.hostname.replace('www.', '');
+            const appName = customName || domain.split('.')[0].toUpperCase();
+
+            const appsRef = doc(db, "system_configs", "admin_custom_apps");
+            await setDoc(appsRef, {
+                customApps: arrayUnion({ name: appName, url: cleanUrl })
+            }, { merge: true });
+
+            urlInput.value = '';
+            if (nameInput) nameInput.value = '';
+        } catch (e) {
+            alert("Invalid URL structure.");
+        }
+    };
+
+    window.removeAppFromServer = async (url, name) => {
+        const appsRef = doc(db, "system_configs", "admin_custom_apps");
+        await setDoc(appsRef, {
+            customApps: arrayRemove({ name: name, url: url })
+        }, { merge: true });
+    };
+
+    initAdminApps();
+</script>
+</body>
+
+
+</html>
+

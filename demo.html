@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kylrx AI – Enterprise Sandbox & Connect Hub</title>
+  <meta name="description" content="Explore Kylrx AI dashboards through our video walk-throughs, and connect with us.">
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
+  
+  <style>
+    :root {
+      --bg-dark: #f8fafc;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --border-color: rgba(255, 255, 255, 0.6);
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.15);
+      --border: rgba(15, 23, 42, 0.08);
+      
+      --x-color: #0f172a;
+      --x-bg: rgba(15, 23, 42, 0.03);
+      --x-border: rgba(15, 23, 42, 0.08);
+      --x-glow: rgba(15, 23, 42, 0.05);
+      
+      --linkedin-color: #0077b5;
+      --linkedin-bg: rgba(0, 119, 181, 0.05);
+      --linkedin-border: rgba(0, 119, 181, 0.15);
+      --linkedin-glow: rgba(0, 119, 181, 0.1);
+      
+      --youtube-color: #ef4444;
+      --youtube-bg: rgba(239, 68, 68, 0.05);
+      --youtube-border: rgba(239, 68, 68, 0.15);
+      --youtube-glow: rgba(239, 68, 68, 0.1);
+      
+      --instagram-color: #e1306c;
+      --instagram-bg: rgba(225, 48, 108, 0.05);
+      --instagram-border: rgba(225, 48, 108, 0.15);
+      --instagram-glow: rgba(225, 48, 108, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Navbar */
+    .navbar {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 20px;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+      z-index: 100;
+    }
+
+    .logo img {
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--primary);
+    }
+
+    .nav-btn {
+      text-decoration: none;
+      background: var(--primary);
+      color: white;
+      padding: 0.5rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      box-shadow: 0 4px 12px var(--primary-glow);
+      transform: translateY(-1px);
+    }
+
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 2rem;
+      width: 100%;
+      max-width: 1200px;
+      z-index: 10;
+      margin-bottom: 3rem;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Sidebar Selector */
+    .sidebar-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      height: fit-content;
+    }
+
+    .sidebar-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-secondary);
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      padding-left: 0.5rem;
+    }
+
+    .role-tab {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+
+    .role-tab:hover {
+      background: rgba(59, 130, 246, 0.03);
+    }
+
+    .role-tab.active {
+      background: white;
+      border-color: rgba(59, 130, 246, 0.15);
+      box-shadow: 0 8px 16px rgba(59, 130, 246, 0.05);
+    }
+
+    .tab-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(59, 130, 246, 0.05);
+      color: var(--primary);
+      transition: all 0.25s;
+    }
+
+    .role-tab.active .tab-icon {
+      background: var(--primary);
+      color: white;
+    }
+
+    .tab-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tab-name {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .tab-desc {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-top: 1px;
+    }
+
+    /* Content Area */
+    .content-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      min-height: 500px;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+
+    .header-left h2 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .header-left p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Media Player Container */
+    .media-container {
+      width: 100%;
+    }
+
+    .media-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .video-wrapper video {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #0f172a;
+      aspect-ratio: 16 / 9;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      object-fit: cover;
+      display: block;
+    }
+
+    .no-video-placeholder {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      aspect-ratio: 16 / 9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      color: var(--text-secondary);
+      gap: 12px;
+    }
+
+    /* Connect Hub Card */
+    .connect-card {
+      width: 100%;
+      max-width: 1200px;
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.05);
+      text-align: center;
+      z-index: 10;
+      margin-bottom: 2rem;
+    }
+
+    .connect-card h3 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .connect-card p {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 800px) {
+      .links-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .links-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      padding: 1rem 1.25rem;
+      border-radius: 16px;
+      border: 1px solid rgba(15, 23, 42, 0.05);
+      background: white;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      text-align: left;
+    }
+
+    .link-item:hover {
+      transform: translateY(-3px);
+    }
+
+    /* Social specific hover borders */
+    .link-x:hover { border-color: rgba(15, 23, 42, 0.2); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05); }
+    .link-linkedin:hover { border-color: rgba(0, 119, 181, 0.2); box-shadow: 0 8px 20px rgba(0, 119, 181, 0.1); }
+    .link-instagram:hover { border-color: var(--instagram-border); box-shadow: 0 8px 20px var(--instagram-glow); }
+    .link-youtube:hover { border-color: var(--youtube-border); box-shadow: 0 8px 20px var(--youtube-glow); }
+
+    .link-icon-wrapper {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .wrapper-x { background: rgba(15, 23, 42, 0.05); color: #0f172a; }
+    .wrapper-linkedin { background: rgba(0, 119, 181, 0.08); color: #0077b5; }
+    .wrapper-instagram { background: rgba(225, 48, 108, 0.08); color: #e1306c; }
+    .wrapper-youtube { background: rgba(239, 68, 68, 0.08); color: #ef4444; }
+
+    .link-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .link-desc {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    /* Footer */
+    .footer {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 1rem;
+      opacity: 0.8;
+      text-align: center;
+    }
+
+    .footer a {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+
+    .footer a:hover {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <img src="logo.jpg" alt="Logo">
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+    </div>
+  </nav>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+    <!-- Sidebar -->
+    <div class="sidebar-card">
+      <div class="sidebar-title">Select Demo Portal</div>
+      
+      <button class="role-tab active" onclick="switchRole('admin')">
+        <div class="tab-icon"><i data-lucide="shield"></i></div>
+        <div class="tab-info">
+          <span class="tab-name">Super Admin</span>
+          <span class="tab-desc">Full system operations</span>
+        </div>
+      </button>
+
+      <button class="role-tab" onclick="switchRole('hrms')">
+        <div class="tab-icon"><i data-lucide="landmark"></i></div>
+        <div class="tab-info">
+          <span class="tab-name">HRMS Admin</span>
+          <span class="tab-desc">Payroll & Recruitment</span>
+        </div>
+      </button>
+
+      <button class="role-tab" onclick="switchRole('manager')">
+        <div class="tab-icon"><i data-lucide="users"></i></div>
+        <div class="tab-info">
+          <span class="tab-name">Dept Manager</span>
+          <span class="tab-desc">Team approvals & EODs</span>
+        </div>
+      </button>
+
+      <button class="role-tab" onclick="switchRole('employee')">
+        <div class="tab-icon"><i data-lucide="user"></i></div>
+        <div class="tab-info">
+          <span class="tab-name">Standard Employee</span>
+          <span class="tab-desc">Attendance & Work logs</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Content Card -->
+    <div class="content-card">
+      <div class="content-header">
+        <div class="header-left">
+          <h2 id="roleTitle">Super Admin Sandbox</h2>
+          <p id="roleDesc">Access the full executive command center. Oversee system settings, view analytics, manage departments, policy documents, global users, and full compliance settlements.</p>
+        </div>
+      </div>
+
+      <!-- Video Showcase -->
+      <div class="media-container">
+        <div class="media-title">
+          <i data-lucide="video" style="width:16px;height:16px;color:var(--primary);"></i>
+          <span>Feature Walkthrough Video</span>
+        </div>
+        <div class="video-wrapper" id="videoWrapper">
+          <video src="HRMS.mp4" controls></video>
+          <video src="admin(signup and login page).mp4" controls></video>
+          <video src="admin(dashboardbuilder.html).mp4" controls></video>
+          <video src="add employee,manger and hrms in admin portal.mp4" controls></video>
+          <video src="admin-policy-center.mp4" controls></video>
+          <video src="admin(Enterprise leave).mp4" controls></video>
+          <video src="admin(Enterprise exit command).mp4" controls></video>
+          <video src="message and notification.mp4" controls></video>
+          <video src="Onboarding(Flow Designer).mp4" controls></video>
+          <video src="TVC.mp4" controls></video>
+          <video src="apps.mp4" controls></video>
+          <video src="Attendance Log.mp4" controls></video>
+          <video src="AttendanceLog.mp4" controls></video>
+          <video src="Manger-Document.mp4" controls></video>
+          <video src="team management.mp4" controls></video>
+          <video src="DepartmentalAnalytics.mp4" controls></video>
+          <video src="Security.mp4" controls></video>
+          <video src="PolicyCenter.mp4" controls></video>
+          <video src="RulesEmployees.mp4" controls></video>
+          <video src="Leave and TimeOff.mp4" controls></video>
+          <video src="Document EMployee.mp4" controls></video>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connect Hub Socials -->
+  <div class="connect-card">
+    <h3>Connect with Kylrx AI</h3>
+    <p>Follow us across our platforms to stay updated with product updates, announcements, and guides.</p>
+    
+    <div class="links-grid">
+      <!-- X / Twitter -->
+      <a href="https://x.com/kylrxai" target="_blank" rel="noopener noreferrer" class="link-item link-x">
+        <div class="link-icon-wrapper wrapper-x">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="link-content">
+          <div class="link-title">Follow on X</div>
+          <div class="link-desc">Latest updates & news</div>
+        </div>
+      </a>
+
+      <!-- LinkedIn -->
+      <a href="https://www.linkedin.com/company/kylrx-ai/" target="_blank" rel="noopener noreferrer" class="link-item link-linkedin">
+        <div class="link-icon-wrapper wrapper-linkedin">
+          <i data-lucide="linkedin" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="link-content">
+          <div class="link-title">LinkedIn</div>
+          <div class="link-desc">Enterprise connection</div>
+        </div>
+      </a>
+
+      <!-- Instagram -->
+      <a href="https://www.instagram.com/kylrx.ai" target="_blank" rel="noopener noreferrer" class="link-item link-instagram">
+        <div class="link-icon-wrapper wrapper-instagram">
+          <i data-lucide="instagram" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="link-content">
+          <div class="link-title">Instagram</div>
+          <div class="link-desc">Behind the scenes media</div>
+        </div>
+      </a>
+
+      <!-- YouTube -->
+      <a href="https://youtube.com/@kylrxai" target="_blank" rel="noopener noreferrer" class="link-item link-youtube">
+        <div class="link-icon-wrapper wrapper-youtube">
+          <i data-lucide="youtube" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div class="link-content">
+          <div class="link-title">YouTube</div>
+          <div class="link-desc">Video tutorials & walkthroughs</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>&copy; 2026 <a href="index.html">Kylrx AI</a>. All rights reserved.</p>
+  </div>
+
+  <script>
+    const ROLES = {
+      admin: {
+        title: "Super Admin Sandbox",
+        desc: "Access the full executive command center. Oversee system settings, view analytics, manage departments, policy documents, global users, and full compliance settlements.",
+        videos: [
+          "admin(signup and login page).mp4",
+          "admin(dashboardbuilder.html).mp4",
+          "add employee,manger and hrms in admin portal.mp4",
+          "admin-policy-center.mp4",
+          "admin(Enterprise leave).mp4",
+          "admin(Enterprise exit command).mp4",
+          "message and notification.mp4",
+          "Onboarding(Flow Designer).mp4",
+          "TVC.mp4",
+          "apps.mp4",
+          "Attendance Log.mp4",
+          "AttendanceLog.mp4",
+          "Manger-Document.mp4",
+          "team management.mp4",
+          "DepartmentalAnalytics.mp4",
+          "Security.mp4",
+          "PolicyCenter.mp4",
+          "RulesEmployees.mp4",
+          "Leave and TimeOff.mp4",
+          "Document EMployee.mp4"
+        ]
+      },
+      hrms: {
+        title: "HRMS Admin Sandbox",
+        desc: "Coordinate core HR operations. Audit employee appraisals, configure shifts, manage leave approvals, run payslip generation, and manage active hiring pipelines.",
+        videos: [
+          "HRMS.mp4",
+          "admin(signup and login page).mp4",
+          "admin(Enterprise leave).mp4",
+          "Leave and TimeOff.mp4",
+          "message and notification.mp4"
+        ]
+      },
+      manager: {
+        title: "Department Manager Sandbox",
+        desc: "Oversee your engineering and operational team. Audit EOD tasks, evaluate employee performances, approve leave requests, and track real-time analytics for your department.",
+        videos: [
+          "manger portal.mp4",
+          "Manger-Document.mp4",
+          "Document EMployee.mp4",
+          "team management.mp4",
+          "DepartmentalAnalytics.mp4",
+          "Security.mp4",
+          "PolicyCenter.mp4",
+          "RulesEmployees.mp4",
+          "Leave and TimeOff.mp4",
+          "message and notification.mp4",
+          "TVC.mp4",
+          "apps.mp4",
+          "Attendance Log.mp4",
+          "AttendanceLog.mp4"
+        ]
+      },
+      employee: {
+        title: "Standard Employee Sandbox",
+        desc: "Experience the employee dashboard. Log daily EOD summaries, punch attendance, view personalized leave logs, check pay slips, and verify dynamic task checklists.",
+        videos: [
+          "message and notification.mp4",
+          "Attendance Log.mp4",
+          "AttendanceLog.mp4",
+          "RulesEmployees.mp4",
+          "Leave and TimeOff.mp4",
+          "Document EMployee.mp4"
+        ]
+      }
+    };
+
+    let activeRole = 'admin';
+
+    function switchRole(roleKey) {
+      activeRole = roleKey;
+      
+      // Update tabs UI
+      const tabs = document.querySelectorAll('.role-tab');
+      tabs.forEach((tab, index) => {
+        const isMatch = (index === 0 && roleKey === 'admin') || 
+                        (index === 1 && roleKey === 'hrms') || 
+                        (index === 2 && roleKey === 'manager') || 
+                        (index === 3 && roleKey === 'employee');
+        tab.classList.toggle('active', isMatch);
+      });
+
+      const roleData = ROLES[roleKey];
+      
+      // Update content elements
+      document.getElementById('roleTitle').textContent = roleData.title;
+      document.getElementById('roleDesc').textContent = roleData.desc;
+
+      // Update video element
+      const wrapper = document.getElementById('videoWrapper');
+      if (roleData.videos && roleData.videos.length > 0) {
+        wrapper.innerHTML = roleData.videos.map(v => `<video src="${v}" controls></video>`).join('');
+      } else {
+        wrapper.innerHTML = `
+          <div class="no-video-placeholder">
+            <i data-lucide="video-off" style="width:48px;height:48px;color:var(--text-secondary);opacity:0.6;"></i>
+            <span style="font-weight:600;font-size:0.9rem;">Feature Video Walkthrough Pending</span>
+          </div>`;
+      }
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

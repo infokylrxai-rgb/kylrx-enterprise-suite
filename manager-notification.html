@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Notifications | HRFlow</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+        const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
+        if (!isLoggedIn || userRole !== 'manager') window.location.href = 'index.html';
+    </script>
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <style>
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .custom-alert-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            animation: alertPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        @keyframes alertPop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .alert-btn {
+            margin-top: 2rem; width: 100%; padding: 14px;
+            background: var(--primary); color: white; border: none;
+            border-radius: 14px; font-weight: 700; cursor: pointer;
+            transition: 0.2s;
+        }
+        .alert-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+
+        .sidebar {overflow-y: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;}
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
+        .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
+
+        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
+        .header { margin-bottom: 2.5rem; }
+        .header h1 { font-size: 2rem; font-weight: 700; }
+        .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
+        .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif-content { flex: 1; }
+        .notif-title { font-weight: 600; margin-bottom: 4px; }
+        .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+        .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+
+        .icon-btn { 
+            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
+            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+
+        .action-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .action-icon:hover {
+            background: white;
+            color: var(--primary);
+            border-color: var(--border);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .action-icon i {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2px;
+        }
+
+        /* Customization Sidebar */
+        .config-sidebar {
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border);
+            z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column;
+        }
+        .config-sidebar.active { right: 0; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .config-header h2 { font-weight: 800; font-size: 1.25rem; }
+        .config-section { margin-bottom: 2rem; }
+        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
+        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
+        .config-option span { font-size: 0.9rem; font-weight: 600; }
+
+        /* Switches */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
+        .btn-theme.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+
+        /* Density Modes */
+        .tight .notif-item { padding: 1rem; }
+        .tight .notif-desc { display: none; }
+    </style>
+</head>
+<body>
+    
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="dept-branding">
+                
+                <div class="dept-name" id="sideDeptName">Cybersecurity</div>
+                <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MY WORKSPACE</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a class="nav-link" href="#" id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
+                <div class="nav-item"><a href="#" class="nav-link active" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navTeamLink" onclick="openTeamManager()"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
+
+                
+                <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 2rem;"></div>
+
+                <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
+                <div class="nav-item"><a href="manager-policy.html" class="nav-link" id="navPolicyLink"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="manager-assets.html" class="nav-link" id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                            </nav>
+
+            <div class="sidebar-footer" style="padding-top: 2rem;">
+                <div class="nav-item">
+                    <a href="#" class="nav-link" onclick="localStorage.clear(); window.location.href = 'index.html';" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i><span>Sign Out</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
+                <div style="flex: 1;">
+                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Manager Notifications</h1>
+                    <p style="color: var(--text-muted); font-weight: 500;">Manage and view all system alerts for this unit</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                    <button class="action-icon" title="Messages" onclick="window.location.href='manager-message.html?id=' + new URLSearchParams(window.location.search).get('id')">
+                        <i data-lucide="message-square"></i>
+                        <span class="action-icon-badge" id="headerMsgBadge"></span>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='manager-notification.html?id=' + new URLSearchParams(window.location.search).get('id')">
+                        <i data-lucide="bell"></i>
+                        <span class="action-icon-badge" id="headerNotifBadge"></span>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                    <button class="action-icon" title="Clear All Notifications" onclick="clearAllNotifications()" style="color: #ef4444;">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </header>
+            <div class="card">
+                <div class="notif-item">
+                    <div class="notif-icon"><i data-lucide="info"></i></div>
+                    <div class="notif-content">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">System Update Successful</div>
+                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            </div>
+                        <div class="notif-desc">The HRFlow enterprise core has been updated to version 3.0.1. All systems are stable.</div>
+                        <div class="notif-time">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i data-lucide="user-plus"></i></div>
+                    <div class="notif-content">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">New Manager Registered</div>
+                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            </div>
+                        <div class="notif-desc">Sarah Wilson has been registered as the new Marketing Manager.</div>
+                        <div class="notif-time">5 hours ago</div>
+                    </div>
+                </div>
+                <div class="notif-item">
+                    <div class="notif-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
+                    <div class="notif-content">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">Critical: System Lock Active</div>
+                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            </div>
+                        <div class="notif-desc">The global system lock was enabled for maintenance by an administrator.</div>
+                        <div class="notif-time">1 day ago</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Customization Sidebar -->
+        <aside class="config-sidebar" id="configSidebar">
+            <div class="config-header">
+                <div>
+                    <h2>Personalize</h2>
+                    <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">INTERFACE CONTROL</p>
+                </div>
+                <button style="background:transparent; border:none; cursor:pointer;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="config-section">
+                <h3>Visual Theme</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="btn-theme active" onclick="setTheme('light', this)">Modern Light</div>
+                    <div class="btn-theme" onclick="setTheme('glass', this)">Enterprise Glass</div>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>Notification Layout</h3>
+                <div class="config-option">
+                    <span>Compact Mode</span>
+                    <label class="switch"><input type="checkbox" id="checkTight"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Show Decriptions</span>
+                    <label class="switch"><input type="checkbox" checked id="checkDesc"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <div class="config-section">
+                <h3>AI Filters</h3>
+                <div class="config-option">
+                    <span>Hide Low Priority</span>
+                    <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+                </div>
+                <div class="config-option">
+                    <span>Smart Grouping</span>
+                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <button class="btn" style="background: var(--primary); color: white; margin-top: auto; width: 100%; justify-content: center;" onclick="toggleConfig(false)">
+                Save Preferences
+            </button>
+        </aside>
+    </div>
+    <script type="module">
+        import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, getDoc, addDoc, serverTimestamp, updateDoc, arrayUnion } from "./firebase-config.js";
+
+        function syncHeaderBadges(userId) {
+            const msgBadge = document.getElementById('headerMsgBadge');
+            const notifBadge = document.getElementById('headerNotifBadge');
+            if (!userId) return;
+
+            // 1. Listen for unread messages
+            const msgRole = (localStorage.getItem('userRole') || '').toLowerCase();
+            const msgTargetId = (msgRole === 'admin' || msgRole === 'hrms') ? 'hr_support' : userId;
+            
+            const msgQuery = query(
+                collection(db, 'messages'),
+                where('receiverId', '==', msgTargetId),
+                where('read', '==', false)
+            );
+            onSnapshot(msgQuery, (snap) => {
+                if (msgBadge) {
+                    const count = snap.size;
+                    msgBadge.textContent = count > 9 ? '9+' : count;
+                    msgBadge.style.display = count > 0 ? 'flex' : 'none';
+                }
+            });
+
+            // 2. Listen for notifications targeted to this manager
+            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
+            onSnapshot(notifQuery, (snap) => {
+                const currentUid = userId.toLowerCase();
+                const currentHrUserId = (localStorage.getItem('hr_user_id') || '').toLowerCase();
+                const centerId = (new URLSearchParams(window.location.search).get('id') || '').toLowerCase();
+                const userDept = (localStorage.getItem('userDept') || '').toLowerCase();
+
+                const unreadNotifs = snap.docs.filter(d => {
+                    const data = d.data();
+                    if (data.read) return false;
+                    const clearedBy = data.clearedBy || [];
+                    if (clearedBy.includes(userId)) return false;
+                    const tgt = (data.target || data.departmentId || '').toLowerCase();
+                    const type = (data.type || '').toLowerCase();
+
+                    return tgt === 'manager' || 
+                           type === 'employee_help' || 
+                           tgt === 'general' || 
+                           (!tgt) || 
+                           (currentUid && tgt === currentUid) ||
+                           (currentHrUserId && tgt === currentHrUserId) ||
+                           (centerId && tgt === centerId) ||
+                           (userDept && tgt === userDept);
+                });
+
+                if (notifBadge) {
+                    const count = unreadNotifs.length;
+                    notifBadge.textContent = count > 9 ? '9+' : count;
+                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
+                }
+            });
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            const currentUserId = user ? user.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+            syncHeaderBadges(currentUserId);
+            // Dynamic Sidebar Hydration
+            const centerId = new URLSearchParams(window.location.search).get('id');
+            if (centerId) {
+                try {
+                    const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
+                    if (centerDoc.exists()) {
+                        const config = centerDoc.data();
+                        document.getElementById('sideDeptName').textContent = config.name;
+                        document.getElementById('sideDeptCode').textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
+                        if (config.primaryColor) {
+                            document.documentElement.style.setProperty('--primary', config.primaryColor);
+                        }
+                    }
+                } catch (e) { console.error("Error fetching center config:", e); }
+
+                // Hydrate links
+                const overviewLink = document.getElementById('overviewLink');
+                const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
+                const navConsoleLink = document.getElementById('navConsoleLink');
+                const navAnalysisLink = document.getElementById('navAnalysisLink');
+                const navNotifLink = document.getElementById('navNotifLink');
+                const navMsgLink = document.getElementById('navMsgLink');
+            const navDocsLink = document.getElementById('navDocsLink');
+            const navWorkforceLink = document.getElementById('navWorkforceLink');
+            const navSecurityLink = document.getElementById('navSecurityLink');
+            const navPerformanceLink = document.getElementById('navPerformanceLink');
+            const navAttendanceLink = document.getElementById('navAttendanceLink');
+                if (overviewLink) overviewLink.href = centerId ? `manager-dashboard.html?id=${centerId}` : `manager-dashboard.html`;
+                if (leaveHolidaysLink) leaveHolidaysLink.href = centerId ? `manager-calendar.html?id=${centerId}` : `manager-calendar.html`;
+
+                if (navAttendanceLink) navAttendanceLink.href = centerId ? `manager-attendance.html?id=${centerId}` : `manager-attendance.html`;
+                {
+                    const _navTeamLink = document.getElementById('navTeamLink');
+                    if (_navTeamLink) {
+                        if (typeof openTeamManager === 'undefined') {
+                            _navTeamLink.removeAttribute('onclick');
+                            _navTeamLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+                        }
+                    }
+                }
+
+                if (navConsoleLink) navConsoleLink.href = centerId ? `manager-console.html?id=${centerId}` : `manager-console.html`;
+                if (navAnalysisLink) navAnalysisLink.href = centerId ? `manager-analysis.html?id=${centerId}` : `manager-analysis.html`;
+                if (navNotifLink) navNotifLink.href = centerId ? `manager-notification.html?id=${centerId}` : `manager-notification.html`;
+                if (navMsgLink) navMsgLink.href = centerId ? `manager-message.html?id=${centerId}` : `manager-message.html`;
+            } else {
+                document.getElementById('sideDeptName').textContent = localStorage.getItem('userDept') || 'General';
+                document.getElementById('sideDeptCode').textContent = ((localStorage.getItem('userDept') || 'General').substring(0, 3) + '-UNIT').toUpperCase();
+            }
+        });
+
+        window.showModuleInfo = (title, msg) => {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMsg').textContent = msg;
+            document.getElementById('moduleAlertOverlay').style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
+        };
+
+        // Global Link Hydration
+        (function hydrateSidebar() {
+            const centerId = new URLSearchParams(window.location.search).get('id');
+            const overviewLink = document.getElementById('overviewLink');
+            const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
+            const navConsoleLink = document.getElementById('navConsoleLink');
+            const navAnalysisLink = document.getElementById('navAnalysisLink');
+            const navNotifLink = document.getElementById('navNotifLink');
+            const navMsgLink = document.getElementById('navMsgLink');
+            const navDocsLink = document.getElementById('navDocsLink');
+            const navWorkforceLink = document.getElementById('navWorkforceLink');
+            const navSecurityLink = document.getElementById('navSecurityLink');
+            const navPerformanceLink = document.getElementById('navPerformanceLink');
+            const navAttendanceLink = document.getElementById('navAttendanceLink');
+            const navPolicyLink = document.getElementById('navPolicyLink');
+            const navAssetsLink = document.getElementById('navAssetsLink');
+
+            if (overviewLink) overviewLink.href = centerId ? `manager-dashboard.html?id=${centerId}` : `manager-dashboard.html`;
+            if (leaveHolidaysLink) leaveHolidaysLink.href = centerId ? `manager-calendar.html?id=${centerId}` : `manager-calendar.html`;
+            if (navConsoleLink) navConsoleLink.href = centerId ? `manager-console.html?id=${centerId}` : `manager-console.html`;
+            if (navAnalysisLink) navAnalysisLink.href = centerId ? `manager-analysis.html?id=${centerId}` : `manager-analysis.html`;
+            if (navNotifLink) navNotifLink.href = centerId ? `manager-notification.html?id=${centerId}` : `manager-notification.html`;
+            if (navMsgLink) navMsgLink.href = centerId ? `manager-message.html?id=${centerId}` : `manager-message.html`;
+            if (navDocsLink) navDocsLink.href = centerId ? `manager-documents.html?id=${centerId}` : `manager-documents.html`;
+            if (navWorkforceLink) navWorkforceLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+            if (navSecurityLink) navSecurityLink.href = centerId ? `manager-security.html?id=${centerId}` : `manager-security.html`;
+            if (navPerformanceLink) navPerformanceLink.href = centerId ? `manager-performance.html?id=${centerId}` : `manager-performance.html`;
+            if (navAttendanceLink) navAttendanceLink.href = centerId ? `manager-attendance.html?id=${centerId}` : `manager-attendance.html`;
+            if (navPolicyLink) navPolicyLink.href = centerId ? `manager-policy.html?id=${centerId}` : `manager-policy.html`;
+            if (navAssetsLink) navAssetsLink.href = centerId ? `manager-assets.html?id=${centerId}` : `manager-assets.html`;
+                {
+                    const _navTeamLink = document.getElementById('navTeamLink');
+                    if (_navTeamLink) {
+                        if (typeof openTeamManager === 'undefined') {
+                            _navTeamLink.removeAttribute('onclick');
+                            _navTeamLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
+                        }
+                    }
+                }
+        })();
+
+        if (window.lucide) lucide.createIcons();
+        
+        const configSidebar = document.getElementById('configSidebar');
+        window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
+        const btnCustom = document.getElementById('btnCustom');
+        if (btnCustom) {
+            btnCustom.onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+        }
+
+        const notifContainer = document.querySelector('.card');
+
+        // Real-time notification listener — manager-scoped + employee help requests
+        const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
+        onSnapshot(q, (snap) => {
+            const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+            // Show all notifications; highlight employee help requests specially
+            const allDocs = snap.docs.filter(d => {
+                const data = d.data();
+                const clearedBy = data.clearedBy || [];
+                if (clearedBy.includes(currentUserId)) return false;
+
+                const tgt = (data.target || data.departmentId || '').toLowerCase();
+                const type = (data.type || '').toLowerCase();
+                
+                const currentUid = currentUserId.toLowerCase();
+                const currentHrUserId = (localStorage.getItem('hr_user_id') || '').toLowerCase();
+                const centerId = (new URLSearchParams(window.location.search).get('id') || '').toLowerCase();
+                const userDept = (localStorage.getItem('userDept') || '').toLowerCase();
+
+                return tgt === 'manager' || 
+                       type === 'employee_help' || 
+                       tgt === 'general' || 
+                       (!tgt) || 
+                       (currentUid && tgt === currentUid) ||
+                       (currentHrUserId && tgt === currentHrUserId) ||
+                       (centerId && tgt === centerId) ||
+                       (userDept && tgt === userDept);
+            });
+
+            window.visibleNotifIds = allDocs.map(d => d.id);
+
+            if (allDocs.length === 0) {
+                notifContainer.innerHTML = '<div style="text-align: center; padding: 5rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            notifContainer.innerHTML = allDocs.map(docSnap => {
+                const data = docSnap.data();
+                const docId = docSnap.id;
+                const date = data.timestamp?.toDate().toLocaleString() || 'Recent';
+                const priority = (data.priority || 'normal').toLowerCase();
+                const isHelpRequest = data.type === 'employee_help';
+                const helpStatus = data.status || 'pending';
+
+                let icon, color, bg;
+                if (isHelpRequest) {
+                    icon = 'life-buoy';
+                    color = helpStatus === 'allowed' ? '#10b981' : (helpStatus === 'declined' ? '#ef4444' : '#f59e0b');
+                    bg = helpStatus === 'allowed' ? 'rgba(16,185,129,0.1)' : (helpStatus === 'declined' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)');
+                } else if (priority === 'high' || priority === 'critical') {
+                    icon = 'alert-triangle'; color = '#ef4444'; bg = 'rgba(239,68,68,0.1)';
+                } else {
+                    icon = 'bell'; color = '#10b981'; bg = 'rgba(16,185,129,0.1)';
+                }
+
+                const actionButtons = isHelpRequest && helpStatus === 'pending' ? `
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                        <button onclick="handleHelpRequest('${docId}','${data.empEmail || ''}','allow')"
+                            style="flex:1; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; border-radius:8px; padding:7px 12px; font-size:0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
+                            onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
+                            ✅ Allow Access
+                        </button>
+                        <button onclick="handleHelpRequest('${docId}','${data.empEmail || ''}','decline')"
+                            style="flex:1; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:8px; padding:7px 12px; font-size:0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
+                            onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                            ❌ Decline
+                        </button>
+                    </div>` : (isHelpRequest ? `<div style="margin-top:8px; padding:5px 10px; border-radius:6px; font-size:0.75rem; font-weight:700; display:inline-block; background:${bg}; color:${color};">${helpStatus === 'allowed' ? '✅ Access Allowed' : '❌ Declined'}</div>` : '');
+
+                return `
+                    <div class="notif-item" id="notif-${docId}">
+                        <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
+                        <div class="notif-content">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">${data.title || (priority.toUpperCase() + ' ALERT')}</div>
+                                <button onclick="deleteNotification('${docId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            </div>
+                            <div class="notif-desc">${data.message || 'No details provided.'}</div>
+                            ${isHelpRequest && data.empEmail ? `<div style="margin-top:4px; font-size:0.75rem; color:var(--primary); font-weight:700;">📧 Employee Email: ${data.empEmail}</div>` : ''}
+                            <div class="notif-time">${date}</div>
+                            ${actionButtons}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            if (window.lucide) lucide.createIcons();
+        });
+
+        // Handle Allow / Decline for employee help requests
+        window.handleHelpRequest = async (notifId, empEmail, action) => {
+            try {
+                const status = action === 'allow' ? 'allowed' : 'declined';
+                await updateDoc(doc(db, 'notifications', notifId), { status, read: true });
+
+                if (action === 'allow') {
+                    // Notify HRMS of manager's approval
+                    await addDoc(collection(db, 'notifications'), {
+                        type: 'employee_help_approved',
+                        title: '✅ Manager Approved — Employee Access Request',
+                        message: `Manager has approved access for employee "${empEmail}". Please proceed with credential verification and onboarding support.`,
+                        empEmail: empEmail,
+                        target: 'hrms',
+                        departmentId: 'hrms',
+                        priority: 'high',
+                        status: 'pending_hrms',
+                        read: false,
+                        timestamp: serverTimestamp(),
+                        createdAt: serverTimestamp()
+                    });
+                    console.log('✅ Manager approved help request for:', empEmail);
+                } else {
+                    console.log('❌ Manager declined help request for:', empEmail);
+                }
+            } catch (err) {
+                console.error('Failed to handle help request:', err);
+            }
+        };
+
+
+
+        window.setTheme = (theme, el) => {
+            document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            if (theme === 'glass') {
+                document.body.style.background = "linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)";
+                document.querySelectorAll('.card').forEach(c => {
+                    c.style.background = "rgba(255,255,255,0.7)";
+                    c.style.backdropFilter = "blur(10px)";
+                });
+            } else {
+                document.body.style.background = "";
+                document.querySelectorAll('.card').forEach(c => {
+                    c.style.background = "";
+                    c.style.backdropFilter = "";
+                });
+            }
+        };
+
+        document.getElementById('checkTight').onchange = (e) => {
+            document.querySelector('.card').classList.toggle('tight', e.target.checked);
+        };
+
+        document.getElementById('checkDesc').onchange = (e) => {
+            document.querySelectorAll('.notif-desc').forEach(d => {
+                d.style.display = e.target.checked ? 'block' : 'none';
+            });
+        };
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.clear();
+                window.location.href = 'index.html';
+            });
+        }
+    
+                const ensureNotifModals = () => {
+            if (document.getElementById('customDelNotifModal')) return;
+            const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
+            const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
+            
+            const delModal = document.createElement('div');
+            delModal.id = 'customDelNotifModal';
+            delModal.style.cssText = modalStyle;
+            delModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear Notification</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear this notification?</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear</button>
+                    </div>
+                </div>
+            `;
+            
+            const clearAllModal = document.createElement('div');
+            clearAllModal.id = 'customClearAllNotifModal';
+            clearAllModal.style.cssText = modalStyle;
+            clearAllModal.innerHTML = `
+                <div style="${contentStyle}">
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear All Notifications</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
+                    <div style="display:flex; justify-content:flex-end; gap:12px;">
+                        <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
+                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear All</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(delModal);
+            document.body.appendChild(clearAllModal);
+        };
+
+        window.deleteNotification = async (id) => {
+            ensureNotifModals();
+            const modal = document.getElementById('customDelNotifModal');
+            modal.style.display = 'flex';
+            document.getElementById('customDelNotifCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customDelNotifConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                try {
+                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+                    await updateDoc(doc(db, 'notifications', id), {
+                        clearedBy: arrayUnion(currentUserId)
+                    });
+                } catch(e) { console.error('Error deleting:', e); }
+            };
+        };
+
+        window.clearAllNotifications = async () => {
+            ensureNotifModals();
+            const modal = document.getElementById('customClearAllNotifModal');
+            modal.style.display = 'flex';
+            document.getElementById('customClearAllNotifCancel').onclick = () => { modal.style.display = 'none'; };
+            document.getElementById('customClearAllNotifConfirm').onclick = async () => {
+                modal.style.display = 'none';
+                try {
+                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+                    const ids = window.visibleNotifIds || [];
+                    const promises = ids.map(id => updateDoc(doc(db, 'notifications', id), {
+                        clearedBy: arrayUnion(currentUserId)
+                    }));
+                    await Promise.all(promises);
+                } catch(e) { console.error('Error clearing all:', e); }
+            };
+        };
+
+        // Hydrate custom apps dynamically
+        const customList = document.getElementById('customAppsList');
+        if (customList) {
+            const apps = JSON.parse(localStorage.getItem('managerCustomApps') || '[]');
+            customList.innerHTML = apps.map(app => `
+                <div class="nav-item">
+                    <a href="${app.url.startsWith('http') ? app.url : 'https://' + app.url}" target="_blank" class="nav-link" style="color: var(--primary);">
+                        <i data-lucide="external-link"></i><span>${app.name}</span>
+                    </a>
+                </div>
+            `).join('');
+            if(window.lucide) window.lucide.createIcons();
+        }
+</script>
+</body>
+</html>
+

@@ -1,0 +1,51 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function userData(uid) {
+      return firestore.get(/databases/(default)/documents/users/$(uid)).data;
+    }
+
+    function userExists(uid) {
+      return firestore.exists(/databases/(default)/documents/users/$(uid));
+    }
+
+    function isStaff() {
+      return request.auth != null
+        && userExists(request.auth.uid)
+        && userData(request.auth.uid).role in [
+          'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR',
+          'super admin', 'manager', 'Manager'
+        ];
+    }
+
+    function ownsEmployeeRecord(employeeId) {
+      return request.auth != null && (
+        request.auth.uid == employeeId
+        || (
+          userExists(employeeId)
+          && (
+            userData(employeeId).linkedAuthUid == request.auth.uid
+            || userData(employeeId).email == request.auth.token.email
+          )
+        )
+      );
+    }
+
+    // Payslip PDFs — employees read own folder; HR uploads
+    match /payroll/payslips/{employeeId}/{fileName} {
+      allow read: if ownsEmployeeRecord(employeeId) || isStaff();
+      allow write: if isStaff();
+    }
+
+    // Recruitment resumes — HR only
+    match /recruitment/resumes/{fileName} {
+      allow read, write: if isStaff();
+    }
+
+    // Deny all other storage paths by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
