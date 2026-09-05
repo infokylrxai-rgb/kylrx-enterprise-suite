@@ -1,11 +1,21 @@
 // @ts-ignore
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { initializeApp, setLogLevel } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 // @ts-ignore
 import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 // @ts-ignore
-import { initializeFirestore, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, orderBy, limit, deleteField } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { 
+  initializeFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager,
+  doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, orderBy, limit, deleteField 
+} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 // @ts-ignore
 import { getStorage } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
+
+// Suppress internal Firebase retry & quota backoff chatter in developer console
+try {
+  setLogLevel('silent');
+} catch (_) {}
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,12 +28,22 @@ const firebaseConfig = {
   measurementId: "G-3F6VW2MEJG"
 };
 
-// Initialize Firebase
+// Initialize Firebase with persistent local cache fallback
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true
-});
+let db;
+try {
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+      tabManager: persistentMultipleTabManager()
+    }),
+    experimentalForceLongPolling: true
+  });
+} catch (e) {
+  db = initializeFirestore(app, {
+    experimentalForceLongPolling: true
+  });
+}
 const storage = getStorage(app);
 
 console.log("🔥 Firebase connected to project: " + firebaseConfig.projectId);

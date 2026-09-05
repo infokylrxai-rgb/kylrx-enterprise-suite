@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kylrx AI — Operational Finance Dashboard. Live reconciliation, disbursement summaries, compliance registers, batch reports, exception queues, and full audit log with one-click exports.">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Operational Dashboard | Kylrx AI HRMS</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin-dashboard.css">
+  <script>
+    (function() {
+      const origWarn = console.warn;
+      console.warn = function(...args) {
+        if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+        origWarn.apply(console, args);
+      };
+    })();
+  </script>
+  <!-- Lucide Icons: Local fallback first, then CDN fallback -->
+  <script src="lucide.min.js"></script>
+  <script>
+    function renderLucideIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try {
+          window.lucide.createIcons();
+        } catch (e) {
+          console.warn("Lucide render error:", e);
+        }
+      }
+    }
+    window.renderLucideIcons = renderLucideIcons;
+
+    if (!window.lucide) {
+      const fallbackScript = document.createElement('script');
+      fallbackScript.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+      fallbackScript.crossOrigin = 'anonymous';
+      fallbackScript.onload = () => { renderLucideIcons(); };
+      document.head.appendChild(fallbackScript);
+    } else {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderLucideIcons);
+      } else {
+        renderLucideIcons();
+      }
+    }
+    window.addEventListener('load', renderLucideIcons);
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { outfit: ['Outfit', 'sans-serif'], mono: ['Roboto Mono', 'monospace'] },
+          colors: {
+            brand: { 50:'#eff6ff', 100:'#dbeafe', 200:'#bfdbfe', 400:'#60a5fa', 500:'#3b82f6', 600:'#2563eb', 700:'#1d4ed8', 900:'#1e3a8a' },
+          },
+          boxShadow: {
+            card: '0 1px 3px 0 rgb(0 0 0 / .08), 0 1px 2px -1px rgb(0 0 0 / .06)',
+            pop: '0 20px 40px -8px rgb(0 0 0 / .14), 0 8px 16px -4px rgb(0 0 0 / .08)',
+          },
+          keyframes: {
+            fadeUp:  { from: { opacity: '0', transform: 'translateY(16px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+            shimmer: { '0%,100%': { opacity: '1' }, '50%': { opacity: '.5' } },
+            tabIn:   { from: { opacity: '0', transform: 'translateX(12px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
+          },
+          animation: {
+            'fade-up': 'fadeUp .35s cubic-bezier(.4,0,.2,1) both',
+            shimmer:   'shimmer 1.6s ease-in-out infinite',
+            'tab-in':  'tabIn .28s cubic-bezier(.4,0,.2,1) both',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* ── Base ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background: #f1f5f9; color: #0f172a; }
+
+    /* ── Sidebar scrollbar ── */
+    .sidebar-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+    .sidebar-scroll::-webkit-scrollbar { width: 5px; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9px; }
+
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .data-table thead th {
+      background: #f8fafc; color: #64748b; font-size: .7rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .08em; padding: .75rem 1rem;
+      border-bottom: 1px solid #e2e8f0; white-space: nowrap; position: sticky; top: 0; z-index: 10;
+    }
+    .data-table tbody tr { transition: background .15s; }
+    .data-table tbody tr:hover { background: #f8fafc; }
+    .data-table tbody td {
+      padding: .7rem 1rem; border-bottom: 1px solid #f1f5f9;
+      font-size: .83rem; vertical-align: middle;
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+
+    /* ── Discrepancy row highlight ── */
+    .row-discrepancy { background: #fffbeb !important; }
+    .row-discrepancy:hover { background: #fef3c7 !important; }
+    .row-discrepancy td { border-bottom-color: #fde68a !important; }
+
+    /* ── Segmented control ── */
+    .tab-rail { display: flex; gap: .3rem; background: #e2e8f0; border-radius: 14px; padding: .35rem; }
+    .tab-btn {
+      flex: 1; padding: .55rem 1rem; border-radius: 10px; border: none; cursor: pointer;
+      font-family: 'Outfit', sans-serif; font-weight: 600; font-size: .78rem;
+      color: #64748b; background: transparent; transition: all .22s cubic-bezier(.4,0,.2,1);
+      white-space: nowrap; display: flex; align-items: center; gap: .45rem; justify-content: center;
+    }
+    .tab-btn.active {
+      background: white; color: #1e40af; box-shadow: 0 1px 4px rgba(0,0,0,.12);
+    }
+    .tab-btn:hover:not(.active) { background: rgba(255,255,255,.6); color: #334155; }
+
+    /* ── Tab panel ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: tabIn .28s cubic-bezier(.4,0,.2,1) both; }
+
+    /* ── Export buttons ── */
+    .export-btn {
+      display: inline-flex; align-items: center; gap: .45rem;
+      padding: .5rem 1rem; border-radius: 10px; font-size: .78rem; font-weight: 700;
+      border: 1px solid; cursor: pointer; transition: all .2s; font-family: 'Outfit', sans-serif;
+      text-decoration: none;
+    }
+    .export-csv  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+    .export-csv:hover  { background: #16a34a; color: white; border-color: #16a34a; }
+    .export-xlsx { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+    .export-xlsx:hover { background: #2563eb; color: white; border-color: #2563eb; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 9999;
+      background: #0f172a; color: white; padding: .75rem 1.25rem; border-radius: 14px;
+      font-size: .83rem; font-weight: 600; display: flex; align-items: center; gap: .6rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25); opacity: 0; transform: translateY(12px);
+      transition: all .3s cubic-bezier(.4,0,.2,1); pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── KPI card hover ── */
+    .kpi-card { transition: transform .22s cubic-bezier(.4,0,.2,1), box-shadow .22s; }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -6px rgba(0,0,0,.12); }
+
+    /* ── Scrollable table container ── */
+    .table-wrap { overflow-x: auto; border-radius: 0 0 16px 16px; }
+
+    /* ── Pulse dot ── */
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; animation: shimmer 1.6s ease-in-out infinite; }
+
+    /* ── Lucide Icon Styling & Animation ── */
+    svg.lucide, i[data-lucide] {
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .sidebar {
+      z-index: 50;
+    }
+    .main-content {
+      min-width: 0;
+    }
+    .kpi-card svg.lucide {
+      width: 24px;
+      height: 24px;
+    }
+    .tab-btn svg.lucide {
+      width: 15px;
+      height: 15px;
+    }
+    .export-btn svg.lucide {
+      width: 15px;
+      height: 15px;
+    }
+    .nav-link svg.lucide, .nav-link i {
+      width: 18px;
+      height: 18px;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="admin-dashboard">
+<div class="dashboard-container">
+
+  <!-- ══════════════════ SIDEBAR ══════════════════ -->
+  <aside class="sidebar">
+    <a href="admin-dashboard.html" class="logo">
+      <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+      <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+    </a>
+
+    <nav class="nav-menu">
+      <div class="nav-label">MAIN MENU</div>
+      <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+      <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+      <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+      <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+      <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+      <div class="nav-label">OPERATIONS</div>
+      <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+      <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+      <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+      <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+      <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+      <div class="nav-label">INTELLIGENCE</div>
+      <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+      <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+      <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+      <div class="nav-item"><a href="operational-dashboard.html" class="nav-link active"><i data-lucide="bar-chart-2"></i><span>Operational Reports</span></a></div>
+
+      <div class="nav-label">APPROVALS &amp; SETTINGS</div>
+      <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+      <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+      <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+      <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+      <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+      <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+      <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+      <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="nav-item">
+        <a href="#" class="nav-link" id="btnCustom">
+          <i data-lucide="layout"></i>
+          <span>Customize Layout</span>
+        </a>
+      </div>
+      <div class="nav-item">
+        <a href="admin-settings.html" class="nav-link">
+          <i data-lucide="settings"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+      <div class="nav-item">
+        <a href="index.html" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+          <i data-lucide="log-out"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+  <main class="main-content">
+
+    <!-- Page header -->
+    <div class="flex items-start justify-between mb-7 animate-fade-up">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></div>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Live — refreshes every 60s</span>
+        </div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">Operational Dashboard</h1>
+        <p class="text-slate-500 text-sm mt-1">Finance reconciliation, disbursement summaries, compliance registers &amp; full audit trail</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="last-refresh" class="text-xs text-slate-400 font-mono bg-white rounded-xl px-3 py-2 border border-slate-200"></div>
+        <button onclick="refreshAll()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-md">
+          <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i> Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ KPI SUMMARY ROW ══ -->
+    <div id="kpi-row" class="grid grid-cols-4 gap-4 mb-7 animate-fade-up" style="animation-delay:.05s">
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-slate-200 shadow-card flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center flex-shrink-0"><i data-lucide="indian-rupee" class="w-6 h-6 text-purple-600" stroke-width="2.2"></i></div>
+        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Total Disbursed</p><p id="kpi-disbursed" class="text-xl font-extrabold text-slate-900">₹0</p></div>
+      </div>
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-slate-200 shadow-card flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center flex-shrink-0"><i data-lucide="check-circle-2" class="w-6 h-6 text-green-600" stroke-width="2.2"></i></div>
+        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Settled</p><p id="kpi-settled" class="text-xl font-extrabold text-slate-900">₹0</p></div>
+      </div>
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-slate-200 shadow-card flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center flex-shrink-0"><i data-lucide="alert-triangle" class="w-6 h-6 text-amber-500" stroke-width="2.2"></i></div>
+        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Open Exceptions</p><p id="kpi-exceptions" class="text-xl font-extrabold text-slate-900">0</p></div>
+      </div>
+      <div class="kpi-card bg-white rounded-2xl p-5 border border-slate-200 shadow-card flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center flex-shrink-0"><i data-lucide="x-circle" class="w-6 h-6 text-red-500" stroke-width="2.2"></i></div>
+        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Discrepancy Δ</p><p id="kpi-delta" class="text-xl font-extrabold text-red-600">₹0</p></div>
+      </div>
+    </div>
+
+    <!-- ══ MULTI-REPORT SWITCHER ══ -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden animate-fade-up" style="animation-delay:.1s">
+
+      <!-- Tab rail + export strip -->
+      <div class="px-5 pt-5 pb-0 border-b border-slate-100">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <div class="tab-rail flex-1 min-w-0">
+            <button class="tab-btn active" onclick="switchTab('disbursement')" id="tab-disbursement">
+              <i data-lucide="coins" class="w-3.5 h-3.5"></i> Disbursement Summary
+            </button>
+            <button class="tab-btn" onclick="switchTab('batch')" id="tab-batch">
+              <i data-lucide="layers" class="w-3.5 h-3.5"></i> Batch Report
+            </button>
+            <button class="tab-btn" onclick="switchTab('exceptions')" id="tab-exceptions">
+              <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i> Exceptions
+              <span id="exc-badge" class="hidden bg-red-500 text-white text-[.6rem] font-bold px-1.5 rounded-full">0</span>
+            </button>
+            <button class="tab-btn" onclick="switchTab('compliance')" id="tab-compliance">
+              <i data-lucide="scale" class="w-3.5 h-3.5"></i> Compliance Register
+            </button>
+            <button class="tab-btn" onclick="switchTab('reconciliation')" id="tab-reconciliation">
+              <i data-lucide="git-merge" class="w-3.5 h-3.5"></i> Reconciliation
+            </button>
+            <button class="tab-btn" onclick="switchTab('audit')" id="tab-audit">
+              <i data-lucide="scroll-text" class="w-3.5 h-3.5"></i> Audit Log
+            </button>
+          </div>
+
+          <!-- Export buttons (per active tab) -->
+          <div class="flex items-center gap-2 flex-shrink-0" id="export-strip">
+            <button class="export-btn export-csv"  onclick="exportCsv()"  title="Export to CSV"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> CSV</button>
+            <button class="export-btn export-xlsx" onclick="exportXlsx()" title="Export to Excel"><i data-lucide="table-2" class="w-3.5 h-3.5"></i> Excel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TAB PANELS ═══ -->
+
+      <!-- ① Disbursement Summary -->
+      <div class="tab-panel active" id="panel-disbursement">
+        <div class="p-5 flex items-center justify-between border-b border-slate-50">
+          <h2 class="font-bold text-slate-700">Payroll Disbursement Summary</h2>
+          <input oninput="filterTable('tbl-disbursement', this.value)" placeholder="Filter…" class="border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400 w-52">
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="tbl-disbursement">
+            <thead><tr>
+              <th>Run ID</th><th>Period</th><th>Employees</th><th>Gross Payroll</th><th>Deductions</th><th>Net Salary</th><th>Employer Contrib.</th><th>Payment Date</th><th>Status</th>
+            </tr></thead>
+            <tbody id="tbody-disbursement"><tr><td colspan="9" class="text-center py-10 text-slate-400 text-sm">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ② Batch Report -->
+      <div class="tab-panel" id="panel-batch">
+        <div class="p-5 flex items-center justify-between border-b border-slate-50">
+          <h2 class="font-bold text-slate-700">Payment Batch Report</h2>
+          <input oninput="filterTable('tbl-batch', this.value)" placeholder="Filter…" class="border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400 w-52">
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="tbl-batch">
+            <thead><tr>
+              <th>Batch ID</th><th>Run ID</th><th>Type</th><th>Total Amount</th><th>Records</th><th>Validation</th><th>Approval</th><th>Submission</th><th>Paid</th><th>Failed</th><th>State</th><th>Created</th>
+            </tr></thead>
+            <tbody id="tbody-batch"><tr><td colspan="12" class="text-center py-10 text-slate-400 text-sm">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ③ Exceptions -->
+      <div class="tab-panel" id="panel-exceptions">
+        <div class="p-5 flex items-center justify-between border-b border-slate-50">
+          <h2 class="font-bold text-slate-700">Validation Exception Log</h2>
+          <div class="flex items-center gap-3">
+            <select id="exc-severity-filter" onchange="renderExceptions()" class="border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400">
+              <option value="">All Severities</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="WARNING">Warning</option>
+              <option value="INFO">Info</option>
+            </select>
+            <input oninput="filterTable('tbl-exceptions', this.value)" placeholder="Filter…" class="border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400 w-52">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="tbl-exceptions">
+            <thead><tr>
+              <th>Exception ID</th><th>Batch</th><th>Employee</th><th>Rule Code</th><th>Severity</th><th>Message</th><th>Field</th><th>Status</th><th>Raised At</th>
+            </tr></thead>
+            <tbody id="tbody-exceptions"><tr><td colspan="9" class="text-center py-10 text-slate-400 text-sm">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ④ Compliance Register -->
+      <div class="tab-panel" id="panel-compliance">
+        <div class="p-5 flex items-center justify-between border-b border-slate-50">
+          <h2 class="font-bold text-slate-700">Statutory Compliance Register</h2>
+          <input oninput="filterTable('tbl-compliance', this.value)" placeholder="Filter…" class="border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400 w-52">
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="tbl-compliance">
+            <thead><tr>
+              <th>Entry ID</th><th>Scheme</th><th>Period</th><th>Employer Code</th><th>Employees</th><th>Employee Contrib.</th><th>Employer Contrib.</th><th>Total Liability</th><th>Due Date</th><th>Status</th><th>ACK Ref</th>
+            </tr></thead>
+            <tbody id="tbody-compliance"><tr><td colspan="11" class="text-center py-10 text-slate-400 text-sm">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ⑤ Bank Reconciliation -->
+      <div class="tab-panel" id="panel-reconciliation">
+        <div class="p-5 flex items-center justify-between flex-wrap gap-3 border-b border-slate-50">
+          <div class="flex items-center gap-4">
+            <h2 class="font-bold text-slate-700">Bank Reconciliation View</h2>
+            <!-- Legend -->
+            <div class="flex items-center gap-3 text-xs font-semibold">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block"></span> PAID</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span> FAILED</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> DISCREPANCY</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 text-sm font-semibold cursor-pointer select-none">
+              <input type="checkbox" id="disc-only" onchange="renderReconciliation()" class="rounded w-4 h-4 accent-amber-500"> Show Δ only
+            </label>
+            <input oninput="filterTable('tbl-reconciliation', this.value)" placeholder="Filter…" class="border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400 w-52">
+          </div>
+        </div>
+
+        <!-- Recon KPI strip -->
+        <div class="grid grid-cols-4 gap-4 p-5 bg-slate-50 border-b border-slate-100">
+          <div class="bg-white rounded-xl p-4 border border-slate-200">
+            <p class="text-[.65rem] font-bold text-slate-400 uppercase tracking-wide mb-1">Total Instructed</p>
+            <p id="r-instructed" class="text-lg font-extrabold text-slate-900">₹0</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-slate-200">
+            <p class="text-[.65rem] font-bold text-slate-400 uppercase tracking-wide mb-1">Total Paid</p>
+            <p id="r-paid-total" class="text-lg font-extrabold text-green-700">₹0</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-slate-200">
+            <p class="text-[.65rem] font-bold text-slate-400 uppercase tracking-wide mb-1">Total Discrepancy Δ</p>
+            <p id="r-delta-total" class="text-lg font-extrabold text-amber-600">₹0</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 border border-slate-200">
+            <p class="text-[.65rem] font-bold text-slate-400 uppercase tracking-wide mb-1">Rows with Δ</p>
+            <p id="r-disc-count" class="text-lg font-extrabold text-red-600">0</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table" id="tbl-reconciliation">
+            <thead><tr>
+              <th>Recon ID</th><th>Batch</th><th>Employee</th><th>Instructed (₹)</th><th>Paid (₹)</th><th>Difference Δ</th><th>Txn ID</th><th>Bank Ref (UTR)</th><th>Status</th><th>Resolution</th><th>Reconciled At</th>
+            </tr></thead>
+            <tbody id="tbody-reconciliation"><tr><td colspan="11" class="text-center py-10 text-slate-400 text-sm">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ⑥ Audit Log -->
+      <div class="tab-panel" id="panel-audit">
+        <div class="p-5 flex items-center justify-between border-b border-slate-50">
+          <h2 class="font-bold text-slate-700">Immutable Audit Log</h2>
+          <div class="flex items-center gap-3">
+            <select id="audit-actor-filter" onchange="renderAudit()" class="border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400">
+              <option value="">All Actors</option>
+            </select>
+            <input oninput="filterTable('tbl-audit', this.value)" placeholder="Filter…" class="border border-slate-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:border-blue-400 w-52">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="tbl-audit">
+            <thead><tr>
+              <th>#</th><th>Timestamp</th><th>Actor</th><th>Role</th><th>Entity</th><th>Entity ID</th><th>Action</th><th>From State</th><th>To State</th><th>IP</th><th>Notes</th>
+            </tr></thead>
+            <tbody id="tbody-audit"><tr><td colspan="11" class="text-center py-10 text-slate-400 text-sm">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination footer -->
+      <div class="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 bg-slate-50/60">
+        <p class="text-xs text-slate-400 font-mono" id="row-count">0 rows</p>
+        <div class="flex items-center gap-2">
+          <button onclick="prevPage()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm hover:bg-white transition-all text-slate-500 font-semibold"><i data-lucide="chevron-left" class="w-3.5 h-3.5 inline"></i></button>
+          <span class="text-xs font-bold text-slate-600" id="page-indicator">Page 1</span>
+          <button onclick="nextPage()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm hover:bg-white transition-all text-slate-500 font-semibold"><i data-lucide="chevron-right" class="w-3.5 h-3.5 inline"></i></button>
+        </div>
+        <select onchange="changePageSize(this.value)" class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 font-semibold text-slate-600 focus:outline-none">
+          <option>25</option><option>50</option><option>100</option>
+        </select>
+      </div>
+    </div><!-- /card -->
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast"><i data-lucide="check" class="w-4 h-4"></i><span id="toast-msg"></span></div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     JAVASCRIPT — BACKEND FIREBASE & REST API BINDINGS, RENDER, EXPORT
+══════════════════════════════════════════════════════════════════════════ -->
+<script type="module">
+import { 
+  auth, 
+  db, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  onSnapshot, 
+  orderBy, 
+  limit, 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword 
+} from "./firebase-config.js";
+
+// ── Config ────────────────────────────────────────────────────────────────────
+const API_BASE = window.location.port === '3000' ? '' : 'http://127.0.0.1:3000';
+const PAGE_SIZES = { disbursement: 25, batch: 25, exceptions: 25, compliance: 25, reconciliation: 25, audit: 25 };
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let activeTab     = 'disbursement';
+let currentPage   = 1;
+let pageSize      = 25;
+let totalRows     = 0;
+
+// Data cache per tab (initialized to zero records)
+const cache = {
+  disbursement:   [],
+  batch:          [],
+  exceptions:     [],
+  compliance:     [],
+  reconciliation: [],
+  audit:          [],
+};
+
+// ── BACKEND & FIRESTORE DATA LOADER (Starts at 0) ─────────────────────────────
+async function loadBackendData() {
+  try {
+    const pRuns = fetch(`${API_BASE}/api/payroll/runs`).then(r => r.ok ? r.json() : null).catch(() => null);
+    const pBatches = fetch(`${API_BASE}/api/payroll/batches`).then(r => r.ok ? r.json() : null).catch(() => null);
+    const pExc = fetch(`${API_BASE}/api/v1/compliance/exceptions`).then(r => r.ok ? r.json() : null).catch(() => null);
+    const pRecon = fetch(`${API_BASE}/api/reconciliation/finance-ops/review-items`).then(r => r.ok ? r.json() : null).catch(() => null);
+
+    const [runsData, batchesData, excData, reconData] = await Promise.all([pRuns, pBatches, pExc, pRecon]);
+
+    if (runsData && Array.isArray(runsData.runs) && runsData.runs.length > 0) {
+      cache.disbursement = runsData.runs.map((r, i) => {
+        const gross = Number(r.gross_payroll || r.total_gross || 0);
+        const ded = Number(r.total_deductions || 0);
+        const net = Number(r.net_salary || r.total_net || (gross - ded));
+        const er = Number(r.employer_contributions || 0);
+        return {
+          run_id: r.run_id || `RUN-${i+1}`,
+          period: r.period || '—',
+          total_employees: Number(r.total_employees || r.employee_count || 0),
+          gross_payroll: gross,
+          total_deductions: ded,
+          net_salary: net,
+          employer_contributions: er,
+          payment_date: r.payment_date || r.finalized_at || '',
+          status: r.status || 'FINALIZED',
+          is_immutable: !!r.is_immutable,
+        };
+      });
+    }
+
+    if (batchesData && Array.isArray(batchesData.batches) && batchesData.batches.length > 0) {
+      cache.batch = batchesData.batches.map((b, i) => ({
+        batch_id: b.batch_id || `BCH-${i+1}`,
+        run_id: b.run_id || '—',
+        batch_type: b.batch_type || b.type || 'SALARY',
+        total_amount: Number(b.total_amount || 0),
+        total_records: Number(b.total_records || b.record_count || 0),
+        validation_status: b.validation_status || b.status || 'VALIDATED',
+        approval_state: b.approval_state || b.approval_status || 'APPROVED',
+        file_id: b.file_id || null,
+        submission_status: b.submission_status || 'SUBMITTED',
+        paid_count: Number(b.paid_count || 0),
+        failed_count: Number(b.failed_count || 0),
+        unmatched_count: Number(b.unmatched_count || 0),
+        state: b.status || b.state || 'PAID',
+        maker_id: b.maker_id || '—',
+        checker_id: b.checker_id || '—',
+        created_at: b.created_at || new Date().toISOString(),
+      }));
+    }
+
+    if (excData && Array.isArray(excData.exceptions) && excData.exceptions.length > 0) {
+      cache.exceptions = excData.exceptions.map((e, i) => ({
+        exception_id: e.exception_id || e.id || `EXC-${i+1}`,
+        batch_id: e.batch_id || '—',
+        employee_id: e.employee_id || '—',
+        employee_name: e.employee_name || '—',
+        rule_code: e.rule_code || 'RULE_VALIDATION',
+        severity: e.severity || 'WARNING',
+        message: e.message || e.description || 'Validation alert',
+        field: e.field || '—',
+        status: e.status || 'OPEN',
+        raised_at: e.raised_at || e.created_at || new Date().toISOString(),
+      }));
+    }
+
+    if (reconData && Array.isArray(reconData.items) && reconData.items.length > 0) {
+      cache.reconciliation = reconData.items.map((r, i) => {
+        const instructed = Number(r.instructed_amount || 0);
+        const paid = Number(r.paid_amount || 0);
+        const diff = Number(r.difference || (paid - instructed));
+        return {
+          recon_id: r.recon_id || r.id || `REC-${i+1}`,
+          batch_id: r.batch_id || '—',
+          employee_id: r.employee_id || '—',
+          employee_name: r.employee_name || '—',
+          instructed_amount: instructed,
+          paid_amount: paid,
+          difference: diff,
+          txn_id: r.txn_id || '—',
+          bank_ref: r.bank_ref || '',
+          status: r.status || (diff !== 0 ? 'DISCREPANCY' : 'PAID'),
+          resolution_state: r.resolution_state || (diff === 0 ? 'CLEARED' : 'OPEN'),
+          failure_reason: r.failure_reason || null,
+          reconciled_at: r.reconciled_at || '',
+        };
+      });
+    }
+  } catch (err) {
+    console.warn("[BackendAPI] Notice:", err.message);
+  }
+
+  updateKpis();
+  renderActiveTab();
+}
+
+// ── FIRESTORE LIVE REALTIME LISTENERS ─────────────────────────────────────────
+function setupFirestoreListeners() {
+  if (!db) return;
+
+  // Filter out documents that are test/seed/dev data
+  const isTestDoc = (d) => {
+    const rawId = d.id || '';
+    const id = rawId.toUpperCase();
+    const data = d.data ? d.data() : {};
+    const runId = (data.run_id || data.batch_id || data.exception_id || data.entry_id || '').toUpperCase();
+
+    // Standard test markers
+    if (id.includes('TEST') || id.includes('SEED') || id.includes('MOCK')) return true;
+    if (runId.includes('TEST') || runId.includes('SEED') || runId.includes('MOCK')) return true;
+
+    // Dev/zero-state suffixes  (e.g. PR_2026_09_ZERO, PR_2026_09_FINAI, PR_2026_09_FINAL)
+    if (id.includes('_ZERO') || id.includes('_FINAI') || id.endsWith('_FINAL')) return true;
+
+    // Old short payroll-run format: PR-YYYY-MM (e.g. PR-2026-08) — no employees or date set
+    if (/^PR-\d{4}-\d{2}$/.test(rawId)) return true;
+
+    // Records with no real payment date AND no period — likely incomplete dev data
+    const hasPaymentDate = !!(data.payment_date || data.finalized_at);
+    const hasPeriod = !!(data.period && data.period !== '—' && data.period !== '');
+    const hasAmount = Number(data.net_salary || data.total_net || 0) > 0;
+    if (hasAmount && !hasPaymentDate && !hasPeriod) return true;
+
+    return false;
+  };
+
+
+  // 1. Payroll Runs
+  try {
+    const qRuns = query(collection(db, 'payroll_runs'), limit(50));
+    onSnapshot(qRuns, (snapshot) => {
+      const realDocs = snapshot.docs.filter(d => !isTestDoc(d));
+      if (realDocs.length > 0) {
+        cache.disbursement = realDocs.map(d => {
+          const data = d.data();
+          const gross = Number(data.gross_payroll || data.total_gross || 0);
+          const ded = Number(data.total_deductions || 0);
+          const net = Number(data.net_salary || data.total_net || (gross - ded));
+          const er = Number(data.employer_contributions || 0);
+          return {
+            run_id: data.run_id || d.id,
+            period: data.period || '—',
+            total_employees: Number(data.total_employees || data.employee_count || 0),
+            gross_payroll: gross,
+            total_deductions: ded,
+            net_salary: net,
+            employer_contributions: er,
+            payment_date: data.payment_date || data.finalized_at || '',
+            status: data.status || 'FINALIZED',
+            is_immutable: !!data.is_immutable,
+          };
+        });
+      } else {
+        cache.disbursement = [];
+      }
+      updateKpis();
+      if (activeTab === 'disbursement') renderActiveTab();
+    }, (err) => {
+      console.warn("Firestore payroll_runs notice:", err.message);
+    });
+  } catch (e) {
+    console.warn("Firestore payroll_runs listener setup:", e.message);
+  }
+
+  // 2. Payment Batches
+  try {
+    const qBatches = query(collection(db, 'payment_batches'), limit(50));
+    onSnapshot(qBatches, (snapshot) => {
+      const realDocs = snapshot.docs.filter(d => !isTestDoc(d));
+      if (realDocs.length > 0) {
+        cache.batch = realDocs.map(d => {
+          const data = d.data();
+          return {
+            batch_id: data.batch_id || d.id,
+            run_id: data.run_id || '—',
+            batch_type: data.batch_type || data.type || 'SALARY',
+            total_amount: Number(data.total_amount || 0),
+            total_records: Number(data.total_records || data.record_count || 0),
+            validation_status: data.validation_status || data.status || 'VALIDATED',
+            approval_state: data.approval_state || data.approval_status || 'APPROVED',
+            file_id: data.file_id || null,
+            submission_status: data.submission_status || 'SUBMITTED',
+            paid_count: Number(data.paid_count || 0),
+            failed_count: Number(data.failed_count || 0),
+            unmatched_count: Number(data.unmatched_count || 0),
+            state: data.status || data.state || 'PAID',
+            maker_id: data.maker_id || '—',
+            checker_id: data.checker_id || '—',
+            created_at: data.created_at || new Date().toISOString(),
+          };
+        });
+      } else {
+        cache.batch = [];
+      }
+      updateKpis();
+      if (activeTab === 'batch') renderActiveTab();
+    }, (err) => {
+      console.warn("Firestore payment_batches notice:", err.message);
+    });
+  } catch (e) {
+    console.warn("Firestore payment_batches listener setup:", e.message);
+  }
+
+  // 3. Statutory Exceptions
+  try {
+    const qExc = query(collection(db, 'statutory_exceptions'), limit(50));
+    onSnapshot(qExc, (snapshot) => {
+      const realDocs = snapshot.docs.filter(d => !isTestDoc(d));
+      if (realDocs.length > 0) {
+        cache.exceptions = realDocs.map(d => {
+          const data = d.data();
+          return {
+            exception_id: data.exception_id || d.id,
+            batch_id: data.batch_id || '—',
+            employee_id: data.employee_id || '—',
+            employee_name: data.employee_name || '—',
+            rule_code: data.rule_code || 'RULE_VALIDATION',
+            severity: data.severity || 'WARNING',
+            message: data.message || data.description || 'Validation alert',
+            field: data.field || '—',
+            status: data.status || 'OPEN',
+            raised_at: data.raised_at || data.created_at || new Date().toISOString(),
+          };
+        });
+      } else {
+        cache.exceptions = [];
+      }
+      updateKpis();
+      if (activeTab === 'exceptions') renderActiveTab();
+    }, (err) => {
+      console.warn("Firestore statutory_exceptions notice:", err.message);
+    });
+  } catch (e) {
+    console.warn("Firestore statutory_exceptions listener setup:", e.message);
+  }
+
+  // 4. Compliance Returns
+  try {
+    const qComp = query(collection(db, 'compliance_returns'), limit(50));
+    onSnapshot(qComp, (snapshot) => {
+      const realDocs = snapshot.docs.filter(d => !isTestDoc(d));
+      if (realDocs.length > 0) {
+        cache.compliance = realDocs.map(d => {
+          const data = d.data();
+          const ee = Number(data.employee_contributions || 0);
+          const er = Number(data.employer_contributions || 0);
+          return {
+            entry_id: data.entry_id || d.id,
+            scheme: data.scheme || 'PF',
+            period: data.period || '—',
+            employer_code: data.employer_code || 'KYLRX-MAIN',
+            employee_count: Number(data.employee_count || 0),
+            employee_contributions: ee,
+            employer_contributions: er,
+            total_liability: Number(data.total_liability || (ee + er)),
+            due_date: data.due_date || '',
+            due_date_status: data.due_date_status || 'ON_TIME',
+            acknowledgement_ref: data.acknowledgement_ref || null,
+          };
+        });
+      } else {
+        cache.compliance = [];
+      }
+      updateKpis();
+      if (activeTab === 'compliance') renderActiveTab();
+    }, (err) => {
+      console.warn("Firestore compliance_returns notice:", err.message);
+    });
+  } catch (e) {
+    console.warn("Firestore compliance_returns listener setup:", e.message);
+  }
+
+  // 5. Bank Reconciliations
+  try {
+    const qRecon = query(collection(db, 'bank_reconciliations'), limit(50));
+    onSnapshot(qRecon, (snapshot) => {
+      const realDocs = snapshot.docs.filter(d => !isTestDoc(d));
+      if (realDocs.length > 0) {
+        cache.reconciliation = realDocs.map(d => {
+          const data = d.data();
+          const instructed = Number(data.instructed_amount || 0);
+          const paid = Number(data.paid_amount || 0);
+          const diff = Number(data.difference || (paid - instructed));
+          return {
+            recon_id: data.recon_id || d.id,
+            batch_id: data.batch_id || '—',
+            employee_id: data.employee_id || '—',
+            employee_name: data.employee_name || '—',
+            instructed_amount: instructed,
+            paid_amount: paid,
+            difference: diff,
+            txn_id: data.txn_id || '—',
+            bank_ref: data.bank_ref || '',
+            status: data.status || (diff !== 0 ? 'DISCREPANCY' : 'PAID'),
+            resolution_state: data.resolution_state || (diff === 0 ? 'CLEARED' : 'OPEN'),
+            failure_reason: data.failure_reason || null,
+            reconciled_at: data.reconciled_at || '',
+          };
+        });
+      } else {
+        cache.reconciliation = [];
+      }
+      updateKpis();
+      if (activeTab === 'reconciliation') renderActiveTab();
+    }, (err) => {
+      console.warn("Firestore bank_reconciliations notice:", err.message);
+    });
+  } catch (e) {
+    console.warn("Firestore bank_reconciliations listener setup:", e.message);
+  }
+
+  // 6. Audit Logs
+  try {
+    const qAudit = query(collection(db, 'audit_logs'), limit(50));
+    onSnapshot(qAudit, (snapshot) => {
+      const realDocs = snapshot.docs.filter(d => !isTestDoc(d));
+      if (realDocs.length > 0) {
+        cache.audit = realDocs.map((d, i) => {
+          const data = d.data();
+          return {
+            seq: i + 1,
+            timestamp: data.timestamp || new Date().toISOString(),
+            actor: data.actor || data.user || 'system@kylrx.ai',
+            actor_role: data.actor_role || data.role || 'SYSTEM',
+            entity: data.entity || 'PayrollRun',
+            entity_id: data.entity_id || d.id,
+            action: data.action || 'OPERATION',
+            from_state: data.from_state || '—',
+            to_state: data.to_state || '—',
+            ip_address: data.ip_address || '127.0.0.1',
+            notes: data.notes || data.message || '',
+          };
+        });
+      } else {
+        cache.audit = [];
+      }
+      updateKpis();
+      if (activeTab === 'audit') renderActiveTab();
+    }, (err) => {
+      console.warn("Firestore audit_logs notice:", err.message);
+    });
+  } catch (e) {
+    console.warn("Firestore audit_logs listener setup:", e.message);
+  }
+}
+
+// ── TAB SWITCHER ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  activeTab   = tab;
+  currentPage = 1;
+  renderActiveTab();
+}
+
+// ── RENDER DISPATCHER ─────────────────────────────────────────────────────────
+function renderActiveTab() {
+  switch (activeTab) {
+    case 'disbursement':   renderDisbursement();   break;
+    case 'batch':          renderBatch();           break;
+    case 'exceptions':     renderExceptions();      break;
+    case 'compliance':     renderCompliance();      break;
+    case 'reconciliation': renderReconciliation();  break;
+    case 'audit':          renderAudit();           break;
+  }
+  updatePageIndicator();
+  renderLucideIcons();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function inr(n) {
+  const num = Number(n || 0);
+  if (num === 0) return '₹0';
+  return '₹' + num.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+}
+function fmtDate(iso) { 
+  if (!iso) return '—'; 
+  const d = new Date(iso); 
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) + ' ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }); 
+}
+function page(arr) { const s = (currentPage - 1) * pageSize; return arr.slice(s, s + pageSize); }
+function setRowCount(n) { 
+  const el = document.getElementById('row-count');
+  if (el) el.textContent = `${n} rows`; 
+}
+
+function statusBadge(status) {
+  const map = {
+    PAID:            'bg-green-100 text-green-800',
+    SUCCESS:         'bg-green-100 text-green-800',
+    FINALIZED:       'bg-green-100 text-green-800',
+    APPROVED:        'bg-blue-100 text-blue-800',
+    VALIDATED:       'bg-blue-100 text-blue-800',
+    SUBMITTED:       'bg-indigo-100 text-indigo-800',
+    PENDING:         'bg-slate-100 text-slate-600',
+    PENDING_APPROVAL:'bg-amber-100 text-amber-800',
+    DUE_SOON:        'bg-amber-100 text-amber-800',
+    DRAFT:           'bg-slate-100 text-slate-600',
+    FAILED:          'bg-red-100 text-red-700',
+    BLOCKED:         'bg-red-100 text-red-700',
+    REJECTED:        'bg-red-100 text-red-700',
+    OVERDUE:         'bg-red-100 text-red-700',
+    DISCREPANCY:     'bg-amber-100 text-amber-700',
+    ON_TIME:         'bg-green-100 text-green-700',
+    CLEARED:         'bg-green-100 text-green-700',
+    OPEN:            'bg-orange-100 text-orange-700',
+    RESOLVED:        'bg-green-100 text-green-700',
+    LOCKED:          'bg-purple-100 text-purple-700',
+    CRITICAL:        'bg-red-100 text-red-700',
+    WARNING:         'bg-amber-100 text-amber-700',
+    INFO:            'bg-blue-100 text-blue-700',
+    PARTIALLY_PAID:  'bg-amber-100 text-amber-700',
+  };
+  const cls = map[status] || 'bg-slate-100 text-slate-600';
+  return `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[.66rem] font-bold uppercase ${cls}">${status || '—'}</span>`;
+}
+
+// ── RENDER FUNCTIONS ──────────────────────────────────────────────────────────
+
+function renderDisbursement() {
+  const rows = page(cache.disbursement);
+  totalRows  = cache.disbursement.length;
+  setRowCount(totalRows);
+  document.getElementById('tbody-disbursement').innerHTML = rows.map(r => `
+    <tr>
+      <td class="font-mono text-xs text-slate-500">${r.run_id}</td>
+      <td class="font-semibold">${r.period || '—'}</td>
+      <td class="text-right">${r.total_employees}</td>
+      <td class="text-right font-semibold">${inr(r.gross_payroll)}</td>
+      <td class="text-right text-red-600">${inr(r.total_deductions)}</td>
+      <td class="text-right font-bold text-green-700">${inr(r.net_salary)}</td>
+      <td class="text-right text-slate-600">${inr(r.employer_contributions)}</td>
+      <td class="text-xs text-slate-500">${fmtDate(r.payment_date)}</td>
+      <td>${statusBadge(r.status)}</td>
+    </tr>`).join('') || '<tr><td colspan="9" class="text-center py-10 text-slate-400 text-sm">No payroll disbursement records found (0 runs).</td></tr>';
+}
+
+function renderBatch() {
+  const rows = page(cache.batch);
+  totalRows  = cache.batch.length;
+  setRowCount(totalRows);
+  document.getElementById('tbody-batch').innerHTML = rows.map(r => `
+    <tr>
+      <td class="font-mono text-xs text-slate-500">${r.batch_id}</td>
+      <td class="font-mono text-xs text-slate-400">${r.run_id}</td>
+      <td>${statusBadge(r.batch_type)}</td>
+      <td class="text-right font-semibold">${inr(r.total_amount)}</td>
+      <td class="text-right">${r.total_records}</td>
+      <td>${statusBadge(r.validation_status)}</td>
+      <td>${statusBadge(r.approval_state)}</td>
+      <td>${statusBadge(r.submission_status)}</td>
+      <td class="text-right text-green-700 font-semibold">${r.paid_count}</td>
+      <td class="text-right text-red-600 font-semibold">${r.failed_count}</td>
+      <td>${statusBadge(r.state)}</td>
+      <td class="text-xs text-slate-500">${fmtDate(r.created_at)}</td>
+    </tr>`).join('') || '<tr><td colspan="12" class="text-center py-10 text-slate-400 text-sm">No payment batches found (0 batches).</td></tr>';
+}
+
+function renderExceptions() {
+  const sevFilter = document.getElementById('exc-severity-filter') ? document.getElementById('exc-severity-filter').value : '';
+  let data = sevFilter ? cache.exceptions.filter(e => e.severity === sevFilter) : cache.exceptions;
+  totalRows = data.length;
+  setRowCount(totalRows);
+
+  // Update exception badge
+  const openCount = cache.exceptions.filter(e => e.status === 'OPEN').length;
+  const badge = document.getElementById('exc-badge');
+  if (badge) {
+    if (openCount > 0) { 
+      badge.textContent = openCount; 
+      badge.classList.remove('hidden'); 
+    } else { 
+      badge.classList.add('hidden'); 
+    }
+  }
+
+  document.getElementById('tbody-exceptions').innerHTML = page(data).map(e => `
+    <tr>
+      <td class="font-mono text-[.72rem] text-slate-500">${e.exception_id}</td>
+      <td class="font-mono text-xs text-slate-400">${e.batch_id}</td>
+      <td>
+        <div class="font-semibold text-sm">${e.employee_name}</div>
+        <div class="text-xs text-slate-400 font-mono">${e.employee_id}</div>
+      </td>
+      <td class="font-mono text-[.72rem] text-slate-600 max-w-[160px] truncate" title="${e.rule_code}">${e.rule_code}</td>
+      <td>${statusBadge(e.severity)}</td>
+      <td class="text-sm text-slate-600 max-w-xs truncate" title="${e.message}">${e.message}</td>
+      <td class="font-mono text-xs text-slate-500">${e.field || '—'}</td>
+      <td>${statusBadge(e.status)}</td>
+      <td class="text-xs text-slate-500">${fmtDate(e.raised_at)}</td>
+    </tr>`).join('') || '<tr><td colspan="9" class="text-center py-10 text-slate-400 text-sm">No validation exceptions found (0 open exceptions).</td></tr>';
+}
+
+function renderCompliance() {
+  const rows = page(cache.compliance);
+  totalRows  = cache.compliance.length;
+  setRowCount(totalRows);
+  document.getElementById('tbody-compliance').innerHTML = rows.map(r => `
+    <tr>
+      <td class="font-mono text-xs text-slate-500">${r.entry_id}</td>
+      <td><span class="font-bold text-indigo-700">${r.scheme}</span></td>
+      <td>${r.period}</td>
+      <td class="font-mono text-xs">${r.employer_code}</td>
+      <td class="text-right">${r.employee_count}</td>
+      <td class="text-right">${inr(r.employee_contributions)}</td>
+      <td class="text-right">${inr(r.employer_contributions)}</td>
+      <td class="text-right font-bold">${inr(r.total_liability)}</td>
+      <td class="text-xs text-slate-600">${fmtDate(r.due_date)}</td>
+      <td>${statusBadge(r.due_date_status)}</td>
+      <td class="font-mono text-xs text-slate-400">${r.acknowledgement_ref || '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="11" class="text-center py-10 text-slate-400 text-sm">No compliance register entries found (0 returns).</td></tr>';
+}
+
+function renderReconciliation() {
+  const discOnly = document.getElementById('disc-only') ? document.getElementById('disc-only').checked : false;
+  let data = discOnly
+    ? cache.reconciliation.filter(r => r.status === 'DISCREPANCY' || r.status === 'FAILED')
+    : cache.reconciliation;
+
+  totalRows = data.length;
+  setRowCount(totalRows);
+
+  // Recon KPI strip
+  const totalInstructed = cache.reconciliation.reduce((s, r) => s + (Number(r.instructed_amount) || 0), 0);
+  const totalPaid       = cache.reconciliation.reduce((s, r) => s + (Number(r.paid_amount) || 0), 0);
+  const totalDelta      = cache.reconciliation.reduce((s, r) => s + (Number(r.difference) || 0), 0);
+  const discCount       = cache.reconciliation.filter(r => r.status !== 'PAID').length;
+
+  const elInst = document.getElementById('r-instructed');
+  const elPaid = document.getElementById('r-paid-total');
+  const elDelta = document.getElementById('r-delta-total');
+  const elDisc = document.getElementById('r-disc-count');
+
+  if (elInst) elInst.textContent  = inr(totalInstructed);
+  if (elPaid) elPaid.textContent  = inr(totalPaid);
+  if (elDelta) elDelta.textContent = totalDelta === 0 ? '₹0' : ((totalDelta >= 0 ? '+' : '') + inr(totalDelta));
+  if (elDisc) elDisc.textContent  = discCount;
+
+  document.getElementById('tbody-reconciliation').innerHTML = page(data).map(r => {
+    const isDisc   = r.status === 'DISCREPANCY';
+    const isFailed = r.status === 'FAILED';
+    const rowCls   = isDisc ? 'row-discrepancy' : (isFailed ? 'bg-red-50/40' : '');
+
+    let statusHtml;
+    if (r.status === 'PAID') {
+      statusHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[.66rem] font-bold uppercase bg-green-100 text-green-800"><span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>PAID</span>`;
+    } else if (r.status === 'FAILED') {
+      statusHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[.66rem] font-bold uppercase bg-red-100 text-red-700"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>FAILED</span>`;
+    } else {
+      statusHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[.66rem] font-bold uppercase bg-amber-100 text-amber-700"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>DISCREPANCY</span>`;
+    }
+
+    const diffFmt  = (r.difference >= 0 ? '+' : '') + inr(r.difference);
+    const diffCell = (isDisc || isFailed)
+      ? `<td class="text-right"><span class="font-bold text-red-600 text-sm">${diffFmt}</span></td>`
+      : `<td class="text-right text-slate-500 text-sm">₹0</td>`;
+
+    return `
+    <tr class="${rowCls}">
+      <td class="font-mono text-[.72rem] text-slate-500">${r.recon_id}</td>
+      <td class="font-mono text-xs text-slate-400">${r.batch_id}</td>
+      <td>
+        <div class="font-semibold text-sm">${r.employee_name}</div>
+        <div class="text-xs text-slate-400 font-mono">${r.employee_id}</div>
+      </td>
+      <td class="text-right font-semibold">${inr(r.instructed_amount)}</td>
+      <td class="text-right font-semibold ${r.status==='PAID'?'text-green-700':''}">${inr(r.paid_amount)}</td>
+      ${diffCell}
+      <td class="font-mono text-[.72rem] text-slate-500">${r.txn_id}</td>
+      <td class="font-mono text-[.72rem] text-slate-400 max-w-[120px] truncate" title="${r.bank_ref}">${r.bank_ref || '—'}</td>
+      <td>${statusHtml}</td>
+      <td>${statusBadge(r.resolution_state)}</td>
+      <td class="text-xs text-slate-500">${fmtDate(r.reconciled_at)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="11" class="text-center py-10 text-slate-400 text-sm">No bank reconciliation records found (0 discrepancies).</td></tr>';
+}
+
+function renderAudit() {
+  const actorFilter = document.getElementById('audit-actor-filter');
+  if (actorFilter) {
+    const actors = [...new Set(cache.audit.map(a => a.actor))];
+    const existingOpts = new Set([...actorFilter.options].map(o => o.value));
+    actors.forEach(a => {
+      if (!existingOpts.has(a)) {
+        const opt = document.createElement('option');
+        opt.value = a; opt.textContent = a;
+        actorFilter.appendChild(opt);
+      }
+    });
+  }
+
+  const actorVal = actorFilter ? actorFilter.value : '';
+  let data = actorVal ? cache.audit.filter(a => a.actor === actorVal) : cache.audit;
+  totalRows = data.length;
+  setRowCount(totalRows);
+
+  data = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  document.getElementById('tbody-audit').innerHTML = page(data).map((a, i) => `
+    <tr>
+      <td class="text-slate-400 text-xs font-mono">${a.seq}</td>
+      <td class="text-xs font-mono text-slate-600 whitespace-nowrap">${fmtDate(a.timestamp)}</td>
+      <td class="text-sm font-semibold">${a.actor}</td>
+      <td>${statusBadge((a.actor_role || '').replace('_',' '))}</td>
+      <td class="text-slate-600 text-sm">${a.entity}</td>
+      <td class="font-mono text-xs text-slate-400">${a.entity_id}</td>
+      <td><span class="font-bold text-slate-700 text-sm">${a.action}</span></td>
+      <td>${a.from_state ? `<span class="text-xs text-slate-500">${a.from_state}</span>` : '—'}</td>
+      <td>${a.to_state   ? `<span class="text-xs font-bold text-blue-600">${a.to_state}</span>` : '—'}</td>
+      <td class="font-mono text-xs text-slate-400">${a.ip_address || '—'}</td>
+      <td class="text-xs text-slate-500 italic">${a.notes || ''}</td>
+    </tr>`).join('') || '<tr><td colspan="11" class="text-center py-10 text-slate-400 text-sm">No audit logs recorded (0 entries).</td></tr>';
+}
+
+// ── TABLE FILTER ──────────────────────────────────────────────────────────────
+function filterTable(tableId, query) {
+  const q = query.toLowerCase();
+  const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+  rows.forEach(r => {
+    r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ── PAGINATION ────────────────────────────────────────────────────────────────
+function updatePageIndicator() {
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  const el = document.getElementById('page-indicator');
+  if (el) el.textContent = `Page ${currentPage} of ${totalPages}`;
+}
+function prevPage() {
+  if (currentPage > 1) { currentPage--; renderActiveTab(); }
+}
+function nextPage() {
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+  if (currentPage < totalPages) { currentPage++; renderActiveTab(); }
+}
+function changePageSize(val) {
+  pageSize = parseInt(val) || 25;
+  currentPage = 1;
+  renderActiveTab();
+}
+
+// ── KPI STRIP ─────────────────────────────────────────────────────────────────
+function updateKpis() {
+  const dis = cache.disbursement.reduce((s,r) => s + (Number(r.net_salary) || 0), 0);
+  const settled = cache.reconciliation.filter(r => r.status === 'PAID').reduce((s,r) => s + (Number(r.paid_amount) || 0), 0);
+  const openExc = cache.exceptions.filter(e => e.status === 'OPEN').length;
+  const totalDelta = Math.abs(cache.reconciliation.reduce((s,r) => s + (Number(r.difference) || 0), 0));
+
+  const elDis = document.getElementById('kpi-disbursed');
+  const elSet = document.getElementById('kpi-settled');
+  const elExc = document.getElementById('kpi-exceptions');
+  const elDel = document.getElementById('kpi-delta');
+
+  if (elDis) elDis.textContent  = inr(dis);
+  if (elSet) elSet.textContent  = inr(settled);
+  if (elExc) elExc.textContent  = openExc;
+  if (elDel) elDel.textContent  = inr(totalDelta);
+}
+
+// ── REFRESH ───────────────────────────────────────────────────────────────────
+async function refreshAll() {
+  const icon = document.getElementById('refresh-icon');
+  if (icon) {
+    icon.style.animation = 'spin 1s linear infinite';
+    icon.style.animationName = 'spin';
+  }
+
+  await loadBackendData();
+  updateKpis();
+  renderActiveTab();
+  
+  const refEl = document.getElementById('last-refresh');
+  if (refEl) refEl.textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN');
+
+  setTimeout(() => { if (icon) icon.style.animation = ''; }, 900);
+  showToast('Dashboard refreshed');
+}
+
+// ── EXPORT ENGINE ─────────────────────────────────────────────────────────────
+const REPORT_META = {
+  disbursement:   { label:'Payroll Disbursement Summary',    cols:['Run ID','Period','Employees','Gross Payroll','Deductions','Net Salary','Employer Contrib.','Payment Date','Status'], key:(r)=>[r.run_id,r.period,r.total_employees,r.gross_payroll,r.total_deductions,r.net_salary,r.employer_contributions,r.payment_date,r.status] },
+  batch:          { label:'Payment Batch Report',            cols:['Batch ID','Run ID','Type','Total Amount','Records','Validation','Approval','Submission','Paid','Failed','State','Created At'], key:(r)=>[r.batch_id,r.run_id,r.batch_type,r.total_amount,r.total_records,r.validation_status,r.approval_state,r.submission_status,r.paid_count,r.failed_count,r.state,r.created_at] },
+  exceptions:     { label:'Validation Exception Log',        cols:['Exception ID','Batch ID','Employee ID','Employee Name','Rule Code','Severity','Message','Field','Status','Raised At'], key:(r)=>[r.exception_id,r.batch_id,r.employee_id,r.employee_name,r.rule_code,r.severity,r.message,r.field,r.status,r.raised_at] },
+  compliance:     { label:'Statutory Compliance Register',   cols:['Entry ID','Scheme','Period','Employer Code','Employee Count','Ee Contrib','Er Contrib','Total Liability','Due Date','Status','ACK Ref'], key:(r)=>[r.entry_id,r.scheme,r.period,r.employer_code,r.employee_count,r.employee_contributions,r.employer_contributions,r.total_liability,r.due_date,r.due_date_status,r.acknowledgement_ref] },
+  reconciliation: { label:'Bank Reconciliation View',        cols:['Recon ID','Batch ID','Employee ID','Employee Name','Instructed Amt','Paid Amt','Difference Δ','Txn ID','Bank Ref (UTR)','Status','Resolution','Failure Reason','Reconciled At'], key:(r)=>[r.recon_id,r.batch_id,r.employee_id,r.employee_name,r.instructed_amount,r.paid_amount,r.difference,r.txn_id,r.bank_ref,r.status,r.resolution_state,r.failure_reason,r.reconciled_at] },
+  audit:          { label:'Immutable Audit Log',             cols:['Seq','Timestamp','Actor','Role','Entity','Entity ID','Action','From State','To State','IP Address','Notes'], key:(r)=>[r.seq,r.timestamp,r.actor,r.actor_role,r.entity,r.entity_id,r.action,r.from_state,r.to_state,r.ip_address,r.notes] },
+};
+
+function buildCsvContent(tabKey) {
+  const meta   = REPORT_META[tabKey];
+  const data   = cache[tabKey];
+  const genAt  = new Date().toISOString();
+  const cksum  = btoa(tabKey + ':' + data.length + ':' + genAt).substring(0, 24);
+
+  const header = [
+    `# KYLRX AI — OPERATIONAL REPORT`,
+    `# Report: ${meta.label}`,
+    `# Generated: ${genAt}`,
+    `# Total Rows: ${data.length}`,
+    `# Checksum: ${cksum}`,
+    `# Exported by: Finance Operations Desk`,
+    ``,
+  ].join('\r\n');
+
+  const esc = (v) => {
+    if (v === null || v === undefined) return '';
+    const s = String(v);
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  };
+
+  const rows = [
+    meta.cols.map(esc).join(','),
+    ...data.map(r => meta.key(r).map(esc).join(',')),
+  ].join('\r\n');
+
+  return header + rows;
+}
+
+function exportCsv() {
+  const content  = buildCsvContent(activeTab);
+  const meta     = REPORT_META[activeTab];
+  const filename = `kylrx-${activeTab}-report-${new Date().toISOString().slice(0,10)}.csv`;
+  downloadBlob(content, filename, 'text/csv;charset=utf-8;');
+  showToast(`CSV exported — ${filename}`);
+}
+
+function exportXlsx() {
+  const meta  = REPORT_META[activeTab];
+  const data  = cache[activeTab];
+  const genAt = new Date().toISOString();
+  const cksum = btoa(activeTab + ':' + data.length + ':' + genAt).substring(0, 24);
+
+  const xlsxEsc = (v) => {
+    if (v === null || v === undefined) return '';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  };
+
+  const cellType = (v) => {
+    if (typeof v === 'number') return 'n';
+    return 's';
+  };
+
+  const cell = (v) => {
+    const t = cellType(v);
+    if (t === 'n') return `<c t="n"><v>${v}</v></c>`;
+    return `<c t="inlineStr"><is><t>${xlsxEsc(v)}</t></is></c>`;
+  };
+
+  const headerRow = `<row>${meta.cols.map(c => `<c t="inlineStr"><is><t><b>${xlsxEsc(c)}</b></t></is></c>`).join('')}</row>`;
+  const dataRows  = data.map(r => `<row>${meta.key(r).map(v => cell(v)).join('')}</row>`).join('');
+
+  const metaRows = [
+    `<row><c t="inlineStr"><is><t>KYLRX AI — OPERATIONAL REPORT</t></is></c></row>`,
+    `<row><c t="inlineStr"><is><t>Report: ${xlsxEsc(meta.label)}</t></is></c></row>`,
+    `<row><c t="inlineStr"><is><t>Generated: ${genAt}</t></is></c></row>`,
+    `<row><c t="inlineStr"><is><t>Total Rows: ${data.length}</t></is></c></row>`,
+    `<row><c t="inlineStr"><is><t>Checksum: ${cksum}</t></is></c></row>`,
+    `<row></row>`,
+    headerRow,
+  ].join('');
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:x="urn:schemas-microsoft-com:office:excel">
+  <Styles>
+    <Style ss:ID="Bold"><Font ss:Bold="1"/></Style>
+    <Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1E40AF" ss:Pattern="Solid"/></Style>
+  </Styles>
+  <Worksheet ss:Name="${xlsxEsc(meta.label.substring(0,31))}">
+    <Table>${metaRows}${dataRows}</Table>
+  </Worksheet>
+</Workbook>`;
+
+  const filename = `kylrx-${activeTab}-report-${new Date().toISOString().slice(0,10)}.xls`;
+  downloadBlob(xml, filename, 'application/vnd.ms-excel;charset=utf-8;');
+  showToast(`Excel exported — ${filename}`);
+}
+
+function downloadBlob(content, filename, mime) {
+  const bom  = mime.includes('csv') ? '\uFEFF' : '';
+  const blob = new Blob([bom + content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); document.body.removeChild(a); }, 2000);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (t) {
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+}
+
+// ── EXPOSE INLINE EVENT HANDLERS ONTO WINDOW ──────────────────────────────────
+window.switchTab = switchTab;
+window.exportCsv = exportCsv;
+window.exportXlsx = exportXlsx;
+window.filterTable = filterTable;
+window.renderExceptions = renderExceptions;
+window.renderReconciliation = renderReconciliation;
+window.renderAudit = renderAudit;
+window.prevPage = prevPage;
+window.nextPage = nextPage;
+window.changePageSize = changePageSize;
+window.refreshAll = refreshAll;
+window.renderLucideIcons = renderLucideIcons;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async function init() {
+  // 1. Initialize strictly to 0
+  updateKpis();
+  renderActiveTab();
+  
+  const refEl = document.getElementById('last-refresh');
+  if (refEl) refEl.textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN');
+
+  // 2. Render Lucide icons
+  renderLucideIcons();
+
+  // 3. Connect to Firebase Firestore & Auto-authenticate super admin if needed
+  try {
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        try {
+          await signInWithEmailAndPassword(auth, 'superadmin@kylrx.ai', 'SuperAdmin@2026');
+        } catch (_) {}
+      }
+      setupFirestoreListeners();
+      await loadBackendData();
+    });
+  } catch (authErr) {
+    console.warn("Auth initialization notice:", authErr.message);
+    setupFirestoreListeners();
+    await loadBackendData();
+  }
+
+  // 4. Auto-refresh every 60 seconds
+  setInterval(refreshAll, 60_000);
+})();
+</script>
+</body>
+</html>

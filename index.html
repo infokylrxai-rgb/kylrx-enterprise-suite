@@ -11,7 +11,16 @@
   <link rel="stylesheet" href="style-landing.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+  <script src="lucide.min.js"></script>
+  <script>
+    if (!window.lucide) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+      s.crossOrigin = 'anonymous';
+      s.onload = () => { if (window.lucide) window.lucide.createIcons(); };
+      document.head.appendChild(s);
+    }
+  </script>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
 </head>
@@ -144,13 +153,18 @@
 
   <script type="module" src="script-landing.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      if (window.lucide) {
-        lucide.createIcons();
+    function ensureLucideIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
       } else {
-        console.error('Lucide failed to load');
+        setTimeout(ensureLucideIcons, 80);
       }
-    });
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', ensureLucideIcons);
+    } else {
+      ensureLucideIcons();
+    }
   </script>
 </body>
 

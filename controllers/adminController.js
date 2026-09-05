@@ -114,7 +114,7 @@ exports.createEmployee = async (req, res, next) => {
 
         if (send_email_now) {
             try {
-                const roleTitle = (role === 'manager') ? 'Manager' : (role === 'hrms' ? 'HRMS Administrator' : 'Employee');
+                const roleTitle = (role === 'manager') ? 'Manager' : (role === 'hrms' ? 'HRMS Administrator' : (role === 'superadmin' ? 'Super Admin' : (role === 'hradmin' ? 'HR Admin' : 'Employee')));
                 const portalPage = 'login.html';
                 const appUrl = process.env.APP_URL || 'http://127.0.0.1:5500/kylrx-enterprise-suite-main';
                 
@@ -212,7 +212,7 @@ exports.triggerEmailInvite = async (req, res, next) => {
         
         const data = userDoc.data();
         const role = data.role || 'employee';
-        const roleTitle = (role === 'manager') ? 'Manager' : (role === 'hrms' ? 'HRMS Administrator' : 'Employee');
+        const roleTitle = (role === 'manager') ? 'Manager' : (role === 'hrms' ? 'HRMS Administrator' : (role === 'superadmin' ? 'Super Admin' : (role === 'hradmin' ? 'HR Admin' : 'Employee')));
         const portalPage = 'login.html';
         const appUrl = process.env.APP_URL || 'http://127.0.0.1:5500/kylrx-enterprise-suite-main';
         

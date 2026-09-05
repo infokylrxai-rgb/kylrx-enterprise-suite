@@ -64,22 +64,21 @@ const navLinksContainer = document.querySelector('.nav-links');
 if (mobileToggle && navLinksContainer) {
   mobileToggle.addEventListener('click', () => {
     navLinksContainer.classList.toggle('active');
-    const icon = mobileToggle.querySelector('i');
-    if (navLinksContainer.classList.contains('active')) {
-      icon.setAttribute('data-lucide', 'x');
-    } else {
-      icon.setAttribute('data-lucide', 'menu');
+    const isActive = navLinksContainer.classList.contains('active');
+    mobileToggle.innerHTML = `<i data-lucide="${isActive ? 'x' : 'menu'}"></i>`;
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
     }
-    if (window.lucide) { lucide.createIcons(); }
   });
 
   // Close menu when clicking a link
   document.querySelectorAll('.nav-link, .nav-btn').forEach(link => {
     link.addEventListener('click', () => {
       navLinksContainer.classList.remove('active');
-      const icon = mobileToggle.querySelector('i');
-      icon.setAttribute('data-lucide', 'menu');
-      if (window.lucide) { lucide.createIcons(); }
+      mobileToggle.innerHTML = '<i data-lucide="menu"></i>';
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
     });
   });
 }

@@ -8,10 +8,36 @@
     <title>Admin Management | Kylrx AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js"></script>
+    <script>
+        function renderLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try {
+                    window.lucide.createIcons();
+                } catch (e) {
+                    console.warn("Lucide render error:", e);
+                }
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
+
+        if (!window.lucide) {
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            fallbackScript.crossOrigin = 'anonymous';
+            fallbackScript.onload = () => { renderLucideIcons(); };
+            document.head.appendChild(fallbackScript);
+        } else {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', renderLucideIcons);
+            } else {
+                renderLucideIcons();
+            }
+        }
+        window.addEventListener('load', renderLucideIcons);
+    </script>
 
     <script>
         // Immediate Auth Guard
@@ -621,15 +647,18 @@
                 <div class="nav-label">OPERATIONS</div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="operational-dashboard.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Operational Reports</span></a></div>
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
-                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer & Disbursement</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
@@ -757,6 +786,8 @@
                         <option value="">All Roles</option>
                         <option value="employee">Employee</option>
                         <option value="manager">Manager</option>
+                        <option value="hradmin">HR Admin</option>
+                        <option value="superadmin">Super Admin</option>
                     </select>
                 </div>
 
@@ -872,6 +903,8 @@
                         <select name="roleType" id="roleType" required>
                             <option value="employee">Employee</option>
                             <option value="manager">Manager</option>
+                            <option value="hradmin">HR Admin</option>
+                            <option value="superadmin">Super Admin</option>
                         </select>
                     </div>
                 </div>

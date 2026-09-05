@@ -100,32 +100,145 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/payroll", payrollRoutes);
+app.use("/api/payroll-runs", payrollRoutes);
 app.use("/api/email", emailRoutes);
 app.use("/api/automations", automationRoutes);
 app.use("/api/tasks", taskRoutes);
 
+// Reconciliation Engine API (ESM module — loaded via dynamic import)
+// Endpoints: POST /api/reconciliation/ingest
+//            GET  /api/reconciliation/exceptions/:batchId
+//            GET  /api/reconciliation/exceptions/:batchId/summary
+//            GET  /api/reconciliation/finance-ops/review-items
+//            GET  /api/reconciliation/finance-ops/review-items/:batchId
+//            PATCH /api/reconciliation/exceptions/:exceptionId/resolve
+//            GET  /api/reconciliation/runs/:runId
+//            GET  /api/reconciliation/batches/:batchId/status
+import('./routes/reconciliation.mjs')
+  .then(({ default: reconciliationRoutes }) => {
+    app.use('/api/reconciliation', reconciliationRoutes);
+    logger.info('[ReconciliationEngine] Routes registered at /api/reconciliation');
+  })
+  .catch((err) => {
+    logger.error('[ReconciliationEngine] Failed to load reconciliation routes:', err.message);
+  });
 
-// Unhandled Route Fallback
-app.use((req, res, next) => {
+// ESIC Automation Engine API (Column 1 Compliance Blueprint)
+// Endpoints: POST /api/v1/esic/upload-master
+//            GET  /api/v1/esic/template
+//            GET  /api/v1/esic/profiles
+//            POST /api/v1/esic/trigger
+//            GET  /api/v1/esic/summary/:batchId
+//            GET  /api/v1/esic/stepper/:batchId
+//            POST /api/v1/esic/stepper/:batchId/advance
+//            GET  /api/v1/esic/exceptions
+//            POST /api/v1/esic/exceptions/:exceptionId/resolve
+//            GET  /api/v1/esic/tasks
+//            GET  /api/v1/esic/export/:batchId
+async function startServer() {
+  try {
+    const { default: esicRoutes } = await import('./routes/esic.mjs');
+    app.use('/api/v1/esic', esicRoutes);
+    app.use('/api/esic', esicRoutes);
+    logger.info('[EsicAutomationEngine] Routes registered at /api/v1/esic and /api/esic');
+
+    try {
+      const eventBus = require('./services/event-bus');
+      const { globalEsicAutomationEngine } = await import('./services/esic-automation-engine.mjs');
+      globalEsicAutomationEngine.attachPayrollFinalizedListener(eventBus);
+      logger.info('[EsicAutomationEngine] Attached PAYROLL_FINALIZED listener on EventBus');
+    } catch (e) {
+      logger.warn('[EsicAutomationEngine] Could not wire EventBus listener:', e.message);
+    }
+  } catch (err) {
+    logger.error('[EsicAutomationEngine] Failed to load ESIC routes:', err.message);
+  }
+
+  try {
+    const { default: gratuityRoutes } = await import('./routes/gratuity.mjs');
+    app.use('/api/v1/gratuity', gratuityRoutes);
+    app.use('/api/gratuity', gratuityRoutes);
+    logger.info('[GratuityAutomationEngine] Routes registered at /api/v1/gratuity and /api/gratuity');
+
+    try {
+      const eventBus = require('./services/event-bus');
+      const { globalGratuityAutomationEngine } = await import('./services/gratuity-automation-engine.mjs');
+      globalGratuityAutomationEngine.attachEventListeners(eventBus);
+      logger.info('[GratuityAutomationEngine] Attached Exit & PAYROLL_FINALIZED listeners on EventBus');
+    } catch (e) {
+      logger.warn('[GratuityAutomationEngine] Could not wire EventBus listeners:', e.message);
+    }
+  } catch (err) {
+    logger.error('[GratuityAutomationEngine] Failed to load Gratuity routes:', err.message);
+  }
+
+  try {
+    const { default: npsRoutes } = await import('./routes/nps.mjs');
+    app.use('/api/v1/nps', npsRoutes);
+    app.use('/api/nps', npsRoutes);
+    logger.info('[CorporateNpsAutomationEngine] Routes registered at /api/v1/nps and /api/nps');
+
+    try {
+      const eventBus = require('./services/event-bus');
+      const { globalCorporateNpsAutomationEngine } = await import('./services/corporate-nps-automation-engine.mjs');
+      globalCorporateNpsAutomationEngine.attachPayrollFinalizedListener(eventBus);
+      logger.info('[CorporateNpsAutomationEngine] Attached PAYROLL_FINALIZED listener on EventBus');
+    } catch (e) {
+      logger.warn('[CorporateNpsAutomationEngine] Could not wire EventBus listener:', e.message);
+    }
+  } catch (err) {
+    logger.error('[CorporateNpsAutomationEngine] Failed to load NPS routes:', err.message);
+  }
+
+  try {
+    const { default: unifiedComplianceRoutes } = await import('./routes/unified-compliance.mjs');
+    app.use('/api/v1/compliance', unifiedComplianceRoutes);
+    app.use('/api/compliance', unifiedComplianceRoutes);
+    logger.info('[UnifiedStatutoryOrchestrator] Routes registered at /api/v1/compliance and /api/compliance');
+
+    try {
+      const { db } = require('./config/firebase');
+      const eventBus = require('./services/event-bus');
+      const { globalUnifiedStatutoryOrchestrator } = await import('./services/unified-statutory-orchestration-service.mjs');
+      globalUnifiedStatutoryOrchestrator.attachPayrollRunsListener(db);
+      globalUnifiedStatutoryOrchestrator.attachEventBusListener(eventBus);
+      logger.info('[UnifiedStatutoryOrchestrator] Master trigger attached to Firebase payroll_runs & EventBus');
+    } catch (e) {
+      logger.warn('[UnifiedStatutoryOrchestrator] Could not attach master trigger:', e.message);
+    }
+  } catch (err) {
+    logger.error('[UnifiedStatutoryOrchestrator] Failed to load Compliance routes:', err.message);
+  }
+
+  try {
+    const { default: pfComplianceRoutes } = await import('./routes/pf-compliance.mjs');
+    app.use('/api/v1/pf', pfComplianceRoutes);
+    app.use('/api/pf', pfComplianceRoutes);
+    logger.info('[PfEcrAutomationEngine] Routes registered at /api/v1/pf and /api/pf');
+
+    try {
+      const eventBus = require('./services/event-bus');
+      const { globalPfEcrAutomationEngine } = await import('./services/pf-ecr-automation-engine.mjs');
+      globalPfEcrAutomationEngine.attachEventBusListener(eventBus);
+      logger.info('[PfEcrAutomationEngine] EventBus listener wired to PAYROLL_FINALIZED');
+    } catch (e) {
+      logger.warn('[PfEcrAutomationEngine] Could not wire EventBus listener:', e.message);
+    }
+  } catch (err) {
+    logger.error('[PfEcrAutomationEngine] Failed to load PF routes:', err.message);
+  }
+
+  // Unhandled Route Fallback (ONLY registered AFTER all routes are registered!)
+  app.use((req, res, next) => {
     res.status(404);
     next(new Error(`Can't find ${req.originalUrl} on this server!`));
-});
+  });
 
-// Global Error Handler
-app.use(errorHandler);
+  // Global Error Handler
+  app.use(errorHandler);
 
-// Handle Uncaught Exceptions and Unhandled Rejections globally to guarantee ZERO-CRASH
-process.on('uncaughtException', (err) => {
-    logger.error(`UNCAUGHT EXCEPTION: ${err.name} - ${err.message}`, { stack: err.stack });
-    // In production we should restart, but here we keep it alive for zero-crash
-});
-
-process.on('unhandledRejection', (err) => {
-    logger.error(`UNHANDLED REJECTION: ${err.name} - ${err.message}`, { stack: err.stack });
-});
-
-// Start Server
-app.listen(PORT, () => {
+  // Start Server
+  app.listen(PORT, () => {
     logger.info(`🚀 Secure HRFlow Enterprise Backend running on http://localhost:${PORT}`);
     console.log(`🚀 Secure HRFlow Enterprise Backend running on http://localhost:${PORT}`);
     
@@ -135,13 +248,20 @@ app.listen(PORT, () => {
     // Onboarding Document submission Reminder scheduler (Twice daily: every 12 hours)
     const { runReminderJob } = require("./utils/reminder-scheduler");
     setInterval(() => {
-        runReminderJob().catch(err => console.error("Error in scheduled reminder job:", err));
+      runReminderJob().catch(err => console.error("Error in scheduled reminder job:", err));
     }, 12 * 60 * 60 * 1000);
-    
-    // Run an initial reminder check shortly after server startup
-    setTimeout(() => {
-        runReminderJob().catch(err => console.error("Error in initial startup reminder check:", err));
-    }, 10000);
+  });
+}
+
+// Handle Uncaught Exceptions and Unhandled Rejections globally to guarantee ZERO-CRASH
+process.on('uncaughtException', (err) => {
+    logger.error(`UNCAUGHT EXCEPTION: ${err.name} - ${err.message}`, { stack: err.stack });
 });
+
+process.on('unhandledRejection', (err) => {
+    logger.error(`UNHANDLED REJECTION: ${err.name} - ${err.message}`, { stack: err.stack });
+});
+
+startServer();
 
 

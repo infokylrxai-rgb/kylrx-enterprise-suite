@@ -200,14 +200,9 @@ function populateWidgetContent(id) {
 
         case 'payroll':
             container.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div id="payroll-forecast-chart" style="height: 150px; background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%); border-radius: 12px; display: flex; align-items: flex-end; padding: 10px; gap: 8px;">
-                        <div style="width: 100%; text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-bottom: 2rem;">
-                            <i data-lucide="bar-chart-3" class="animate-pulse"></i><br>Calculating Finance Projections...
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
-                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                <div id="payroll-forecast-chart" style="height: 180px; background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%); border-radius: 12px; display: flex; align-items: stretch; justify-content: space-between; padding: 16px 12px 10px; gap: 8px;">
+                    <div style="width: 100%; text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 2rem;">
+                        <i data-lucide="bar-chart-3" class="animate-pulse"></i><br>Calculating Finance Projections...
                     </div>
                 </div>
             `;
@@ -216,14 +211,9 @@ function populateWidgetContent(id) {
 
         case 'productivity':
             container.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div id="productivity-trend-chart" style="height: 150px; background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%); border-radius: 12px; display: flex; align-items: flex-end; padding: 10px; gap: 8px;">
-                        <div style="width: 100%; text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-bottom: 2rem;">
-                            <i data-lucide="trending-up" class="animate-pulse"></i><br>Aggregating Productivity Metrics...
-                        </div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted);">
-                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                <div id="productivity-trend-chart" style="height: 180px; background: linear-gradient(180deg, var(--primary-soft) 0%, transparent 100%); border-radius: 12px; display: flex; align-items: stretch; justify-content: space-between; padding: 16px 12px 10px; gap: 8px;">
+                    <div style="width: 100%; text-align: center; color: var(--text-muted); font-size: 0.75rem; margin-top: 2rem;">
+                        <i data-lucide="trending-up" class="animate-pulse"></i><br>Aggregating Productivity Metrics...
                     </div>
                 </div>
             `;
@@ -622,8 +612,11 @@ function startProductivityTrend() {
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             const dayLabel = days[idx] || '';
             return `
-                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end;">
-                    <div style="width: 60%; max-width: 32px; height: ${height}%; background: var(--primary); border-radius: 6px 6px 0 0; transition: height 0.5s ease-out;" title="${dayLabel}: ${Math.round(val)}% Efficiency"></div>
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between;">
+                    <div style="width: 100%; height: 130px; display: flex; align-items: flex-end; justify-content: center;">
+                        <div style="width: 60%; max-width: 32px; height: ${height}%; background: var(--primary); border-radius: 6px 6px 0 0; transition: height 0.5s ease-out;" title="${dayLabel}: ${Math.round(val)}% Efficiency"></div>
+                    </div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-top: 4px;">${dayLabel}</span>
                 </div>
             `;
         }).join('');
@@ -675,8 +668,11 @@ function startPayrollForecast() {
                     const dayLabel = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
 
                     return `
-                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end;">
-                            <div style="width: 60%; max-width: 32px; height: ${height}%; background: var(--primary); border-radius: 6px 6px 0 0; transition: height 0.5s ease-out;" title="${dayLabel}: ₹${Math.round(val).toLocaleString()}"></div>
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: space-between;">
+                            <div style="width: 100%; height: 130px; display: flex; align-items: flex-end; justify-content: center;">
+                                <div style="width: 60%; max-width: 32px; height: ${height}%; background: var(--primary); border-radius: 6px 6px 0 0; transition: height 0.5s ease-out;" title="${dayLabel}: ₹${Math.round(val).toLocaleString()}"></div>
+                            </div>
+                            <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-top: 4px;">${dayLabel}</span>
                         </div>
                     `;
                 }).join('');
@@ -1024,8 +1020,8 @@ function renderEmployeeTable(employees) {
                 <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${emp.departmentId || '---'}</div>
             </td>
             <td>
-                <span class="badge" style="background: ${isManager ? '#fee2e2' : '#dcfce7'}; color: ${isManager ? '#ef4444' : '#10b981'}; font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">
-                    ${emp.role || 'employee'}
+                <span class="badge" style="background: ${isManager ? '#fee2e2' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#e0e7ff' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#fce7f3' : '#dcfce7'))}; color: ${isManager ? '#ef4444' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#4338ca' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#db2777' : '#10b981'))}; font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">
+                    ${(emp.role || 'employee').toLowerCase() === 'hradmin' ? 'HR ADMIN' : (emp.role || 'employee')}
                 </span>
             </td>
             <td>
@@ -1299,9 +1295,17 @@ function setupEventListeners() {
                 }
             }
 
-            const role = roleSelect.value.charAt(0).toUpperCase() + roleSelect.value.slice(1) || 'Employee';
+            // Format role label for password (superadmin → SuperAdmin, hradmin → HRAdmin)
+            let roleLabel;
+            if (roleSelect.value === 'superadmin') {
+              roleLabel = 'SuperAdmin';
+            } else if (roleSelect.value === 'hradmin') {
+              roleLabel = 'HRAdmin';
+            } else {
+              roleLabel = roleSelect.value.charAt(0).toUpperCase() + roleSelect.value.slice(1) || 'Employee';
+            }
             const year = new Date().getFullYear();
-            const autoPass = `${deptCode}-${role}-${name}@${year}!`;
+            const autoPass = `${deptCode}-${roleLabel}-${name}@${year}!`;
             
             // Update both fields
             passInput.value = autoPass;
@@ -1327,6 +1331,8 @@ function setupEventListeners() {
                     roleField.innerHTML = `
                         <option value="employee">Employee</option>
                         <option value="manager">Manager</option>
+                        <option value="hradmin">HR Admin</option>
+                        <option value="superadmin">Super Admin</option>
                     `;
                     roleField.value = 'employee';
                 }

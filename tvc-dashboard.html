@@ -310,11 +310,14 @@
                 <div class="nav-label">OPERATIONS</div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="operational-dashboard.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Operational Reports</span></a></div>
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
@@ -1790,61 +1793,71 @@
                 <button id="btnCloseProductivity" style="background:#eff6ff; border:none; cursor:pointer; color:#1e293b; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: 0.2s;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
 
-            <!-- Bar Chart Area -->
-            <div style="background: #eff6ff; padding: 2.5rem 2rem 1.5rem 2rem; border-radius: 20px; display: flex; align-items: flex-end; justify-content: space-between; height: 220px; margin-top: 0.5rem; gap: 16px; position: relative;">
+            <!-- Bar Chart Area (Unified single level containing both bars and labels) -->
+            <div style="background: #eff6ff; padding: 2.5rem 2rem 1.25rem 2rem; border-radius: 20px; display: flex; align-items: stretch; justify-content: space-between; height: 240px; margin-top: 0.5rem; gap: 16px; position: relative;">
                 <!-- Mon -->
-                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end;">
-                    <div id="barMon" style="width: 100%; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Monday: 0%">
-                        <span id="labelValMon" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 800; color: #1e293b;">0%</span>
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
+                    <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
+                        <div id="barMon" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Monday: 0%">
+                            <span id="labelValMon" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        </div>
                     </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Mon</span>
                 </div>
                 <!-- Tue -->
-                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end;">
-                    <div id="barTue" style="width: 100%; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Tuesday: 0%">
-                        <span id="labelValTue" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 800; color: #1e293b;">0%</span>
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
+                    <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
+                        <div id="barTue" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Tuesday: 0%">
+                            <span id="labelValTue" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        </div>
                     </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Tue</span>
                 </div>
                 <!-- Wed -->
-                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end;">
-                    <div id="barWed" style="width: 100%; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Wednesday: 0%">
-                        <span id="labelValWed" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 800; color: #1e293b;">0%</span>
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
+                    <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
+                        <div id="barWed" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Wednesday: 0%">
+                            <span id="labelValWed" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        </div>
                     </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Wed</span>
                 </div>
                 <!-- Thu -->
-                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end;">
-                    <div id="barThu" style="width: 100%; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Thursday: 0%">
-                        <span id="labelValThu" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 800; color: #1e293b;">0%</span>
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
+                    <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
+                        <div id="barThu" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Thursday: 0%">
+                            <span id="labelValThu" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        </div>
                     </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Thu</span>
                 </div>
                 <!-- Fri -->
-                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end;">
-                    <div id="barFri" style="width: 100%; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Friday: 0%">
-                        <span id="labelValFri" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 800; color: #1e293b;">0%</span>
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
+                    <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
+                        <div id="barFri" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Friday: 0%">
+                            <span id="labelValFri" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        </div>
                     </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Fri</span>
                 </div>
                 <!-- Sat -->
-                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end;">
-                    <div id="barSat" style="width: 100%; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Saturday: 0%">
-                        <span id="labelValSat" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 800; color: #1e293b;">0%</span>
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
+                    <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
+                        <div id="barSat" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Saturday: 0%">
+                            <span id="labelValSat" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        </div>
                     </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Sat</span>
                 </div>
                 <!-- Sun -->
-                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end;">
-                    <div id="barSun" style="width: 100%; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Sunday: 0%">
-                        <span id="labelValSun" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 800; color: #1e293b;">0%</span>
+                <div style="display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: space-between;">
+                    <div style="width: 100%; height: 165px; display: flex; align-items: flex-end; justify-content: center;">
+                        <div id="barSun" style="width: 100%; max-width: 44px; height: 0%; background: #3b82f6; border-radius: 8px 8px 0 0; transition: height 0.5s ease-out; position: relative;" title="Sunday: 0%">
+                            <span id="labelValSun" style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; font-weight: 800; color: #1e293b;">0%</span>
+                        </div>
                     </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 6px;">Sun</span>
                 </div>
-            </div>
-
-            <!-- X-axis Labels -->
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: #64748b; padding: 0 1rem; margin-top: -8px;">
-                <span style="flex: 1; text-align: center;">Mon</span>
-                <span style="flex: 1; text-align: center;">Tue</span>
-                <span style="flex: 1; text-align: center;">Wed</span>
-                <span style="flex: 1; text-align: center;">Thu</span>
-                <span style="flex: 1; text-align: center;">Fri</span>
-                <span style="flex: 1; text-align: center;">Sat</span>
-                <span style="flex: 1; text-align: center;">Sun</span>
             </div>
 
             <!-- Additional Analytics Summary Footer -->

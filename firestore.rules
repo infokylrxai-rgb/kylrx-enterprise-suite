@@ -43,6 +43,72 @@ service cloud.firestore {
       allow delete: if isStaff();
     }
 
+    // ── Statutory Policy Configurations (Versioned Master Rules) ────
+    match /statutory_policy_configs/{configId} {
+      allow read: if isStaff();
+      allow create, update: if isStaff();
+      allow delete: if false; // Policy history must never be deleted
+    }
+
+    // ── Payroll Runs (Independent lifecycle for calculation) ─────────
+    match /payroll_runs/{runId} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      // Locked runs cannot be modified except for audit archiving
+      allow update: if isStaff() && (
+        resource.data.status != 'LOCKED' || request.resource.data.status == 'ARCHIVED'
+      );
+      allow delete: if false;
+    }
+
+    // ── Payment Batches (Disbursement lifecycle & 4-Eyes Check) ──────
+    match /payment_batches/{batchId} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      // Maker cannot be Checker (4-Eye rule enforcement)
+      allow update: if isStaff() && (
+        !(request.resource.data.maker_checker.checker_id != null &&
+          request.resource.data.maker_checker.checker_id == resource.data.maker_checker.maker_id)
+      );
+      allow delete: if isStaff() && resource.data.status in ['DRAFT', 'VALIDATION_FAILED'];
+
+      match /records/{recordId} {
+        allow read: if isStaff() || ownsEmployeeId(resource.data.employee_id);
+        allow write: if isStaff();
+      }
+    }
+
+    // ── Compliance Returns (PF ECR, ESIC, Gratuity, NPS) ─────────────
+    match /compliance_returns/{returnId} {
+      allow read: if isStaff();
+      allow create, update: if isStaff();
+      allow delete: if false;
+    }
+
+    match /statutory_exceptions/{exceptionId} {
+      allow read, write: if isStaff();
+    }
+
+    // ── Bank Files & Reconciliation Audit Logs ───────────────────────
+    match /bank_files/{fileId} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      allow update, delete: if false; // Tamper-proof bank files
+    }
+
+    match /bank_reconciliations/{recId} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      allow update: if isStaff();
+      allow delete: if false;
+    }
+
+    match /disbursement_logs/{logId} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+      allow update, delete: if false; // Append-only audit logs
+    }
+
     // ── Recruitment ATS ─────────────────────────────────────────────
     match /candidates/{candidateId} {
       allow read, write: if isStaff();
@@ -56,18 +122,30 @@ service cloud.firestore {
       allow read, write: if isStaff();
     }
 
-    // ── Users (custom login still queries by email) ─────────────────
+    // ── Users & Compliance Profiles ─────────────────────────────────
     match /users/{userId} {
       allow read: if true;
       allow create: if true;
       allow update: if isStaff() || signedIn();
       allow delete: if isStaff();
+
+      match /compliance_profile/{profileId} {
+        allow read: if isStaff() || ownsEmployeeId(userId);
+        allow write: if isStaff();
+      }
     }
 
     // ── Legacy collections (open during auth migration) ─────────────
     match /{collection}/{document} {
       allow read, write: if collection not in [
         'payroll_documents',
+        'payroll_runs',
+        'payment_batches',
+        'compliance_returns',
+        'statutory_policy_configs',
+        'bank_files',
+        'bank_reconciliations',
+        'disbursement_logs',
         'candidates',
         'recruitment_events'
       ];
