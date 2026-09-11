@@ -11,14 +11,257 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="lucide.min.js"></script>
+    <script>
+        function renderLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try {
+                    window.lucide.createIcons();
+                } catch (e) {
+                    console.warn("Lucide render error:", e);
+                }
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
+
+        if (!window.lucide) {
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            fallbackScript.crossOrigin = 'anonymous';
+            fallbackScript.onload = () => { renderLucideIcons(); };
+            document.head.appendChild(fallbackScript);
+        } else {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', renderLucideIcons);
+            } else {
+                renderLucideIcons();
+            }
+        }
+        window.addEventListener('load', renderLucideIcons);
+    </script>
     <style>
         :root {
+            --primary: #3b82f6;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            --primary-dark: #1e40af;
+            --secondary: #0ea5e9;
+            --accent: #06b6d4;
+            --danger: #ef4444;
+            --bg: #ffffff;
+            --bg-soft: #f8fafc;
+            --sidebar: #ffffff;
+            --card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 20px;
+            --sidebar-width: 280px;
             --glass: blur(12px);
         }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-soft);
+            color: var(--text-main);
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling (High Resilience Fallback + Dedicated Rules) */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+
+        .nav-menu {
+            flex: 1;
+            list-style: none;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+            -ms-overflow-style: auto;
+            padding-right: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .nav-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .nav-menu::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .nav-menu:hover::-webkit-scrollbar-thumb {
+            background: var(--primary);
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin: 1.25rem 0 0.5rem 0.5rem;
+            opacity: 0.6;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.65rem 0.9rem;
+            color: #475569 !important;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            border-radius: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .nav-link:hover {
+            background: #eff6ff !important;
+            color: #2563eb !important;
+            transform: none !important;
+        }
+
+        .nav-link.active {
+            background: #eff6ff !important;
+            color: #2563eb !important;
+            font-weight: 700;
+            box-shadow: none !important;
+        }
+
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3.5px;
+            background: #2563eb;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-link i,
+        .nav-link svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: #64748b;
+        }
+
+        .nav-link:hover i,
+        .nav-link:hover svg,
+        .nav-link.active i,
+        .nav-link.active svg {
+            color: #2563eb !important;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: var(--bg-soft);
+        }
+
         .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
             padding: 2.5rem;
             background: #f8fafc;
             min-height: 100vh;
@@ -514,6 +757,7 @@
             display: flex;
             gap: 12px;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
 
         .color-circle {
@@ -528,6 +772,21 @@
         .color-circle.selected {
             border-color: var(--text-main);
             transform: scale(1.1);
+        }
+
+        .color-circle.locked-disabled {
+            opacity: 0.22;
+            cursor: not-allowed !important;
+            filter: grayscale(90%);
+            pointer-events: none;
+            position: relative;
+        }
+
+        .color-circle.locked-active {
+            box-shadow: 0 0 0 3px #fff, 0 0 0 5px #ec4899, 0 4px 14px rgba(236, 72, 153, 0.45) !important;
+            transform: scale(1.15);
+            position: relative;
+            cursor: default;
         }
 
         /* Toggle Switches */
@@ -922,10 +1181,22 @@
 
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i
+                            data-lucide="command"></i><span>Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i
                             data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i
+                            data-lucide="bell"></i><span>Notification & Actions</span></a></div>
                 <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link active"><i
                             data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i
+                            data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i
+                            data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i
+                            data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i
+                            data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i
                             data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i
@@ -1124,12 +1395,12 @@
                             </div>
                         </div>
                         <div class="card-actions">
-                            <a href="hrms-dashboard.html" class="action-btn btn-edit" style="text-decoration: none;">
+                            <button type="button" onclick="openHrAdminModal('hrms')" class="action-btn btn-edit" style="border: none; cursor: pointer; text-decoration: none; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                 <i data-lucide="shield-check"></i> Control Hub
-                            </a>
-                            <a href="hrms-dashboard.html" class="action-btn btn-view" style="text-decoration: none;">
+                            </button>
+                            <button type="button" onclick="openHrAdminModal('insights')" class="action-btn btn-view" style="border: 1px solid var(--border); background: white; cursor: pointer; text-decoration: none; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                 <i data-lucide="eye"></i> View Insights
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1202,19 +1473,24 @@
                         <label>Deployment Target</label>
                         <div style="display: flex; gap: 12px; margin-top: 8px;">
                             <label
-                                style="flex: 1; border: 1px solid var(--border); padding: 10px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+                                style="flex: 1; border: 1.5px solid var(--border); padding: 12px 14px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.25s ease;"
                                 id="labelManager">
                                 <input type="radio" name="targetType" value="Manager Suite" checked
                                     onclick="selectTarget('Manager')">
-                                <span style="font-size: 0.8rem; font-weight: 700;">Manager Suite</span>
+                                <span style="font-size: 0.82rem; font-weight: 700;">Manager Suite</span>
                             </label>
                             <label
-                                style="flex: 1; border: 1px solid var(--border); padding: 10px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px;"
+                                style="flex: 1; border: 1.5px solid var(--border); padding: 12px 14px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.25s ease;"
                                 id="labelEmployee">
                                 <input type="radio" name="targetType" value="Employee Portal"
                                     onclick="selectTarget('Employee')">
-                                <span style="font-size: 0.8rem; font-weight: 700;">Employee Portal</span>
+                                <span style="font-size: 0.82rem; font-weight: 700;">Employee Portal</span>
+                                <span id="empPinkLightPill" style="display: none; margin-left: auto; font-size: 0.65rem; background: linear-gradient(135deg, #ec4899, #f43f5e); color: white; padding: 3px 8px; border-radius: 12px; font-weight: 800; box-shadow: 0 0 10px rgba(236,72,153,0.5); letter-spacing: 0.5px;">✨ STATIC LIGHT PINK</span>
                             </label>
+                        </div>
+                        <div id="empStaticNote" style="display: none; margin-top: 10px; font-size: 0.76rem; color: #be185d; font-weight: 600; background: #fdf2f8; padding: 8px 12px; border-radius: 10px; border: 1px solid #fce7f3; align-items: center; gap: 8px;">
+                            <i data-lucide="lock" style="width: 15px; height: 15px; flex-shrink: 0; color: #ec4899;"></i>
+                            <span>Static Light Pink is locked for Employee Portal. Color customization is restricted to ensure consistency.</span>
                         </div>
                     </div>
 
@@ -1259,14 +1535,24 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Primary Brand Color</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="margin-bottom: 0;">Primary Brand Color</label>
+                            <span id="currentColorIndicator" style="font-size: 0.72rem; font-weight: 700; color: #ec4899; background: #fdf2f8; border: 1px solid #fce7f3; padding: 2px 10px; border-radius: 12px;">Pink (#ec4899) • Employee Recommended</span>
+                        </div>
                         <div class="color-presets" id="primaryColorGrid">
-                            <div class="color-circle selected" style="background: #3b82f6;" data-color="#3b82f6"></div>
-                            <div class="color-circle" style="background: #ef4444;" data-color="#ef4444"></div>
-                            <div class="color-circle" style="background: #10b981;" data-color="#10b981"></div>
-                            <div class="color-circle" style="background: #f59e0b;" data-color="#f59e0b"></div>
-                            <div class="color-circle" style="background: #8b5cf6;" data-color="#8b5cf6"></div>
-                            <div class="color-circle" style="background: #0f172a;" data-color="#0f172a"></div>
+                            <div class="color-circle" style="background: #ec4899; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #ec4899;" data-color="#ec4899" title="Light Pink (Static for Employee Portal)" data-original-title="Light Pink (Static for Employee Portal)"></div>
+                            <div class="color-circle" style="background: #f43f5e;" data-color="#f43f5e" title="Neon Rose Pink" data-original-title="Neon Rose Pink"></div>
+                            <div class="color-circle" style="background: #db2777;" data-color="#db2777" title="Deep Fuchsia Pink" data-original-title="Deep Fuchsia Pink"></div>
+                            <div class="color-circle selected" style="background: #3b82f6;" data-color="#3b82f6" title="Ocean Blue (Manager Default)" data-original-title="Ocean Blue (Manager Default)"></div>
+                            <div class="color-circle" style="background: #ef4444;" data-color="#ef4444" title="Flame Red" data-original-title="Flame Red"></div>
+                            <div class="color-circle" style="background: #10b981;" data-color="#10b981" title="Emerald Green" data-original-title="Emerald Green"></div>
+                            <div class="color-circle" style="background: #f59e0b;" data-color="#f59e0b" title="Amber Orange" data-original-title="Amber Orange"></div>
+                            <div class="color-circle" style="background: #8b5cf6;" data-color="#8b5cf6" title="Royal Purple" data-original-title="Royal Purple"></div>
+                            <div class="color-circle" style="background: #0f172a;" data-color="#0f172a" title="Midnight Obsidian" data-original-title="Midnight Obsidian"></div>
+                        </div>
+                        <div id="empColorLockNotice" style="display: none; margin-top: 12px; padding: 10px 14px; background: linear-gradient(135deg, #fdf2f8 0%, #fff5f9 100%); border: 1.5px solid #fbcfe8; border-radius: 12px; font-size: 0.78rem; color: #be185d; font-weight: 600; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(236,72,153,0.1);">
+                            <i data-lucide="lock" style="width: 16px; height: 16px; flex-shrink: 0; color: #ec4899;"></i>
+                            <span><strong>Static Light Pink Enforced:</strong> Employee Portal is locked to Light Pink (#ec4899). Other colours cannot be chosen.</span>
                         </div>
                     </div>
 
@@ -1639,10 +1925,163 @@
 
         let editingId = null;
 
+        window.applyEmployeeColorLock = (isEmployee) => {
+            const circles = document.querySelectorAll('#primaryColorGrid .color-circle');
+            const notice = document.getElementById('empColorLockNotice');
+            const note = document.getElementById('empStaticNote');
+            
+            if (isEmployee) {
+                selectedPrimaryColor = '#ec4899';
+                circles.forEach(c => {
+                    const cVal = (c.dataset.color || '').toLowerCase();
+                    if (cVal === '#ec4899') {
+                        c.classList.add('selected', 'locked-active');
+                        c.classList.remove('locked-disabled');
+                        c.title = 'Light Pink (#ec4899) • Static Locked for Employee Portal';
+                    } else {
+                        c.classList.remove('selected', 'locked-active');
+                        c.classList.add('locked-disabled');
+                        c.title = 'Color selection restricted for Employee Portal';
+                    }
+                });
+                if (notice) notice.style.display = 'flex';
+                if (note) note.style.display = 'flex';
+                window.updateColorIndicator('#ec4899');
+            } else {
+                circles.forEach(c => {
+                    c.classList.remove('locked-disabled', 'locked-active');
+                    const cVal = (c.dataset.color || '').toLowerCase();
+                    c.classList.toggle('selected', cVal === (selectedPrimaryColor || '#3b82f6').toLowerCase());
+                    c.title = c.getAttribute('data-original-title') || c.title || '';
+                });
+                if (notice) notice.style.display = 'none';
+                if (note) note.style.display = 'none';
+                if (selectedPrimaryColor === '#ec4899') {
+                    selectedPrimaryColor = '#3b82f6';
+                }
+                window.setPrimaryColor(selectedPrimaryColor);
+            }
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.setPrimaryColor = (color) => {
+            if (targetDashboardType === 'Employee Portal') {
+                selectedPrimaryColor = '#ec4899';
+            } else {
+                selectedPrimaryColor = color;
+            }
+            document.querySelectorAll('#primaryColorGrid .color-circle').forEach(c => {
+                c.classList.toggle('selected', (c.dataset.color || '').toLowerCase() === (selectedPrimaryColor || '').toLowerCase());
+            });
+            window.updateColorIndicator(selectedPrimaryColor);
+        };
+
+        window.updateColorIndicator = (color) => {
+            const indicator = document.getElementById('currentColorIndicator');
+            if (!indicator) return;
+            if (targetDashboardType === 'Employee Portal') {
+                indicator.innerHTML = '<i data-lucide="lock" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> Light Pink (#ec4899) • Static Locked';
+                indicator.style.color = '#be185d';
+                indicator.style.background = '#fdf2f8';
+                indicator.style.borderColor = '#fce7f3';
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+            const cLower = (color || '').toLowerCase();
+            if (cLower === '#3b82f6') {
+                indicator.textContent = 'Ocean Blue (#3b82f6) • Manager Default';
+                indicator.style.color = '#2563eb';
+                indicator.style.background = '#eff6ff';
+                indicator.style.borderColor = '#bfdbfe';
+            } else if (cLower === '#ec4899') {
+                indicator.textContent = 'Rose Pink (#ec4899) • Custom Manager Theme';
+                indicator.style.color = '#ec4899';
+                indicator.style.background = '#fdf2f8';
+                indicator.style.borderColor = '#fce7f3';
+            } else {
+                indicator.textContent = `Theme Preset (${color})`;
+                indicator.style.color = color;
+                indicator.style.background = '#f8fafc';
+                indicator.style.borderColor = '#e2e8f0';
+            }
+        };
+
         window.selectTarget = (type) => {
-            targetDashboardType = type === 'Manager' ? 'Manager Suite' : 'Employee Portal';
-            document.getElementById('labelManager').style.borderColor = type === 'Manager' ? 'var(--primary)' : 'var(--border)';
-            document.getElementById('labelEmployee').style.borderColor = type === 'Employee' ? 'var(--primary)' : 'var(--border)';
+            targetDashboardType = type === 'Employee' ? 'Employee Portal' : 'Manager Suite';
+            const mgrLabel = document.getElementById('labelManager');
+            const empLabel = document.getElementById('labelEmployee');
+            const mgrRadio = mgrLabel ? mgrLabel.querySelector('input[type="radio"]') : null;
+            const empRadio = empLabel ? empLabel.querySelector('input[type="radio"]') : null;
+            const empPill = document.getElementById('empPinkLightPill');
+
+            if (type === 'Employee') {
+                if (empRadio) {
+                    empRadio.checked = true;
+                    empRadio.style.accentColor = '#ec4899';
+                }
+                if (mgrRadio) {
+                    mgrRadio.checked = false;
+                }
+
+                // Radiant Pink Light styling
+                if (empLabel) {
+                    empLabel.style.borderColor = '#ec4899';
+                    empLabel.style.background = 'linear-gradient(135deg, #fff5f9 0%, #fdf2f8 100%)';
+                    empLabel.style.boxShadow = '0 0 20px rgba(236, 72, 153, 0.45), 0 4px 12px rgba(236, 72, 153, 0.2)';
+                    empLabel.style.color = '#be185d';
+                }
+                if (empPill) empPill.style.display = 'inline-block';
+
+                // Reset Manager option
+                if (mgrLabel) {
+                    mgrLabel.style.borderColor = 'var(--border)';
+                    mgrLabel.style.background = 'transparent';
+                    mgrLabel.style.boxShadow = 'none';
+                    mgrLabel.style.color = 'var(--text-main)';
+                }
+
+                // Dynamic Pink Light Buttons in Wizard
+                document.querySelectorAll('.modal-step .action-btn.btn-edit').forEach(b => {
+                    b.style.background = 'linear-gradient(135deg, #ec4899, #db2777)';
+                    b.style.boxShadow = '0 6px 18px rgba(236, 72, 153, 0.35)';
+                    b.style.border = 'none';
+                });
+
+                window.applyEmployeeColorLock(true);
+            } else {
+                if (mgrRadio) {
+                    mgrRadio.checked = true;
+                    mgrRadio.style.accentColor = '#3b82f6';
+                }
+                if (empRadio) {
+                    empRadio.checked = false;
+                }
+
+                // Corporate Blue styling for Manager
+                if (mgrLabel) {
+                    mgrLabel.style.borderColor = '#3b82f6';
+                    mgrLabel.style.background = 'linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%)';
+                    mgrLabel.style.boxShadow = '0 0 16px rgba(59, 130, 246, 0.3), 0 2px 8px rgba(59, 130, 246, 0.12)';
+                    mgrLabel.style.color = '#1e40af';
+                }
+                if (empPill) empPill.style.display = 'none';
+
+                // Reset Employee option
+                if (empLabel) {
+                    empLabel.style.borderColor = 'var(--border)';
+                    empLabel.style.background = 'transparent';
+                    empLabel.style.boxShadow = 'none';
+                    empLabel.style.color = 'var(--text-main)';
+                }
+
+                // Reset Buttons
+                document.querySelectorAll('.modal-step .action-btn.btn-edit').forEach(b => {
+                    b.style.background = 'var(--primary)';
+                    b.style.boxShadow = 'none';
+                });
+
+                window.applyEmployeeColorLock(false);
+            }
         };
 
         // Wizard Navigation
@@ -1680,9 +2119,13 @@
             // Experience
             const glass = document.querySelector('[onclick*="glassmorphism"]').classList.contains('active') ? 'Enabled' : 'Disabled';
             const dark = document.querySelector('[onclick*="dark_mode_support"]').classList.contains('active') ? 'Supported' : 'No';
+            const themeColorText = (targetDashboardType === 'Employee Portal') 
+                ? '<span style="color: #ec4899; font-weight: 700;">Light Pink (#ec4899) • Static Locked</span>' 
+                : `<span style="color: ${selectedPrimaryColor}; font-weight: 700;">Theme Preset (${selectedPrimaryColor})</span>`;
             html += `
                 <div style="margin-bottom: 20px;">
                     <h4 style="font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin-bottom: 10px;">Visual Experience</h4>
+                    <div class="summary-row"><span class="summary-label">Theme Color:</span><span class="summary-value">${themeColorText}</span></div>
                     <div class="summary-row"><span class="summary-label">Glassmorphism:</span><span class="summary-value">${glass}</span></div>
                     <div class="summary-row"><span class="summary-label">Dark Mode:</span><span class="summary-value">${dark}</span></div>
                 </div>
@@ -1813,9 +2256,14 @@
         // Color Selection Logic
         document.querySelectorAll('#primaryColorGrid .color-circle').forEach(el => {
             el.onclick = () => {
+                if (targetDashboardType === 'Employee Portal') {
+                    // Strictly prevent selecting any other color for employee portal
+                    return;
+                }
                 document.querySelectorAll('#primaryColorGrid .color-circle').forEach(c => c.classList.remove('selected'));
                 el.classList.add('selected');
                 selectedPrimaryColor = el.dataset.color;
+                window.updateColorIndicator(selectedPrimaryColor);
             };
         });
 
@@ -1831,6 +2279,7 @@
             editingId = null;
             centerForm.reset();
             deployBtn.innerHTML = 'Authorize & Deploy Unit';
+            window.selectTarget('Manager');
             nextStep(1);
             modalOverlay.style.display = 'flex';
         };
@@ -1871,10 +2320,10 @@
             deptNameInput.value = data.name;
             unitIdInput.value = data.unitId;
             selectedIcon = data.icon || 'layers';
-            selectedPrimaryColor = data.primaryColor || '#3b82f6';
             targetDashboardType = data.targetType || 'Manager Suite';
+            selectedPrimaryColor = (targetDashboardType === 'Employee Portal') ? '#ec4899' : (data.primaryColor || '#3b82f6');
 
-            // Set Target UI
+            // Set Target UI and Lock Logic
             window.selectTarget(targetDashboardType === 'Manager Suite' ? 'Manager' : 'Employee');
 
             // Set Icon UI
@@ -1883,9 +2332,12 @@
             });
 
             // Set Color UI
-            document.querySelectorAll('#primaryColorGrid .color-circle').forEach(el => {
-                el.classList.toggle('selected', el.dataset.color === selectedPrimaryColor);
-            });
+            if (targetDashboardType === 'Employee Portal') {
+                window.applyEmployeeColorLock(true);
+            } else {
+                window.setPrimaryColor(selectedPrimaryColor);
+                window.applyEmployeeColorLock(false);
+            }
 
             // Set Feature Toggles
             if (data.config) {
@@ -2005,7 +2457,7 @@
             (snapshot) => {
                 if (loadingState) loadingState.style.display = 'none';
 
-                // Initialize the grid with the static HRMS Strategic Hub card
+                // Initialize the grid with the static Admin Strategic Hub card
                 hubGrid.innerHTML = `
                     <div class="hub-card" style="border-color: var(--primary-soft); background: linear-gradient(to bottom right, #ffffff, #f0f7ff);">
                         <div class="card-header">
@@ -2031,12 +2483,12 @@
                             </div>
                         </div>
                         <div class="card-actions">
-                            <a href="hrms-dashboard.html" class="action-btn btn-edit" style="text-decoration: none;">
+                            <button type="button" onclick="openHrAdminModal('hrms')" class="action-btn btn-edit" style="border: none; cursor: pointer; text-decoration: none; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                 <i data-lucide="shield-check"></i> Control Hub
-                            </a>
-                            <a href="hrms-dashboard.html" class="action-btn btn-view" style="text-decoration: none;">
+                            </button>
+                            <button type="button" onclick="openHrAdminModal('insights')" class="action-btn btn-view" style="border: 1px solid var(--border); background: white; cursor: pointer; text-decoration: none; font-family: inherit; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                 <i data-lucide="eye"></i> View Insights
-                            </a>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -2104,7 +2556,13 @@
 
             const isManager = (data.targetType || 'Manager Suite') === 'Manager Suite';
             const targetLabel = isManager ? 'MANAGER' : 'EMPLOYEE';
-            const targetStyle = isManager ? 'background: rgba(59, 130, 246, 0.1); color: #3b82f6;' : 'background: rgba(16, 185, 129, 0.1); color: #10b981;';
+            const targetStyle = isManager ? 'background: rgba(59, 130, 246, 0.1); color: #3b82f6;' : 'background: rgba(236, 72, 153, 0.12); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.35); box-shadow: 0 0 8px rgba(236, 72, 153, 0.25);';
+
+            if (!isManager) {
+                div.style.borderColor = '#fbcfe8';
+                div.style.background = 'linear-gradient(145deg, #ffffff 0%, #fff5f9 100%)';
+                div.style.boxShadow = '0 10px 25px -5px rgba(236, 72, 153, 0.15), 0 0 15px rgba(236, 72, 153, 0.08)';
+            }
 
             let displayName = data.name || 'Unnamed';
             if (data.targetType) {
@@ -2196,6 +2654,8 @@
                 config[featureKey] = item.classList.contains('active');
             });
 
+            const finalPrimaryColor = (targetDashboardType === 'Employee Portal') ? '#ec4899' : selectedPrimaryColor;
+
             const updatedData = {
                 name: deptNameInput.value,
                 unitId: unitIdInput.value,
@@ -2203,7 +2663,7 @@
                 icon: selectedIcon,
                 apps: apps,
                 config: config,
-                primaryColor: selectedPrimaryColor,
+                primaryColor: finalPrimaryColor,
                 sidebarColor: selectedSidebarColor,
                 status: editingId ? 'Live' : 'In Setup',
                 lastModified: serverTimestamp()
@@ -2259,6 +2719,327 @@
 
 
 
+
+    <!-- Embedded Live HR Admin Dashboard Modal -->
+    <div id="hrAdminModal" class="hr-modal-overlay">
+        <style>
+            .hr-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(15, 23, 42, 0.65);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                z-index: 10000;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 1.5rem;
+                box-sizing: border-box;
+                animation: hrModalFadeIn 0.2s ease-out;
+            }
+
+            .hr-modal-window {
+                background: #ffffff;
+                width: 96vw;
+                max-width: 1520px;
+                height: 92vh;
+                max-height: 960px;
+                border-radius: 20px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+                border: 1px solid #e2e8f0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                transition: all 0.25s ease;
+            }
+
+            .hr-modal-window.fullscreen {
+                width: 100vw;
+                max-width: 100vw;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+
+            .hr-modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 1rem 1.5rem;
+                background: #ffffff;
+                border-bottom: 1px solid #e2e8f0;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .hr-modal-title-group {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .hr-modal-icon {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+            }
+
+            .hr-modal-tabs {
+                display: flex;
+                align-items: center;
+                background: #f1f5f9;
+                padding: 4px;
+                border-radius: 12px;
+                gap: 4px;
+            }
+
+            .hr-tab-btn {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 14px;
+                border-radius: 8px;
+                font-family: inherit;
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: #64748b;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .hr-tab-btn:hover {
+                color: #0f172a;
+            }
+
+            .hr-tab-btn.active {
+                background: #ffffff;
+                color: #3b82f6;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+
+            .hr-modal-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .hr-modal-btn {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                color: #64748b;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+
+            .hr-modal-btn:hover {
+                background: #f1f5f9;
+                color: #0f172a;
+                border-color: #cbd5e1;
+            }
+
+            .hr-modal-btn-close:hover {
+                background: #fee2e2;
+                color: #ef4444;
+                border-color: #fca5a5;
+            }
+
+            .hr-modal-body {
+                flex: 1;
+                position: relative;
+                background: #f8fafc;
+                overflow: hidden;
+            }
+
+            .hr-modal-body iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+
+            .hr-modal-loading {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(4px);
+                display: none;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 10;
+            }
+
+            @keyframes hrModalFadeIn {
+                from { opacity: 0; transform: scale(0.98); }
+                to { opacity: 1; transform: scale(1); }
+            }
+        </style>
+
+        <div class="hr-modal-window">
+            <div class="hr-modal-header">
+                <div class="hr-modal-title-group">
+                    <div class="hr-modal-icon">
+                        <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h2 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0;">HR Admin Dashboard</h2>
+                            <span style="background: #ecfdf5; color: #059669; font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px; border: 1px solid #a7f3d0; display: inline-flex; align-items: center; gap: 4px;">
+                                <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
+                                LIVE EMBEDDED VIEW
+                            </span>
+                        </div>
+                        <p style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0 0;">Embedded workforce analytics, recruitment pipeline, and organization control</p>
+                    </div>
+                </div>
+
+                <div class="hr-modal-tabs">
+                    <button type="button" class="hr-tab-btn active" id="tabHrConsole" onclick="switchHrAdminTab('console')">
+                        <i data-lucide="bar-chart-3" style="width: 15px; height: 15px;"></i>
+                        <span>HR Console</span>
+                    </button>
+                    <button type="button" class="hr-tab-btn" id="tabHrInsights" onclick="switchHrAdminTab('insights')">
+                        <i data-lucide="pie-chart" style="width: 15px; height: 15px;"></i>
+                        <span>Insights & Analytics</span>
+                    </button>
+                    <button type="button" class="hr-tab-btn" id="tabHrAttendance" onclick="switchHrAdminTab('attendance')">
+                        <i data-lucide="calendar-check" style="width: 15px; height: 15px;"></i>
+                        <span>Attendance Monitor</span>
+                    </button>
+                    <button type="button" class="hr-tab-btn" id="tabHrSuite" onclick="switchHrAdminTab('hrms')">
+                        <i data-lucide="layout-dashboard" style="width: 15px; height: 15px;"></i>
+                        <span>HRMS Suite</span>
+                    </button>
+                </div>
+
+                <div class="hr-modal-actions">
+                    <button type="button" class="hr-modal-btn" onclick="reloadHrAdminFrame()" title="Refresh Frame">
+                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                    </button>
+                    <button type="button" class="hr-modal-btn" onclick="toggleHrModalFullscreen()" title="Toggle Fullscreen">
+                        <i data-lucide="maximize-2" id="hrFullscreenIcon" style="width: 16px; height: 16px;"></i>
+                    </button>
+                    <button type="button" class="hr-modal-btn hr-modal-btn-close" onclick="closeHrAdminModal()" title="Close (Esc)">
+                        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="hr-modal-body">
+                <div id="hrModalLoading" class="hr-modal-loading">
+                    <div class="spin" style="width: 32px; height: 32px; border: 3px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%;"></div>
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #64748b; margin-top: 10px;">Loading HR Admin Dashboard...</span>
+                </div>
+                <iframe id="hrAdminIframe" src="about:blank" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const HR_DASHBOARD_ROUTES = {
+            hrms: 'hrms-dashboard.html',
+            console: 'admin-hr-console.html',
+            insights: 'admin-analysis.html',
+            attendance: 'admin-attendance-monitor.html'
+        };
+
+        window.openHrAdminModal = function(tabKey = 'hrms') {
+            const modal = document.getElementById('hrAdminModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            window.switchHrAdminTab(tabKey);
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.closeHrAdminModal = function() {
+            const modal = document.getElementById('hrAdminModal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            const iframe = document.getElementById('hrAdminIframe');
+            if (iframe) iframe.src = 'about:blank';
+        };
+
+        window.switchHrAdminTab = function(tabKey) {
+            const iframe = document.getElementById('hrAdminIframe');
+            const loader = document.getElementById('hrModalLoading');
+            if (!iframe) return;
+
+            const tabs = {
+                console: document.getElementById('tabHrConsole'),
+                insights: document.getElementById('tabHrInsights'),
+                attendance: document.getElementById('tabHrAttendance'),
+                hrms: document.getElementById('tabHrSuite')
+            };
+
+            Object.entries(tabs).forEach(([k, el]) => {
+                if (el) el.classList.toggle('active', k === tabKey);
+            });
+
+            const targetUrl = HR_DASHBOARD_ROUTES[tabKey] || HR_DASHBOARD_ROUTES.console;
+            if (loader) loader.style.display = 'flex';
+
+            iframe.onload = () => {
+                if (loader) loader.style.display = 'none';
+                try {
+                    if (iframe.contentWindow && iframe.contentWindow.lucide) {
+                        iframe.contentWindow.lucide.createIcons();
+                    }
+                } catch(e) {}
+            };
+
+            iframe.src = targetUrl;
+        };
+
+        window.reloadHrAdminFrame = function() {
+            const iframe = document.getElementById('hrAdminIframe');
+            const loader = document.getElementById('hrModalLoading');
+            if (iframe && iframe.src && iframe.src !== 'about:blank') {
+                if (loader) loader.style.display = 'flex';
+                iframe.src = iframe.src;
+            }
+        };
+
+        window.toggleHrModalFullscreen = function() {
+            const win = document.querySelector('.hr-modal-window');
+            const icon = document.getElementById('hrFullscreenIcon');
+            if (!win) return;
+            win.classList.toggle('fullscreen');
+            if (icon) {
+                icon.setAttribute('data-lucide', win.classList.contains('fullscreen') ? 'minimize-2' : 'maximize-2');
+                if (window.lucide) lucide.createIcons();
+            }
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('hrAdminModal');
+                if (modal && modal.style.display === 'flex') {
+                    closeHrAdminModal();
+                }
+            }
+        });
+    </script>
 
     <!-- Custom App Registry Modal -->
     <div id="customAppsModal" class="modal-overlay">

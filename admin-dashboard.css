@@ -16,7 +16,7 @@
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --radius: 20px;
-    --sidebar-width: 280px;
+    --sidebar-width: 260px;
 }
 
 * {
@@ -36,30 +36,34 @@ body {
     min-height: 100vh;
 }
 
-/* Sidebar Styling */
-.sidebar {width: var(--sidebar-width);
+/* Sidebar Styling (White & Light Blue Enterprise Theme) */
+.sidebar {
+    width: var(--sidebar-width);
     background: var(--sidebar);
     border-right: 1px solid var(--border);
-    padding: 2.5rem 1.5rem 1rem;
+    padding: 1.5rem 1.1rem 1rem;
     display: flex;
     flex-direction: column;
     position: fixed;
     height: 100vh;
-    overflow: hidden;}
+    overflow: hidden;
+    z-index: 1000;
+    box-shadow: 2px 0 16px rgba(15, 23, 42, 0.04);
+}
 
 .nav-menu {
     flex: 1;
     list-style: none;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: var(--primary) transparent;
+    scrollbar-color: #93c5fd transparent;
     -ms-overflow-style: auto;
     padding-right: 4px;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .nav-menu::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
 }
 
 .nav-menu::-webkit-scrollbar-track {
@@ -68,27 +72,28 @@ body {
 
 .nav-menu::-webkit-scrollbar-thumb {
     background: #cbd5e1;
-    border-radius: 10px;
+    border-radius: 4px;
 }
 
 .nav-menu:hover::-webkit-scrollbar-thumb {
-    background: var(--primary);
+    background: #93c5fd;
 }
 
 .logo {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 3rem;
+    margin-bottom: 1.4rem;
     color: var(--primary);
     text-decoration: none;
+    padding-left: 0.4rem;
 }
 
 .logo-icon {
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -96,61 +101,86 @@ body {
 }
 
 .logo-text {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: -0.5px;
     color: var(--text-main);
 }
 
-.nav-menu {
-    flex: 1;
-    list-style: none;
-}
-
 .nav-item {
-    margin-bottom: 0.5rem;
+    margin-bottom: 2px;
 }
 
 .nav-label {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 800;
-    color: var(--text-muted);
+    color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin: 1.25rem 0 0.5rem 0.5rem;
-    opacity: 0.6;
+    letter-spacing: 0.8px;
+    margin: 1.2rem 0 0.4rem 0.5rem;
+}
+
+.nav-label:first-of-type {
+    margin-top: 0.2rem;
 }
 
 .nav-link {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 0.75rem;
-    color: var(--text-muted);
+    padding: 0.65rem 0.9rem;
+    color: #475569;
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.85rem;
-    border-radius: 12px;
-    transition: 0.3s;
-    margin-bottom: 4px;
+    border-radius: 10px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 2px;
+    position: relative;
+    box-shadow: none;
 }
 
 .nav-link:hover {
-    background: var(--primary-light);
-    color: var(--primary);
-    transform: translateX(4px);
+    background: #eff6ff;
+    color: #2563eb;
+    transform: none;
 }
 
 .nav-link.active {
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+.nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 3.5px;
+    background: #2563eb;
+    border-radius: 0 4px 4px 0;
 }
 
 .nav-link i,
 .nav-link svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+    color: #64748b;
+}
+
+.nav-link:hover i,
+.nav-link:hover svg,
+.nav-link.active i,
+.nav-link.active svg {
+    color: #2563eb;
 }
 
 /* Dept Branding for Manager Dashboards */

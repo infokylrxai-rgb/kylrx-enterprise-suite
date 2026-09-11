@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Central Automation Builder | Kylrx AI Enterprise</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="lucide.min.js"></script>
+    <script>
+        function renderLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { window.lucide.createIcons(); } catch(e) {}
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
+        if (!window.lucide) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            s.onload = renderLucideIcons;
+            document.head.appendChild(s);
+        } else {
+            window.addEventListener('DOMContentLoaded', renderLucideIcons);
+        }
+        window.addEventListener('load', renderLucideIcons);
+    </script>
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            --sidebar-width: 280px;
+            --bg-canvas: #f8fafc;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: #f1f5f9; color: var(--text-main); min-height: 100vh; overflow-x: hidden; }
+
+        .dashboard-container { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #ffffff;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; color: var(--primary); text-decoration: none; }
+        .logo-text { font-size: 1.4rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+        .nav-menu { flex: 1; list-style: none; overflow-y: auto; scrollbar-width: thin; padding-right: 4px; margin-bottom: 1rem; }
+        .nav-item { margin-bottom: 0.25rem; }
+        .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 1.25rem 0 0.5rem 0.5rem; opacity: 0.6; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 10px 0.85rem; color: #475569; text-decoration: none; font-weight: 500; font-size: 0.85rem; border-radius: 10px; transition: all 0.2s ease; margin-bottom: 2px; }
+        .nav-link:hover { background: #eff6ff; color: #2563eb; }
+        .nav-link.active { background: #eff6ff; color: #2563eb; font-weight: 700; position: relative; }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3.5px; background: #2563eb; border-radius: 0 4px 4px 0; }
+        .nav-link.active i, .nav-link.active svg { color: #2563eb !important; }
+        .sidebar-bottom { margin-top: auto; padding-top: 1rem; border-top: 1px solid #f1f5f9; }
+
+        /* Main Content Layout */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+
+        /* Top Command Toolbar */
+        .builder-topbar {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 500;
+            gap: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .flow-title-box { display: flex; align-items: center; gap: 12px; }
+        .flow-name-input {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            border: 1px solid transparent;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: transparent;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        .flow-name-input:hover, .flow-name-input:focus {
+            background: #f8fafc;
+            border-color: var(--border);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: 0.2s;
+        }
+        .status-pill.active { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+        .status-pill.draft { background: #fef3c7; color: #d97706; border-color: #fde68a; }
+
+        .builder-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-builder {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: #ffffff;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+        .btn-builder:hover { background: #f1f5f9; transform: translateY(-1px); }
+        .btn-builder-primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-builder-primary:hover { background: var(--primary-dark); }
+        .btn-builder-simulate { background: #6366f1; color: white; border-color: #6366f1; }
+        .btn-builder-simulate:hover { background: #4f46e5; }
+
+        /* Canvas Area */
+        .builder-viewport {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .canvas-scrollable {
+            flex: 1;
+            overflow-y: auto;
+            padding: 3rem 2rem 6rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* Flow Stepper Cards */
+        .node-step {
+            width: 100%;
+            max-width: 580px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .node-step:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+        .node-step.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), var(--shadow);
+        }
+        .node-step.simulating {
+            animation: pulseGlow 1.2s infinite;
+            border-color: #10b981 !important;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        }
+
+        .node-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .node-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Node Badge Themes */
+        .badge-trigger { background: #f3e8ff; color: #7e22ce; }
+        .badge-condition { background: #e0f2fe; color: #0284c7; }
+        .badge-branch { background: #fef3c7; color: #b45309; }
+        .badge-approval { background: #ede9fe; color: #6d28d9; }
+        .badge-wait { background: #f1f5f9; color: #475569; }
+        .badge-escalation { background: #ffe4e6; color: #e11d48; }
+        .badge-action { background: #dcfce7; color: #15803d; }
+        .badge-notification { background: #e0e7ff; color: #4338ca; }
+        .badge-end { background: #ccfbf1; color: #0f766e; }
+
+        .node-question {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .node-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .node-summary {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .node-chip-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .node-chip {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Connector Lines */
+        .flow-connector {
+            width: 2px;
+            height: 48px;
+            background: #cbd5e1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .flow-connector::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid #94a3b8;
+        }
+
+        .btn-insert-step {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .btn-insert-step:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Branch Visual Fork */
+        .branch-fork-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 1rem;
+            position: relative;
+        }
+        .branch-fork-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px dashed #cbd5e1;
+            border-radius: 20px;
+            padding: 1.5rem 1rem;
+        }
+        .branch-tag {
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+        .branch-tag.yes { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        .branch-tag.no { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+
+        /* Slide-over Node Inspector Drawer */
+        .inspector-drawer {
+            width: 440px;
+            background: #ffffff;
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -10px 0 25px -5px rgba(0, 0, 0, 0.05);
+            z-index: 600;
+            transition: transform 0.3s ease;
+        }
+        .inspector-drawer.collapsed {
+            display: none;
+        }
+
+        .drawer-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 0.8rem; font-weight: 700; color: #475569; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #ffffff;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+
+        /* Simulation Log Console */
+        .simulation-console {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 1rem 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            max-height: 180px;
+            overflow-y: auto;
+            border-top: 1px solid #334155;
+            display: none;
+        }
+        .simulation-console.open { display: block; }
+        .sim-log-row { margin-bottom: 4px; display: flex; gap: 10px; }
+        .sim-time { color: #64748b; }
+        .sim-tag { color: #38bdf8; font-weight: 700; }
+        .sim-success { color: #4ade80; }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link active"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+
+                <div class="nav-label">GOVERNANCE</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Command Toolbar -->
+            <header class="builder-topbar">
+                <div class="flow-title-box">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #3b82f6); color: white; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="workflow" size="20"></i>
+                    </div>
+                    <div>
+                        <input type="text" id="workflowNameInput" class="flow-name-input" value="Employee Exit & Offboarding Governance" title="Click to rename workflow">
+                        <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+                            <span class="status-pill active" id="statusPill" onclick="toggleWorkflowStatus()">Active Flow</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">Engine: Common 8-Stage Architecture</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="builder-actions">
+                    <button class="btn-builder" onclick="openTemplateModal()">
+                        <i data-lucide="library" size="16"></i>
+                        <span>Template Library</span>
+                    </button>
+                    <button class="btn-builder btn-builder-simulate" id="btnSimulate" onclick="runFlowSimulation()">
+                        <i data-lucide="play" size="16"></i>
+                        <span>Simulate Flow</span>
+                    </button>
+                    <button class="btn-builder btn-builder-primary" onclick="deployWorkflow()">
+                        <i data-lucide="save" size="16"></i>
+                        <span>Deploy Workflow</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Interactive Canvas Viewport -->
+            <div class="builder-viewport">
+                <!-- Visual Nodes Flow Canvas -->
+                <div class="canvas-scrollable" id="canvasContainer">
+                    <!-- Nodes injected dynamically by admin-automation-builder.js -->
+                </div>
+
+                <!-- Slide-over Node Inspector Drawer -->
+                <div class="inspector-drawer" id="nodeInspector">
+                    <div class="drawer-header">
+                        <div>
+                            <span id="drawerBadge" class="node-type-badge badge-trigger">Trigger</span>
+                            <h3 id="drawerTitle" style="font-size: 1.1rem; font-weight: 800; margin-top: 4px;">Element Inspector</h3>
+                        </div>
+                        <button onclick="closeInspector()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px;">
+                            <i data-lucide="x" size="20"></i>
+                        </button>
+                    </div>
+                    <div class="drawer-body" id="drawerFields">
+                        <!-- Dynamic config fields injected per node type -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-Time Simulation Console -->
+            <div class="simulation-console" id="simulationConsole">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 4px;">
+                    <span style="font-weight: 800; color: #38bdf8;">⚡ LIVE PIPELINE EXECUTION TRACE (Common Automation Engine)</span>
+                    <button onclick="document.getElementById('simulationConsole').classList.remove('open')" style="background: none; border: none; color: #94a3b8; cursor: pointer;">✕</button>
+                </div>
+                <div id="simulationLogs"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Template Library Modal -->
+    <div id="templateModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000;">
+        <div style="background: white; border-radius: 20px; width: 90%; max-width: 620px; padding: 2rem; box-shadow: var(--shadow-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h3 style="font-weight: 800; font-size: 1.25rem;">Enterprise Workflow Templates</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Pre-configured multi-stage flows running on the Common Automation Engine</p>
+                </div>
+                <button onclick="closeTemplateModal()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px;"><i data-lucide="x"></i></button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto;">
+                <div onclick="loadTemplate('exit')" style="padding: 1.2rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 800; color: var(--text-main);">1. Employee Exit Automation (Standard Flow)</span>
+                        <span class="node-type-badge badge-exit" style="background:#fee2e2; color:#dc2626;">13 STEPS (FULL FLOW)</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Resignation trigger ➔ Full-Time check ➔ Start Exit Workflow ➔ Manager approval ➔ Asset clearance ➔ IT+Admin+Finance clearances ➔ 2 days wait ➔ Notify HR if overdue ➔ Start F&F ➔ Relieving + Experience Letters ➔ Update Employee status ➔ Vault archive ➔ Exit completed</p>
+                </div>
+                <div onclick="loadTemplate('onboarding')" style="padding: 1.2rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 800; color: var(--text-main);">2. New Hire Onboarding & Provisioning</span>
+                        <span class="node-type-badge" style="background:#e0e7ff; color:#4338ca;">6 STEPS</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Candidate invited ➔ Documents verification ➔ HR approval ➔ Google/Slack provisioning ➔ Welcome notification ➔ Completed</p>
+                </div>
+                <div onclick="loadTemplate('leave')" style="padding: 1.2rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 800; color: var(--text-main);">3. Leave Policy & SLA Escalation Flow</span>
+                        <span class="node-type-badge" style="background:#e0f2fe; color:#0284c7;">8 STEPS</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Leave applied ➔ Balance check ➔ Consecutive days branch ➔ Manager approval ➔ 24h escalation ➔ Balance debit ➔ Notification</p>
+                </div>
+                <div onclick="loadTemplate('payroll')" style="padding: 1.2rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 800; color: var(--text-main);">4. Monthly Payroll Disbursement & Statutory Run</span>
+                        <span class="node-type-badge" style="background:#dcfce7; color:#15803d;">7 STEPS</span>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Payroll cycle trigger ➔ Zero exceptions condition ➔ Maker-Checker approval ➔ HDFC CMS export ➔ ECR/Form 24Q filing ➔ Slips published</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step Insertion Modal (Pick from 9 Elements) -->
+    <div id="stepSelectModal" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 2000;">
+        <div style="background: white; border-radius: 20px; width: 90%; max-width: 680px; padding: 2rem; box-shadow: var(--shadow-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <h3 style="font-weight: 800; font-size: 1.25rem;">Add Workflow Element</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Choose from the 9 standard building blocks of the Kylrx Automation Engine</p>
+                </div>
+                <button onclick="closeInsertModal()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px;"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 480px; overflow-y: auto; padding-right: 4px;">
+                <!-- 1. Trigger -->
+                <div onclick="selectElementType('trigger')" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#8b5cf6'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-trigger"><i data-lucide="zap" size="14"></i> Trigger</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">When does it start?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Employee created, resignation submitted, payroll started</div>
+                </div>
+
+                <!-- 2. Condition -->
+                <div onclick="selectElementType('condition')" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#0284c7'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-condition"><i data-lucide="filter" size="14"></i> Condition</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">When should it continue?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Employee Type = Full Time AND BU = Technology</div>
+                </div>
+
+                <!-- 3. Branch -->
+                <div onclick="selectElementType('branch')" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#d97706'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-branch"><i data-lucide="git-branch" size="14"></i> Branch</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">What if different cases exist?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Has assets? Yes / No condition fork</div>
+                </div>
+
+                <!-- 4. Approval -->
+                <div onclick="selectElementType('approval')" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-approval"><i data-lucide="user-check" size="14"></i> Approval</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">Who must approve?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Manager ➔ HR Operations ➔ Finance Controller</div>
+                </div>
+
+                <!-- 5. Wait -->
+                <div onclick="selectElementType('wait')" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#475569'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-wait"><i data-lucide="clock" size="14"></i> Wait</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">How long should Kylrx wait?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Pause execution for 2 business days / 48 hours</div>
+                </div>
+
+                <!-- 6. Escalation -->
+                <div onclick="selectElementType('escalation')" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#e11d48'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-escalation"><i data-lucide="alert-triangle" size="14"></i> Escalation</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">What happens if nobody acts?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Reminder ➔ Skip-level ➔ Escalation to HR Head</div>
+                </div>
+
+                <!-- 7. Action -->
+                <div onclick="selectElementType('action')" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#059669'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-action"><i data-lucide="play-circle" size="14"></i> Action</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">What should Kylrx do?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Assign policy, calculate F&F, generate letter, debit ledger</div>
+                </div>
+
+                <!-- 8. Notification -->
+                <div onclick="selectElementType('notification')" style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#0284c7'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-notification"><i data-lucide="bell" size="14"></i> Notification</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">Who should be informed?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Multi-channel alerts to Employee, Manager, HR, IT</div>
+                </div>
+
+                <!-- 9. End -->
+                <div onclick="selectElementType('end')" style="grid-column: span 2; padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='#0d9488'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="node-type-badge badge-end"><i data-lucide="check-circle-2" size="14"></i> End</span>
+                    </div>
+                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">When is it complete?</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Workflow terminal reached, record archived, immutable audit ledger sealed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Builder Controller -->
+    <script src="admin-automation-builder.js"></script>
+</body>
+</html>

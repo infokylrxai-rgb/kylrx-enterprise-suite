@@ -223,14 +223,15 @@ signupForm.addEventListener('submit', async (e) => {
         const user = userCredential.user;
 
         // 2. Create Record in Firestore
+        const isSuperAdmin = (role === 'admin' || role === 'super_admin' || role === 'superadmin' || role === 'super admin');
         await setDoc(doc(db, 'users', user.uid), {
             uid: user.uid,
             name: name,
             email: email,
             company: company,
             role: role,
-            departmentId: role === 'admin' ? 'executive' : 'general',
-            department: role === 'admin' ? 'Executive' : 'General',
+            departmentId: isSuperAdmin ? 'executive' : 'human_resources',
+            department: isSuperAdmin ? 'Executive' : 'Human Resources',
             status: 'active',
             createdAt: new Date().toISOString()
         });

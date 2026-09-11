@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>No-Code Visual Workflow Builder | Kylrx Enterprise Suite</title>
+    <meta name="description" content="Visual drag-and-drop workflow canvas for HR automation. Connect triggers, conditions, approvals, notifications, documents, and actions with zero code." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="lucide.min.js"></script>
+    <script>
+        function renderLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { window.lucide.createIcons(); } catch(e) {}
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
+        if (!window.lucide) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            s.onload = renderLucideIcons;
+            document.head.appendChild(s);
+        } else {
+            window.addEventListener('DOMContentLoaded', renderLucideIcons);
+        }
+        window.addEventListener('load', renderLucideIcons);
+    </script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --primary-soft: #dbeafe;
+            
+            --bg-deep: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-panel: #f8fafc;
+            --bg-hover: #eff6ff;
+            --bg-canvas: #f8fafc;
+            --border: #e2e8f0;
+            --border-active: #3b82f6;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            /* Node Colors */
+            --node-trigger: #4f46e5;
+            --node-condition: #d97706;
+            --node-branch: #7c3aed;
+            --node-approval: #2563eb;
+            --node-wait: #0d9488;
+            --node-escalation: #ea580c;
+            --node-action: #059669;
+            --node-notification: #db2777;
+            --node-document: #ca8a04;
+            --node-form: #0891b2;
+            --node-end: #dc2626;
+
+            --accent-blue: #2563eb;
+            --accent-purple: #7c3aed;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-gold: #f59e0b;
+            --gradient-accent: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ─── SIDEBAR NAVIGATION (WHITE & LIGHT BLUE ENTERPRISE SUITE THEME) ─── */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem 1.1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            overflow: hidden;
+            box-shadow: 2px 0 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.4rem;
+            text-decoration: none;
+            padding-left: 0.4rem;
+        }
+
+        .sidebar .logo img {
+            height: 36px;
+            width: 36px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .sidebar .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+        }
+
+        .sidebar .logo-text span {
+            color: #3b82f6;
+        }
+
+        .nav-menu {
+            flex: 1;
+            list-style: none;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #93c5fd transparent;
+            padding-right: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .nav-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .nav-menu::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .nav-menu:hover::-webkit-scrollbar-thumb {
+            background: #93c5fd;
+        }
+
+        .nav-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin: 1.1rem 0 0.4rem 0.6rem;
+        }
+
+        .nav-item {
+            margin-bottom: 3px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 8px 12px;
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.84rem;
+            border-radius: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-link:hover {
+            background: #eff6ff;
+            color: #2563eb;
+            transform: translateX(3px);
+        }
+
+        .nav-link.active {
+            background: #eff6ff !important;
+            color: #2563eb !important;
+            font-weight: 700;
+            box-shadow: none !important;
+            position: relative;
+        }
+
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3.5px;
+            background: #2563eb;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-link.active i,
+        .nav-link.active svg {
+            color: #2563eb !important;
+            stroke: #2563eb !important;
+        }
+
+        .nav-link i,
+        .nav-link svg {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .nav-link:hover i,
+        .nav-link:hover svg {
+            color: #2563eb;
+        }
+
+        .sidebar-bottom {
+            padding-top: 0.6rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        /* ─── MAIN LAYOUT ─── */
+        .main-wrapper {
+            margin-left: 260px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background: #f0f7ff;
+        }
+
+        /* ─── TOP HEADER BAR ─── */
+        .top-bar {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid #d1e7ff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            gap: 16px;
+            z-index: 50;
+            box-shadow: 0 1px 4px rgba(37, 99, 235, 0.04);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+        .workflow-meta-inputs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            max-width: 540px;
+        }
+        .workflow-title-input {
+            background: #f8fbff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 7px 12px;
+            width: 260px;
+            outline: none;
+            transition: var(--transition);
+        }
+        .workflow-title-input:focus {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+        .workflow-desc-input {
+            background: #f8fbff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            color: #475569;
+            font-size: 12px;
+            padding: 7px 12px;
+            flex: 1;
+            outline: none;
+            transition: var(--transition);
+        }
+        .workflow-desc-input:focus {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-badge.active { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .status-badge.draft { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .btn-outline {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+        }
+        .btn-outline:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+        .btn-primary:hover {
+            opacity: 0.94;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
+        .btn-success:hover {
+            opacity: 0.94;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+        }
+        .btn-warning:hover {
+            opacity: 0.94;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+        }
+        .btn-danger {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #b91c1c;
+        }
+        .btn-danger:hover {
+            background: #fecaca;
+        }
+        .btn-ai {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+        }
+        .btn-ai:hover {
+            opacity: 0.94;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.45);
+        }
+        .btn-ai-generate {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            color: #fff;
+            padding: 9px 18px;
+            font-size: 13px;
+        }
+
+        /* ─── VERSION SELECTOR ─── */
+        .version-selector-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: var(--radius-sm);
+            padding: 4px 10px;
+        }
+        .version-selector-wrap i {
+            color: #2563eb;
+            font-size: 11px;
+        }
+        .version-select {
+            background: transparent;
+            border: none;
+            color: #1e40af;
+            font-size: 11.5px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+        .version-select option {
+            background: #ffffff;
+            color: #0f172a;
+        }
+
+        /* ─── AUDIT TRAIL & LOGS TABS & LISTS ─── */
+        .log-item, .audit-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 11.5px;
+            transition: var(--transition);
+        }
+        .log-item:hover, .audit-item:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+        .item-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-success { background: #dcfce7; color: #15803d; }
+        .badge-failed { background: #fee2e2; color: #b91c1c; }
+        .badge-retry { background: #fef3c7; color: #b45309; }
+        .badge-running { background: #eff6ff; color: #2563eb; }
+        .badge-action { background: #f3e8ff; color: #7e22ce; }
+
+        /* ─── TEST MODE MODAL ─── */
+        .test-employee-card {
+            background: #f8fbff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 11.5px;
+        }
+        .emp-stat-label { color: #64748b; font-size: 10.5px; }
+        .emp-stat-val { font-weight: 600; color: #0f172a; }
+
+        .dry-run-box {
+            background: #f8fbff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            margin-top: 10px;
+            color: #334155;
+        }
+        .dry-run-node-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 11.5px;
+            color: #1e293b;
+        }
+        .dry-run-node-item:last-child { border-bottom: none; }
+        .dry-run-node-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        /* ─── AI REVIEW BANNER ─── */
+        .ai-review-banner {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fdf4ff;
+            border: 1px solid #f0abfc;
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #86198f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 35;
+            box-shadow: 0 4px 16px rgba(168, 85, 247, 0.15);
+        }
+        .ai-review-banner i { color: #c026d3; }
+
+        /* ─── AI MODAL ─── */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .ai-modal {
+            width: 600px;
+            max-width: 90vw;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            color: #0f172a;
+        }
+        .ai-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #dbeafe;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #eff6ff;
+        }
+        .ai-modal-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #0f172a;
+        }
+        .ai-badge-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.25);
+        }
+        .ai-modal-body {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+            background: #ffffff;
+        }
+        .ai-chips-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .ai-chip {
+            padding: 7px 12px;
+            background: #f8fbff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            font-size: 11.5px;
+            color: #334155;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-chip:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+        .ai-chip i { color: #2563eb; }
+        .ai-preview-box {
+            background: #f8fbff;
+            border: 1px solid #dbeafe;
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-top: 14px;
+        }
+        .ai-preview-chain {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .ai-chain-pill {
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .ai-chain-arrow {
+            color: #64748b;
+            font-size: 11px;
+        }
+        .ai-modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fbff;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* ─── STATS MINI BAR ─── */
+        .stats-mini-bar {
+            height: 38px;
+            background: #ffffff;
+            border-bottom: 1px solid #d1e7ff;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 24px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-item strong {
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        /* ─── WORKFLOW BUILDER WORKSPACE ─── */
+        .builder-workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 102px);
+            overflow: hidden;
+            position: relative;
+            background: #f0f7ff;
+        }
+
+        /* ─── LEFT PANEL (PALETTE & WORKFLOWS) ─── */
+        .left-panel {
+            width: 260px;
+            background: #ffffff;
+            border-right: 1px solid #d1e7ff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 20;
+            box-shadow: 2px 0 10px rgba(79, 169, 255, 0.05);
+        }
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fbff;
+        }
+        .panel-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 2px solid transparent;
+        }
+        .panel-tab:hover {
+            color: #2563eb;
+            background: #eff6ff;
+        }
+        .panel-tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background: #ffffff;
+            font-weight: 700;
+        }
+        .panel-tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+            background: #ffffff;
+        }
+
+        /* Node Palette Cards */
+        .palette-group-title {
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin: 12px 0 8px;
+        }
+        .palette-group-title:first-child { margin-top: 0; }
+
+        .palette-node {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            margin-bottom: 7px;
+            background: #f8fbff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            cursor: grab;
+            user-select: none;
+            transition: var(--transition);
+        }
+        .palette-node:hover {
+            transform: translateX(3px);
+            border-color: #93c5fd;
+            background: #eff6ff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+        }
+        .palette-node:active { cursor: grabbing; }
+        .palette-node-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .palette-node-info { flex: 1; min-width: 0; }
+        .palette-node-title { font-size: 12.5px; font-weight: 600; color: #0f172a; }
+        .palette-node-desc { font-size: 10.5px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .palette-add-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .palette-node:hover .palette-add-btn {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+            transform: scale(1.1);
+        }
+        .no-code-guarantee-badge {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: var(--radius-sm);
+            padding: 9px 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            color: #166534;
+            line-height: 1.35;
+        }
+        .no-code-indicator {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            margin-bottom: 14px;
+            font-size: 11px;
+            color: #1d4ed8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.3;
+        }
+        .preset-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .preset-chip {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 10px;
+            color: #334155;
+            cursor: pointer;
+            transition: var(--transition);
+            user-select: none;
+        }
+        .preset-chip:hover {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #93c5fd;
+        }
+        .field-checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+            background: #f8fbff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            padding: 10px;
+        }
+        .field-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11.5px;
+            color: #1e293b;
+            cursor: pointer;
+        }
+        .field-checkbox-item input[type="checkbox"] {
+            accent-color: #2563eb;
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        .no-code-pill-info {
+            margin-top: 6px;
+            font-size: 10.5px;
+            color: #64748b;
+            line-height: 1.4;
+            padding: 6px 8px;
+            background: #eff6ff;
+            border-radius: 4px;
+            border-left: 2px solid #2563eb;
+        }
+
+        /* Saved Workflows List in Left Panel */
+        .workflow-item {
+            padding: 10px 12px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .workflow-item:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+        }
+        .workflow-item.active {
+            border-color: #2563eb;
+            background: #eff6ff;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        }
+        .workflow-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .workflow-item-name { font-size: 13px; font-weight: 600; color: #0f172a; }
+        .workflow-item-desc { font-size: 11px; color: #475569; line-height: 1.3; }
+        .workflow-item-footer {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10.5px;
+            color: #64748b;
+        }
+
+        /* ─── CANVAS AREA (CENTER) ─── */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #f8fbff;
+            overflow: hidden;
+            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            cursor: crosshair;
+        }
+        .workflow-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 5000px;
+            height: 5000px;
+            transform-origin: 0 0;
+        }
+        .svg-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+            z-index: 5;
+        }
+
+        /* SVG Connection Lines */
+        .flow-line {
+            stroke: #94a3b8;
+            stroke-width: 2.5px;
+            fill: none;
+            transition: stroke 0.2s, stroke-width 0.2s;
+        }
+        .flow-line:hover {
+            stroke: #2563eb;
+            stroke-width: 4px;
+            cursor: pointer;
+        }
+        .flow-line.active-path {
+            stroke: #0284c7;
+            stroke-width: 3.5px;
+            stroke-dasharray: 6;
+            animation: dash 1s linear infinite;
+        }
+        .flow-line.branch-true { stroke: #10b981; }
+        .flow-line.branch-false { stroke: #ef4444; }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -12; }
+        }
+
+        /* Canvas Node Cards */
+        .canvas-node {
+            position: absolute;
+            width: 220px;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+            z-index: 10;
+            user-select: none;
+            cursor: move;
+            transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
+        }
+        .canvas-node:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 10px 25px -4px rgba(37, 99, 235, 0.15);
+        }
+        .canvas-node.selected {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25), 0 12px 30px rgba(15, 23, 42, 0.12);
+        }
+        .canvas-node.executing {
+            animation: pulse-exec 1s infinite alternate;
+        }
+        @keyframes pulse-exec {
+            0% { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), 0 12px 30px rgba(15, 23, 42, 0.15); }
+            100% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.8), 0 12px 30px rgba(15, 23, 42, 0.2); }
+        }
+
+        .canvas-node-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-top-left-radius: var(--radius);
+            border-top-right-radius: var(--radius);
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .canvas-node-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .canvas-node-type-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+        }
+        .canvas-node-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+        .canvas-node-body {
+            padding: 10px 12px;
+            font-size: 11px;
+            color: #475569;
+            min-height: 42px;
+            line-height: 1.4;
+            background: #ffffff;
+            border-bottom-left-radius: var(--radius);
+            border-bottom-right-radius: var(--radius);
+        }
+
+        /* Node Ports (Connectors) */
+        .node-port {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #94a3b8;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 15;
+            cursor: crosshair;
+            transition: var(--transition);
+        }
+        .node-port:hover {
+            transform: scale(1.4);
+            background: #2563eb;
+        }
+        .node-port-in {
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .node-port-out {
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .node-port-out-true {
+            bottom: -6px;
+            left: 30%;
+            background: #10b981;
+        }
+        .node-port-out-false {
+            bottom: -6px;
+            left: 70%;
+            background: #ef4444;
+        }
+
+        /* Canvas Floating Controls */
+        .canvas-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 24px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 30;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+        }
+        .ctrl-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .ctrl-btn:hover {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        /* ─── RIGHT PANEL (NODE CONFIGURATION) ─── */
+        .config-panel {
+            width: 330px;
+            background: #ffffff;
+            border-left: 1px solid #d1e7ff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 20;
+            box-shadow: -2px 0 10px rgba(79, 169, 255, 0.05);
+            transition: var(--transition);
+        }
+        .config-panel-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fbff;
+        }
+        .config-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .config-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px;
+            background: #ffffff;
+        }
+        .config-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #64748b;
+            padding: 20px;
+        }
+        .config-empty-state i {
+            font-size: 36px;
+            margin-bottom: 12px;
+            color: #93c5fd;
+        }
+
+        /* Structured Config Form Inputs */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-control {
+            width: 100%;
+            background: #f8fbff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            color: #0f172a;
+            font-size: 12.5px;
+            padding: 9px 12px;
+            outline: none;
+            transition: var(--transition);
+        }
+        .form-control:focus {
+            border-color: #2563eb;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 14px;
+            padding-right: 32px;
+        }
+
+        .token-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 6px;
+        }
+        .token-chip {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 10.5px;
+            font-family: monospace;
+            color: #1d4ed8;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .token-chip:hover {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #93c5fd;
+        }
+
+        /* ─── TEST RUN / SIMULATION TRACE PANEL ─── */
+        .test-run-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 350px;
+            width: 360px;
+            max-height: 380px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius);
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+            display: none;
+            flex-direction: column;
+            z-index: 40;
+            backdrop-filter: blur(12px);
+        }
+        .test-run-panel.open { display: flex; }
+        .test-run-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            background: #f8fbff;
+            color: #0f172a;
+        }
+        .test-run-body {
+            padding: 14px;
+            overflow-y: auto;
+            flex: 1;
+            background: #ffffff;
+        }
+        .trace-step {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .trace-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 11px;
+            width: 2px;
+            bottom: -12px;
+            background: #e2e8f0;
+        }
+        .trace-step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #eff6ff;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+            z-index: 2;
+        }
+        .trace-step-content { flex: 1; font-size: 11.5px; }
+        .trace-step-title { font-weight: 600; color: #0f172a; }
+        .trace-step-desc { color: #475569; margin-top: 2px; }
+
+        /* ─── TOAST NOTIFICATIONS ─── */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .toast {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            padding: 12px 18px;
+            font-size: 13px;
+            color: #0f172a;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast.success { border-left: 4px solid var(--accent-green); }
+        .toast.error { border-left: 4px solid var(--accent-red); }
+        .toast.info { border-left: 4px solid var(--accent-blue); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+        <a href="admin-dashboard.html" class="logo">
+            <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+            <span class="logo-text">Kylrx <span style="color: #3b82f6;">AI</span></span>
+        </a>
+
+        <nav class="nav-menu">
+            <div class="nav-label">MAIN MENU</div>
+            <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+            <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+            <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
+            <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+            <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link active"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+            <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+            <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+            <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
+            <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+            <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+            <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+            <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+            <div class="nav-label">OPERATIONS</div>
+            <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+            <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
+            <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+            <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+            <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+            <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+            <div class="nav-label">INTELLIGENCE</div>
+            <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+            <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+            <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+
+            <div class="nav-label">GOVERNANCE</div>
+            <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+            <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="main-wrapper">
+        <!-- TOP TOOLBAR -->
+        <header class="top-bar">
+            <div class="header-left">
+                <div class="workflow-meta-inputs">
+                    <input type="text" id="workflow-name-input" class="workflow-title-input" value="New Workflow" placeholder="Workflow Name..." />
+                    <input type="text" id="workflow-desc-input" class="workflow-desc-input" value="Automated multi-stage HR process" placeholder="Description..." />
+                </div>
+                <div class="version-selector-wrap">
+                    <i class="fas fa-code-branch"></i>
+                    <select id="version-selector" class="version-select" title="Switch Workflow Version">
+                        <option value="1">v1 (Draft)</option>
+                    </select>
+                </div>
+                <button id="btn-rollback-version" class="btn btn-outline" style="display:none; padding:4px 8px; font-size:11px;" title="Rollback to this version"><i class="fas fa-history"></i> Rollback</button>
+                <span id="workflow-status-badge" class="status-badge draft">Draft</span>
+            </div>
+
+            <div class="header-actions">
+                <button id="btn-ai-creator" class="btn btn-ai"><i class="fas fa-wand-magic-sparkles"></i> AI Creator</button>
+                <button id="btn-new-workflow" class="btn btn-outline"><i class="fas fa-plus"></i> New Flow</button>
+                <button id="btn-save" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                <button id="btn-validate" class="btn btn-outline"><i class="fas fa-check-circle"></i> Validate</button>
+                <button id="btn-test-run" class="btn btn-warning"><i class="fas fa-play"></i> Test Mode</button>
+                <button id="btn-activate" class="btn btn-success"><i class="fas fa-power-off"></i> Publish / Activate</button>
+                <button id="btn-export" class="btn btn-outline" title="Export Workflow JSON"><i class="fas fa-download"></i></button>
+            </div>
+        </header>
+
+        <!-- STATS BAR -->
+        <div class="stats-mini-bar">
+            <div class="stat-item"><i class="fas fa-folder text-muted"></i> Total Workflows: <strong id="stat-total">3</strong></div>
+            <div class="stat-item"><i class="fas fa-check-circle text-success" style="color: var(--accent-green);"></i> Active: <strong id="stat-active">2</strong></div>
+            <div class="stat-item"><i class="fas fa-pencil-alt text-warning" style="color: var(--accent-gold);"></i> Draft: <strong id="stat-draft">1</strong></div>
+            <div class="stat-item"><i class="fas fa-network-wired text-info" style="color: var(--accent-blue);"></i> Canvas Nodes: <strong id="stat-nodes">0</strong></div>
+        </div>
+
+        <!-- 3-PANEL BUILDER WORKSPACE -->
+        <div class="builder-workspace">
+            
+            <!-- LEFT PANEL: NODE PALETTE & WORKFLOWS -->
+            <div class="left-panel">
+                <div class="panel-tabs">
+                    <div class="panel-tab active" id="tab-palette-btn" onclick="switchLeftTab('palette')"><i class="fas fa-shapes"></i> Nodes</div>
+                    <div class="panel-tab" id="tab-workflows-btn" onclick="switchLeftTab('workflows')"><i class="fas fa-list"></i> Flows</div>
+                    <div class="panel-tab" id="tab-logs-btn" onclick="switchLeftTab('logs')"><i class="fas fa-terminal"></i> Logs</div>
+                    <div class="panel-tab" id="tab-audit-btn" onclick="switchLeftTab('audit')"><i class="fas fa-history"></i> Audit</div>
+                </div>
+
+                <!-- Palette Tab Content -->
+                <div class="panel-tab-content" id="tab-palette-content">
+                    <div class="no-code-guarantee-badge">
+                        <i class="fas fa-shield-alt" style="font-size: 16px;"></i>
+                        <div>
+                            <strong>100% No-Code Guarantee</strong>
+                            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Drag & drop or click + to add. HR never writes Firebase, Python, JS or API code.</div>
+                        </div>
+                    </div>
+
+                    <div class="palette-group-title">Triggers & Control</div>
+                    <div class="palette-node" id="palette-node-trigger" draggable="true" data-node-type="trigger">
+                        <div class="palette-node-icon" style="background: var(--node-trigger);"><i class="fas fa-bolt"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Trigger</div>
+                            <div class="palette-node-desc">Starts workflow on event</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Trigger to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="palette-node" id="palette-node-condition" draggable="true" data-node-type="condition">
+                        <div class="palette-node-icon" style="background: var(--node-condition);"><i class="fas fa-filter"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Condition</div>
+                            <div class="palette-node-desc">Pass / fail gate filter</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Condition to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="palette-node" id="palette-node-branch" draggable="true" data-node-type="branch">
+                        <div class="palette-node-icon" style="background: var(--node-branch);"><i class="fas fa-code-branch"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Branch</div>
+                            <div class="palette-node-desc">True / False dual-path</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Branch to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+
+                    <div class="palette-group-title">Human & Timing</div>
+                    <div class="palette-node" id="palette-node-approval" draggable="true" data-node-type="approval">
+                        <div class="palette-node-icon" style="background: var(--node-approval);"><i class="fas fa-user-check"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Approval</div>
+                            <div class="palette-node-desc">Human sign-off gate</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Approval to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="palette-node" id="palette-node-wait" draggable="true" data-node-type="wait">
+                        <div class="palette-node-icon" style="background: var(--node-wait);"><i class="fas fa-clock"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Wait</div>
+                            <div class="palette-node-desc">Delay or event timer</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Wait to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="palette-node" id="palette-node-escalation" draggable="true" data-node-type="escalation">
+                        <div class="palette-node-icon" style="background: var(--node-escalation);"><i class="fas fa-level-up-alt"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Escalation</div>
+                            <div class="palette-node-desc">SLA breach escalation</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Escalation to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+
+                    <div class="palette-group-title">Actions & Documents</div>
+                    <div class="palette-node" id="palette-node-action" draggable="true" data-node-type="action">
+                        <div class="palette-node-icon" style="background: var(--node-action);"><i class="fas fa-play"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Action</div>
+                            <div class="palette-node-desc">Execute system task</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Action to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="palette-node" id="palette-node-notification" draggable="true" data-node-type="notification">
+                        <div class="palette-node-icon" style="background: var(--node-notification);"><i class="fas fa-paper-plane"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Notification</div>
+                            <div class="palette-node-desc">Email, in-app or Slack</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Notification to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="palette-node" id="palette-node-document" draggable="true" data-node-type="document">
+                        <div class="palette-node-icon" style="background: var(--node-document);"><i class="fas fa-file-alt"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Document</div>
+                            <div class="palette-node-desc">Generate official letter</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Document to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="palette-node" id="palette-node-form" draggable="true" data-node-type="form">
+                        <div class="palette-node-icon" style="background: var(--node-form);"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ Form</div>
+                            <div class="palette-node-desc">Capture employee inputs</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add Form to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="palette-node" id="palette-node-end" draggable="true" data-node-type="end">
+                        <div class="palette-node-icon" style="background: var(--node-end);"><i class="fas fa-flag-checkered"></i></div>
+                        <div class="palette-node-info">
+                            <div class="palette-node-title">+ End</div>
+                            <div class="palette-node-desc">Final completion state</div>
+                        </div>
+                        <button class="palette-add-btn" title="Add End to Canvas"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <!-- Workflows List Content -->
+                <div class="panel-tab-content" id="tab-workflows-content" style="display: none;">
+                    <div id="workflow-list"></div>
+                </div>
+
+                <!-- Run Logs Content -->
+                <div class="panel-tab-content" id="tab-logs-content" style="display: none; padding: 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:12px; font-weight:700;"><i class="fas fa-list-check" style="color:var(--accent-blue);"></i> Execution Runs</span>
+                        <button class="btn btn-outline" style="padding:2px 8px; font-size:10px;" onclick="loadExecutionLogs()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="execution-logs-list"><div style="font-size:11.5px;color:var(--text-muted);text-align:center;padding:15px;">Loading execution logs...</div></div>
+                </div>
+
+                <!-- Audit Trail Content -->
+                <div class="panel-tab-content" id="tab-audit-content" style="display: none; padding: 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:12px; font-weight:700;"><i class="fas fa-shield-alt" style="color:var(--accent-purple);"></i> Audit Trail</span>
+                        <button class="btn btn-outline" style="padding:2px 8px; font-size:10px;" onclick="loadAuditTrail()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="audit-trail-list"><div style="font-size:11.5px;color:var(--text-muted);text-align:center;padding:15px;">Loading audit events...</div></div>
+                </div>
+            </div>
+
+            <!-- CENTER: CANVAS -->
+            <div class="canvas-container" id="canvas-wrapper">
+                <!-- AI Review Banner -->
+                <div id="ai-review-banner" class="ai-review-banner" style="display: none;">
+                    <i class="fas fa-robot"></i>
+                    <span><strong>AI-Generated Workflow (Draft / Review Mode)</strong> — Test run simulation is required before publishing.</span>
+                </div>
+
+                <div class="workflow-canvas" id="workflow-canvas">
+                    <svg class="svg-canvas" id="svg-canvas"></svg>
+                    <!-- Draggable Nodes Rendered Here -->
+                    <div id="nodes-layer"></div>
+                </div>
+
+                <!-- Canvas Controls -->
+                <div class="canvas-controls">
+                    <button class="ctrl-btn" id="zoom-in" title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                    <button class="ctrl-btn" id="zoom-out" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                    <button class="ctrl-btn" id="zoom-reset" title="Reset View"><i class="fas fa-compress-arrows-alt"></i></button>
+                    <div style="width: 1px; height: 16px; background: var(--border); margin: 0 4px;"></div>
+                    <button class="ctrl-btn" id="btn-clear-canvas" title="Clear Canvas" style="color: var(--accent-red);"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: CONFIGURATION -->
+            <div class="config-panel" id="config-panel">
+                <div class="config-panel-header">
+                    <div class="config-panel-title">
+                        <div id="config-node-icon" class="canvas-node-icon" style="background: var(--node-trigger);"><i class="fas fa-bolt"></i></div>
+                        <span id="config-panel-heading">Node Properties</span>
+                    </div>
+                    <button id="btn-delete-node" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+                <div class="config-panel-body" id="config-panel-body">
+                    <div class="config-empty-state">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <p>Select any node on the canvas to configure properties</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEST RUN SIMULATION PANEL -->
+            <div class="test-run-panel" id="test-run-panel">
+                <div class="test-run-header">
+                    <span><i class="fas fa-terminal" style="color: var(--accent-gold); margin-right: 6px;"></i> Simulation Trace</span>
+                    <button id="btn-close-test-run" class="ctrl-btn" style="width: 24px; height: 24px;"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="test-run-body" id="test-run-trace"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- AI WORKFLOW CREATOR MODAL -->
+    <div id="ai-creator-modal" class="modal-overlay" style="display: none;">
+        <div class="ai-modal">
+            <div class="ai-modal-header">
+                <div class="ai-modal-title">
+                    <div class="ai-badge-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                    <div>
+                        <div style="font-size: 15px; font-weight: 700;">Kylrx AI Automation Creator</div>
+                        <div style="font-size: 11px; color: var(--text-muted);">Convert natural-language process requests into visual draft workflows</div>
+                    </div>
+                </div>
+                <button id="btn-close-ai-modal" class="ctrl-btn"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="ai-modal-body">
+                <div class="form-group">
+                    <label class="form-label" style="display:flex; justify-content:space-between;">
+                        <span>Describe your HR workflow</span>
+                        <span style="font-size:10px; color:#c084fc;">Kylrx AI Natural Language Engine</span>
+                    </label>
+                    <textarea id="ai-prompt-input" class="form-control" rows="4" placeholder="e.g. If an employee is absent for three consecutive working days, notify the manager and HR. If there is no response within two days, escalate to the HR Head."></textarea>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <div class="form-label" style="margin-bottom: 6px;">Sample Enterprise Prompts</div>
+                    <div class="ai-chips-container">
+                        <div class="ai-chip" onclick="setAiPrompt('If an employee is absent for three consecutive working days, notify the manager and HR. If there is no response within two days, escalate to the HR Head.')">
+                            <i class="fas fa-user-clock"></i> 3-Day Absenteeism Escalation
+                        </div>
+                        <div class="ai-chip" onclick="setAiPrompt('When a candidate accepts offer, verify department, generate offer letter, require HR Director approval, provision IT assets, and send welcome packet.')">
+                            <i class="fas fa-user-plus"></i> Offer & Onboarding Pipeline
+                        </div>
+                        <div class="ai-chip" onclick="setAiPrompt('When an employee resigns, trigger asset handover form, request Finance F&F clearance within 48 hours, generate relieving letter, and deactivate access.')">
+                            <i class="fas fa-door-open"></i> Exit Handover & Relieving
+                        </div>
+                        <div class="ai-chip" onclick="setAiPrompt('If monthly payroll variance exceeds 5%, hold payout, request CFO override approval, and initiate bank transfer upon approval.')">
+                            <i class="fas fa-money-check-alt"></i> Payroll Variance Gate
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live AI Preview Container -->
+                <div id="ai-preview-container" class="ai-preview-box" style="display: none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                        <span style="font-size: 12px; font-weight: 700; color: #c084fc;"><i class="fas fa-brain"></i> AI Flow Analysis</span>
+                        <span id="ai-confidence-badge" class="status-badge active" style="font-size: 10px;">Confidence: 96%</span>
+                    </div>
+                    <div id="ai-explanation" style="font-size: 11.5px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;"></div>
+                    <div class="form-label" style="margin-bottom: 6px;">Generated Sequence</div>
+                    <div id="ai-preview-chain" class="ai-preview-chain"></div>
+                </div>
+            </div>
+
+            <div class="ai-modal-footer">
+                <button id="btn-generate-ai-flow" class="btn btn-ai-generate"><i class="fas fa-wand-magic-sparkles"></i> Synthesize Workflow</button>
+                <button id="btn-apply-ai-workflow" class="btn btn-success" style="display: none;"><i class="fas fa-arrow-down"></i> Load to Canvas (Draft Mode)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEST MODE MODAL -->
+    <div id="test-mode-modal" class="modal-overlay" style="display: none;">
+        <div class="ai-modal" style="width: 700px; border-color: #fde68a;">
+            <div class="ai-modal-header" style="background: #fffbeb; border-bottom: 1px solid #fef3c7;">
+                <div class="ai-modal-title">
+                    <div class="ai-badge-icon" style="background: #fef3c7; color: #d97706;"><i class="fas fa-flask"></i></div>
+                    <div>
+                        <div style="font-size: 15px; font-weight: 700; color: #0f172a;">Workflow Test Mode & Pre-Publish Validation</div>
+                        <div style="font-size: 11px; color: #64748b;">Simulate execution with live employee profile or custom sample data</div>
+                    </div>
+                </div>
+                <button id="btn-close-test-modal" class="ctrl-btn"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="ai-modal-body">
+                <!-- Select Mode -->
+                <div class="form-group">
+                    <label class="form-label">Select Test Employee Profile</label>
+                    <select id="test-employee-select" class="form-control">
+                        <option value="">-- Choose Sample Employee --</option>
+                    </select>
+                    <!-- Live Employee Details Card -->
+                    <div id="test-employee-card" class="test-employee-card" style="display: none;"></div>
+                </div>
+
+                <!-- Custom Mock Data JSON Override -->
+                <div class="form-group">
+                    <label class="form-label" style="display:flex; justify-content:space-between;">
+                        <span>Custom Sample Data (JSON)</span>
+                        <span style="font-size:10px; color:var(--accent-blue);">Optional Payload Override</span>
+                    </label>
+                    <textarea id="test-custom-json" class="form-control" rows="3" placeholder='{ "department": "Engineering", "daysAbsent": 3, "ctc": 2500000 }'></textarea>
+                </div>
+
+                <!-- Pre-Publish Execution Trace / Preview -->
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                        <span class="form-label" style="margin-bottom: 0;"><i class="fas fa-route" style="color:var(--accent-gold); margin-right:4px;"></i> Every Node That Will Execute Before Publishing</span>
+                        <span id="test-trace-count-badge" class="status-badge draft" style="font-size: 10px; display:none;">0 Nodes</span>
+                    </div>
+                    <div id="dry-run-nodes-list" class="dry-run-box">
+                        <div style="font-size:11.5px; color:var(--text-muted); text-align:center; padding:15px;">
+                            Click "Run Test Simulation" to preview all evaluated nodes and branch outcomes.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-modal-footer" style="display:flex; justify-content:space-between;">
+                <button id="btn-execute-test-mode" class="btn btn-warning"><i class="fas fa-play"></i> Run Test Simulation</button>
+                <div style="display:flex; gap:8px;">
+                    <button id="btn-publish-from-test" class="btn btn-success" style="display:none;"><i class="fas fa-check-double"></i> Approve & Publish</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script src="admin-workflow-builder.js"></script>
+</body>
+</html>

@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Builder | Kylrx Common Automation Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-dark: #1d4ed8;
+            --accent: #3b82f6;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --info: #0284c7;
+            --bg-canvas: #f0f7ff;
+            --border-card: #d1e7ff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f0f7ff;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ─── SIDEBAR NAVIGATION (WHITE & LIGHT BLUE ENTERPRISE SUITE THEME) ─── */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem 1.1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            overflow: hidden;
+            box-shadow: 2px 0 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.4rem;
+            text-decoration: none;
+            padding-left: 0.4rem;
+        }
+
+        .sidebar .logo img {
+            height: 36px;
+            width: 36px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .sidebar .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+        }
+
+        .sidebar .logo-text span {
+            color: #3b82f6;
+        }
+
+        .nav-menu {
+            flex: 1;
+            list-style: none;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #93c5fd transparent;
+            padding-right: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .nav-menu::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .nav-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 1.2rem 0 0.4rem 0.5rem;
+        }
+
+        .nav-label:first-of-type {
+            margin-top: 0.2rem;
+        }
+
+        .nav-item {
+            margin-bottom: 2px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.65rem 0.9rem;
+            color: #475569 !important;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .nav-link:hover {
+            color: #2563eb !important;
+            background: #eff6ff !important;
+            transform: none !important;
+        }
+
+        .nav-link.active {
+            color: #2563eb !important;
+            background: #eff6ff !important;
+            font-weight: 700;
+            box-shadow: none !important;
+        }
+
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3.5px;
+            background: #2563eb;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-link i,
+        .nav-link svg {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .nav-link:hover i,
+        .nav-link:hover svg,
+        .nav-link.active i,
+        .nav-link.active svg {
+            color: #2563eb !important;
+        }
+
+        .sidebar-bottom {
+            padding-top: 0.6rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .hub-container {
+            margin-left: 260px;
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        /* Top Bar */
+        .hub-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-card);
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .hub-title-block h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hub-title-block p {
+            margin: 4px 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .hub-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-hub {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.6rem 1.1rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid var(--border-card);
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-hub:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-hub-primary {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .btn-hub-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .btn-hub-accent {
+            background: #eff6ff;
+            color: var(--info);
+            border-color: #bfdbfe;
+        }
+
+        .btn-hub-accent:hover {
+            background: #dbeafe;
+        }
+
+        /* Stats Strip */
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            padding: 1.5rem 2rem 0.5rem 2rem;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid var(--border-card);
+            padding: 1.1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stat-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-number {
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Main Alert Builder Grid */
+        .builder-workspace {
+            padding: 1.5rem 2rem 2.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .alert-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--card-shadow);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+
+        .alert-card.critical {
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-card.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .alert-card.info {
+            border-left: 4px solid var(--info);
+        }
+
+        .card-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .module-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-attendance { background: #fee2e2; color: #b91c1c; }
+        .badge-payroll { background: #fef3c7; color: #b45309; }
+        .badge-policies { background: #e0e7ff; color: #4338ca; }
+        .badge-pms { background: #f3e8ff; color: #7e22ce; }
+        .badge-exit { background: #ffedd5; color: #c2410c; }
+        .badge-general { background: #e2e8f0; color: #475569; }
+
+        .card-title {
+            font-size: 0.98rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0.35rem 0 0.4rem 0;
+            line-height: 1.35;
+        }
+
+        .card-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+            margin-bottom: 0.85rem;
+        }
+
+        .condition-block {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 0.6rem 0.85rem;
+            margin-bottom: 0.85rem;
+            font-family: monospace;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .condition-metric {
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .condition-op {
+            color: var(--danger);
+            font-weight: 800;
+            padding: 0 4px;
+        }
+
+        .condition-val {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .pipeline-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .pipe-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.76rem;
+            color: #334155;
+            background: #f1f5f9;
+            padding: 5px 8px;
+            border-radius: 6px;
+        }
+
+        .pipe-step i {
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .pipe-arrow {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin: -2px 0;
+        }
+
+        .card-footer {
+            border-top: 1px solid #f1f5f9;
+            padding-top: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 22px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        .btn-test-fire {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.76rem;
+            font-weight: 700;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-test-fire:hover {
+            background: #f1f5f9;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Live Simulation Console Dock */
+        .simulation-console {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+        }
+
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-card);
+            padding-bottom: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .sim-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 1.5rem;
+        }
+
+        .sim-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .control-input, .control-select {
+            padding: 0.6rem 0.85rem;
+            font-size: 0.85rem;
+            font-family: inherit;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            background: #ffffff;
+        }
+
+        .control-input:focus, .control-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .sim-output {
+            background: #0f172a;
+            color: #f8fafc;
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .log-ts {
+            color: #64748b;
+            flex-shrink: 0;
+        }
+
+        .log-pass { color: #4ade80; }
+        .log-warn { color: #fbbf24; }
+        .log-info { color: #38bdf8; }
+        .log-alert { color: #f87171; font-weight: bold; }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            padding: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-card);
+            padding-bottom: 0.75rem;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .toast-popup {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 0.85rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: #3b82f6;">AI</span></span>
+            </a>
+
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link active"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+
+                <div class="nav-label">GOVERNANCE</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+            </div>
+        </aside>
+
+        <!-- Main Hub Content Area -->
+        <main class="hub-container">
+            <!-- Header Toolbar -->
+            <header class="hub-header">
+                <div class="hub-title-block">
+                    <h1>
+                        <i data-lucide="bell-ring" style="color: var(--primary);"></i>
+                        Alert Builder
+                    </h1>
+                    <p>Streamlined interface for threshold monitoring & notification rules — powered by the Unified Common Automation Engine.</p>
+                </div>
+                <div class="hub-actions">
+                    <!-- Firebase Backend Status Badge -->
+                    <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
+                        <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
+                        <span id="firebaseStatusText">Firebase: kylrxai (Connected)</span>
+                    </div>
+                    <button class="btn-hub" onclick="openSimulationConsole()">
+                        <i data-lucide="play-circle"></i> Simulation Console
+                    </button>
+                    <button class="btn-hub btn-hub-primary" onclick="openNewRuleModal()">
+                        <i data-lucide="plus"></i> New Alert Monitor
+                    </button>
+                </div>
+            </header>
+
+            <!-- Metrics / Health Strip -->
+            <div class="stats-strip">
+                <div class="stat-card">
+                    <div class="stat-icon-wrap" style="background: #e0e7ff; color: var(--primary);">
+                        <i data-lucide="shield-check" size="22"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="kpiActiveMonitors">5</span>
+                        <span class="stat-label">Active Threshold Monitors</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon-wrap" style="background: #fee2e2; color: var(--danger);">
+                        <i data-lucide="alert-octagon" size="22"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="kpiCriticalMonitors">3</span>
+                        <span class="stat-label">Critical Tier Rules</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon-wrap" style="background: #fef3c7; color: var(--warning);">
+                        <i data-lucide="bell" size="22"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number" id="kpiBreaches">14</span>
+                        <span class="stat-label">Breaches Caught Today</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon-wrap" style="background: #dcfce7; color: var(--success);">
+                        <i data-lucide="cpu" size="22"></i>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-number" style="color: var(--success); font-size: 1.15rem;">Active</span>
+                        <span class="stat-label">Common Automation Engine</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workspace Section -->
+            <div class="builder-workspace">
+                <!-- Section 1: Core Monitoring Rules -->
+                <div>
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i data-lucide="sliders" size="18" style="color: var(--primary);"></i>
+                            Configured Threshold Monitors
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Uses 8-Stage Common Pipeline: Trigger → Condition → Branch → Wait/Escalate → Notification → Audit</span>
+                    </div>
+                    
+                    <div class="cards-grid" id="alertCardsContainer">
+                        <!-- Alert Cards Dynamically Rendered via admin-alert-builder.js -->
+                    </div>
+                </div>
+
+                <!-- Section 2: Real-Time Interactive Simulator Console -->
+                <div class="simulation-console" id="simConsoleSection">
+                    <div class="sim-header">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="terminal" style="color: var(--primary);"></i>
+                            <span style="font-weight: 800; font-size: 1rem;">Live Automation Engine Test & Audit Runner</span>
+                        </div>
+                        <span style="font-size: 0.78rem; background: #e0e7ff; color: var(--primary-dark); padding: 3px 8px; border-radius: 6px; font-weight: 700;">
+                            EventBus Connected
+                        </span>
+                    </div>
+
+                    <div class="sim-grid">
+                        <div class="sim-controls">
+                            <div class="control-group">
+                                <label class="control-label">Select Alert Rule To Test-Fire</label>
+                                <select class="control-select" id="simRuleSelect" onchange="onSimRuleChanged()">
+                                    <option value="alert-attendance-consecutive-absent">Attendance: 3 Consecutive Absences (>= 3)</option>
+                                    <option value="alert-payroll-variance-exceeded">Payroll: Variance > 10% Anomaly (> 10%)</option>
+                                    <option value="alert-policy-acknowledgement-pending">Policy: Acknowledgement Pending 3 Days (>= 3d)</option>
+                                    <option value="alert-pms-review-deadline-approaching">PMS: Review Deadline Approaching (<= 2d)</option>
+                                    <option value="alert-exit-clearance-pending-48h">Exit: Clearance Pending 48 Hours (>= 48h)</option>
+                                </select>
+                            </div>
+
+                            <div class="control-group" id="simParamGroup">
+                                <label class="control-label" id="simParamLabel">Simulated Parameter: Consecutive Absences</label>
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    <input type="number" class="control-input" id="simParamInput" value="3" style="width: 120px;">
+                                    <span id="simParamHint" style="font-size: 0.78rem; color: var(--text-muted);">Threshold is >= 3. Set < 3 to test condition denial.</span>
+                                </div>
+                            </div>
+
+                            <button class="btn-hub btn-hub-primary" onclick="executeSimulatedAlert()" style="justify-content:center; padding: 0.75rem;">
+                                <i data-lucide="zap"></i> Fire Simulated Event Through Automation Engine
+                            </button>
+                        </div>
+
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                                <span class="control-label">Stage 1 - 8 Execution Trace & Logs</span>
+                                <span style="font-size: 0.72rem; color: #94a3b8; cursor: pointer;" onclick="clearSimLogs()">Clear Log</span>
+                            </div>
+                            <div class="sim-output" id="simLogTerminal">
+                                <div class="log-entry">
+                                    <span class="log-ts">[00:00:00]</span>
+                                    <span class="log-info">[System] Common Automation Engine connected. Ready for event dispatch.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: New Alert Monitor -->
+    <div class="modal-backdrop" id="newRuleModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i data-lucide="plus-circle" style="color: var(--primary);"></i>
+                    Create New Alert Monitor
+                </div>
+                <button class="btn-close" onclick="closeNewRuleModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                <div class="control-group">
+                    <label class="control-label">Alert Rule Name</label>
+                    <input type="text" class="control-input" id="newRuleName" placeholder="e.g. Leave: Unplanned Absence After Holiday">
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="control-group">
+                        <label class="control-label">HR Module</label>
+                        <select class="control-select" id="newRuleModule">
+                            <option value="attendance">Attendance & Biometrics</option>
+                            <option value="payroll">Payroll & Compensation</option>
+                            <option value="policies">Policies & Compliance</option>
+                            <option value="pms">Performance Management</option>
+                            <option value="exit">Exit & Offboarding</option>
+                            <option value="onboarding">Onboarding</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Trigger Event Key</label>
+                        <input type="text" class="control-input" id="newRuleTrigger" placeholder="module.event_name" value="attendance.unplanned_leave">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px;">
+                    <div class="control-group">
+                        <label class="control-label">Metric Name</label>
+                        <input type="text" class="control-input" id="newRuleMetric" placeholder="e.g. Unplanned Days" value="unplannedDays">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Operator</label>
+                        <select class="control-select" id="newRuleOp">
+                            <option value=">=">&gt;= (Greater or Equal)</option>
+                            <option value=">">&gt; (Greater than)</option>
+                            <option value="<=">&lt;= (Less or Equal)</option>
+                            <option value="<">&lt; (Less than)</option>
+                            <option value="==">== (Exact Match)</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Threshold</label>
+                        <input type="number" class="control-input" id="newRuleVal" value="2">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Primary Notification Recipients</label>
+                    <input type="text" class="control-input" id="newRuleRecipients" placeholder="Reporting Manager, HR Operations" value="Reporting Manager, HR Operations">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Escalation Recipient (Optional)</label>
+                    <input type="text" class="control-input" id="newRuleEscalation" placeholder="e.g. Head of HR" value="Head of HR">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content: flex-end; gap: 10px; margin-top: 0.5rem;">
+                <button class="btn-hub" onclick="closeNewRuleModal()">Cancel</button>
+                <button class="btn-hub btn-hub-primary" onclick="submitNewAlertRule()">
+                    <i data-lucide="check"></i> Save & Register in Engine
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Cloud Connection Details Modal -->
+    <div class="modal-overlay" id="firebaseModalOverlay" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 3000; align-items: center; justify-content: center;">
+        <div class="modal-card" style="max-width: 540px; border-radius: 16px; overflow: hidden; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div class="modal-head" style="background: linear-gradient(135deg, #065f46, #059669); color: #ffffff; padding: 1.2rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.3rem;">🔥</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">Firebase Backend Connection</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 0.75rem; opacity: 0.9; color: #dcfce7;">Direct connection to Google Cloud Firestore & Firebase Admin SDK</p>
+                    </div>
+                </div>
+                <button onclick="toggleFirebaseDetailsModal()" style="background: none; border: none; color: #ffffff; cursor: pointer; font-size: 1.2rem;">✕</button>
+            </div>
+            
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem;">
+                    <div style="display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; font-size: 0.82rem;">
+                        <span style="color: #64748b; font-weight: 700;">Project ID:</span>
+                        <span style="font-weight: 800; color: #0f172a; font-family: monospace;" id="fbModalProject">kylrxai</span>
+
+                        <span style="color: #64748b; font-weight: 700;">Backend Status:</span>
+                        <span style="color: #059669; font-weight: 800; display: flex; align-items: center; gap: 6px;" id="fbModalStatus">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                            Active &amp; Initialized
+                        </span>
+
+                        <span style="color: #64748b; font-weight: 700;">Client Firestore:</span>
+                        <span style="font-weight: 800; color: #0f172a;" id="fbModalClient">Firebase JS SDK v12.12.1 (Online)</span>
+
+                        <span style="color: #64748b; font-weight: 700;">Admin Service:</span>
+                        <span style="font-size: 0.75rem; color: #475569; word-break: break-all;" id="fbModalEmail">firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com</span>
+
+                        <span style="color: #64748b; font-weight: 700;">Storage Bucket:</span>
+                        <span style="color: #0f172a; font-family: monospace;">kylrxai.firebasestorage.app</span>
+
+                        <span style="color: #64748b; font-weight: 700;">Live Collections:</span>
+                        <span style="color: #1d4ed8; font-weight: 700;" id="fbModalCollections">alert_rules (5), alert_breaches, activities</span>
+                    </div>
+                </div>
+
+                <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 14px; border-radius: 4px; margin-bottom: 1.25rem;">
+                    <p style="margin: 0; font-size: 0.76rem; color: #1e40af; line-height: 1.4;">
+                        ⚡ <strong>Realtime Cloud Sync:</strong> All Alert Threshold Monitors, condition rules, active toggles, and breach incidents are synchronized directly with Google Cloud Firestore.
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn-hub" onclick="testFirebaseSync()" style="background: #f1f5f9; color: #334155; font-size: 0.8rem; font-weight: 700;">
+                        <i data-lucide="send" size="14"></i> Test Firebase Sync Ping
+                    </button>
+                    <button class="btn-hub btn-hub-primary" onclick="toggleFirebaseDetailsModal()" style="font-size: 0.8rem; font-weight: 700;">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-popup" id="alertToast">
+        <i data-lucide="bell" style="color: #38bdf8;"></i>
+        <span id="toastMsg">Simulated alert dispatched!</span>
+    </div>
+
+    <script type="module" src="admin-alert-builder.js"></script>
+</body>
+
+</html>

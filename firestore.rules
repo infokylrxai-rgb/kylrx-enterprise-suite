@@ -18,8 +18,9 @@ service cloud.firestore {
       return signedIn()
         && userExists(request.auth.uid)
         && userDoc(request.auth.uid).role in [
-          'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR',
-          'super admin', 'manager', 'Manager'
+          'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR', 'hradmin', 'HR Admin',
+          'super admin', 'Super Admin', 'super_admin', 'superadmin', 'SUPER_ADMIN',
+          'manager', 'Manager'
         ];
     }
 

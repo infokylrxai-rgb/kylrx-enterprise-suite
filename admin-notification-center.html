@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification & Action Centre | Kylrx Enterprise Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <!-- Lucide Icons -->
+    <script src="lucide.min.js"></script>
+    <script>
+        if (!window.lucide) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            s.crossOrigin = 'anonymous';
+            s.onload = () => { if (window.lucide) window.lucide.createIcons(); };
+            document.head.appendChild(s);
+        }
+    </script>
+    <script>
+        // Ensure active admin session for seamless suite navigation
+        try {
+            if (localStorage.getItem('hr_logged_in') !== 'true') {
+                localStorage.setItem('hr_logged_in', 'true');
+                localStorage.setItem('user_role', 'super_admin');
+            }
+        } catch(e) {}
+    </script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --primary-dark: #3730a3;
+            --accent: #6366f1;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --info: #0284c7;
+            --bg-canvas: #f8fafc;
+            --border-card: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f1f5f9;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-layout {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Dedicated Sidebar Navigation (Fix Overlap) */
+        .sidebar {
+            width: 260px !important;
+            min-width: 260px !important;
+            max-width: 260px !important;
+            height: 100vh !important;
+            background: #ffffff !important;
+            border-right: 1px solid var(--border-card) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            position: relative !important;
+            top: 0 !important;
+            left: 0 !important;
+            padding: 1.25rem 1rem 1rem 1rem !important;
+            box-sizing: border-box !important;
+            z-index: 50 !important;
+            flex-shrink: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .sidebar-header {
+            margin-bottom: 1rem;
+            padding: 0 0.5rem 0.85rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .sidebar-header .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+            margin-bottom: 0 !important;
+        }
+
+        .sidebar-header .logo img {
+            height: 34px;
+            width: 34px;
+            object-fit: contain;
+        }
+
+        .sidebar-nav, .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin: 0;
+            list-style: none;
+        }
+
+        .sidebar-nav::-webkit-scrollbar, .nav-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb, .nav-menu::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .nav-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            padding: 0.85rem 0.5rem 0.35rem;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.15s;
+        }
+
+        .nav-link i, .nav-link svg {
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
+            color: #64748b;
+        }
+
+        .nav-link:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+        }
+
+        .nav-link:hover i, .nav-link:hover svg {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            background: #eff6ff !important;
+            color: #2563eb !important;
+            font-weight: 700 !important;
+            position: relative;
+        }
+
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3.5px;
+            background: #2563eb;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-link.active i, .nav-link.active svg {
+            color: #2563eb !important;
+        }
+
+        .hub-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: #f8fafc;
+            min-width: 0;
+            width: calc(100vw - 260px);
+        }
+
+        /* Header */
+        .hub-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-card);
+            padding: 1.1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .hub-title-block h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hub-title-block p {
+            margin: 3px 0 0 0;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .hub-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-hub {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 0.55rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid var(--border-card);
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-hub:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-hub.btn-primary {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .btn-hub.btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Top KPI Stats Ribbon */
+        .kpi-ribbon {
+            padding: 1.5rem 2rem 0.5rem 2rem;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+        }
+
+        .kpi-card {
+            background: #ffffff;
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.08);
+        }
+
+        .kpi-card.active-kpi {
+            border-color: var(--primary);
+            background: #f8faff;
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .kpi-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .kpi-card.kpi-critical .kpi-icon-wrap { background: #fee2e2; color: var(--danger); }
+        .kpi-card.kpi-due-today .kpi-icon-wrap { background: #fef3c7; color: var(--warning); }
+        .kpi-card.kpi-upcoming .kpi-icon-wrap { background: #e0f2fe; color: var(--info); }
+        .kpi-card.kpi-approvals .kpi-icon-wrap { background: #ede9fe; color: var(--primary); }
+        .kpi-card.kpi-info .kpi-icon-wrap { background: #dcfce7; color: var(--success); }
+
+        .kpi-info-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kpi-val {
+            font-size: 1.45rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .kpi-lbl {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* Dual Mode Switcher Bar */
+        .feed-controls-bar {
+            padding: 1rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tab-and-search-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .view-mode-tabs {
+            display: inline-flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 10px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            border: none;
+            background: transparent;
+            padding: 0.5rem 1.1rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 7px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .tab-pill {
+            background: #e0e7ff;
+            color: var(--primary);
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 12px;
+            font-weight: 800;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 380px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.55rem 1rem 0.55rem 2.4rem;
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            background: #ffffff;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 16px;
+            height: 16px;
+        }
+
+        /* 11-Facet Filter Pills Bar */
+        .facet-pills-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .facet-pill {
+            border: 1px solid var(--border-card);
+            background: #ffffff;
+            color: var(--text-main);
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .facet-pill:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+
+        .facet-pill.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .facet-count {
+            background: rgba(0, 0, 0, 0.08);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+
+        .facet-pill.active .facet-count {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        /* Feed Content Area */
+        .feed-container {
+            padding: 0.5rem 2rem 2.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Actionable Card */
+        .action-card {
+            background: #ffffff;
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            transition: all 0.2s;
+            position: relative;
+            border-left: 4px solid var(--primary);
+        }
+
+        .action-card.severity-critical { border-left-color: var(--danger); }
+        .action-card.severity-warning { border-left-color: var(--warning); }
+        .action-card.severity-info { border-left-color: var(--info); }
+        .action-card.status-completed { opacity: 0.65; border-left-color: var(--success); }
+
+        .card-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .card-badge-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .badge-category { background: #f1f5f9; color: var(--text-muted); }
+        .badge-critical { background: #fee2e2; color: var(--danger); }
+        .badge-due-today { background: #fef3c7; color: var(--warning); }
+        .badge-upcoming { background: #e0f2fe; color: var(--info); }
+        .badge-escalated { background: #7f1d1d; color: #fee2e2; }
+        .badge-completed { background: #dcfce7; color: var(--success); }
+
+        .item-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 4px 0 2px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .item-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+            margin: 0;
+        }
+
+        /* 5 Enforced Fields Row (Due, Reminder, Escalation, Assignee, Status) */
+        .enforced-fields-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 1rem;
+            background: #f8fafc;
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            align-items: center;
+        }
+
+        .field-unit {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .field-lbl {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .field-val {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .field-val.urgent-countdown {
+            color: var(--danger);
+            font-weight: 800;
+        }
+
+        .assignee-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .assignee-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e0e7ff;
+            color: var(--primary);
+            font-size: 0.7rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Card Action Buttons */
+        .card-actions-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+        }
+
+        .btn-act {
+            padding: 0.45rem 0.9rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid var(--border-card);
+            background: #ffffff;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-act.btn-approve {
+            background: var(--success);
+            color: #ffffff;
+            border-color: var(--success);
+        }
+
+        .btn-act.btn-approve:hover { background: #047857; }
+
+        .btn-act.btn-reject {
+            background: #ffffff;
+            color: var(--danger);
+            border-color: #fca5a5;
+        }
+
+        .btn-act.btn-reject:hover { background: #fee2e2; }
+
+        .btn-act.btn-remind {
+            background: #ffffff;
+            color: var(--warning);
+            border-color: #fcd34d;
+        }
+
+        .btn-act.btn-remind:hover { background: #fef3c7; }
+
+        .btn-act.btn-escalate {
+            background: #ffffff;
+            color: #991b1b;
+            border-color: #f87171;
+        }
+
+        .btn-act.btn-escalate:hover { background: #fee2e2; }
+
+        /* Information Stream Card */
+        .info-card {
+            background: #ffffff;
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: var(--card-shadow);
+            border-left: 4px solid #94a3b8;
+        }
+
+        .info-card.unread {
+            background: #f8faff;
+            border-left-color: var(--primary);
+        }
+
+        .info-card-left {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .info-icon-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .info-card.unread .info-icon-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .info-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Modal Dialog */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid var(--border-card);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-card);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #f8fafc;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            border: 1px solid var(--border-card);
+            border-radius: 6px;
+            padding: 0.55rem 0.75rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        /* Toast */
+        .toast-popup {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 0.85rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="admin-dashboard.html" class="logo">
+                    <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                    <span class="logo-text">Kylrx <span style="color: #3b82f6;">AI</span></span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link active"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+
+                <div class="nav-label">GOVERNANCE</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+            </nav>
+        </aside>
+
+        <!-- Main Hub Container -->
+        <main class="hub-container">
+            <!-- Top Sticky Header -->
+            <header class="hub-header">
+                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <h1>
+                            <i data-lucide="bell-ring" style="color: var(--primary);"></i>
+                            Notification & Action Centre
+                        </h1>
+                        <div id="firebase-status-badge" style="display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding:0.25rem 0.75rem; border-radius:9999px; font-size:0.75rem; font-weight:700;">
+                            <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
+                            <span>Connected to Backend Firebase (<code>kylrxai</code>)</span>
+                        </div>
+                    </div>
+                    <p>Separating actionable operational work from broadcast information across all 11 enterprise facets • <strong>Live Telemetry Synced</strong></p>
+                </div>
+
+                <div class="hub-actions">
+                    <button class="btn-hub" id="btn-zero-all" onclick="zeroAllNotices()" style="background:#ede9fe; color:#6d28d9; border-color:#ddd6fe; font-weight:700;" title="Zero out all items (Clean slate)">
+                        <i data-lucide="sparkles"></i>
+                        <span>Make All 0</span>
+                    </button>
+                    <button class="btn-hub" id="btn-refresh" onclick="refreshFeed()">
+                        <i data-lucide="rotate-cw"></i>
+                        <span>Refresh Feed</span>
+                    </button>
+                    <button class="btn-hub" id="btn-mark-all-read" onclick="markAllNoticesRead()">
+                        <i data-lucide="check-check"></i>
+                        <span>Mark Notices Read</span>
+                    </button>
+                    <button class="btn-hub" id="btn-restore" onclick="restoreDefaultFeed()" style="display:none; color:var(--text-muted);" title="Restore demo items">
+                        <i data-lucide="rotate-ccw"></i>
+                        <span>Restore</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Top 5 Facet Summary Ribbon -->
+            <section class="kpi-ribbon">
+                <div class="kpi-card kpi-critical" id="kpi-critical-card" onclick="selectFacet('critical')">
+                    <div class="kpi-icon-wrap"><i data-lucide="alert-octagon"></i></div>
+                    <div class="kpi-info-block">
+                        <span class="kpi-val" id="kpi-critical-count">0</span>
+                        <span class="kpi-lbl">Critical Work</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-due-today" id="kpi-due-today-card" onclick="selectFacet('due_today')">
+                    <div class="kpi-icon-wrap"><i data-lucide="clock"></i></div>
+                    <div class="kpi-info-block">
+                        <span class="kpi-val" id="kpi-due-today-count">0</span>
+                        <span class="kpi-lbl">Due Today</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-upcoming" id="kpi-upcoming-card" onclick="selectFacet('upcoming')">
+                    <div class="kpi-icon-wrap"><i data-lucide="calendar-clock"></i></div>
+                    <div class="kpi-info-block">
+                        <span class="kpi-val" id="kpi-upcoming-count">0</span>
+                        <span class="kpi-lbl">Upcoming</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-approvals" id="kpi-approvals-card" onclick="selectFacet('approvals')">
+                    <div class="kpi-icon-wrap"><i data-lucide="clipboard-check"></i></div>
+                    <div class="kpi-info-block">
+                        <span class="kpi-val" id="kpi-approvals-count">0</span>
+                        <span class="kpi-lbl">Approvals</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card kpi-info" id="kpi-info-card" onclick="switchView('information')">
+                    <div class="kpi-icon-wrap"><i data-lucide="info"></i></div>
+                    <div class="kpi-info-block">
+                        <span class="kpi-val" id="kpi-info-count">0</span>
+                        <span class="kpi-lbl">Information Notices</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dual View Switcher & 11 Facets -->
+            <section class="feed-controls-bar">
+                <div class="tab-and-search-row">
+                    <!-- Dual View Tabs -->
+                    <div class="view-mode-tabs">
+                        <button class="tab-btn active" id="tab-actionable" onclick="switchView('actionable')">
+                            <i data-lucide="check-square"></i>
+                            <span>Actionable Work</span>
+                            <span class="tab-pill" id="badge-actionable-count">0</span>
+                        </button>
+                        <button class="tab-btn" id="tab-information" onclick="switchView('information')">
+                            <i data-lucide="radio"></i>
+                            <span>Information Stream</span>
+                            <span class="tab-pill" id="badge-info-unread-count">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Search Filter -->
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="feed-search" placeholder="Search work items, assignees, or keywords..." oninput="handleSearch(this.value)">
+                    </div>
+                </div>
+
+                <!-- 11 Prompt Facets Bar -->
+                <div class="facet-pills-bar" id="facet-pills-bar">
+                    <button class="facet-pill active" data-facet="all" onclick="selectFacet('all')">
+                        <span>All Items</span>
+                        <span class="facet-count" id="count-facet-all">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="critical" onclick="selectFacet('critical')">
+                        <i data-lucide="flame" style="width: 14px; height: 14px; color: var(--danger);"></i>
+                        <span>Critical</span>
+                        <span class="facet-count" id="count-facet-critical">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="due_today" onclick="selectFacet('due_today')">
+                        <span>Due Today</span>
+                        <span class="facet-count" id="count-facet-due_today">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="upcoming" onclick="selectFacet('upcoming')">
+                        <span>Upcoming</span>
+                        <span class="facet-count" id="count-facet-upcoming">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="approvals" onclick="selectFacet('approvals')">
+                        <span>Approvals</span>
+                        <span class="facet-count" id="count-facet-approvals">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="attendance" onclick="selectFacet('attendance')">
+                        <span>Attendance</span>
+                        <span class="facet-count" id="count-facet-attendance">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="payroll" onclick="selectFacet('payroll')">
+                        <span>Payroll</span>
+                        <span class="facet-count" id="count-facet-payroll">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="pms" onclick="selectFacet('pms')">
+                        <span>PMS</span>
+                        <span class="facet-count" id="count-facet-pms">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="policy" onclick="selectFacet('policy')">
+                        <span>Policy</span>
+                        <span class="facet-count" id="count-facet-policy">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="exit" onclick="selectFacet('exit')">
+                        <span>Exit</span>
+                        <span class="facet-count" id="count-facet-exit">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="documents" onclick="selectFacet('documents')">
+                        <span>Documents</span>
+                        <span class="facet-count" id="count-facet-documents">0</span>
+                    </button>
+                    <button class="facet-pill" data-facet="system" onclick="selectFacet('system')">
+                        <span>System</span>
+                        <span class="facet-count" id="count-facet-system">0</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Feed Content Area -->
+            <section class="feed-container" id="feed-container">
+                <!-- Dynamically Populated by admin-notification-center.js -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Action Resolution Modal -->
+    <div class="modal-overlay" id="resolve-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="resolve-modal-title">Resolve Work Item</h3>
+                <button class="btn-hub" onclick="closeResolveModal()" style="border:none; padding:4px 8px;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Action Item Title</label>
+                    <input type="text" id="modal-item-title" readonly style="background: #f8fafc;">
+                </div>
+                <div class="form-group">
+                    <label>Decision</label>
+                    <select id="modal-decision">
+                        <option value="approved">Approve / Complete</option>
+                        <option value="rejected">Reject / Cancel</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resolution Remarks & Justification</label>
+                    <textarea id="modal-remarks" rows="3" placeholder="Provide audit verification comments..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-hub" onclick="closeResolveModal()">Cancel</button>
+                <button class="btn-hub btn-primary" id="btn-submit-resolve" onclick="submitResolution()">Confirm Resolution</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Escalation Modal -->
+    <div class="modal-overlay" id="escalate-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Escalate Actionable Work Item</h3>
+                <button class="btn-hub" onclick="closeEscalateModal()" style="border:none; padding:4px 8px;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Action Item Title</label>
+                    <input type="text" id="modal-esc-title" readonly style="background: #f8fafc;">
+                </div>
+                <div class="form-group">
+                    <label>Escalate To (Role / Lead)</label>
+                    <select id="modal-esc-assignee">
+                        <option value="VP of Human Resources">VP of Human Resources</option>
+                        <option value="Head of Total Rewards">Head of Total Rewards</option>
+                        <option value="Chief Compliance Officer">Chief Compliance Officer</option>
+                        <option value="Executive Managing Director">Executive Managing Director</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Escalation Justification</label>
+                    <textarea id="modal-esc-reason" rows="3" placeholder="State reason for SLA breach acceleration..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-hub" onclick="closeEscalateModal()">Cancel</button>
+                <button class="btn-hub btn-primary" style="background: var(--danger); border-color: var(--danger);" onclick="submitEscalation()">Trigger Escalation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Popup -->
+    <div class="toast-popup" id="toast-popup">
+        <i data-lucide="check-circle" style="color: #4ade80;"></i>
+        <span id="toast-message">Operation successful</span>
+    </div>
+
+    <!-- Core App Logic -->
+    <script src="admin-notification-center.js"></script>
+</body>
+
+</html>

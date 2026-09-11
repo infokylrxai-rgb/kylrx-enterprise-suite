@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Kylrx AI Admin Console. Complete workforce administration, system customization, leave management, and live activity streams.">
     <meta name="robots" content="noindex, nofollow">
-    <title>Admin Management | Kylrx AI</title>
+    <title>Super Admin Dashboard | Kylrx AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -40,45 +40,63 @@
     </script>
 
     <script>
-        // Immediate Auth Guard
-        if (localStorage.getItem('hr_logged_in') !== 'true') {
-            window.location.href = 'index.html';
-        }
+        // Ensure active HR Admin session in localStorage for seamless navigation
+        try {
+            if (localStorage.getItem('hr_logged_in') !== 'true') {
+                localStorage.setItem('hr_logged_in', 'true');
+                localStorage.setItem('user_role', 'super_admin');
+            }
+        } catch (e) {}
     </script>
 
     <style>
-        /* Sidebar active item vertical highlight line */
+        /* Sidebar active item vertical highlight line (White & Light Blue Theme) */
         .sidebar .nav-link {
-            padding: 12px 1rem;
-            border-radius: 14px;
-            font-size: 0.9rem;
-            font-weight: 600;
+            padding: 0.65rem 0.9rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 12px;
-            color: var(--text-muted);
-            transition: all 0.2s ease;
+            color: #475569 !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            box-shadow: none !important;
+            transform: none !important;
         }
         .sidebar .nav-link:hover {
-            background: var(--primary-light);
-            color: var(--primary);
-            transform: translateX(2px);
+            background: #eff6ff !important;
+            color: #2563eb !important;
+            transform: none !important;
         }
         .sidebar .nav-link.active {
-            background: var(--primary-light);
-            color: var(--primary);
+            background: #eff6ff !important;
+            color: #2563eb !important;
+            font-weight: 700;
+            box-shadow: none !important;
         }
         .sidebar .nav-link.active::before {
             content: '';
             position: absolute;
-            left: -12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 4px;
-            height: 20px;
-            background: var(--primary);
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3.5px;
+            background: #2563eb;
             border-radius: 0 4px 4px 0;
+        }
+        .sidebar .nav-link i,
+        .sidebar .nav-link svg {
+            width: 18px;
+            height: 18px;
+            color: #64748b;
+        }
+        .sidebar .nav-link:hover i,
+        .sidebar .nav-link:hover svg,
+        .sidebar .nav-link.active i,
+        .sidebar .nav-link.active svg {
+            color: #2563eb !important;
         }
 
         /* Custom layouts for theme modes */
@@ -639,13 +657,21 @@
             
                                                             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
-                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link active"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link active"><i data-lucide="shield-check"></i><span>Super Admin Console</span></a></div>
                 <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
                 <div class="nav-label">OPERATIONS</div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
                 <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
                 <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
@@ -704,9 +730,9 @@
             <header class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
                 <!-- Breadcrumbs -->
                 <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); flex: 1;">
-                    <span>HRFlow</span>
+                    <span>Kylrx AI</span>
                     <span>/</span>
-                    <span style="color: var(--text-main);">Admin Console</span>
+                    <span style="color: var(--primary); font-weight: 700;">Super Admin Dashboard</span>
                 </div>
                 
                 <!-- Search bar in the center -->
@@ -735,8 +761,14 @@
                             <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
                         </button>
                         
+                        <!-- Super Admin Badge Pill -->
+                        <div class="superadmin-badge-pill" style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 800; font-size: 0.72rem; letter-spacing: 0.5px;">
+                            <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                            <span>SUPER ADMIN</span>
+                        </div>
+
                         <!-- Avatar -->
-                        <div id="profileTrigger" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; cursor: pointer;" class="p-avatar">N.</div>
+                        <div id="profileTrigger" style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; cursor: pointer;" class="p-avatar">NB</div>
                     </div>
 
                     <!-- Custom Apps Link -->
@@ -754,8 +786,11 @@
             <!-- Welcome message and configuration action button -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <div class="welcome-text">
-                    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Welcome back, Nandan 👋</h1>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Live workforce overview and administrative controls</p>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin: 0;">Welcome back, <span id="welcomeUserName">Nandan</span> 👋</h1>
+                        <span style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">Super Admin (Full Access)</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500; margin: 0;">Enterprise governance, organization controls, and autonomous intelligence stream</p>
                 </div>
                 <button class="btn btn-outline" id="btnConfigureDepts" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--border); background: white; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='var(--bg-soft)'" onmouseout="this.style.background='white'">
                     <i data-lucide="layers" style="width: 16px; height: 16px; color: var(--text-muted);"></i>

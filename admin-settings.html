@@ -9,12 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
-    <script>
-        // Immediate Auth Guard
-        if (localStorage.getItem('hr_logged_in') !== 'true') {
-            window.location.href = 'index.html';
-        }
-    </script>
+
     <style>
         :root {
             --primary: #3b82f6;
@@ -336,6 +331,7 @@
                     <a href="#" class="snav-item" data-tab="security"><i data-lucide="shield"></i> Security</a>
                     <a href="#" class="snav-item" data-tab="email"><i data-lucide="mail"></i> Email Config</a>
                     <a href="#" class="snav-item" data-tab="onboarding_hr"><i data-lucide="user-plus"></i> Onboarding &amp; Roles</a>
+                    <a href="#" class="snav-item" data-tab="integrations"><i data-lucide="puzzle"></i> Integrations &amp; Add-ons</a>
                 </div>
 
                 <div class="settings-content">
@@ -856,8 +852,96 @@
                         </form>
                     </div>
 
+                    <!-- Integrations & Add-ons Tab -->
+                    <div id="integrations" class="tab-content">
+                        <div class="settings-card">
+                            <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <h2>Enterprise Integrations &amp; Add-ons</h2>
+                                        <span style="background: #eff6ff; color: var(--primary); font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase;">
+                                            Modular Add-ons
+                                        </span>
+                                    </div>
+                                    <p>Manage unbundled enterprise integrations and specialized modular pipelines.</p>
+                                </div>
+                            </div>
+
+                            <!-- Recruitment Flow & ATS Integration Card -->
+                            <div style="border: 2px solid #e0e7ff; border-radius: 16px; background: #ffffff; padding: 1.75rem; margin-top: 1rem; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.05);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+                                    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                        <div style="width: 48px; height: 48px; border-radius: 12px; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                                            <i data-lucide="user-search"></i>
+                                        </div>
+                                        <div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">Recruitment Flow &amp; ATS Integration</h3>
+                                                <span style="background: rgba(99, 102, 241, 0.1); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.2); font-size: 0.65rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px;">
+                                                    SEPARATE ADD-ON
+                                                </span>
+                                            </div>
+                                            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; max-width: 650px;">
+                                                Maintains full applicant tracking, resume analysis, multi-stage candidate evaluations, and automated offer-to-onboarding token bridges.
+                                            </p>
+                                            <div style="margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; background: #fef2f2; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; color: #b91c1c; font-weight: 700;">
+                                                <i data-lucide="alert-circle" style="width: 13px; height: 13px;"></i>
+                                                <span>Excluded from General HRMS Plans • Billed as an independent annual add-on</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 1.4rem; font-weight: 800; color: #1e1b4b;">₹10,000 <span style="font-size: 0.8rem; font-weight: 600; color: #64748b;">/ year</span></div>
+                                        <div style="font-size: 0.72rem; color: #10b981; font-weight: 700; margin-top: 2px;">+10k Annual Add-on</div>
+                                    </div>
+                                </div>
+
+                                <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.25rem 0;">
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.8rem; color: var(--text-main);">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #10b981;"></i>
+                                        <span>Candidate Pipeline (6 Stages)</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #10b981;"></i>
+                                        <span>Interview Rounds &amp; Scoring</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #10b981;"></i>
+                                        <span>AI Resume Parser &amp; Copilot</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #10b981;"></i>
+                                        <span>Offer-to-Onboarding Token Bridge</span>
+                                    </div>
+                                </div>
+
+                                <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 12px; padding: 12px 16px;">
+                                    <div style="font-size: 0.8rem;">
+                                        <strong>Subscription Status:</strong>
+                                        <span id="recruitment-addon-status-text" style="color: #10b981; font-weight: 700; margin-left: 6px;">Active Integration</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <button type="button" class="btn" id="btn-toggle-recruitment-addon" onclick="toggleRecruitmentAddon()" style="background: #3b82f6; color: white; padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; font-weight: 700;">
+                                            <i data-lucide="refresh-cw"></i> Refresh Status
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Plan Structure Information -->
+                            <div style="margin-top: 2rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem;">
+                                <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Plan Policy Structure</h4>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
+                                    The core HRMS suite (covering Starter, Growth, Scale, and Enterprise base plans) includes Employee Master, Attendance, Payroll, Statutory Compliance, Exit Management, Document Templates, and Unified Automation.
+                                    The <strong>Recruitment Flow &amp; ATS</strong> is maintained as an independent integration add-on with a fixed surcharge of <strong>₹10,000 / year</strong> and is never bundled with base plans.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
             </div>
         </main>
     </div>

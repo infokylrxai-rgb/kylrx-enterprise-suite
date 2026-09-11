@@ -2,7 +2,23 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebase');
 const eventBus = require('../services/event-bus');
+const moduleRegistry = require('../services/automation-module-registry');
 const logger = require('../utils/logger');
+
+// GET /api/automations/modules - Return discovery schema for all registered HR modules
+router.get('/modules', (req, res) => {
+    try {
+        const catalog = moduleRegistry.getSchemaCatalog();
+        res.status(200).json({
+            success: true,
+            totalModules: catalog.length,
+            modules: catalog
+        });
+    } catch (error) {
+        logger.error('[AutomationRoutes] Error fetching module catalog:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch module catalog' });
+    }
+});
 
 // POST /api/automations - Create or update a workflow definition
 router.post('/', async (req, res) => {
@@ -43,7 +59,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST /api/automations/test-trigger - Manually fire a test event
+// POST /api/automations/test-trigger - Manually fire a test event through the unified pipeline
 router.post('/test-trigger', (req, res) => {
     try {
         const { eventName, entityId, entityType, payload } = req.body;
@@ -56,7 +72,7 @@ router.post('/test-trigger', (req, res) => {
         
         res.status(200).json({ 
             success: true, 
-            message: `Test event '${eventName}' fired.`,
+            message: `Test event '${eventName}' dispatched to Unified Automation Engine.`,
             eventId
         });
     } catch (error) {
@@ -79,6 +95,29 @@ router.get('/runs/:id', async (req, res) => {
     } catch (error) {
         logger.error('Error fetching run status:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch run status' });
+    }
+});
+
+// GET /api/automations/audit-logs - Query stage 8 immutable audit logs
+router.get('/audit-logs', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit, 10) || 50;
+        let query = db.collection('automation_audit_logs');
+        
+        if (req.query.runId) {
+            query = query.where('runId', '==', req.query.runId);
+        }
+        if (req.query.automationId) {
+            query = query.where('automationId', '==', req.query.automationId);
+        }
+
+        const snapshot = await query.limit(limit).get();
+        const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        res.status(200).json({ success: true, count: logs.length, data: logs });
+    } catch (error) {
+        logger.error('Error fetching audit logs:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch audit logs' });
     }
 });
 

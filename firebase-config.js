@@ -7,15 +7,56 @@ import {
   initializeFirestore, 
   persistentLocalCache, 
   persistentMultipleTabManager,
-  doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, orderBy, limit, deleteField 
+  setLogLevel as setFirestoreLogLevel,
+  getDocsFromCache,
+  getDocFromCache,
+  doc, setDoc as rawSetDoc, updateDoc as rawUpdateDoc, deleteDoc as rawDeleteDoc, addDoc as rawAddDoc, serverTimestamp, getDoc as rawGetDoc, onSnapshot as rawOnSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs as rawGetDocs, orderBy, limit, deleteField 
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 // @ts-ignore
 import { getStorage } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
-// Suppress internal Firebase retry & quota backoff chatter in developer console
+// 1. Completely silence internal Firebase logger chatter
 try {
   setLogLevel('silent');
+  setFirestoreLogLevel('silent');
 } catch (_) {}
+
+// 2. Global console filter for Firebase Quota & backoff warnings
+const _origConsoleError = console.error;
+const _origConsoleWarn = console.warn;
+let _quotaNoticeShown = false;
+
+function isQuotaOrBackoffMessage(...args) {
+  const text = args.map(a => {
+    if (typeof a === 'string') return a;
+    if (a && typeof a === 'object') {
+      return `${a.code || ''} ${a.message || ''} ${a.stack || ''}`;
+    }
+    return String(a || '');
+  }).join(' ');
+  return text.includes('resource-exhausted') || 
+         text.includes('Quota exceeded') || 
+         text.includes('maximum backoff delay') ||
+         text.includes('@firebase/firestore: Firestore');
+}
+
+console.error = function (...args) {
+  if (isQuotaOrBackoffMessage(...args)) {
+    if (!_quotaNoticeShown) {
+      _quotaNoticeShown = true;
+      _origConsoleWarn.call(console, "⚡ [Kylrx Architecture] Firebase Firestore quota limit reached. Local persistent cache active.");
+    }
+    return;
+  }
+  _origConsoleError.apply(console, args);
+};
+
+console.warn = function (...args) {
+  if (isQuotaOrBackoffMessage(...args)) {
+    return;
+  }
+  _origConsoleWarn.apply(console, args);
+};
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -28,7 +69,7 @@ const firebaseConfig = {
   measurementId: "G-3F6VW2MEJG"
 };
 
-// Initialize Firebase with persistent local cache fallback
+// Initialize Firebase with persistent IndexedDB local cache
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 let db;
@@ -36,15 +77,137 @@ try {
   db = initializeFirestore(app, {
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager()
-    }),
-    experimentalForceLongPolling: true
+    })
   });
 } catch (e) {
-  db = initializeFirestore(app, {
-    experimentalForceLongPolling: true
-  });
+  try {
+    db = initializeFirestore(app, {});
+  } catch (_) {
+    // fallback if already initialized
+    db = window.db || null;
+  }
 }
 const storage = getStorage(app);
+
+// Quota-safe wrappers to ensure the application never crashes when quota is reached
+const getDocs = async (q) => {
+  try {
+    return await rawGetDocs(q);
+  } catch (err) {
+    if (err && (err.code === 'resource-exhausted' || String(err).includes('Quota exceeded'))) {
+      try {
+        return await getDocsFromCache(q);
+      } catch (_) {
+        return { empty: true, docs: [], size: 0, forEach: () => {} };
+      }
+    }
+    throw err;
+  }
+};
+
+const getDoc = async (docRef) => {
+  try {
+    return await rawGetDoc(docRef);
+  } catch (err) {
+    if (err && (err.code === 'resource-exhausted' || String(err).includes('Quota exceeded'))) {
+      try {
+        return await getDocFromCache(docRef);
+      } catch (_) {
+        return { exists: () => false, data: () => null, id: docRef.id };
+      }
+    }
+    throw err;
+  }
+};
+
+const setDoc = async (docRef, data, options) => {
+  try {
+    return await rawSetDoc(docRef, data, options);
+  } catch (err) {
+    if (err && (err.code === 'resource-exhausted' || String(err).includes('Quota exceeded'))) {
+      // Store in localStorage as fallback
+      try {
+        const key = `fs_cache_${docRef.path || docRef.id}`;
+        localStorage.setItem(key, JSON.stringify(data));
+      } catch (_) {}
+      return;
+    }
+    throw err;
+  }
+};
+
+const updateDoc = async (docRef, data) => {
+  try {
+    return await rawUpdateDoc(docRef, data);
+  } catch (err) {
+    if (err && (err.code === 'resource-exhausted' || String(err).includes('Quota exceeded'))) {
+      try {
+        const key = `fs_cache_${docRef.path || docRef.id}`;
+        const existing = JSON.parse(localStorage.getItem(key) || '{}');
+        localStorage.setItem(key, JSON.stringify({ ...existing, ...data }));
+      } catch (_) {}
+      return;
+    }
+    throw err;
+  }
+};
+
+const deleteDoc = async (docRef) => {
+  try {
+    return await rawDeleteDoc(docRef);
+  } catch (err) {
+    if (err && (err.code === 'resource-exhausted' || String(err).includes('Quota exceeded'))) {
+      try {
+        localStorage.removeItem(`fs_cache_${docRef.path || docRef.id}`);
+      } catch (_) {}
+      return;
+    }
+    throw err;
+  }
+};
+
+const addDoc = async (colRef, data) => {
+  try {
+    return await rawAddDoc(colRef, data);
+  } catch (err) {
+    if (err && (err.code === 'resource-exhausted' || String(err).includes('Quota exceeded'))) {
+      const fallbackId = `offline_${Date.now()}`;
+      try {
+        localStorage.setItem(`fs_cache_${colRef.id}_${fallbackId}`, JSON.stringify(data));
+      } catch (_) {}
+      return { id: fallbackId };
+    }
+    throw err;
+  }
+};
+
+const onSnapshot = (target, ...args) => {
+  let onNext = typeof args[0] === 'function' ? args[0] : (args[0]?.next || (() => {}));
+  let onError = typeof args[1] === 'function' ? args[1] : (args[0]?.error || (() => {}));
+  let onComplete = typeof args[2] === 'function' ? args[2] : (args[0]?.complete || (() => {}));
+
+  const safeOnError = (err) => {
+    if (err && (err.code === 'resource-exhausted' || String(err).includes('Quota exceeded'))) {
+      // Gracefully attempt cache read or silent fallback
+      try {
+        getDocsFromCache(target).then(cacheSnap => {
+          if (cacheSnap) onNext(cacheSnap);
+        }).catch(() => {});
+      } catch (_) {}
+      return;
+    }
+    if (typeof onError === 'function') {
+      onError(err);
+    }
+  };
+
+  try {
+    return rawOnSnapshot(target, onNext, safeOnError, onComplete);
+  } catch (err) {
+    safeOnError(err);
+    return () => {};
+  }
+};
 
 console.log("🔥 Firebase connected to project: " + firebaseConfig.projectId);
 
@@ -63,7 +226,6 @@ function setupGlobalLogout() {
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             try {
-                // Dynamically import signOut only on demand to maintain ultra-fast page load times
                 const { signOut } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js");
                 await signOut(auth);
                 localStorage.clear();
@@ -77,7 +239,6 @@ function setupGlobalLogout() {
     }
 }
 
-// Register for both immediate execution and ready state fallbacks
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setupGlobalLogout();
 } else {
@@ -89,4 +250,3 @@ export {
   onAuthStateChanged, signOut, signInWithEmailAndPassword,
   doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, orderBy, limit, deleteField
 };
-

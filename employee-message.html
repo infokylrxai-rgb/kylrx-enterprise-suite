@@ -48,23 +48,24 @@
 </script>
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-dark: #1d4ed8;
-            --primary-light: #eff6ff;
-            --primary-soft: rgba(59, 130, 246, 0.1);
-            --bg: #f8fafc;
+            --primary: #ec4899;
+            --primary-dark: #be185d;
+            --primary-light: #fdf2f8;
+            --primary-mid: #fbcfe8;
+            --primary-soft: rgba(236, 72, 153, 0.1);
+            --bg: #fff5f9;
             --sidebar-bg: #ffffff;
             --card-bg: #ffffff;
-            --border: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
+            --border: #fce7f3;
+            --text-main: #1e0a14;
+            --text-muted: #9d6e87;
             --success: #10b981;
-            --danger: #ef4444;
+            --danger: #f43f5e;
             --warning: #f59e0b;
             --sidebar-width: 280px;
             --radius: 20px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.08), 0 2px 4px -1px rgba(236, 72, 153, 0.04);
+            --shadow-sm: 0 1px 2px 0 rgba(236, 72, 153, 0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -830,13 +831,12 @@
                         
                         if (logoText) logoText.textContent = config.name;
                         
-                        if (config.primaryColor) {
-                            document.documentElement.style.setProperty('--primary', config.primaryColor);
-                            document.documentElement.style.setProperty('--primary-dark', config.primaryColor);
-                            document.documentElement.style.setProperty('--primary-light', config.primaryColor + '12'); // ~7% opacity
-                            document.documentElement.style.setProperty('--primary-soft', config.primaryColor + '1a'); // ~10% opacity
-                            if (logoIcon) logoIcon.style.background = config.primaryColor;
-                        }
+                        // Static Light Pink enforced for Employee Portal
+                        document.documentElement.style.setProperty('--primary', '#ec4899');
+                        document.documentElement.style.setProperty('--primary-dark', '#be185d');
+                        document.documentElement.style.setProperty('--primary-light', '#fdf2f8');
+                        document.documentElement.style.setProperty('--primary-soft', '#fbcfe8');
+                        if (logoIcon) logoIcon.style.background = '#ec4899';
                         
                         if (config.icon && logoIcon) {
                             logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;

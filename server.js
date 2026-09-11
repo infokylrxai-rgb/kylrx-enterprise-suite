@@ -23,7 +23,16 @@ const aiRoutes = require("./routes/ai");
 const payrollRoutes = require("./routes/payroll");
 const emailRoutes = require("./routes/email");
 const automationRoutes = require("./routes/automation");
+const assignmentRoutes = require("./routes/assignments");
+const alertRoutes = require("./routes/alerts");
+const analyticsRoutes = require("./routes/analytics");
+const centralDashboardRoutes = require("./routes/central-dashboard");
 const taskRoutes = require("./routes/tasks");
+const notificationCenterRoutes = require("./routes/notification-center");
+const documentTemplatesRoutes = require("./routes/document-templates");
+const workflowBuilderRoutes = require("./routes/workflow-builder");
+const integrationsRoutes = require("./routes/integrations");
+const hrOsRoutes = require("./routes/hr-os");
 
 const automationEngine = require("./services/automation-engine");
 
@@ -33,8 +42,16 @@ const PORT = process.env.PORT || 3000;
 
 // 1. CORS Configuration MUST be first to handle OPTIONS preflight
 app.use(cors({
-    origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5501', 'http://127.0.0.1:5501', 'http://localhost:3000'],
-    methods: 'GET,POST,PUT,DELETE',
+    origin: function(origin, callback) {
+        if (!origin) return callback(null, true);
+        if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+            /kylrxai\.(firebaseapp|web)\.app$/.test(origin) ||
+            /app\.kylrxai\.com$/.test(origin)) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true
 }));
 
@@ -49,19 +66,20 @@ app.use(helmet({
             "script-src-attr":  ["'unsafe-inline'"],   // ← allows onclick/onchange attributes (was defaulting to 'none')
             "style-src":        ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
             "img-src":          ["'self'", "data:", "https:"],
-            "connect-src":      ["'self'", "https://*.gstatic.com", "https://*.googleapis.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firestore.googleapis.com", "wss://*.firebaseio.com", "https://*.firebaseapp.com", "http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5501", "http://127.0.0.1:5501", "http://127.0.0.1:5500", "http://localhost:5500", "https://unpkg.com", "https://cdn.jsdelivr.net"],
+            "connect-src":      ["'self'", "https://*.gstatic.com", "https://*.googleapis.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firestore.googleapis.com", "wss://*.firebaseio.com", "https://*.firebaseapp.com", "http://localhost:*", "http://127.0.0.1:*", "https://unpkg.com", "https://cdn.jsdelivr.net"],
             "font-src":         ["'self'", "https://fonts.gstatic.com", "data:"],
             "frame-src":        ["'self'", "https://kylrxai.firebaseapp.com", "https://*.firebaseapp.com", "https://accounts.google.com", "https://apis.google.com"],
             "object-src":       ["'none'"],
-            "upgrade-insecure-requests": [],
+            "upgrade-insecure-requests": null,
         },
     },
 }));
 
-// 3. Rate Limiting (100 requests per 15 mins)
+// 3. Rate Limiting (100 requests per 15 mins for external clients, relaxed for localhost / tests)
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
-    max: 100,
+    max: process.env.NODE_ENV === 'test' ? 10000 : 2000,
+    skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1' || process.env.NODE_ENV === 'test',
     message: { success: false, error: "Too many requests from this IP, please try again in 15 minutes." }
 });
 app.use('/api', limiter);
@@ -87,6 +105,35 @@ app.get("/", (req, res) => {
     });
 });
 
+// Firebase Backend Health & Status
+app.get("/api/firebase/status", async (req, res) => {
+    try {
+        const { db } = require('./config/firebase');
+        const collections = ['users', 'employees', 'attendance', 'activities', 'system_intelligence'];
+        const collectionCounts = {};
+        for (const coll of collections) {
+            try {
+                const snap = await db.collection(coll).limit(20).get();
+                collectionCounts[coll] = snap.size;
+            } catch (e) {
+                collectionCounts[coll] = 0;
+            }
+        }
+        res.json({
+            success: true,
+            status: "connected",
+            service: "Firebase Admin SDK",
+            projectId: "kylrxai",
+            storageBucket: "kylrxai.firebasestorage.app",
+            clientEmail: "firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com",
+            collections: collectionCounts,
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // Serve static files from workspace root
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.use(express.static(__dirname));
@@ -103,7 +150,16 @@ app.use("/api/payroll", payrollRoutes);
 app.use("/api/payroll-runs", payrollRoutes);
 app.use("/api/email", emailRoutes);
 app.use("/api/automations", automationRoutes);
+app.use("/api/assignments", assignmentRoutes);
+app.use("/api/alerts", alertRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/central-dashboard", centralDashboardRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/notification-center", notificationCenterRoutes);
+app.use("/api/document-templates", documentTemplatesRoutes);
+app.use("/api/workflow-builder", workflowBuilderRoutes);
+app.use("/api/integrations", integrationsRoutes);
+app.use("/api/hr-os", hrOsRoutes);
 
 // Reconciliation Engine API (ESM module — loaded via dynamic import)
 // Endpoints: POST /api/reconciliation/ingest
@@ -241,6 +297,20 @@ async function startServer() {
   app.listen(PORT, () => {
     logger.info(`🚀 Secure HRFlow Enterprise Backend running on http://localhost:${PORT}`);
     console.log(`🚀 Secure HRFlow Enterprise Backend running on http://localhost:${PORT}`);
+    
+    // Register HR Module Adapters into Central Automation Engine
+    const moduleRegistry = require('./services/automation-module-registry');
+    try {
+      moduleRegistry.registerModule(require('./modules/onboarding-module-adapter'));
+      moduleRegistry.registerModule(require('./modules/leave-attendance-module-adapter'));
+      moduleRegistry.registerModule(require('./modules/exit-module-adapter'));
+      moduleRegistry.registerModule(require('./modules/payroll-module-adapter'));
+      moduleRegistry.registerModule(require('./modules/statutory-module-adapter'));
+      moduleRegistry.registerModule(require('./modules/policy-module-adapter'));
+      logger.info('[UnifiedAutomationEngine] Successfully registered 6 HR module adapters into central engine.');
+    } catch (regErr) {
+      logger.error('[UnifiedAutomationEngine] Failed to register some module adapters:', regErr);
+    }
     
     // Initialize the centralized automation engine
     automationEngine.start();

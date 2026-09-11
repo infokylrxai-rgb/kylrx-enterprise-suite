@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document & Template Engine | Kylrx Enterprise Suite</title>
+    <meta name="description" content="Centralized document and template management hub. Version control, approval lifecycle, field mapping, and audit trail for all 10 standard HR document templates." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        :root {
+            --bg-deep: #0a0c14;
+            --bg-card: #111520;
+            --bg-panel: #161b28;
+            --bg-hover: #1c2234;
+            --border: rgba(99, 118, 168, 0.15);
+            --border-active: rgba(124, 144, 221, 0.45);
+            --text-primary: #e8eaf4;
+            --text-secondary: #8b91ad;
+            --text-muted: #5a6082;
+            --accent-blue: #5b8af0;
+            --accent-indigo: #7c80f0;
+            --accent-purple: #a56cf0;
+            --accent-teal: #3ecfb2;
+            --accent-green: #42c97b;
+            --accent-gold: #f5c842;
+            --accent-red: #f05b72;
+            --accent-orange: #f08c3e;
+            --gradient-hero: linear-gradient(135deg, #1a1f3a 0%, #0f1322 50%, #1a0f2e 100%);
+            --gradient-accent: linear-gradient(135deg, #5b8af0 0%, #a56cf0 100%);
+            --shadow-glow: 0 0 40px rgba(91, 138, 240, 0.12);
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 100;
+            overflow-y: auto;
+        }
+        .sidebar-logo {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .sidebar-logo .logo-icon {
+            width: 36px; height: 36px;
+            background: var(--gradient-accent);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: #fff;
+        }
+        .sidebar-logo .logo-text { font-weight: 700; font-size: 15px; letter-spacing: 0.3px; }
+        .sidebar-logo .logo-sub { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+        .sidebar-section { padding: 12px 12px 4px; }
+        .sidebar-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); padding: 0 8px 6px; }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 13.5px;
+            font-weight: 500;
+            transition: var(--transition);
+            margin-bottom: 2px;
+        }
+        .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .nav-item.active { background: rgba(91, 138, 240, 0.14); color: var(--accent-blue); }
+        .nav-item i { width: 18px; text-align: center; font-size: 14px; opacity: 0.8; }
+        .nav-badge {
+            margin-left: auto; font-size: 10px; font-weight: 700;
+            background: var(--accent-blue); color: #fff;
+            padding: 2px 7px; border-radius: 20px; min-width: 20px; text-align: center;
+        }
+        .nav-badge.gold { background: var(--accent-gold); color: #111; }
+
+        /* ─── MAIN ─── */
+        .main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 30px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-left h1 { font-size: 18px; font-weight: 700; }
+        .topbar-left p { font-size: 12.5px; color: var(--text-secondary); margin-top: 2px; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 18px; border-radius: var(--radius-sm);
+            font-size: 13px; font-weight: 600;
+            border: none; cursor: pointer; transition: var(--transition);
+        }
+        .btn-primary { background: var(--gradient-accent); color: #fff; box-shadow: 0 4px 16px rgba(91,138,240,0.3); }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-secondary { background: var(--bg-panel); color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-green { background: linear-gradient(135deg,#42c97b,#2fa86b); color:#fff; }
+        .btn-green:hover { filter: brightness(1.1); }
+
+        /* ─── CONTENT ─── */
+        .content { padding: 28px 30px; flex: 1; }
+
+        /* ─── STATS ROW ─── */
+        .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            display: flex; align-items: center; gap: 14px;
+            transition: var(--transition);
+        }
+        .stat-card:hover { border-color: var(--border-active); transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+        .stat-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .stat-icon.blue { background: rgba(91,138,240,0.14); color: var(--accent-blue); }
+        .stat-icon.green { background: rgba(66,201,123,0.14); color: var(--accent-green); }
+        .stat-icon.gold { background: rgba(245,200,66,0.14); color: var(--accent-gold); }
+        .stat-icon.teal { background: rgba(62,207,178,0.14); color: var(--accent-teal); }
+        .stat-icon.purple { background: rgba(165,108,240,0.14); color: var(--accent-purple); }
+        .stat-info label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+        .stat-info span { font-size: 24px; font-weight: 800; display: block; }
+
+        /* ─── TABS ─── */
+        .tabs { display: flex; gap: 4px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px; margin-bottom: 24px; }
+        .tab-btn {
+            flex: 1; padding: 10px 16px; border: none; border-radius: var(--radius-sm);
+            background: transparent; color: var(--text-secondary);
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 8px; justify-content: center;
+        }
+        .tab-btn.active { background: var(--bg-panel); color: var(--text-primary); box-shadow: var(--shadow-card); }
+        .tab-btn:hover:not(.active) { color: var(--text-primary); }
+
+        /* ─── SEARCH & FILTER ─── */
+        .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .search-box {
+            flex: 1; display: flex; align-items: center; gap: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 0 14px;
+        }
+        .search-box i { color: var(--text-muted); font-size: 13px; }
+        .search-box input {
+            flex: 1; background: none; border: none; outline: none;
+            color: var(--text-primary); font-size: 13.5px; padding: 10px 0;
+            font-family: inherit;
+        }
+        .search-box input::placeholder { color: var(--text-muted); }
+        .filter-select {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text-secondary);
+            padding: 9px 14px; font-size: 13px; font-family: inherit;
+            cursor: pointer; outline: none;
+        }
+        .filter-select:focus { border-color: var(--border-active); }
+
+        /* ─── TEMPLATE GRID ─── */
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+        .template-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            display: flex; flex-direction: column; gap: 14px;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .template-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: var(--gradient-accent);
+            opacity: 0; transition: var(--transition);
+        }
+        .template-card:hover { border-color: var(--border-active); transform: translateY(-2px); box-shadow: var(--shadow-glow); }
+        .template-card:hover::before { opacity: 1; }
+
+        .template-card-header { display: flex; align-items: flex-start; gap: 14px; }
+        .template-type-icon {
+            width: 42px; height: 42px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .template-card-title { flex: 1; }
+        .template-card-title h3 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+        .template-card-title p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+        .template-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag {
+            font-size: 11px; font-weight: 600; padding: 3px 9px;
+            border-radius: 20px; letter-spacing: 0.3px;
+        }
+        .tag-blue { background: rgba(91,138,240,0.14); color: var(--accent-blue); }
+        .tag-green { background: rgba(66,201,123,0.14); color: var(--accent-green); }
+        .tag-gold { background: rgba(245,200,66,0.14); color: var(--accent-gold); }
+        .tag-red { background: rgba(240,91,114,0.14); color: var(--accent-red); }
+        .tag-purple { background: rgba(165,108,240,0.14); color: var(--accent-purple); }
+        .tag-teal { background: rgba(62,207,178,0.14); color: var(--accent-teal); }
+        .tag-gray { background: rgba(139,145,173,0.12); color: var(--text-secondary); }
+
+        .template-card-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding-top: 12px; border-top: 1px solid var(--border);
+        }
+        .template-version-info { font-size: 12px; color: var(--text-muted); }
+        .template-version-info span { color: var(--accent-teal); font-weight: 600; }
+        .template-actions { display: flex; gap: 6px; }
+
+        /* ─── PANEL OVERLAY ─── */
+        .panel-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            display: none; align-items: center; justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        .panel-overlay.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .side-panel {
+            position: fixed; right: 0; top: 0; bottom: 0;
+            width: 600px;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border);
+            z-index: 300;
+            display: flex; flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+        }
+        .side-panel.open { transform: translateX(0); }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 14px;
+        }
+        .panel-header h2 { font-size: 16px; font-weight: 700; flex: 1; }
+        .panel-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px; transition: var(--transition); }
+        .panel-close:hover { color: var(--text-primary); }
+
+        .panel-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* ─── SECTION CARD ─── */
+        .section-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+        }
+        .section-card-title {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--text-muted); margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* ─── VERSION TIMELINE ─── */
+        .version-list { display: flex; flex-direction: column; gap: 10px; }
+        .version-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+        }
+        .version-item.active-version { border-color: rgba(66,201,123,0.3); background: rgba(66,201,123,0.04); }
+        .version-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+        .version-dot.approved { background: var(--accent-green); }
+        .version-dot.draft { background: var(--accent-gold); }
+        .version-dot.pending { background: var(--accent-blue); }
+        .version-info { flex: 1; }
+        .version-info strong { font-size: 13px; font-weight: 700; }
+        .version-info p { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .version-info small { font-size: 11px; color: var(--text-muted); }
+
+        /* ─── FIELD MAPPING TABLE ─── */
+        .field-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        .field-table th { text-align: left; padding: 8px 10px; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; border-bottom: 1px solid var(--border); }
+        .field-table td { padding: 9px 10px; border-bottom: 1px solid rgba(99,118,168,0.08); vertical-align: middle; }
+        .field-table tr:last-child td { border-bottom: none; }
+        .field-table tr:hover td { background: var(--bg-hover); }
+        .token-badge { font-family: 'Courier New', monospace; font-size: 11px; background: rgba(91,138,240,0.12); color: var(--accent-blue); padding: 3px 7px; border-radius: 4px; }
+        .required-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-red); }
+
+        /* ─── PREVIEW FRAME ─── */
+        .preview-frame {
+            background: #fff; border-radius: var(--radius-sm);
+            padding: 24px; min-height: 300px;
+            color: #333; font-size: 13.5px; line-height: 1.7;
+            overflow-y: auto; max-height: 500px;
+        }
+        .preview-loading { display: flex; align-items: center; justify-content: center; min-height: 200px; }
+        .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── GENERATED DOCS TABLE ─── */
+        .docs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .docs-table th { text-align: left; padding: 10px 14px; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; border-bottom: 1px solid var(--border); }
+        .docs-table td { padding: 12px 14px; border-bottom: 1px solid rgba(99,118,168,0.08); vertical-align: middle; }
+        .docs-table tr:last-child td { border-bottom: none; }
+        .docs-table tr:hover td { background: var(--bg-hover); }
+
+        .hash-text { font-family: 'Courier New', monospace; font-size: 10px; color: var(--text-muted); }
+
+        /* ─── AUDIT BADGE ─── */
+        .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+        .status-badge.generated { background: rgba(66,201,123,0.14); color: var(--accent-green); }
+        .status-badge.approved { background: rgba(66,201,123,0.14); color: var(--accent-green); }
+        .status-badge.draft { background: rgba(245,200,66,0.14); color: var(--accent-gold); }
+        .status-badge.pending { background: rgba(91,138,240,0.14); color: var(--accent-blue); }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+        .empty-state h3 { font-size: 16px; color: var(--text-secondary); margin-bottom: 8px; }
+        .empty-state p { font-size: 13px; max-width: 340px; margin: 0 auto; }
+
+        /* ─── TOAST ─── */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+            padding: 12px 18px; font-size: 13px; min-width: 260px;
+            display: flex; align-items: center; gap: 10px;
+            animation: slideUp 0.3s ease;
+            box-shadow: var(--shadow-card);
+        }
+        .toast.success { border-left: 3px solid var(--accent-green); }
+        .toast.error { border-left: 3px solid var(--accent-red); }
+        .toast.info { border-left: 3px solid var(--accent-blue); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ─── PERMISSION MAP ─── */
+        .permission-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+        .permission-item {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 8px 12px;
+            display: flex; align-items: center; gap: 8px; font-size: 12px;
+        }
+        .permission-item.allowed { border-color: rgba(66,201,123,0.25); }
+        .permission-item i { font-size: 11px; }
+        .permission-item.allowed i { color: var(--accent-green); }
+        .permission-item.restricted i { color: var(--accent-red); }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(3,1fr); } }
+        @media (max-width: 800px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; }
+            .stats-row { grid-template-columns: repeat(2,1fr); }
+            .side-panel { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon"><i class="fas fa-layer-group"></i></div>
+            <div>
+                <div class="logo-text">Kylrx Admin</div>
+                <div class="logo-sub">Enterprise Suite</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">Command Center</div>
+            <a href="admin-central-dashboard.html" class="nav-item"><i class="fas fa-gauge-high"></i> Central Dashboard</a>
+            <a href="admin-notification-center.html" class="nav-item"><i class="fas fa-bell"></i> Notifications & Actions <span class="nav-badge" id="sidebar-notif-badge">—</span></a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">Automation</div>
+            <a href="admin-automation-builder.html" class="nav-item"><i class="fas fa-bolt"></i> Automation Builder</a>
+            <a href="admin-workflow-builder.html" class="nav-item"><i class="fas fa-project-diagram"></i> Workflow Builder</a>
+            <a href="admin-alert-builder.html" class="nav-item"><i class="fas fa-triangle-exclamation"></i> Alert Builder</a>
+            <a href="admin-assignment-matrix.html" class="nav-item"><i class="fas fa-network-wired"></i> Assignment Engine</a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">Analytics & Docs</div>
+            <a href="admin-custom-analytics.html" class="nav-item"><i class="fas fa-chart-bar"></i> Custom Analytics</a>
+            <a href="admin-document-templates.html" class="nav-item active"><i class="fas fa-file-contract"></i> Document Templates <span class="nav-badge gold">10</span></a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-label">HR Modules</div>
+            <a href="admin-dashboard.html" class="nav-item"><i class="fas fa-users"></i> Workforce</a>
+            <a href="#" class="nav-item"><i class="fas fa-fingerprint"></i> Attendance</a>
+            <a href="#" class="nav-item"><i class="fas fa-money-bill-wave"></i> Payroll</a>
+            <a href="#" class="nav-item"><i class="fas fa-star"></i> PMS</a>
+            <a href="#" class="nav-item"><i class="fas fa-door-open"></i> Exit</a>
+            <a href="#" class="nav-item"><i class="fas fa-shield-halved"></i> Policy</a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+        <!-- TOPBAR -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <h1><i class="fas fa-file-contract" style="color:var(--accent-blue);margin-right:10px;"></i>Document & Template Engine</h1>
+                <p>Centralized version control · Approval lifecycle · Field mapping · Immutable audit trail</p>
+            </div>
+            <div class="topbar-right">
+                <button class="btn btn-secondary btn-sm" onclick="loadGeneratedDocs()">
+                    <i class="fas fa-history"></i> Generated Archive
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="openGenerateModal()">
+                    <i class="fas fa-file-circle-plus"></i> Generate Document
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- STATS ROW -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-file-lines"></i></div>
+                    <div class="stat-info">
+                        <label>Standard Templates</label>
+                        <span id="stat-total">—</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+                    <div class="stat-info">
+                        <label>Active & Approved</label>
+                        <span id="stat-approved">—</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon gold"><i class="fas fa-clock-rotate-left"></i></div>
+                    <div class="stat-info">
+                        <label>Pending Approval</label>
+                        <span id="stat-pending">—</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon teal"><i class="fas fa-file-export"></i></div>
+                    <div class="stat-info">
+                        <label>Documents Generated</label>
+                        <span id="stat-generated">—</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-lock"></i></div>
+                    <div class="stat-info">
+                        <label>Modules Gated</label>
+                        <span id="stat-gated">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('catalog', this)" id="tab-catalog">
+                    <i class="fas fa-grid-2"></i> Template Catalog
+                </button>
+                <button class="tab-btn" onclick="switchTab('generated', this)" id="tab-generated">
+                    <i class="fas fa-history"></i> Generated Archive
+                </button>
+                <button class="tab-btn" onclick="switchTab('audit', this)" id="tab-audit">
+                    <i class="fas fa-shield-check"></i> Audit & Security
+                </button>
+            </div>
+
+            <!-- CATALOG TAB -->
+            <div id="tab-content-catalog">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Search templates by name or category…" oninput="filterTemplates()" />
+                    </div>
+                    <select class="filter-select" id="category-filter" onchange="filterTemplates()">
+                        <option value="all">All Categories</option>
+                        <option value="Onboarding">Onboarding</option>
+                        <option value="Employee Lifecycle">Employee Lifecycle</option>
+                        <option value="Compensation">Compensation</option>
+                        <option value="Payroll">Payroll</option>
+                        <option value="Exit">Exit</option>
+                    </select>
+                </div>
+                <div class="template-grid" id="template-grid">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- GENERATED DOCS TAB -->
+            <div id="tab-content-generated" style="display:none">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search by document ID, recipient or template…" />
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="loadGeneratedDocs()"><i class="fas fa-rotate"></i> Refresh</button>
+                </div>
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+                    <table class="docs-table">
+                        <thead>
+                            <tr>
+                                <th>Document ID</th>
+                                <th>Template</th>
+                                <th>Recipient</th>
+                                <th>Version</th>
+                                <th>Generated By</th>
+                                <th>Status</th>
+                                <th>SHA-256</th>
+                                <th>Generated At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="generated-tbody">
+                            <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">Loading generated documents…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- AUDIT TAB -->
+            <div id="tab-content-audit" style="display:none">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+                    <div class="section-card">
+                        <div class="section-card-title"><i class="fas fa-shield-check"></i> Security Gating Rules</div>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:14px;">
+                            The Document Template Engine enforces strict module-level permission gating. Only explicitly listed permitted modules may invoke <code style="background:var(--bg-hover);padding:2px 6px;border-radius:4px;font-size:11px;">generateDocument()</code> for any given template. Unauthorized calls return <strong>403 Forbidden</strong>.
+                        </p>
+                        <div style="display:flex;flex-direction:column;gap:8px;" id="gating-rules-list">
+                            <div style="text-align:center;padding:20px;color:var(--text-muted);">Loading…</div>
+                        </div>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-card-title"><i class="fas fa-lock"></i> Stage 8 Audit Trail</div>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:14px;">
+                            Every document generation event is immutably recorded in the central <strong>Automation Engine Audit Log (Stage 8)</strong>. Records include template key, version, caller module, recipient, SHA-256 hash, and timestamp — enabling forensic traceability.
+                        </p>
+                        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:12px;color:var(--text-secondary);line-height:1.8;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--accent-green);"><i class="fas fa-check-circle"></i> <strong>Immutable records</strong> — cannot be deleted or modified</div>
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><i class="fas fa-fingerprint" style="color:var(--accent-blue);"></i> SHA-256 content hash per generated document</div>
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><i class="fas fa-user-shield" style="color:var(--accent-purple);"></i> Caller module + actor tracked per request</div>
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><i class="fas fa-calendar-check" style="color:var(--accent-teal);"></i> Effective date version resolution logged</div>
+                            <div style="display:flex;align-items:center;gap:8px;"><i class="fas fa-ban" style="color:var(--accent-red);"></i> Permission violations recorded as security events</div>
+                        </div>
+                    </div>
+
+                    <div class="section-card" style="grid-column:1/-1;">
+                        <div class="section-card-title"><i class="fas fa-timeline"></i> Approval Lifecycle</div>
+                        <div style="display:flex;align-items:center;gap:0;padding:20px 0;">
+                            <div style="text-align:center;flex:1;">
+                                <div style="width:48px;height:48px;border-radius:50%;background:rgba(245,200,66,0.14);border:2px solid var(--accent-gold);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:18px;color:var(--accent-gold);"><i class="fas fa-pen"></i></div>
+                                <div style="font-weight:700;font-size:13px;">Draft</div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">HR creates new version<br>with template body</div>
+                            </div>
+                            <div style="flex:1;height:2px;background:linear-gradient(90deg,var(--accent-gold),var(--accent-blue));"></div>
+                            <div style="text-align:center;flex:1;">
+                                <div style="width:48px;height:48px;border-radius:50%;background:rgba(91,138,240,0.14);border:2px solid var(--accent-blue);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:18px;color:var(--accent-blue);"><i class="fas fa-paper-plane"></i></div>
+                                <div style="font-weight:700;font-size:13px;">Pending Approval</div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Submitted to HR Director<br>for review & signoff</div>
+                            </div>
+                            <div style="flex:1;height:2px;background:linear-gradient(90deg,var(--accent-blue),var(--accent-green));"></div>
+                            <div style="text-align:center;flex:1;">
+                                <div style="width:48px;height:48px;border-radius:50%;background:rgba(66,201,123,0.14);border:2px solid var(--accent-green);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:18px;color:var(--accent-green);"><i class="fas fa-circle-check"></i></div>
+                                <div style="font-weight:700;font-size:13px;">Approved</div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Active & eligible for<br>document generation</div>
+                            </div>
+                            <div style="flex:1;height:2px;background:linear-gradient(90deg,var(--accent-green),var(--accent-teal));"></div>
+                            <div style="text-align:center;flex:1;">
+                                <div style="width:48px;height:48px;border-radius:50%;background:rgba(62,207,178,0.14);border:2px solid var(--accent-teal);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:18px;color:var(--accent-teal);"><i class="fas fa-file-export"></i></div>
+                                <div style="font-weight:700;font-size:13px;">Generated</div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Immutable record archived<br>with SHA-256 hash</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- TEMPLATE DETAIL SIDE PANEL -->
+    <div class="panel-overlay" id="panel-overlay" onclick="closeSidePanel()"></div>
+    <div class="side-panel" id="side-panel">
+        <div class="panel-header">
+            <div id="panel-icon" style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;"></div>
+            <div style="flex:1;">
+                <h2 id="panel-title">Template Detail</h2>
+                <p style="font-size:12px;color:var(--text-muted);" id="panel-subtitle">Category & version info</p>
+            </div>
+            <button class="panel-close" onclick="closeSidePanel()"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div class="panel-body" id="panel-body">
+            <!-- Populated dynamically -->
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="admin-document-templates.js"></script>
+</body>
+</html>

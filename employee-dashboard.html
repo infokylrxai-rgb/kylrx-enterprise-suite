@@ -35,12 +35,32 @@
         body {
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg);
+            background-image: 
+                radial-gradient(ellipse 700px 350px at 85% -5%, rgba(236, 72, 153, 0.24) 0%, transparent 65%),
+                radial-gradient(ellipse 500px 300px at 15% 25%, rgba(244, 63, 94, 0.14) 0%, transparent 55%),
+                radial-gradient(ellipse 650px 300px at 50% 100%, rgba(251, 207, 232, 0.25) 0%, transparent 65%);
+            background-attachment: fixed;
             color: var(--text-main);
             height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
-        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; }
+        /* Ambient Pink Colour Light Aura */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -80px;
+            right: 8%;
+            width: 550px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.06) 50%, transparent 70%);
+            filter: blur(60px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .layout { display: grid; grid-template-columns: var(--sidebar-width) 1fr; height: 100vh; position: relative; z-index: 1; }
 
         /* Sidebar */
         .sidebar {background: var(--sidebar-bg);
@@ -134,14 +154,16 @@
         .col-4 { grid-column: span 4; }
 
         .card {
-            background: var(--card-bg);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 2rem;
-            box-shadow: var(--shadow);
+            box-shadow: 0 10px 30px -5px rgba(236, 72, 153, 0.09), 0 4px 6px -2px rgba(236, 72, 153, 0.04);
             transition: 0.3s;
         }
-        .card:hover { transform: translateY(-2px); border-color: var(--primary-light); }
+        .card:hover { transform: translateY(-2px); border-color: #fbcfe8; box-shadow: 0 16px 36px -4px rgba(236, 72, 153, 0.18), 0 6px 12px -2px rgba(236, 72, 153, 0.08); }
 
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .card-title { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
@@ -812,10 +834,15 @@
             if (logoText) logoText.textContent = config.name;
             if (greeting) greeting.textContent = `Welcome to ${config.name}`;
             
-            if (config.primaryColor) {
-                document.documentElement.style.setProperty('--primary', config.primaryColor);
-                if (logoIcon) logoIcon.style.background = config.primaryColor;
-            }
+            // Apply theme color - static Light Pink strictly enforced for Employee Dashboard (no other colors allowed)
+            document.documentElement.style.setProperty('--primary', '#ec4899');
+            document.documentElement.style.setProperty('--primary-dark', '#be185d');
+            document.documentElement.style.setProperty('--primary-light', '#fdf2f8');
+            document.documentElement.style.setProperty('--primary-mid', '#fbcfe8');
+            document.documentElement.style.setProperty('--bg', '#fff5f9');
+            document.documentElement.style.setProperty('--border', '#fce7f3');
+            document.documentElement.style.setProperty('--shadow', '0 4px 6px -1px rgba(236, 72, 153, 0.08), 0 2px 4px -1px rgba(236, 72, 153, 0.04)');
+            if (logoIcon) logoIcon.style.background = '#ec4899';
 
             if (config.icon && logoIcon) {
                 logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;

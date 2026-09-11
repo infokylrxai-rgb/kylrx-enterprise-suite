@@ -8,13 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
-            --primary: #3b82f6;
-            --primary-light: #eff6ff;
-            --bg: #f8fafc;
+            --primary: #ec4899;
+            --primary-dark: #be185d;
+            --primary-light: #fdf2f8;
+            --primary-mid: #fbcfe8;
+            --bg: #fff5f9;
             --card: #ffffff;
-            --border: #e2e8f0;
-            --text: #0f172a;
-            --text-muted: #64748b;
+            --border: #fce7f3;
+            --text: #1e0a14;
+            --text-muted: #9d6e87;
             --success: #10b981;
             --radius: 20px;
         }
@@ -419,13 +421,12 @@
                         
                         if (logoText) logoText.textContent = config.name;
                         
-                        if (config.primaryColor) {
-                            document.documentElement.style.setProperty('--primary', config.primaryColor);
-                            document.documentElement.style.setProperty('--primary-dark', config.primaryColor);
-                            document.documentElement.style.setProperty('--primary-light', config.primaryColor + '12'); // ~7% opacity
-                            document.documentElement.style.setProperty('--primary-soft', config.primaryColor + '1a'); // ~10% opacity
-                            if (logoIcon) logoIcon.style.background = config.primaryColor;
-                        }
+                        // Static Light Pink enforced for Employee Portal
+                        document.documentElement.style.setProperty('--primary', '#ec4899');
+                        document.documentElement.style.setProperty('--primary-dark', '#be185d');
+                        document.documentElement.style.setProperty('--primary-light', '#fdf2f8');
+                        document.documentElement.style.setProperty('--primary-soft', '#fbcfe8');
+                        if (logoIcon) logoIcon.style.background = '#ec4899';
                         
                         if (config.icon && logoIcon) {
                             logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;

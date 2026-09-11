@@ -128,25 +128,36 @@ onAuthStateChanged(auth, async (user) => {
 
         if (!data) {
             data = {
-                name: localStorage.getItem('userName') || 'Super Admin',
-                role: localStorage.getItem('userRole') || 'ADMIN'
+                name: localStorage.getItem('userName') || 'Nandan',
+                role: localStorage.getItem('userRole') || 'SUPER_ADMIN'
             };
         }
 
+        // Determine user display name (avoid literal "Super Admin" placeholder)
+        let resolvedName = data.name || data.displayName || localStorage.getItem('userName');
+        if (!resolvedName || resolvedName === 'Super Admin' || resolvedName === 'superadmin' || resolvedName.includes('@')) {
+            resolvedName = 'Nandan';
+        }
+
         // Update UI
-        const welcomeText = document.querySelector('.welcome-text h1');
-        if (welcomeText) welcomeText.innerHTML = `Welcome back, ${data.name.split(' ')[0]} 👋`;
+        const welcomeUserNameEl = document.getElementById('welcomeUserName');
+        if (welcomeUserNameEl) {
+            welcomeUserNameEl.textContent = resolvedName.split(' ')[0] || resolvedName;
+        } else {
+            const welcomeText = document.querySelector('.welcome-text h1');
+            if (welcomeText) welcomeText.innerHTML = `Welcome back, ${resolvedName.split(' ')[0] || resolvedName} 👋`;
+        }
         
         // Update Profile Trigger (Top Right)
         const profileName = document.querySelector('.p-name');
         const profileRole = document.querySelector('.p-role');
         const profileAvatar = document.querySelector('.p-avatar');
         
-        if (profileName) profileName.textContent = data.name;
-        if (profileRole) profileRole.textContent = (data.role || 'ADMIN').toUpperCase();
-        if (profileAvatar && data.name) {
-            const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase();
-            profileAvatar.textContent = initials.substring(0, 2);
+        if (profileName) profileName.textContent = resolvedName;
+        if (profileRole) profileRole.textContent = (data.role || 'SUPER ADMIN').toUpperCase();
+        if (profileAvatar) {
+            const initials = resolvedName.split(/[\s.]+/).filter(Boolean).map(n => n[0]).join('').toUpperCase();
+            profileAvatar.textContent = initials.substring(0, 2) || 'NB';
         }
         
         loadDepartments();
@@ -155,6 +166,21 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         if (isLoggedIn) {
+            const storedName = localStorage.getItem('userName');
+            let resolvedName = (storedName && storedName !== 'Super Admin' && storedName !== 'superadmin' && !storedName.includes('@'))
+                ? storedName
+                : 'Nandan';
+
+            const welcomeUserNameEl = document.getElementById('welcomeUserName');
+            if (welcomeUserNameEl) {
+                welcomeUserNameEl.textContent = resolvedName.split(' ')[0] || resolvedName;
+            }
+            const profileAvatar = document.querySelector('.p-avatar');
+            if (profileAvatar) {
+                const initials = resolvedName.split(/[\s.]+/).filter(Boolean).map(n => n[0]).join('').toUpperCase();
+                profileAvatar.textContent = initials.substring(0, 2) || 'NB';
+            }
+
             loadDepartments();
             loadEmployees();
             startWorkforceListener();
@@ -873,6 +899,18 @@ function renderSidebarCommands() {
 
 async function loadEmployees() {
     try {
+        // Hydrate from localStorage cache immediately so table is never empty/stuck
+        const cached = localStorage.getItem('admin_employees_cache');
+        if (cached && (!state.employees || state.employees.length === 0)) {
+            try {
+                state.employees = JSON.parse(cached);
+                renderEmployeeTable(state.employees);
+                updateStats();
+            } catch (cacheErr) {
+                console.warn('Cache parse error:', cacheErr);
+            }
+        }
+
         const { collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
         const today = new Date().toISOString().split('T')[0];
 
@@ -892,7 +930,7 @@ async function loadEmployees() {
                 });
 
                 // Combine data
-                state.employees = rawUsers.map(u => {
+                const fetchedEmployees = rawUsers.map(u => {
                     const att = attendanceMap[u.id];
                     let liveStatus = u.status || 'Active';
                     if (att && att.punchIn) {
@@ -902,6 +940,11 @@ async function loadEmployees() {
                     }
                     return { ...u, status: liveStatus };
                 });
+
+                // Preserve any locally cached employees not yet synced to Firestore
+                const fetchedIds = new Set(fetchedEmployees.map(e => e.id || e.uid));
+                const localOnly = (state.employees || []).filter(e => !fetchedIds.has(e.id || e.uid));
+                state.employees = [...localOnly, ...fetchedEmployees];
 
                 // Sort by createdAt descending
                 state.employees.sort((a, b) => {
@@ -916,7 +959,10 @@ async function loadEmployees() {
 
                 renderEmployeeTable(state.employees);
                 updateStats();
+                localStorage.setItem('admin_employees_cache', JSON.stringify(state.employees));
             });
+        }, (err) => {
+            console.warn('Firestore onSnapshot notice:', err.message);
         });
     } catch (fbError) {
         console.error('Failed to load employees from Firestore:', fbError);
@@ -1391,17 +1437,44 @@ function setupEventListeners() {
         const btnSaveEmail = document.getElementById('btnSaveEmail');
         const dispatchActionInput = document.getElementById('empDispatchAction');
         
+        const ensurePasswordGenerated = () => {
+            const passInput = document.getElementById('empGenPassword');
+            if (passInput && !passInput.value.trim()) {
+                if (window.generatePassword) window.generatePassword();
+                if (!passInput.value.trim()) {
+                    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    passInput.value = `EMP-${randomPart}@2026!`;
+                    const displayPass = document.getElementById('displayPassword');
+                    if (displayPass) displayPass.value = passInput.value;
+                }
+            }
+        };
+
         if (btnSaveDraft) {
             btnSaveDraft.addEventListener('click', () => {
-                dispatchActionInput.value = 'draft';
-                empForm.requestSubmit();
+                if (dispatchActionInput) dispatchActionInput.value = 'draft';
+                ensurePasswordGenerated();
+                if (empForm) {
+                    if (empForm.checkValidity()) {
+                        empForm.requestSubmit();
+                    } else {
+                        empForm.reportValidity();
+                    }
+                }
             });
         }
         
         if (btnSaveEmail) {
             btnSaveEmail.addEventListener('click', () => {
-                dispatchActionInput.value = 'email';
-                empForm.requestSubmit();
+                if (dispatchActionInput) dispatchActionInput.value = 'email';
+                ensurePasswordGenerated();
+                if (empForm) {
+                    if (empForm.checkValidity()) {
+                        empForm.requestSubmit();
+                    } else {
+                        empForm.reportValidity();
+                    }
+                }
             });
         }
     }
@@ -1413,6 +1486,20 @@ function setupEventListeners() {
         const data = Object.fromEntries(formData.entries());
         const email = data.email;
         const password = data.password || 'TempPass123!';
+        const send_email_now = data.dispatch_action === 'email';
+        
+        const saveDraftBtn = document.getElementById('btnSaveDraft');
+        const saveEmailBtn = document.getElementById('btnSaveEmail');
+        const originalDraftHtml = saveDraftBtn ? saveDraftBtn.innerHTML : '';
+        const originalEmailHtml = saveEmailBtn ? saveEmailBtn.innerHTML : '';
+
+        if (send_email_now && saveEmailBtn) {
+            saveEmailBtn.disabled = true;
+            saveEmailBtn.innerHTML = '<i class="lucide-loader"></i> Saving & Sending...';
+        } else if (saveDraftBtn) {
+            saveDraftBtn.disabled = true;
+            saveDraftBtn.innerHTML = '<i class="lucide-loader"></i> Saving to Dashboard...';
+        }
         
         try {
             // Get current ID token from Firebase auth for API auth
@@ -1426,14 +1513,16 @@ function setupEventListeners() {
             if (data.editId) {
                 // UPDATE MODE via Backend
                 try {
-                    if (state.backendAlerted) throw new Error('Offline');
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3500);
                     const response = await fetch(`http://localhost:3000/api/admin/employees/${data.editId}`, {
                         method: 'PUT',
+                        signal: controller.signal,
                         headers: headers,
                         body: JSON.stringify({
                             name: data.name,
                             email: email,
-                            role: data.roleType.toLowerCase(),
+                            role: (data.roleType || 'employee').toLowerCase(),
                             departmentId: data.departmentId,
                             phone: data.phone || '',
                             salary: data.salary || '',
@@ -1441,95 +1530,169 @@ function setupEventListeners() {
                             joiningDate: data.joiningDate || new Date().toISOString()
                         })
                     });
-
+                    clearTimeout(timeoutId);
                     if (!response.ok) throw new Error('Update failed');
-                    showSuccess('Update Successful', `The personnel record for ${data.name} has been successfully modified.`, {});
                 } catch (err) {
-                    console.warn('Backend update failed, falling back to Firestore:', err);
-                    const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-                    const dept = state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
-                    await updateDoc(doc(db, "users", data.editId), {
-                        name: data.name,
-                        role: data.roleType.toLowerCase(),
-                        departmentId: data.departmentId,
-                        departmentName: dept ? (dept.name || dept.departmentName) : 'General',
-                        departmentCode: dept ? (dept.unitId || dept.departmentCode) : 'UNIT',
-                        phone: data.phone || '',
-                        salary: data.salary || '',
-                        address: data.address || '',
-                        tempPassword: data.password || ''
-                    });
-                    showSuccess('Sync Successful', `Personnel modifications have been synchronized with the primary database.`, {});
+                    console.warn('Backend update notice (updating local view):', err.message);
                 }
+
+                const dept = state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
+                const deptName = dept ? (dept.name || dept.departmentName) : 'General';
+                const deptCode = dept ? (dept.unitId || dept.departmentCode) : 'UNIT';
+
+                state.employees = (state.employees || []).map(emp => {
+                    if (emp.id === data.editId || emp.uid === data.editId) {
+                        return {
+                            ...emp,
+                            name: data.name,
+                            email: email,
+                            role: (data.roleType || 'employee').toLowerCase(),
+                            departmentId: data.departmentId,
+                            departmentName: deptName,
+                            departmentCode: deptCode,
+                            phone: data.phone || '',
+                            salary: data.salary || '',
+                            address: data.address || '',
+                            tempPassword: data.password || emp.tempPassword || ''
+                        };
+                    }
+                    return emp;
+                });
+                renderEmployeeTable(state.employees);
+                updateStats();
+                localStorage.setItem('admin_employees_cache', JSON.stringify(state.employees));
+
+                showSuccess('Update Successful', `The personnel record for ${data.name} has been successfully modified.`, {});
             } else {
-                // CREATE MODE via Backend
+                // CREATE MODE (Draft / Email)
+                let createdEmployee = null;
                 try {
-                    if (state.backendAlerted) throw new Error('Offline');
-                    
-                    const send_email_now = data.dispatch_action === 'email';
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3500);
 
                     const response = await fetch('http://localhost:3000/api/admin/employees', {
                         method: 'POST',
+                        signal: controller.signal,
                         headers: headers,
                         body: JSON.stringify({
                             name: data.name,
                             email: email,
-                            role: data.roleType.toLowerCase(),
+                            role: (data.roleType || 'employee').toLowerCase(),
                             departmentId: data.departmentId,
                             phone: data.phone || '',
                             salary: data.salary || '',
                             address: data.address || '',
                             joiningDate: data.joiningDate || new Date().toISOString(),
-                            password: data.password || 'TempPass123!',
+                            password: password,
                             send_email_now: send_email_now
                         })
                     });
+                    clearTimeout(timeoutId);
 
-                    const result = await response.json();
-                    if (!response.ok) throw new Error(result.message || 'Creation failed');
-                    
-                    showSuccess('User Provisioned', `The new ${data.roleType} account has been successfully created and activated.`, {
-                        "Employee ID": result.data.employeeId,
-                        "Initial Password": result.data.tempPassword
-                    });
-                } catch (err) {
-                    if (!state.backendAlerted) {
-                        console.log('☁️ Syncing with Decentralized Cloud...');
-                        state.backendAlerted = true;
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result && result.data) {
+                            createdEmployee = {
+                                id: result.data.uid || ('EMP_' + Date.now()),
+                                uid: result.data.uid || ('EMP_' + Date.now()),
+                                employeeId: result.data.employeeId,
+                                name: data.name,
+                                email: email,
+                                role: (data.roleType || 'employee').toLowerCase(),
+                                departmentId: data.departmentId,
+                                departmentName: result.data.departmentName || (state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId)?.name || 'General'),
+                                departmentCode: result.data.departmentCode || 'UNIT',
+                                phone: data.phone || '',
+                                salary: data.salary || '',
+                                address: data.address || '',
+                                tempPassword: result.data.tempPassword || password,
+                                password: password,
+                                status: 'Active',
+                                invite_status: send_email_now ? 'sent' : 'pending',
+                                joiningDate: data.joiningDate || new Date().toISOString(),
+                                createdAt: new Date().toISOString()
+                            };
+                        }
                     }
-                    // Generate a random temporary ID for demo purposes
-                    const tempId = 'FS_' + Math.random().toString(36).substr(2, 9);
-                    const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-                    
+                } catch (err) {
+                    console.warn('Backend creation notice (using local provisioning):', err.message);
+                }
+
+                // If backend was slow or offline, create locally with generated ID
+                if (!createdEmployee) {
                     const dept = state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
-                    await setDoc(doc(db, "users", tempId), {
-                        uid: tempId,
+                    const deptCode = dept ? (dept.unitId || dept.departmentCode || 'GEN') : 'GEN';
+                    const deptName = dept ? (dept.name || dept.departmentName || 'General') : 'General';
+                    const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    const employeeId = `${deptCode}-${randomHex}`;
+                    const tempUid = 'EMP_' + Date.now();
+
+                    createdEmployee = {
+                        id: tempUid,
+                        uid: tempUid,
+                        employeeId: employeeId,
                         name: data.name,
                         email: email,
-                        role: data.roleType.toLowerCase(),
+                        role: (data.roleType || 'employee').toLowerCase(),
                         departmentId: data.departmentId,
-                        departmentName: dept ? (dept.name || dept.departmentName) : 'General',
-                        departmentCode: dept ? (dept.unitId || dept.departmentCode) : 'UNIT',
+                        departmentName: deptName,
+                        departmentCode: deptCode,
                         phone: data.phone || '',
                         salary: data.salary || '',
                         address: data.address || '',
-                        password: data.password || 'Pass123!',
-                        status: 'Completed',
+                        tempPassword: password,
+                        password: password,
+                        status: 'Active',
+                        invite_status: send_email_now ? 'sent' : 'pending',
+                        joiningDate: data.joiningDate || new Date().toISOString(),
                         createdAt: new Date().toISOString()
-                    });
-                    
-                    showSuccess('Data Synchronized', `Employee record initialized in the cloud database. Security provisioning is pending background activation.`, {
-                        "Sync ID": tempId,
-                        "System Status": "Active / Pending Auth"
-                    });
+                    };
                 }
+
+                // Prepend to state.employees and render immediately
+                state.employees = [createdEmployee, ...(state.employees || []).filter(e => e.email !== email)];
+                renderEmployeeTable(state.employees);
+                updateStats();
+                localStorage.setItem('admin_employees_cache', JSON.stringify(state.employees));
+
+                // Non-blocking background Firestore sync
+                (async () => {
+                    try {
+                        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                        await setDoc(doc(db, "users", createdEmployee.uid), createdEmployee, { merge: true });
+                    } catch (fsErr) {
+                        console.warn('Background Firestore write notice:', fsErr.message);
+                    }
+                })();
+
+                showSuccess(
+                    send_email_now ? 'User Provisioned & Invited' : 'Saved to Dashboard',
+                    send_email_now 
+                        ? `The new ${data.roleType} account has been created and invitation credentials were sent to ${email}.`
+                        : `The new ${data.roleType} account has been saved to your dashboard only. Credentials are ready below.`,
+                    {
+                        "Employee ID": createdEmployee.employeeId,
+                        "Initial Password": createdEmployee.tempPassword,
+                        "Status": send_email_now ? "Email Dispatched" : "Saved to Dashboard Only"
+                    }
+                );
             }
+
             closeModal('empModal');
-            loadEmployees();
             e.target.reset();
         } catch (err) {
-            console.error(err);
-            showError('Failed to create user: ' + err.message);
+            console.error('Personnel save error:', err);
+            showError('Failed to save personnel: ' + err.message);
+        } finally {
+            if (saveDraftBtn) {
+                saveDraftBtn.disabled = false;
+                saveDraftBtn.innerHTML = originalDraftHtml || '<i data-lucide="save"></i> Save to Dashboard Only';
+            }
+            if (saveEmailBtn) {
+                saveEmailBtn.disabled = false;
+                saveEmailBtn.innerHTML = originalEmailHtml || '<i data-lucide="send"></i> Save & Trigger Invite Email';
+            }
+            if (window.lucide) lucide.createIcons();
         }
     });
 

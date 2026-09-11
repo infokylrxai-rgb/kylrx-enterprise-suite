@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Analytics Builder | Kylrx Enterprise Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-dark: #1d4ed8;
+            --accent: #3b82f6;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --info: #0284c7;
+            --bg-canvas: #f0f7ff;
+            --border-card: #d1e7ff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f0f7ff;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ─── SIDEBAR NAVIGATION (WHITE & LIGHT BLUE ENTERPRISE SUITE THEME) ─── */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem 1.1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            overflow: hidden;
+            box-shadow: 2px 0 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.4rem;
+            text-decoration: none;
+            padding-left: 0.4rem;
+        }
+
+        .sidebar .logo img {
+            height: 36px;
+            width: 36px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .sidebar .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+        }
+
+        .sidebar .logo-text span {
+            color: #3b82f6;
+        }
+
+        .nav-menu {
+            flex: 1;
+            list-style: none;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #93c5fd transparent;
+            padding-right: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .nav-menu::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .nav-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 1.2rem 0 0.4rem 0.5rem;
+        }
+
+        .nav-label:first-of-type {
+            margin-top: 0.2rem;
+        }
+
+        .nav-item {
+            margin-bottom: 2px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.65rem 0.9rem;
+            color: #475569 !important;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .nav-link:hover {
+            color: #2563eb !important;
+            background: #eff6ff !important;
+            transform: none !important;
+        }
+
+        .nav-link.active {
+            color: #2563eb !important;
+            background: #eff6ff !important;
+            font-weight: 700;
+            box-shadow: none !important;
+        }
+
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3.5px;
+            background: #2563eb;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-link i,
+        .nav-link svg {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .nav-link:hover i,
+        .nav-link:hover svg,
+        .nav-link.active i,
+        .nav-link.active svg {
+            color: #2563eb !important;
+        }
+
+        .sidebar-bottom {
+            padding-top: 0.6rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .hub-container {
+            margin-left: 260px;
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        /* Top Bar */
+        .hub-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-card);
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .hub-title-block h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hub-title-block p {
+            margin: 4px 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .hub-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-hub {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.6rem 1.1rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid var(--border-card);
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-hub:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-hub-primary {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .btn-hub-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 6px;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            padding: 0.45rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 6-Step Visual Stepper Bar */
+        .stepper-container {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-card);
+            padding: 0.85rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stepper-steps {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #94a3b8;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .step-item.active {
+            color: var(--primary);
+        }
+
+        .step-item.completed {
+            color: var(--success);
+        }
+
+        .step-badge {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .step-item.active .step-badge {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .step-item.completed .step-badge {
+            background: var(--success);
+            color: #ffffff;
+        }
+
+        .step-divider {
+            flex: 1;
+            height: 2px;
+            background: #e2e8f0;
+            max-width: 40px;
+        }
+
+        /* Main Workspace */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 480px 1fr;
+            gap: 1.75rem;
+            padding: 1.75rem 2rem;
+            height: calc(100vh - 160px);
+        }
+
+        .builder-controls-pane {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Data Source Cards */
+        .sources-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .source-card {
+            border: 2px solid var(--border-card);
+            border-radius: 12px;
+            padding: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: #ffffff;
+        }
+
+        .source-card:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+        }
+
+        .source-card.selected {
+            border-color: var(--primary);
+            background: #f5f3ff;
+        }
+
+        .source-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 0.86rem;
+            color: var(--text-main);
+        }
+
+        .source-card.selected .source-card-header {
+            color: var(--primary);
+        }
+
+        .source-card-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
+        /* Metric Chips */
+        .metrics-chips-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .metric-chip {
+            padding: 0.45rem 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .metric-chip:hover {
+            border-color: #cbd5e1;
+            background: #ffffff;
+        }
+
+        .metric-chip.selected {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        /* Filters & Grouping */
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-select {
+            padding: 0.55rem 0.75rem;
+            font-size: 0.82rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            background: #ffffff;
+            font-family: inherit;
+        }
+
+        .control-select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Chart Types Grid */
+        .chart-types-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .chart-type-btn {
+            padding: 0.6rem 0.4rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            background: #ffffff;
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .chart-type-btn:hover {
+            border-color: #cbd5e1;
+        }
+
+        .chart-type-btn.selected {
+            border-color: var(--primary);
+            background: #f5f3ff;
+            color: var(--primary);
+        }
+
+        /* Right Canvas Preview Area */
+        .preview-canvas-pane {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border-card);
+            padding-bottom: 1rem;
+        }
+
+        .preview-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin: 4px 0 0 0;
+        }
+
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .kpi-box {
+            background: #f8fafc;
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .kpi-box-val {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .kpi-box-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .chart-container-box {
+            flex: 1;
+            min-height: 320px;
+            position: relative;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Table Preview */
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            margin-top: 1rem;
+        }
+
+        .preview-table th {
+            text-align: left;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-bottom: 2px solid var(--border-card);
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .preview-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-card);
+        }
+
+        /* Saved Dashboards Gallery */
+        .dashboards-view-container {
+            display: none;
+            padding: 1.75rem 2rem;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .gallery-card {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 1px solid var(--border-card);
+            box-shadow: var(--card-shadow);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .gallery-card:hover {
+            transform: translateY(-2px);
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 520px;
+            padding: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast-popup {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 0.85rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: #3b82f6;">AI</span></span>
+            </a>
+
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link active"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+
+                <div class="nav-label">GOVERNANCE</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+            </div>
+        </aside>
+
+        <!-- Main Hub Content Area -->
+        <main class="hub-container">
+            <!-- Header Toolbar -->
+            <header class="hub-header">
+                <div class="hub-title-block">
+                    <h1>
+                        <i data-lucide="bar-chart-2" style="color: var(--primary);"></i>
+                        Custom Analytics Builder
+                    </h1>
+                    <p>Create live executive dashboards without developers — Select data source → metrics → filters → grouping → chart → save dashboard.</p>
+                </div>
+                <div class="hub-actions">
+                    <!-- Firebase Backend Status Badge -->
+                    <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
+                        <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
+                        <span id="firebaseStatusText">Firebase: kylrxai (Connected)</span>
+                    </div>
+
+                    <div class="tab-nav">
+                        <button class="tab-btn active" id="tabBuilder" onclick="switchView('builder')">
+                            <i data-lucide="sliders" size="14"></i> Analytics Studio
+                        </button>
+                        <button class="tab-btn" id="tabSaved" onclick="switchView('saved')">
+                            <i data-lucide="layout-grid" size="14"></i> Saved Dashboards (<span id="savedCountBadge">6</span>)
+                        </button>
+                    </div>
+                    <button class="btn-hub" onclick="exportCurrentChart()">
+                        <i data-lucide="download"></i> Export Chart
+                    </button>
+                    <button class="btn-hub btn-hub-primary" onclick="openSaveModal()">
+                        <i data-lucide="bookmark"></i> Save Dashboard
+                    </button>
+                </div>
+            </header>
+
+            <!-- 6-Step Visual Stepper Bar -->
+            <div class="stepper-container" id="stepperBar">
+                <div class="stepper-steps">
+                    <div class="step-item active" onclick="jumpToStep(1)">
+                        <div class="step-badge">1</div>
+                        <span>1. Data Source</span>
+                    </div>
+                    <div class="step-divider"></div>
+
+                    <div class="step-item" onclick="jumpToStep(2)">
+                        <div class="step-badge">2</div>
+                        <span>2. Metrics</span>
+                    </div>
+                    <div class="step-divider"></div>
+
+                    <div class="step-item" onclick="jumpToStep(3)">
+                        <div class="step-badge">3</div>
+                        <span>3. Filters</span>
+                    </div>
+                    <div class="step-divider"></div>
+
+                    <div class="step-item" onclick="jumpToStep(4)">
+                        <div class="step-badge">4</div>
+                        <span>4. Grouping</span>
+                    </div>
+                    <div class="step-divider"></div>
+
+                    <div class="step-item" onclick="jumpToStep(5)">
+                        <div class="step-badge">5</div>
+                        <span>5. Chart Type</span>
+                    </div>
+                    <div class="step-divider"></div>
+
+                    <div class="step-item" onclick="openSaveModal()">
+                        <div class="step-badge">6</div>
+                        <span>6. Save Dashboard</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 1: Builder Studio Workspace -->
+            <div class="workspace-grid" id="builderView">
+                <!-- Left Configuration Pane -->
+                <div class="builder-controls-pane">
+                    <!-- Step 1: Select Data Source -->
+                    <div>
+                        <div class="section-label">
+                            <i data-lucide="database" size="14"></i>
+                            Step 1: Select Data Source (6 Domains)
+                        </div>
+                        <div class="sources-grid">
+                            <div class="source-card selected" onclick="selectDataSource('workforce')" id="src-workforce">
+                                <div class="source-card-header">
+                                    <i data-lucide="users" size="16"></i>
+                                    <span>Workforce</span>
+                                </div>
+                                <div class="source-card-desc">Headcount, hiring, attrition, employee type, BU & location</div>
+                            </div>
+
+                            <div class="source-card" onclick="selectDataSource('attendance')" id="src-attendance">
+                                <div class="source-card-header">
+                                    <i data-lucide="clock" size="16"></i>
+                                    <span>Attendance</span>
+                                </div>
+                                <div class="source-card-desc">Absenteeism, late marks, WFH, overtime, regularization</div>
+                            </div>
+
+                            <div class="source-card" onclick="selectDataSource('payroll')" id="src-payroll">
+                                <div class="source-card-header">
+                                    <i data-lucide="credit-card" size="16"></i>
+                                    <span>Payroll</span>
+                                </div>
+                                <div class="source-card-desc">Payroll cost, variance, deductions, exceptions, statutory totals</div>
+                            </div>
+
+                            <div class="source-card" onclick="selectDataSource('pms')" id="src-pms">
+                                <div class="source-card-header">
+                                    <i data-lucide="award" size="16"></i>
+                                    <span>PMS</span>
+                                </div>
+                                <div class="source-card-desc">Review completion, goal completion, rating distribution</div>
+                            </div>
+
+                            <div class="source-card" onclick="selectDataSource('exit')" id="src-exit">
+                                <div class="source-card-header">
+                                    <i data-lucide="log-out" size="16"></i>
+                                    <span>Exit</span>
+                                </div>
+                                <div class="source-card-desc">Exits, reasons, tenure, department attrition, pending F&F</div>
+                            </div>
+
+                            <div class="source-card" onclick="selectDataSource('policy')" id="src-policy">
+                                <div class="source-card-header">
+                                    <i data-lucide="shield-check" size="16"></i>
+                                    <span>Policy</span>
+                                </div>
+                                <div class="source-card-desc">Assigned, acknowledged, pending and overdue compliance</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Metrics -->
+                    <div>
+                        <div class="section-label">
+                            <i data-lucide="target" size="14"></i>
+                            Step 2: Select Metric
+                        </div>
+                        <div class="metrics-chips-grid" id="metricsChipsContainer">
+                            <!-- Injected dynamically based on selected data source -->
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Filters -->
+                    <div>
+                        <div class="section-label">
+                            <i data-lucide="filter" size="14"></i>
+                            Step 3: Multi-Dimensional Filters
+                        </div>
+                        <div class="filter-row">
+                            <div class="control-group">
+                                <label class="section-label" style="font-size:0.72rem; margin:0;">Business Unit</label>
+                                <select class="control-select" id="filterBU" onchange="applyQueryAndRender()">
+                                    <option value="ALL">All Business Units</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Sales & Marketing">Sales & Marketing</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Finance & HR">Finance & HR</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label class="section-label" style="font-size:0.72rem; margin:0;">Department</label>
+                                <select class="control-select" id="filterDept" onchange="applyQueryAndRender()">
+                                    <option value="ALL">All Departments</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Product">Product</option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Customer Success">Customer Success</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="People Ops">People Ops</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Grouping -->
+                    <div>
+                        <div class="section-label">
+                            <i data-lucide="layers" size="14"></i>
+                            Step 4: Group By Dimension
+                        </div>
+                        <select class="control-select" id="selGrouping" onchange="applyQueryAndRender()">
+                            <!-- Injected dynamically based on data source schema -->
+                        </select>
+                    </div>
+
+                    <!-- Step 5: Chart Type -->
+                    <div>
+                        <div class="section-label">
+                            <i data-lucide="pie-chart" size="14"></i>
+                            Step 5: Pick Chart Type
+                        </div>
+                        <div class="chart-types-grid">
+                            <button class="chart-type-btn selected" id="btn-bar" onclick="selectChartType('bar')">
+                                <i data-lucide="bar-chart" size="16"></i>
+                                <span>Bar</span>
+                            </button>
+                            <button class="chart-type-btn" id="btn-line" onclick="selectChartType('line')">
+                                <i data-lucide="trending-up" size="16"></i>
+                                <span>Line</span>
+                            </button>
+                            <button class="chart-type-btn" id="btn-doughnut" onclick="selectChartType('doughnut')">
+                                <i data-lucide="pie-chart" size="16"></i>
+                                <span>Doughnut</span>
+                            </button>
+                            <button class="chart-type-btn" id="btn-table" onclick="selectChartType('table')">
+                                <i data-lucide="table" size="16"></i>
+                                <span>Table</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Live Preview Canvas Pane -->
+                <div class="preview-canvas-pane">
+                    <div class="preview-header">
+                        <div>
+                            <h2 class="preview-title" id="chartPreviewTitle">
+                                <i data-lucide="activity" style="color: var(--primary);"></i>
+                                Workforce &amp; Demographics: Total Headcount by BU
+                            </h2>
+                            <p class="preview-subtitle" id="chartPreviewSubtitle">Calculated across 0 records | Filter: All Units</p>
+                        </div>
+                        <span style="font-size:0.75rem; background:#ecfdf5; color:#047857; padding:4px 10px; border-radius:6px; font-weight:700; display:flex; align-items:center; gap:5px; border: 1px solid #a7f3d0;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                            Firebase Cloud Live
+                        </span>
+                    </div>
+
+                    <!-- KPI Statistics Summary Bar -->
+                    <div class="kpi-strip">
+                        <div class="kpi-box">
+                            <span class="kpi-box-val" id="kpiTotal">0</span>
+                            <span class="kpi-box-label" id="kpiTotalLabel">Total Headcount</span>
+                        </div>
+                        <div class="kpi-box">
+                            <span class="kpi-box-val" id="kpiAvg">0</span>
+                            <span class="kpi-box-label">Average per Group</span>
+                        </div>
+                        <div class="kpi-box">
+                            <span class="kpi-box-val" id="kpiMax">0</span>
+                            <span class="kpi-box-label">Peak Value</span>
+                        </div>
+                        <div class="kpi-box">
+                            <span class="kpi-box-val" id="kpiGroups">0</span>
+                            <span class="kpi-box-label">Groups Evaluated</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Chart Canvas -->
+                    <div class="chart-container-box" id="chartBox">
+                        <canvas id="customAnalyticsCanvas"></canvas>
+                    </div>
+
+                    <!-- Tabular Data Breakdown View -->
+                    <div id="tablePreviewContainer" style="display:none;">
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th id="thDimension">Dimension</th>
+                                    <th id="thMetric">Metric Value</th>
+                                    <th>% of Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablePreviewBody">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 2: Saved Dashboards Gallery -->
+            <div class="dashboards-view-container" id="savedView">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h2 style="font-size:1.2rem; font-weight:800; margin:0;">Enterprise Custom Dashboards</h2>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin:4px 0 0 0;">Pre-built and HR Admin saved multi-widget executive operational boards.</p>
+                    </div>
+                    <button class="btn-hub btn-hub-primary" onclick="switchView('builder')">
+                        <i data-lucide="plus"></i> Build New Dashboard
+                    </button>
+                </div>
+
+                <div class="gallery-grid" id="savedDashboardsContainer">
+                    <!-- Populated dynamically via admin-analytics-builder.js -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Save Custom Dashboard -->
+    <div class="modal-backdrop" id="saveDashboardModal">
+        <div class="modal-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border-card); padding-bottom: 0.75rem;">
+                <div style="font-size:1.15rem; font-weight:800; display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="bookmark" style="color:var(--primary);"></i>
+                    Save Custom Dashboard
+                </div>
+                <button style="background:none; border:none; cursor:pointer;" onclick="closeSaveModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.85rem;">
+                <div class="control-group">
+                    <label class="section-label" style="font-size:0.75rem; margin:0;">Dashboard Title</label>
+                    <input type="text" class="control-select" id="saveDashTitle" placeholder="e.g. Q3 Talent & Attrition Monitor" value="Q3 Talent & Workforce Analytics">
+                </div>
+
+                <div class="control-group">
+                    <label class="section-label" style="font-size:0.75rem; margin:0;">Category / Domain</label>
+                    <select class="control-select" id="saveDashCat">
+                        <option value="Workforce">Workforce & Headcount</option>
+                        <option value="Attendance">Attendance Operations</option>
+                        <option value="Payroll">Payroll & Statutory</option>
+                        <option value="PMS">Performance Management</option>
+                        <option value="Exit">Exit & Retention</option>
+                        <option value="Policy">Policy Compliance</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label class="section-label" style="font-size:0.75rem; margin:0;">Description</label>
+                    <textarea class="control-select" id="saveDashDesc" rows="3" placeholder="Executive summary of metrics and intended audience...">Quarterly workforce distribution and talent retention analysis.</textarea>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:0.5rem;">
+                <button class="btn-hub" onclick="closeSaveModal()">Cancel</button>
+                <button class="btn-hub btn-hub-primary" onclick="submitSaveDashboard()">
+                    <i data-lucide="check"></i> Save Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Connection Details Modal Overlay -->
+    <div id="firebaseModalOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 5000; align-items: center; justify-content: center;">
+        <div style="background: #ffffff; border-radius: 16px; width: 560px; max-width: 95%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; border: 1px solid #e2e8f0;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #047857, #10b981); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; color: white;">
+                        <i data-lucide="database" size="20"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">Firebase Backend Connection</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 0.75rem; opacity: 0.9; color: #dcfce7;">Direct connection to Google Cloud Firestore & Firebase Admin SDK</p>
+                    </div>
+                </div>
+                <button onclick="toggleFirebaseDetailsModal()" style="background: none; border: none; color: #ffffff; cursor: pointer; font-size: 1.2rem;">✕</button>
+            </div>
+            
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem;">
+                    <div style="display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; font-size: 0.82rem;">
+                        <span style="color: #64748b; font-weight: 700;">Project ID:</span>
+                        <span style="font-weight: 800; color: #0f172a; font-family: monospace;" id="fbModalProject">kylrxai</span>
+
+                        <span style="color: #64748b; font-weight: 700;">Backend Status:</span>
+                        <span style="color: #059669; font-weight: 800; display: flex; align-items: center; gap: 6px;" id="fbModalStatus">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                            Active &amp; Initialized
+                        </span>
+
+                        <span style="color: #64748b; font-weight: 700;">Client Firestore:</span>
+                        <span style="font-weight: 800; color: #0f172a;" id="fbModalClient">Firebase JS SDK v12.12.1 (Online)</span>
+
+                        <span style="color: #64748b; font-weight: 700;">Admin Service:</span>
+                        <span style="font-size: 0.75rem; color: #475569; word-break: break-all;" id="fbModalEmail">firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com</span>
+
+                        <span style="color: #64748b; font-weight: 700;">Storage Bucket:</span>
+                        <span style="color: #0f172a; font-family: monospace;">kylrxai.firebasestorage.app</span>
+
+                        <span style="color: #64748b; font-weight: 700;">Live Collections:</span>
+                        <span style="color: #1d4ed8; font-weight: 700;" id="fbModalCollections">employees (0), analytics_dashboards (0), activities (1)</span>
+                    </div>
+                </div>
+
+                <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 14px; border-radius: 4px; margin-bottom: 1.25rem;">
+                    <p style="margin: 0; font-size: 0.76rem; color: #1e40af; line-height: 1.4;">
+                        ⚡ <strong>Realtime Cloud Sync:</strong> Live data queries stream directly from Google Cloud Firestore collections. When 0 records exist in Cloud Firestore, the analytical model evaluates to a baseline of 0.
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn-hub" onclick="testFirebaseSync()" style="background: #f1f5f9; color: #334155; font-size: 0.8rem; font-weight: 700;">
+                        <i data-lucide="send" size="14"></i> Test Firebase Sync Ping
+                    </button>
+                    <button class="btn-hub btn-hub-primary" onclick="toggleFirebaseDetailsModal()" style="font-size: 0.8rem; font-weight: 700;">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-popup" id="analyticsToast">
+        <i data-lucide="check-circle" style="color: #38bdf8;"></i>
+        <span id="toastMsg">Custom dashboard saved successfully!</span>
+    </div>
+
+    <script type="module" src="admin-analytics-builder.js"></script>
+</body>
+
+</html>
