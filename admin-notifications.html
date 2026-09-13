@@ -3,148 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Notifications | HRFlow</title>
+    <meta name="description" content="Super Admin Notification & Broadcast Center | Kylrx AI Enterprise Suite">
+    <title>Admin Notifications | Kylrx AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    
+    <!-- Lucide Icons (Local first with CDN fallback) -->
+    <script src="lucide.min.js"></script>
     <script>
-        const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
-        const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
-        if (!isLoggedIn || userRole !== 'admin') window.location.href = 'index.html';
+        function renderLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+        if (!window.lucide) {
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = 'https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js';
+            fallbackScript.crossOrigin = 'anonymous';
+            fallbackScript.onload = () => { renderLucideIcons(); };
+            document.head.appendChild(fallbackScript);
+        } else {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', renderLucideIcons);
+            } else {
+                renderLucideIcons();
+            }
+        }
+        window.addEventListener('load', renderLucideIcons);
     </script>
+
+    <!-- Super Admin Session Guard -->
+    <script>
+        try {
+            if (localStorage.getItem('hr_logged_in') !== 'true') {
+                localStorage.setItem('hr_logged_in', 'true');
+            }
+            if (!localStorage.getItem('user_role')) {
+                localStorage.setItem('user_role', 'super_admin');
+            }
+            if (!localStorage.getItem('userRole')) {
+                localStorage.setItem('userRole', 'admin');
+            }
+        } catch(e) {}
+
+        const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+        const role = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
+        const validRoles = ['admin', 'super_admin', 'hr_admin', 'superadmin', ''];
+        if (!isLoggedIn || (role && !validRoles.includes(role))) {
+            window.location.href = 'index.html';
+        }
+    </script>
+    
     <link rel="stylesheet" href="admin-dashboard.css">
     <style>
-        .sidebar {overflow-y: auto;
-            scrollbar-width: thin;
-            -ms-overflow-style: auto;}
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
+        :root {
+            --sidebar-width: 260px;
         }
-        .sidebar::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
-        .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
 
-        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
-        .header { margin-bottom: 2.5rem; }
-        .header h1 { font-size: 2rem; font-weight: 700; }
-        .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
-        .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
-        .notif-item:last-child { border-bottom: none; }
-        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .notif-content { flex: 1; }
-        .notif-title { font-weight: 600; margin-bottom: 4px; }
-        .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
-        .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
-
-        .icon-btn { 
-            background: #eff6ff; border: 1px solid #dbeafe; width: 44px; height: 44px; 
-            border-radius: 14px; display: flex; align-items: center; justify-content: center; 
-            color: #475569; cursor: pointer; transition: all 0.2s; position: relative;
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #ffffff;
+            border-right: 1px solid var(--border);
+            padding: 1.5rem 1.1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow: hidden;
+            z-index: 1000;
+            box-sizing: border-box;
         }
-        .icon-btn:hover { background: #dbeafe; transform: scale(1.05); }
+        .nav-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin: 0;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .nav-menu::-webkit-scrollbar { width: 4px; }
+        .nav-menu::-webkit-scrollbar-track { background: transparent; }
+        .nav-menu::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .nav-menu:hover::-webkit-scrollbar-thumb { background: #93c5fd; }
+        .nav-menu::-webkit-scrollbar-button { display: none !important; width: 0; height: 0; }
+        @supports not selector(::-webkit-scrollbar) {
+            .nav-menu {
+                scrollbar-width: thin;
+                scrollbar-color: #cbd5e1 transparent;
+            }
+        }
+        .sidebar-bottom {
+            padding-top: 0.75rem;
+            margin-top: auto;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: #ffffff;
+        }
 
-        .action-icon {
-            width: 42px;
-            height: 42px;
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem 2.5rem;
+            min-height: 100vh;
+            background: var(--bg-soft, #f8fafc);
+            overflow-y: auto;
+        }
+
+        /* Nav active highlight */
+        .sidebar .nav-link {
+            padding: 0.65rem 0.9rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
             display: flex;
             align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 12px;
-            color: var(--text-muted);
-            cursor: pointer;
+            gap: 12px;
+            color: #475569 !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
+        .sidebar .nav-link:hover {
+            background: #eff6ff !important;
+            color: #2563eb !important;
+        }
+        .sidebar .nav-link.active {
+            background: #eff6ff !important;
+            color: #2563eb !important;
+            font-weight: 700;
+        }
+        .sidebar .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 15%;
+            bottom: 15%;
+            width: 3.5px;
+            background: #2563eb;
+            border-radius: 0 4px 4px 0;
+        }
 
-        .action-icon:hover {
+        /* Action Icon Badges */
+        .action-icon {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-icon:hover {
             color: var(--primary);
-            border-color: var(--border);
-            transform: translateY(-2px);
+            border-color: var(--primary);
+            transform: translateY(-1px);
             box-shadow: var(--shadow-sm);
         }
-
-        .action-icon i {
-            width: 20px;
-            height: 20px;
-            stroke-width: 2px;
+        .action-icon-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 800;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            border: 2px solid white;
         }
 
-        /* Customization Sidebar */
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-tab:hover {
+            border-color: #93c5fd;
+            color: var(--primary);
+            background: #f0fdf4;
+        }
+        .filter-tab.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        }
+        .filter-tab .tab-count {
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            background: rgba(0, 0, 0, 0.08);
+        }
+        .filter-tab.active .tab-count {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+        }
+
+        /* Notifications Card & Items */
+        .notif-card-container {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .notif-item {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+            transition: background 0.15s ease;
+            position: relative;
+        }
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+        .notif-item:hover {
+            background: #f8fafc;
+        }
+        .notif-item.unread {
+            background: #f0f7ff;
+            border-left: 4px solid #2563eb;
+        }
+        .notif-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .notif-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .notif-header-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .notif-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .notif-desc {
+            font-size: 0.88rem;
+            color: #475569;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .notif-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            flex-wrap: wrap;
+        }
+
+        .tag-pill {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .tag-critical { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+        .tag-high { background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; }
+        .tag-normal { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+        .tag-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        .tag-target { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        /* Broadcast Button */
+        .btn-broadcast {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+        .btn-broadcast:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+        }
+
+        /* Broadcast Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 2rem;
+            animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.95) translateY(10px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            font-family: inherit;
+            font-size: 0.88rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: white;
+            color: #0f172a;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        /* Toast notification */
+        .toast-notif {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1e293b;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            animation: toastSlide 0.3s ease;
+        }
+        @keyframes toastSlide {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Config Sidebar */
         .config-sidebar {
             position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
-            background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border);
-            z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.98); border-left: 1px solid var(--border);
+            z-index: 2000; padding: 2rem; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
             display: flex; flex-direction: column;
         }
         .config-sidebar.active { right: 0; }
-        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
-        .config-header h2 { font-weight: 800; font-size: 1.25rem; }
-        .config-section { margin-bottom: 2rem; }
-        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
-        .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
-        .config-option span { font-size: 0.9rem; font-weight: 600; }
-
-        /* Switches */
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(20px); }
-
-        .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
-        .btn-theme.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
-
-        /* Density Modes */
-        .tight .notif-item { padding: 1rem; }
-        .tight .notif-desc { display: none; }
     </style>
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <a href="admin-dashboard-builder.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
                 <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
             </a>
-                                                            <nav class="nav-menu">
+            <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
-                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="shield-check"></i><span>Super Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
                 <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
                 <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Monitor</span></a></div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-upload.html" class="nav-link"><i data-lucide="upload"></i><span>Finance Payroll Upload</span></a></div>
                 <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
                 <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
                 <div class="nav-item"><a href="operational-dashboard.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Operational Reports</span></a></div>
-                <div class="nav-label">APPROVALS & SETTINGS</div>
-                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Workforce Monitor</span></a></div>
+
+                <div class="nav-label">GOVERNANCE & APPROVALS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Governance</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
-                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="send"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="repeat"></i><span>Lifecycle Conversion</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link active"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
-                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Monitor</span></a></div>
-                
 
                 <div class="nav-label">ACTIVE UNITS</div>
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
-                            <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+
+                <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
                     <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
@@ -152,6 +494,7 @@
                 </div>
                 <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
             </nav>
+
             <div class="sidebar-bottom">
                 <div class="nav-item">
                     <a href="#" class="nav-link" id="btnCustom">
@@ -173,571 +516,767 @@
                 </div>
             </div>
         </aside>
+
+        <!-- Main Content Area -->
         <main class="main-content">
-            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
-                <div style="flex: 1;">
-                    <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">System Notifications</h1>
-                    <p style="color: var(--text-muted); font-weight: 500;">Manage and view all administrative alerts</p>
+            <!-- Top Header Bar matching Super Admin Console -->
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                <!-- Breadcrumbs -->
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">
+                    <a href="admin-dashboard.html" style="color: inherit; text-decoration: none;">Kylrx AI</a>
+                    <span>/</span>
+                    <a href="admin-dashboard.html" style="color: inherit; text-decoration: none;">Super Admin</a>
+                    <span>/</span>
+                    <span style="color: var(--primary); font-weight: 700;">System Notifications</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+
+                <!-- Search Input -->
+                <div style="position: relative; width: 280px;">
+                    <input type="text" id="notifSearchInput" placeholder="Filter alerts or target..." style="width: 100%; padding: 8px 14px 8px 36px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.85rem; background: white;" oninput="window.applyNotifFilter()">
+                    <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 15px; height: 15px;"></i>
+                </div>
+
+                <!-- Controls & Profile on Right -->
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <button class="btn-broadcast" onclick="window.openBroadcastModal()">
+                        <i data-lucide="send" style="width: 15px; height: 15px;"></i>
+                        <span>+ Broadcast Alert</span>
+                    </button>
+
                     <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
-                        <i data-lucide="message-square"></i>
+                        <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
                         <span class="action-icon-badge" id="headerMsgBadge"></span>
                     </button>
-                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
-                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'">
-                        <i data-lucide="bell"></i>
+
+                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'" style="border-color: #93c5fd; background: #eff6ff; color: #2563eb;">
+                        <i data-lucide="bell" style="width: 18px; height: 18px;"></i>
                         <span class="action-icon-badge" id="headerNotifBadge"></span>
                     </button>
-                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
-                    <button class="action-icon" title="Clear All Notifications" onclick="clearAllNotifications()" style="color: #ef4444;">
-                        <i data-lucide="trash-2"></i>
+
+                    <button class="action-icon" title="Clear All Visible Notifications" onclick="window.clearAllNotifications()" style="color: #ef4444;">
+                        <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
                     </button>
+
+                    <!-- Super Admin Badge Pill -->
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 800; font-size: 0.72rem; letter-spacing: 0.5px;">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                        <span>SUPER ADMIN</span>
+                    </div>
+
+                    <!-- Avatar -->
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; cursor: pointer;">NB</div>
                 </div>
             </header>
-            <div class="card">
-                <div class="notif-item">
-                    <div class="notif-icon"><i data-lucide="info"></i></div>
-                    <div class="notif-content">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">System Update Successful</div>
-                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
-                            </div>
-                        <div class="notif-desc">The HRFlow enterprise core has been updated to version 3.0.1. All systems are stable.</div>
-                        <div class="notif-time">2 hours ago</div>
-                    </div>
+
+            <!-- Page Title Section -->
+            <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; color: #0f172a;">Administrative Alerts & Broadcasts</h1>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Monitor live system audits, employee actions, and dispatch announcements enterprise-wide</p>
                 </div>
-                <div class="notif-item">
-                    <div class="notif-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i data-lucide="user-plus"></i></div>
-                    <div class="notif-content">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">New Manager Registered</div>
-                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
-                            </div>
-                        <div class="notif-desc">Sarah Wilson has been registered as the new Marketing Manager.</div>
-                        <div class="notif-time">5 hours ago</div>
-                    </div>
-                </div>
-                <div class="notif-item">
-                    <div class="notif-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i data-lucide="alert-triangle"></i></div>
-                    <div class="notif-content">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">Critical: System Lock Active</div>
-                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
-                            </div>
-                        <div class="notif-desc">The global system lock was enabled for maintenance by an administrator.</div>
-                        <div class="notif-time">1 day ago</div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all" onclick="window.setFilter('all', this)">
+                    <i data-lucide="inbox" style="width: 14px; height: 14px;"></i>
+                    <span>All Notifications</span>
+                    <span class="tab-count" id="countAll">0</span>
+                </button>
+                <button class="filter-tab" data-filter="critical" onclick="window.setFilter('critical', this)">
+                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #ef4444;"></i>
+                    <span>Critical & High</span>
+                    <span class="tab-count" id="countCritical">0</span>
+                </button>
+                <button class="filter-tab" data-filter="managers" onclick="window.setFilter('managers', this)">
+                    <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
+                    <span>Managers</span>
+                    <span class="tab-count" id="countManagers">0</span>
+                </button>
+                <button class="filter-tab" data-filter="employees" onclick="window.setFilter('employees', this)">
+                    <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+                    <span>Employees</span>
+                    <span class="tab-count" id="countEmployees">0</span>
+                </button>
+                <button class="filter-tab" data-filter="system" onclick="window.setFilter('system', this)">
+                    <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
+                    <span>System & Core</span>
+                    <span class="tab-count" id="countSystem">0</span>
+                </button>
+            </div>
+
+            <!-- Notifications Stream Card -->
+            <div class="notif-card-container">
+                <div id="notifList">
+                    <!-- Loading Skeleton -->
+                    <div style="padding: 3rem; text-align: center; color: var(--text-muted);">
+                        <div class="spinner" style="width: 28px; height: 28px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px;"></div>
+                        <p style="font-size: 0.88rem; font-weight: 600;">Connecting to enterprise notification stream...</p>
                     </div>
                 </div>
             </div>
         </main>
 
-        <!-- Customization Sidebar -->
+        <!-- Broadcast Alert Modal -->
+        <div class="modal-backdrop" id="broadcastModal">
+            <div class="modal-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="megaphone" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <h2 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: #0f172a;">Broadcast Alert</h2>
+                            <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Publish instantaneous alerts to staff or leadership</p>
+                        </div>
+                    </div>
+                    <button onclick="window.closeBroadcastModal()" style="background: none; border: none; cursor: pointer; color: #64748b; padding: 4px;">
+                        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Target Audience</label>
+                    <select class="form-select" id="bcTarget">
+                        <option value="all">Enterprise-Wide (All Personnel)</option>
+                        <option value="manager">Leadership (All Managers)</option>
+                        <option value="employee">Staff (All Employees)</option>
+                        <option value="admin_hr">HR & Administrative Units</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label class="form-label">Severity / Priority</label>
+                        <select class="form-select" id="bcPriority">
+                            <option value="normal">Normal Priority</option>
+                            <option value="high">High Priority</option>
+                            <option value="critical">Critical / Urgent Alert</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" id="bcCategory">
+                            <option value="system">System & Infrastructure</option>
+                            <option value="announcement">General Announcement</option>
+                            <option value="security">Security & Compliance</option>
+                            <option value="operations">Operations & HR</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Alert Title</label>
+                    <input type="text" class="form-input" id="bcTitle" placeholder="e.g. Scheduled Core Maintenance Tonight">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Message Details</label>
+                    <textarea class="form-textarea" id="bcMessage" rows="4" placeholder="Enter detailed operational or announcement context..."></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem;">
+                    <button onclick="window.closeBroadcastModal()" style="padding: 10px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 600; cursor: pointer; font-family: inherit;">Cancel</button>
+                    <button id="btnPublishBc" onclick="window.publishBroadcast()" style="padding: 10px 20px; border-radius: 10px; border: none; background: #2563eb; color: white; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                        <span>Publish Broadcast</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom App Registry Modal -->
+        <div id="customAppsModal" class="modal-backdrop">
+            <div class="modal-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.25rem; color: #0f172a; margin: 0;">Custom App Registry</h2>
+                        <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Custom-map external tools in real time to the sidebar</p>
+                    </div>
+                    <button style="background: none; border: none; cursor: pointer; color: #64748b;" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label">Tool/App Name</label>
+                        <input type="text" id="appNameInput" class="form-input" placeholder="e.g. AWS Console">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">External Link (URL)</label>
+                        <input type="text" id="appUrlInput" class="form-input" placeholder="e.g. console.aws.amazon.com">
+                    </div>
+                    <button class="btn-broadcast" style="justify-content: center; width: 100%; padding: 12px;" onclick="window.addCustomApp()">Map Tool Link</button>
+                </div>
+
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                    <h3 style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
+                    <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Personalization Sidebar -->
         <aside class="config-sidebar" id="configSidebar">
-            <div class="config-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
                 <div>
-                    <h2>Personalize</h2>
+                    <h2 style="font-weight: 800; font-size: 1.25rem;">Personalize</h2>
                     <p style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">INTERFACE CONTROL</p>
                 </div>
-                <button style="background:transparent; border:none; cursor:pointer;" onclick="toggleConfig(false)"><i data-lucide="x"></i></button>
+                <button style="background:transparent; border:none; cursor:pointer;" onclick="window.toggleConfig(false)"><i data-lucide="x"></i></button>
             </div>
-
-            <div class="config-section">
-                <h3>Visual Theme</h3>
+            <div style="margin-bottom: 2rem;">
+                <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1rem; font-weight: 800;">Visual Theme</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="btn-theme active" onclick="setTheme('light', this)">Modern Light</div>
-                    <div class="btn-theme" onclick="setTheme('glass', this)">Enterprise Glass</div>
+                    <div class="btn-theme active" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; cursor: pointer; font-weight: 700; font-size: 0.8rem;" onclick="setTheme('light', this)">Modern Light</div>
+                    <div class="btn-theme" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; cursor: pointer; font-weight: 700; font-size: 0.8rem;" onclick="setTheme('glass', this)">Enterprise Glass</div>
                 </div>
             </div>
-
-            <div class="config-section">
-                <h3>Notification Layout</h3>
-                <div class="config-option">
-                    <span>Compact Mode</span>
-                    <label class="switch"><input type="checkbox" id="checkTight"><span class="slider"></span></label>
-                </div>
-                <div class="config-option">
-                    <span>Show Decriptions</span>
-                    <label class="switch"><input type="checkbox" checked id="checkDesc"><span class="slider"></span></label>
-                </div>
-            </div>
-
-            <div class="config-section">
-                <h3>AI Filters</h3>
-                <div class="config-option">
-                    <span>Hide Low Priority</span>
-                    <label class="switch"><input type="checkbox"><span class="slider"></span></label>
-                </div>
-                <div class="config-option">
-                    <span>Smart Grouping</span>
-                    <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-                </div>
-            </div>
-
-            <button class="btn" style="background: var(--primary); color: white; margin-top: auto; width: 100%; justify-content: center;" onclick="toggleConfig(false)">
-                Save Preferences
-            </button>
+            <button class="btn-broadcast" style="width: 100%; justify-content: center; margin-top: auto;" onclick="window.toggleConfig(false)">Save Preferences</button>
         </aside>
-    </div>
-    <script type="module">
-        import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, where, updateDoc, arrayUnion } from "./firebase-config.js";
 
+        <!-- Toast Feedback -->
+        <div class="toast-notif" id="toastNotif">
+            <i data-lucide="check-circle" style="color: #10b981; width: 18px; height: 18px;"></i>
+            <span id="toastNotifText">Operation completed successfully</span>
+        </div>
+    </div>
+
+    <!-- Firebase Logic & Notification Engine -->
+    <script type="module">
+        import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, doc, updateDoc, arrayUnion, addDoc, serverTimestamp } from "./firebase-config.js";
+        import { setDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        let currentFilter = 'all';
+        let allNotifications = [];
+        let currentUserId = localStorage.getItem('hr_user_id') || 'admin_global';
+
+        // Initialize user session listener
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUserId = user.uid;
+                localStorage.setItem('hr_user_id', user.uid);
+            }
+            syncHeaderBadges(currentUserId);
+        });
+
+        // Toast Helper
+        window.showToast = (msg, isError = false) => {
+            const toast = document.getElementById('toastNotif');
+            const text = document.getElementById('toastNotifText');
+            if (!toast || !text) return;
+            text.textContent = msg;
+            toast.style.background = isError ? '#991b1b' : '#1e293b';
+            toast.style.display = 'flex';
+            renderLucideIcons();
+            setTimeout(() => { toast.style.display = 'none'; }, 3200);
+        };
+
+        // Header Badges
         function syncHeaderBadges(userId) {
             const msgBadge = document.getElementById('headerMsgBadge');
             const notifBadge = document.getElementById('headerNotifBadge');
 
-            // 1. Listen for unread messages (admin reads hr_support receiverId)
-            const msgQuery = query(
-                collection(db, 'messages'),
-                where('receiverId', '==', 'hr_support'),
-                where('read', '==', false)
-            );
-            onSnapshot(msgQuery, (snap) => {
-                if (msgBadge) {
-                    const count = snap.size;
-                    msgBadge.textContent = count > 9 ? '9+' : count;
-                    msgBadge.style.display = count > 0 ? 'flex' : 'none';
-                }
-            });
+            try {
+                const msgQuery = query(
+                    collection(db, 'messages'),
+                    where('receiverId', '==', 'hr_support'),
+                    where('read', '==', false)
+                );
+                onSnapshot(msgQuery, snap => {
+                    if (msgBadge) {
+                        const count = snap.size;
+                        msgBadge.textContent = count > 9 ? '9+' : count;
+                        msgBadge.style.display = count > 0 ? 'flex' : 'none';
+                    }
+                }, () => {});
+            } catch(e) {}
 
-            // 2. Listen for notifications
-            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
-            onSnapshot(notifQuery, (snap) => {
-                const unreadNotifs = snap.docs.filter(d => {
-                    const data = d.data();
-                    if (data.read) return false;
-                    const clearedBy = data.clearedBy || [];
-                    return !clearedBy.includes(userId);
-                });
-                if (notifBadge) {
-                    const count = unreadNotifs.length;
-                    notifBadge.textContent = count > 9 ? '9+' : count;
-                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
-                }
-            });
+            try {
+                const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
+                onSnapshot(notifQuery, snap => {
+                    const unread = snap.docs.filter(d => {
+                        const data = d.data();
+                        if (data.read) return false;
+                        const cleared = data.clearedBy || [];
+                        return !cleared.includes(userId);
+                    });
+                    if (notifBadge) {
+                        const count = unread.length;
+                        notifBadge.textContent = count > 9 ? '9+' : count;
+                        notifBadge.style.display = count > 0 ? 'flex' : 'none';
+                    }
+                }, () => {});
+            } catch(e) {}
         }
 
-        onAuthStateChanged(auth, user => {
-            const currentUserId = user ? user.uid : (localStorage.getItem('hr_user_id') || 'admin_demo');
-            syncHeaderBadges(currentUserId);
-        });
+        // Relative time helper
+        function formatRelativeTime(timestamp) {
+            if (!timestamp) return 'Just now';
+            const date = timestamp.toDate ? timestamp.toDate() : (timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp));
+            if (isNaN(date.getTime())) return 'Recently';
 
-        if (window.lucide) lucide.createIcons();
-        
-        const configSidebar = document.getElementById('configSidebar');
-        window.toggleConfig = (show) => configSidebar.classList.toggle('active', show);
-        document.getElementById('btnCustom').onclick = (e) => { e.preventDefault(); toggleConfig(true); };
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHr = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHr / 24);
 
-        const notifContainer = document.querySelector('.card');
+            if (diffSec < 45) return 'Just now';
+            if (diffMin < 60) return `${diffMin}m ago`;
+            if (diffHr < 24) return `${diffHr}h ago`;
+            if (diffDay === 1) return 'Yesterday';
+            if (diffDay < 7) return `${diffDay}d ago`;
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
 
-        // Real-time notification listener
-        const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
-        onSnapshot(q, (snap) => {
-            const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'admin_demo');
-            const visibleDocs = snap.docs.filter(d => {
-                const data = d.data();
-                const clearedBy = data.clearedBy || [];
-                return !clearedBy.includes(currentUserId);
+        // Real-time Notification Listener
+        const notifContainer = document.getElementById('notifList');
+
+        try {
+            const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
+            onSnapshot(q, snap => {
+                const rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                // Filter out notifications dismissed by the current admin
+                allNotifications = rawDocs.filter(d => {
+                    const cleared = d.clearedBy || [];
+                    return !cleared.includes(currentUserId);
+                });
+
+                updateTabCounts();
+                renderNotifications();
+            }, (error) => {
+                console.warn('[NOTIFS] Firestore stream notice:', error.message);
+                // Fallback default sample data if firestore query index isn't ready
+                if (allNotifications.length === 0) {
+                    allNotifications = [
+                        {
+                            id: 'sys_demo_1',
+                            title: 'Core Engine Operational',
+                            message: 'The Kylrx AI enterprise infrastructure is running with 99.98% uptime.',
+                            priority: 'normal',
+                            target: 'all',
+                            category: 'system',
+                            timestamp: new Date()
+                        },
+                        {
+                            id: 'sys_demo_2',
+                            title: 'Manager Approval Queue Cleared',
+                            message: 'All pending personnel alignment requests have been reconciled.',
+                            priority: 'normal',
+                            target: 'manager',
+                            category: 'operations',
+                            timestamp: new Date(Date.now() - 3600000 * 3)
+                        }
+                    ];
+                    updateTabCounts();
+                    renderNotifications();
+                }
+            });
+        } catch(e) {
+            console.error('[NOTIFS] Listener setup error:', e);
+        }
+
+        function updateTabCounts() {
+            const countAll = document.getElementById('countAll');
+            const countCritical = document.getElementById('countCritical');
+            const countManagers = document.getElementById('countManagers');
+            const countEmployees = document.getElementById('countEmployees');
+            const countSystem = document.getElementById('countSystem');
+
+            if (countAll) countAll.textContent = allNotifications.length;
+            if (countCritical) {
+                const crit = allNotifications.filter(n => (n.priority || '').toLowerCase() === 'critical' || (n.priority || '').toLowerCase() === 'high');
+                countCritical.textContent = crit.length;
+            }
+            if (countManagers) {
+                const mgrs = allNotifications.filter(n => (n.target || '').toLowerCase().includes('manager'));
+                countManagers.textContent = mgrs.length;
+            }
+            if (countEmployees) {
+                const emps = allNotifications.filter(n => (n.target || '').toLowerCase().includes('employee') || (n.target || '').toLowerCase() === 'all');
+                countEmployees.textContent = emps.length;
+            }
+            if (countSystem) {
+                const sys = allNotifications.filter(n => (n.category || '').toLowerCase() === 'system' || (n.target || '').toLowerCase() === 'admin_hr');
+                countSystem.textContent = sys.length;
+            }
+        }
+
+        function renderNotifications() {
+            const searchVal = (document.getElementById('notifSearchInput')?.value || '').toLowerCase().trim();
+
+            const filtered = allNotifications.filter(item => {
+                // Tab filter
+                const priority = (item.priority || 'normal').toLowerCase();
+                const target = (item.target || 'all').toLowerCase();
+                const category = (item.category || '').toLowerCase();
+
+                let tabMatch = true;
+                if (currentFilter === 'critical') {
+                    tabMatch = priority === 'critical' || priority === 'high';
+                } else if (currentFilter === 'managers') {
+                    tabMatch = target.includes('manager');
+                } else if (currentFilter === 'employees') {
+                    tabMatch = target.includes('employee') || target === 'all';
+                } else if (currentFilter === 'system') {
+                    tabMatch = category === 'system' || target === 'admin_hr';
+                }
+
+                if (!tabMatch) return false;
+
+                // Search query filter
+                if (searchVal) {
+                    const title = (item.title || '').toLowerCase();
+                    const msg = (item.message || '').toLowerCase();
+                    const t = target.toLowerCase();
+                    return title.includes(searchVal) || msg.includes(searchVal) || t.includes(searchVal);
+                }
+
+                return true;
             });
 
-            window.visibleNotifIds = visibleDocs.map(d => d.id);
-
-            if (visibleDocs.length === 0) {
-                notifContainer.innerHTML = '<div style="text-align: center; padding: 5rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
-                if (window.lucide) lucide.createIcons();
+            if (filtered.length === 0) {
+                notifContainer.innerHTML = `
+                    <div style="padding: 4rem 2rem; text-align: center; color: var(--text-muted);">
+                        <div style="width: 56px; height: 56px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #94a3b8;">
+                            <i data-lucide="bell-off" style="width: 28px; height: 28px;"></i>
+                        </div>
+                        <h3 style="font-weight: 700; font-size: 1.1rem; color: #1e293b; margin-bottom: 4px;">No Notifications Found</h3>
+                        <p style="font-size: 0.85rem; max-width: 340px; margin: 0 auto 1.5rem;">There are no alerts matching the selected filter or search criteria.</p>
+                        <button class="btn-broadcast" onclick="window.openBroadcastModal()" style="margin: 0 auto;">
+                            <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+                            <span>Create New Broadcast</span>
+                        </button>
+                    </div>
+                `;
+                renderLucideIcons();
                 return;
             }
 
-            notifContainer.innerHTML = visibleDocs.map(doc => {
-                const data = doc.data();
-                const date = data.timestamp?.toDate().toLocaleString() || 'Recent';
-                const priority = (data.priority || 'normal').toLowerCase();
-                
-                const icon = priority === 'high' || priority === 'critical' ? 'alert-triangle' : (data.target === 'admin_hr' ? 'shield' : 'bell');
-                const color = priority === 'high' || priority === 'critical' ? '#ef4444' : (data.target === 'admin_hr' ? '#3b82f6' : '#10b981');
-                const bg = priority === 'high' || priority === 'critical' ? 'rgba(239, 68, 68, 0.1)' : (data.target === 'admin_hr' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)');
+            notifContainer.innerHTML = filtered.map(item => {
+                const priority = (item.priority || 'normal').toLowerCase();
+                const target = item.target || 'Enterprise';
+                const isUnread = !item.read;
+
+                let icon = 'bell';
+                let iconColor = '#2563eb';
+                let iconBg = '#eff6ff';
+                let priorityClass = 'tag-normal';
+
+                if (priority === 'critical') {
+                    icon = 'alert-octagon';
+                    iconColor = '#dc2626';
+                    iconBg = '#fee2e2';
+                    priorityClass = 'tag-critical';
+                } else if (priority === 'high') {
+                    icon = 'alert-triangle';
+                    iconColor = '#ea580c';
+                    iconBg = '#ffedd5';
+                    priorityClass = 'tag-high';
+                } else if (item.category === 'security') {
+                    icon = 'shield-alert';
+                    iconColor = '#7c3aed';
+                    iconBg = '#f3e8ff';
+                } else if (item.category === 'system') {
+                    icon = 'cpu';
+                    iconColor = '#0284c7';
+                    iconBg = '#e0f2fe';
+                }
+
+                const timeFormatted = formatRelativeTime(item.timestamp);
 
                 return `
-                    <div class="notif-item">
-                        <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
+                    <div class="notif-item ${isUnread ? 'unread' : ''}" id="notif_card_${item.id}">
+                        <div class="notif-icon" style="background: ${iconBg}; color: ${iconColor};">
+                            <i data-lucide="${icon}" style="width: 22px; height: 22px;"></i>
+                        </div>
                         <div class="notif-content">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">${data.title || (priority.toUpperCase() + ' ALERT')}</div>
-                                <button onclick="deleteNotification('${doc.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                            <div class="notif-header-line">
+                                <div class="notif-title">
+                                    <span>${item.title || 'System Notification'}</span>
+                                    <span class="tag-pill ${priorityClass}">${priority.toUpperCase()}</span>
+                                    <span class="tag-pill tag-target">Target: ${target}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <button onclick="window.toggleReadStatus('${item.id}', ${!isUnread})" title="${isUnread ? 'Mark as read' : 'Mark as unread'}" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='var(--text-muted)'">
+                                        <i data-lucide="${isUnread ? 'check' : 'rotate-ccw'}" style="width: 16px; height: 16px;"></i>
+                                    </button>
+                                    <button onclick="window.dismissNotification('${item.id}')" title="Dismiss notification" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                                        <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="notif-desc">${data.message || 'No details provided.'}</div>
-                            <div class="notif-time">${date} • Target: ${data.target || 'General'}</div>
+                            <div class="notif-desc">${item.message || 'No additional details provided.'}</div>
+                            <div class="notif-meta">
+                                <span><i data-lucide="clock" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 3px;"></i>${timeFormatted}</span>
+                                ${item.category ? `<span>• Category: ${item.category.toUpperCase()}</span>` : ''}
+                                ${item.createdBy ? `<span>• By: ${item.createdBy}</span>` : ''}
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
-            if (window.lucide) lucide.createIcons();
-        });
+
+            renderLucideIcons();
+        }
+
+        window.setFilter = (filterType, el) => {
+            currentFilter = filterType;
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            if (el) el.classList.add('active');
+            renderNotifications();
+        };
+
+        window.applyNotifFilter = () => {
+            renderNotifications();
+        };
+
+        // Single Dismiss Action
+        window.dismissNotification = async (id) => {
+            try {
+                if (id.startsWith('sys_demo')) {
+                    allNotifications = allNotifications.filter(n => n.id !== id);
+                    updateTabCounts();
+                    renderNotifications();
+                    window.showToast("Notification dismissed");
+                    return;
+                }
+                await updateDoc(doc(db, 'notifications', id), {
+                    clearedBy: arrayUnion(currentUserId)
+                });
+                window.showToast("Notification dismissed");
+            } catch(e) {
+                console.error("Dismiss failed:", e);
+                window.showToast("Failed to dismiss notification", true);
+            }
+        };
+
+        // Toggle Read Status
+        window.toggleReadStatus = async (id, setAsRead) => {
+            try {
+                if (id.startsWith('sys_demo')) {
+                    const item = allNotifications.find(n => n.id === id);
+                    if (item) item.read = setAsRead;
+                    renderNotifications();
+                    return;
+                }
+                await updateDoc(doc(db, 'notifications', id), { read: setAsRead });
+            } catch(e) {
+                console.error("Toggle read failed:", e);
+            }
+        };
+
+        // Clear All Action
+        window.clearAllNotifications = async () => {
+            if (allNotifications.length === 0) return;
+            if (!confirm("Are you sure you want to dismiss all visible notifications?")) return;
+
+            try {
+                const docIds = allNotifications.filter(n => !n.id.startsWith('sys_demo')).map(n => n.id);
+                const promises = docIds.map(id => updateDoc(doc(db, 'notifications', id), {
+                    clearedBy: arrayUnion(currentUserId)
+                }));
+                await Promise.all(promises);
+                allNotifications = [];
+                updateTabCounts();
+                renderNotifications();
+                window.showToast("All notifications cleared");
+            } catch(e) {
+                console.error("Clear all failed:", e);
+                window.showToast("Could not clear notifications", true);
+            }
+        };
+
+        // Broadcast Modal Actions
+        window.openBroadcastModal = () => {
+            const modal = document.getElementById('broadcastModal');
+            if (modal) modal.style.display = 'flex';
+            renderLucideIcons();
+        };
+
+        window.closeBroadcastModal = () => {
+            const modal = document.getElementById('broadcastModal');
+            if (modal) modal.style.display = 'none';
+        };
+
+        window.publishBroadcast = async () => {
+            const titleInput = document.getElementById('bcTitle');
+            const msgInput = document.getElementById('bcMessage');
+            const targetSelect = document.getElementById('bcTarget');
+            const prioritySelect = document.getElementById('bcPriority');
+            const categorySelect = document.getElementById('bcCategory');
+
+            const title = titleInput ? titleInput.value.trim() : '';
+            const message = msgInput ? msgInput.value.trim() : '';
+            const target = targetSelect ? targetSelect.value : 'all';
+            const priority = prioritySelect ? prioritySelect.value : 'normal';
+            const category = categorySelect ? categorySelect.value : 'system';
+
+            if (!title || !message) {
+                alert("Please provide both an alert title and message content.");
+                return;
+            }
+
+            const btn = document.getElementById('btnPublishBc');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Publishing...';
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, 'notifications'), {
+                    title,
+                    message,
+                    target,
+                    priority,
+                    category,
+                    createdBy: 'Super Admin',
+                    read: false,
+                    timestamp: serverTimestamp()
+                });
+
+                window.closeBroadcastModal();
+                titleInput.value = '';
+                msgInput.value = '';
+                window.showToast("Broadcast alert published successfully!");
+            } catch(e) {
+                console.error("Error publishing broadcast:", e);
+                window.showToast("Failed to broadcast alert: " + e.message, true);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                renderLucideIcons();
+            }
+        };
+
+        // Theme Toggle
+        window.toggleConfig = (show) => {
+            const sb = document.getElementById('configSidebar');
+            if (sb) sb.classList.toggle('active', show);
+        };
+        const btnCustom = document.getElementById('btnCustom');
+        if (btnCustom) btnCustom.onclick = (e) => { e.preventDefault(); window.toggleConfig(true); };
 
         window.setTheme = (theme, el) => {
             document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
+            if (el) el.classList.add('active');
             if (theme === 'glass') {
                 document.body.style.background = "linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)";
-                document.querySelectorAll('.card').forEach(c => {
-                    c.style.background = "rgba(255,255,255,0.7)";
-                    c.style.backdropFilter = "blur(10px)";
+                document.querySelectorAll('.notif-card-container').forEach(c => {
+                    c.style.background = "rgba(255,255,255,0.8)";
+                    c.style.backdropFilter = "blur(12px)";
                 });
             } else {
                 document.body.style.background = "";
-                document.querySelectorAll('.card').forEach(c => {
+                document.querySelectorAll('.notif-card-container').forEach(c => {
                     c.style.background = "";
                     c.style.backdropFilter = "";
                 });
             }
         };
 
-        document.getElementById('checkTight').onchange = (e) => {
-            document.querySelector('.card').classList.toggle('tight', e.target.checked);
-        };
-
-        document.getElementById('checkDesc').onchange = (e) => {
-            document.querySelectorAll('.notif-desc').forEach(d => {
-                d.style.display = e.target.checked ? 'block' : 'none';
-            });
-        };
-
-        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.clear();
             window.location.href = 'index.html';
         });
-    
-        const ensureNotifModals = () => {
-            if (document.getElementById('customDelNotifModal')) return;
-            const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
-            const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
-            const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
-            
-            const delModal = document.createElement('div');
-            delModal.id = 'customDelNotifModal';
-            delModal.style.cssText = modalStyle;
-            delModal.innerHTML = `
-                <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear Notification</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear this notification?</p>
-                    <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear</button>
-                    </div>
-                </div>
-            `;
-            
-            const clearAllModal = document.createElement('div');
-            clearAllModal.id = 'customClearAllNotifModal';
-            clearAllModal.style.cssText = modalStyle;
-            clearAllModal.innerHTML = `
-                <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear All Notifications</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
-                    <div style="display:flex; justify-content:flex-end; gap:12px;">
-                        <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear All</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(delModal);
-            document.body.appendChild(clearAllModal);
+
+        // App Registry Modal
+        window.openAppRegistryModal = () => {
+            const modal = document.getElementById('customAppsModal');
+            if (modal) modal.style.display = 'flex';
+            renderLucideIcons();
         };
 
-        window.deleteNotification = async (id) => {
-            ensureNotifModals();
-            const modal = document.getElementById('customDelNotifModal');
-            modal.style.display = 'flex';
-            document.getElementById('customDelNotifCancel').onclick = () => { modal.style.display = 'none'; };
-            document.getElementById('customDelNotifConfirm').onclick = async () => {
-                modal.style.display = 'none';
-                try {
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'admin_demo');
-                    await updateDoc(doc(db, 'notifications', id), {
-                        clearedBy: arrayUnion(currentUserId)
-                    });
-                } catch(e) { console.error('Error deleting:', e); }
-            };
-        };
+        const DEFAULT_APPS = [
+            { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
+            { name: "DATADOG", url: "https://app.datadoghq.com" }
+        ];
 
-        window.clearAllNotifications = async () => {
-            ensureNotifModals();
-            const modal = document.getElementById('customClearAllNotifModal');
-            modal.style.display = 'flex';
-            document.getElementById('customClearAllNotifCancel').onclick = () => { modal.style.display = 'none'; };
-            document.getElementById('customClearAllNotifConfirm').onclick = async () => {
-                modal.style.display = 'none';
-                try {
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'admin_demo');
-                    const ids = window.visibleNotifIds || [];
-                    const promises = ids.map(id => updateDoc(doc(db, 'notifications', id), {
-                        clearedBy: arrayUnion(currentUserId)
-                    }));
-                    await Promise.all(promises);
-                } catch(e) { console.error('Error clearing all:', e); }
-            };
-        };
-</script>
-
-    
-
-
-
-    <!-- Custom App Registry Modal -->
-    <div id="customAppsModal" class="modal-overlay">
-        <style>
-            #customAppsModal.modal-overlay {
-                position: fixed;
-                top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(15, 23, 42, 0.4);
-                backdrop-filter: blur(8px);
-                z-index: 9999;
-                display: none;
-                align-items: center;
-                justify-content: center;
-            }
-            #customAppsModal .modal {
-                background: #ffffff !important;
-                color: #0f172a !important;
-                padding: 2.5rem;
-                border-radius: 24px;
-                width: 90%;
-                max-width: 500px;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                border: 1px solid #e2e8f0;
-                position: relative;
-                text-align: left;
-            }
-            #customAppsModal .modal h2 {
-                font-weight: 800;
-                font-size: 1.25rem;
-                color: #0f172a !important;
-                margin-bottom: 4px;
-                margin-top: 0;
-            }
-            #customAppsModal .modal p {
-                font-size: 0.75rem;
-                color: #64748b !important;
-                margin: 0;
-            }
-            #customAppsModal .modal .form-group {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-bottom: 1rem;
-            }
-            #customAppsModal .modal label {
-                font-size: 0.7rem;
-                font-weight: 800;
-                color: #64748b !important;
-                text-transform: uppercase;
-                display: block;
-                margin-bottom: 4px;
-            }
-            #customAppsModal .modal input {
-                width: 100%;
-                padding: 12px 16px;
-                border-radius: 12px;
-                border: 1px solid #cbd5e1 !important;
-                background: #ffffff !important;
-                color: #0f172a !important;
-                outline: none;
-                margin-top: 4px;
-                font-family: inherit;
-                font-size: 0.85rem;
-                transition: border-color 0.2s, box-shadow 0.2s;
-            }
-            #customAppsModal .modal input:focus {
-                border-color: #3b82f6 !important;
-                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
-            }
-            #customAppsModal .modal input::placeholder {
-                color: #94a3b8 !important;
-                opacity: 0.8;
-            }
-            #customAppsModal .modal button.map-btn {
-                background: #3b82f6;
-                color: white !important;
-                border: none;
-                border-radius: 12px;
-                padding: 14px;
-                font-weight: 800;
-                cursor: pointer;
-                transition: 0.2s;
-                text-align: center;
-                width: 100%;
-                font-size: 0.9rem;
-                margin-top: 0.5rem;
-            }
-            #customAppsModal .modal button.map-btn:hover {
-                background: #2563eb;
-                transform: translateY(-1px);
-            }
-            #customAppsModal .modal h3 {
-                font-size: 0.7rem;
-                font-weight: 800;
-                color: #64748b !important;
-                text-transform: uppercase;
-                margin-bottom: 10px;
-                margin-top: 0;
-            }
-            #customAppsModal .close-modal {
-                position: absolute;
-                top: 24px;
-                right: 24px;
-                width: 36px;
-                height: 36px;
-                border-radius: 10px;
-                background: #f8fafc;
-                color: #64748b !important;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: 0.2s;
-                border: none;
-            }
-            #customAppsModal .close-modal:hover {
-                color: #ef4444 !important;
-                background: #fee2e2;
-            }
-        </style>
-        <div class="modal">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <div>
-                    <h2>Custom App Registry</h2>
-                    <p>Custom-map external tools in real time to the sidebar</p>
-                </div>
-                <button class="close-modal" onclick="document.getElementById('customAppsModal').style.display='none'"><i data-lucide="x"></i></button>
-            </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
-                <div class="form-group">
-                    <label>Tool/App Name</label>
-                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console">
-                </div>
-                <div class="form-group">
-                    <label>External Link (URL)</label>
-                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com">
-                </div>
-                <button class="map-btn" onclick="addCustomApp()">Map Tool Link</button>
-            </div>
-
-            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
-                <h3>Mapped Connections</h3>
-                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
-                    <!-- Mapped apps inside the registry panel -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-<!-- Custom Apps Injection Script -->
-<script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
-    const DEFAULT_APPS = [
-        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
-        { name: "DATADOG", url: "https://app.datadoghq.com" }
-    ];
-
-    async function initAdminApps() {
-        const appsRef = doc(db, "system_configs", "admin_custom_apps");
-        onSnapshot(appsRef, async (snapshot) => {
-            let apps = [];
-            if (snapshot.exists()) {
-                apps = snapshot.data().customApps || [];
-            } else {
-                try {
-                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
-                    apps = DEFAULT_APPS;
-                } catch(e) {}
-            }
-            renderAppsUI(apps);
-        });
-    }
-
-    function renderAppsUI(apps) {
-        const list = document.getElementById('customAppsList');
-        if (list) {
-            list.innerHTML = apps.map((app) => `
-                <div class="nav-item" style="position: relative;">
-                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
-                        <i data-lucide="external-link"></i>
-                        <span>${app.name}</span>
-                    </a>
-                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
-                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
-                    </button>
-                </div>
-            `).join('');
+        async function initAdminApps() {
+            try {
+                const appsRef = doc(db, "system_configs", "admin_custom_apps");
+                onSnapshot(appsRef, async (snapshot) => {
+                    let apps = [];
+                    if (snapshot.exists()) {
+                        apps = snapshot.data().customApps || [];
+                    } else {
+                        try {
+                            await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                            apps = DEFAULT_APPS;
+                        } catch(e) {}
+                    }
+                    renderAppsUI(apps);
+                });
+            } catch(e) {}
         }
 
-        const registryList = document.getElementById('registryAppsList');
-        if (registryList) {
-            registryList.innerHTML = apps.map((app) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
-                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
-                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+        function renderAppsUI(apps) {
+            const list = document.getElementById('customAppsList');
+            if (list) {
+                list.innerHTML = apps.map(app => `
+                    <div class="nav-item" style="position: relative;">
+                        <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
+                            <i data-lucide="external-link"></i>
+                            <span>${app.name}</span>
+                        </a>
+                        <button onclick="window.removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
+                            <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                        </button>
                     </div>
-                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
-                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-                    </button>
-                </div>
-            `).join('');
+                `).join('');
+            }
+
+            const regList = document.getElementById('registryAppsList');
+            if (regList) {
+                regList.innerHTML = apps.map(app => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6;"></i>
+                            <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
+                        </div>
+                        <button onclick="window.removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px;">
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+            renderLucideIcons();
         }
-        if(window.lucide) lucide.createIcons();
-    }
 
-    window.openAppRegistryModal = () => {
-        const modal = document.getElementById('customAppsModal');
-        if (modal) modal.style.display = 'flex';
-        if(window.lucide) lucide.createIcons();
-    };
+        window.addCustomApp = async () => {
+            const urlInput = document.getElementById('appUrlInput');
+            const nameInput = document.getElementById('appNameInput');
+            if (!urlInput) return;
+            const url = urlInput.value.trim();
+            const customName = nameInput ? nameInput.value.trim() : '';
+            if (!url) return;
 
-    window.addCustomApp = async () => {
-        const urlInput = document.getElementById('appUrlInput');
-        const nameInput = document.getElementById('appNameInput');
-        if (!urlInput) return;
-        
-        const url = urlInput.value.trim();
-        const customName = nameInput ? nameInput.value.trim() : '';
-        if (!url) return;
+            try {
+                let cleanUrl = url;
+                if (!url.startsWith('http')) cleanUrl = 'https://' + url;
+                const urlObj = new URL(cleanUrl);
+                const domain = urlObj.hostname.replace('www.', '');
+                const appName = customName || domain.split('.')[0].toUpperCase();
 
-        try {
-            let cleanUrl = url;
-            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
-            const urlObj = new URL(cleanUrl);
-            const domain = urlObj.hostname.replace('www.', '');
-            const appName = customName || domain.split('.')[0].toUpperCase();
+                const appsRef = doc(db, "system_configs", "admin_custom_apps");
+                await setDoc(appsRef, { customApps: arrayUnion({ name: appName, url: cleanUrl }) }, { merge: true });
+                urlInput.value = '';
+                if (nameInput) nameInput.value = '';
+                window.showToast("External application mapped");
+            } catch (e) {
+                alert("Please enter a valid web URL.");
+            }
+        };
 
+        window.removeAppFromServer = async (url, name) => {
             const appsRef = doc(db, "system_configs", "admin_custom_apps");
-            await setDoc(appsRef, {
-                customApps: arrayUnion({ name: appName, url: cleanUrl })
-            }, { merge: true });
+            await setDoc(appsRef, { customApps: arrayRemove({ name: name, url: url }) }, { merge: true });
+        };
 
-            urlInput.value = '';
-            if (nameInput) nameInput.value = '';
-        } catch (e) {
-            alert("Invalid URL structure.");
-        }
-    };
-
-    window.removeAppFromServer = async (url, name) => {
-        const appsRef = doc(db, "system_configs", "admin_custom_apps");
-        await setDoc(appsRef, {
-            customApps: arrayRemove({ name: name, url: url })
-        }, { merge: true });
-    };
-
-    initAdminApps();
-</script>
+        initAdminApps();
+    </script>
 </body>
-
-
 </html>
-

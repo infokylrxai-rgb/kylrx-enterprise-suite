@@ -352,10 +352,16 @@
                     <h1>System Notifications</h1>
                     <p class="sub-header">View and manage all real-time organizational updates</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                    <button class="action-btn-notif" title="Customize Layout" id="btnCustom" style="width: 42px; height: 42px;">
-                        <i data-lucide="sliders-horizontal"></i>
-                    </button>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: var(--shadow-sm); transition: 0.3s;">
+                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                        <span id="backendStatusText">Firebase Backend Online</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                        <button class="action-btn-notif" title="Customize Layout" id="btnCustom" style="width: 42px; height: 42px;">
+                            <i data-lucide="sliders-horizontal"></i>
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -407,7 +413,10 @@
     </div>
 
     <script type="module">
-        import { auth, db, doc, onAuthStateChanged, collection, query, where, getDoc, getDocs, onSnapshot, updateDoc, limit, deleteDoc, arrayUnion } from "./firebase-config.js";
+        import { 
+            auth, db, doc, onAuthStateChanged, checkBackendFirebaseStatus,
+            collection, query, where, getDoc, getDocs, onSnapshot, updateDoc, limit, deleteDoc, arrayUnion 
+        } from "./firebase-config.js";
 
         lucide.createIcons();
 
@@ -421,6 +430,35 @@
         window.navigateToDashboard = () => {
             navigateTo('employee-dashboard.html');
         };
+
+        // --- BACKEND FIREBASE CONNECTIVITY SYNC ---
+        async function syncBackendStatus() {
+            const pill = document.getElementById('backendStatusPill');
+            const dot = document.getElementById('backendStatusDot');
+            const text = document.getElementById('backendStatusText');
+            if (!pill || !text) return;
+
+            try {
+                const status = await checkBackendFirebaseStatus();
+                if (status.online) {
+                    pill.style.background = '#ecfdf5';
+                    pill.style.borderColor = '#a7f3d0';
+                    pill.style.color = '#059669';
+                    if (dot) dot.style.background = '#10b981';
+                    text.textContent = 'Firebase Backend Online';
+                    text.title = `Project: ${status.projectId || 'kylrxai'} • Service: ${status.service || 'Firebase Admin'}`;
+                } else {
+                    pill.style.background = '#fefce8';
+                    pill.style.borderColor = '#fef08a';
+                    pill.style.color = '#ca8a04';
+                    if (dot) dot.style.background = '#eab308';
+                    text.textContent = 'Direct Cloud Line';
+                    text.title = 'Connected to Firestore directly';
+                }
+            } catch (_) {
+                text.textContent = 'Direct Cloud Line';
+            }
+        }
 
         // Premium Status modal
         window.showStatusModal = (title, msg, type = 'info') => {
@@ -468,11 +506,50 @@
             document.getElementById('notificationsFeed').classList.toggle('compact-notif', e.target.checked);
         };
 
+        function hydrateProfileUI(user) {
+            if (!user) return;
+            const name = user.displayName || user.name || user.fullName || 'Employee';
+            const role = user.designation || user.role || 'Cybersecurity Specialist';
+            const parts = name.trim().split(/\s+/).filter(Boolean);
+            const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (parts[0] ? parts[0].slice(0, 2).toUpperCase() : 'JD');
+
+            const initEl = document.getElementById('userInitial');
+            const nameEl = document.getElementById('userNameDisplay');
+            const roleEl = document.getElementById('userRoleDisplay');
+            if (initEl) initEl.textContent = initials;
+            if (nameEl) nameEl.textContent = name;
+            if (roleEl) roleEl.textContent = role;
+        }
+
         let currentUser = null;
         let notifsList = [];
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlId = urlParams.get('id');
+        let currentUid = urlId || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
+
+        // 1. Immediate Synchronous Profile Hydration (Eliminates "-- --" hang)
+        let defaultName = 'John Doe';
+        if (currentUid === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2' || urlId === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2') {
+            defaultName = 'Marry Doe';
+        } else if (localStorage.getItem('userName')) {
+            defaultName = localStorage.getItem('userName');
+        }
+        let defaultRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
+
+        currentUser = {
+            uid: currentUid,
+            name: defaultName,
+            displayName: defaultName,
+            role: defaultRole,
+            designation: defaultRole,
+            department: localStorage.getItem('userDept') || 'Cybersecurity'
+        };
+
+        hydrateProfileUI(currentUser);
+        syncBackendStatus();
+
         async function loadCommandCenterConfig() {
-            const urlParams = new URLSearchParams(window.location.search);
             const centerId = urlParams.get('id');
             if (centerId) {
                 try {
@@ -523,39 +600,36 @@
 
         onAuthStateChanged(auth, async (user) => {
             loadCommandCenterConfig();
-            const activeUid = user ? user.uid : localStorage.getItem('employee_uid');
+            const activeUid = user ? user.uid : (urlId || localStorage.getItem('employee_uid') || 'demo_emp');
+            if (user && user.displayName && defaultName === 'John Doe') {
+                defaultName = user.displayName;
+                currentUser.name = user.displayName;
+                currentUser.displayName = user.displayName;
+                hydrateProfileUI(currentUser);
+            }
+
             if (activeUid) {
                 const userDocRef = doc(db, 'users', activeUid);
                 onSnapshot(userDocRef, (snap) => {
-                    if (snap.exists()) {
+                    if (snap && snap.exists && snap.exists()) {
                         const data = snap.data();
                         currentUser = { uid: activeUid, ...data };
                         hydrateProfileUI(currentUser);
                         syncNotifications(activeUid);
+                    } else {
+                        hydrateProfileUI(currentUser);
+                        syncNotifications(activeUid);
                     }
+                }, (err) => {
+                    console.warn("User profile snapshot listener note:", err?.message || err);
+                    hydrateProfileUI(currentUser);
+                    syncNotifications(activeUid);
                 });
             } else {
-                // Fallback Demo Employee
-                const demoUser = {
-                    uid: 'demo_emp',
-                    name: 'John Doe',
-                    role: 'Cybersecurity Specialist',
-                    department: 'Cybersecurity'
-                };
-                currentUser = demoUser;
-                hydrateProfileUI(demoUser);
-                syncNotifications(demoUser.uid);
+                hydrateProfileUI(currentUser);
+                syncNotifications(currentUser.uid);
             }
         });
-
-        function hydrateProfileUI(user) {
-            const name = user.displayName || user.name || user.fullName || 'Employee';
-            const role = user.designation || user.role || 'Employee';
-            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-            document.getElementById('userInitial').textContent = initials;
-            document.getElementById('userNameDisplay').textContent = name;
-            document.getElementById('userRoleDisplay').textContent = role;
-        }
 
         // Live stream notifications
         function syncNotifications(uid) {

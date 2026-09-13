@@ -20,30 +20,81 @@ router.get('/modules', (req, res) => {
     }
 });
 
-// POST /api/automations - Create or update a workflow definition
+// POST /api/automations - Create or update a workflow definition in Firebase Firestore
 router.post('/', async (req, res) => {
     try {
         const payload = req.body;
-        // Basic validation
-        if (!payload.name || !payload.trigger_event || !payload.pipeline) {
-            return res.status(400).json({ success: false, error: 'Missing required fields: name, trigger_event, pipeline' });
-        }
+        const name = payload.name || 'Untitled Automation';
+        const steps = payload.steps || payload.pipeline || [];
+        const triggerEvent = payload.trigger_event || (steps[0] && (steps[0].config?.eventType || steps[0].title)) || 'custom.trigger';
 
         const automationRef = db.collection('automations').doc(payload.id || undefined); // let firestore auto-id if missing
         const finalId = payload.id || automationRef.id;
 
         const data = {
             ...payload,
+            id: finalId,
+            name: name,
+            steps: steps,
+            pipeline: steps,
+            trigger_event: triggerEvent,
             updated_at: new Date().toISOString(),
-            status: payload.status || 'active'
+            status: payload.status || 'ACTIVE'
         };
 
         await automationRef.set(data, { merge: true });
+        logger.info(`[AutomationRoutes] Automation "${name}" (${finalId}) saved to Firebase Firestore.`);
 
-        res.status(200).json({ success: true, id: finalId, message: 'Automation saved successfully' });
+        res.status(200).json({ success: true, id: finalId, data, message: 'Automation saved successfully to Firebase Firestore' });
     } catch (error) {
-        logger.error('Error saving automation:', error);
+        logger.error('Error saving automation to Firebase:', error);
         res.status(500).json({ success: false, error: 'Failed to save automation' });
+    }
+});
+
+// DELETE /api/automations/:id - Delete an entire workflow from Firebase Firestore
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.collection('automations').doc(id).delete();
+        logger.info(`[AutomationRoutes] Automation "${id}" deleted from Firebase Firestore.`);
+        res.status(200).json({ success: true, message: `Workflow ${id} deleted from Firebase Firestore` });
+    } catch (error) {
+        logger.error('Error deleting automation from Firebase:', error);
+        res.status(500).json({ success: false, error: 'Failed to delete automation from Firebase' });
+    }
+});
+
+// DELETE /api/automations/:id/steps/:stepKey - Delete a specific step from a workflow in Firebase Firestore
+router.delete('/:id/steps/:stepKey', async (req, res) => {
+    try {
+        const { id, stepKey } = req.params;
+        const docRef = db.collection('automations').doc(id);
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) {
+            return res.status(404).json({ success: false, error: 'Workflow not found in Firebase Firestore' });
+        }
+        const workflow = docSnap.data();
+        let steps = workflow.steps || workflow.pipeline || [];
+
+        const idx = parseInt(stepKey, 10);
+        if (!isNaN(idx) && idx >= 0 && idx < steps.length) {
+            steps.splice(idx, 1);
+        } else {
+            steps = steps.filter(s => s.id !== stepKey);
+        }
+
+        await docRef.update({
+            steps: steps,
+            pipeline: steps,
+            updated_at: new Date().toISOString()
+        });
+
+        logger.info(`[AutomationRoutes] Step ${stepKey} deleted from workflow ${id} in Firebase Firestore.`);
+        res.status(200).json({ success: true, message: 'Step deleted from Firebase Firestore', remainingSteps: steps.length });
+    } catch (error) {
+        logger.error('Error deleting step from Firebase:', error);
+        res.status(500).json({ success: false, error: 'Failed to delete step from Firebase' });
     }
 });
 

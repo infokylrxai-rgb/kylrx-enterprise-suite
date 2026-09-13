@@ -93,19 +93,38 @@
             flex: 1;
             list-style: none;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #93c5fd transparent;
             padding-right: 4px;
             margin-bottom: 0.5rem;
         }
 
         .nav-menu::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
+        }
+
+        .nav-menu::-webkit-scrollbar-track {
+            background: transparent;
         }
 
         .nav-menu::-webkit-scrollbar-thumb {
             background: #cbd5e1;
-            border-radius: 4px;
+            border-radius: 10px;
+        }
+
+        .nav-menu:hover::-webkit-scrollbar-thumb {
+            background: #93c5fd;
+        }
+
+        .nav-menu::-webkit-scrollbar-button {
+            display: none !important;
+            width: 0;
+            height: 0;
+        }
+
+        @supports not selector(::-webkit-scrollbar) {
+            .nav-menu {
+                scrollbar-width: thin;
+                scrollbar-color: #cbd5e1 transparent;
+            }
         }
 
         .nav-label {
@@ -727,7 +746,7 @@
             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
-                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="shield-check"></i><span>Super Admin Console</span></a></div>
                 <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
                 <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
                 <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
@@ -740,9 +759,11 @@
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
 
                 <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Monitor</span></a></div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-upload.html" class="nav-link"><i data-lucide="upload"></i><span>Finance Payroll Upload</span></a></div>
                 <div class="nav-item"><a href="payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
                 <div class="nav-item"><a href="statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
@@ -751,14 +772,23 @@
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
                 <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="operational-dashboard.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Operational Reports</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Workforce Monitor</span></a></div>
 
-                <div class="nav-label">GOVERNANCE</div>
-                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
+                <div class="nav-label">GOVERNANCE & APPROVALS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Governance</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="send"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="repeat"></i><span>Lifecycle Conversion</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
             </nav>
 
             <div class="sidebar-bottom">
                 <div class="nav-item"><a href="admin-settings.html" class="nav-link"><i data-lucide="settings"></i><span>Settings</span></a></div>
+                <div class="nav-item"><a href="index.html" class="nav-link" style="color: var(--danger);"><i data-lucide="log-out"></i><span>Logout</span></a></div>
             </div>
         </aside>
 
@@ -767,18 +797,28 @@
             <!-- Header Toolbar -->
             <header class="hub-header">
                 <div class="hub-title-block">
-                    <h1>
-                        <i data-lucide="bell-ring" style="color: var(--primary);"></i>
-                        Alert Builder
-                    </h1>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <h1>
+                            <i data-lucide="bell-ring" style="color: var(--primary);"></i>
+                            Alert Builder
+                        </h1>
+                        <!-- Firebase Backend Status Badge -->
+                        <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
+                            <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
+                            <span id="firebaseStatusText">Firebase: kylrxai (Connected) • Slate Zeroed</span>
+                        </div>
+                    </div>
                     <p>Streamlined interface for threshold monitoring & notification rules — powered by the Unified Common Automation Engine.</p>
                 </div>
                 <div class="hub-actions">
-                    <!-- Firebase Backend Status Badge -->
-                    <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
-                        <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
-                        <span id="firebaseStatusText">Firebase: kylrxai (Connected)</span>
-                    </div>
+                    <button class="btn-hub" id="btn-zero-all" onclick="zeroAllAlerts()" style="background:#ede9fe; color:#6d28d9; border-color:#ddd6fe; font-weight:700;" title="Zero out all threshold monitors and breaches, synced with Firebase">
+                        <i data-lucide="sparkles" style="width:15px; height:15px;"></i>
+                        <span>Make All 0</span>
+                    </button>
+                    <button class="btn-hub" id="btn-restore-alerts" onclick="restoreAlerts()" style="color:#2563eb; background:#eff6ff; border-color:#bfdbfe; font-weight:700;" title="Restore threshold monitors">
+                        <i data-lucide="rotate-ccw" style="width:15px; height:15px;"></i>
+                        <span>Restore Monitors</span>
+                    </button>
                     <button class="btn-hub" onclick="openSimulationConsole()">
                         <i data-lucide="play-circle"></i> Simulation Console
                     </button>
@@ -795,7 +835,7 @@
                         <i data-lucide="shield-check" size="22"></i>
                     </div>
                     <div class="stat-content">
-                        <span class="stat-number" id="kpiActiveMonitors">5</span>
+                        <span class="stat-number" id="kpiActiveMonitors">0</span>
                         <span class="stat-label">Active Threshold Monitors</span>
                     </div>
                 </div>
@@ -805,7 +845,7 @@
                         <i data-lucide="alert-octagon" size="22"></i>
                     </div>
                     <div class="stat-content">
-                        <span class="stat-number" id="kpiCriticalMonitors">3</span>
+                        <span class="stat-number" id="kpiCriticalMonitors">0</span>
                         <span class="stat-label">Critical Tier Rules</span>
                     </div>
                 </div>
@@ -815,7 +855,7 @@
                         <i data-lucide="bell" size="22"></i>
                     </div>
                     <div class="stat-content">
-                        <span class="stat-number" id="kpiBreaches">14</span>
+                        <span class="stat-number" id="kpiBreaches">0</span>
                         <span class="stat-label">Breaches Caught Today</span>
                     </div>
                 </div>

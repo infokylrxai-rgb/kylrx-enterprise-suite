@@ -1007,6 +1007,9 @@
             transition: all 0.25s ease;
             cursor: pointer;
             user-select: none;
+            white-space: nowrap;
+            flex-shrink: 0;
+            line-height: 1.2;
         }
         .superadmin-badge-pill:hover {
             transform: translateY(-1px);
@@ -1016,10 +1019,13 @@
         .superadmin-badge-pill .role-status-dot {
             width: 8px;
             height: 8px;
+            min-width: 8px;
+            min-height: 8px;
             border-radius: 50%;
             background: #10b981;
             box-shadow: 0 0 8px #10b981;
             animation: pulse-dot 1.5s infinite ease-in-out;
+            flex-shrink: 0;
         }
         .superadmin-badge-pill.hr-admin {
             background: #f1f5f9;
@@ -1028,9 +1034,22 @@
             box-shadow: none;
         }
         .superadmin-badge-pill.hr-admin .role-status-dot {
+            width: 8px;
+            height: 8px;
+            min-width: 8px;
+            min-height: 8px;
+            border-radius: 50%;
             background: #64748b;
             box-shadow: none;
             animation: none;
+            flex-shrink: 0;
+        }
+        .superadmin-badge-pill i,
+        .superadmin-badge-pill svg {
+            flex-shrink: 0;
+        }
+        #profileBadgeRoleText {
+            white-space: nowrap;
         }
 
         .admin-qa-toolbar {
@@ -1382,33 +1401,33 @@
                 </div>
                 
                 <!-- Action Controls and Profile on the right -->
-                <div style="display: flex; align-items: center; gap: 1.5rem; flex: 1; justify-content: flex-end;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <button class="action-icon" title="Bulk Onboard" id="btnBulkOnboard" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                <div style="display: flex; align-items: center; gap: 1.25rem; flex: 1; justify-content: flex-end; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 0.65rem; flex-shrink: 0;">
+                        <button class="action-icon" title="Bulk Onboard" id="btnBulkOnboard" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0;">
                             <i data-lucide="upload-cloud" style="width: 20px; height: 20px;"></i>
                         </button>
-                        <button id="btnAddEmp" title="New Personnel" style="width: 36px; height: 36px; border-radius: 10px; background: var(--primary); border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;">
+                        <button id="btnAddEmp" title="New Personnel" style="width: 36px; height: 36px; border-radius: 10px; background: var(--primary); border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; flex-shrink: 0;">
                             <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
                         </button>
-                        <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                        <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0;">
                             <i data-lucide="message-square" style="width: 20px; height: 20px;"></i>
                         </button>
-                        <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                        <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'" style="border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0;">
                             <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
                         </button>
                         
                         <!-- Top Navigation Bar Super Admin Profile Badge -->
-                        <div id="profileContainer" style="display: flex; align-items: center; gap: 8px; position: relative;">
+                        <div id="profileContainer" style="display: flex; align-items: center; gap: 8px; position: relative; flex-shrink: 0;">
                             <div id="superAdminProfileBadge" class="superadmin-badge-pill" title="Click to view Super Admin Identity & Claims" onclick="window.toggleSuperAdminIdentityModal()">
                                 <span class="role-status-dot"></span>
                                 <span id="profileBadgeRoleText">Super Admin (Full Access)</span>
                                 <i data-lucide="shield-check" size="14"></i>
                             </div>
-                            <div id="profileTrigger" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #9333ea); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 6px rgba(147, 51, 234, 0.3);" class="p-avatar" title="superadmin@kylrx.ai">SA</div>
+                            <div id="profileTrigger" style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #9333ea); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 6px rgba(147, 51, 234, 0.3); flex-shrink: 0;" class="p-avatar" title="superadmin@kylrx.ai">SA</div>
                         </div>
                     </div>
 
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); cursor: pointer;" onclick="if(typeof openAppRegistryModal==='function')openAppRegistryModal();">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); cursor: pointer; flex-shrink: 0;" onclick="if(typeof openAppRegistryModal==='function')openAppRegistryModal();">
                         <span>CUSTOM APPS</span>
                         <i data-lucide="settings" style="width: 14px; height: 14px; color: var(--primary);"></i>
                     </div>

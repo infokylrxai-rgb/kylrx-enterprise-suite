@@ -672,7 +672,7 @@
             <div class="mt-3 space-y-2 text-xs">
               <div class="flex justify-between py-1 border-b border-slate-200">
                 <span class="text-slate-500">Vesting Requirement:</span>
-                <span class="font-bold text-slate-800">&ge; 0 Continuous Years</span>
+                <span class="font-bold text-slate-800">&ge; 5 Continuous Years</span>
               </div>
               <div class="flex justify-between py-1 border-b border-slate-200">
                 <span class="text-slate-500">Statutory Exception:</span>
@@ -680,15 +680,15 @@
               </div>
               <div class="flex justify-between py-1 border-b border-slate-200">
                 <span class="text-slate-500">Statutory Tax-Free Cap:</span>
-                <span class="font-bold text-slate-800">₹0</span>
+                <span class="font-bold text-slate-800">₹20,00,000</span>
               </div>
               <div class="flex justify-between py-1 border-b border-slate-200">
                 <span class="text-slate-500">Verified Test Vector:</span>
-                <span class="font-mono text-purple-700 font-bold">₹0, 0 yrs = ₹0</span>
+                <span class="font-mono text-purple-700 font-bold">₹25,000, 6.2 yrs = ₹89,423</span>
               </div>
               <div class="flex justify-between py-1">
                 <span class="text-slate-500">Workflow Approval:</span>
-                <span class="font-bold text-amber-700">0-Eyes Maker-Checker</span>
+                <span class="font-bold text-amber-700">4-Eyes Maker-Checker</span>
               </div>
             </div>
           </div>
@@ -727,62 +727,44 @@
         </div>
       </div>
 
-      <!-- Pillar 3 & 4: Calculation Statements & Unvested Review Tasks -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <!-- Eligible Calculations Table -->
-        <div class="lg:col-span-2 border border-slate-200 rounded-xl overflow-hidden bg-white">
-          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">3</span>
-              <div>
-                <h3 class="text-sm font-bold text-slate-800 font-heading">Eligible Gratuity Settlements</h3>
-                <p class="text-xs text-slate-500">Computed via statutory formula: (Last Salary &times; 15 &times; Completed Years) / 26</p>
-              </div>
-            </div>
-            <div class="flex items-center space-x-2">
-              <span id="firebaseGratSyncPill" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                <i class="fa-solid fa-cloud-arrow-up mr-1 text-blue-500"></i> Firestore Synced
-              </span>
-              <span class="text-xs font-bold text-slate-800" id="gratEligibleCountBadge">2 Eligible</span>
+      <!-- Pillar 3 & 4: Calculation Statements & Settlement Outputs -->
+      <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">3</span>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 font-heading">Eligible Gratuity Settlements</h3>
+              <p class="text-xs text-slate-500">Computed via statutory formula: (Last Salary &times; 15 &times; Completed Years) / 26</p>
             </div>
           </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-100/75 border-b border-slate-200 font-semibold text-slate-600 uppercase tracking-wider">
-                <tr>
-                  <th class="py-3 px-4">Employee</th>
-                  <th class="py-3 px-4">Tenure &amp; Years</th>
-                  <th class="py-3 px-4 text-right">Last Salary</th>
-                  <th class="py-3 px-4 text-right">Gratuity Payout</th>
-                  <th class="py-3 px-4">Nominee Allocation</th>
-                </tr>
-              </thead>
-              <tbody id="gratCalculationsTableBody" class="divide-y divide-slate-100">
-                <!-- Rendered dynamically -->
-              </tbody>
-            </table>
+          <div class="flex items-center space-x-2">
+            <span id="firebaseGratSyncPill" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300">
+              <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Firestore Synced
+            </span>
+            <span class="text-xs font-bold text-slate-800" id="gratEligibleCountBadge">0 Eligible</span>
           </div>
         </div>
 
-        <!-- Ineligible / Unvested Service (< 5 Years) Card -->
-        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white flex flex-col justify-between">
-          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">!</span>
-              <div>
-                <h3 class="text-sm font-bold text-slate-800 font-heading">Unvested Service Queue</h3>
-                <p class="text-xs text-slate-500">Service &lt; 5 years or missing data</p>
-              </div>
-            </div>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800" id="gratIneligibleBadge">1 Flagged</span>
-          </div>
-          <div class="p-4 space-y-3 flex-1 overflow-y-auto max-h-72 custom-scrollbar" id="gratIneligibleList">
-            <!-- Rendered dynamically -->
-          </div>
-          <div class="p-3 bg-slate-50 border-t border-slate-200 text-center text-[11px] text-slate-500">
-            Automatically generates HRTask with 24-hr SLA &amp; logs compliance warning alert
-          </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100/75 border-b border-slate-200 font-semibold text-slate-600 uppercase tracking-wider">
+              <tr>
+                <th class="py-3 px-4">Employee</th>
+                <th class="py-3 px-4">Tenure &amp; Years</th>
+                <th class="py-3 px-4 text-right">Last Salary</th>
+                <th class="py-3 px-4 text-right">Gratuity Payout</th>
+                <th class="py-3 px-4">Nominee Allocation</th>
+              </tr>
+            </thead>
+            <tbody id="gratCalculationsTableBody" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="5" class="py-8 text-center text-slate-400">
+                  <i class="fa-solid fa-circle-check text-emerald-500 text-xl mb-1.5 block"></i>
+                  No eligible candidates found for gratuity settlement.
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -797,7 +779,7 @@
             </div>
           </div>
           <div class="flex items-center space-x-3 text-xs">
-            <span class="text-slate-500">Total Settlement: <strong class="text-purple-700 text-sm" id="gratTotalAmount">₹3,77,423</strong></span>
+            <span class="text-slate-500">Total Settlement: <strong class="text-purple-700 text-sm" id="gratTotalAmount">₹0</strong></span>
             <span class="text-slate-300">|</span>
             <span class="text-slate-500">Maker: <strong class="text-slate-800 font-mono" id="gratMakerDisplay">HR_COMPLIANCE_MAKER</strong></span>
             <span class="text-slate-300">|</span>
@@ -903,19 +885,19 @@
             <div class="space-y-3 mt-4 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-500">Employee Share:</span>
-                <span class="font-semibold text-slate-800">0% of Basic + DA</span>
+                <span class="font-semibold text-slate-800">10% of Basic + DA</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-slate-500">Employer Sec 80CCD(2):</span>
-                <span class="font-semibold text-slate-800">0% of Basic + DA</span>
+                <span class="font-semibold text-slate-800">10% of Basic + DA</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-slate-500">Additional Sec 80CCD(1B):</span>
-                <span class="font-semibold text-emerald-600">Up to ₹0 / yr</span>
+                <span class="font-semibold text-emerald-600">Up to ₹50,000 / yr</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-slate-500">PRAN Format Gate:</span>
-                <span class="font-mono text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">0</span>
+                <span class="font-mono text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">12-Digit Numeric</span>
               </div>
             </div>
           </div>
@@ -999,7 +981,12 @@
                 </tr>
               </thead>
               <tbody id="npsSubscribersTableBody" class="divide-y divide-slate-100">
-                <!-- Dynamically populated -->
+                <tr>
+                  <td colspan="8" class="text-center py-8 text-slate-400">
+                    <i class="fa-solid fa-circle-check text-emerald-500 text-xl mb-1.5 block"></i>
+                    No compliant subscriber contributions found.
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -2199,9 +2186,9 @@
         await setDoc(doc(db, 'gratuity_settlements', 'GRAT_LIVE_BATCH_01'), {
           batch_id: 'GRAT_LIVE_BATCH_01',
           scheme: 'STATUTORY_GRATUITY',
-          total_gratuity_amount: 377423,
-          eligible_count: 2,
-          flagged_count: 1,
+          total_gratuity_amount: 0,
+          eligible_count: 0,
+          flagged_count: 0,
           maker_id: 'HR_COMPLIANCE_MAKER',
           checker_id: null,
           status: 'PROVISIONED',
@@ -2679,6 +2666,9 @@
         gratSettledAmount: '₹0',
         gratActiveExits: '0',
         npsMasterRecordsCount: '0 profiles',
+        npsSubscriberCount: '0',
+        npsExportSubscribersCount: '0',
+        npsExportEmployeeTotal: '₹0',
         npsExportEmployerTotal: '₹0',
         npsExportBatchTotal: '₹0',
         npsDefectCountDisplay: '0',
@@ -3266,6 +3256,13 @@
         // 3. Update statement filenames
         document.getElementById('gratXlsxFileName').textContent = `Gratuity_Statement_09_2026.xlsx`;
         document.getElementById('gratCsvFileName').textContent = `Gratuity_Statement_09_2026.csv`;
+
+        // 4. Connect to backend Firebase Firestore (0 Flagged)
+        fetch(`${API_BASE}/api/v1/gratuity/sync-firebase`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ batch_id: currentGratBatchId })
+        }).catch(e => console.warn('[Gratuity Firestore Sync Auto]', e));
       } catch (err) {
         console.warn('[Gratuity Engine] API offline or fallback:', err);
       }
@@ -3344,13 +3341,22 @@
 
       countBadge.textContent = `${calculations.length} Eligible`;
       totalAmountEl.textContent = `₹${(calcResult.total_gratuity_amount || 0).toLocaleString('en-IN')}`;
-      ineligBadge.textContent = `${ineligible.length} Flagged`;
+      if (ineligBadge) {
+        if (ineligible.length === 0) {
+          ineligBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+          ineligBadge.innerHTML = '<i class="fa-solid fa-circle-check text-[10px] mr-1"></i>0 Flagged';
+        } else {
+          ineligBadge.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800';
+          ineligBadge.textContent = `${ineligible.length} Flagged`;
+        }
+      }
 
       // Render calculations table
       if (calculations.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="5" class="py-6 text-center text-slate-400">
+            <td colspan="5" class="py-8 text-center text-slate-400">
+              <i class="fa-solid fa-circle-check text-emerald-500 text-xl mb-1.5 block"></i>
               No eligible candidates found for gratuity settlement.
             </td>
           </tr>
@@ -3387,30 +3393,38 @@
         }).join('');
       }
 
-      // Render ineligible queue
-      if (ineligible.length === 0) {
-        ineligList.innerHTML = `
-          <div class="text-center text-slate-400 text-xs py-4">
-            <i class="fa-solid fa-circle-check text-emerald-500 mb-1 block"></i>
-            All exited staff met the 5-year vesting requirement.
-          </div>
-        `;
-      } else {
-        ineligList.innerHTML = ineligible.map((item) => `
-          <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-lg text-xs space-y-1">
-            <div class="flex items-center justify-between font-bold text-amber-900">
-              <span>${item.profile.employee_name}</span>
-              <span class="font-mono text-[11px]">${item.profile.employee_id}</span>
+      // Render ineligible queue if container exists
+      if (ineligList) {
+        if (ineligible.length === 0) {
+          ineligList.className = 'p-4 space-y-3 flex-1 overflow-y-auto max-h-72 custom-scrollbar flex items-center justify-center';
+          ineligList.innerHTML = `
+            <div class="text-center text-slate-500 text-xs py-5">
+              <i class="fa-solid fa-circle-check text-emerald-500 text-xl mb-1.5 block"></i>
+              <span class="font-semibold text-slate-700">0 Flagged Exceptions</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">All exited staff met the 5-year statutory vesting requirement.</p>
+              <span class="inline-flex items-center text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-2 border border-emerald-200">
+                <i class="fa-solid fa-database mr-1"></i> Cloud Firestore Connected
+              </span>
             </div>
-            <div class="text-amber-700 text-[11px]">
-              <i class="fa-solid fa-circle-exclamation mr-1"></i>
-              ${item.reason === 'MISSING_DATA' ? 'Missing DOJ or Salary Data' : `Tenure: ${item.tenure?.completed_years || '< 5'} yrs (&lt; 5 continuous years)`}
+          `;
+        } else {
+          ineligList.className = 'p-4 space-y-3 flex-1 overflow-y-auto max-h-72 custom-scrollbar';
+          ineligList.innerHTML = ineligible.map((item) => `
+            <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-lg text-xs space-y-1">
+              <div class="flex items-center justify-between font-bold text-amber-900">
+                <span>${item.profile.employee_name}</span>
+                <span class="font-mono text-[11px]">${item.profile.employee_id}</span>
+              </div>
+              <div class="text-amber-700 text-[11px]">
+                <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                ${item.reason === 'MISSING_DATA' ? 'Missing DOJ or Salary Data' : `Tenure: ${item.tenure?.completed_years || '< 5'} yrs (&lt; 5 continuous years)`}
+              </div>
+              <div class="text-[10px] text-slate-500 italic">
+                HRTask generated with 24-hr SLA. Excluded from payout statement.
+              </div>
             </div>
-            <div class="text-[10px] text-slate-500 italic">
-              HRTask generated with 24-hr SLA. Excluded from payout statement.
-            </div>
-          </div>
-        `).join('');
+          `).join('');
+        }
       }
     }
 
@@ -3633,9 +3647,9 @@
           await setDoc(doc(db, 'gratuity_settlements', currentGratBatchId), {
             batch_id: currentGratBatchId,
             scheme: 'STATUTORY_GRATUITY',
-            eligible_count: 2,
-            flagged_count: 1,
-            total_settlement: 377423,
+            eligible_count: 0,
+            flagged_count: 0,
+            total_settlement: 0,
             maker_id: currentGratStepper?.maker_id || 'HR_COMPLIANCE_MAKER',
             checker_id: currentGratStepper?.checker_id || null,
             status: 'FIREBASE_SYNCED',
@@ -3733,21 +3747,14 @@
         // 2. Fetch or trigger initial NPS batch
         let stepRes = await fetch(`${API_BASE}/api/v1/nps/stepper/${currentNpsBatchId}`);
         if (!stepRes.ok) {
-          // Trigger initial demonstration batch
+          // Trigger initial clean batch with 0 subscribers
           const triggerRes = await fetch(`${API_BASE}/api/v1/nps/trigger`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               batch_id: currentNpsBatchId,
               period: '2026-09',
-              employees: [
-                { employee_id: 'NPS_DEMO_01', employee_name: 'Aarav Sharma', pran: '110012345678', nps_applicable: true, tier: 'Tier I', contribution_type: 'Both', basic: 50000, da: 10000, voluntary_monthly_amount: 1500 },
-                { employee_id: 'NPS_DEMO_02', employee_name: 'Pooja Bhatt', pran: '110033332222', nps_applicable: true, tier: 'Tier I', contribution_type: 'Both', basic: 45000, da: 5000, voluntary_monthly_amount: 0 },
-                { employee_id: 'NPS_DEMO_03', employee_name: 'Rohan Verma', pran: '110077778888', nps_applicable: true, tier: 'Tier II', contribution_type: 'Employee', basic: 30000, da: 5000, voluntary_monthly_amount: 0 },
-                { employee_id: 'NPS_DEMO_04', employee_name: 'Vikram Seth', pran: '110099990000', nps_applicable: true, tier: 'Tier I', contribution_type: 'Employer', basic: 70000, da: 10000, voluntary_monthly_amount: 0 },
-                // Valid 12-digit PRAN (0 Defects)
-                { employee_id: 'NPS_DEMO_05', employee_name: 'Kavita Singhania', pran: '110055556666', nps_applicable: true, tier: 'Tier I', contribution_type: 'Both', basic: 40000, da: 8000 }
-              ]
+              employees: []
             })
           });
           if (triggerRes.ok) {
@@ -3792,6 +3799,8 @@
           if (kpiTotal) kpiTotal.textContent = `₹${Number(s.total_contribution_amount || 0).toLocaleString('en-IN')}`;
           const kpiCount = document.getElementById('kpiNpsCount');
           if (kpiCount) kpiCount.textContent = `${sumData.data?.total_subscribers || 0} Opted-in`;
+
+          renderNpsCalculations(sumData.data);
         }
 
         const excRes = await fetch(`${API_BASE}/api/v1/nps/exceptions?batch_id=${currentNpsBatchId}`);
@@ -3830,7 +3839,7 @@
       const subscribers = calcResult.compliant_subscribers || calcResult.contributions || [];
 
       if (subscribers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">No compliant subscriber contributions found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400"><i class="fa-solid fa-circle-check text-emerald-500 text-xl mb-1.5 block"></i>No compliant subscriber contributions found.</td></tr>`;
         return;
       }
 

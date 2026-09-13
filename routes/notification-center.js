@@ -18,11 +18,8 @@ const logger = require('../utils/logger');
  * Browser sessions and explicit zero calls receive zero state synced with Firebase.
  */
 function isZeroRequested(req) {
-    const ua = (req.headers['user-agent'] || '').toLowerCase();
-    const isAutomatedTest = ua.includes('node') || ua.includes('undici') || req.query.seed === 'true';
     if (req.query.zero === 'true') return true;
-    if (req.query.seed === 'true') return false;
-    return !isAutomatedTest;
+    return false;
 }
 
 // GET /api/notification-center/feed

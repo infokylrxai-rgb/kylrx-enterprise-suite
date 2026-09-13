@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -135,7 +135,12 @@
         .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
         .nav-link.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25); }
 
-        .sidebar-footer { margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--border); }
+        .sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+        .profile-mini { margin-top: auto; background: var(--primary-light, #eff6ff); padding: 0.85rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, #e2e8f0); }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted, #64748b); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Main Content */
         .main-content { padding: 3rem; overflow-y: auto; }
@@ -354,9 +359,11 @@
     <div class="layout">
         <aside class="sidebar">
             <div class="dept-branding">
-                
                 <div class="dept-name" id="sideDeptName">Cybersecurity</div>
                 <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.08);">
+                    Manager: <strong id="sideDeptManager" style="color: var(--text-main);">John Doe</strong>
+                </div>
             </div>
             
             <nav class="nav-menu">
@@ -391,11 +398,16 @@
                 <div class="nav-item"><a href="manager-assets.html" class="nav-link" id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
                             </nav>
 
-            <div class="sidebar-footer">
-                <div class="nav-item">
-                    <a href="#" class="nav-link" onclick="logout()" style="color: var(--danger);">
-                        <i data-lucide="log-out"></i><span>Sign Out</span>
-                    </a>
+            <div class="sidebar-footer" style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <div class="profile-mini">
+                    <div class="avatar" id="userInitial">JD</div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="userNameDisplay">John Doe</div>
+                        <div class="profile-role" id="userRoleDisplay">Cybersecurity Manager</div>
+                    </div>
+                    <button onclick="logout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'" title="Sign Out">
+                        <i data-lucide="log-out" size="18"></i>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -1659,6 +1671,7 @@ window.viewTeam = async (id) => {
             <div id="mgrEodAuditList" style="display:flex; flex-direction:column; gap:1rem;"></div>
         </div>
     </div>
+    <script type="module" src="./manager-sidebar-sync.js"></script>
 </body>
 </html>
 

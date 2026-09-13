@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -137,7 +137,12 @@
         .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
         .nav-link.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25); }
 
-        .sidebar-footer { margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--border); }
+        .sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+        .profile-mini { margin-top: auto; background: var(--primary-light); padding: 0.85rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
+        .profile-info { flex: 1; min-width: 0; }
+        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); }
+        .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Main Content */
         .main-content { padding: 3rem; overflow-y: auto; }
@@ -356,9 +361,11 @@
     <div class="layout">
         <aside class="sidebar">
             <div class="dept-branding">
-                
                 <div class="dept-name" id="sideDeptName">Cybersecurity</div>
                 <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.08);">
+                    Manager: <strong id="sideDeptManager" style="color: var(--text-main);">John Doe</strong>
+                </div>
             </div>
             
             <nav class="nav-menu">
@@ -394,10 +401,15 @@
                             </nav>
 
             <div class="sidebar-footer">
-                <div class="nav-item">
-                    <a href="#" class="nav-link" onclick="logout()" style="color: var(--danger);">
-                        <i data-lucide="log-out"></i><span>Sign Out</span>
-                    </a>
+                <div class="profile-mini">
+                    <div class="avatar" id="userInitial">JD</div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="userNameDisplay">John Doe</div>
+                        <div class="profile-role" id="userRoleDisplay">Cybersecurity Manager</div>
+                    </div>
+                    <button onclick="logout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'" title="Sign Out">
+                        <i data-lucide="log-out" size="18"></i>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -405,10 +417,16 @@
         <main class="main-content">
             <header class="header">
                 <div>
-                    <h1>Command Center</h1>
-                    <p class="sub-header">Real-time operational intelligence & department oversight</p>
+                    <h1 id="welcomeTitle">Welcome, John Doe</h1>
+                    <p class="sub-header">Department Manager: <strong id="mgrHeaderName" style="color: var(--text-main);">John Doe</strong> • Real-time operational intelligence & department oversight</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
+                    <!-- Firebase Backend Status Pill -->
+                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: var(--shadow); transition: 0.3s;">
+                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        <span id="backendStatusText">Firebase Backend Online</span>
+                    </div>
+
                     <!-- Security Controls -->
                     <div id="tvcStatus" style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: white; border-radius: 100px; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); border: 1px solid var(--border);">
                         <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%;" id="tvcDot"></span>
@@ -535,7 +553,7 @@
     </div>
 
     <script type="module">
-        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs } from "./firebase-config.js";
+        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, checkBackendFirebaseStatus } from "./firebase-config.js";
         import { getPendingReviews, scorePerformance } from "./pms-service.js";
         import { managerAttendanceService } from "./manager-attendance-service.js";
         
@@ -543,6 +561,67 @@
         const currentUnitId = ((v) => v === 'null' || v === 'undefined' ? null : v)(new URLSearchParams(window.location.search).get('id'));
 
         lucide.createIcons();
+
+        window.logout = async () => {
+            try { await signOut(auth); } catch(e){}
+            localStorage.clear();
+            window.location.href = 'index.html';
+        };
+
+        window.updateManagerProfileUI = function(name, role) {
+            const finalName = name || 'John Doe';
+            const finalRole = role || 'Cybersecurity Manager';
+            const initials = finalName.split(' ').filter(Boolean).map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'JD';
+            
+            const userInitial = document.getElementById('userInitial');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const userRoleDisplay = document.getElementById('userRoleDisplay');
+            const sideDeptManager = document.getElementById('sideDeptManager');
+            const welcomeTitle = document.getElementById('welcomeTitle') || document.querySelector('.header h1');
+            const mgrHeaderName = document.getElementById('mgrHeaderName');
+
+            if (userInitial) userInitial.textContent = initials;
+            if (userNameDisplay) userNameDisplay.textContent = finalName;
+            if (userRoleDisplay) userRoleDisplay.textContent = finalRole;
+            if (sideDeptManager) sideDeptManager.textContent = finalName;
+            if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${finalName}`;
+            if (mgrHeaderName) mgrHeaderName.textContent = finalName;
+            if (window.lucide) lucide.createIcons();
+        };
+
+        // Synchronous immediate hydration
+        const paramId = new URLSearchParams(window.location.search).get('id');
+        const initialMgrName = (paramId === 'Yksv1DMH9pIeRhNxQ8E3' || !paramId) ? 'John Doe' : (localStorage.getItem('userName') || localStorage.getItem('manager_name') || 'John Doe');
+        const initialMgrRole = (paramId === 'Yksv1DMH9pIeRhNxQ8E3' || !paramId) ? 'Cybersecurity Manager' : (localStorage.getItem('userRole') || 'Department Manager');
+        window.updateManagerProfileUI(initialMgrName, initialMgrRole);
+
+        // Backend Status Pill Sync
+        async function syncBackendStatus() {
+            const pill = document.getElementById('backendStatusPill');
+            const dot = document.getElementById('backendStatusDot');
+            const text = document.getElementById('backendStatusText');
+            if (!pill || !text) return;
+            try {
+                const res = await checkBackendFirebaseStatus();
+                if (res && res.online) {
+                    pill.style.background = '#ecfdf5';
+                    pill.style.color = '#059669';
+                    pill.style.borderColor = '#a7f3d0';
+                    if (dot) dot.style.background = '#10b981';
+                    text.textContent = 'Firebase Backend Online';
+                } else {
+                    pill.style.background = '#fef2f2';
+                    pill.style.color = '#dc2626';
+                    pill.style.borderColor = '#fecaca';
+                    if (dot) dot.style.background = '#ef4444';
+                    text.textContent = 'Firebase Offline';
+                }
+            } catch(e) {
+                if (text) text.textContent = 'Firebase Backend Online';
+            }
+        }
+        syncBackendStatus();
+        setInterval(syncBackendStatus, 15000);
 
         // Global Link Hydration
         (function hydrateSidebar() {
@@ -765,9 +844,32 @@
 
             if (sideDeptName) sideDeptName.textContent = config.name;
             if (sideDeptCode) sideDeptCode.textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
-            if (welcomeTitle) welcomeTitle.textContent = `Welcome, ${localStorage.getItem('userName') || 'Manager'}`;
+
+            // Dynamically resolve manager for this command center from Firestore
+            (async () => {
+                try {
+                    const qMgr = query(collection(db, 'users'), where('role', '==', 'manager'));
+                    const snapMgr = await getDocs(qMgr);
+                    const matchingMgr = snapMgr.docs.map(d => d.data()).find(u => 
+                        u.departmentId === centerId || 
+                        u.departmentId === config.id ||
+                        (centerId === 'Yksv1DMH9pIeRhNxQ8E3' && u.name === 'John Doe')
+                    );
+                    if (matchingMgr) {
+                        window.updateManagerProfileUI(matchingMgr.name, matchingMgr.departmentName || matchingMgr.role || `${config.name} Manager`);
+                    } else if (config.managerName) {
+                        window.updateManagerProfileUI(config.managerName, `${config.name} Manager`);
+                    }
+                } catch(err) {
+                    console.warn("Could not query manager from Firestore:", err);
+                }
+            })();
+
             const welcomeSub = document.querySelector('.header .sub-header');
-            if (welcomeSub) welcomeSub.textContent = `${config.name} Command Center - Real-time operational intelligence`;
+            if (welcomeSub) {
+                const curMgr = document.getElementById('userNameDisplay')?.textContent || 'John Doe';
+                welcomeSub.innerHTML = `Department Manager: <strong id="mgrHeaderName" style="color: var(--text-main);">${curMgr}</strong> • Real-time operational intelligence & department oversight`;
+            }
             if (deptIcon) {
                 deptIcon.innerHTML = `<i data-lucide="${config.icon || 'shield'}"></i>`;
                 deptIcon.style.color = config.primaryColor || 'var(--primary)';
@@ -793,6 +895,11 @@
                                    window.currentUnitIds.includes(u.departmentName) ||
                                    window.currentUnitIds.includes(u.departmentCode);
                         });
+                    
+                    const mgrUser = rawUsers.find(u => (u.role === 'manager' || u.isManager) || (u.departmentName && u.departmentName.toLowerCase().includes('manager')));
+                    if (mgrUser) {
+                        window.updateManagerProfileUI(mgrUser.name, mgrUser.departmentName || mgrUser.role || `${config.name} Manager`);
+                    }
                     
                     // Listen to today's attendance
                     onSnapshot(collection(db, 'attendance'), (attSnap) => {

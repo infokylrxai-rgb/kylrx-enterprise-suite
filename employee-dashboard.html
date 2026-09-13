@@ -471,7 +471,11 @@
                     <h1 id="greeting">Good Morning, John!</h1>
                     <p class="sub-header">You have 3 tasks that need your attention today.</p>
                 </div>
-                <div class="header-right">
+                <div class="header-right" style="display: flex; align-items: center; gap: 1rem;">
+                    <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: var(--shadow); transition: 0.3s;">
+                        <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                        <span id="backendStatusText">Firebase Backend Online</span>
+                    </div>
                     <div class="header-actions">
                         <button class="icon-btn" onclick="navigateTo('employee-message.html')">
                             <i data-lucide="message-square" size="20"></i>
@@ -655,9 +659,11 @@
 
     <script type="module">
         import { attendanceEngine } from "./attendance-engine.js";
-        import { auth, db } from "./firebase-config.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, orderBy, limit, doc, setDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { 
+            auth, db, onAuthStateChanged, checkBackendFirebaseStatus,
+            collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, 
+            serverTimestamp, orderBy, limit, doc, setDoc, arrayUnion, arrayRemove 
+        } from "./firebase-config.js";
 
         lucide.createIcons();
         
@@ -674,6 +680,35 @@
         window.navigateToDashboard = () => {
             navigateTo('employee-dashboard.html');
         };
+
+        // --- BACKEND FIREBASE CONNECTIVITY SYNC ---
+        async function syncBackendStatus() {
+            const pill = document.getElementById('backendStatusPill');
+            const dot = document.getElementById('backendStatusDot');
+            const text = document.getElementById('backendStatusText');
+            if (!pill || !text) return;
+
+            try {
+                const status = await checkBackendFirebaseStatus();
+                if (status.online) {
+                    pill.style.background = '#ecfdf5';
+                    pill.style.borderColor = '#a7f3d0';
+                    pill.style.color = '#059669';
+                    if (dot) dot.style.background = '#10b981';
+                    text.textContent = 'Firebase Backend Online';
+                    text.title = `Project: ${status.projectId || 'kylrxai'} • Service: ${status.service || 'Firebase Admin'}`;
+                } else {
+                    pill.style.background = '#fefce8';
+                    pill.style.borderColor = '#fef08a';
+                    pill.style.color = '#ca8a04';
+                    if (dot) dot.style.background = '#eab308';
+                    text.textContent = 'Direct Cloud Line';
+                    text.title = 'Connected to Firestore directly';
+                }
+            } catch (_) {
+                text.textContent = 'Direct Cloud Line';
+            }
+        }
 
         // Premium Modal Logic
         window.showStatusModal = (title, msg, type = 'info') => {
@@ -744,19 +779,39 @@
         }
 
         let currentUser = null;
-        // --- Dynamic Dashboard Hydration ---
         const urlParams = new URLSearchParams(window.location.search);
         const centerId = urlParams.get('id');
 
+        // Immediate Synchronous Profile Hydration (Eliminates "-- --" avatar hang)
+        const cachedUid = urlParams.get('id') || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
+        const cachedName = localStorage.getItem('userName') || (cachedUid === 'demo_emp' ? 'John Doe' : 'Employee');
+        const cachedRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
+        const cachedDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'Cybersecurity';
+
+        currentUser = {
+            uid: cachedUid,
+            name: cachedName,
+            displayName: cachedName,
+            role: cachedRole,
+            designation: cachedRole,
+            department: cachedDept
+        };
+
+        // Immediate initial UI render
+        loadDashboardData(currentUser);
+        const initialDeptBadge = document.getElementById('deptBadge');
+        if (initialDeptBadge) initialDeptBadge.textContent = cachedDept;
+        syncBackendStatus();
+
         onAuthStateChanged(auth, async (user) => {
-            const activeUid = user ? user.uid : localStorage.getItem('employee_uid');
+            const activeUid = user ? user.uid : (localStorage.getItem('employee_uid') || 'demo_emp');
             
-            if (activeUid) {
+            if (activeUid && activeUid !== 'demo_emp') {
                 const userDocRef = doc(db, 'users', activeUid);
                 
-                // Live Dashboard & Profile Sync
+                // Live Dashboard & Profile Sync with resilient fallback
                 onSnapshot(userDocRef, (snap) => {
-                    if (snap.exists()) {
+                    if (snap && snap.exists && snap.exists()) {
                         const data = snap.data();
                         const fullData = { uid: activeUid, ...data };
                         currentUser = fullData;
@@ -772,7 +827,7 @@
                         if (leaveBalEl) leaveBalEl.textContent = total;
                         
                         // Hydrate Team
-                        const dept = data.departmentName || data.department || 'Cybersecurity';
+                        const dept = data.departmentName || data.department || cachedDept;
                         const deptBadge = document.getElementById('deptBadge');
                         if (deptBadge) deptBadge.textContent = dept;
                         loadTeamMembers(dept);
@@ -780,15 +835,29 @@
                         syncNotifications(activeUid);
                         syncMessagesCount(activeUid);
                         initApps();
+                    } else {
+                        // User doc not seeded yet in Firestore, maintain hydrated data
+                        loadDashboardData(currentUser);
+                        loadTeamMembers(currentUser.department || 'Cybersecurity');
+                        syncNotifications(activeUid);
+                        syncMessagesCount(activeUid);
+                        initApps();
                     }
+                }, (err) => {
+                    console.warn("User snapshot listener note:", err?.message || err);
+                    loadDashboardData(currentUser);
+                    loadTeamMembers(currentUser.department || 'Cybersecurity');
+                    initApps();
                 });
             } else {
                 // Authoritative Demo Fallback
                 const demoData = {
                     uid: 'demo_emp',
-                    name: 'John Doe',
-                    role: 'Cybersecurity Specialist',
-                    department: 'Cybersecurity'
+                    name: localStorage.getItem('userName') || 'John Doe',
+                    displayName: localStorage.getItem('userName') || 'John Doe',
+                    role: localStorage.getItem('userRole') || 'Cybersecurity Specialist',
+                    designation: localStorage.getItem('userRole') || 'Cybersecurity Specialist',
+                    department: localStorage.getItem('userDept') || 'Cybersecurity'
                 };
                 currentUser = demoData;
                 loadDashboardData(demoData);
@@ -804,7 +873,7 @@
             if (centerId) {
                 try {
                     const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
-                    if (centerDoc.exists()) {
+                    if (centerDoc && centerDoc.exists && centerDoc.exists()) {
                         hydrateEmployeePortal(centerDoc.data());
                     }
                 } catch (e) { console.error("Error fetching center config:", e); }
@@ -865,16 +934,27 @@
         }
 
         async function loadDashboardData(user) {
+            if (!user) return;
             const userName = user.displayName || user.name || user.fullName || 'Employee';
-            const userRole = user.designation || user.role || 'Employee';
-            const userDept = user.department || 'General';
+            const userRole = user.designation || user.role || 'Cybersecurity Specialist';
+            const userDept = user.department || user.departmentName || 'Cybersecurity';
             
             const greetEl = document.getElementById('greeting');
-            if (greetEl && !window.commandCenterLoaded) greetEl.textContent = `Good Morning, ${userName.split(' ')[0]}!`;
+            if (greetEl && !window.commandCenterLoaded) {
+                const firstName = userName.trim().split(/\s+/)[0] || 'Employee';
+                greetEl.textContent = `Good Morning, ${firstName}!`;
+            }
             
-            document.getElementById('userNameDisplay').textContent = userName;
-            document.getElementById('userRoleDisplay').textContent = userRole;
-            document.getElementById('userInitial').textContent = userName.split(' ').map(n => n[0]).join('').toUpperCase();
+            const nameEl = document.getElementById('userNameDisplay');
+            const roleEl = document.getElementById('userRoleDisplay');
+            const initEl = document.getElementById('userInitial');
+            if (nameEl) nameEl.textContent = userName;
+            if (roleEl) roleEl.textContent = userRole;
+            if (initEl) {
+                const parts = userName.trim().split(/\s+/).filter(Boolean);
+                const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (parts[0] ? parts[0].slice(0, 2).toUpperCase() : 'JD');
+                initEl.textContent = initials;
+            }
             
             localStorage.setItem('userName', userName);
             localStorage.setItem('userRole', userRole);
@@ -884,14 +964,26 @@
             if(deptLabelMsg) deptLabelMsg.textContent = userDept;
 
             // Check Holiday Status
-            await attendanceEngine.initHolidays();
-            const isHoliday = await attendanceEngine.isTodayHoliday();
-            if (isHoliday) {
-                document.getElementById('punchBtn').disabled = true;
-                document.getElementById('punchText').textContent = "Public Holiday";
-                document.getElementById('punchBtn').style.opacity = "0.5";
-                document.getElementById('timer').textContent = "OFF DUTY";
-                document.querySelector('.sub-header').textContent = "Today is a public holiday. Enjoy your day off!";
+            try {
+                if (attendanceEngine && attendanceEngine.initHolidays) {
+                    await attendanceEngine.initHolidays();
+                    const isHoliday = await attendanceEngine.isTodayHoliday();
+                    if (isHoliday) {
+                        const punchBtn = document.getElementById('punchBtn');
+                        const punchText = document.getElementById('punchText');
+                        const timer = document.getElementById('timer');
+                        const subHeader = document.querySelector('.sub-header');
+                        if (punchBtn) {
+                            punchBtn.disabled = true;
+                            punchBtn.style.opacity = "0.5";
+                        }
+                        if (punchText) punchText.textContent = "Public Holiday";
+                        if (timer) timer.textContent = "OFF DUTY";
+                        if (subHeader) subHeader.textContent = "Today is a public holiday. Enjoy your day off!";
+                    }
+                }
+            } catch (e) {
+                console.warn("Holiday check error:", e);
             }
 
             // Live Upcoming Holidays — streamed from admin 'holidays' collection

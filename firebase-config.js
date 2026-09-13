@@ -7,6 +7,7 @@ import {
   initializeFirestore, 
   persistentLocalCache, 
   persistentMultipleTabManager,
+  memoryLocalCache,
   setLogLevel as setFirestoreLogLevel,
   getDocsFromCache,
   getDocFromCache,
@@ -69,7 +70,7 @@ const firebaseConfig = {
   measurementId: "G-3F6VW2MEJG"
 };
 
-// Initialize Firebase with persistent IndexedDB local cache
+// Resilient Firebase initialization with InPrivate / Private-mode graceful degradation
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 let db;
@@ -81,10 +82,15 @@ try {
   });
 } catch (e) {
   try {
-    db = initializeFirestore(app, {});
+    db = initializeFirestore(app, {
+      localCache: memoryLocalCache()
+    });
   } catch (_) {
-    // fallback if already initialized
-    db = window.db || null;
+    try {
+      db = initializeFirestore(app, {});
+    } catch (_) {
+      db = window.db || null;
+    }
   }
 }
 const storage = getStorage(app);
@@ -245,8 +251,26 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
     document.addEventListener('DOMContentLoaded', setupGlobalLogout);
 }
 
+// Helper to verify connectivity to Node.js Express Firebase Admin Backend
+async function checkBackendFirebaseStatus() {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2500);
+        const res = await fetch('http://localhost:3000/api/firebase/status', {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+            const data = await res.json();
+            return { online: true, ...data };
+        }
+    } catch (_) {}
+    return { online: false, status: 'offline', projectId: firebaseConfig.projectId };
+}
+
 export { 
   app, auth, db, storage,
+  checkBackendFirebaseStatus,
   onAuthStateChanged, signOut, signInWithEmailAndPassword,
   doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, orderBy, limit, deleteField
 };

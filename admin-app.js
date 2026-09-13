@@ -2213,21 +2213,28 @@ function renderPayrollImpactChart(canvasId) {
                     penalty += Number(d.monthlyPenalty) || 0;
                 });
             } else {
-                base = 85; bonus = 10; penalty = 5;
+                base = 0; bonus = 0; penalty = 0;
             }
+
+            const total = base + bonus + penalty;
+            const chartData = total === 0 ? [1] : [base, bonus, penalty];
+            const chartLabels = total === 0 ? ['No Remittance (Nil)'] : ['Base Salary', 'Performance Bonuses', 'Productivity Penalties'];
+            const chartColors = total === 0 ? ['#f1f5f9'] : ['#2563eb', '#10b981', '#ef4444'];
+            const chartBorders = total === 0 ? ['#e2e8f0'] : ['#ffffff', '#ffffff', '#ffffff'];
 
             if (window[`chart_${canvasId}`]) window[`chart_${canvasId}`].destroy();
             window[`chart_${canvasId}`] = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Base Salary', 'Performance Bonuses', 'Productivity Penalties'],
+                    labels: chartLabels,
                     datasets: [{
-                        data: [base, bonus, penalty],
-                        backgroundColor: ['#2563eb', '#10b981', '#ef4444'],
-                        borderWidth: 0
+                        data: chartData,
+                        backgroundColor: chartColors,
+                        borderColor: chartBorders,
+                        borderWidth: total === 0 ? 1 : 0
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: total > 0, position: 'bottom' } }, cutout: '72%' }
             });
         });
     });

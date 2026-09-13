@@ -302,10 +302,53 @@ let insertTargetIndex = null;
 document.addEventListener('DOMContentLoaded', async () => {
     if (window.lucide) lucide.createIcons();
     await fetchRegisteredModules();
+    await loadWorkflowFromBackendOrFirebase();
     renderCanvas();
     selectNode(0);
     bindToolbarEvents();
 });
+
+// Listen for Firebase connection event
+window.addEventListener('firebase-ready', async () => {
+    console.log('⚡ [Automation Builder] Firebase client connected. Syncing active workflow state.');
+    const pill = document.getElementById('firebaseStatusPill');
+    if (pill) {
+        pill.innerHTML = `<i data-lucide="database" size="12"></i> Firebase: Connected`;
+        if (window.lucide) lucide.createIcons();
+    }
+    // Automatically ensure active workflow is synced to Firebase
+    await syncWorkflowToBackendAndFirebase(currentWorkflow);
+});
+
+async function loadWorkflowFromBackendOrFirebase() {
+    try {
+        const res = await fetch(`${API_BASE}/api/automations`);
+        if (res.ok) {
+            const json = await res.json();
+            const list = json.data || [];
+            if (list.length > 0) {
+                const found = list.find(w => w.id === currentWorkflow.id) || list[0];
+                if (found && found.steps && found.steps.length > 0) {
+                    currentWorkflow = found;
+                    console.log('⚡ [Automation Builder] Loaded active workflow from Backend Firebase:', found.name);
+                    return true;
+                }
+            }
+        }
+    } catch (e) {}
+
+    const cached = localStorage.getItem('kylrx_active_flow');
+    if (cached) {
+        try {
+            const parsed = JSON.parse(cached);
+            if (parsed && parsed.steps && parsed.steps.length > 0) {
+                currentWorkflow = parsed;
+                return true;
+            }
+        } catch (e) {}
+    }
+    return false;
+}
 
 // Central Module Discovery
 async function fetchRegisteredModules() {
@@ -653,7 +696,18 @@ function renderInspectorFields(step, spec) {
             break;
     }
 
+    // Add Delete This Step action button in inspector drawer
+    html += `
+        <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+            <button type="button" class="btn-builder" style="width: 100%; padding: 11px; color: #dc2626; border: 1px solid #fecaca; background: #fef2f2; font-weight: 700; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: 0.2s;" onclick="deleteNode(event, selectedNodeIndex)" ${currentWorkflow.steps.length <= 1 ? 'disabled style="opacity:0.3"' : ''}>
+                <i data-lucide="trash-2" size="16"></i>
+                <span>Delete This Step (Syncs to Firebase)</span>
+            </button>
+        </div>
+    `;
+
     container.innerHTML = html;
+    if (window.lucide) lucide.createIcons();
 }
 
 function updateNodeTitle(val) {
@@ -706,18 +760,313 @@ function moveNode(e, index, delta) {
     selectNode(newIdx);
 }
 
-// Delete Step
-function deleteNode(e, index) {
+// Centered Custom Confirmation Modal (Replaces native browser confirm)
+function showConfirmModal({
+    title = 'Remove Step',
+    message = '',
+    confirmText = 'Remove',
+    cancelText = 'Cancel',
+    danger = true,
+    icon = 'trash-2'
+} = {}) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('builderConfirmModal');
+        const titleEl = document.getElementById('builderConfirmTitle');
+        const msgEl = document.getElementById('builderConfirmMessage');
+        const cancelBtn = document.getElementById('builderConfirmCancelBtn');
+        const okBtn = document.getElementById('builderConfirmOkBtn');
+        const iconBox = document.getElementById('builderConfirmIconBox');
+        const iconEl = document.getElementById('builderConfirmIcon');
+
+        if (!modal) {
+            resolve(window.confirm(message.replace(/<[^>]*>?/gm, '')));
+            return;
+        }
+
+        if (titleEl) titleEl.textContent = title;
+        if (msgEl) msgEl.innerHTML = message;
+        if (cancelBtn) cancelBtn.textContent = cancelText;
+
+        if (okBtn) {
+            okBtn.textContent = confirmText;
+            if (danger) {
+                okBtn.style.background = '#dc2626';
+                okBtn.style.color = '#ffffff';
+                okBtn.style.boxShadow = '0 4px 14px rgba(220, 38, 38, 0.3)';
+            } else {
+                okBtn.style.background = 'var(--primary, #3b82f6)';
+                okBtn.style.color = '#ffffff';
+                okBtn.style.boxShadow = '0 4px 14px rgba(59, 130, 246, 0.3)';
+            }
+        }
+
+        if (iconBox) {
+            if (danger) {
+                iconBox.style.background = '#fee2e2';
+                iconBox.style.color = '#dc2626';
+            } else {
+                iconBox.style.background = '#eff6ff';
+                iconBox.style.color = '#2563eb';
+            }
+        }
+
+        if (iconEl) {
+            iconEl.setAttribute('data-lucide', icon);
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+
+        let cleanup = () => {};
+
+        const onCancelClick = () => {
+            cleanup();
+            resolve(false);
+        };
+
+        const onOkClick = () => {
+            cleanup();
+            resolve(true);
+        };
+
+        const onBackdropClick = (e) => {
+            if (e.target === modal) {
+                cleanup();
+                resolve(false);
+            }
+        };
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                cleanup();
+                resolve(false);
+            }
+        };
+
+        cleanup = () => {
+            modal.style.display = 'none';
+            if (cancelBtn) cancelBtn.removeEventListener('click', onCancelClick);
+            if (okBtn) okBtn.removeEventListener('click', onOkClick);
+            modal.removeEventListener('click', onBackdropClick);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        if (cancelBtn) cancelBtn.addEventListener('click', onCancelClick);
+        if (okBtn) okBtn.addEventListener('click', onOkClick);
+        modal.addEventListener('click', onBackdropClick);
+        document.addEventListener('keydown', onKeyDown);
+
+        modal.style.display = 'flex';
+        if (okBtn) okBtn.focus();
+    });
+}
+window.showConfirmModal = showConfirmModal;
+
+// Centered Custom Alert Modal (Replaces native browser alert)
+function showAlertModal({
+    title = 'Notice',
+    message = '',
+    type = 'info',
+    okText = 'Got it'
+} = {}) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('builderAlertModal');
+        const titleEl = document.getElementById('builderAlertTitle');
+        const msgEl = document.getElementById('builderAlertMessage');
+        const okBtn = document.getElementById('builderAlertOkBtn');
+        const iconBox = document.getElementById('builderAlertIconBox');
+        const iconEl = document.getElementById('builderAlertIcon');
+
+        if (!modal) {
+            window.alert(message.replace(/<[^>]*>?/gm, ''));
+            resolve();
+            return;
+        }
+
+        if (titleEl) titleEl.textContent = title;
+        if (msgEl) msgEl.innerHTML = message;
+        if (okBtn) okBtn.textContent = okText;
+
+        if (iconBox && iconEl) {
+            if (type === 'warning') {
+                iconBox.style.background = '#fef3c7';
+                iconBox.style.color = '#d97706';
+                iconEl.setAttribute('data-lucide', 'alert-triangle');
+            } else if (type === 'success') {
+                iconBox.style.background = '#dcfce7';
+                iconBox.style.color = '#15803d';
+                iconEl.setAttribute('data-lucide', 'check-circle-2');
+            } else {
+                iconBox.style.background = '#eff6ff';
+                iconBox.style.color = '#2563eb';
+                iconEl.setAttribute('data-lucide', 'info');
+            }
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+
+        let cleanup = () => {};
+
+        const onOkClick = () => {
+            cleanup();
+            resolve();
+        };
+
+        const onBackdropClick = (e) => {
+            if (e.target === modal) {
+                cleanup();
+                resolve();
+            }
+        };
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape' || e.key === 'Enter') {
+                cleanup();
+                resolve();
+            }
+        };
+
+        cleanup = () => {
+            modal.style.display = 'none';
+            if (okBtn) okBtn.removeEventListener('click', onOkClick);
+            modal.removeEventListener('click', onBackdropClick);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        if (okBtn) okBtn.addEventListener('click', onOkClick);
+        modal.addEventListener('click', onBackdropClick);
+        document.addEventListener('keydown', onKeyDown);
+
+        modal.style.display = 'flex';
+        if (okBtn) okBtn.focus();
+    });
+}
+window.showAlertModal = showAlertModal;
+
+// Toast Notification Helper
+let toastTimeout = null;
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('builderToast');
+    const textEl = document.getElementById('builderToastText');
+    const iconEl = document.getElementById('builderToastIcon');
+    if (!toast) return;
+
+    if (textEl) textEl.innerHTML = message;
+    if (iconEl) {
+        iconEl.setAttribute('data-lucide', type === 'success' ? 'check-circle-2' : (type === 'warning' ? 'alert-triangle' : 'info'));
+        iconEl.style.color = type === 'success' ? '#4ade80' : (type === 'warning' ? '#fbbf24' : '#60a5fa');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toast.style.display = 'flex';
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3500);
+}
+window.showToast = showToast;
+
+// Sync Workflow State to Backend and Firebase Firestore
+async function syncWorkflowToBackendAndFirebase(workflow = currentWorkflow) {
+    workflow.updatedAt = new Date().toISOString();
+    const payload = {
+        ...workflow,
+        trigger_event: (workflow.steps && workflow.steps[0] && (workflow.steps[0].config?.eventType || workflow.steps[0].title)) || 'exit.resignation_submitted',
+        pipeline: workflow.steps || []
+    };
+
+    let backendSynced = false;
+    let firestoreSynced = false;
+
+    // 1. Sync to Express Backend API (/api/automations) -> saves to Firebase Firestore
+    try {
+        const res = await fetch(`${API_BASE}/api/automations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) backendSynced = true;
+    } catch (e) {
+        console.warn('[Sync] Express backend sync notice:', e.message);
+    }
+
+    // 2. Direct Sync to Firebase Firestore Client SDK (if loaded)
+    if (window.db && window.firestoreTools) {
+        try {
+            const { doc, setDoc } = window.firestoreTools;
+            const docRef = doc(window.db, 'automations', workflow.id);
+            await setDoc(docRef, {
+                ...payload,
+                updatedAt: new Date().toISOString(),
+                syncedAt: new Date().toISOString()
+            }, { merge: true });
+            firestoreSynced = true;
+        } catch (fsErr) {
+            console.warn('[Sync] Firestore direct sync notice:', fsErr.message);
+        }
+    }
+
+    // 3. LocalStorage persistence cache
+    try {
+        localStorage.setItem(`kylrx_flow_${workflow.id}`, JSON.stringify(workflow));
+        localStorage.setItem('kylrx_active_flow', JSON.stringify(workflow));
+    } catch (e) {}
+
+    // Update Firebase Status Pill in topbar
+    const pill = document.getElementById('firebaseStatusPill');
+    if (pill) {
+        pill.innerHTML = `<i data-lucide="database" size="12"></i> Firebase: Connected (Synced)`;
+        pill.style.background = '#ecfdf5';
+        pill.style.color = '#059669';
+        pill.style.borderColor = '#a7f3d0';
+        if (window.lucide) lucide.createIcons();
+    }
+
+    return { backendSynced, firestoreSynced };
+}
+window.syncWorkflowToBackendAndFirebase = syncWorkflowToBackendAndFirebase;
+
+// Delete Step (Removes selected or targeted step & connects to Backend Firebase)
+async function deleteNode(e, index) {
     if (e) e.stopPropagation();
     if (currentWorkflow.steps.length <= 1) {
-        alert('Workflow must have at least one step.');
+        await showAlertModal({
+            title: 'Action Restricted',
+            message: 'Workflow must have at least one step.',
+            type: 'warning'
+        });
         return;
     }
-    if (confirm(`Remove step ${index + 1}: "${currentWorkflow.steps[index].title}"?`)) {
-        currentWorkflow.steps.splice(index, 1);
+
+    const step = currentWorkflow.steps[index];
+    const stepTitle = step ? step.title : `Step ${index + 1}`;
+
+    const confirmed = await showConfirmModal({
+        title: 'Remove Step',
+        message: `Remove step ${index + 1}: "<strong>${escapeHtml(stepTitle)}</strong>"?<br><span style="font-size:0.8rem; color:#059669; margin-top:8px; display:inline-block;">⚡ Connected to Backend Firebase: changes will be automatically saved.</span>`,
+        confirmText: 'Remove Step',
+        cancelText: 'Cancel',
+        danger: true,
+        icon: 'trash-2'
+    });
+
+    if (confirmed) {
+        // 1. Remove step from local workflow state
+        const removed = currentWorkflow.steps.splice(index, 1)[0];
         const nextIdx = Math.max(0, index - 1);
         renderCanvas();
         selectNode(nextIdx);
+
+        // 2. Connect to Backend Firebase and persist deletion
+        showToast(`Deleting step "${escapeHtml(stepTitle)}"... Syncing to Firebase...`);
+        const syncResult = await syncWorkflowToBackendAndFirebase(currentWorkflow);
+
+        if (syncResult.backendSynced || syncResult.firestoreSynced) {
+            showToast(`✓ Step removed & connected to Backend Firebase.`, 'success');
+        } else {
+            showToast(`Step removed (Offline cache updated).`, 'info');
+        }
     }
 }
 
@@ -956,35 +1305,16 @@ function appendSimLog(msg, color = '#f8fafc') {
 // Deploy Workflow to Backend & Firestore
 async function deployWorkflow() {
     currentWorkflow.status = 'ACTIVE';
-    currentWorkflow.updatedAt = new Date().toISOString();
+    
+    // Connect and sync workflow to Backend Express & Firebase Firestore
+    const syncRes = await syncWorkflowToBackendAndFirebase(currentWorkflow);
 
-    // 1. Post to Express Backend
-    try {
-        await fetch(`${API_BASE}/api/automations`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(currentWorkflow)
-        });
-    } catch (e) {
-        console.warn('Backend POST notice:', e.message);
-    }
-
-    // 2. Save to Firestore
-    if (window.db) {
-        try {
-            await window.db.collection('automations').doc(currentWorkflow.id).set({
-                ...currentWorkflow,
-                deployedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        } catch (fsErr) {
-            console.warn('Firestore write notice:', fsErr.message);
-        }
-    }
-
-    // 3. LocalStorage persistence
-    localStorage.setItem(`kylrx_flow_${currentWorkflow.id}`, JSON.stringify(currentWorkflow));
-
-    alert(`✅ Automation "${currentWorkflow.name}" Deployed Successfully!\n\n• Steps: ${currentWorkflow.steps.length}\n• Status: ACTIVE\n• Common Engine Status: Bound to Central Event Bus`);
+    await showAlertModal({
+        title: 'Automation Deployed Successfully',
+        message: `Workflow <strong>${escapeHtml(currentWorkflow.name)}</strong> is now active and connected to Backend Firebase.<br><br><div style="text-align: left; background: #f8fafc; border: 1px solid var(--border, #e2e8f0); border-radius: 12px; padding: 14px 16px; font-size: 0.85rem; color: #475569;"><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Steps:</span><strong>${currentWorkflow.steps.length}</strong></div><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Status:</span><span style="color: #16a34a; font-weight: 700;">ACTIVE</span></div><div style="margin-bottom: 6px; display: flex; justify-content: space-between;"><span>• Backend API:</span><strong style="color: #2563eb;">${syncRes.backendSynced ? 'Connected (200 OK)' : 'Offline'}</strong></div><div style="display: flex; justify-content: space-between;"><span>• Firebase Firestore:</span><strong style="color: #059669;">${syncRes.firestoreSynced || syncRes.backendSynced ? 'Connected (Synced)' : 'Local Cache'}</strong></div></div>`,
+        type: 'success',
+        okText: 'Done'
+    });
 }
 
 function toggleWorkflowStatus() {

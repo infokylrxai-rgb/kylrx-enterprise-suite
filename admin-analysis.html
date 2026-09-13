@@ -165,11 +165,20 @@
                     </div>
                     <canvas id="trendChart"></canvas>
                 </div>
-                <div class="chart-card">
-                    <div class="chart-header">
+                <div class="chart-card" style="position: relative;">
+                    <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center;">
                         <div class="chart-title"><i data-lucide="pie-chart" class="chart-icon"></i> Payroll Impact Analysis</div>
+                        <span id="payrollLiveBadge" style="font-size: 0.7rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                            <span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; display: inline-block;"></span> Firebase Live
+                        </span>
                     </div>
-                    <canvas id="payrollChart"></canvas>
+                    <div style="position: relative; width: 100%; height: 260px; display: flex; align-items: center; justify-content: center;">
+                        <canvas id="payrollChart"></canvas>
+                        <div id="payrollCenterOverlay" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
+                            <span id="payrollCenterAmount" style="font-size: 1.3rem; font-weight: 800; color: #0f172a; line-height: 1.2;">₹0</span>
+                            <span id="payrollCenterSubtitle" style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Nil / 0 Impact</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-header">
@@ -274,7 +283,7 @@
     <script type="module">
         import { db, auth } from "./firebase-config.js";
         import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, getDocs, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         import { getDepartmentProductivity, getPerformanceTrends } from "./pms-service.js";
         import { sendBroadcast } from "./messaging-engine.js";
 
@@ -375,21 +384,112 @@
                 });
             } catch (err) { console.error("Trend Chart error:", err); }
 
-            // Payroll Chart (Connected to settings or aggregate)
+            // Payroll Chart (Connected to Firebase Firestore with Nil 0 default)
             try {
-                const settingsSnap = await getDocs(collection(db, 'payroll_metadata'));
-                let payrollDist = [65, 15, 10, 10]; // Default
-                if (!settingsSnap.empty) {
-                    const data = settingsSnap.docs[0].data();
-                    payrollDist = [data.fixed || 65, data.variable || 15, data.incentives || 10, data.tax || 10];
+                let payrollChartInstance = null;
+                const canvas = document.getElementById('payrollChart');
+                const centerAmt = document.getElementById('payrollCenterAmount');
+                const centerSub = document.getElementById('payrollCenterSubtitle');
+                const liveBadge = document.getElementById('payrollLiveBadge');
+
+                function updatePayrollChart(fixed, variable, incentives, tax, docCount) {
+                    const total = fixed + variable + incentives + tax;
+                    
+                    if (centerAmt && centerSub) {
+                        if (total === 0) {
+                            centerAmt.textContent = '₹0';
+                            centerSub.textContent = 'Nil / 0 Impact';
+                            if (liveBadge) liveBadge.innerHTML = '<span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block;"></span> Firebase Live (0)';
+                        } else {
+                            centerAmt.textContent = total >= 100000 ? `₹${(total / 100000).toFixed(1)}L` : `₹${total.toLocaleString()}`;
+                            centerSub.textContent = `${docCount} Profiles`;
+                            if (liveBadge) liveBadge.innerHTML = `<span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block;"></span> Firebase Live (${docCount})`;
+                        }
+                    }
+
+                    const chartLabels = total === 0 ? ['No Remittance (Nil)'] : ['Fixed', 'Variable', 'Incentives', 'Tax'];
+                    const chartData = total === 0 ? [1] : [fixed, variable, incentives, tax];
+                    const chartColors = total === 0 
+                        ? ['#f1f5f9'] 
+                        : ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+                    const chartBorders = total === 0 ? ['#e2e8f0'] : ['#ffffff', '#ffffff', '#ffffff', '#ffffff'];
+
+                    if (payrollChartInstance) {
+                        payrollChartInstance.data.labels = chartLabels;
+                        payrollChartInstance.data.datasets[0].data = chartData;
+                        payrollChartInstance.data.datasets[0].backgroundColor = chartColors;
+                        payrollChartInstance.data.datasets[0].borderColor = chartBorders;
+                        payrollChartInstance.data.datasets[0].borderWidth = total === 0 ? 1 : 0;
+                        payrollChartInstance.options.plugins.legend.display = total > 0;
+                        payrollChartInstance.options.plugins.tooltip.enabled = total > 0;
+                        payrollChartInstance.update();
+                    } else if (canvas) {
+                        payrollChartInstance = new Chart(canvas, {
+                            type: 'doughnut',
+                            data: {
+                                labels: chartLabels,
+                                datasets: [{
+                                    data: chartData,
+                                    backgroundColor: chartColors,
+                                    borderColor: chartBorders,
+                                    borderWidth: total === 0 ? 1 : 0
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: total > 0, position: 'bottom' },
+                                    tooltip: {
+                                        enabled: total > 0,
+                                        callbacks: {
+                                            label: function(context) {
+                                                const val = context.raw || 0;
+                                                return ` ${context.label}: ₹${Number(val).toLocaleString()}`;
+                                            }
+                                        }
+                                    }
+                                },
+                                cutout: '72%'
+                            }
+                        });
+                    }
                 }
-                new Chart(document.getElementById('payrollChart'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Fixed', 'Variable', 'Incentives', 'Tax'],
-                        datasets: [{ data: payrollDist, backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'] }]
-                    },
-                    options: { responsive: true, plugins: { legend: { display: false } }, cutout: '70%' }
+
+                // Initial baseline: Nil (0, 0, 0, 0)
+                updatePayrollChart(0, 0, 0, 0, 0);
+
+                // Real-time synchronization with Firebase
+                onSnapshot(collection(db, 'payroll_profiles'), (profileSnap) => {
+                    if (!profileSnap.empty) {
+                        let f = 0, v = 0, inc = 0, t = 0;
+                        profileSnap.docs.forEach(doc => {
+                            const d = doc.data();
+                            f += Number(d.salaryStructure?.baseSalary || d.salaryStructure?.base || d.salary || 0);
+                            v += Number(d.salaryStructure?.variablePay || d.variablePay || 0);
+                            inc += Number(d.salaryStructure?.shiftAllowance || d.salaryStructure?.incentives || d.monthlyBonus || 0);
+                            t += Number(d.salaryStructure?.taxDeductions || d.taxDeductions || 0);
+                        });
+                        updatePayrollChart(f, v, inc, t, profileSnap.docs.length);
+                    } else {
+                        getDocs(collection(db, 'payroll_metadata')).then(metaSnap => {
+                            if (!metaSnap.empty) {
+                                const m = metaSnap.docs[0].data();
+                                const f = Number(m.fixed) || 0;
+                                const v = Number(m.variable) || 0;
+                                const inc = Number(m.incentives) || 0;
+                                const t = Number(m.tax) || 0;
+                                updatePayrollChart(f, v, inc, t, 1);
+                            } else {
+                                updatePayrollChart(0, 0, 0, 0, 0);
+                            }
+                        }).catch(() => {
+                            updatePayrollChart(0, 0, 0, 0, 0);
+                        });
+                    }
+                }, (err) => {
+                    console.warn("Payroll Firebase sync:", err);
+                    updatePayrollChart(0, 0, 0, 0, 0);
                 });
             } catch (err) { console.error("Payroll Chart error:", err); }
 

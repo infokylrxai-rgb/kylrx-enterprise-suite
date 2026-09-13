@@ -419,6 +419,60 @@
         .sim-time { color: #64748b; }
         .sim-tag { color: #38bdf8; font-weight: 700; }
         .sim-success { color: #4ade80; }
+
+        /* Centered Dialog & Modal System */
+        @keyframes modalScaleIn {
+            0% { opacity: 0; transform: scale(0.92) translateY(8px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .center-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 6000;
+        }
+        .center-modal-box {
+            background: #ffffff;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 440px;
+            padding: 2.25rem 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+            border: 1px solid var(--border);
+            animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .center-modal-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+        }
+        .center-modal-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .center-modal-desc {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 1.75rem;
+        }
+        .center-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
     </style>
 </head>
 
@@ -481,6 +535,7 @@
                         <input type="text" id="workflowNameInput" class="flow-name-input" value="Employee Exit & Offboarding Governance" title="Click to rename workflow">
                         <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
                             <span class="status-pill active" id="statusPill" onclick="toggleWorkflowStatus()">Active Flow</span>
+                            <span class="status-pill active" id="firebaseStatusPill" style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="database" size="12"></i> Firebase: Connected</span>
                             <span style="font-size: 0.75rem; color: var(--text-muted);">Engine: Common 8-Stage Architecture</span>
                         </div>
                     </div>
@@ -675,6 +730,52 @@
             </div>
         </div>
     </div>
+
+    <!-- Centered Confirmation Modal (Custom Center Message Dialog) -->
+    <div id="builderConfirmModal" class="center-modal-overlay">
+        <div class="center-modal-box">
+            <div id="builderConfirmIconBox" class="center-modal-icon" style="background: #fee2e2; color: #dc2626;">
+                <i id="builderConfirmIcon" data-lucide="trash-2" size="30"></i>
+            </div>
+            <h2 id="builderConfirmTitle" class="center-modal-title">Remove Step</h2>
+            <div id="builderConfirmMessage" class="center-modal-desc">Remove step 1: "Employee submits resignation"?</div>
+            <div class="center-modal-actions">
+                <button type="button" id="builderConfirmCancelBtn" class="btn-builder" style="flex: 1; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: #f8fafc; color: #475569; transition: all 0.2s;">Cancel</button>
+                <button type="button" id="builderConfirmOkBtn" class="btn-builder" style="flex: 1; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.9rem; font-weight: 700; cursor: pointer; border: none; background: #dc2626; color: white; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3); transition: all 0.2s;">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Centered Alert / Notice Modal -->
+    <div id="builderAlertModal" class="center-modal-overlay" style="z-index: 6100;">
+        <div class="center-modal-box">
+            <div id="builderAlertIconBox" class="center-modal-icon" style="background: #eff6ff; color: #2563eb;">
+                <i id="builderAlertIcon" data-lucide="info" size="30"></i>
+            </div>
+            <h2 id="builderAlertTitle" class="center-modal-title">Notice</h2>
+            <div id="builderAlertMessage" class="center-modal-desc">Message content</div>
+            <div class="center-modal-actions">
+                <button type="button" id="builderAlertOkBtn" class="btn-builder btn-builder-primary" style="width: 100%; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.9rem; font-weight: 700; cursor: pointer;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Feedback Indicator -->
+    <div id="builderToast" style="display: none; position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); z-index: 9000; font-size: 0.85rem; align-items: center; gap: 10px; animation: modalScaleIn 0.25s ease;">
+        <i id="builderToastIcon" data-lucide="check-circle-2" size="18" style="color: #4ade80;"></i>
+        <span id="builderToastText">Step deleted & synced to Backend Firebase</span>
+    </div>
+
+    <!-- Firebase SDK Integration -->
+    <script type="module">
+        import { db, auth } from "./firebase-config.js";
+        import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        window.db = db;
+        window.auth = auth;
+        window.firestoreTools = { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot, serverTimestamp };
+        window.dispatchEvent(new CustomEvent('firebase-ready', { detail: { db, connected: true } }));
+        console.log('⚡ [Automation Builder] Connected to Backend Firebase Firestore.');
+    </script>
 
     <!-- Core Builder Controller -->
     <script src="admin-automation-builder.js"></script>

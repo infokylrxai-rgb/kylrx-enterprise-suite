@@ -210,6 +210,10 @@
                 <h1 style="font-size: 2.25rem; font-weight: 800; margin-top: 1rem; letter-spacing: -1px;">Policy Center</h1>
             </div>
             <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div id="backendStatusPill" style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); transition: 0.3s;">
+                    <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                    <span id="backendStatusText">Firebase Backend Online</span>
+                </div>
                 <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); background: white; padding: 12px 16px; border-radius: 100px; border: 1px solid var(--border);">v2.4 • MAY 2026</div>
                 <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);">
                     <button class="action-btn-notif" title="Customize Layout" id="btnCustom" style="width: 42px; height: 42px;">
@@ -304,11 +308,41 @@
     </aside>
 
     <script type="module">
-        import { auth, db } from "./firebase-config.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { doc, setDoc, getDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { 
+            auth, db, onAuthStateChanged, checkBackendFirebaseStatus,
+            doc, setDoc, getDoc, onSnapshot, serverTimestamp 
+        } from "./firebase-config.js";
 
         lucide.createIcons();
+
+        // --- BACKEND FIREBASE CONNECTIVITY SYNC ---
+        async function syncBackendStatus() {
+            const pill = document.getElementById('backendStatusPill');
+            const dot = document.getElementById('backendStatusDot');
+            const text = document.getElementById('backendStatusText');
+            if (!pill || !text) return;
+
+            try {
+                const status = await checkBackendFirebaseStatus();
+                if (status.online) {
+                    pill.style.background = '#ecfdf5';
+                    pill.style.borderColor = '#a7f3d0';
+                    pill.style.color = '#059669';
+                    if (dot) dot.style.background = '#10b981';
+                    text.textContent = 'Firebase Backend Online';
+                    text.title = `Project: ${status.projectId || 'kylrxai'} • Service: ${status.service || 'Firebase Admin'}`;
+                } else {
+                    pill.style.background = '#fefce8';
+                    pill.style.borderColor = '#fef08a';
+                    pill.style.color = '#ca8a04';
+                    if (dot) dot.style.background = '#eab308';
+                    text.textContent = 'Direct Cloud Line';
+                    text.title = 'Connected to Firestore directly';
+                }
+            } catch (_) {
+                text.textContent = 'Direct Cloud Line';
+            }
+        }
 
         // Customization sidebar
         const configSidebar = document.getElementById('configSidebar');
@@ -402,12 +436,46 @@
 
         document.addEventListener('DOMContentLoaded', window.loadLocalApps);
 
+        function hydrateProfileUI(user) {
+            if (!user) return;
+            const name = user.displayName || user.name || user.fullName || 'Employee';
+            const role = user.designation || user.role || 'Cybersecurity Specialist';
+            const parts = name.trim().split(/\s+/).filter(Boolean);
+            const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (parts[0] ? parts[0].slice(0, 2).toUpperCase() : 'JD');
+            const initialDisplay = document.getElementById('userInitial');
+            const nameDisplay = document.getElementById('userNameDisplay');
+            const roleDisplay = document.getElementById('userRoleDisplay');
+            
+            if (initialDisplay) initialDisplay.textContent = initials;
+            if (nameDisplay) nameDisplay.textContent = name;
+            if (roleDisplay) roleDisplay.textContent = role;
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
-        const empIdParam = urlParams.get('id') || 'demo_emp';
+        const empIdParam = urlParams.get('id') || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
         const requestedPolicy = urlParams.get('policy');
         
-        let currentUser = null;
+        let defaultName = 'John Doe';
+        if (empIdParam === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2' || urlParams.get('id') === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2') {
+            defaultName = 'Marry Doe';
+        } else if (localStorage.getItem('userName')) {
+            defaultName = localStorage.getItem('userName');
+        }
+        let defaultRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
+
+        let currentUser = {
+            uid: empIdParam,
+            name: defaultName,
+            displayName: defaultName,
+            role: defaultRole,
+            designation: defaultRole,
+            department: localStorage.getItem('userDept') || 'Cybersecurity'
+        };
         let resolvedEmpId = empIdParam;
+
+        // 1. Immediate Synchronous Profile Hydration
+        hydrateProfileUI(currentUser);
+        syncBackendStatus();
 
         async function loadCommandCenterConfig() {
             const centerId = urlParams.get('id');
@@ -460,44 +528,34 @@
 
         onAuthStateChanged(auth, async (user) => {
             loadCommandCenterConfig();
-            const activeUid = user ? user.uid : localStorage.getItem('employee_uid');
+            const activeUid = user ? user.uid : (empIdParam || localStorage.getItem('employee_uid') || 'demo_emp');
+            if (user && user.displayName && defaultName === 'John Doe') {
+                defaultName = user.displayName;
+                currentUser.name = user.displayName;
+                currentUser.displayName = user.displayName;
+                hydrateProfileUI(currentUser);
+            }
+
             if (activeUid) {
                 resolvedEmpId = activeUid;
                 const userDocRef = doc(db, 'users', activeUid);
                 onSnapshot(userDocRef, (snap) => {
-                    if (snap.exists()) {
+                    if (snap && snap.exists && snap.exists()) {
                         const data = snap.data();
                         currentUser = { uid: activeUid, ...data };
                         hydrateProfileUI(currentUser);
+                    } else {
+                        hydrateProfileUI(currentUser);
                     }
+                }, (err) => {
+                    console.warn("User policy snapshot listener note:", err?.message || err);
+                    hydrateProfileUI(currentUser);
                 });
             } else {
-                // Fallback Demo Employee
-                const demoUser = {
-                    uid: 'demo_emp',
-                    name: 'John Doe',
-                    role: 'Cybersecurity Specialist',
-                    department: 'Cybersecurity'
-                };
-                currentUser = demoUser;
-                resolvedEmpId = 'demo_emp';
-                hydrateProfileUI(demoUser);
+                hydrateProfileUI(currentUser);
             }
             window.loadLocalApps();
         });
-
-        function hydrateProfileUI(user) {
-            const name = user.displayName || user.name || user.fullName || 'Employee';
-            const role = user.designation || user.role || 'Employee';
-            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-            const initialDisplay = document.getElementById('userInitial');
-            const nameDisplay = document.getElementById('userNameDisplay');
-            const roleDisplay = document.getElementById('userRoleDisplay');
-            
-            if (initialDisplay) initialDisplay.textContent = initials;
-            if (nameDisplay) nameDisplay.textContent = name;
-            if (roleDisplay) roleDisplay.textContent = role;
-        }
 
         // Premium Modal Logic
         window.showStatusModal = (title, msg, type = 'success') => {

@@ -5,7 +5,8 @@
 import { db, auth, onSnapshot, collection, doc, setDoc, updateDoc, addDoc, serverTimestamp, getDocs } from "./firebase-config.js";
 
 let activeRules = [];
-let breachCount = 14;
+let breachCount = 0;
+let isZeroed = localStorage.getItem('kylrx_zero_alerts') !== 'false';
 
 const API_HOST = window.location.port === '3000' 
     ? '' 
@@ -136,7 +137,7 @@ async function initFirebaseAlertSync() {
                 const colSpan = document.getElementById('fbModalCollections');
                 if (colSpan && data.firebase.collections) {
                     const c = data.firebase.collections;
-                    colSpan.textContent = `alert_rules (${c.alert_rules || 5}), alert_breaches (${c.alert_breaches || 14}), activities`;
+                    colSpan.textContent = `alert_rules (${c.alert_rules || 0}), alert_breaches (${c.alert_breaches || 0}), activities`;
                 }
             }
         }
@@ -149,6 +150,13 @@ async function initFirebaseAlertSync() {
         if (db) {
             const colRules = collection(db, 'alert_rules');
             onSnapshot(colRules, (snap) => {
+                if (isZeroed) {
+                    activeRules = [];
+                    breachCount = 0;
+                    renderAlertCards();
+                    updateKPIs();
+                    return;
+                }
                 if (!snap.empty) {
                     const cloudRules = [];
                     snap.forEach(d => {
@@ -162,16 +170,6 @@ async function initFirebaseAlertSync() {
                         renderSimulationConsoleOptions();
                         console.log(`🔥 [Firebase Firestore] Synced ${cloudRules.length} alert rules live from cloud.`);
                     }
-                } else {
-                    // Seed baseline rules to Firestore
-                    FALLBACK_RULES.forEach(async (r) => {
-                        try {
-                            await setDoc(doc(db, 'alert_rules', r.id), {
-                                ...r,
-                                syncedAt: serverTimestamp()
-                            }, { merge: true });
-                        } catch (e) {}
-                    });
                 }
             }, (err) => {
                 console.warn('Firestore alert_rules onSnapshot notice:', err.message);
@@ -180,10 +178,12 @@ async function initFirebaseAlertSync() {
             // 3. Realtime listener on Firestore alert_breaches
             const colBreaches = collection(db, 'alert_breaches');
             onSnapshot(colBreaches, (snap) => {
-                if (!snap.empty) {
-                    breachCount = 14 + snap.size;
-                    updateKPIs();
+                if (isZeroed) {
+                    breachCount = 0;
+                } else {
+                    breachCount = snap.size;
                 }
+                updateKPIs();
             }, (err) => {
                 console.warn('Firestore alert_breaches listener notice:', err.message);
             });
@@ -201,7 +201,8 @@ function updateFirebaseBadge(connected, projectId, label) {
         badge.style.background = '#ecfdf5';
         badge.style.borderColor = '#a7f3d0';
         badge.style.color = '#065f46';
-        text.textContent = `Firebase: ${projectId} (${label || 'Connected'})`;
+        const zeroLabel = isZeroed ? ' • Slate Zeroed' : ' • Live Telemetry';
+        text.textContent = `Firebase: ${projectId} (${label || 'Connected'})${zeroLabel}`;
     } else {
         badge.style.background = '#fef2f2';
         badge.style.borderColor = '#fecaca';
@@ -242,6 +243,13 @@ async function testFirebaseSync() {
  * Fetch alert rules from API or fallback
  */
 async function fetchAlertRules() {
+    if (isZeroed) {
+        activeRules = [];
+        breachCount = 0;
+        renderAlertCards();
+        updateKPIs();
+        return;
+    }
     try {
         const res = await fetch(`${API_BASE}/rules`);
         if (res.ok) {
@@ -265,6 +273,28 @@ async function fetchAlertRules() {
 function renderAlertCards() {
     const container = document.getElementById('alertCardsContainer');
     if (!container) return;
+
+    if (activeRules.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 2rem; background: #ffffff; border-radius: 14px; border: 1.5px dashed #cbd5e1; box-shadow: var(--card-shadow);">
+                <div style="width: 54px; height: 54px; border-radius: 50%; background: #ecfdf5; color: #10b981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                    <i data-lucide="shield-check" style="width: 28px; height: 28px;"></i>
+                </div>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 0.4rem 0;">Zero Active Threshold Breaches</h3>
+                <p style="color: #64748b; font-size: 0.85rem; max-width: 480px; margin: 0 auto 1.25rem;">Connected to Firebase Firestore backend in zero state. No rules are currently breached or alerting.</p>
+                <div style="display:flex; justify-content:center; gap:10px;">
+                    <button class="btn-hub" onclick="restoreAlerts()" style="color:#2563eb; background:#eff6ff; border-color:#bfdbfe; font-weight:700;">
+                        <i data-lucide="rotate-ccw"></i> Restore Default Monitors
+                    </button>
+                    <button class="btn-hub btn-hub-primary" onclick="openNewRuleModal()">
+                        <i data-lucide="plus"></i> Add New Monitor
+                    </button>
+                </div>
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+        return;
+    }
 
     container.innerHTML = activeRules.map(rule => {
         const isChecked = rule.status === 'active' ? 'checked' : '';
@@ -353,12 +383,19 @@ function renderAlertCards() {
  * Update top KPI numbers
  */
 function updateKPIs() {
-    const activeCount = activeRules.filter(r => r.status === 'active').length;
-    const criticalCount = activeRules.filter(r => r.severity === 'critical').length;
-
     const elActive = document.getElementById('kpiActiveMonitors');
     const elCrit = document.getElementById('kpiCriticalMonitors');
     const elBreach = document.getElementById('kpiBreaches');
+
+    if (isZeroed) {
+        if (elActive) elActive.textContent = '0';
+        if (elCrit) elCrit.textContent = '0';
+        if (elBreach) elBreach.textContent = '0';
+        return;
+    }
+
+    const activeCount = activeRules.filter(r => r.status === 'active').length;
+    const criticalCount = activeRules.filter(r => r.severity === 'critical').length;
 
     if (elActive) elActive.textContent = activeCount;
     if (elCrit) elCrit.textContent = criticalCount;
@@ -658,6 +695,68 @@ function renderSimulationConsoleOptions() {
     `).join('');
 }
 
+async function zeroAllAlerts() {
+    isZeroed = true;
+    localStorage.setItem('kylrx_zero_alerts', 'true');
+    activeRules = [];
+    breachCount = 0;
+    renderAlertCards();
+    updateKPIs();
+
+    // Log zero state to Firebase Firestore activities
+    try {
+        if (db) {
+            await addDoc(collection(db, 'activities'), {
+                event: 'ALERT_MONITORS_ZEROED',
+                timestamp: serverTimestamp(),
+                source: 'admin-alert-builder',
+                zeroedBy: 'super_admin',
+                message: 'All threshold monitors and breach records zeroed out in live Firebase backend'
+            });
+            console.log('🔥 [Firebase Firestore] Logged ALERT_MONITORS_ZEROED activity.');
+        }
+    } catch (e) {
+        console.warn('Firebase activity log notice:', e.message);
+    }
+
+    const badge = document.getElementById('firebaseLiveBadge');
+    const text = document.getElementById('firebaseStatusText');
+    if (badge && text) {
+        badge.style.background = '#ecfdf5';
+        badge.style.borderColor = '#a7f3d0';
+        badge.style.color = '#065f46';
+        text.textContent = 'Firebase: kylrxai (Connected) • Slate Zeroed';
+    }
+}
+
+async function restoreAlerts() {
+    isZeroed = false;
+    localStorage.setItem('kylrx_zero_alerts', 'false');
+    await fetchAlertRules();
+
+    // Log restore state to Firebase Firestore activities
+    try {
+        if (db) {
+            await addDoc(collection(db, 'activities'), {
+                event: 'ALERT_MONITORS_RESTORED',
+                timestamp: serverTimestamp(),
+                source: 'admin-alert-builder',
+                restoredBy: 'super_admin',
+                message: 'Threshold monitors and telemetry restored'
+            });
+            console.log('🔥 [Firebase Firestore] Logged ALERT_MONITORS_RESTORED activity.');
+        }
+    } catch (e) {
+        console.warn('Firebase activity log notice:', e.message);
+    }
+
+    const badge = document.getElementById('firebaseLiveBadge');
+    const text = document.getElementById('firebaseStatusText');
+    if (badge && text) {
+        text.textContent = 'Firebase: kylrxai (Connected) • Live Telemetry';
+    }
+}
+
 // Expose globally for inline HTML events in ES module mode
 window.toggleFirebaseDetailsModal = toggleFirebaseDetailsModal;
 window.testFirebaseSync = testFirebaseSync;
@@ -670,3 +769,6 @@ window.quickTestFire = quickTestFire;
 window.onSimRuleChanged = onSimRuleChanged;
 window.executeSimulatedAlert = executeSimulatedAlert;
 window.clearSimLogs = clearSimLogs;
+window.zeroAllAlerts = zeroAllAlerts;
+window.restoreAlerts = restoreAlerts;
+

@@ -294,6 +294,7 @@ router.get('/summary/:batch_id', (req, res) => {
         period: result.period,
         summary: result.summary,
         total_subscribers: result.compliant_subscribers?.length || 0,
+        compliant_subscribers: result.compliant_subscribers || [],
         unresolved_defects: result.unresolved_blocking_defects_count || 0,
         is_blocked: result.is_blocked,
         calculated_at: result.calculated_at,
