@@ -104,7 +104,7 @@ let pendingActions = [
         dueIn: '2 business days',
         assignedTo: 'HR Operations',
         status: 'pending',
-        actionUrl: 'statutory-compliance.html'
+        actionUrl: 'admin-statutory-compliance.html'
     },
     {
         id: 'ACT-ASSIGN-02',

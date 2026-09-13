@@ -17,7 +17,7 @@ assert.ok(hrmsSync.includes('admin-dashboard.html'), 'hrms-sidebar-sync.js must 
 assert.ok(hrmsSync.includes('ensureEnterpriseInterlink'), 'hrms-sidebar-sync.js must define ensureEnterpriseInterlink');
 console.log('✓ hrms-sidebar-sync.js: Enterprise Admin interlink logic verified.');
 
-// 3. Check Admin HTML files contain interlinks to HRMS
+// 3. Check Admin HTML files contain interlinks to HRMS and Admin Sidebar Sync
 const adminFiles = [
     'admin-dashboard.html',
     'admin-central-dashboard.html',
@@ -29,7 +29,9 @@ const adminFiles = [
     'admin-exit-management.html',
     'admin-leave-management.html',
     'admin-payroll-documents.html',
-    'admin-assignment-matrix.html'
+    'admin-assignment-matrix.html',
+    'admin-payroll-disbursement.html',
+    'admin-statutory-compliance.html'
 ];
 
 adminFiles.forEach(file => {
@@ -39,5 +41,13 @@ adminFiles.forEach(file => {
     assert.ok(content.includes('admin-sidebar-sync.js'), `${file} must include admin-sidebar-sync.js`);
     console.log(`✓ ${file}: HRMS interlink verified.`);
 });
+
+// 4. Verify admin-payroll-documents.html links to admin-payroll-disbursement and admin-statutory-compliance
+const pDocs = fs.readFileSync('admin-payroll-documents.html', 'utf8');
+assert.ok(pDocs.includes('admin-payroll-disbursement.html'), 'admin-payroll-documents.html must link to admin-payroll-disbursement.html');
+assert.ok(pDocs.includes('admin-statutory-compliance.html'), 'admin-payroll-documents.html must link to admin-statutory-compliance.html');
+assert.ok(!pDocs.includes('href="payroll-disbursement.html"'), 'admin-payroll-documents.html must not directly link to HRMS payroll disbursement');
+assert.ok(!pDocs.includes('href="statutory-compliance.html"'), 'admin-payroll-documents.html must not directly link to HRMS statutory compliance');
+console.log('✓ admin-payroll-documents.html: Dedicated admin payroll & statutory links verified.');
 
 console.log('\n🎉 ALL ADMIN AND HRMS INTERLINK CHECKS PASSED SUCCESSFULLY!');
