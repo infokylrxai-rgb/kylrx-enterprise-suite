@@ -151,16 +151,16 @@
                                                             <nav class="nav-menu">
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout"></i><span>Admin Console</span></a></div>
-                <div class="nav-item"><a href="hrms-dashboard.html" class="nav-link" style="color: #2563eb; font-weight: 700;" title="HRMS Strategic Operations Hub"><i data-lucide="layout-dashboard"></i><span>HRMS Strategic Hub</span></a></div>
+                
                 <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
                 <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
                 <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
                 <div class="nav-label">OPERATIONS</div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
-                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link active"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
-                <div class="nav-item"><a href="admin-payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
-                <div class="nav-item"><a href="admin-statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+                <div class="nav-item"><a href="#docs" class="nav-link active" id="navLinkDocs" onclick="switchPayrollTab('docs'); return false;"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="#disbursement" class="nav-link" id="navLinkDisbursement" onclick="switchPayrollTab('disbursement'); return false;"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="#compliance" class="nav-link" id="navLinkCompliance" onclick="switchPayrollTab('compliance'); return false;"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
                 <div class="nav-label">INTELLIGENCE</div>
                 <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
@@ -170,7 +170,7 @@
                 <div class="nav-label">APPROVALS & SETTINGS</div>
                 <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Change</span></a></div>
                 <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
-                <div class="nav-item"><a href="admin-payroll-disbursement.html" class="nav-link"><i data-lucide="banknote"></i><span>Bank Transfer & Disbursement</span></a></div>
+                <div class="nav-item"><a href="#disbursement" class="nav-link" onclick="switchPayrollTab('disbursement'); return false;"><i data-lucide="banknote"></i><span>Bank Transfer & Disbursement</span></a></div>
                 <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
@@ -211,16 +211,22 @@
         </aside>
 
         <main class="main-content">
-            <header class="header-actions">
+            <header class="header-actions" style="margin-bottom: 1.5rem;">
                 <div class="welcome-text">
-                    <h1>Payroll Document Center</h1>
-                    <p>Generate, encrypt, and archive employee financial and professional records.</p>
+                    <h1 id="pageMainHeading">Payroll &amp; Statutory Command Center</h1>
+                    <p id="pageSubHeading">Unified admin management for financial records, multi-rail salary disbursement, and statutory returns.</p>
                 </div>
-                <div class="btn-group">
-                    <button class="btn btn-primary" onclick="triggerBatch()"><i data-lucide="play"></i> Auto-Generate Batch</button>
+                <div class="btn-group" style="gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="tabBtnDocs" onclick="switchPayrollTab('docs')"><i data-lucide="file-text"></i> Document Center</button>
+                    <button class="btn btn-outline" id="tabBtnDisbursement" onclick="switchPayrollTab('disbursement')"><i data-lucide="credit-card"></i> Payroll Disbursement</button>
+                    <button class="btn btn-outline" id="tabBtnCompliance" onclick="switchPayrollTab('compliance')"><i data-lucide="scale"></i> Statutory Compliance</button>
                 </div>
             </header>
 
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- TAB 1: PAYROLL DOCUMENT CENTER (ADMIN VIEW)           -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <div id="tabContentDocs">
             <div class="doc-center-grid">
                 <div class="doc-left">
                     <div class="doc-card">
@@ -245,7 +251,7 @@
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Experience Letters</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">F&amp;F &amp; Settlements</p>
                             </div>
-                            <div class="category-item" onclick="window.location.href='admin-payroll-disbursement.html'">
+                            <div class="category-item" onclick="switchPayrollTab('disbursement')">
                                 <i data-lucide="trending-up" size="32"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800;">Payroll Disbursement Hub</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Generate &amp; Export</p>
@@ -357,6 +363,383 @@
                     </div>
                 </div>
             </div>
+            </div> <!-- /tabContentDocs -->
+<!-- ══════════════════════════════════════════════════════ -->
+            <!-- TAB 2: PAYROLL DISBURSEMENT HUB (ADMIN CONTROL)       -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <div id="tabContentDisbursement" style="display: none;">
+                <!-- KPI Cards -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="layers" size="22"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Monthly Outflow</div>
+                                <div style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">₹48,25,000</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">92 Active Personnel • Cycle Oct 2026</div>
+                    </div>
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #dcfce7; color: #10b981; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="check-circle" size="22"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Disbursed (Settled)</div>
+                                <div style="font-size: 1.35rem; font-weight: 800; color: #10b981;">₹35,85,000</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">68 Direct Bank NEFT Transfers</div>
+                    </div>
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="clock" size="22"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pending Authorization</div>
+                                <div style="font-size: 1.35rem; font-weight: 800; color: #d97706;">₹12,40,000</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.72rem; color: #d97706; font-weight: 700;">24 Awaiting Admin 1-Click Execution</div>
+                    </div>
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="shield-check" size="22"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Statutory Remittances</div>
+                                <div style="font-size: 1.35rem; font-weight: 800; color: #0284c7;">₹4,18,500</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.72rem; color: #0284c7; font-weight: 700;">PF, ESIC &amp; PT Withheld &amp; Reconciled</div>
+                    </div>
+                </div>
+
+                <!-- Disbursement Execution Gateway & Controls -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="doc-card" style="border-color: #10b981;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                            <div>
+                                <h3 style="font-weight: 800; color: #059669; font-size: 1.1rem;">Super Admin 1-Click Salary Disbursement Hub</h3>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Direct automated bank transfer execution without third-party redirects.</p>
+                            </div>
+                            <span class="badge" style="background: #ecfdf5; color: #059669; font-weight: 700; padding: 6px 12px; border-radius: 8px;">
+                                <i data-lucide="zap" size="14" style="display:inline; margin-right:4px;"></i> Live Gateway Active
+                            </span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">PAYMENT GATEWAY</div>
+                                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">HDFC Direct Host-to-Host</div>
+                                <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">API Ping: 18ms (Online)</div>
+                            </div>
+                            <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">TRANSFER RAILS</div>
+                                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">NEFT / RTGS / IMPS</div>
+                                <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">Bank Format: RBI-Standard</div>
+                            </div>
+                            <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">AUDIT &amp; ENCRYPTION</div>
+                                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">AES-256 + HMAC-SHA</div>
+                                <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">Multi-Sig Verified</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-primary" style="flex: 2; justify-content: center; background: #10b981; border: none; font-size: 0.95rem; padding: 12px;" onclick="triggerDisbursement()">
+                                <i data-lucide="banknote"></i> Execute Salary Disbursement Now (1-Click)
+                            </button>
+                            <button class="btn btn-outline" style="flex: 1; justify-content: center; font-size: 0.9rem;" onclick="exportBankFileFromDocs()">
+                                <i data-lucide="download"></i> Export Bank CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 style="font-weight: 800; margin-bottom: 1rem; font-size: 1.05rem;">Batch Stepper &amp; Signoff</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">✓</div>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 700;">1. Biometric Attendance Sync</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">92 of 92 Timesheets Approved</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">✓</div>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 700;">2. Bank Verification Check</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Penny Drop &amp; IFSC Validated</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">3</div>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 700; color: #2563eb;">3. Super Admin Signoff</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Ready for Batch Trigger</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">4</div>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 700; color: #64748b;">4. Gateway Dispatch &amp; UTR</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Instant UTR Settlement</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Employee Salary Disbursement Ledger -->
+                <div class="doc-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <div>
+                            <h3 style="font-weight: 800; font-size: 1.1rem;">Disbursement Register &amp; Employee Ledger</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Cycle: October 2026 • Verified Banking Channels</p>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="disbSearchInput" placeholder="Filter employee..." style="padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.8rem; outline: none;" oninput="filterDisbTable(this.value)">
+                            <button class="btn btn-outline" style="padding: 8px 12px; font-size: 0.8rem;" onclick="showToast('Refreshing bank verification ledger...')"><i data-lucide="rotate-cw" size="14"></i> Sync Ledger</button>
+                        </div>
+                    </div>
+                    <table class="doc-table" id="disbTable">
+                        <thead>
+                            <tr>
+                                <th>EMPLOYEE</th>
+                                <th>DEPARTMENT</th>
+                                <th>BANK &amp; ACCOUNT</th>
+                                <th>GROSS</th>
+                                <th>DEDUCTIONS</th>
+                                <th>NET PAY</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-main);">Arjun Mehta</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">KYL-1002</div>
+                                </td>
+                                <td>Engineering</td>
+                                <td>
+                                    <div style="font-weight: 600;">HDFC Bank • ****4821</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">HDFC0000240</div>
+                                </td>
+                                <td style="font-weight: 600;">₹1,25,000</td>
+                                <td style="color: #ef4444; font-weight: 600;">-₹15,200</td>
+                                <td style="font-weight: 800; color: #10b981;">₹1,09,800</td>
+                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Ready for NEFT</span></td>
+                                <td>
+                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Disbursing salary to Arjun Mehta...')"><i data-lucide="send" size="12"></i> Pay</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-main);">Sarah Jenkins</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">KYL-1014</div>
+                                </td>
+                                <td>Product Design</td>
+                                <td>
+                                    <div style="font-weight: 600;">ICICI Bank • ****8912</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">ICIC0001892</div>
+                                </td>
+                                <td style="font-weight: 600;">₹95,000</td>
+                                <td style="color: #ef4444; font-weight: 600;">-₹11,400</td>
+                                <td style="font-weight: 800; color: #10b981;">₹83,600</td>
+                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Ready for NEFT</span></td>
+                                <td>
+                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Disbursing salary to Sarah Jenkins...')"><i data-lucide="send" size="12"></i> Pay</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-main);">Michael Scott</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">KYL-1025</div>
+                                </td>
+                                <td>People Operations</td>
+                                <td>
+                                    <div style="font-weight: 600;">Axis Bank • ****3309</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">UTIB0000122</div>
+                                </td>
+                                <td style="font-weight: 600;">₹85,000</td>
+                                <td style="color: #ef4444; font-weight: 600;">-₹9,800</td>
+                                <td style="font-weight: 800; color: #10b981;">₹75,200</td>
+                                <td><span class="badge" style="background: #fff7ed; color: #f97316;">Penny Verification</span></td>
+                                <td>
+                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Re-verifying bank details for Michael Scott...')"><i data-lucide="shield-check" size="12"></i> Verify</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-main);">Priya Sharma</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">KYL-1031</div>
+                                </td>
+                                <td>Finance &amp; Accounts</td>
+                                <td>
+                                    <div style="font-weight: 600;">SBI • ****7714</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">SBIN0004521</div>
+                                </td>
+                                <td style="font-weight: 600;">₹1,10,000</td>
+                                <td style="color: #ef4444; font-weight: 600;">-₹13,200</td>
+                                <td style="font-weight: 800; color: #10b981;">₹96,800</td>
+                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Ready for NEFT</span></td>
+                                <td>
+                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Disbursing salary to Priya Sharma...')"><i data-lucide="send" size="12"></i> Pay</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> <!-- /tabContentDisbursement -->
+
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- TAB 3: STATUTORY COMPLIANCE & RETURNS (ADMIN CONTROL) -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <div id="tabContentCompliance" style="display: none;">
+                <!-- Statutory Regulatory KPI Banner -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="landmark" size="22"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PF &amp; ECR Challan</div>
+                                <div style="font-size: 1.35rem; font-weight: 800; color: #2563eb;">₹2,14,500</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">TRRN Validated • 88 Covered Members</div>
+                    </div>
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="shield-check" size="22"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">ESIC Remittance</div>
+                                <div style="font-size: 1.35rem; font-weight: 800; color: #059669;">₹48,200</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Monthly Return Filed • Zero Arrears</div>
+                    </div>
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="file-check" size="22"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Professional Tax (PT)</div>
+                                <div style="font-size: 1.35rem; font-weight: 800; color: #d97706;">₹18,400</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">State PT Portal Form 5 Deposited</div>
+                    </div>
+                    <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 44px; height: 44px; border-radius: 12px; background: #f3e8ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
+                                <i data-lucide="scale" size="22"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Gratuity &amp; TDS 24Q</div>
+                                <div style="font-size: 1.35rem; font-weight: 800; color: #9333ea;">₹1,37,400</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Nominee Trust Reconciled</div>
+                    </div>
+                </div>
+
+                <!-- Compliance Tracker Matrix -->
+                <div class="doc-card" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <div>
+                            <h3 style="font-weight: 800; font-size: 1.1rem;">Statutory Authority Remittance &amp; Filing Hub</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted);">Regulatory Standard: Central &amp; State Compliance Engine 2026.4</p>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-outline" style="padding: 8px 12px; font-size: 0.8rem;" onclick="showToast('Re-scanning all regulatory identifiers...')"><i data-lucide="rotate-cw" size="14"></i> Re-scan Identifiers</button>
+                            <button class="btn btn-primary" style="padding: 8px 14px; font-size: 0.8rem; background: #2563eb;" onclick="showToast('Generating consolidated statutory compliance pack...')"><i data-lucide="file-archive" size="14"></i> Export Filing Pack</button>
+                        </div>
+                    </div>
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>STATUTORY ACT / HEAD</th>
+                                <th>REGULATORY BODY</th>
+                                <th>COVERED MEMBERS</th>
+                                <th>EMPLOYER SHARE</th>
+                                <th>EMPLOYEE SHARE</th>
+                                <th>TOTAL REMITTED</th>
+                                <th>CHALLAN / TRRN</th>
+                                <th>STATUS</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-main);">Provident Fund (EPF &amp; EPS)</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Act 1952 • ECR Monthly</div>
+                                </td>
+                                <td>EPFO Govt of India</td>
+                                <td>88 Active Members</td>
+                                <td style="font-weight: 600;">₹1,07,250</td>
+                                <td style="font-weight: 600;">₹1,07,250</td>
+                                <td style="font-weight: 800; color: #2563eb;">₹2,14,500</td>
+                                <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">TRRN-202610-8821</code></td>
+                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Challan Paid</span></td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Downloading EPFO ECR Challan Receipt...')"><i data-lucide="download" size="12"></i> Receipt</button></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-main);">Employee State Insurance (ESI)</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">ESI Act 1948 • Monthly</div>
+                                </td>
+                                <td>ESIC Corporation</td>
+                                <td>42 Eligible (&lt; ₹21k)</td>
+                                <td style="font-weight: 600;">₹34,800</td>
+                                <td style="font-weight: 600;">₹13,400</td>
+                                <td style="font-weight: 800; color: #059669;">₹48,200</td>
+                                <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">ESIC-CP-482109</code></td>
+                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Filed &amp; Settled</span></td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Downloading ESIC Portal Monthly Return...')"><i data-lucide="download" size="12"></i> Challan</button></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-main);">Professional Tax (PT)</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">State Tax Authority • Form 5</div>
+                                </td>
+                                <td>Commercial Taxes Dept</td>
+                                <td>92 Personnel</td>
+                                <td style="font-weight: 600;">₹0</td>
+                                <td style="font-weight: 600;">₹18,400</td>
+                                <td style="font-weight: 800; color: #d97706;">₹18,400</td>
+                                <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">PTAX-CH-202610</code></td>
+                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Deposited</span></td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Downloading State PT Challan...')"><i data-lucide="download" size="12"></i> Challan</button></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-main);">Payment of Gratuity Trust</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Gratuity Act 1972 • Accruals</div>
+                                </td>
+                                <td>Internal Statutory Reserve</td>
+                                <td>92 Headcount</td>
+                                <td style="font-weight: 600;">₹62,400</td>
+                                <td style="font-weight: 600;">₹0</td>
+                                <td style="font-weight: 800; color: #9333ea;">₹62,400</td>
+                                <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">GRAT-RES-2026-Q3</code></td>
+                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Reconciled</span></td>
+                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Opening Gratuity Actuarial Valuation Certificate...')"><i data-lucide="file-text" size="12"></i> Audit</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div> <!-- /tabContentCompliance -->
         </main>
     </div>
 
@@ -974,6 +1357,86 @@
     initAdminApps();
 </script>
 <script type="module" src="./admin-sidebar-sync.js"></script>
+
+    <script>
+        window.switchPayrollTab = function(tabName) {
+            const tabDocs = document.getElementById('tabContentDocs');
+            const tabDisb = document.getElementById('tabContentDisbursement');
+            const tabComp = document.getElementById('tabContentCompliance');
+            
+            const btnDocs = document.getElementById('tabBtnDocs');
+            const btnDisb = document.getElementById('tabBtnDisbursement');
+            const btnComp = document.getElementById('tabBtnCompliance');
+
+            const navDocs = document.getElementById('navLinkDocs');
+            const navDisb = document.getElementById('navLinkDisbursement');
+            const navComp = document.getElementById('navLinkCompliance');
+
+            const mainHead = document.getElementById('pageMainHeading');
+            const subHead = document.getElementById('pageSubHeading');
+
+            if (tabDocs) tabDocs.style.display = tabName === 'docs' ? 'block' : 'none';
+            if (tabDisb) tabDisb.style.display = tabName === 'disbursement' ? 'block' : 'none';
+            if (tabComp) tabComp.style.display = tabName === 'compliance' ? 'block' : 'none';
+
+            [btnDocs, btnDisb, btnComp].forEach(btn => {
+                if (!btn) return;
+                btn.className = 'btn btn-outline';
+            });
+            [navDocs, navDisb, navComp].forEach(nav => {
+                if (!nav) return;
+                nav.classList.remove('active');
+            });
+
+            if (tabName === 'docs') {
+                if (btnDocs) btnDocs.className = 'btn btn-primary';
+                if (navDocs) navDocs.classList.add('active');
+                if (mainHead) mainHead.textContent = 'Payroll Document Center';
+                if (subHead) subHead.textContent = 'Generate, encrypt, and archive employee financial and professional records.';
+            } else if (tabName === 'disbursement') {
+                if (btnDisb) btnDisb.className = 'btn btn-primary';
+                if (navDisb) navDisb.classList.add('active');
+                if (mainHead) mainHead.textContent = 'Payroll Disbursement Hub';
+                if (subHead) subHead.textContent = 'Multi-rail salary payout authorization, banking gateway validation, and real-time ledger settlement.';
+            } else if (tabName === 'compliance') {
+                if (btnComp) btnComp.className = 'btn btn-primary';
+                if (navComp) navComp.classList.add('active');
+                if (mainHead) mainHead.textContent = 'Statutory Compliance & Returns';
+                if (subHead) subHead.textContent = 'Central & State statutory return filing, PF ECR challans, ESIC contributions, and gratuity governance.';
+            }
+
+            history.replaceState(null, null, '#' + tabName);
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        };
+
+        window.filterDisbTable = function(query) {
+            const q = (query || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('#disbTable tbody tr');
+            rows.forEach(r => {
+                const text = r.textContent.toLowerCase();
+                r.style.display = (!q || text.includes(q)) ? '' : 'none';
+            });
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'disbursement' || hash === 'compliance' || hash === 'docs') {
+                switchPayrollTab(hash);
+            } else {
+                switchPayrollTab('docs');
+            }
+        });
+
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'disbursement' || hash === 'compliance' || hash === 'docs') {
+                switchPayrollTab(hash);
+            }
+        });
+    </script>
+
 </body>
 
 

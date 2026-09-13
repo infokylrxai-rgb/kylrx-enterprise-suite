@@ -3,6 +3,10 @@
  * Guarantees direct two-way interlinking between Admin pages and the HRMS Strategic Suite.
  */
 export function initAdminInterlink() {
+    // Preserve strict admin page isolation per user requirement
+    if (window.location.pathname.includes('admin-payroll') || window.location.pathname.includes('admin-statutory')) {
+        return;
+    }
     function injectHrmsLinks() {
         // 1. Sidebar Interlink: Add HRMS Strategic Hub into Admin navigation
         const nav = document.querySelector('.nav-menu');
