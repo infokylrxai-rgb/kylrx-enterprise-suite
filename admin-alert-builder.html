@@ -12,6 +12,10 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
         :root {
             --primary: #2563eb;
             --primary-light: #eff6ff;
@@ -611,6 +615,8 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            min-width: 0;
+            width: 100%;
         }
 
         .control-label {
@@ -618,9 +624,12 @@
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .control-input, .control-select {
+            width: 100%;
+            box-sizing: border-box;
             padding: 0.6rem 0.85rem;
             font-size: 0.85rem;
             font-family: inherit;
@@ -628,11 +637,13 @@
             border-radius: 8px;
             outline: none;
             background: #ffffff;
+            min-width: 0;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .control-input:focus, .control-select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
         .sim-output {
@@ -676,21 +687,23 @@
             bottom: 0;
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(4px);
-            z-index: 999;
+            z-index: 2999;
             align-items: center;
             justify-content: center;
+            box-sizing: border-box;
         }
 
         .modal-box {
             background: #ffffff;
             border-radius: 16px;
             width: 90%;
-            max-width: 600px;
+            max-width: 580px;
             padding: 1.75rem;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            box-sizing: border-box;
         }
 
         .modal-header {
@@ -961,7 +974,7 @@
                     <input type="text" class="control-input" id="newRuleName" placeholder="e.g. Leave: Unplanned Absence After Holiday">
                 </div>
 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div style="display:grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; width: 100%;">
                     <div class="control-group">
                         <label class="control-label">HR Module</label>
                         <select class="control-select" id="newRuleModule">
@@ -979,7 +992,7 @@
                     </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px;">
+                <div style="display:grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 12px; width: 100%;">
                     <div class="control-group">
                         <label class="control-label">Metric Name</label>
                         <input type="text" class="control-input" id="newRuleMetric" placeholder="e.g. Unplanned Days" value="unplannedDays">
@@ -996,7 +1009,7 @@
                     </div>
                     <div class="control-group">
                         <label class="control-label">Threshold</label>
-                        <input type="number" class="control-input" id="newRuleVal" value="2">
+                        <input type="number" class="control-input" id="newRuleVal" value="2" min="0" step="1" style="width: 100%;">
                     </div>
                 </div>
 
