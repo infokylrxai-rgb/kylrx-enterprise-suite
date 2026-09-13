@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visual Workflow Builder | HRMS Strategic Suite | Kylrx AI</title>
+    <meta name="description" content="Visual drag-and-drop workflow canvas for HRMS automation. Connect triggers, conditions, approvals, notifications, documents, and actions with zero code." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="lucide.min.js"></script>
+    <script>
+        function renderLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { window.lucide.createIcons(); } catch(e) {}
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
+        if (!window.lucide) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            s.onload = renderLucideIcons;
+            document.head.appendChild(s);
+        } else {
+            window.addEventListener('DOMContentLoaded', renderLucideIcons);
+        }
+        window.addEventListener('load', renderLucideIcons);
+    </script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #eef2ff;
+            --primary-soft: #e0e7ff;
+            
+            --bg-deep: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-panel: #f1f5f9;
+            --bg-hover: #eef2ff;
+            --bg-canvas: #f8fafc;
+            --border: #e2e8f0;
+            --border-active: #6366f1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            /* Node Colors */
+            --node-trigger: #4f46e5;
+            --node-condition: #d97706;
+            --node-branch: #7c3aed;
+            --node-approval: #2563eb;
+            --node-wait: #0d9488;
+            --node-escalation: #ea580c;
+            --node-action: #059669;
+            --node-notification: #db2777;
+            --node-document: #ca8a04;
+            --node-form: #0891b2;
+            --node-end: #dc2626;
+
+            --accent-blue: #2563eb;
+            --accent-purple: #7c3aed;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-gold: #f59e0b;
+            --radius: 16px;
+            --radius-sm: 8px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --sidebar-width: 280px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ─── HRMS SIDEBAR NAVIGATION ─── */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.5rem 1.1rem 1rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            box-shadow: 2px 0 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            text-decoration: none;
+            padding-left: 0.4rem;
+        }
+
+        .sidebar .logo img {
+            height: 36px;
+            width: 36px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .sidebar .logo-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+        }
+
+        .sidebar .logo-text span {
+            color: #4f46e5;
+        }
+
+        .hrms-badge-tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            background: #eef2ff;
+            color: #4f46e5;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-left: 4px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            list-style: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 1.1rem 0 0.4rem 0.6rem;
+        }
+
+        .nav-item {
+            margin-bottom: 4px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 9px 12px;
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+            transform: translateX(3px);
+        }
+
+        .nav-link.active {
+            background: #eef2ff !important;
+            color: #4f46e5 !important;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3.5px;
+            background: #4f46e5;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-link i, .nav-link svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: #64748b;
+        }
+
+        .nav-link.active i, .nav-link.active svg {
+            color: #4f46e5 !important;
+        }
+
+        .sidebar-bottom {
+            padding-top: 0.8rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .profile-mini {
+            margin-top: auto;
+            background: #eff6ff;
+            padding: 0.75rem 0.85rem;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .profile-mini .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--primary-blue, #2563eb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: white;
+            font-size: 0.82rem;
+            flex-shrink: 0;
+        }
+
+        .profile-mini .profile-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            white-space: nowrap;
+            color: #0f172a;
+            line-height: 1.25;
+        }
+
+        .profile-mini .profile-role {
+            font-size: 0.68rem;
+            color: #64748b;
+            font-weight: 600;
+            white-space: nowrap;
+            line-height: 1.2;
+            letter-spacing: -0.2px;
+        }
+
+        .profile-mini .btn-logout-mini {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .profile-mini .btn-logout-mini:hover {
+            color: #ef4444;
+            background: #fee2e2;
+        }
+
+        /* ─── MAIN LAYOUT ─── */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        /* ─── TOP HEADER BAR ─── */
+        .top-bar {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            gap: 16px;
+            z-index: 50;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .back-btn {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+        .back-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .workflow-meta-inputs {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .workflow-title-input {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 7px 12px;
+            width: 240px;
+            outline: none;
+            transition: var(--transition);
+        }
+        .workflow-title-input:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .workflow-desc-input {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            color: #475569;
+            font-size: 12px;
+            padding: 7px 12px;
+            flex: 1;
+            outline: none;
+            transition: var(--transition);
+        }
+        .workflow-desc-input:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.05em;
+        }
+        .status-badge.active {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .status-badge.draft {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-outline {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+        }
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+        .btn-primary {
+            background: #4f46e5;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+        }
+        .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background: #10b981;
+            color: #ffffff;
+        }
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        .btn-warning {
+            background: #f59e0b;
+            color: #ffffff;
+        }
+        .btn-ai {
+            background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+            color: #ffffff;
+            box-shadow: 0 2px 10px rgba(147, 51, 234, 0.25);
+        }
+        .btn-ai:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        /* ─── MINI STATS BAR ─── */
+        .stats-mini-bar {
+            height: 38px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 20px;
+            font-size: 11.5px;
+            color: #64748b;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-item strong {
+            color: #0f172a;
+        }
+
+        /* ─── 3-PANEL WORKSPACE ─── */
+        .builder-workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* LEFT PANEL (Node Palette & Workflows) */
+        .left-panel {
+            width: 290px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+        }
+
+        .panel-tab-bar {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .panel-tab-btn {
+            flex: 1;
+            padding: 10px 4px;
+            background: none;
+            border: none;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .panel-tab-btn.active {
+            color: var(--primary);
+            background: #ffffff;
+            border-bottom-color: var(--primary);
+        }
+
+        .panel-scroll-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+        }
+
+        .palette-section-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #94a3b8;
+            margin: 12px 0 6px;
+        }
+        .palette-section-title:first-child { margin-top: 0; }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .palette-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            cursor: grab;
+            transition: var(--transition);
+            user-select: none;
+        }
+        .palette-item:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            transform: translateX(2px);
+        }
+        .palette-item:active { cursor: grabbing; }
+
+        .palette-icon-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .palette-item-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .palette-item-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .palette-item-desc {
+            font-size: 10px;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Saved Workflows List */
+        .workflow-item {
+            padding: 10px 12px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .workflow-item:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+        .workflow-item.active {
+            border-color: var(--primary);
+            background: #eef2ff;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.1);
+        }
+        .workflow-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .workflow-item-name { font-size: 12.5px; font-weight: 700; color: #0f172a; }
+        .workflow-item-desc { font-size: 11px; color: #64748b; line-height: 1.3; }
+        .workflow-item-footer {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10.5px;
+            color: #94a3b8;
+        }
+
+        /* Logs & Audit */
+        .log-item, .audit-item {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 11.5px;
+        }
+        .item-badge {
+            display: inline-flex;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .item-badge.success { background: #dcfce7; color: #15803d; }
+        .item-badge.info { background: #e0e7ff; color: #4338ca; }
+
+        /* CENTER CANVAS */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: #f8fafc;
+            overflow: hidden;
+            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+            background-size: 24px 24px;
+            cursor: crosshair;
+        }
+        .workflow-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 4000px;
+            height: 4000px;
+            transform-origin: 0 0;
+        }
+        .svg-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: auto;
+            z-index: 5;
+        }
+        .flow-line {
+            stroke: #94a3b8;
+            stroke-width: 2.5px;
+            fill: none;
+            transition: stroke 0.2s, stroke-width 0.2s;
+        }
+        .flow-line:hover {
+            stroke: #4f46e5;
+            stroke-width: 4px;
+            cursor: pointer;
+        }
+        .flow-line.branch-true { stroke: #10b981; }
+        .flow-line.branch-false { stroke: #ef4444; }
+
+        /* Canvas Node Cards */
+        .canvas-node {
+            position: absolute;
+            width: 220px;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+            z-index: 10;
+            user-select: none;
+            cursor: move;
+            transition: box-shadow 0.15s, border-color 0.15s;
+        }
+        .canvas-node:hover {
+            border-color: #6366f1;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.12);
+        }
+        .canvas-node.selected {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.25), 0 10px 25px rgba(15, 23, 42, 0.1);
+        }
+
+        .canvas-node-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-top-left-radius: var(--radius);
+            border-top-right-radius: var(--radius);
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .canvas-node-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .canvas-node-type-label {
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+        }
+        .canvas-node-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .canvas-node-body {
+            padding: 10px 12px;
+            font-size: 11px;
+            color: #475569;
+            min-height: 40px;
+            line-height: 1.4;
+            background: #ffffff;
+            border-bottom-left-radius: var(--radius);
+            border-bottom-right-radius: var(--radius);
+        }
+
+        /* Node Connectors */
+        .node-port {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #94a3b8;
+            border: 2px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            z-index: 15;
+            cursor: crosshair;
+            transition: var(--transition);
+        }
+        .node-port:hover {
+            transform: scale(1.4);
+            background: var(--primary);
+        }
+        .node-port-in {
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .node-port-out {
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Zoom Floating Controls */
+        .canvas-floating-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 30;
+        }
+        .canvas-floating-controls button {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: var(--transition);
+        }
+        .canvas-floating-controls button:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            color: #0f172a;
+        }
+
+        /* RIGHT INSPECTOR PANEL */
+        .right-panel {
+            width: 310px;
+            background: #ffffff;
+            border-left: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+        }
+        .inspector-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .inspector-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .inspector-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .token-chip {
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 10.5px;
+            font-family: monospace;
+            color: #4338ca;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .token-chip:hover {
+            background: #e0e7ff;
+        }
+
+        /* MODALS */
+        .ai-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .ai-modal-window {
+            background: #ffffff;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 580px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            border: 1px solid #e2e8f0;
+        }
+        .ai-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .ai-prompt-chip {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 11.5px;
+            color: #334155;
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 3px;
+            display: inline-block;
+        }
+        .ai-prompt-chip:hover {
+            background: #eef2ff;
+            color: var(--primary);
+            border-color: #c7d2fe;
+        }
+
+        /* TOAST */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 2000;
+        }
+        .toast {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            padding: 12px 18px;
+            font-size: 13px;
+            color: #0f172a;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast.success { border-left: 4px solid var(--accent-green); }
+        .toast.error { border-left: 4px solid var(--accent-red); }
+        .toast.info { border-left: 4px solid var(--accent-blue); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── HRMS SIDEBAR NAVIGATION (STRICT HRMS CONTEXT) ─── -->
+    <aside class="sidebar">
+        <a href="hrms-dashboard.html" class="logo">
+            <img src="logo.jpg" alt="Kylrx AI Logo" style="height: 36px; width: 36px; object-fit: contain; border-radius: 10px;">
+            <span class="logo-text">Kylrx AI</span>
+        </a>
+
+        <nav class="nav-menu">
+            <div class="nav-label">Strategic Hub</div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html" class="nav-link">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard Overview</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#bulk-onboarding" class="nav-link">
+                    <i data-lucide="user-plus"></i>
+                    <span>Onboarding Engine</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#compliance" class="nav-link">
+                    <i data-lucide="shield-check"></i>
+                    <span>Compliance Tracker</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-workflow-builder.html" class="nav-link active">
+                    <i data-lucide="git-branch"></i>
+                    <span>Workflow Studio</span>
+                </a>
+            </div>
+
+            <div class="nav-label">Operations</div>
+            <div class="nav-item">
+                <a href="hrms-calendar.html" class="nav-link">
+                    <i data-lucide="calendar-check"></i>
+                    <span>Leave & Attendance</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#payroll" class="nav-link">
+                    <i data-lucide="banknote"></i>
+                    <span>Payroll &amp; Finances</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="payroll-disbursement.html" class="nav-link">
+                    <i data-lucide="credit-card"></i>
+                    <span>Payroll Disbursement</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="statutory-compliance.html" class="nav-link">
+                    <i data-lucide="scale"></i>
+                    <span>Statutory Compliance</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#pms" class="nav-link">
+                    <i data-lucide="trending-up"></i>
+                    <span>Performance (PMS)</span>
+                </a>
+            </div>
+
+            <div class="nav-label">Intelligence</div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#recruitment" class="nav-link">
+                    <i data-lucide="user-search"></i>
+                    <span>Recruitment (ATS)</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#analytics" class="nav-link">
+                    <i data-lucide="brain-circuit"></i>
+                    <span>AI Insights</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#expenses" class="nav-link">
+                    <i data-lucide="receipt"></i>
+                    <span>Expense Claims</span>
+                </a>
+            </div>
+
+            <div class="nav-label">Communication</div>
+            <div class="nav-item">
+                <a href="hrms-message.html" class="nav-link">
+                    <i data-lucide="message-square"></i>
+                    <span>Messages</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-notification.html" class="nav-link">
+                    <i data-lucide="bell"></i>
+                    <span>Notifications</span>
+                </a>
+            </div>
+
+            <div class="nav-label">Lifecycle</div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#lifecycle" class="nav-link">
+                    <i data-lucide="briefcase"></i>
+                    <span>Employee Lifecycle</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#assets" class="nav-link">
+                    <i data-lucide="laptop"></i>
+                    <span>Asset Management</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="hrms-dashboard.html#org-structure" class="nav-link">
+                    <i data-lucide="building-2"></i>
+                    <span>Org Structure</span>
+                </a>
+            </div>
+
+            <div class="nav-label">Configuration</div>
+            <div class="nav-item">
+                <a href="hrms-settings.html" class="nav-link">
+                    <i data-lucide="sliders"></i>
+                    <span>OS Configuration</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="profile-mini">
+                <div class="avatar" id="userInitial">SB</div>
+                <div class="profile-info">
+                    <div class="profile-name" id="userNameDisplay">Savitha Balraju</div>
+                    <div class="profile-role" id="userRoleDisplay">Strategic Operations</div>
+                </div>
+                <button onclick="logout()" class="btn-logout-mini" title="Sign Out">
+                    <i data-lucide="log-out" size="18"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ─── MAIN WORKSPACE ─── -->
+    <div class="main-wrapper">
+        <!-- TOP TOOLBAR -->
+        <header class="top-bar">
+            <div class="header-left">
+                <a href="hrms-dashboard.html" class="back-btn" title="Back to Strategic HRMS">
+                    <i class="fas fa-arrow-left"></i> HRMS Dashboard
+                </a>
+                <div class="workflow-meta-inputs">
+                    <input type="text" id="workflow-name-input" class="workflow-title-input" value="New HR Operation Flow" placeholder="Workflow Name..." />
+                    <input type="text" id="workflow-desc-input" class="workflow-desc-input" value="Automated multi-stage HR process" placeholder="Description..." />
+                </div>
+                <span id="workflow-status-badge" class="status-badge draft">Draft</span>
+            </div>
+
+            <div class="header-actions">
+                <button id="btn-ai-creator" class="btn btn-ai"><i class="fas fa-wand-magic-sparkles"></i> AI Flow Creator</button>
+                <button id="btn-new-workflow" class="btn btn-outline"><i class="fas fa-plus"></i> New Flow</button>
+                <button id="btn-save" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                <button id="btn-validate" class="btn btn-outline"><i class="fas fa-check-circle"></i> Validate</button>
+                <button id="btn-test-run" class="btn btn-warning"><i class="fas fa-play"></i> Test Simulation</button>
+                <button id="btn-activate" class="btn btn-success"><i class="fas fa-power-off"></i> Publish</button>
+                <button id="btn-export" class="btn btn-outline" title="Export Workflow JSON"><i class="fas fa-download"></i></button>
+            </div>
+        </header>
+
+        <!-- STATS BAR -->
+        <div class="stats-mini-bar">
+            <div class="stat-item"><i class="fas fa-folder text-muted"></i> HR Workflows: <strong id="stat-total">3</strong></div>
+            <div class="stat-item"><i class="fas fa-check-circle" style="color: var(--accent-green);"></i> Active in Engine: <strong id="stat-active">2</strong></div>
+            <div class="stat-item"><i class="fas fa-pencil-alt" style="color: var(--accent-gold);"></i> Drafts: <strong id="stat-draft">1</strong></div>
+            <div class="stat-item"><i class="fas fa-network-wired" style="color: var(--primary);"></i> Current Nodes: <strong id="stat-nodes">0</strong></div>
+            <div style="margin-left: auto; font-size: 11px; color: #10b981; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span> Reusable Event Engine Active
+            </div>
+        </div>
+
+        <!-- 3-PANEL BUILDER WORKSPACE -->
+        <div class="builder-workspace">
+            <!-- LEFT PANEL -->
+            <div class="left-panel">
+                <div class="panel-tab-bar">
+                    <button id="tab-palette-btn" class="panel-tab-btn active" onclick="switchLeftTab('palette')"><i class="fas fa-th-large"></i> Palette</button>
+                    <button id="tab-workflows-btn" class="panel-tab-btn" onclick="switchLeftTab('workflows')"><i class="fas fa-list"></i> Library</button>
+                    <button id="tab-logs-btn" class="panel-tab-btn" onclick="switchLeftTab('logs')"><i class="fas fa-bolt"></i> Telemetry</button>
+                    <button id="tab-audit-btn" class="panel-tab-btn" onclick="switchLeftTab('audit')"><i class="fas fa-history"></i> Audit</button>
+                </div>
+
+                <div class="panel-scroll-content">
+                    <!-- Tab: Palette -->
+                    <div id="tab-palette-content">
+                        <div class="palette-section-title">Trigger Nodes</div>
+                        <div class="palette-grid">
+                            <div class="palette-item" draggable="true" data-node-type="trigger">
+                                <div class="palette-icon-box" style="background: var(--node-trigger);"><i class="fas fa-bolt"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">HR Event Trigger</div>
+                                    <div class="palette-item-desc">Onboarding, Leave, Resignation</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="palette-section-title">Logic & Control</div>
+                        <div class="palette-grid">
+                            <div class="palette-item" draggable="true" data-node-type="condition">
+                                <div class="palette-icon-box" style="background: var(--node-condition);"><i class="fas fa-filter"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">Condition Gate</div>
+                                    <div class="palette-item-desc">Dept, Days, Grade criteria</div>
+                                </div>
+                            </div>
+                            <div class="palette-item" draggable="true" data-node-type="branch">
+                                <div class="palette-icon-box" style="background: var(--node-branch);"><i class="fas fa-code-branch"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">Multi-Branch</div>
+                                    <div class="palette-item-desc">Split workflow paths</div>
+                                </div>
+                            </div>
+                            <div class="palette-item" draggable="true" data-node-type="wait">
+                                <div class="palette-icon-box" style="background: var(--node-wait);"><i class="fas fa-clock"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">Wait / SLA Delay</div>
+                                    <div class="palette-item-desc">Countdown or scheduled date</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="palette-section-title">Approvals & Human Gates</div>
+                        <div class="palette-grid">
+                            <div class="palette-item" draggable="true" data-node-type="approval">
+                                <div class="palette-icon-box" style="background: var(--node-approval);"><i class="fas fa-user-check"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">Approval Task</div>
+                                    <div class="palette-item-desc">Manager or HR with SLA limit</div>
+                                </div>
+                            </div>
+                            <div class="palette-item" draggable="true" data-node-type="escalation">
+                                <div class="palette-icon-box" style="background: var(--node-escalation);"><i class="fas fa-level-up-alt"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">Auto-Escalation</div>
+                                    <div class="palette-item-desc">Auto-forwards if SLA expired</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="palette-section-title">Execution & Documents</div>
+                        <div class="palette-grid">
+                            <div class="palette-item" draggable="true" data-node-type="document">
+                                <div class="palette-icon-box" style="background: var(--node-document);"><i class="fas fa-file-alt"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">Pre-Approved Doc</div>
+                                    <div class="palette-item-desc">Offer Letter, NDA, Relieving</div>
+                                </div>
+                            </div>
+                            <div class="palette-item" draggable="true" data-node-type="notification">
+                                <div class="palette-icon-box" style="background: var(--node-notification);"><i class="fas fa-paper-plane"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">Multi-Channel Alert</div>
+                                    <div class="palette-item-desc">Email, In-App, Webhook</div>
+                                </div>
+                            </div>
+                            <div class="palette-item" draggable="true" data-node-type="action">
+                                <div class="palette-icon-box" style="background: var(--node-action);"><i class="fas fa-play"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">System Action</div>
+                                    <div class="palette-item-desc">Update profile, sync calendar</div>
+                                </div>
+                            </div>
+                            <div class="palette-item" draggable="true" data-node-type="end">
+                                <div class="palette-icon-box" style="background: var(--node-end);"><i class="fas fa-flag-checkered"></i></div>
+                                <div class="palette-item-text">
+                                    <div class="palette-item-title">Terminal End</div>
+                                    <div class="palette-item-desc">Complete & log Stage 8 audit</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Saved Workflows -->
+                    <div id="tab-workflows-content" style="display: none;">
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">Select an HR workflow from library:</div>
+                        <div id="workflows-list"></div>
+                    </div>
+
+                    <!-- Tab: Execution Logs -->
+                    <div id="tab-logs-content" style="display: none;">
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">Live engine node executions:</div>
+                        <div id="execution-logs-list"></div>
+                    </div>
+
+                    <!-- Tab: Audit Trail -->
+                    <div id="tab-audit-content" style="display: none;">
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">Stage 8 Immutable Audit Trail:</div>
+                        <div id="audit-trail-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER CANVAS -->
+            <div class="canvas-container" id="canvas-container">
+                <div class="workflow-canvas" id="workflow-canvas">
+                    <svg class="svg-canvas" id="svg-connections-layer"></svg>
+                    <div id="canvas-nodes-layer"></div>
+                </div>
+
+                <!-- Floating Canvas Controls -->
+                <div class="canvas-floating-controls">
+                    <button onclick="zoomIn()" title="Zoom In"><i class="fas fa-plus"></i></button>
+                    <button onclick="zoomReset()" title="Reset View"><i class="fas fa-compress"></i></button>
+                    <button onclick="zoomOut()" title="Zoom Out"><i class="fas fa-minus"></i></button>
+                </div>
+            </div>
+
+            <!-- RIGHT INSPECTOR PANEL -->
+            <div class="right-panel" id="inspector-panel">
+                <div class="inspector-header">
+                    <div class="inspector-title">
+                        <i class="fas fa-sliders-h"></i> Step Inspector
+                    </div>
+                    <span id="node-type-badge" class="status-badge" style="background:#eef2ff; color:var(--primary);">SELECT NODE</span>
+                </div>
+
+                <div class="inspector-body">
+                    <div id="inspector-empty-state" style="text-align: center; color: #94a3b8; padding: 40px 10px; font-size: 12px;">
+                        <i class="fas fa-mouse-pointer" style="font-size: 24px; margin-bottom: 12px; display: block; opacity: 0.5;"></i>
+                        Click any node on the canvas to configure triggers, conditions, approvals, SLA timers, and document templates.
+                    </div>
+
+                    <div id="inspector-form" style="display: none;">
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="form-label" style="font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px; display: block;">Node Label</label>
+                            <input type="text" id="node-label-input" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12.5px;" />
+                        </div>
+
+                        <div id="type-specific-config"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI CREATOR MODAL -->
+    <div class="ai-modal-overlay" id="ai-creator-modal">
+        <div class="ai-modal-window">
+            <div class="ai-modal-header">
+                <div style="font-size: 16px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-wand-magic-sparkles" style="color: #9333ea;"></i> HRMS AI Workflow Creator
+                </div>
+                <button onclick="closeAiModal()" style="background: none; border: none; font-size: 16px; color: #64748b; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <p style="font-size: 12.5px; color: #475569; margin-bottom: 14px;">Describe any HR automation process in natural language. Kylrx AI will construct the nodes, connections, and conditions automatically.</p>
+
+            <div style="margin-bottom: 12px;">
+                <textarea id="ai-prompt-input" rows="3" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 12.5px; outline: none;" placeholder="e.g. When a candidate in Sales is hired, generate offer letter, require manager signoff within 24h, and email welcome pack."></textarea>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-bottom: 6px;">Try an HR suggestion:</div>
+                <span class="ai-prompt-chip" onclick="setAiPrompt('Onboard new engineer: generate NDA, manager approval in 24h, notify IT')">Tech Onboarding</span>
+                <span class="ai-prompt-chip" onclick="setAiPrompt('If sick leave exceeds 3 days, require medical certificate and HR manager approval')">Sick Leave > 3 Days</span>
+                <span class="ai-prompt-chip" onclick="setAiPrompt('Employee resignation: schedule exit interview, IT hardware return, generate relieving letter')">Exit Clearance</span>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button onclick="closeAiModal()" class="btn btn-outline">Cancel</button>
+                <button id="btn-run-ai-generation" class="btn btn-ai"><i class="fas fa-magic"></i> Generate Workflow Nodes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEST SIMULATION MODAL -->
+    <div class="ai-modal-overlay" id="test-simulation-modal">
+        <div class="ai-modal-window" style="max-width: 520px;">
+            <div class="ai-modal-header">
+                <div style="font-size: 15px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-vial" style="color: var(--accent-gold);"></i> Test Simulation Mode (Dry Run)
+                </div>
+                <button onclick="closeTestModeModal()" style="background: none; border: none; font-size: 16px; color: #64748b; cursor: pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <p style="font-size: 12px; color: #475569; margin-bottom: 12px;">Validates the current workflow structure against simulated HRMS employee events before publishing live.</p>
+
+            <div id="dry-run-nodes-list" style="max-height: 240px; overflow-y: auto; margin-bottom: 16px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                <div style="text-align: center; color: #94a3b8; font-size: 12px; padding: 20px;">Click "Run Dry Run Simulation" to trace all node executions.</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="test-trace-count-badge" class="status-badge active" style="display: none;"></span>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                    <button onclick="closeTestModeModal()" class="btn btn-outline">Close</button>
+                    <button id="btn-execute-test-mode" class="btn btn-warning"><i class="fas fa-play"></i> Run Dry Run Simulation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
+    <script src="hrms-workflow-builder.js"></script>
+    <script type="module" src="./hrms-sidebar-sync.js"></script>
+</body>
+</html>

@@ -131,8 +131,10 @@ if (btnQuickSuperAdmin) {
 
 if (btnQuickHrAdmin) {
     btnQuickHrAdmin.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'hradmin@kylrx.ai';
-        if (passwordInput) passwordInput.value = 'Kylrx#HrAdmin2026!Secured';
+        if (emailInput) emailInput.value = 'Savitha.balraju@GMAIL.COM';
+        if (passwordInput) passwordInput.value = 'SYSTEM-Hrms-Savitha@2026!';
+        localStorage.setItem('hrms_manager_name', 'Savitha Balraju');
+        localStorage.setItem('hrms_manager_role', 'Strategic Operations');
         loginBtn?.click();
     });
 }
@@ -262,7 +264,7 @@ loginForm?.addEventListener('submit', async (e) => {
     let targetAuthPassword = password ? password.trim() : '';
 
     const isSuperAdminAccount = cleanEmail === 'superadmin@kylrx.ai' || cleanEmail === 'admin@kylrx.ai' || cleanEmail === 'admin@demo.com' || cleanEmail.includes('superadmin') || cleanEmail.includes('admin');
-    const isHrAccount = cleanEmail === 'hradmin@kylrx.ai' || cleanEmail === 'hrms@kylrx.ai' || cleanEmail.includes('hradmin') || cleanEmail.includes('hrms') || cleanEmail.includes('hr');
+    const isHrAccount = cleanEmail === 'savitha.balraju@gmail.com' || cleanEmail === 'hradmin@kylrx.ai' || cleanEmail === 'hrms@kylrx.ai' || cleanEmail.includes('hradmin') || cleanEmail.includes('hrms') || cleanEmail.includes('savitha');
     const isManagerAccount = cleanEmail === 'john.doe@example.com' || cleanEmail === 'manager@kylrx.ai' || cleanEmail === 'manager' || cleanEmail.includes('manager') || password.toLowerCase().includes('manager');
     const isEmployeeAccount = cleanEmail === 'marry@gmail.com' || cleanEmail === 'employee@kylrx.ai' || (!isSuperAdminAccount && !isHrAccount && !isManagerAccount);
 
@@ -337,7 +339,7 @@ loginForm?.addEventListener('submit', async (e) => {
         userData = {
           uid: finalUid,
           email: email,
-          name: isSuperAdminAccount ? 'Super Admin' : (isHrAccount ? 'HR Admin' : (isManagerAccount ? 'John Doe' : (cleanEmail === 'marry@gmail.com' ? 'Marry Doe' : formattedName))),
+          name: isSuperAdminAccount ? 'Super Admin' : (isHrAccount ? 'Savitha' : (isManagerAccount ? 'John Doe' : (cleanEmail === 'marry@gmail.com' ? 'Marry Doe' : formattedName))),
           role: roleDetermined,
           department: deptDetermined,
           departmentName: deptDetermined,
@@ -397,12 +399,12 @@ loginForm?.addEventListener('submit', async (e) => {
         finalUid = userData.uid;
       } else if (isHrAccount) {
         userData = {
-          uid: 'hradmin_' + Date.now(),
-          name: 'HR Admin',
-          email: email || 'hradmin@kylrx.ai',
+          uid: 'EMP_1789286607504',
+          name: 'Savitha',
+          email: email || 'Savitha.balraju@GMAIL.COM',
           role: 'hrms',
-          department: 'Human Resources',
-          departmentId: 'human_resources'
+          department: 'General',
+          departmentId: 'hrms'
         };
         finalUid = userData.uid;
       } else if (isManagerAccount) {
@@ -458,6 +460,11 @@ loginForm?.addEventListener('submit', async (e) => {
       localStorage.setItem('manager_email', userData.email || email);
       localStorage.setItem('manager_dept', userData.departmentName || 'Cybersecurity Manager');
       localStorage.setItem('manager_dept_code', userData.departmentCode || 'UNIT-CYB-802');
+    }
+    if (role === 'hrms' || role === 'hr_admin' || role === 'hr' || isHrAccount) {
+      localStorage.setItem('hrms_manager_name', 'Savitha Balraju');
+      localStorage.setItem('hrms_manager_role', 'Strategic Operations');
+      localStorage.setItem('hrms_name', 'Savitha Balraju');
     }
 
     const redirectUrl = getRedirectUrl(userData, role);
