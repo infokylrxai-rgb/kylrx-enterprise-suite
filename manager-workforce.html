@@ -9,6 +9,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        (function() {
+            const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true' || localStorage.getItem('employee_uid');
+            const role = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
+            const allowed = ['manager', 'hr_admin', 'hradmin', 'hrms', 'super_admin', 'superadmin', 'admin'];
+            if (!isLoggedIn || (role && !allowed.includes(role))) {
+                window.location.replace('index.html');
+            }
+        })();
+    </script>
     <style>
         /* Custom Alert Styles */
         .custom-alert-overlay {

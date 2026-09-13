@@ -284,7 +284,7 @@
 
             <div class="sidebar-bottom">
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="btnCustom">
+                    <a href="admin-dashboard-builder.html" class="nav-link" id="btnCustom">
                         <i data-lucide="layout"></i>
                         <span>Customize Layout</span>
                     </a>
@@ -950,6 +950,11 @@
         import { auth } from "./firebase-config.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
+        const currentRole = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
+        const superAdminRoles = ['super_admin', 'superadmin', 'admin'];
+        if (currentRole && !superAdminRoles.includes(currentRole)) {
+            window.location.href = 'index.html';
+        }
         onAuthStateChanged(auth, (user) => { if (!user) window.location.href = 'index.html'; });
 
         document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {

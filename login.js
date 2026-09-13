@@ -123,8 +123,8 @@ const btnQuickEmployee = document.getElementById('btnQuickEmployee');
 
 if (btnQuickSuperAdmin) {
     btnQuickSuperAdmin.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'superadmin@kylrx.ai';
-        if (passwordInput) passwordInput.value = 'Kylrx#SuperAdmin2026!Secured';
+        if (emailInput) emailInput.value = 'nandanb449@gmail.com';
+        if (passwordInput) passwordInput.value = 'Nansav@04';
         loginBtn?.click();
     });
 }
@@ -150,7 +150,7 @@ if (btnQuickManager) {
 if (btnQuickEmployee) {
     btnQuickEmployee.addEventListener('click', () => {
         if (emailInput) emailInput.value = 'marry@gmail.com';
-        if (passwordInput) passwordInput.value = 'Kylrx#Employee2026!Secured';
+        if (passwordInput) passwordInput.value = 'UNIT-CYB-799-Employee-Marry@2026!';
         loginBtn?.click();
     });
 }
@@ -259,44 +259,25 @@ loginForm?.addEventListener('submit', async (e) => {
     let token = null;
     let lastAuthError = null;
 
-    // Resolve target auth credentials for master accounts to eliminate 400 Bad Request
-    let targetAuthEmail = email;
-    let targetAuthPassword = password ? password.trim() : '';
-
-    const isSuperAdminAccount = cleanEmail === 'superadmin@kylrx.ai' || cleanEmail === 'admin@kylrx.ai' || cleanEmail === 'admin@demo.com' || cleanEmail.includes('superadmin') || cleanEmail.includes('admin');
+    const isSuperAdminAccount = cleanEmail === 'superadmin@kylrx.ai' || cleanEmail === 'nandanb449@gmail.com' || cleanEmail === 'admin@kylrx.ai' || cleanEmail === 'admin@demo.com' || cleanEmail.includes('superadmin') || cleanEmail.includes('admin');
     const isHrAccount = cleanEmail === 'savitha.balraju@gmail.com' || cleanEmail === 'hradmin@kylrx.ai' || cleanEmail === 'hrms@kylrx.ai' || cleanEmail.includes('hradmin') || cleanEmail.includes('hrms') || cleanEmail.includes('savitha');
-    const isManagerAccount = cleanEmail === 'john.doe@example.com' || cleanEmail === 'manager@kylrx.ai' || cleanEmail === 'manager' || cleanEmail.includes('manager') || password.toLowerCase().includes('manager');
-    const isEmployeeAccount = cleanEmail === 'marry@gmail.com' || cleanEmail === 'employee@kylrx.ai' || (!isSuperAdminAccount && !isHrAccount && !isManagerAccount);
+    const isManagerAccount = cleanEmail === 'john.doe@example.com' || cleanEmail === 'manager@kylrx.ai' || cleanEmail === 'manager' || cleanEmail.includes('manager');
+    const isEmployeeAccount = cleanEmail === 'marry@gmail.com' || cleanEmail === 'employee@kylrx.ai';
 
-    if (isSuperAdminAccount) {
-      targetAuthEmail = 'superadmin@kylrx.ai';
-      targetAuthPassword = 'Kylrx#SuperAdmin2026!Secured';
-    } else if (isHrAccount) {
-      targetAuthEmail = 'hradmin@kylrx.ai';
-      targetAuthPassword = 'Kylrx#HrAdmin2026!Secured';
-    } else if (isManagerAccount) {
-      targetAuthEmail = 'john.doe@example.com';
-      targetAuthPassword = targetAuthPassword || 'UNIT-CYB-802-Manager-John@2026!';
-    } else if (cleanEmail === 'marry@gmail.com') {
-      targetAuthEmail = 'marry@gmail.com';
-      targetAuthPassword = targetAuthPassword || 'Kylrx#Employee2026!Secured';
-    } else {
-      targetAuthEmail = 'employee@kylrx.ai';
-      targetAuthPassword = 'Kylrx#Employee2026!Secured';
-    }
-
-    // Strategy 1: Firebase Authentication
+    // Strategy 1: Firebase Authentication (direct attempt with entered credentials first)
     try {
       let userCredential;
       try {
-        userCredential = await signInWithEmailAndPassword(auth, targetAuthEmail, targetAuthPassword);
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
       } catch (firstErr) {
-        if (isManagerAccount && targetAuthPassword !== 'UNIT-CYB-802-Manager-John@2026!') {
-          userCredential = await signInWithEmailAndPassword(auth, 'john.doe@example.com', 'UNIT-CYB-802-Manager-John@2026!');
-        } else if (cleanEmail === 'marry@gmail.com' && targetAuthPassword !== 'Kylrx#Employee2026!Secured') {
-          userCredential = await signInWithEmailAndPassword(auth, 'marry@gmail.com', 'Kylrx#Employee2026!Secured');
-        } else if (isEmployeeAccount) {
-          userCredential = await signInWithEmailAndPassword(auth, 'employee@kylrx.ai', 'Kylrx#Employee2026!Secured');
+        // Only allow fallback if the user is using designated demo credentials
+        const validDemoMap = {
+          'superadmin@kylrx.ai': 'Kylrx#SuperAdmin2026!Secured',
+          'hradmin@kylrx.ai': 'Kylrx#HrAdmin2026!Secured',
+          'employee@kylrx.ai': 'Kylrx#Employee2026!Secured'
+        };
+        if (validDemoMap[cleanEmail] && validDemoMap[cleanEmail] === password.trim()) {
+          userCredential = await signInWithEmailAndPassword(auth, cleanEmail, validDemoMap[cleanEmail]);
         } else {
           throw firstErr;
         }
@@ -373,7 +354,7 @@ loginForm?.addEventListener('submit', async (e) => {
           for (const d of querySnap.docs) {
             const u = d.data();
             const storedPw = u.password || u.tempPassword || u.temporary_password || u.temp_password;
-            if (!storedPw || storedPw === password || storedPw.trim() === password.trim() || isManagerAccount || isEmployeeAccount) {
+            if (storedPw && (storedPw === password || storedPw.trim() === password.trim())) {
               userData = u;
               finalUid = d.id;
               break;
@@ -385,58 +366,73 @@ loginForm?.addEventListener('submit', async (e) => {
       }
     }
 
-    // Strategy 3: Enterprise Zero-Crash Fallback for Role Identities
+    // Strategy 3: Offline / Demo mode fallback ONLY for authorized passwords
+    const validAuthorizedPasswords = [
+      'Nansav@04',
+      'SYSTEM-Hrms-Savitha@2026!',
+      'UNIT-CYB-802-Manager-John@2026!',
+      'UNIT-CYB-799-Employee-Marry@2026!',
+      'Kylrx#SuperAdmin2026!Secured',
+      'Kylrx#HrAdmin2026!Secured',
+      'Kylrx#Employee2026!Secured'
+    ];
+    const passwordIsValidMasterOrDemo = validAuthorizedPasswords.includes(password.trim());
+
     if (!userData) {
-      if (isSuperAdminAccount) {
-        userData = {
-          uid: 'superadmin_' + Date.now(),
-          name: 'Nandan',
-          email: email || 'superadmin@kylrx.ai',
-          role: 'SUPER_ADMIN',
-          department: 'Executive',
-          departmentId: 'executive'
-        };
-        finalUid = userData.uid;
-      } else if (isHrAccount) {
-        userData = {
-          uid: 'EMP_1789286607504',
-          name: 'Savitha',
-          email: email || 'Savitha.balraju@GMAIL.COM',
-          role: 'hrms',
-          department: 'General',
-          departmentId: 'hrms'
-        };
-        finalUid = userData.uid;
-      } else if (isManagerAccount) {
-        userData = {
-          uid: 'EMP_1789151730443',
-          name: 'John Doe',
-          email: email || 'john.doe@example.com',
-          role: 'manager',
-          department: 'Cybersecurity Manager',
-          departmentName: 'Cybersecurity Manager',
-          departmentCode: 'UNIT-CYB-802',
-          departmentId: 'Yksv1DMH9pIeRhNxQ8E3',
-          employeeId: 'UNIT-CYB-802-SMCU',
-          status: 'Active'
-        };
-        finalUid = userData.uid;
-      } else {
-        // Universal Employee fallback for marry@gmail.com and any employee
-        const namePart = email.split('@')[0].replace(/[._-]/g, ' ');
-        const formattedName = namePart.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'Employee';
-        userData = {
-          uid: 'EMP_MARRY_' + Date.now(),
-          name: cleanEmail === 'marry@gmail.com' ? 'Marry Doe' : formattedName,
-          email: email,
-          role: 'employee',
-          department: 'Engineering',
-          departmentName: 'Engineering & Operations',
-          departmentId: 'engineering',
-          employeeId: 'EMP-7729',
-          status: 'Active'
-        };
-        finalUid = userData.uid;
+      if (passwordIsValidMasterOrDemo) {
+        if (isSuperAdminAccount) {
+          userData = {
+            uid: 'superadmin_' + Date.now(),
+            name: 'Nandan',
+            email: email || 'superadmin@kylrx.ai',
+            role: 'SUPER_ADMIN',
+            department: 'Executive',
+            departmentId: 'executive'
+          };
+          finalUid = userData.uid;
+        } else if (isHrAccount) {
+          userData = {
+            uid: 'EMP_1789286607504',
+            name: 'Savitha',
+            email: email || 'Savitha.balraju@GMAIL.COM',
+            role: 'hrms',
+            department: 'General',
+            departmentId: 'hrms'
+          };
+          finalUid = userData.uid;
+        } else if (isManagerAccount) {
+          userData = {
+            uid: 'EMP_1789151730443',
+            name: 'John Doe',
+            email: email || 'john.doe@example.com',
+            role: 'manager',
+            department: 'Cybersecurity Manager',
+            departmentName: 'Cybersecurity Manager',
+            departmentCode: 'UNIT-CYB-802',
+            departmentId: 'Yksv1DMH9pIeRhNxQ8E3',
+            employeeId: 'UNIT-CYB-802-SMCU',
+            status: 'Active'
+          };
+          finalUid = userData.uid;
+        } else if (cleanEmail === 'marry@gmail.com') {
+          userData = {
+            uid: 'EMP_MARRY_' + Date.now(),
+            name: 'Marry Doe',
+            email: email,
+            role: 'employee',
+            department: 'Engineering',
+            departmentName: 'Engineering & Operations',
+            departmentId: 'engineering',
+            employeeId: 'EMP-7729',
+            status: 'Active'
+          };
+          finalUid = userData.uid;
+        }
+      }
+
+      if (!userData) {
+        if (lastAuthError) throw lastAuthError;
+        throw new Error("Invalid credentials. Please verify your password or use 'Forgot Password'.");
       }
     }
 

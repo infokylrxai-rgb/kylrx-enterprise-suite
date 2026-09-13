@@ -9,7 +9,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        (function() {
+            const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+            const userRole = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
+            const allowedRoles = ['hr_admin', 'hradmin', 'hrms', 'hr', 'super_admin', 'superadmin', 'admin'];
+            if (!isLoggedIn || (userRole && !allowedRoles.includes(userRole))) {
+                window.location.href = 'index.html';
+            }
+        })();
+    </script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -327,7 +336,7 @@
             </nav>
             <div class="sidebar-bottom">
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="btnCustom">
+                    <a href="admin-dashboard-builder.html" class="nav-link" id="btnCustom">
                         <i data-lucide="layout"></i>
                         <span>Customize Layout</span>
                     </a>

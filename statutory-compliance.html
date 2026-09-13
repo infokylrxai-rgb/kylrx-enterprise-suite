@@ -55,6 +55,18 @@
   </script>
   
   <script>
+    // Immediate Auth & RBAC Guard
+    (function() {
+      const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+      const userRole = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
+      const allowedRoles = ['hr_admin', 'hradmin', 'hrms', 'hr', 'super_admin', 'superadmin', 'admin'];
+      if (!isLoggedIn || (userRole && !allowedRoles.includes(userRole))) {
+        window.location.href = 'index.html';
+      }
+    })();
+  </script>
+  
+  <script>
     tailwind.config = {
       theme: {
         extend: {

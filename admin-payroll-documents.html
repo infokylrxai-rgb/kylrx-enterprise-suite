@@ -190,7 +190,7 @@
             </nav>
             <div class="sidebar-bottom">
                 <div class="nav-item">
-                    <a href="#" class="nav-link" id="btnCustom">
+                    <a href="admin-dashboard-builder.html" class="nav-link" id="btnCustom">
                         <i data-lucide="layout"></i>
                         <span>Customize Layout</span>
                     </a>
@@ -377,10 +377,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Monthly Outflow</div>
-                                <div style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">₹48,25,000</div>
+                                <div id="kpiTotalOutflow" style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">₹0.00</div>
                             </div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">92 Active Personnel • Cycle Oct 2026</div>
+                        <div id="kpiTotalOutflowSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -389,10 +389,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Disbursed (Settled)</div>
-                                <div style="font-size: 1.35rem; font-weight: 800; color: #10b981;">₹35,85,000</div>
+                                <div id="kpiDisbursed" style="font-size: 1.35rem; font-weight: 800; color: #10b981;">₹0.00</div>
                             </div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">68 Direct Bank NEFT Transfers</div>
+                        <div id="kpiDisbursedSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -401,10 +401,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pending Authorization</div>
-                                <div style="font-size: 1.35rem; font-weight: 800; color: #d97706;">₹12,40,000</div>
+                                <div id="kpiPending" style="font-size: 1.35rem; font-weight: 800; color: #d97706;">₹0.00</div>
                             </div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.72rem; color: #d97706; font-weight: 700;">24 Awaiting Admin 1-Click Execution</div>
+                        <div id="kpiPendingSub" style="margin-top: 8px; font-size: 0.72rem; color: #d97706; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -413,10 +413,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Statutory Remittances</div>
-                                <div style="font-size: 1.35rem; font-weight: 800; color: #0284c7;">₹4,18,500</div>
+                                <div id="kpiStatutory" style="font-size: 1.35rem; font-weight: 800; color: #0284c7;">₹0.00</div>
                             </div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.72rem; color: #0284c7; font-weight: 700;">PF, ESIC &amp; PT Withheld &amp; Reconciled</div>
+                        <div id="kpiStatutorySub" style="margin-top: 8px; font-size: 0.72rem; color: #0284c7; font-weight: 700;">Loading...</div>
                     </div>
                 </div>
 
@@ -519,79 +519,8 @@
                                 <th>ACTION</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-main);">Arjun Mehta</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">KYL-1002</div>
-                                </td>
-                                <td>Engineering</td>
-                                <td>
-                                    <div style="font-weight: 600;">HDFC Bank • ****4821</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">HDFC0000240</div>
-                                </td>
-                                <td style="font-weight: 600;">₹1,25,000</td>
-                                <td style="color: #ef4444; font-weight: 600;">-₹15,200</td>
-                                <td style="font-weight: 800; color: #10b981;">₹1,09,800</td>
-                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Ready for NEFT</span></td>
-                                <td>
-                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Disbursing salary to Arjun Mehta...')"><i data-lucide="send" size="12"></i> Pay</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-main);">Sarah Jenkins</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">KYL-1014</div>
-                                </td>
-                                <td>Product Design</td>
-                                <td>
-                                    <div style="font-weight: 600;">ICICI Bank • ****8912</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">ICIC0001892</div>
-                                </td>
-                                <td style="font-weight: 600;">₹95,000</td>
-                                <td style="color: #ef4444; font-weight: 600;">-₹11,400</td>
-                                <td style="font-weight: 800; color: #10b981;">₹83,600</td>
-                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Ready for NEFT</span></td>
-                                <td>
-                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Disbursing salary to Sarah Jenkins...')"><i data-lucide="send" size="12"></i> Pay</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-main);">Michael Scott</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">KYL-1025</div>
-                                </td>
-                                <td>People Operations</td>
-                                <td>
-                                    <div style="font-weight: 600;">Axis Bank • ****3309</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">UTIB0000122</div>
-                                </td>
-                                <td style="font-weight: 600;">₹85,000</td>
-                                <td style="color: #ef4444; font-weight: 600;">-₹9,800</td>
-                                <td style="font-weight: 800; color: #10b981;">₹75,200</td>
-                                <td><span class="badge" style="background: #fff7ed; color: #f97316;">Penny Verification</span></td>
-                                <td>
-                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Re-verifying bank details for Michael Scott...')"><i data-lucide="shield-check" size="12"></i> Verify</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-main);">Priya Sharma</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">KYL-1031</div>
-                                </td>
-                                <td>Finance &amp; Accounts</td>
-                                <td>
-                                    <div style="font-weight: 600;">SBI • ****7714</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">SBIN0004521</div>
-                                </td>
-                                <td style="font-weight: 600;">₹1,10,000</td>
-                                <td style="color: #ef4444; font-weight: 600;">-₹13,200</td>
-                                <td style="font-weight: 800; color: #10b981;">₹96,800</td>
-                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Ready for NEFT</span></td>
-                                <td>
-                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Disbursing salary to Priya Sharma...')"><i data-lucide="send" size="12"></i> Pay</button>
-                                </td>
-                            </tr>
+                        <tbody id="disbTableBody">
+                            <tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading disbursement records from Firebase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -610,10 +539,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PF &amp; ECR Challan</div>
-                                <div style="font-size: 1.35rem; font-weight: 800; color: #2563eb;">₹2,14,500</div>
+                                <div id="kpiPF" style="font-size: 1.35rem; font-weight: 800; color: #2563eb;">₹0.00</div>
                             </div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">TRRN Validated • 88 Covered Members</div>
+                        <div id="kpiPFSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -622,10 +551,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">ESIC Remittance</div>
-                                <div style="font-size: 1.35rem; font-weight: 800; color: #059669;">₹48,200</div>
+                                <div id="kpiESIC" style="font-size: 1.35rem; font-weight: 800; color: #059669;">₹0.00</div>
                             </div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Monthly Return Filed • Zero Arrears</div>
+                        <div id="kpiESICSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -634,10 +563,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Professional Tax (PT)</div>
-                                <div style="font-size: 1.35rem; font-weight: 800; color: #d97706;">₹18,400</div>
+                                <div id="kpiPT" style="font-size: 1.35rem; font-weight: 800; color: #d97706;">₹0.00</div>
                             </div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">State PT Portal Form 5 Deposited</div>
+                        <div id="kpiPTSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -646,10 +575,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Gratuity &amp; TDS 24Q</div>
-                                <div style="font-size: 1.35rem; font-weight: 800; color: #9333ea;">₹1,37,400</div>
+                                <div id="kpiGratuity" style="font-size: 1.35rem; font-weight: 800; color: #9333ea;">₹0.00</div>
                             </div>
                         </div>
-                        <div style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Nominee Trust Reconciled</div>
+                        <div id="kpiGratuitySub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
                     </div>
                 </div>
 
@@ -679,63 +608,8 @@
                                 <th>ACTION</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-main);">Provident Fund (EPF &amp; EPS)</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Act 1952 • ECR Monthly</div>
-                                </td>
-                                <td>EPFO Govt of India</td>
-                                <td>88 Active Members</td>
-                                <td style="font-weight: 600;">₹1,07,250</td>
-                                <td style="font-weight: 600;">₹1,07,250</td>
-                                <td style="font-weight: 800; color: #2563eb;">₹2,14,500</td>
-                                <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">TRRN-202610-8821</code></td>
-                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Challan Paid</span></td>
-                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Downloading EPFO ECR Challan Receipt...')"><i data-lucide="download" size="12"></i> Receipt</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-main);">Employee State Insurance (ESI)</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">ESI Act 1948 • Monthly</div>
-                                </td>
-                                <td>ESIC Corporation</td>
-                                <td>42 Eligible (&lt; ₹21k)</td>
-                                <td style="font-weight: 600;">₹34,800</td>
-                                <td style="font-weight: 600;">₹13,400</td>
-                                <td style="font-weight: 800; color: #059669;">₹48,200</td>
-                                <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">ESIC-CP-482109</code></td>
-                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Filed &amp; Settled</span></td>
-                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Downloading ESIC Portal Monthly Return...')"><i data-lucide="download" size="12"></i> Challan</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-main);">Professional Tax (PT)</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">State Tax Authority • Form 5</div>
-                                </td>
-                                <td>Commercial Taxes Dept</td>
-                                <td>92 Personnel</td>
-                                <td style="font-weight: 600;">₹0</td>
-                                <td style="font-weight: 600;">₹18,400</td>
-                                <td style="font-weight: 800; color: #d97706;">₹18,400</td>
-                                <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">PTAX-CH-202610</code></td>
-                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Deposited</span></td>
-                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Downloading State PT Challan...')"><i data-lucide="download" size="12"></i> Challan</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-main);">Payment of Gratuity Trust</div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Gratuity Act 1972 • Accruals</div>
-                                </td>
-                                <td>Internal Statutory Reserve</td>
-                                <td>92 Headcount</td>
-                                <td style="font-weight: 600;">₹62,400</td>
-                                <td style="font-weight: 600;">₹0</td>
-                                <td style="font-weight: 800; color: #9333ea;">₹62,400</td>
-                                <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">GRAT-RES-2026-Q3</code></td>
-                                <td><span class="badge" style="background: #ecfdf5; color: #059669;">Reconciled</span></td>
-                                <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Opening Gratuity Actuarial Valuation Certificate...')"><i data-lucide="file-text" size="12"></i> Audit</button></td>
-                            </tr>
+                        <tbody id="complianceTableBody">
+                            <tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading statutory data from Firebase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -838,8 +712,13 @@
                 if (user) {
                     loadRecentGenerations();
                     loadPayrollStats();
+                    loadDisbursementStats();
+                    loadComplianceStats();
                 } else {
                     // window.location.href = 'login.html';
+                    // Set all disbursement KPIs to zero when not authenticated
+                    setDisbursementKPIsZero();
+                    setComplianceKPIsZero();
                 }
             });
             if (window.lucide) lucide.createIcons();
@@ -1073,6 +952,296 @@
                 console.error("Archive sync failed:", err);
             }
         }
+
+        // ─────────────────────────────────────────────
+        // DISBURSEMENT TAB – FIREBASE BACKEND SYNC
+        // ─────────────────────────────────────────────
+
+        function fmtRs(value) {
+            if (value >= 10000000) return `₹${(value / 10000000).toFixed(2)}Cr`;
+            if (value >= 100000)   return `₹${(value / 100000).toFixed(2)}L`;
+            if (value >= 1000)     return `₹${(value / 1000).toFixed(1)}K`;
+            return `₹${value.toFixed(0)}`;
+        }
+
+        function setDisbursementKPIsZero() {
+            const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setEl('kpiTotalOutflow', '₹0.00');
+            setEl('kpiTotalOutflowSub', '0 Active Personnel • No Data');
+            setEl('kpiDisbursed', '₹0.00');
+            setEl('kpiDisbursedSub', '0 Bank Transfers');
+            setEl('kpiPending', '₹0.00');
+            setEl('kpiPendingSub', '0 Awaiting Admin Execution');
+            setEl('kpiStatutory', '₹0.00');
+            setEl('kpiStatutorySub', 'PF, ESIC & PT — No Deductions Found');
+            const tbody = document.getElementById('disbTableBody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--text-muted);">No disbursement records found.</td></tr>';
+        }
+
+        window.loadDisbursementStats = async function() {
+            const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            const tbody = document.getElementById('disbTableBody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--text-muted);">Syncing with Firebase...</td></tr>';
+
+            try {
+                const snap = await getDocs(collection(db, 'payroll_documents'));
+
+                let totalOutflow = 0, disbursedAmt = 0, pendingAmt = 0, statutoryAmt = 0;
+                let disbursedCount = 0, pendingCount = 0, personnelCount = 0;
+                const rows = [];
+
+                snap.forEach(d => {
+                    const data = d.data();
+                    const gross = Number(data.grossSalary || 0);
+                    const deductions = Number(data.deductions || 0);
+                    const net = Number(data.netPay || (gross - deductions));
+                    const statutory = Number(data.pfAmount || 0) + Number(data.esicAmount || 0) + Number(data.ptAmount || 0);
+
+                    totalOutflow += gross;
+                    statutoryAmt += statutory;
+                    personnelCount++;
+
+                    const status = (data.status || '').toLowerCase();
+                    if (status === 'paid' || status === 'disbursed' || status === 'settled') {
+                        disbursedAmt += net;
+                        disbursedCount++;
+                    } else {
+                        pendingAmt += net;
+                        pendingCount++;
+                    }
+
+                    rows.push({
+                        id: d.id,
+                        name: data.employeeName || 'Unknown',
+                        code: data.employeeCode || data.employeeId || d.id.substring(0,8).toUpperCase(),
+                        dept: data.designation || data.department || '—',
+                        bankName: data.bankName || '—',
+                        bankAccount: data.bankAccount ? `****${String(data.bankAccount).slice(-4)}` : '—',
+                        ifsc: data.ifscCode || '—',
+                        gross,
+                        deductions,
+                        net,
+                        status: data.status || 'Pending'
+                    });
+                });
+
+                // Update KPI cards
+                const month = new Date().toLocaleString('default', { month: 'long' });
+                const year = new Date().getFullYear();
+                setEl('kpiTotalOutflow', fmtRs(totalOutflow));
+                setEl('kpiTotalOutflowSub', `${personnelCount} Active Personnel • Cycle ${month} ${year}`);
+                setEl('kpiDisbursed', fmtRs(disbursedAmt));
+                setEl('kpiDisbursedSub', `${disbursedCount} Bank Transfers Settled`);
+                setEl('kpiPending', fmtRs(pendingAmt));
+                setEl('kpiPendingSub', `${pendingCount} Awaiting Admin Execution`);
+                setEl('kpiStatutory', fmtRs(statutoryAmt));
+                setEl('kpiStatutorySub', 'PF, ESIC & PT Withheld & Reconciled');
+
+                // Populate ledger table
+                if (!tbody) return;
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--text-muted);">No payroll records found in Firebase. Run a Batch Generation first.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = rows.map(r => {
+                    const statusColor = (['paid','disbursed','settled'].includes(r.status.toLowerCase()))
+                        ? { bg: '#ecfdf5', color: '#059669', label: 'Settled' }
+                        : r.status.toLowerCase() === 'pending'
+                            ? { bg: '#fef3c7', color: '#d97706', label: 'Pending Auth' }
+                            : { bg: '#eff6ff', color: '#2563eb', label: r.status };
+                    const bankDisplay = r.bankName !== '—' ? `${r.bankName} • ${r.bankAccount}` : '—';
+                    const actionBtn = ['paid','disbursed','settled'].includes(r.status.toLowerCase())
+                        ? `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Already settled: ${r.name}')"><i data-lucide="check" size="12"></i> Done</button>`
+                        : `<button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Initiating payment to ${r.name}...')"><i data-lucide="send" size="12"></i> Pay</button>`;
+                    return `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-main);">${r.name}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">${r.code}</div>
+                            </td>
+                            <td>${r.dept}</td>
+                            <td>
+                                <div style="font-weight: 600;">${bankDisplay}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">${r.ifsc}</div>
+                            </td>
+                            <td style="font-weight: 600;">${fmtRs(r.gross)}</td>
+                            <td style="color: #ef4444; font-weight: 600;">-${fmtRs(r.deductions)}</td>
+                            <td style="font-weight: 800; color: #10b981;">${fmtRs(r.net)}</td>
+                            <td><span class="badge" style="background: ${statusColor.bg}; color: ${statusColor.color};">${statusColor.label}</span></td>
+                            <td>${actionBtn}</td>
+                        </tr>`;
+                }).join('');
+                if (window.lucide) lucide.createIcons();
+
+            } catch (err) {
+                console.error('loadDisbursementStats error:', err);
+                setDisbursementKPIsZero();
+                showToast('Failed to load disbursement data: ' + err.message, true);
+            }
+        };
+
+        // ─────────────────────────────────────────────
+        // COMPLIANCE TAB – FIREBASE BACKEND SYNC
+        // ─────────────────────────────────────────────
+
+        function setComplianceKPIsZero() {
+            const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            setEl('kpiPF', '₹0.00');
+            setEl('kpiPFSub', 'No PF Data — 0 Members Covered');
+            setEl('kpiESIC', '₹0.00');
+            setEl('kpiESICSub', 'No ESIC Data — 0 Eligible Members');
+            setEl('kpiPT', '₹0.00');
+            setEl('kpiPTSub', 'No PT Data — 0 Personnel');
+            setEl('kpiGratuity', '₹0.00');
+            setEl('kpiGratuitySub', 'No Gratuity Data — 0 Headcount');
+            const tbody = document.getElementById('complianceTableBody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">No statutory records found.</td></tr>';
+        }
+
+        window.loadComplianceStats = async function() {
+            const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            const tbody = document.getElementById('complianceTableBody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">Syncing statutory data with Firebase...</td></tr>';
+
+            try {
+                const snap = await getDocs(collection(db, 'payroll_documents'));
+
+                let pfTotal = 0, pfCount = 0;
+                let esicTotal = 0, esicCount = 0;
+                let ptTotal = 0, ptCount = 0;
+                let gratuityTotal = 0, tdsTotal = 0;
+                let totalPersonnel = 0;
+                const tableRows = [];
+
+                snap.forEach(d => {
+                    const data = d.data();
+                    const pf = Number(data.pfAmount || 0);
+                    const esic = Number(data.esicAmount || 0);
+                    const pt = Number(data.ptAmount || 0);
+                    const gratuity = Number(data.gratuityAmount || 0);
+                    const tds = Number(data.tdsAmount || data.deductions || 0);
+
+                    if (pf > 0) { pfTotal += pf * 2; pfCount++; }   // employer + employee share
+                    if (esic > 0) { esicTotal += esic; esicCount++; }
+                    if (pt > 0) { ptTotal += pt; ptCount++; }
+                    gratuityTotal += gratuity;
+                    tdsTotal += tds;
+                    totalPersonnel++;
+
+                    if (pf > 0 || esic > 0 || pt > 0 || gratuity > 0) {
+                        tableRows.push({
+                            name: data.employeeName || 'Unknown',
+                            period: data.period || '—',
+                            pf, esic, pt, gratuity, tds,
+                            status: data.status || 'Pending'
+                        });
+                    }
+                });
+
+                const month = new Date().toLocaleString('default', { month: 'long' });
+                const year = new Date().getFullYear();
+
+                // Update KPI cards
+                setEl('kpiPF', fmtRs(pfTotal));
+                setEl('kpiPFSub', pfTotal > 0 ? `TRRN Validated • ${pfCount} Covered Members` : 'No PF data — 0 Members');
+                setEl('kpiESIC', fmtRs(esicTotal));
+                setEl('kpiESICSub', esicTotal > 0 ? `Monthly Return Filed • ${esicCount} Eligible` : 'No ESIC data — 0 Members');
+                setEl('kpiPT', fmtRs(ptTotal));
+                setEl('kpiPTSub', ptTotal > 0 ? `State PT Portal Form 5 • ${ptCount} Personnel` : 'No PT data — 0 Personnel');
+                const gratuityAndTDS = gratuityTotal + tdsTotal;
+                setEl('kpiGratuity', fmtRs(gratuityAndTDS));
+                setEl('kpiGratuitySub', gratuityAndTDS > 0 ? 'Nominee Trust & TDS 24Q Reconciled' : 'No Gratuity/TDS data found');
+
+                // Populate table
+                if (!tbody) return;
+                if (tableRows.length === 0) {
+                    // Show zero-state summary rows using aggregated data from payroll_documents
+                    tbody.innerHTML = `
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-main);">Provident Fund (EPF &amp; EPS)</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">Act 1952 • ECR Monthly</div>
+                            </td>
+                            <td>EPFO Govt of India</td>
+                            <td>${pfCount} Members</td>
+                            <td style="font-weight: 600;">${fmtRs(pfTotal / 2)}</td>
+                            <td style="font-weight: 600;">${fmtRs(pfTotal / 2)}</td>
+                            <td style="font-weight: 800; color: #2563eb;">${fmtRs(pfTotal)}</td>
+                            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Auto-Generated</code></td>
+                            <td><span class="badge" style="background: ${pfTotal > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${pfTotal > 0 ? 'Computed' : 'No Data'}</span></td>
+                            <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No ECR challan available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> View</button></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-main);">Employee State Insurance (ESI)</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">ESI Act 1948 • Monthly</div>
+                            </td>
+                            <td>ESIC Corporation</td>
+                            <td>${esicCount} Eligible</td>
+                            <td style="font-weight: 600;">${fmtRs(esicTotal * 0.72)}</td>
+                            <td style="font-weight: 600;">${fmtRs(esicTotal * 0.28)}</td>
+                            <td style="font-weight: 800; color: #059669;">${fmtRs(esicTotal)}</td>
+                            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Auto-Generated</code></td>
+                            <td><span class="badge" style="background: ${esicTotal > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${esicTotal > 0 ? 'Computed' : 'No Data'}</span></td>
+                            <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No ESIC challan available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> View</button></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-main);">Professional Tax (PT)</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">State Tax Authority • Form 5</div>
+                            </td>
+                            <td>Commercial Taxes Dept</td>
+                            <td>${ptCount} Personnel</td>
+                            <td style="font-weight: 600;">₹0</td>
+                            <td style="font-weight: 600;">${fmtRs(ptTotal)}</td>
+                            <td style="font-weight: 800; color: #d97706;">${fmtRs(ptTotal)}</td>
+                            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Auto-Generated</code></td>
+                            <td><span class="badge" style="background: ${ptTotal > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${ptTotal > 0 ? 'Computed' : 'No Data'}</span></td>
+                            <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No PT challan available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> View</button></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-main);">Gratuity &amp; TDS 24Q</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">Gratuity Act 1972 • Accruals + TDS</div>
+                            </td>
+                            <td>Internal Statutory Reserve</td>
+                            <td>${totalPersonnel} Headcount</td>
+                            <td style="font-weight: 600;">${fmtRs(gratuityTotal)}</td>
+                            <td style="font-weight: 600;">${fmtRs(tdsTotal)}</td>
+                            <td style="font-weight: 800; color: #9333ea;">${fmtRs(gratuityAndTDS)}</td>
+                            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Auto-Generated</code></td>
+                            <td><span class="badge" style="background: ${gratuityAndTDS > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${gratuityAndTDS > 0 ? 'Reconciled' : 'No Data'}</span></td>
+                            <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No Gratuity certificate available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> Audit</button></td>
+                        </tr>`;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
+
+                // If per-employee rows exist, render them grouped by type
+                tbody.innerHTML = tableRows.map(r => `
+                    <tr>
+                        <td>
+                            <div style="font-weight: 700; color: var(--text-main);">${r.name}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">${r.period}</div>
+                        </td>
+                        <td>EPFO / ESIC / State</td>
+                        <td>—</td>
+                        <td style="font-weight: 600;">${fmtRs(r.pf)}</td>
+                        <td style="font-weight: 600;">${fmtRs(r.esic + r.pt)}</td>
+                        <td style="font-weight: 800; color: #2563eb;">${fmtRs(r.pf + r.esic + r.pt + r.gratuity)}</td>
+                        <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">System Record</code></td>
+                        <td><span class="badge" style="background: #ecfdf5; color: #059669;">${r.status}</span></td>
+                        <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Viewing statutory record for ${r.name}...')"><i data-lucide="file-text" size="12"></i> View</button></td>
+                    </tr>`).join('');
+                if (window.lucide) lucide.createIcons();
+
+            } catch (err) {
+                console.error('loadComplianceStats error:', err);
+                setComplianceKPIsZero();
+                showToast('Failed to load compliance data: ' + err.message, true);
+            }
+        };
 
         function initCharts(chartData) {
             const canvas = document.getElementById('payrollChart');
@@ -1398,11 +1567,15 @@
                 if (navDisb) navDisb.classList.add('active');
                 if (mainHead) mainHead.textContent = 'Payroll Disbursement Hub';
                 if (subHead) subHead.textContent = 'Multi-rail salary payout authorization, banking gateway validation, and real-time ledger settlement.';
+                // Refresh Firebase data every time this tab is opened
+                if (typeof window.loadDisbursementStats === 'function') window.loadDisbursementStats();
             } else if (tabName === 'compliance') {
                 if (btnComp) btnComp.className = 'btn btn-primary';
                 if (navComp) navComp.classList.add('active');
                 if (mainHead) mainHead.textContent = 'Statutory Compliance & Returns';
                 if (subHead) subHead.textContent = 'Central & State statutory return filing, PF ECR challans, ESIC contributions, and gratuity governance.';
+                // Refresh Firebase data every time this tab is opened
+                if (typeof window.loadComplianceStats === 'function') window.loadComplianceStats();
             }
 
             history.replaceState(null, null, '#' + tabName);
