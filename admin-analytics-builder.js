@@ -739,6 +739,7 @@ window.selectMetric = selectMetric;
 window.selectChartType = selectChartType;
 window.applyQueryAndRender = applyQueryAndRender;
 window.loadSavedDashboard = loadSavedDashboard;
+window.loadDashboardToStudio = loadSavedDashboard;
 window.deleteDashboard = deleteDashboard;
 window.toggleFirebaseDetailsModal = toggleFirebaseDetailsModal;
 window.testFirebaseSync = testFirebaseSync;
