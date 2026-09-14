@@ -4,11 +4,7 @@
  */
 import { db, auth, onSnapshot, collection, addDoc, serverTimestamp, getDocs } from "./firebase-config.js";
 
-const API_BASE = window.location.port === '3000' 
-    ? '' 
-    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:3000' 
-        : '');
+const API_BASE = (window.location.port === '3000') ? '' : 'http://localhost:3000';
 
 
 let dashboardData = null;

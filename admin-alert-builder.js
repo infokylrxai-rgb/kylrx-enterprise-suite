@@ -6,14 +6,10 @@ import { db, auth, onSnapshot, collection, doc, setDoc, updateDoc, addDoc, serve
 
 let activeRules = [];
 let breachCount = 0;
-let isZeroed = localStorage.getItem('kylrx_zero_alerts') !== 'false';
+let isZeroed = localStorage.getItem('kylrx_zero_alerts') === 'true';
 let isBackendAvailable = null;
 
-const API_HOST = window.location.port === '3000' 
-    ? '' 
-    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:3000' 
-        : '');
+const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
 const API_BASE = `${API_HOST}/api/alerts`;
 
 function getCategoryForModule(mod) {

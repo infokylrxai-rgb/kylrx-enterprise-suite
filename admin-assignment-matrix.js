@@ -15,11 +15,7 @@ const CATEGORY_META = {
     alertRules: { label: '10. Alert & Escalation Rules', icon: 'bell', color: '#ea580c', bg: '#ffedd5' }
 };
 
-const API_HOST = window.location.port === '3000' 
-    ? '' 
-    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:3000' 
-        : '');
+const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
 const API_BASE = `${API_HOST}/api/assignments`;
 
 // Dynamic Employee Registry cached from Cloud Firestore
