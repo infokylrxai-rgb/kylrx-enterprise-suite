@@ -2,7 +2,12 @@
  * Custom Analytics Builder Controller
  * Connects to /api/analytics & Google Cloud Firestore (kylrxai)
  */
-import { db, auth, onSnapshot, collection, doc, setDoc, getDocs } from "./firebase-config.js";
+import { db, auth, onSnapshot, collection, doc, setDoc, addDoc, deleteDoc, getDocs, serverTimestamp } from "./firebase-config.js";
+
+// ─── API Host (dynamic: Live Server + direct Node) ────────────────────────────
+const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+const API_BASE = API_HOST + '/api/analytics';
+
 
 let sourcesCatalog = [];
 let activeSource = 'workforce';
@@ -12,6 +17,7 @@ let activeChartType = 'bar';
 let activeFilters = {};
 let chartInstance = null;
 let savedDashboards = [];
+let isBackendAvailable = null;
 
 // Fallback catalog if offline
 const FALLBACK_SOURCES = [
@@ -124,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function initFirebaseAnalyticsSync() {
     try {
-        const res = await fetch('http://localhost:3000/api/analytics/firebase-status');
+        const res = await fetch(`${API_BASE}/firebase-status');
         if (res.ok) {
             const data = await res.json();
             if (data.success && data.firebase) {
@@ -185,7 +191,7 @@ function toggleFirebaseDetailsModal() {
 
 async function testFirebaseSync() {
     try {
-        const res = await fetch('http://localhost:3000/api/analytics/sync-firebase', { method: 'POST' });
+        const res = await fetch(`${API_BASE}/sync-firebase', { method: 'POST' });
         if (res.ok) {
             const data = await res.json();
             alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities & employees\n• Project: kylrxai (Live)`);
@@ -202,7 +208,7 @@ async function testFirebaseSync() {
  */
 async function fetchSourcesCatalog() {
     try {
-        const res = await fetch('http://localhost:3000/api/analytics/sources');
+        const res = await fetch(`${API_BASE}/sources');
         if (res.ok) {
             const data = await res.json();
             sourcesCatalog = data.sources || [];
@@ -220,7 +226,7 @@ async function fetchSourcesCatalog() {
  */
 async function fetchSavedDashboards() {
     try {
-        const res = await fetch('http://localhost:3000/api/analytics/dashboards');
+        const res = await fetch(`${API_BASE}/dashboards');
         if (res.ok) {
             const data = await res.json();
             savedDashboards = data.dashboards || [];
@@ -336,7 +342,7 @@ async function applyQueryAndRender() {
     };
 
     try {
-        const res = await fetch('http://localhost:3000/api/analytics/query', {
+        const res = await fetch(`${API_BASE}/query', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(queryPayload)
@@ -639,7 +645,7 @@ async function submitSaveDashboard() {
     };
 
     try {
-        const res = await fetch('http://localhost:3000/api/analytics/dashboards', {
+        const res = await fetch(`${API_BASE}/dashboards', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -677,6 +683,47 @@ function showToast(msg) {
         text.textContent = msg;
         toast.style.display = 'flex';
         setTimeout(() => toast.style.display = 'none', 3500);
+    }
+}
+
+
+/**
+ * Load a saved dashboard into studio
+ */
+function loadSavedDashboard(dashId) {
+    const dash = savedDashboards.find(d => d.id === dashId);
+    if (!dash || !dash.widgets || !dash.widgets.length) {
+        showToast('Dashboard has no widgets to load');
+        return;
+    }
+    const w = dash.widgets[0];
+    switchView('builder');
+    selectDataSource(w.dataSource || 'workforce');
+    setTimeout(() => {
+        if (w.metric) { activeMetric = w.metric; activeChartType = w.chartType || 'bar'; }
+        if (w.grouping) { const s = document.getElementById('selGrouping'); if (s) s.value = w.grouping; }
+        updateChartTypeButtons(activeChartType);
+        applyQueryAndRender();
+        showToast('Loaded "' + dash.title + '" into Studio');
+    }, 200);
+}
+
+/**
+ * Delete a saved dashboard
+ */
+async function deleteDashboard(dashId) {
+    if (!confirm('Delete this dashboard?')) return;
+    try {
+        const res = await fetch(API_BASE + '/dashboards/' + dashId, { method: 'DELETE' });
+        if (res.ok) {
+            savedDashboards = savedDashboards.filter(d => d.id !== dashId);
+            const badge = document.getElementById('savedCountBadge');
+            if (badge) badge.textContent = savedDashboards.length;
+            renderSavedDashboards();
+            showToast('Dashboard deleted');
+        }
+    } catch (e) {
+        showToast('Error deleting dashboard');
     }
 }
 
