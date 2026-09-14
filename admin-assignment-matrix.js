@@ -296,7 +296,11 @@ window.testFirebaseSync = async function() {
         const res = await fetch(`${API_BASE}/sync-firebase`, { method: 'POST' });
         if (res.ok) {
             const data = await res.json();
-            alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities (Logged)\n• Project: kylrxai (Live)`);
+            showCenterAlertModal({
+                title: 'Firebase Cloud Sync Ping Successful!',
+                type: 'success',
+                message: `${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities (Logged)\n• Project: kylrxai (Live)`
+            });
         } else {
             if (db) {
                 await setDoc(doc(db, 'activities', `ASSIGN_${Date.now()}`), {
@@ -304,11 +308,19 @@ window.testFirebaseSync = async function() {
                     timestamp: serverTimestamp(),
                     source: 'admin-assignment-matrix'
                 });
-                alert('🔥 Firebase Client Sync Ping Successful! Logged to Cloud Firestore.');
+                showCenterAlertModal({
+                    title: 'Firebase Client Sync Ping Successful!',
+                    type: 'success',
+                    message: 'Logged to Cloud Firestore.'
+                });
             }
         }
     } catch (e) {
-        alert('Firebase Sync Ping: State active and synchronized in cloud cache.');
+        showCenterAlertModal({
+            title: 'Firebase Sync Ping',
+            type: 'info',
+            message: 'State active and synchronized in cloud cache.'
+        });
     }
 };
 
@@ -810,10 +822,45 @@ async function applySimulatedTransition() {
     employeesMap.set(employeeKey, emp);
     populateEmployeeDropdown();
 
-    alert(`✅ Assignment Transition Applied & Synced to Firebase!\n\n• Employee: ${emp.name || empId} (${empId})\n• Previous: ${prevType}\n• New Type: ${prospectiveType} (Regularized)\n• Effective Date: ${effectiveDateVal}\n• Historical Records: PRESERVED & SEALED (SHA-256)\n• Cloud Firestore: Connected & Synchronized`);
-
     closeImpactSimulatorModal();
     resolveAndUpdateAssignments();
+
+    await showCenterAlertModal({
+        title: 'Assignment Transition Applied & Synced to Firebase!',
+        type: 'success',
+        htmlContent: `
+            <div class="center-modal-list">
+                <div class="center-modal-list-item">
+                    <span class="item-label">Employee</span>
+                    <span class="item-val">${escapeHtml(emp.name || empId)} (${escapeHtml(empId)})</span>
+                </div>
+                <div class="center-modal-list-item">
+                    <span class="item-label">Previous</span>
+                    <span class="item-val">${escapeHtml(prevType)}</span>
+                </div>
+                <div class="center-modal-list-item">
+                    <span class="item-label">New Type</span>
+                    <span class="item-val" style="color: #2563eb;">${escapeHtml(prospectiveType)} (Regularized)</span>
+                </div>
+                <div class="center-modal-list-item">
+                    <span class="item-label">Effective Date</span>
+                    <span class="item-val">${escapeHtml(effectiveDateVal)}</span>
+                </div>
+                <div class="center-modal-list-item">
+                    <span class="item-label">Historical Records</span>
+                    <span class="item-val" style="color: #059669; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                        <i data-lucide="shield-check" size="14"></i> PRESERVED &amp; SEALED (SHA-256)
+                    </span>
+                </div>
+                <div class="center-modal-list-item">
+                    <span class="item-label">Cloud Firestore</span>
+                    <span class="item-val" style="color: #059669; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                        <i data-lucide="cloud-check" size="14"></i> Connected &amp; Synchronized
+                    </span>
+                </div>
+            </div>
+        `
+    });
 }
 
 // Matrix Rules Catalog Modal
@@ -859,6 +906,134 @@ function escapeHtml(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Centered Alert Modal Dialog (Replaces native browser alert)
+function showCenterAlertModal({
+    title = 'Assignment Transition Applied & Synced to Firebase!',
+    message = '',
+    htmlContent = '',
+    type = 'success',
+    okText = 'OK'
+} = {}) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('centerAlertModal');
+        const titleEl = document.getElementById('centerAlertTitle');
+        const contentEl = document.getElementById('centerAlertContent');
+        const okBtn = document.getElementById('centerAlertOkBtn');
+        const iconBox = document.getElementById('centerAlertIconBox');
+        const iconEl = document.getElementById('centerAlertIcon');
+
+        if (!modal) {
+            window.alert(title + '\n\n' + message.replace(/<[^>]*>?/gm, ''));
+            resolve();
+            return;
+        }
+
+        if (titleEl) titleEl.textContent = title;
+        if (okBtn) okBtn.textContent = okText;
+
+        if (contentEl) {
+            if (htmlContent) {
+                contentEl.innerHTML = htmlContent;
+            } else if (message) {
+                const lines = message.split('\n').map(l => l.trim()).filter(Boolean);
+                const bulletLines = lines.filter(l => l.startsWith('•') || l.startsWith('-'));
+
+                if (bulletLines.length > 0) {
+                    const normalLines = lines.filter(l => !l.startsWith('•') && !l.startsWith('-'));
+                    let out = '';
+                    if (normalLines.length > 0) {
+                        out += `<p style="color:var(--text-muted); font-size:0.9rem; margin:0 0 12px 0; line-height: 1.5;">${escapeHtml(normalLines.join(' '))}</p>`;
+                    }
+                    out += '<div class="center-modal-list">';
+                    bulletLines.forEach(bl => {
+                        const clean = bl.replace(/^[•\-]\s*/, '');
+                        const parts = clean.split(/:\s*(.+)/);
+                        if (parts.length >= 2) {
+                            out += `
+                                <div class="center-modal-list-item">
+                                    <span class="item-label">${escapeHtml(parts[0])}</span>
+                                    <span class="item-val">${escapeHtml(parts[1])}</span>
+                                </div>
+                            `;
+                        } else {
+                            out += `
+                                <div class="center-modal-list-item">
+                                    <span class="item-val" style="text-align:left;">${escapeHtml(clean)}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                    out += '</div>';
+                    contentEl.innerHTML = out;
+                } else {
+                    contentEl.innerHTML = `<p style="color:var(--text-muted); font-size:0.92rem; margin:0 0 1.25rem 0; line-height:1.6;">${escapeHtml(message)}</p>`;
+                }
+            } else {
+                contentEl.innerHTML = '';
+            }
+        }
+
+        if (iconBox && iconEl) {
+            if (type === 'warning') {
+                iconBox.style.background = '#fef3c7';
+                iconBox.style.color = '#d97706';
+                iconEl.setAttribute('data-lucide', 'alert-triangle');
+            } else if (type === 'error' || type === 'danger') {
+                iconBox.style.background = '#fee2e2';
+                iconBox.style.color = '#dc2626';
+                iconEl.setAttribute('data-lucide', 'alert-circle');
+            } else if (type === 'info') {
+                iconBox.style.background = '#eff6ff';
+                iconBox.style.color = '#2563eb';
+                iconEl.setAttribute('data-lucide', 'info');
+            } else {
+                iconBox.style.background = '#dcfce7';
+                iconBox.style.color = '#15803d';
+                iconEl.setAttribute('data-lucide', 'check-circle-2');
+            }
+        }
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+        }
+
+        let cleanup = () => {};
+
+        const onOkClick = () => {
+            cleanup();
+            resolve();
+        };
+
+        const onBackdropClick = (e) => {
+            if (e.target === modal) {
+                cleanup();
+                resolve();
+            }
+        };
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape' || e.key === 'Enter') {
+                cleanup();
+                resolve();
+            }
+        };
+
+        cleanup = () => {
+            modal.style.display = 'none';
+            if (okBtn) okBtn.removeEventListener('click', onOkClick);
+            modal.removeEventListener('click', onBackdropClick);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        if (okBtn) okBtn.addEventListener('click', onOkClick);
+        modal.addEventListener('click', onBackdropClick);
+        document.addEventListener('keydown', onKeyDown);
+
+        modal.style.display = 'flex';
+        if (okBtn) okBtn.focus();
+    });
+}
+
 // Expose globally for HTML inline handlers in ES module mode
 window.openMatrixRulesModal = openMatrixRulesModal;
 window.closeMatrixRulesModal = closeMatrixRulesModal;
@@ -867,4 +1042,5 @@ window.closeImpactSimulatorModal = closeImpactSimulatorModal;
 window.resolveAndUpdateAssignments = resolveAndUpdateAssignments;
 window.computeSimulatedImpact = computeSimulatedImpact;
 window.applySimulatedTransition = applySimulatedTransition;
+window.showCenterAlertModal = showCenterAlertModal;
 

@@ -411,6 +411,102 @@
         }
         .modal-overlay.active { display: flex; }
 
+        /* Centered Dialog & Modal System */
+        @keyframes modalScaleIn {
+            0% { opacity: 0; transform: scale(0.92) translateY(8px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .center-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 7000;
+        }
+
+        .center-modal-box {
+            background: #ffffff;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 480px;
+            padding: 2.25rem 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+            border: 1px solid #e2e8f0;
+            animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .center-modal-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+        }
+
+        .center-modal-title {
+            font-size: 1.22rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 0.85rem 0;
+            letter-spacing: -0.02em;
+            line-height: 1.35;
+        }
+
+        .center-modal-list {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 1.5rem;
+            text-align: left;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .center-modal-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 7px;
+        }
+
+        .center-modal-list-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .center-modal-list-item .item-label {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        .center-modal-list-item .item-val {
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 0.83rem;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .center-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
         .modal-card {
             background: white;
             border-radius: 20px;
@@ -778,6 +874,24 @@
                         Close
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Centered Alert / Success Modal Dialog -->
+    <div id="centerAlertModal" class="center-modal-overlay">
+        <div class="center-modal-box">
+            <div id="centerAlertIconBox" class="center-modal-icon" style="background: #dcfce7; color: #16a34a;">
+                <i id="centerAlertIcon" data-lucide="check-circle-2" size="32"></i>
+            </div>
+            <h2 id="centerAlertTitle" class="center-modal-title">Assignment Transition Applied &amp; Synced to Firebase!</h2>
+            <div id="centerAlertContent">
+                <!-- Injected dynamically -->
+            </div>
+            <div class="center-modal-actions">
+                <button type="button" id="centerAlertOkBtn" class="btn-hub" style="min-width: 140px; justify-content: center; padding: 11px 28px; border-radius: 12px; font-size: 0.92rem; font-weight: 700; background: #0f172a; color: #ffffff; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25); transition: all 0.2s;">
+                    OK
+                </button>
             </div>
         </div>
     </div>

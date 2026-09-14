@@ -6,9 +6,7 @@
 
 const API_HOST = window.location.port === '3000' 
     ? '' 
-    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:3000' 
-        : '');
+    : 'http://localhost:3000';
 
 const API_BASE = `${API_HOST}/api/workflow-builder`;
 const STORAGE_KEY = 'kylrx_hrms_workflows_data';

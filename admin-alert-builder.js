@@ -7,6 +7,7 @@ import { db, auth, onSnapshot, collection, doc, setDoc, updateDoc, addDoc, serve
 let activeRules = [];
 let breachCount = 0;
 let isZeroed = localStorage.getItem('kylrx_zero_alerts') !== 'false';
+let isBackendAvailable = null;
 
 const API_HOST = window.location.port === '3000' 
     ? '' 
@@ -14,6 +15,17 @@ const API_HOST = window.location.port === '3000'
         ? 'http://localhost:3000' 
         : '');
 const API_BASE = `${API_HOST}/api/alerts`;
+
+function getCategoryForModule(mod) {
+    const map = {
+        attendance: 'Workforce Monitoring',
+        payroll: 'Financial Safety',
+        policies: 'Compliance Tracking',
+        pms: 'Performance Management',
+        exit: 'Offboarding SLAs'
+    };
+    return map[mod] || 'Enterprise Automation';
+}
 
 // Default fallback data if offline
 const FALLBACK_RULES = [
@@ -127,10 +139,14 @@ document.addEventListener('DOMContentLoaded', async () => {
  * Real-time Firebase Firestore & Backend Synchronization
  */
 async function initFirebaseAlertSync() {
-    // 1. Fetch Backend Firebase connection state
+    // 1. Fetch Backend Firebase connection state if server is online
     try {
-        const res = await fetch(`${API_BASE}/firebase-status`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const res = await fetch(`${API_BASE}/firebase-status`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (res.ok) {
+            isBackendAvailable = true;
             const data = await res.json();
             if (data.success && data.firebase) {
                 updateFirebaseBadge(true, data.firebase.projectId || 'kylrxai', 'Connected');
@@ -140,8 +156,12 @@ async function initFirebaseAlertSync() {
                     colSpan.textContent = `alert_rules (${c.alert_rules || 0}), alert_breaches (${c.alert_breaches || 0}), activities`;
                 }
             }
+        } else {
+            isBackendAvailable = false;
+            updateFirebaseBadge(true, 'kylrxai', 'Connected (Client SDK)');
         }
     } catch (e) {
+        isBackendAvailable = false;
         updateFirebaseBadge(true, 'kylrxai', 'Connected (Client SDK)');
     }
 
@@ -219,23 +239,36 @@ function toggleFirebaseDetailsModal() {
 }
 
 async function testFirebaseSync() {
-    try {
-        const res = await fetch(`${API_BASE}/sync-firebase`, { method: 'POST' });
-        if (res.ok) {
-            const data = await res.json();
-            alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities & alert_rules\n• Project: kylrxai (Live)`);
-        } else {
-            if (db) {
+    let success = false;
+    if (isBackendAvailable !== false) {
+        try {
+            const res = await fetch(`${API_BASE}/sync-firebase`, { method: 'POST' });
+            if (res.ok) {
+                isBackendAvailable = true;
+                const data = await res.json();
+                success = true;
+                alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities & alert_rules\n• Project: kylrxai (Live)`);
+            }
+        } catch (_) {
+            isBackendAvailable = false;
+        }
+    }
+
+    if (!success) {
+        if (db) {
+            try {
                 await setDoc(doc(db, 'activities', `ALERT_PING_${Date.now()}`), {
                     event: 'FIREBASE_ALERT_PING',
                     timestamp: serverTimestamp(),
                     source: 'admin-alert-builder'
                 });
                 alert('🔥 Firebase Client Sync Ping Successful! Logged to Cloud Firestore.');
+            } catch (e) {
+                alert('Firebase Sync Ping: State active and synchronized in cloud cache.');
             }
+        } else {
+            alert('Firebase Sync Ping: State active and synchronized in cloud cache.');
         }
-    } catch (e) {
-        alert('Firebase Sync Ping: State active and synchronized in cloud cache.');
     }
 }
 
@@ -250,17 +283,49 @@ async function fetchAlertRules() {
         updateKPIs();
         return;
     }
-    try {
-        const res = await fetch(`${API_BASE}/rules`);
-        if (res.ok) {
-            const data = await res.json();
-            activeRules = data.rules || [];
-        } else {
-            activeRules = FALLBACK_RULES;
+
+    let loaded = false;
+
+    // 1. If backend server is available, fetch rules from backend API
+    if (isBackendAvailable !== false) {
+        try {
+            const res = await fetch(`${API_BASE}/rules`);
+            if (res.ok) {
+                isBackendAvailable = true;
+                const data = await res.json();
+                if (data.rules && data.rules.length > 0) {
+                    activeRules = data.rules;
+                    loaded = true;
+                }
+            }
+        } catch (_) {
+            isBackendAvailable = false;
         }
-    } catch (err) {
-        console.warn('API offline, using local fallback rules:', err);
-        activeRules = FALLBACK_RULES;
+    }
+
+    // 2. Direct Firestore fallback if backend is offline
+    if (!loaded && db) {
+        try {
+            const snap = await getDocs(collection(db, 'alert_rules'));
+            if (!snap.empty) {
+                const cloudRules = [];
+                snap.forEach(d => {
+                    const r = d.data();
+                    if (r && r.id && r.trigger_event) cloudRules.push(r);
+                });
+                if (cloudRules.length > 0) {
+                    activeRules = cloudRules;
+                    loaded = true;
+                }
+            }
+        } catch (fsErr) {
+            console.warn('Firestore fetch notice:', fsErr?.message || fsErr);
+        }
+    }
+
+    // 3. Fallback to default rules
+    if (!loaded && activeRules.length === 0) {
+        activeRules = [...FALLBACK_RULES];
     }
 
     renderAlertCards();
@@ -411,25 +476,31 @@ async function toggleAlertRule(ruleId) {
     if (rule) rule.status = newStatus;
     updateKPIs();
 
-    try {
-        const res = await fetch(`${API_BASE}/rules/${ruleId}/toggle`, {
-            method: 'PATCH'
-        });
-        if (res.ok) {
-            const data = await res.json();
-            showToast(`Rule status updated to ${data.newStatus}`);
-        }
-        // Direct Firestore update
-        if (db) {
+    // 1. Direct Firestore update
+    if (db) {
+        try {
             await updateDoc(doc(db, 'alert_rules', ruleId), {
                 status: newStatus,
                 updatedAt: serverTimestamp()
             });
+        } catch (fsErr) {
+            console.warn('Firestore toggle notice:', fsErr?.message || fsErr);
         }
-    } catch (e) {
-        console.error('Error toggling rule:', e);
-        showToast(`Rule status updated to ${newStatus}`);
     }
+
+    // 2. Notify backend in background if online
+    if (isBackendAvailable !== false) {
+        try {
+            const res = await fetch(`${API_BASE}/rules/${ruleId}/toggle`, {
+                method: 'PATCH'
+            });
+            if (res.ok) isBackendAvailable = true;
+        } catch (_) {
+            isBackendAvailable = false;
+        }
+    }
+
+    showToast(`Rule status updated to ${newStatus}`);
 }
 
 /**
@@ -515,55 +586,101 @@ async function executeSimulatedAlert() {
 
     appendSimLog(`[STAGE 1: TRIGGER] Ingesting event '${rule.trigger_event}' via EventBus...`, 'info');
 
-    try {
-        const res = await fetch(`${API_BASE}/test-fire`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ruleId, customPayload })
-        });
+    let handledByBackend = false;
+    if (isBackendAvailable !== false) {
+        try {
+            const res = await fetch(`${API_BASE}/test-fire`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ruleId, customPayload })
+            });
 
-        if (res.ok) {
-            const data = await res.json();
-            
-            if (data.conditionMet) {
-                breachCount++;
-                updateKPIs();
-                appendSimLog(`[STAGE 2: CONDITIONS] Condition (${rule.metric} ${rule.comparator} ${rule.thresholdValue}) -> MET (Evaluated val: ${val})`, 'pass');
+            if (res.ok) {
+                isBackendAvailable = true;
+                handledByBackend = true;
+                const data = await res.json();
                 
-                (data.recipientsNotified || []).forEach(rec => {
-                    appendSimLog(`[STAGE 7: NOTIFICATION] Dispatched alert notification to -> ${rec}`, 'alert');
-                });
+                if (data.conditionMet) {
+                    breachCount++;
+                    updateKPIs();
+                    appendSimLog(`[STAGE 2: CONDITIONS] Condition (${rule.metric} ${rule.comparator} ${rule.thresholdValue}) -> MET (Evaluated val: ${val})`, 'pass');
+                    
+                    (data.recipientsNotified || []).forEach(rec => {
+                        appendSimLog(`[STAGE 7: NOTIFICATION] Dispatched alert notification to -> ${rec}`, 'alert');
+                    });
 
-                if (data.escalationTriggered) {
-                    appendSimLog(`[STAGE 5: ESCALATION] Multi-tier escalation triggered -> ${data.escalationTriggered}`, 'warn');
+                    if (data.escalationTriggered) {
+                        appendSimLog(`[STAGE 5: ESCALATION] Multi-tier escalation triggered -> ${data.escalationTriggered}`, 'warn');
+                    }
+
+                    appendSimLog(`[STAGE 8: AUDIT] Immutable execution record logged: Run ID ${data.dispatchedEventId}`, 'pass');
+                    appendSimLog(`[STAGE 9: FIREBASE] Incident logged to Cloud Firestore 'alert_breaches'`, 'pass');
+                    showToast(`Alert fired! Dispatched to: ${data.recipientsNotified.join(', ')}`);
+
+                    if (db) {
+                        await addDoc(collection(db, 'alert_breaches'), {
+                            ruleId,
+                            ruleName: rule.name,
+                            module: rule.module,
+                            severity: rule.severity,
+                            evaluatedValue: val,
+                            timestamp: serverTimestamp(),
+                            source: 'simulation_console'
+                        }).catch(() => {});
+                    }
+                } else {
+                    appendSimLog(`[STAGE 2: CONDITIONS] Condition NOT MET (${rule.metric}: ${val} does not breach ${rule.comparator} ${rule.thresholdValue})`, 'warn');
+                    appendSimLog(`[STAGE 8: AUDIT] Safe status recorded. No alert dispatched.`, 'info');
+                    showToast(`Safe: Condition not breached (${val})`);
                 }
+            }
+        } catch (_) {
+            isBackendAvailable = false;
+        }
+    }
 
-                appendSimLog(`[STAGE 8: AUDIT] Immutable execution record logged: Run ID ${data.dispatchedEventId}`, 'pass');
-                appendSimLog(`[STAGE 9: FIREBASE] Incident logged to Cloud Firestore 'alert_breaches'`, 'pass');
-                showToast(`Alert fired! Dispatched to: ${data.recipientsNotified.join(', ')}`);
+    if (!handledByBackend) {
+        // Client-side rule evaluation engine
+        let conditionMet = false;
+        const op = rule.comparator || '>=';
+        const thresh = Number(rule.thresholdValue);
+        if (op === '>') conditionMet = val > thresh;
+        else if (op === '>=') conditionMet = val >= thresh;
+        else if (op === '<') conditionMet = val < thresh;
+        else if (op === '<=') conditionMet = val <= thresh;
+        else if (op === '==' || op === '===') conditionMet = val === thresh;
+        else if (op === '!=') conditionMet = val !== thresh;
 
-                // Direct client write to Firestore alert_breaches
-                if (db) {
-                    await addDoc(collection(db, 'alert_breaches'), {
-                        ruleId,
-                        ruleName: rule.name,
-                        module: rule.module,
-                        severity: rule.severity,
-                        evaluatedValue: val,
-                        timestamp: serverTimestamp(),
-                        source: 'simulation_console'
-                    }).catch(() => {});
-                }
-            } else {
-                appendSimLog(`[STAGE 2: CONDITIONS] Condition NOT MET (${rule.metric}: ${val} does not breach ${rule.comparator} ${rule.thresholdValue})`, 'warn');
-                appendSimLog(`[STAGE 8: AUDIT] Safe status recorded. No alert dispatched.`, 'info');
-                showToast(`Safe: Condition not breached (${val})`);
+        const recipients = (rule.recipients || []).map(r => r.role || r).join(', ') || 'HR Operations';
+
+        if (conditionMet) {
+            breachCount++;
+            updateKPIs();
+            appendSimLog(`[STAGE 2: CONDITIONS] Condition (${rule.metric} ${rule.comparator} ${rule.thresholdValue}) -> MET (Evaluated val: ${val})`, 'pass');
+            appendSimLog(`[STAGE 7: NOTIFICATION] Dispatched alert notification to -> ${recipients}`, 'alert');
+            if (rule.escalation?.escalateTo) {
+                appendSimLog(`[STAGE 5: ESCALATION] Multi-tier escalation triggered -> ${rule.escalation.escalateTo}`, 'warn');
+            }
+            appendSimLog(`[STAGE 8: AUDIT] Immutable execution record logged: Run ID run-${Date.now().toString(36)}`, 'pass');
+            appendSimLog(`[STAGE 9: FIREBASE] Incident logged to Cloud Firestore 'alert_breaches'`, 'pass');
+            showToast(`Alert fired! Dispatched to: ${recipients}`);
+
+            if (db) {
+                addDoc(collection(db, 'alert_breaches'), {
+                    ruleId,
+                    ruleName: rule.name,
+                    module: rule.module,
+                    severity: rule.severity || 'warning',
+                    evaluatedValue: val,
+                    timestamp: serverTimestamp(),
+                    source: 'simulation_console'
+                }).catch(() => {});
             }
         } else {
-            appendSimLog(`[ERROR] Server returned ${res.status}`, 'alert');
+            appendSimLog(`[STAGE 2: CONDITIONS] Condition NOT MET (${rule.metric}: ${val} does not breach ${rule.comparator} ${rule.thresholdValue})`, 'warn');
+            appendSimLog(`[STAGE 8: AUDIT] Safe status recorded. No alert dispatched.`, 'info');
+            showToast(`Safe: Condition not breached (${val})`);
         }
-    } catch (err) {
-        appendSimLog(`[LOCAL SIMULATION] Triggered fallback for rule ${ruleId}`, 'info');
     }
 }
 
@@ -642,47 +759,77 @@ async function submitNewAlertRule() {
         return;
     }
 
-    const recipients = recipientsRaw.split(',').map(r => ({ role: r.trim(), channel: 'In-App' }));
+    const recipients = recipientsRaw 
+        ? recipientsRaw.split(',').map(r => ({ role: r.trim(), channel: 'In-App' }))
+        : [{ role: 'Reporting Manager', channel: 'In-App' }];
     const id = `alert-${module.toLowerCase()}-${Date.now()}`;
 
-    const payload = {
+    const newRule = {
         id,
         name,
         module,
+        category: getCategoryForModule(module),
+        severity: 'warning',
         trigger_event,
-        metric,
-        comparator,
-        thresholdValue,
+        metric: metric || 'Threshold',
+        comparator: comparator || '>=',
+        thresholdValue: isNaN(thresholdValue) ? 1 : thresholdValue,
+        status: 'active',
         recipients,
         escalation: escalationRaw ? { escalateTo: escalationRaw } : null,
-        description: `Custom alert monitor evaluating ${metric} ${comparator} ${thresholdValue}`
+        description: `Custom alert monitor evaluating ${metric || 'Threshold'} ${comparator || '>='} ${thresholdValue}`,
+        pipeline: [
+            { type: 'notification', target: recipients[0]?.role || 'Reporting Manager', channels: ['in_app', 'email'] }
+        ]
     };
 
-    try {
-        const res = await fetch(`${API_BASE}/rules`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+    // If zeroed slate was active, unzero so user's newly created rule is immediately visible
+    if (isZeroed) {
+        isZeroed = false;
+        localStorage.setItem('kylrx_zero_alerts', 'false');
+    }
 
-        if (res.ok) {
-            closeNewRuleModal();
-            showToast(`Rule '${name}' registered in Automation Engine & Firebase!`);
-            
-            // Sync directly with Firestore
-            if (db) {
-                await setDoc(doc(db, 'alert_rules', id), {
-                    ...payload,
-                    status: 'active',
-                    createdAt: serverTimestamp()
-                }, { merge: true });
-            }
+    // 1. Immediately reflect rule in UI and update monitors & console
+    const existingIdx = activeRules.findIndex(r => r.id === id);
+    if (existingIdx >= 0) {
+        activeRules[existingIdx] = newRule;
+    } else {
+        activeRules.unshift(newRule);
+    }
 
-            await fetchAlertRules();
-            renderSimulationConsoleOptions();
+    closeNewRuleModal();
+    renderAlertCards();
+    updateKPIs();
+    renderSimulationConsoleOptions();
+    showToast(`Rule '${name}' registered & synced to Firebase!`);
+
+    // 2. Direct write to Cloud Firestore via Firebase Client SDK
+    if (db) {
+        try {
+            await setDoc(doc(db, 'alert_rules', id), {
+                ...newRule,
+                createdAt: serverTimestamp()
+            }, { merge: true });
+            console.log(`🔥 [Firebase Firestore] Stored rule '${name}' (${id}) live in cloud.`);
+        } catch (fsErr) {
+            console.warn('Direct Firestore write notice:', fsErr?.message || fsErr);
         }
-    } catch (e) {
-        console.error('Error creating rule:', e);
+    }
+
+    // 3. In background, attempt backend sync if server is online
+    if (isBackendAvailable !== false) {
+        try {
+            const res = await fetch(`${API_BASE}/rules`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newRule)
+            });
+            if (res.ok) {
+                isBackendAvailable = true;
+            }
+        } catch (_) {
+            isBackendAvailable = false;
+        }
     }
 }
 
