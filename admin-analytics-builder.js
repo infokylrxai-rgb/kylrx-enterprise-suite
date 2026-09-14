@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function initFirebaseAnalyticsSync() {
     try {
-        const res = await fetch(`${API_BASE}/firebase-status');
+        const res = await fetch(`${API_BASE}/firebase-status`);
         if (res.ok) {
             const data = await res.json();
             if (data.success && data.firebase) {
@@ -191,7 +191,7 @@ function toggleFirebaseDetailsModal() {
 
 async function testFirebaseSync() {
     try {
-        const res = await fetch(`${API_BASE}/sync-firebase', { method: 'POST' });
+        const res = await fetch(`${API_BASE}/sync-firebase`, { method: 'POST' });
         if (res.ok) {
             const data = await res.json();
             alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities & employees\n• Project: kylrxai (Live)`);
@@ -208,7 +208,7 @@ async function testFirebaseSync() {
  */
 async function fetchSourcesCatalog() {
     try {
-        const res = await fetch(`${API_BASE}/sources');
+        const res = await fetch(`${API_BASE}/sources`);
         if (res.ok) {
             const data = await res.json();
             sourcesCatalog = data.sources || [];
@@ -226,7 +226,7 @@ async function fetchSourcesCatalog() {
  */
 async function fetchSavedDashboards() {
     try {
-        const res = await fetch(`${API_BASE}/dashboards');
+        const res = await fetch(`${API_BASE}/dashboards`);
         if (res.ok) {
             const data = await res.json();
             savedDashboards = data.dashboards || [];
@@ -342,7 +342,7 @@ async function applyQueryAndRender() {
     };
 
     try {
-        const res = await fetch(`${API_BASE}/query', {
+        const res = await fetch(`${API_BASE}/query`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(queryPayload)
@@ -645,7 +645,7 @@ async function submitSaveDashboard() {
     };
 
     try {
-        const res = await fetch(`${API_BASE}/dashboards', {
+        const res = await fetch(`${API_BASE}/dashboards`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
