@@ -10,12 +10,11 @@
  * Supports real-time zero synchronization and telemetry monitoring.
  */
 
-const API_BASE = (window.location.port === '5501' || window.location.port === '5502' || window.location.port === '5500')
-    ? 'http://localhost:3000/api/notification-center'
-    : '/api/notification-center';
+const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+const API_BASE = `${API_HOST}/api/notification-center`;
 
-// Default to 0 state unless explicitly restored to demo feed
-let isZeroed = localStorage.getItem('kylrx_zero_notification_center') !== 'false';
+// Default to live active feed connected to Firebase
+let isZeroed = localStorage.getItem('kylrx_zero_notification_center') === 'true';
 
 // Baseline Seed Items for offline & standalone static preview
 function getSeedData() {
