@@ -16,11 +16,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="lucide.min.js"></script>
     <script>
+        function renderLucideIcons(root) {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try {
+                    window.lucide.createIcons(root ? { root } : undefined);
+                } catch (e) {
+                    console.warn("Lucide render error:", e);
+                }
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
         if (!window.lucide) {
             const fallbackScript = document.createElement('script');
             fallbackScript.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
             fallbackScript.crossOrigin = 'anonymous';
+            fallbackScript.onload = () => { renderLucideIcons(); };
             document.head.appendChild(fallbackScript);
+        } else {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => renderLucideIcons());
+            } else {
+                renderLucideIcons();
+            }
         }
     </script>
 
@@ -78,6 +95,21 @@
             overflow-x: hidden;
             box-sizing: border-box;
         }
+
+        /* ─── UNIVERSAL ICON SIZING ─── */
+        svg.lucide, i[data-lucide] {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+        .btn svg { width: 15px; height: 15px; }
+        .tag svg { width: 12px; height: 12px; }
+        .stat-icon svg { width: 22px; height: 22px; }
+        .template-type-icon svg { width: 22px; height: 22px; }
+        .action-icon svg { width: 17px; height: 17px; }
+        .tab-btn svg { width: 15px; height: 15px; }
+        .search-box svg { width: 16px; height: 16px; }
+        .panel-close svg { width: 18px; height: 18px; }
 
         /* ─── HEADER ACTIONS ─── */
         .header-actions {
@@ -1013,7 +1045,7 @@
                 <div class="toolbar">
                     <div class="search-box">
                         <i data-lucide="search" style="width: 16px; height: 16px;"></i>
-                        <input type="text" placeholder="Search by document ID, recipient name, or template key…" />
+                        <input type="text" id="search-generated-input" placeholder="Search by document ID, recipient name, or template key…" oninput="filterGeneratedDocs()" />
                     </div>
                     <button class="btn btn-secondary btn-sm" onclick="loadGeneratedDocs()">
                         <i data-lucide="rotate-cw" style="width: 14px; height: 14px;"></i> Refresh
@@ -1031,11 +1063,12 @@
                                 <th>Status</th>
                                 <th>SHA-256 Hash</th>
                                 <th>Timestamp</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="generated-tbody">
                             <tr>
-                                <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading generated documents archive…</td>
+                                <td colspan="9" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading generated documents archive…</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1306,20 +1339,8 @@
     <script src="admin-document-templates.js"></script>
     <script type="module" src="./admin-sidebar-sync.js"></script>
     <script>
-        function renderLucideIcons() {
-            if (window.lucide && typeof window.lucide.createIcons === 'function') {
-                try {
-                    window.lucide.createIcons();
-                } catch (e) {
-                    console.warn("Lucide render error:", e);
-                }
-            }
-        }
-        window.renderLucideIcons = renderLucideIcons;
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', renderLucideIcons);
-        } else {
-            renderLucideIcons();
+        if (typeof window.renderLucideIcons === 'function') {
+            window.renderLucideIcons();
         }
     </script>
 </body>
