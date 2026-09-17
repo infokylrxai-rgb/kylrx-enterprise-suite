@@ -75,7 +75,7 @@ function downloadTemplate() {
     const ws = XLSX.utils.aoa_to_sheet([headers]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "PayrollTemplate");
-    XLSX.writeFile(wb, "HRFlow_Payroll_Initialization_Template.xlsx");
+    XLSX.writeFile(wb, "Kylrx_Payroll_Initialization_Template.xlsx");
 }
 
 function cleanString(str) {
