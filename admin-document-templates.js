@@ -88,11 +88,13 @@ async function loadNotifBadge() {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function renderStats(templates) {
     const totalApproved = templates.filter(t => {
+        if (t.status === 'approved') return true;
         const active = t.versions?.find(v => v.status === 'approved');
         return !!active;
     }).length;
 
     const totalPending = templates.reduce((sum, t) => {
+        if (t.status === 'pending_approval') return sum + 1;
         return sum + (t.versions?.filter(v => v.status === 'pending_approval').length || 0);
     }, 0);
 
@@ -149,7 +151,7 @@ function renderTemplateGrid(templates) {
     grid.innerHTML = templates.map(t => {
         const style = CATEGORY_STYLES[t.category] || CATEGORY_STYLES['Onboarding'];
         const latestVersion = t.versions?.[t.versions.length - 1];
-        const approvedVersion = t.versions?.find(v => v.status === 'approved');
+        const approvedVersion = t.versions?.find(v => v.status === 'approved') || (t.status === 'approved' ? { versionNumber: t.activeVersion || 'v1.0', effectiveFrom: t.effectiveFrom || Date.now() } : null);
         const tokenCount = t.fieldMappings?.length || latestVersion?.fieldMappings?.length || 0;
 
         const statusTag = approvedVersion

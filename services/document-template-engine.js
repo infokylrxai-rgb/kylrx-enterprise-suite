@@ -410,7 +410,9 @@ class DocumentTemplateEngine {
                 activeVersion: activeVer ? activeVer.versionNumber : null,
                 effectiveFrom: activeVer ? activeVer.effectiveFrom : null,
                 totalVersions: tpl.versions.length,
-                status: activeVer ? activeVer.status : 'draft'
+                status: activeVer ? activeVer.status : 'draft',
+                fieldMappings: activeVer ? activeVer.fieldMappings : [],
+                versions: tpl.versions
             });
         }
         return list;
