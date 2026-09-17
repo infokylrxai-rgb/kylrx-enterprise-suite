@@ -72,11 +72,39 @@ function setupEvents() {
 
 function downloadTemplate() {
     const headers = STANDARD_COLUMNS.map(c => c.name);
-    const ws = XLSX.utils.aoa_to_sheet([headers]);
+    const sampleRow = [
+        "EMP-1048", "Rahul Deshmukh", 150000, 15000, 1800, 0, 4500, "100 Units", "10%", 12000, "Annual Performance", 5000
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "PayrollTemplate");
     XLSX.writeFile(wb, "Kylrx_Payroll_Initialization_Template.xlsx");
 }
+window.downloadTemplate = downloadTemplate;
+
+function copyExcelHeaders() {
+    const headers = STANDARD_COLUMNS.map(c => c.name);
+    const textToCopy = headers.join('\t');
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const btn = document.getElementById('btnCopyHeaders');
+        if (btn) {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" style="color:#10b981;width:14px;height:14px;"></i> Copied!';
+            btn.style.borderColor = '#10b981';
+            btn.style.color = '#10b981';
+            if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.style.borderColor = '';
+                btn.style.color = '';
+                if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+            }, 2500);
+        }
+    }).catch(err => {
+        console.error('Failed to copy headers:', err);
+    });
+}
+window.copyExcelHeaders = copyExcelHeaders;
 
 function cleanString(str) {
     if (str === undefined || str === null) return "";
