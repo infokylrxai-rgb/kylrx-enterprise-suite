@@ -96,10 +96,13 @@ class AutomationEngine {
         // 2. If no in-memory rules matched and db is connected, check Firestore
         if (automations.length === 0 && db) {
             try {
-                const snapshot = await db.collection('automations')
-                    .where('trigger_event', '==', eventName)
-                    .where('status', '==', 'active')
-                    .get();
+                const snapshot = await Promise.race([
+                    db.collection('automations')
+                        .where('trigger_event', '==', eventName)
+                        .where('status', '==', 'active')
+                        .get(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 1000))
+                ]);
 
                 if (!snapshot.empty) {
                     automations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

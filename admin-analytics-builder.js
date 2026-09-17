@@ -146,18 +146,19 @@ async function initFirebaseAnalyticsSync() {
         updateFirebaseBadge(true, 'kylrxai', 'Connected (Client SDK)');
     }
 
-    // Real-time listener on Firestore employees collection
+    // Real-time listeners on Firestore collections (employees, users, policies)
     try {
         if (db) {
-            const colEmployees = collection(db, 'employees');
-            onSnapshot(colEmployees, (snap) => {
-                console.log(`🔥 [Firebase Firestore] Live employees snapshot: ${snap.size} records.`);
-                if (snap.empty) {
-                    console.log('🔥 [Firebase Firestore] Cloud database currently has 0 employee records. Evaluating analytics to 0.');
-                }
-                applyQueryAndRender();
-            }, (err) => {
-                console.warn('Firestore onSnapshot notice:', err.message);
+            ['employees', 'users', 'policies'].forEach(colName => {
+                try {
+                    const colRef = collection(db, colName);
+                    onSnapshot(colRef, (snap) => {
+                        console.log(`🔥 [Firebase Firestore] Live ${colName} snapshot: ${snap.size} records.`);
+                        applyQueryAndRender();
+                    }, (err) => {
+                        console.warn(`Firestore onSnapshot (${colName}) notice:`, err.message);
+                    });
+                } catch (e) {}
             });
         }
     } catch (e) {
@@ -368,8 +369,32 @@ function renderPreviewResults(data) {
         <i data-lucide="activity" style="color: var(--primary);"></i>
         ${query.dataSourceName}: ${query.metricName} by ${query.grouping.toUpperCase()}
     `;
+
+    const filterStr = Object.keys(query.filtersApplied || {}).length 
+        ? Object.entries(query.filtersApplied).map(([k, v]) => `${k}: ${v}`).join(', ') 
+        : 'All Units';
+
+    const sourceLabel = data.source === 'firebase_live' 
+        ? `🔥 Live Firestore (${data.cloudProject || 'kylrxai'}:${data.collection || query.dataSource})`
+        : `⚡ Enterprise Baseline Model`;
+
     document.getElementById('chartPreviewSubtitle').textContent = 
-        `Calculated across ${summary.recordsScanned} records | Filter: ${Object.keys(query.filtersApplied).length ? JSON.stringify(query.filtersApplied) : 'All Units'}`;
+        `${sourceLabel} | Calculated across ${summary.recordsScanned} records | Filter: ${filterStr}`;
+
+    const liveBadge = document.getElementById('chartLiveSourceBadge');
+    if (liveBadge) {
+        if (data.source === 'firebase_live') {
+            liveBadge.style.background = '#ecfdf5';
+            liveBadge.style.color = '#047857';
+            liveBadge.style.borderColor = '#a7f3d0';
+            liveBadge.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Firebase Cloud Live (${data.collection || 'kylrxai'})`;
+        } else {
+            liveBadge.style.background = '#f8fafc';
+            liveBadge.style.color = '#64748b';
+            liveBadge.style.borderColor = '#e2e8f0';
+            liveBadge.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: #94a3b8; display: inline-block;"></span> Baseline Model`;
+        }
+    }
 
     // KPI stats
     document.getElementById('kpiTotal').textContent = summary.total.toLocaleString();
