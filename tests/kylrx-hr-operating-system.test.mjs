@@ -9,6 +9,8 @@ import documentTemplateEngine from '../services/document-template-engine.js';
 import notificationActionCenterService from '../services/notification-action-center-service.js';
 import centralAssignmentEngine from '../services/central-assignment-engine.js';
 import customAnalyticsEngine from '../services/custom-analytics-engine.js';
+import express from 'express';
+import hrOsRouter from '../routes/hr-os.js';
 
 describe('20. The One-Sentence Requirement: Kylrx AI Configurable HR Operating System Suite', () => {
 
@@ -108,7 +110,7 @@ describe('20. The One-Sentence Requirement: Kylrx AI Configurable HR Operating S
         assert.equal(auditEntry.actor, 'HR Automation Admin');
 
         // Query telemetry via Custom Analytics
-        const analyticsResult = customAnalyticsEngine.executeCustomQuery({
+        const analyticsResult = await customAnalyticsEngine.executeCustomQuery({
             dataSource: 'workforce',
             metric: 'headcount',
             grouping: 'department'
@@ -205,41 +207,52 @@ describe('20. The One-Sentence Requirement: Kylrx AI Configurable HR Operating S
     });
 
     test('8. REST API /api/hr-os Integration Endpoints', async () => {
-        // 1. GET /api/hr-os/manifest
-        const manifestRes = await fetch('http://localhost:3000/api/hr-os/manifest');
-        assert.equal(manifestRes.status, 200);
-        const manifestData = await manifestRes.json();
-        assert.equal(manifestData.success, true);
-        assert.equal(manifestData.manifest.system, 'Kylrx AI HR Operating System');
+        const app = express();
+        app.use(express.json());
+        app.use('/api/hr-os', hrOsRouter);
+        const server = app.listen(0);
+        const port = server.address().port;
+        const baseUrl = `http://127.0.0.1:${port}`;
 
-        // 2. GET /api/hr-os/status
-        const statusRes = await fetch('http://localhost:3000/api/hr-os/status');
-        assert.equal(statusRes.status, 200);
-        const statusData = await statusRes.json();
-        assert.equal(statusData.success, true);
-        assert.equal(statusData.status, 'operational');
-        assert.equal(statusData.motto, 'Configure Once → Automate Everything → Track Everything → Preserve History');
+        try {
+            // 1. GET /api/hr-os/manifest
+            const manifestRes = await fetch(`${baseUrl}/api/hr-os/manifest`);
+            assert.equal(manifestRes.status, 200);
+            const manifestData = await manifestRes.json();
+            assert.equal(manifestData.success, true);
+            assert.equal(manifestData.manifest.system, 'Kylrx AI HR Operating System');
 
-        // 3. GET /api/hr-os/verify-pillars
-        const verifyRes = await fetch('http://localhost:3000/api/hr-os/verify-pillars');
-        assert.equal(verifyRes.status, 200);
-        const verifyData = await verifyRes.json();
-        assert.equal(verifyData.success, true);
-        assert.equal(verifyData.verified, true);
+            // 2. GET /api/hr-os/status
+            const statusRes = await fetch(`${baseUrl}/api/hr-os/status`);
+            assert.equal(statusRes.status, 200);
+            const statusData = await statusRes.json();
+            assert.equal(statusData.success, true);
+            assert.equal(statusData.status, 'operational');
+            assert.equal(statusData.motto, 'Configure Once → Automate Everything → Track Everything → Preserve History');
 
-        // 4. POST /api/hr-os/event
-        const eventRes = await fetch('http://localhost:3000/api/hr-os/event', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                eventName: 'employee.type.changed',
-                payload: { employeeId: 'EMP_TEST_007', newType: 'Executive' },
-                metadata: { actor: 'HR VP' }
-            })
-        });
-        assert.equal(eventRes.status, 200);
-        const eventData = await eventRes.json();
-        assert.equal(eventData.success, true);
-        assert.equal(eventData.dispatched, true);
+            // 3. GET /api/hr-os/verify-pillars
+            const verifyRes = await fetch(`${baseUrl}/api/hr-os/verify-pillars`);
+            assert.equal(verifyRes.status, 200);
+            const verifyData = await verifyRes.json();
+            assert.equal(verifyData.success, true);
+            assert.equal(verifyData.verified, true);
+
+            // 4. POST /api/hr-os/event
+            const eventRes = await fetch(`${baseUrl}/api/hr-os/event`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    eventName: 'employee.type.changed',
+                    payload: { employeeId: 'EMP_TEST_007', newType: 'Executive' },
+                    metadata: { actor: 'HR VP' }
+                })
+            });
+            assert.equal(eventRes.status, 200);
+            const eventData = await eventRes.json();
+            assert.equal(eventData.success, true);
+            assert.equal(eventData.dispatched, true);
+        } finally {
+            server.close();
+        }
     });
 });

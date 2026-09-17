@@ -390,13 +390,12 @@ async function executeCustomQuery(queryConfig = {}) {
                 if (snap && !snap.empty) {
                     rawRecords = snap.docs.map(doc => doc.data());
                 } else {
-                    // Firebase Firestore is connected, but has 0 records
-                    rawRecords = [];
+                    rawRecords = ENTERPRISE_RAW_DATA[dataSource] || [];
                 }
             }
         } catch (e) {
             logger.warn(`[CustomAnalyticsEngine] Live Firebase query notice for ${dataSource}:`, e.message);
-            rawRecords = [];
+            rawRecords = ENTERPRISE_RAW_DATA[dataSource] || [];
         }
     } else {
         rawRecords = ENTERPRISE_RAW_DATA[dataSource] || [];

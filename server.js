@@ -33,6 +33,8 @@ const documentTemplatesRoutes = require("./routes/document-templates");
 const workflowBuilderRoutes = require("./routes/workflow-builder");
 const integrationsRoutes = require("./routes/integrations");
 const hrOsRoutes = require("./routes/hr-os");
+const policiesRoutes = require("./routes/policies");
+const assetsRoutes = require("./routes/assets");
 
 const automationEngine = require("./services/automation-engine");
 
@@ -160,6 +162,8 @@ app.use("/api/document-templates", documentTemplatesRoutes);
 app.use("/api/workflow-builder", workflowBuilderRoutes);
 app.use("/api/integrations", integrationsRoutes);
 app.use("/api/hr-os", hrOsRoutes);
+app.use("/api/policies", policiesRoutes);
+app.use("/api/assets", assetsRoutes);
 
 // Reconciliation Engine API (ESM module — loaded via dynamic import)
 // Endpoints: POST /api/reconciliation/ingest

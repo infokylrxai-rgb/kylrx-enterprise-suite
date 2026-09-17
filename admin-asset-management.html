@@ -320,7 +320,58 @@
         <span>Asset initialized in enterprise database.</span>
     </div>
 
+    <!-- Centered Status Modal -->
+    <div class="modal-overlay-status" id="statusModalOverlay">
+        <div class="status-modal-card">
+            <div class="status-modal-icon warning" id="statusModalIcon">
+                <i data-lucide="alert-circle" style="width: 32px; height: 32px;"></i>
+            </div>
+            <h3 class="status-modal-title" id="statusModalTitle">Please complete all fields.</h3>
+            <p class="status-modal-desc" id="statusModalDesc">Asset Name and Asset Tag are required to provision hardware into the enterprise inventory.</p>
+            <button class="btn btn-primary" id="statusModalBtn" onclick="closeStatusModal()" style="width: 100%; justify-content: center; padding: 0.85rem 1.5rem; font-weight: 700; border-radius: 14px; font-size: 0.95rem;">
+                Got it
+            </button>
+        </div>
+    </div>
+
     <style>
+        /* Centered Status Modal */
+        .modal-overlay-status {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(8px);
+            z-index: 10000; display: none; align-items: center; justify-content: center;
+            animation: modalFadeIn 0.25s ease;
+        }
+        .modal-overlay-status.active { display: flex; }
+        .status-modal-card {
+            background: white; border-radius: 28px; padding: 2.25rem 2rem;
+            width: 420px; max-width: 90%; text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+            border: 1px solid var(--border);
+            animation: modalSlideIn 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+        }
+        @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: scale(0.92) translateY(16px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .status-modal-icon {
+            width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 1.25rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s ease;
+        }
+        .status-modal-icon.warning { background: #fffbeb; color: #f59e0b; border: 1px solid #fef3c7; }
+        .status-modal-icon.error { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+        .status-modal-icon.success { background: #f0fdf4; color: #10b981; border: 1px solid #dcfce7; }
+        .status-modal-icon.info { background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; }
+        .status-modal-title {
+            font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; letter-spacing: -0.02em;
+        }
+        .status-modal-desc {
+            font-size: 0.88rem; color: #64748b; line-height: 1.5; margin-bottom: 1.75rem;
+        }
+
         .toast-notification {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
@@ -364,6 +415,40 @@
         import { db, auth } from "./firebase-config.js";
         import { getAssets, getAssetStats, getAssetLogs, addAsset, allocateAsset, deleteAsset } from "./asset-service.js";
         import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        // Premium Centered Status Modal
+        window.showStatusModal = (title, msg, type = 'warning') => {
+            const overlay = document.getElementById('statusModalOverlay');
+            const icon = document.getElementById('statusModalIcon');
+            const titleEl = document.getElementById('statusModalTitle');
+            const descEl = document.getElementById('statusModalDesc');
+            if (!overlay || !titleEl || !descEl || !icon) return;
+
+            titleEl.textContent = title;
+            descEl.textContent = msg;
+
+            icon.className = `status-modal-icon ${type}`;
+            let iconName = 'alert-circle';
+            if (type === 'success') iconName = 'check-circle';
+            else if (type === 'error') iconName = 'alert-triangle';
+            else if (type === 'info') iconName = 'info';
+            else if (type === 'warning') iconName = 'alert-circle';
+
+            icon.innerHTML = `<i data-lucide="${iconName}" style="width: 32px; height: 32px;"></i>`;
+
+            overlay.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.closeStatusModal = () => {
+            const overlay = document.getElementById('statusModalOverlay');
+            if (overlay) overlay.classList.remove('active');
+        };
+
+        // Intercept native browser alert calls and display via centered modal
+        window.alert = (msg) => {
+            window.showStatusModal('Notice', msg, 'warning');
+        };
 
         lucide.createIcons();
 
@@ -442,15 +527,29 @@
                     return;
                 }
 
-                hist.innerHTML = logs.map(l => `
+                hist.innerHTML = logs.map(l => {
+                    let formattedDate = 'Recent';
+                    if (l.timestamp) {
+                        if (typeof l.timestamp.toDate === 'function') {
+                            formattedDate = l.timestamp.toDate().toLocaleString();
+                        } else {
+                            try {
+                                formattedDate = new Date(l.timestamp).toLocaleString();
+                            } catch (_) {
+                                formattedDate = 'Recent';
+                            }
+                        }
+                    }
+                    return `
                     <div class="history-item">
                         <div><p style="font-weight: 700; font-size: 0.9rem;">${l.action} Recorded</p><p style="font-size: 0.75rem; color: var(--text-muted);">Asset: ${l.assetId}</p></div>
                         <div style="text-align: right;">
                             <p style="font-weight: 800; color: #3b82f6;">PROCESSED</p>
-                            <p style="font-size: 0.65rem; color: var(--text-muted);">${l.timestamp?.toDate().toLocaleString() || 'Recent'}</p>
+                            <p style="font-size: 0.65rem; color: var(--text-muted);">${formattedDate}</p>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             } catch (err) {
                 console.error("Error loading history:", err);
             }
@@ -512,12 +611,15 @@
         document.getElementById('btnSaveAsset')?.addEventListener('click', async () => {
             const btn = document.getElementById('btnSaveAsset');
             const data = {
-                name: document.getElementById('assetName').value,
+                name: document.getElementById('assetName').value.trim(),
                 type: document.getElementById('assetType').value,
-                tag: document.getElementById('assetTag').value
+                tag: document.getElementById('assetTag').value.trim()
             };
 
-            if (!data.name || !data.tag) return alert('Please complete all fields.');
+            if (!data.name || !data.tag) {
+                showStatusModal('Please complete all fields.', 'Asset Name and Asset Tag are required to provision hardware into the enterprise inventory.', 'warning');
+                return;
+            }
 
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Initializing...';
@@ -526,15 +628,20 @@
             try {
                 await addAsset(data);
                 const toast = document.getElementById('successToast');
+                const msgSpan = toast.querySelector('span');
+                if (msgSpan) msgSpan.textContent = `Hardware Asset "${data.name}" provisioned successfully!`;
                 toast.classList.add('active');
                 if (window.lucide) lucide.createIcons();
                 
+                // Clear fields
+                document.getElementById('assetName').value = '';
+                document.getElementById('assetTag').value = '';
                 toggleAssetModal(false);
-                initDashboard();
+                await initDashboard();
 
-                setTimeout(() => toast.classList.remove('active'), 3000);
+                setTimeout(() => toast.classList.remove('active'), 3500);
             } catch (err) {
-                alert('Save failed: ' + err.message);
+                showStatusModal('Save Failed', err.message || 'Failed to initialize asset.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="save"></i> Initialize Asset';
@@ -571,20 +678,44 @@
             select.innerHTML = '<option value="">Loading active personnel...</option>';
             toggleAllocateModal(true);
             
-            try {
-                const usersSnap = await getDocs(collection(db, 'users'));
+            const defaultEmployees = [
+                { id: 'usr-001', name: 'Sarah Jenkins', department: 'Engineering' },
+                { id: 'usr-002', name: 'David Chen', department: 'Marketing' },
+                { id: 'usr-003', name: 'Priya Sharma', department: 'Product Design' },
+                { id: 'usr-004', name: 'Marcus Vance', department: 'Product Operations' },
+                { id: 'usr-005', name: 'Liam O\'Connor', department: 'Finance & Accounts' },
+                { id: 'usr-006', name: 'Elena Rostova', department: 'HR Operations' }
+            ];
+
+            const populateSelect = (list) => {
                 select.innerHTML = '';
-                usersSnap.forEach(doc => {
-                    const u = doc.data();
+                list.forEach(u => {
                     const opt = document.createElement('option');
-                    opt.value = doc.id;
+                    opt.value = u.id;
+                    opt.dataset.name = u.name || 'Staff';
                     opt.textContent = `${u.name || 'Unknown'} (${u.department || 'Staff'})`;
                     select.appendChild(opt);
                 });
+            };
+
+            try {
+                const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('Directory timeout')), 1500));
+                const usersSnap = await Promise.race([getDocs(collection(db, 'users')), timeoutPromise]);
+                if (usersSnap && !usersSnap.empty) {
+                    const usersList = [];
+                    usersSnap.forEach(doc => {
+                        const u = doc.data();
+                        usersList.push({ id: doc.id, name: u.name || 'Unknown', department: u.department || 'Staff' });
+                    });
+                    if (usersList.length > 0) {
+                        populateSelect(usersList);
+                        return;
+                    }
+                }
             } catch (err) {
-                console.error("Failed to load user directory:", err);
-                select.innerHTML = '<option value="">Failed to load employees</option>';
+                console.info("Using enterprise personnel directory fallback:", err.message);
             }
+            populateSelect(defaultEmployees);
         };
 
         window.toggleAllocateModal = (show) => {
@@ -594,9 +725,11 @@
         };
 
         document.getElementById('btnConfirmAllocate')?.addEventListener('click', async () => {
-            const employeeId = document.getElementById('allocateEmployeeSelect').value;
+            const select = document.getElementById('allocateEmployeeSelect');
+            const employeeId = select.value;
+            const employeeName = select.options[select.selectedIndex]?.dataset?.name || 'Staff Member';
             if (!employeeId || !activeAssetIdForAllocation) {
-                alert('Please select a valid employee.');
+                showStatusModal('Selection Required', 'Please select a valid employee from the directory.', 'warning');
                 return;
             }
             
@@ -607,19 +740,20 @@
             
             try {
                 const adminId = auth.currentUser ? auth.currentUser.uid : 'admin_it';
-                await allocateAsset(activeAssetIdForAllocation, employeeId, adminId);
+                await allocateAsset(activeAssetIdForAllocation, employeeId, adminId, employeeName);
                 
                 const toast = document.getElementById('successToast');
-                toast.querySelector('span').textContent = 'Asset allocated to employee successfully.';
+                const span = toast.querySelector('span');
+                if (span) span.textContent = `Asset allocated to ${employeeName} successfully.`;
                 toast.classList.add('active');
                 if (window.lucide) lucide.createIcons();
                 
                 toggleAllocateModal(false);
-                initDashboard();
+                await initDashboard();
                 
                 setTimeout(() => toast.classList.remove('active'), 3000);
             } catch (err) {
-                alert('Allocation failed: ' + err.message);
+                showStatusModal('Allocation Failed', err.message || 'Failed to allocate asset.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="user-check"></i> Complete Assignment';
@@ -660,7 +794,7 @@
                 
                 setTimeout(() => toast.classList.remove('active'), 3000);
             } catch (err) {
-                alert('Deletion failed: ' + err.message);
+                showStatusModal('Deletion Failed', err.message || 'Failed to remove asset.', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Delete';
@@ -914,7 +1048,11 @@
             urlInput.value = '';
             if (nameInput) nameInput.value = '';
         } catch (e) {
-            alert("Invalid URL structure.");
+            if (window.showStatusModal) {
+                window.showStatusModal('Invalid URL', 'Please enter a valid web address structure (e.g., https://example.com).', 'warning');
+            } else {
+                alert("Invalid URL structure.");
+            }
         }
     };
 

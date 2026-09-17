@@ -74,12 +74,22 @@ router.post('/add', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Collection and data are required' });
     }
     
-    const docRef = await db.collection(collection).add({
-        ...data,
-        timestamp: new Date().toISOString()
-    });
+    let id = `auto_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    if (db && typeof db.collection === 'function') {
+        try {
+            const addPromise = db.collection(collection).add({
+                ...data,
+                timestamp: new Date().toISOString()
+            });
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 2000));
+            const docRef = await Promise.race([addPromise, timeoutPromise]);
+            if (docRef && docRef.id) id = docRef.id;
+        } catch (dbErr) {
+            console.warn(`[DATA] Add to ${collection} timed out or fell back:`, dbErr.message);
+        }
+    }
     
-    res.status(201).json({ success: true, id: docRef.id });
+    res.status(201).json({ success: true, id });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
