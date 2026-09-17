@@ -14,7 +14,15 @@
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js"></script>
+    <script>
+        if (!window.lucide) {
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            fallbackScript.crossOrigin = 'anonymous';
+            document.head.appendChild(fallbackScript);
+        }
+    </script>
 
     <!-- Base Admin Suite Styles -->
     <link rel="stylesheet" href="admin-dashboard.css" />
@@ -52,6 +60,23 @@
             background: #f8fafc;
             color: #0f172a;
             min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width, 280px);
+            flex: 1;
+            min-height: 100vh;
+            padding: 2rem 2.5rem;
+            background: #f8fafc;
+            width: calc(100% - var(--sidebar-width, 280px));
+            overflow-x: hidden;
+            box-sizing: border-box;
         }
 
         /* ─── HEADER ACTIONS ─── */
@@ -1281,14 +1306,21 @@
     <script src="admin-document-templates.js"></script>
     <script type="module" src="./admin-sidebar-sync.js"></script>
     <script>
-        // Ensure Lucide icons render after dynamic updates
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.lucide) lucide.createIcons();
-            const observer = new MutationObserver(() => {
-                if (window.lucide) lucide.createIcons();
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
+        function renderLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try {
+                    window.lucide.createIcons();
+                } catch (e) {
+                    console.warn("Lucide render error:", e);
+                }
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderLucideIcons);
+        } else {
+            renderLucideIcons();
+        }
     </script>
 </body>
 </html>
