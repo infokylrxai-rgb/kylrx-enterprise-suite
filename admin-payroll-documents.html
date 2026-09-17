@@ -3,13 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payroll Document Center | HRFlow</title>
+    <title>Payroll Document Center | Kylrx AI</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="lucide.min.js"></script>
+    <script>
+        function renderLucideIcons(root) {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try {
+                    window.lucide.createIcons(root ? { root } : undefined);
+                } catch (e) {
+                    console.warn("Lucide render error:", e);
+                }
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
+        if (!window.lucide) {
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            fallbackScript.crossOrigin = 'anonymous';
+            fallbackScript.onload = () => { renderLucideIcons(); };
+            document.head.appendChild(fallbackScript);
+        } else {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => renderLucideIcons());
+            } else {
+                renderLucideIcons();
+            }
+        }
+    </script>
     <script src="https://smtpjs.com/v3/smtp.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
     <style>
@@ -168,10 +194,10 @@
                 <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Monitor</span></a></div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
-                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link active"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link active" id="navLinkDocs" onclick="switchPayrollTab('docs')"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-upload.html" class="nav-link"><i data-lucide="upload"></i><span>Finance Payroll Upload</span></a></div>
-                <div class="nav-item"><a href="admin-payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
-                <div class="nav-item"><a href="admin-statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html#disbursement" class="nav-link" id="navLinkDisbursement" onclick="switchPayrollTab('disbursement')"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html#compliance" class="nav-link" id="navLinkCompliance" onclick="switchPayrollTab('compliance')"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
                 <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
@@ -294,7 +320,7 @@
                             </label>
                         </div>
                         <button class="btn btn-primary" style="width: 100%; justify-content: center; background: #10b981; border: none; font-size: 1rem; padding: 14px;" onclick="triggerDisbursement()">
-                            <i data-lucide="banknote"></i> Pay Salaries Now (1-Click)
+                            <i data-lucide="send"></i> Pay Salaries Now (1-Click)
                         </button>
                         <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 12px; font-size: 0.9rem; padding: 12px;" onclick="exportBankFileFromDocs()">
                             <i data-lucide="landmark"></i> Export Bank Transfer CSV
@@ -465,7 +491,7 @@
                         </div>
                         <div style="display: flex; gap: 12px;">
                             <button class="btn btn-primary" style="flex: 2; justify-content: center; background: #10b981; border: none; font-size: 0.95rem; padding: 12px;" onclick="triggerDisbursement()">
-                                <i data-lucide="banknote"></i> Execute Salary Disbursement Now (1-Click)
+                                <i data-lucide="send"></i> Execute Salary Disbursement Now (1-Click)
                             </button>
                             <button class="btn btn-outline" style="flex: 1; justify-content: center; font-size: 0.9rem;" onclick="exportBankFileFromDocs()">
                                 <i data-lucide="download"></i> Export Bank CSV
@@ -653,7 +679,8 @@
             const toast = document.getElementById(id);
             toast.querySelector('span').textContent = msg;
             toast.classList.add('active');
-            if (window.lucide) lucide.createIcons();
+            if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(toast);
+            else if (window.lucide) lucide.createIcons();
             setTimeout(() => toast.classList.remove('active'), 3000);
         };
 
@@ -686,7 +713,8 @@
             }
 
             modal.style.display = 'flex';
-            if (window.lucide) lucide.createIcons();
+            if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(modal);
+            else if (window.lucide) lucide.createIcons();
             
             document.getElementById('confirmDisburseBtn').onclick = async () => {
                 if (authority === 'Admin') {
@@ -735,7 +763,8 @@
                     setComplianceKPIsZero();
                 }
             });
-            if (window.lucide) lucide.createIcons();
+            if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons();
+            else if (window.lucide) lucide.createIcons();
         });
 
         async function loadPayrollStats() {
@@ -813,7 +842,8 @@
                 `;
                 tbody.appendChild(row);
             });
-            if (window.lucide) lucide.createIcons();
+            if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(tbody);
+            else if (window.lucide) lucide.createIcons();
         }
 
         async function loadRecentGenerations() {
@@ -877,7 +907,8 @@
                     desc.textContent = `${incomplete.length} employee(s) are missing bank account or IFSC information. Do you want to export the transfer file anyway?`;
                     const modal = document.getElementById('exportConfirmModal');
                     modal.style.display = 'flex';
-                    if (window.lucide) lucide.createIcons();
+                    if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(modal);
+                    else if (window.lucide) lucide.createIcons();
                     
                     document.getElementById('btnConfirmExportAnyway').onclick = () => {
                         modal.style.display = 'none';
@@ -932,7 +963,8 @@
                         </div>
                     </div>
                 `).join('');
-                if (window.lucide) lucide.createIcons();
+                if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(container);
+                else if (window.lucide) lucide.createIcons();
             };
             
             renderVaultList();
@@ -943,7 +975,8 @@
             };
             
             modal.style.display = 'flex';
-            if (window.lucide) lucide.createIcons();
+            if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(modal);
+            else if (window.lucide) lucide.createIcons();
         };
 
         async function loadArchives() {
@@ -961,7 +994,8 @@
                         <i data-lucide="folder" size="18" style="color: var(--text-muted);"></i>
                     </div>
                 `;
-                if (window.lucide) lucide.createIcons();
+                if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(archiveContainer);
+                else if (window.lucide) lucide.createIcons();
             } catch (err) {
                 console.error("Archive sync failed:", err);
             }
@@ -1086,7 +1120,8 @@
                             <td>${actionBtn}</td>
                         </tr>`;
                 }).join('');
-                if (window.lucide) lucide.createIcons();
+                if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(tbody);
+                else if (window.lucide) lucide.createIcons();
 
             } catch (err) {
                 console.error('loadDisbursementStats error:', err);
@@ -1228,7 +1263,8 @@
                             <td><span class="badge" style="background: ${gratuityAndTDS > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${gratuityAndTDS > 0 ? 'Reconciled' : 'No Data'}</span></td>
                             <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No Gratuity certificate available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> Audit</button></td>
                         </tr>`;
-                    if (window.lucide) lucide.createIcons();
+                    if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(tbody);
+                    else if (window.lucide) lucide.createIcons();
                     return;
                 }
 
@@ -1248,7 +1284,8 @@
                         <td><span class="badge" style="background: #ecfdf5; color: #059669;">${r.status}</span></td>
                         <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Viewing statutory record for ${r.name}...')"><i data-lucide="file-text" size="12"></i> View</button></td>
                     </tr>`).join('');
-                if (window.lucide) lucide.createIcons();
+                if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(tbody);
+                else if (window.lucide) lucide.createIcons();
 
             } catch (err) {
                 console.error('loadComplianceStats error:', err);
@@ -1493,13 +1530,15 @@
                 </div>
             `).join('');
         }
-        if(window.lucide) lucide.createIcons();
+        if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(registryList);
+        else if (window.lucide) lucide.createIcons();
     }
 
     window.openAppRegistryModal = () => {
         const modal = document.getElementById('customAppsModal');
         if (modal) modal.style.display = 'flex';
-        if(window.lucide) lucide.createIcons();
+        if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(modal);
+        else if (window.lucide) lucide.createIcons();
     };
 
     window.addCustomApp = async () => {
@@ -1593,7 +1632,9 @@
             }
 
             history.replaceState(null, null, '#' + tabName);
-            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            if (typeof window.renderLucideIcons === 'function') {
+                window.renderLucideIcons();
+            } else if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 window.lucide.createIcons();
             }
         };
