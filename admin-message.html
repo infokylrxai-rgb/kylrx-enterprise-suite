@@ -1157,105 +1157,202 @@
         }
 
         // Fetch Messages with Omni-channel Matching
+        // Helper: Normalized timestamp formatter
+        function formatMessageTime(ts) {
+            if (!ts) return '';
+            try {
+                if (ts.toDate && typeof ts.toDate === 'function') {
+                    return ts.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+                if (ts.seconds) {
+                    return new Date(ts.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+                const d = new Date(ts);
+                if (!isNaN(d.getTime())) {
+                    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+            } catch (_) {}
+            return '';
+        }
+
+        // Helper: Render single message bubble into chat
+        function renderMessageBubble(msg, prepend = false) {
+            if (!chatMessages || !msg) return;
+
+            // Remove placeholder if present
+            const placeholder = chatMessages.querySelector('.chat-empty-state');
+            if (placeholder) placeholder.remove();
+            if (chatMessages.innerHTML.includes('No conversation history yet') || chatMessages.innerHTML.includes('Loading messages...')) {
+                chatMessages.innerHTML = '';
+            }
+
+            // Deduplicate if already exists
+            const existing = chatMessages.querySelector(`[data-msg-id="${msg.id}"]`);
+            if (existing) {
+                // Update text if changed
+                const bodyEl = existing.querySelector('.msg-body-text');
+                if (bodyEl && msg.text) {
+                    bodyEl.innerHTML = (msg.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>');
+                }
+                return;
+            }
+
+            const msgDiv = document.createElement('div');
+            const isSent = msg.senderId === currentUserId || msg.senderId === 'hr_support' || msg.senderRole === 'admin' || msg.senderUid === currentUserId;
+            msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+            msgDiv.setAttribute('data-msg-id', msg.id || ('msg_' + Date.now()));
+
+            const timeStr = formatMessageTime(msg.timestamp);
+            const senderLabel = isSent ? 'Super Admin' : (msg.senderName || 'Personnel');
+            const labelColor = isSent ? '#1d4ed8' : '#059669';
+
+            let html = `<div style="font-size:0.68rem; font-weight:800; color:${labelColor}; margin-bottom:4px; text-transform:uppercase; display:flex; justify-content:space-between; gap:12px;"><span>${senderLabel}</span><span style="font-weight:500; opacity:0.75;">${timeStr}</span></div>`;
+            html += `<div class="msg-body-text">${(msg.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>')}</div>`;
+
+            if (msg.attachments && msg.attachments.length > 0) {
+                const attHtml = msg.attachments.map(att => `
+                    <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); margin-top:8px; font-size:0.82rem; font-weight:600;">
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${att.name}</span>
+                        <div style="display:flex; gap:6px;">
+                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${att.dataUrl}" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Open</a>
+                            <a href="${att.dataUrl}" download="${att.name}" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Download</a>
+                        </div>
+                    </div>
+                `).join('');
+                html += `<div style="display:flex; flex-direction:column; gap:4px;">${attHtml}</div>`;
+            }
+
+            if (isSent) {
+                html += `
+                    <div style="display:flex; gap:10px; margin-top:6px; font-size:0.68rem; opacity:0.8; justify-content:flex-end;">
+                        <span style="cursor:pointer; color:#2563eb; text-decoration:underline;" onclick="window.editMessage('${msg.id}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
+                        <span style="cursor:pointer; color:#ef4444; text-decoration:underline;" onclick="window.clearMessage('${msg.id}')">Delete</span>
+                    </div>
+                `;
+            }
+
+            msgDiv.innerHTML = html;
+            if (prepend) {
+                chatMessages.prepend(msgDiv);
+            } else {
+                chatMessages.appendChild(msgDiv);
+            }
+        }
+
+        // Fetch Messages with Omni-channel Matching & Multi-source Hydration
         async function fetchMessages(recipientId) {
             if (unsubscribeMessages) unsubscribeMessages();
-            chatMessages.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem;"><div class="spinner" style="width:20px; height:20px; border:2px solid #cbd5e1; border-top-color:#2563eb; border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 8px;"></div>Loading messages...</div>';
 
-            // Candidate chatIds: employee helpdesk channel (hr_support) AND direct manager channel (currentUserId)
+            // Candidate chatIds
             const chatCandidate1 = ['hr_support', recipientId].sort().join('_');
             const chatCandidate2 = [currentUserId, recipientId].sort().join('_');
             const candidates = Array.from(new Set([chatCandidate1, chatCandidate2]));
 
-            const q = query(
-                collection(db, 'messages'),
-                where('chatId', 'in', candidates),
-                limit(100)
-            );
-
-            let isInitialChatLoad = true;
-            let previousMessageIds = new Set();
-
-            unsubscribeMessages = onSnapshot(q, snap => {
-                const allMsgs = snap.docs
-                    .filter(d => {
-                        const cleared = d.data().clearedBy || [];
-                        return !cleared.includes(currentUserId);
-                    })
-                    .map(d => ({ id: d.id, ...d.data() }));
-
-                if (!isInitialChatLoad) {
-                    const hasNew = allMsgs.some(m => m.senderId !== currentUserId && m.senderId !== 'hr_support' && !previousMessageIds.has(m.id));
-                    if (hasNew) {
-                        const audio = new Audio('notification.mp3');
-                        audio.play().catch(() => {});
+            // 1. Immediately hydrate from LocalStorage for instant UI responsiveness
+            const localMsgs = [];
+            try {
+                const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                fsCol.forEach(m => {
+                    if (candidates.includes(m.chatId) || m.receiverId === recipientId || m.recipientId === recipientId) {
+                        const cleared = m.clearedBy || [];
+                        if (!cleared.includes(currentUserId)) localMsgs.push(m);
                     }
+                });
+                for (const c of candidates) {
+                    const cList = JSON.parse(localStorage.getItem(`fs_chat_${c}`) || '[]');
+                    cList.forEach(m => {
+                        const cleared = m.clearedBy || [];
+                        if (!cleared.includes(currentUserId) && !localMsgs.some(x => x.id === m.id)) localMsgs.push(m);
+                    });
                 }
-                previousMessageIds = new Set(allMsgs.map(m => m.id));
-                isInitialChatLoad = false;
+            } catch (_) {}
 
-                // Sort client-side by timestamp
-                const sorted = allMsgs.sort((a, b) => {
-                    const tA = a.timestamp?.seconds || 0;
-                    const tB = b.timestamp?.seconds || 0;
+            if (localMsgs.length > 0) {
+                localMsgs.sort((a, b) => {
+                    const tA = new Date(a.timestamp?.seconds ? a.timestamp.seconds * 1000 : (a.timestamp || 0)).getTime();
+                    const tB = new Date(b.timestamp?.seconds ? b.timestamp.seconds * 1000 : (b.timestamp || 0)).getTime();
                     return tA - tB;
                 });
-
                 chatMessages.innerHTML = '';
-                if (sorted.length === 0) {
-                    chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin:auto; font-size:0.85rem;">No conversation history yet. Send a message to start!</div>';
-                    return;
-                }
-
-                sorted.forEach(msg => {
-                    const msgDiv = document.createElement('div');
-                    const isSent = msg.senderId === currentUserId || msg.senderId === 'hr_support' || msg.senderRole === 'admin';
-                    msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
-
-                    const timeStr = msg.timestamp?.toDate
-                        ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : '';
-                    const senderLabel = isSent ? 'Super Admin' : (msg.senderName || 'Personnel');
-                    const labelColor = isSent ? '#1d4ed8' : '#059669';
-
-                    let html = `<div style="font-size:0.68rem; font-weight:800; color:${labelColor}; margin-bottom:4px; text-transform:uppercase; display:flex; justify-content:space-between; gap:12px;"><span>${senderLabel}</span><span style="font-weight:500; opacity:0.75;">${timeStr}</span></div>`;
-                    html += `<div>${(msg.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>')}</div>`;
-
-                    if (msg.attachments && msg.attachments.length > 0) {
-                        const attHtml = msg.attachments.map(att => `
-                            <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); margin-top:8px; font-size:0.82rem; font-weight:600;">
-                                <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${att.name}</span>
-                                <div style="display:flex; gap:6px;">
-                                    <a href="#" onclick="window.openAttachment(this); return false;" data-url="${att.dataUrl}" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Open</a>
-                                    <a href="${att.dataUrl}" download="${att.name}" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Download</a>
-                                </div>
-                            </div>
-                        `).join('');
-                        html += `<div style="display:flex; flex-direction:column; gap:4px;">${attHtml}</div>`;
-                    }
-
-                    if (isSent) {
-                        html += `
-                            <div style="display:flex; gap:10px; margin-top:6px; font-size:0.68rem; opacity:0.8; justify-content:flex-end;">
-                                <span style="cursor:pointer; color:#2563eb; text-decoration:underline;" onclick="window.editMessage('${msg.id}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
-                                <span style="cursor:pointer; color:#ef4444; text-decoration:underline;" onclick="window.clearMessage('${msg.id}')">Delete</span>
-                            </div>
-                        `;
-                    }
-
-                    msgDiv.innerHTML = html;
-                    chatMessages.appendChild(msgDiv);
-
-                    // Mark as read
-                    if (!isSent && !msg.read) {
-                        updateDoc(doc(db, 'messages', msg.id), { read: true }).catch(() => {});
-                    }
-                });
-
+                localMsgs.forEach(m => renderMessageBubble(m));
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 renderLucideIcons();
-            }, (err) => {
-                console.error('[MSG] messages stream notice:', err.message);
-            });
+            } else {
+                chatMessages.innerHTML = '<div class="chat-empty-state" style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem;"><div class="spinner" style="width:20px; height:20px; border:2px solid #cbd5e1; border-top-color:#2563eb; border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 8px;"></div>Loading conversation...</div>';
+            }
+
+            // 2. Fetch from Backend Messages Store
+            for (const cand of candidates) {
+                fetch(`http://localhost:3000/api/messages/thread/${cand}`)
+                    .then(res => res.ok ? res.json() : null)
+                    .then(result => {
+                        if (result && result.data && Array.isArray(result.data)) {
+                            result.data.forEach(m => {
+                                const cleared = m.clearedBy || [];
+                                if (!cleared.includes(currentUserId)) {
+                                    renderMessageBubble(m);
+                                }
+                            });
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                            renderLucideIcons();
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            // 3. Real-time Firebase Firestore OnSnapshot listener (merges remote updates)
+            try {
+                const q = query(
+                    collection(db, 'messages'),
+                    where('chatId', 'in', candidates),
+                    limit(100)
+                );
+
+                let isInitialChatLoad = true;
+                let previousMessageIds = new Set(localMsgs.map(m => m.id));
+
+                unsubscribeMessages = onSnapshot(q, snap => {
+                    const allMsgs = snap.docs
+                        .filter(d => {
+                            const cleared = d.data().clearedBy || [];
+                            return !cleared.includes(currentUserId);
+                        })
+                        .map(d => ({ id: d.id, ...d.data() }));
+
+                    if (!isInitialChatLoad) {
+                        const hasNew = allMsgs.some(m => m.senderId !== currentUserId && m.senderId !== 'hr_support' && !previousMessageIds.has(m.id));
+                        if (hasNew) {
+                            const audio = new Audio('notification.mp3');
+                            audio.play().catch(() => {});
+                        }
+                    }
+                    previousMessageIds = new Set(allMsgs.map(m => m.id));
+                    isInitialChatLoad = false;
+
+                    // Sort client-side by timestamp
+                    const sorted = allMsgs.sort((a, b) => {
+                        const tA = new Date(a.timestamp?.seconds ? a.timestamp.seconds * 1000 : (a.timestamp || 0)).getTime();
+                        const tB = new Date(b.timestamp?.seconds ? b.timestamp.seconds * 1000 : (b.timestamp || 0)).getTime();
+                        return tA - tB;
+                    });
+
+                    if (sorted.length === 0 && chatMessages.children.length === 0) {
+                        chatMessages.innerHTML = '<div class="chat-empty-state" style="text-align:center; color:var(--text-muted); margin:auto; font-size:0.85rem;">No conversation history yet. Send a message to start!</div>';
+                        return;
+                    }
+
+                    sorted.forEach(msg => renderMessageBubble(msg));
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    renderLucideIcons();
+                }, (err) => {
+                    console.warn('[MSG] Real-time cloud sync notice (operating in local-resilient mode):', err.message);
+                    if (chatMessages.querySelectorAll('.message').length === 0) {
+                        chatMessages.innerHTML = '<div class="chat-empty-state" style="text-align:center; color:var(--text-muted); margin:auto; font-size:0.85rem;">No conversation history yet. Send a message to start!</div>';
+                    }
+                });
+            } catch(e) {
+                console.warn('[MSG] Firestore query setup bypassed:', e.message);
+            }
         }
 
         // Send Message
@@ -1290,25 +1387,67 @@
 
                 const recipients = Array.from(selectedUserIds);
                 const senderName = localStorage.getItem('userName') || 'Super Admin';
+                const nowIso = new Date().toISOString();
+
+                // Clear input immediately for high responsiveness
+                if (input) input.value = '';
+                const savedPendingFiles = [...pendingFiles];
+                pendingFiles = [];
+                renderAttachmentPreview();
 
                 for (const recipientId of recipients) {
                     const chatId = ['hr_support', recipientId].sort().join('_');
-                    await addDoc(collection(db, 'messages'), {
+                    const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                    
+                    const msgObj = {
+                        id: msgId,
                         chatId,
                         senderId: 'hr_support',
                         senderUid: currentUserId,
                         senderName,
                         senderRole: 'admin',
                         receiverId: recipientId,
+                        recipientId,
                         participants: [currentUserId, recipientId, 'hr_support'],
                         text,
                         attachments: processedAttachments,
-                        timestamp: serverTimestamp(),
+                        timestamp: nowIso,
                         read: false
+                    };
+
+                    // 1. Optimistic DOM Update: render bubble right away!
+                    renderMessageBubble(msgObj);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                    // 2. Save into LocalStorage for instant persistence
+                    try {
+                        const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                        fsCol.unshift(msgObj);
+                        localStorage.setItem('fs_col_messages', JSON.stringify(fsCol.slice(0, 150)));
+
+                        const threadKey = `fs_chat_${chatId}`;
+                        const threadList = JSON.parse(localStorage.getItem(threadKey) || '[]');
+                        threadList.push(msgObj);
+                        localStorage.setItem(threadKey, JSON.stringify(threadList.slice(-100)));
+                    } catch (_) {}
+
+                    // 3. Asynchronously post to backend API
+                    fetch('http://localhost:3000/api/messages/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(msgObj)
+                    }).catch(() => {});
+
+                    // 4. Asynchronously attempt Firestore write
+                    addDoc(collection(db, 'messages'), {
+                        ...msgObj,
+                        timestamp: serverTimestamp()
+                    }).catch(e => {
+                        console.warn('[MSG] Cloud write deferred:', e.message);
                     });
 
-                    // Add alert notification for recipient
-                    await addDoc(collection(db, 'notifications'), {
+                    // 5. Add alert notification for recipient
+                    addDoc(collection(db, 'notifications'), {
                         title: `Message from ${senderName}`,
                         message: text.length > 60 ? text.substring(0, 60) + '...' : text,
                         timestamp: serverTimestamp(),
@@ -1316,12 +1455,10 @@
                         priority: 'normal',
                         category: 'message',
                         read: false
-                    });
+                    }).catch(() => {});
                 }
 
-                if (input) input.value = '';
-                pendingFiles = [];
-                renderAttachmentPreview();
+                window.showToast("Message sent");
             } catch(e) {
                 console.error('Error sending message:', e);
                 window.showToast('Error sending message: ' + e.message);
@@ -1469,25 +1606,50 @@
         window.editMessage = async (msgId, oldText) => {
             const newText = prompt("Edit your message:", oldText);
             if (newText !== null && newText.trim() !== "" && newText !== oldText) {
-                try {
-                    await updateDoc(doc(db, 'messages', msgId), { text: newText.trim() });
-                    window.showToast("Message updated");
-                } catch(e) {
-                    console.error(e);
+                const trimmed = newText.trim();
+                // Update DOM optimistically
+                const el = chatMessages.querySelector(`[data-msg-id="${msgId}"]`);
+                if (el) {
+                    const body = el.querySelector('.msg-body-text');
+                    if (body) body.innerHTML = trimmed.replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>');
                 }
+                // Update LocalStorage
+                try {
+                    const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                    const m = fsCol.find(x => x.id === msgId);
+                    if (m) { m.text = trimmed; localStorage.setItem('fs_col_messages', JSON.stringify(fsCol)); }
+                } catch(_) {}
+                try {
+                    await updateDoc(doc(db, 'messages', msgId), { text: trimmed });
+                } catch(e) {}
+                window.showToast("Message updated");
             }
         };
 
         window.clearMessage = async (msgId) => {
             if (!confirm("Remove this message for your session?")) return;
+            // Remove from DOM optimistically
+            const el = chatMessages.querySelector(`[data-msg-id="${msgId}"]`);
+            if (el) el.remove();
+            if (chatMessages.querySelectorAll('.message').length === 0) {
+                chatMessages.innerHTML = '<div class="chat-empty-state" style="text-align:center; color:var(--text-muted); margin:auto; font-size:0.85rem;">No conversation history yet. Send a message to start!</div>';
+            }
+            // Remove/hide in LocalStorage
+            try {
+                const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                const m = fsCol.find(x => x.id === msgId);
+                if (m) {
+                    m.clearedBy = m.clearedBy || [];
+                    m.clearedBy.push(currentUserId);
+                    localStorage.setItem('fs_col_messages', JSON.stringify(fsCol));
+                }
+            } catch(_) {}
             try {
                 await updateDoc(doc(db, 'messages', msgId), {
                     clearedBy: arrayUnion(currentUserId)
                 });
-                window.showToast("Message cleared");
-            } catch(e) {
-                console.error(e);
-            }
+            } catch(e) {}
+            window.showToast("Message removed");
         };
 
         window.clearAllChatHistory = async () => {
@@ -1499,6 +1661,24 @@
             const chatCandidate2 = [currentUserId, targetId].sort().join('_');
             const candidates = Array.from(new Set([chatCandidate1, chatCandidate2]));
 
+            // Optimistically clear DOM
+            chatMessages.innerHTML = '<div class="chat-empty-state" style="text-align:center; color:var(--text-muted); margin:auto; font-size:0.85rem;">Chat history cleared. Send a message to start!</div>';
+
+            // Clear in localStorage
+            try {
+                for (const c of candidates) {
+                    localStorage.removeItem(`fs_chat_${c}`);
+                }
+                const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                const remaining = fsCol.filter(m => !candidates.includes(m.chatId) && m.receiverId !== targetId && m.recipientId !== targetId);
+                localStorage.setItem('fs_col_messages', JSON.stringify(remaining));
+            } catch(_) {}
+
+            // Post to backend to clear
+            for (const c of candidates) {
+                fetch(`http://localhost:3000/api/messages/clear/${c}`, { method: 'POST' }).catch(() => {});
+            }
+
             try {
                 const q = query(collection(db, 'messages'), where('chatId', 'in', candidates));
                 const snap = await getDocs(q);
@@ -1506,11 +1686,8 @@
                     clearedBy: arrayUnion(currentUserId)
                 }));
                 await Promise.all(updates);
-                chatMessages.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin:auto;">Chat history cleared.</div>';
-                window.showToast("Chat cleared");
-            } catch(e) {
-                console.error(e);
-            }
+            } catch(e) {}
+            window.showToast("Chat cleared");
         };
 
         // Custom App Registry
