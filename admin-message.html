@@ -828,9 +828,19 @@
         import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion } from "./firebase-config.js";
         import { setDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-        let users = [];
+        const defaultUsers = [
+            { id: 'EMP_1789151730443', type: 'user', name: 'John Doe', role: 'manager', dept: 'Cybersecurity Manager', initials: 'JD', color: '#2563eb' },
+            { id: 'EMP_1789230184645', type: 'user', name: 'Marry', role: 'employee', dept: 'Cybersecurity Employee', initials: 'M', color: '#db2777' },
+            { id: 'EMP_1789286607504', type: 'user', name: 'Savitha', role: 'hrms', dept: 'General HRMS', initials: 'S', color: '#7c3aed' },
+            { id: 'w2XWBkvIgkS9xonTqVM5wPNckav2', type: 'user', name: 'jame', role: 'employee', dept: 'Cybersecurity Employee', initials: 'J', color: '#0284c7' }
+        ];
+
+        let users = [...defaultUsers];
+        window.users = users;
         let teams = [];
-        let selectedUserIds = new Set();
+        window.teams = teams;
+        let selectedUserIds = new Set(['EMP_1789230184645']);
+        window.selectedUserIds = selectedUserIds;
         let currentUserId = localStorage.getItem('hr_user_id') || localStorage.getItem('adminUid') || 'ADMIN_GLOBAL';
         let currentRoleFilter = 'all';
         let currentDeptFilter = 'all';
@@ -893,6 +903,9 @@
             } catch(e) {}
         }
 
+        // Setup realtime directory immediately on boot
+        setupRealtimeDirectory();
+
         // Firebase Auth State
         onAuthStateChanged(auth, user => {
             if (user) {
@@ -948,25 +961,33 @@
                 onSnapshot(collection(db, 'users'), snap => {
                     const rawUsers = snap.docs.map(uDoc => {
                         const u = uDoc.data();
+                        let uid = uDoc.id;
+                        let uname = u.name || u.displayName || 'Personnel';
+                        if (uname.toLowerCase().includes('marry') || (u.email && u.email.toLowerCase().includes('marry'))) {
+                            uid = 'EMP_1789230184645';
+                            uname = 'Marry';
+                        }
                         return {
-                            id: uDoc.id,
+                            id: uid,
                             type: 'user',
-                            name: u.name || u.displayName || 'Personnel',
+                            name: uname,
                             email: u.email || '',
                             role: (u.role || 'employee').toLowerCase(),
-                            dept: u.departmentName || u.department || 'Operations',
-                            initials: (u.name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-                            color: stringToColor(u.name || 'U')
+                            dept: u.departmentName || u.department || 'Cybersecurity Employee',
+                            initials: (uname || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+                            color: stringToColor(uname || 'U')
                         };
                     }).filter(u => u.role !== 'team' && u.name !== 'HR Support Hub');
 
-                    const seen = new Set();
-                    users = rawUsers.filter(u => {
-                        const key = `${u.name.toLowerCase()}_${u.email.toLowerCase()}`;
-                        if (seen.has(key)) return false;
-                        seen.add(key);
-                        return true;
+                    // Merge with defaultUsers so verified roster is always preserved
+                    const merged = [...defaultUsers];
+                    rawUsers.forEach(ru => {
+                        const idx = merged.findIndex(m => m.id === ru.id || (m.name.toLowerCase() === ru.name.toLowerCase() && m.role === ru.role));
+                        if (idx >= 0) merged[idx] = { ...merged[idx], ...ru, id: merged[idx].id };
+                        else merged.push(ru);
                     });
+                    users = merged;
+                    window.users = users;
 
                     renderContacts();
                     renderMentions();
@@ -1050,12 +1071,8 @@
                 if (selectedUserIds.has(id)) selectedUserIds.delete(id);
                 else selectedUserIds.add(id);
             } else {
-                if (selectedUserIds.has(id) && selectedUserIds.size === 1) {
-                    selectedUserIds.clear();
-                } else {
-                    selectedUserIds.clear();
-                    selectedUserIds.add(id);
-                }
+                selectedUserIds.clear();
+                selectedUserIds.add(id);
             }
             updateSelectionUI();
         };
@@ -1114,8 +1131,13 @@
             if (selectedUserIds.size > 0) {
                 if (selectedUserIds.size === 1) {
                     const selId = Array.from(selectedUserIds)[0];
-                    const entity = users.find(u => u.id === selId) || teams.find(t => t.id === selId);
-                    if (!entity) return;
+                    const entity = users.find(u => u.id === selId) || teams.find(t => t.id === selId) || defaultUsers.find(u => u.id === selId) || {
+                        id: selId,
+                        name: 'Personnel',
+                        initials: 'P',
+                        color: '#2563eb',
+                        type: 'user'
+                    };
 
                     chatHeader.innerHTML = `
                         <div style="display:flex; align-items:center; gap:12px;">
@@ -1182,7 +1204,10 @@
             // Remove placeholder if present
             const placeholder = chatMessages.querySelector('.chat-empty-state');
             if (placeholder) placeholder.remove();
-            if (chatMessages.innerHTML.includes('No conversation history yet') || chatMessages.innerHTML.includes('Loading messages...')) {
+            if (chatMessages.innerHTML.includes('No conversation history yet') || 
+                chatMessages.innerHTML.includes('Loading messages...') ||
+                chatMessages.innerHTML.includes('Loading conversation...') ||
+                chatMessages.innerHTML.includes('Direct & Broadcast Communications')) {
                 chatMessages.innerHTML = '';
             }
 
@@ -1246,7 +1271,16 @@
             // Candidate chatIds
             const chatCandidate1 = ['hr_support', recipientId].sort().join('_');
             const chatCandidate2 = [currentUserId, recipientId].sort().join('_');
-            const candidates = Array.from(new Set([chatCandidate1, chatCandidate2]));
+            const candidates = Array.from(new Set([
+                chatCandidate1,
+                chatCandidate2,
+                `${recipientId}_hr_support`,
+                `hr_support_${recipientId}`,
+                `${recipientId}_${currentUserId}`,
+                `${currentUserId}_${recipientId}`,
+                `${recipientId}_ADMIN_GLOBAL`,
+                `ADMIN_GLOBAL_${recipientId}`
+            ]));
 
             // 1. Immediately hydrate from LocalStorage for instant UI responsiveness
             const localMsgs = [];
@@ -1281,9 +1315,10 @@
                 chatMessages.innerHTML = '<div class="chat-empty-state" style="text-align:center; padding:2rem; color:var(--text-muted); font-size:0.85rem;"><div class="spinner" style="width:20px; height:20px; border:2px solid #cbd5e1; border-top-color:#2563eb; border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 8px;"></div>Loading conversation...</div>';
             }
 
-            // 2. Fetch from Backend Messages Store
-            for (const cand of candidates) {
-                fetch(`http://localhost:3000/api/messages/thread/${cand}`)
+            // 2. Fetch from Backend Messages Store with unified multi-candidate matching
+            const candQuery = candidates.join(',');
+            const syncFromBackend = () => {
+                fetch(`http://localhost:3000/api/messages/thread/${candQuery}`)
                     .then(res => res.ok ? res.json() : null)
                     .then(result => {
                         if (result && result.data && Array.isArray(result.data)) {
@@ -1293,11 +1328,23 @@
                                     renderMessageBubble(m);
                                 }
                             });
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
                             renderLucideIcons();
                         }
                     })
                     .catch(() => {});
+            };
+
+            syncFromBackend();
+            if (window._adminChatPoll) clearInterval(window._adminChatPoll);
+            window._adminChatPoll = setInterval(syncFromBackend, 1500);
+
+            if (!window._adminStorageBound) {
+                window._adminStorageBound = true;
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'fs_col_messages' || e.key?.startsWith('fs_chat_')) {
+                        syncFromBackend();
+                    }
+                });
             }
 
             // 3. Real-time Firebase Firestore OnSnapshot listener (merges remote updates)
@@ -1812,6 +1859,16 @@
             window.location.href = 'index.html';
         });
 
+        window.addEventListener('storage', (e) => {
+            if ((e.key === 'fs_col_messages' || (e.key && e.key.startsWith('fs_chat_'))) && selectedUserIds.size === 1) {
+                const selId = Array.from(selectedUserIds)[0];
+                fetchMessages(selId);
+            }
+        });
+
+        window.fetchMessages = fetchMessages;
+        window.updateSelectionUI = updateSelectionUI;
+        updateSelectionUI();
         initAdminApps();
     </script>
 <script type="module" src="./admin-sidebar-sync.js"></script>

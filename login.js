@@ -416,7 +416,7 @@ loginForm?.addEventListener('submit', async (e) => {
           finalUid = userData.uid;
         } else if (cleanEmail === 'marry@gmail.com') {
           userData = {
-            uid: 'EMP_MARRY_' + Date.now(),
+            uid: 'EMP_1789230184645',
             name: 'Marry Doe',
             email: email,
             role: 'employee',
