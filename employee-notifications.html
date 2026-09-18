@@ -8,7 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
         window.toggleAppsMenu = () => {
             const dropdown = document.getElementById('appsDropdown');
             const chevron = document.getElementById('appsChevron');
@@ -44,8 +45,7 @@
             if (window.lucide) lucide.createIcons();
         };
         document.addEventListener('DOMContentLoaded', window.loadLocalApps);
-
-</script>
+    </script>
     <style>
         :root {
             --primary: #ec4899;
@@ -249,6 +249,31 @@
         .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
         .btn-theme.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
 
+        /* Filter Tabs */
+        .filter-tab {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .filter-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        .filter-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.25);
+        }
+
         /* Compact Layout */
         .compact-notif .notif-item { padding: 0.9rem 2rem; }
         .compact-notif .notif-desc { display: none; }
@@ -367,8 +392,24 @@
 
             <div class="notif-card">
                 <div class="notif-header">
-                    <span class="notif-header-title">Alert Feed</span>
-                    <button class="mark-all-btn" onclick="markAllNotificationsAsRead()">Mark all as read</button>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="notif-header-title">Alert Feed</span>
+                        <span id="unreadBadge" style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; display: none;">0 unread</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="mark-all-btn" onclick="markAllNotificationsAsRead()">Mark all as read</button>
+                        <span style="color: var(--border);">|</span>
+                        <button class="mark-all-btn" style="color: var(--danger);" onclick="clearAllNotifications()">Clear all</button>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="notif-tabs" style="display: flex; gap: 8px; padding: 1rem 2rem 0.5rem; border-bottom: 1px solid var(--border); overflow-x: auto;">
+                    <button class="filter-tab active" data-filter="all" onclick="filterNotifications('all', this)">All</button>
+                    <button class="filter-tab" data-filter="unread" onclick="filterNotifications('unread', this)">Unread</button>
+                    <button class="filter-tab" data-filter="urgent" onclick="filterNotifications('urgent', this)">Urgent & Alerts</button>
+                    <button class="filter-tab" data-filter="policy" onclick="filterNotifications('policy', this)">Policies</button>
+                    <button class="filter-tab" data-filter="message" onclick="filterNotifications('message', this)">Messages</button>
                 </div>
                 
                 <div class="notif-list" id="notificationsFeed">
@@ -415,7 +456,8 @@
     <script type="module">
         import { 
             auth, db, doc, onAuthStateChanged, checkBackendFirebaseStatus,
-            collection, query, where, getDoc, getDocs, onSnapshot, updateDoc, limit, deleteDoc, arrayUnion 
+            collection, query, where, getDoc, getDocs, onSnapshot, updateDoc, limit, deleteDoc, arrayUnion,
+            addDoc, serverTimestamp
         } from "./firebase-config.js";
 
         lucide.createIcons();
@@ -523,12 +565,15 @@
 
         let currentUser = null;
         let notifsList = [];
+        let currentFilter = 'all';
+        let previousUnreadIds = new Set();
+        let isInitialLoad = true;
 
         const urlParams = new URLSearchParams(window.location.search);
         const urlId = urlParams.get('id');
         let currentUid = urlId || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
 
-        // 1. Immediate Synchronous Profile Hydration (Eliminates "-- --" hang)
+        // 1. Immediate Synchronous Profile Hydration (Prevents "-- --" hang on load)
         let defaultName = 'John Doe';
         if (currentUid === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2' || urlId === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2') {
             defaultName = 'Marry Doe';
@@ -536,6 +581,18 @@
             defaultName = localStorage.getItem('userName');
         }
         let defaultRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
+        let defaultDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'Cybersecurity';
+
+        // Auto-normalize Marry's account so it matches directory records
+        if (currentUid.startsWith('EMP_MARRY_') || (defaultName && defaultName.toLowerCase().includes('marry')) || localStorage.getItem('userEmail') === 'marry@gmail.com') {
+            currentUid = 'EMP_1789230184645';
+            defaultName = 'Marry Doe';
+            defaultRole = 'Cybersecurity Employee';
+            localStorage.setItem('employee_uid', 'EMP_1789230184645');
+            localStorage.setItem('hr_user_id', 'EMP_1789230184645');
+            localStorage.setItem('userName', 'Marry Doe');
+            localStorage.setItem('userRole', 'Cybersecurity Employee');
+        }
 
         currentUser = {
             uid: currentUid,
@@ -543,213 +600,292 @@
             displayName: defaultName,
             role: defaultRole,
             designation: defaultRole,
-            department: localStorage.getItem('userDept') || 'Cybersecurity'
+            department: defaultDept
         };
 
         hydrateProfileUI(currentUser);
         syncBackendStatus();
 
-        async function loadCommandCenterConfig() {
-            const centerId = urlParams.get('id');
-            if (centerId) {
-                try {
-                    const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
-                    if (centerDoc.exists()) {
-                        const config = centerDoc.data();
-                        const logoText = document.querySelector('.logo-text');
-                        const logoIcon = document.querySelector('.logo-icon');
-                        
-                        if (logoText) logoText.textContent = config.name;
-                        
-                        // Static Light Pink enforced for Employee Portal
-                        document.documentElement.style.setProperty('--primary', '#ec4899');
-                        document.documentElement.style.setProperty('--primary-dark', '#be185d');
-                        document.documentElement.style.setProperty('--primary-light', '#fdf2f8');
-                        document.documentElement.style.setProperty('--primary-soft', '#fbcfe8');
-                        if (logoIcon) logoIcon.style.background = '#ec4899';
-                        
-                        if (config.icon && logoIcon) {
-                            logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
-                        }
+        // Layer 1: 0ms Immediate Local Storage Hydration
+        hydrateFromLocalStorage();
 
-                        // Render configured apps from command center
-                        if (config.apps && Array.isArray(config.apps)) {
-                            const formattedApps = config.apps.map(app => ({
-                                name: app.name,
-                                url: app.link || app.url
-                            }));
-                            localStorage.setItem('employee_apps', JSON.stringify(formattedApps));
-                            const list = document.getElementById('customAppsList');
-                            if (list) {
-                                list.innerHTML = formattedApps.map((app) => `
-                                    <div class="nav-item" style="position: relative; margin-bottom: 2px;">
-                                        <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
-                                            <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                                            <span>${app.name}</span>
-                                        </a>
-                                    </div>
-                                `).join('');
-                            }
-                        }
+        // Helper: Build candidate IDs for employee matching
+        function getCandidateUids() {
+            const uid = currentUser?.uid || 'demo_emp';
+            const candidates = [uid];
+            if (uid === 'EMP_1789230184645' || (currentUser?.name && currentUser.name.toLowerCase().includes('marry'))) {
+                candidates.push('EMP_1789230184645', 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2', 'demo_emp');
+            }
+            return Array.from(new Set(candidates));
+        }
 
-                        lucide.createIcons();
+        function hydrateFromLocalStorage() {
+            try {
+                const cached = localStorage.getItem('cached_employee_notifications');
+                if (cached) {
+                    const list = JSON.parse(cached);
+                    if (Array.isArray(list) && list.length > 0) {
+                        notifsList = list;
+                        renderNotificationsUI();
                     }
-                } catch (e) { console.error("Error loading command center config:", e); }
+                }
+            } catch (_) {}
+        }
+
+        // Layer 2: Fast Backend Firebase REST Fetch
+        async function fetchFromBackend() {
+            try {
+                const uid = currentUser?.uid || 'demo_emp';
+                const role = currentUser?.role || 'employee';
+                const dept = currentUser?.department || '';
+                const res = await fetch(`http://localhost:3000/api/notifications?uid=${encodeURIComponent(uid)}&role=${encodeURIComponent(role)}&department=${encodeURIComponent(dept)}`);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json && json.success && Array.isArray(json.data)) {
+                        handleNewNotifications(json.data);
+                    }
+                }
+            } catch (err) {
+                console.warn('[Notifications] Backend fetch notice:', err.message);
             }
         }
 
-        onAuthStateChanged(auth, async (user) => {
-            loadCommandCenterConfig();
-            const activeUid = user ? user.uid : (urlId || localStorage.getItem('employee_uid') || 'demo_emp');
-            if (user && user.displayName && defaultName === 'John Doe') {
-                defaultName = user.displayName;
-                currentUser.name = user.displayName;
-                currentUser.displayName = user.displayName;
-                hydrateProfileUI(currentUser);
-            }
+        // Layer 3: Realtime Firebase Firestore OnSnapshot Stream
+        function setupRealtimeFirestoreListener() {
+            try {
+                const candUids = getCandidateUids();
+                const q = query(collection(db, 'notifications'), limit(80));
+                onSnapshot(q, (snap) => {
+                    const items = [];
+                    snap.docs.forEach(docSnap => {
+                        const d = docSnap.data();
+                        const cleared = d.clearedBy || [];
+                        if (cleared.some(c => candUids.includes(c))) return;
 
-            if (activeUid) {
-                const userDocRef = doc(db, 'users', activeUid);
-                onSnapshot(userDocRef, (snap) => {
-                    if (snap && snap.exists && snap.exists()) {
-                        const data = snap.data();
-                        currentUser = { uid: activeUid, ...data };
-                        hydrateProfileUI(currentUser);
-                        syncNotifications(activeUid);
-                    } else {
-                        hydrateProfileUI(currentUser);
-                        syncNotifications(activeUid);
-                    }
+                        const target = (d.target || '').toLowerCase();
+                        const r = (d.recipient_role || d.targetRole || d.role || '').toLowerCase();
+                        const targetUid = d.targetUid || d.userId || d.target;
+
+                        const isGlobal = target === 'employee' || target === 'all' || target === 'global' || target === 'all-employees' || r === 'employee';
+                        const isDirect = candUids.some(c => targetUid === c || d.target === c || d.userId === c);
+
+                        if (isGlobal || isDirect) {
+                            const title = d.title || (d.priority ? `${d.priority.toUpperCase()} ALERT` : 'System Notification');
+                            const text = d.message || d.text || d.desc || 'No details provided.';
+                            let timestamp = new Date().toISOString();
+                            if (d.timestamp?.toDate) timestamp = d.timestamp.toDate().toISOString();
+                            else if (d.created_at) timestamp = d.created_at;
+                            else if (d.timestamp?.seconds) timestamp = new Date(d.timestamp.seconds * 1000).toISOString();
+
+                            items.push({
+                                id: docSnap.id,
+                                title,
+                                text,
+                                message: text,
+                                timestamp,
+                                read: d.read === true,
+                                priority: (d.priority || 'normal').toLowerCase(),
+                                target: d.target,
+                                category: d.category || d.type || 'system',
+                                clearedBy: cleared
+                            });
+                        }
+                    });
+
+                    handleNewNotifications(items);
                 }, (err) => {
-                    console.warn("User profile snapshot listener note:", err?.message || err);
-                    hydrateProfileUI(currentUser);
-                    syncNotifications(activeUid);
+                    console.warn('[Notifications] Real-time Firestore notice:', err.message);
                 });
-            } else {
-                hydrateProfileUI(currentUser);
-                syncNotifications(currentUser.uid);
+            } catch (e) {
+                console.warn('[Notifications] Listener setup bypassed:', e.message);
             }
-        });
+        }
 
-        // Live stream notifications
-        function syncNotifications(uid) {
+        function handleNewNotifications(newItems) {
+            if (!newItems || newItems.length === 0) return;
+
+            const map = new Map();
+            notifsList.forEach(n => map.set(n.id, n));
+            newItems.forEach(n => {
+                const existing = map.get(n.id);
+                if (existing) {
+                    map.set(n.id, { ...existing, ...n });
+                } else {
+                    map.set(n.id, n);
+                }
+            });
+
+            const merged = Array.from(map.values());
+            merged.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            notifsList = merged;
+
+            try {
+                localStorage.setItem('cached_employee_notifications', JSON.stringify(notifsList.slice(0, 100)));
+            } catch (_) {}
+
+            const currentUnreads = new Set(notifsList.filter(n => !n.read).map(n => n.id));
+            if (!isInitialLoad) {
+                const hasBrandNew = Array.from(currentUnreads).some(id => !previousUnreadIds.has(id));
+                if (hasBrandNew) {
+                    const audio = new Audio('notification.mp3');
+                    audio.play().catch(() => {});
+                }
+            }
+            previousUnreadIds = currentUnreads;
+            isInitialLoad = false;
+
+            renderNotificationsUI();
+        }
+
+        window.filterNotifications = (filterType, btnEl) => {
+            currentFilter = filterType;
+            document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+            if (btnEl) btnEl.classList.add('active');
+            renderNotificationsUI();
+        };
+
+        function renderNotificationsUI() {
             const feedEl = document.getElementById('notificationsFeed');
-            const q = query(
-                collection(db, "notifications"), 
-                where("targetUid", "in", [uid, "global"]),
-                limit(40)
-            );
+            const unreadBadge = document.getElementById('unreadBadge');
+            if (!feedEl) return;
 
-            onSnapshot(q, (snap) => {
-                const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('employee_uid') || 'demo_emp');
-                const rawNotifs = snap.docs
-                    .filter(doc => {
-                        const data = doc.data();
-                        const clearedBy = data.clearedBy || [];
-                        return !clearedBy.includes(currentUserId);
-                    })
-                    .map(doc => ({ id: doc.id, ref: doc.ref, ...doc.data() }));
-                // Sort client-side by timestamp to prevent composite index limits
-                notifsList = rawNotifs.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            const unreadCount = notifsList.filter(n => !n.read).length;
+            if (unreadBadge) {
+                unreadBadge.textContent = `${unreadCount} unread`;
+                unreadBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
 
-                if (notifsList.length === 0) {
-                    feedEl.innerHTML = `
-                        <div style="text-align: center; color: var(--text-muted); padding: 5rem;">
-                            <i data-lucide="bell-off" style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.3;"></i>
-                            <p style="font-weight:700;">No notifications found</p>
-                            <p style="font-size:0.8rem; margin-top:4px;">You are fully caught up with the organizational feed.</p>
-                        </div>
-                    `;
-                    lucide.createIcons();
-                    return;
+            let filtered = notifsList;
+            if (currentFilter === 'unread') {
+                filtered = notifsList.filter(n => !n.read);
+            } else if (currentFilter === 'urgent') {
+                filtered = notifsList.filter(n => n.priority === 'high' || n.priority === 'critical' || (n.title && (n.title.toLowerCase().includes('urgent') || n.title.toLowerCase().includes('critical') || n.title.toLowerCase().includes('warning'))));
+            } else if (currentFilter === 'policy') {
+                filtered = notifsList.filter(n => (n.title && n.title.toLowerCase().includes('policy')) || (n.text && n.text.toLowerCase().includes('policy')) || n.category === 'policy');
+            } else if (currentFilter === 'message') {
+                filtered = notifsList.filter(n => (n.title && n.title.toLowerCase().includes('message')) || n.category === 'message');
+            }
+
+            if (filtered.length === 0) {
+                feedEl.innerHTML = `
+                    <div style="text-align: center; color: var(--text-muted); padding: 5rem;">
+                        <i data-lucide="bell-off" style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.3;"></i>
+                        <p style="font-weight:700;">No notifications found</p>
+                        <p style="font-size:0.8rem; margin-top:4px;">You are fully caught up with ${currentFilter === 'all' ? 'the organizational feed' : currentFilter + ' alerts'}.</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            feedEl.innerHTML = filtered.map(n => {
+                let dateStr = 'Recent';
+                try {
+                    const d = new Date(n.timestamp);
+                    if (!isNaN(d.getTime())) {
+                        dateStr = d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    }
+                } catch (_) {}
+
+                const isRead = n.read || false;
+                const priority = (n.priority || 'normal').toLowerCase();
+
+                let icon = 'bell';
+                let iconBg = 'var(--primary-light)';
+                let iconColor = 'var(--primary)';
+
+                const titleLower = (n.title || '').toLowerCase();
+                const textLower = (n.text || '').toLowerCase();
+
+                if (priority === 'high' || priority === 'critical' || titleLower.includes('warning') || titleLower.includes('critical') || titleLower.includes('urgent') || titleLower.includes('sla')) {
+                    icon = 'alert-triangle';
+                    iconBg = 'rgba(239, 68, 68, 0.1)';
+                    iconColor = 'var(--danger)';
+                } else if (titleLower.includes('message') || n.category === 'message') {
+                    icon = 'message-square';
+                    iconBg = 'rgba(236, 72, 153, 0.1)';
+                    iconColor = 'var(--primary)';
+                } else if (titleLower.includes('payroll') || textLower.includes('payroll')) {
+                    icon = 'banknote';
+                    iconBg = 'rgba(16, 185, 129, 0.1)';
+                    iconColor = 'var(--success)';
+                } else if (titleLower.includes('policy') || textLower.includes('policy')) {
+                    icon = 'shield-check';
+                    iconBg = 'rgba(245, 158, 11, 0.1)';
+                    iconColor = 'var(--warning)';
+                } else if (titleLower.includes('attendance') || textLower.includes('attendance') || textLower.includes('hours')) {
+                    icon = 'clock';
+                    iconBg = 'rgba(59, 130, 246, 0.1)';
+                    iconColor = '#2563eb';
                 }
 
-                feedEl.innerHTML = notifsList.map(n => {
-                    const date = n.timestamp?.toDate ? n.timestamp.toDate().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
-                    const isRead = n.read || false;
-                    const priority = (n.priority || 'normal').toLowerCase();
-
-                    let icon = 'bell';
-                    let iconBg = 'var(--primary-light)';
-                    let iconColor = 'var(--primary)';
-
-                    if (priority === 'high' || priority === 'critical') {
-                        icon = 'alert-triangle';
-                        iconBg = 'rgba(239, 68, 68, 0.1)';
-                        iconColor = 'var(--danger)';
-                    } else if (n.title?.toLowerCase().includes('payroll') || n.text?.toLowerCase().includes('payroll')) {
-                        icon = 'banknote';
-                        iconBg = 'rgba(16, 185, 129, 0.1)';
-                        iconColor = 'var(--success)';
-                    } else if (n.title?.toLowerCase().includes('policy') || n.text?.toLowerCase().includes('policy')) {
-                        icon = 'file-shield';
-                        iconBg = 'rgba(245, 158, 11, 0.1)';
-                        iconColor = 'var(--warning)';
-                    }
-
-                    return `
-                        <div class="notif-item ${isRead ? 'read' : ''}" onclick="toggleMarkAsRead('${n.id}', ${isRead})">
-                            <div class="notif-icon" style="background: ${iconBg}; color: ${iconColor};">
-                                <i data-lucide="${icon}"></i>
-                            </div>
-                            <div class="notif-content">
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">${n.title || (priority.toUpperCase() + ' ALERT')}</div>
-                                 <button onclick="deleteNotification('${n.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
-                            </div>
-                                <div class="notif-desc">${n.text || n.message || 'No details provided.'}</div>
-                                <div class="notif-time">
-                                    <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
-                                    <span>${date}</span>
-                                    ${priority !== 'normal' ? `<span style="margin-left: 8px; font-size: 0.65rem; background: ${iconBg}; color: ${iconColor}; padding: 2px 8px; border-radius: 100px; text-transform: uppercase;">${priority}</span>` : ''}
-                                </div>
-                            </div>
-                            ${!isRead ? '<div class="unread-dot"></div>' : ''}
+                return `
+                    <div class="notif-item ${isRead ? 'read' : ''}" data-id="${n.id}" onclick="toggleMarkAsRead('${n.id}', ${isRead})">
+                        <div class="notif-icon" style="background: ${iconBg}; color: ${iconColor};">
+                            <i data-lucide="${icon}"></i>
                         </div>
-                    `;
-                }).join('');
-                lucide.createIcons();
-            });
+                        <div class="notif-content">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div class="notif-title">${n.title || 'Notification'}</div>
+                                <button onclick="event.stopPropagation(); deleteNotification('${n.id}')" title="Clear notification" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                                    <i data-lucide="x" style="width:16px; height:16px;"></i>
+                                </button>
+                            </div>
+                            <div class="notif-desc">${n.text || n.message || 'No details provided.'}</div>
+                            <div class="notif-time">
+                                <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                                <span>${dateStr}</span>
+                                ${priority !== 'normal' ? `<span style="margin-left: 8px; font-size: 0.65rem; background: ${iconBg}; color: ${iconColor}; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; font-weight: 700;">${priority}</span>` : ''}
+                            </div>
+                        </div>
+                        ${!isRead ? '<div class="unread-dot"></div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            if (window.lucide) lucide.createIcons();
         }
 
         window.toggleMarkAsRead = async (id, isRead) => {
-            if (isRead) return; // Keep as read
+            if (isRead) return;
+            // Optimistic DOM update
+            const item = notifsList.find(n => n.id === id);
+            if (item) item.read = true;
+            renderNotificationsUI();
+
+            // Asynchronous backend & Firestore sync
+            fetch(`http://localhost:3000/api/notifications/read/${id}`, { method: 'POST' }).catch(() => {});
             try {
                 const targetRef = doc(db, 'notifications', id);
                 await updateDoc(targetRef, { read: true });
-            } catch (err) {
-                console.error("Mark Read Error:", err);
-            }
+            } catch (_) {}
         };
 
         window.markAllNotificationsAsRead = async () => {
             const unreads = notifsList.filter(n => !n.read);
             if (unreads.length === 0) return;
 
+            // Optimistic DOM update
+            notifsList.forEach(n => n.read = true);
+            renderNotificationsUI();
+
+            // Asynchronous backend & Firestore sync
+            const candUids = getCandidateUids();
+            fetch('http://localhost:3000/api/notifications/read-all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uid: candUids[0] })
+            }).catch(() => {});
+
             try {
                 for (const n of unreads) {
-                    await updateDoc(n.ref, { read: true });
+                    updateDoc(doc(db, 'notifications', n.id), { read: true }).catch(() => {});
                 }
                 showStatusModal('Success', 'All notifications have been marked as read.', 'success');
-            } catch (err) {
-                console.error("Mark All Read Error:", err);
-            }
+            } catch (_) {}
         };
 
-        window.handleLogout = async () => {
-            try {
-                localStorage.removeItem('employee_uid');
-                localStorage.removeItem('userName');
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('userDept');
-                await auth.signOut();
-                window.location.href = 'index.html';
-            } catch (e) {
-                window.location.href = 'index.html';
-            }
-        };
-    
-                const ensureNotifModals = () => {
+        const ensureNotifModals = () => {
             if (document.getElementById('customDelNotifModal')) return;
             const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
             const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
@@ -793,12 +929,24 @@
             document.getElementById('customDelNotifCancel').onclick = () => { modal.style.display = 'none'; };
             document.getElementById('customDelNotifConfirm').onclick = async () => {
                 modal.style.display = 'none';
+                // Optimistic removal from DOM
+                notifsList = notifsList.filter(n => n.id !== id);
+                renderNotificationsUI();
+
+                const candUids = getCandidateUids();
+                const currentUid = candUids[0];
+
+                fetch(`http://localhost:3000/api/notifications/clear/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: currentUid })
+                }).catch(() => {});
+
                 try {
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('employee_uid') || 'demo_emp');
                     await updateDoc(doc(db, 'notifications', id), {
-                        clearedBy: arrayUnion(currentUserId)
+                        clearedBy: arrayUnion(currentUid)
                     });
-                } catch(e) { console.error('Error deleting:', e); }
+                } catch(e) {}
             };
         };
 
@@ -809,53 +957,88 @@
             document.getElementById('customClearAllNotifCancel').onclick = () => { modal.style.display = 'none'; };
             document.getElementById('customClearAllNotifConfirm').onclick = async () => {
                 modal.style.display = 'none';
+                const ids = notifsList.map(n => n.id);
+                notifsList = [];
+                renderNotificationsUI();
+
+                const candUids = getCandidateUids();
+                const currentUid = candUids[0];
+
+                fetch('http://localhost:3000/api/notifications/clear-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: currentUid })
+                }).catch(() => {});
+
                 try {
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('employee_uid') || 'demo_emp');
-                    const ids = notifsList.map(n => n.id);
                     const promises = ids.map(id => updateDoc(doc(db, 'notifications', id), {
-                        clearedBy: arrayUnion(currentUserId)
+                        clearedBy: arrayUnion(currentUid)
                     }));
                     await Promise.all(promises);
-                } catch(e) { console.error('Error clearing all:', e); }
+                } catch(e) {}
             };
         };
 
-        window.toggleAppsMenu = () => {
-            const dropdown = document.getElementById('appsDropdown');
-            const chevron = document.getElementById('appsChevron');
-            if (!dropdown || !chevron) return;
-            
-            const isVisible = dropdown.style.display === 'flex';
-            dropdown.style.display = isVisible ? 'none' : 'flex';
-            chevron.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        window.handleLogout = async () => {
+            try {
+                localStorage.removeItem('employee_uid');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('userDept');
+                await auth.signOut();
+                window.location.href = 'index.html';
+            } catch (e) {
+                window.location.href = 'index.html';
+            }
         };
 
-        window.loadLocalApps = () => {
-            const list = document.getElementById('customAppsList');
-            if (!list) return;
-            
-            const stored = localStorage.getItem('employee_apps');
-            const defaultApps = [
-                { name: "GITHUB", url: "https://github.com" },
-                { name: "CANVAS", url: "https://canvas.instructure.com" },
-                { name: "SLACK", url: "https://slack.com" },
-                { name: "JIRA", url: "https://atlassian.com" }
-            ];
-            
-            const apps = stored ? JSON.parse(stored) : defaultApps;
-            list.innerHTML = apps.map((app) => `
-                <div class="nav-item" style="position: relative; margin-bottom: 2px;">
-                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                        <span>${app.name}</span>
-                    </a>
-                </div>
-            `).join('');
-            
-            if (window.lucide) lucide.createIcons();
-        };
-        document.addEventListener('DOMContentLoaded', window.loadLocalApps);
+        // Bootstrap synchronization
+        fetchFromBackend();
+        setupRealtimeFirestoreListener();
 
-</script>
+        // 3-second background polling
+        if (window._notifPoll) clearInterval(window._notifPoll);
+        window._notifPoll = setInterval(fetchFromBackend, 3000);
+
+        // Command center branding
+        async function loadCommandCenterConfig() {
+            const centerId = urlParams.get('id');
+            if (centerId) {
+                try {
+                    const centerDoc = await getDoc(doc(db, 'command_centers', centerId));
+                    if (centerDoc.exists()) {
+                        const config = centerDoc.data();
+                        const logoText = document.querySelector('.logo-text');
+                        const logoIcon = document.querySelector('.logo-icon');
+                        if (logoText) logoText.textContent = config.name;
+                        if (config.icon && logoIcon) {
+                            logoIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
+                        }
+                        lucide.createIcons();
+                    }
+                } catch (_) {}
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            loadCommandCenterConfig();
+            if (user) {
+                if (user.displayName && defaultName === 'John Doe') {
+                    defaultName = user.displayName;
+                    currentUser.name = user.displayName;
+                    currentUser.displayName = user.displayName;
+                    hydrateProfileUI(currentUser);
+                }
+                const userDocRef = doc(db, 'users', user.uid);
+                onSnapshot(userDocRef, (snap) => {
+                    if (snap && snap.exists && snap.exists()) {
+                        const data = snap.data();
+                        currentUser = { ...currentUser, ...data, uid: user.uid };
+                        hydrateProfileUI(currentUser);
+                    }
+                }, () => {});
+            }
+        });
+    </script>
 </body>
 </html>
