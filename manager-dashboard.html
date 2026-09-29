@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="quick-actions.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <script>
         (function() {
@@ -535,6 +536,105 @@
                     <div id="manager-security-list" class="insight-content">
                         <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 2rem;">
                             <i data-lucide="shield" class="animate-pulse"></i><br>Monitoring Network...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unified Employee Quick Actions Hub (PRD Section 15) -->
+            <div class="quick-actions-container" style="margin-bottom: 1.5rem;">
+                <div class="quick-actions-header">
+                    <div class="quick-actions-title-wrap">
+                        <h3 class="quick-actions-title">
+                            <i data-lucide="zap" style="color: var(--primary); width: 18px; height: 18px;"></i>
+                            Manager & Employee Quick Actions
+                        </h3>
+                        <span class="quick-actions-badge">PRD §15</span>
+                    </div>
+                    <span class="quick-actions-role-pill">Manager Oversight</span>
+                </div>
+                <div class="quick-actions-grid">
+                    <!-- Action 1: Documents (PRD §15) -->
+                    <div class="quick-action-item" data-quick-action="documents" role="button" tabindex="0" title="Open Employee Document Vault & Repository">
+                        <div class="action-icon-wrap">
+                            <i data-lucide="file-text"></i>
+                        </div>
+                        <div class="action-text-group">
+                            <div class="action-title">
+                                <span>Documents</span>
+                                <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 14px; height: 14px;"></i>
+                            </div>
+                            <p class="action-desc">Official files, policies & slips</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 2: Attendance -->
+                    <div class="quick-action-item" data-quick-action="attendance" role="button" tabindex="0" title="Punch Clock & Team Records">
+                        <div class="action-icon-wrap">
+                            <i data-lucide="calendar-check"></i>
+                        </div>
+                        <div class="action-text-group">
+                            <div class="action-title">
+                                <span>Attendance</span>
+                                <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 14px; height: 14px;"></i>
+                            </div>
+                            <p class="action-desc">Clock-in & team records</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 3: Job Details (PRD §13/§14) -->
+                    <div class="quick-action-item" data-quick-action="job-details" role="button" tabindex="0" title="Profile, L1/L2 Reporting Hierarchy & Statutory Data">
+                        <div class="action-icon-wrap">
+                            <i data-lucide="briefcase"></i>
+                        </div>
+                        <div class="action-text-group">
+                            <div class="action-title">
+                                <span>Job Details</span>
+                                <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 14px; height: 14px;"></i>
+                            </div>
+                            <p class="action-desc">Profile, L1/L2 & statutory</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 4: Payslips -->
+                    <div class="quick-action-item" data-quick-action="payslips" role="button" tabindex="0" title="Review Pay Slips & Vouchers">
+                        <div class="action-icon-wrap">
+                            <i data-lucide="credit-card"></i>
+                        </div>
+                        <div class="action-text-group">
+                            <div class="action-title">
+                                <span>Payslips</span>
+                                <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 14px; height: 14px;"></i>
+                            </div>
+                            <p class="action-desc">Pay vouchers & statements</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 5: Leave Request -->
+                    <div class="quick-action-item" data-quick-action="leave" role="button" tabindex="0" title="Team Approvals & Personal Leave">
+                        <div class="action-icon-wrap">
+                            <i data-lucide="clock"></i>
+                        </div>
+                        <div class="action-text-group">
+                            <div class="action-title">
+                                <span>Apply Leave</span>
+                                <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 14px; height: 14px;"></i>
+                            </div>
+                            <p class="action-desc">Time-off & approvals</p>
+                        </div>
+                    </div>
+
+                    <!-- Action 6: Task Update / Team Message -->
+                    <div class="quick-action-item" data-quick-action="tasks" role="button" tabindex="0" title="Department Work Logs & Task Update">
+                        <div class="action-icon-wrap">
+                            <i data-lucide="check-square"></i>
+                        </div>
+                        <div class="action-text-group">
+                            <div class="action-title">
+                                <span>Task Update</span>
+                                <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 14px; height: 14px;"></i>
+                            </div>
+                            <p class="action-desc">Submit status report</p>
                         </div>
                     </div>
                 </div>
@@ -1777,6 +1877,12 @@
             setTimeout(() => {
                 window.openTeamManager();
             }, 800);
+        }
+    </script>
+    <script src="quick-actions-controller.js"></script>
+    <script>
+        if (window.QuickActionsController) {
+            window.QuickActionsController.init({ role: 'manager' });
         }
     </script>
 

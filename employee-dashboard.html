@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="quick-actions.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
@@ -678,28 +679,102 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="card col-4">
-                    <div class="card-header">
-                        <div class="card-title">Quick Actions</div>
+                <!-- Quick Actions (PRD Section 15) -->
+                <div class="card col-4 quick-actions-container" style="padding: 1.5rem;">
+                    <div class="quick-actions-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem;">
+                        <div class="quick-actions-title-wrap">
+                            <h3 class="quick-actions-title" style="font-size: 0.95rem;">
+                                <i data-lucide="zap" style="color: var(--primary); width: 16px; height: 16px;"></i>
+                                Quick Actions
+                            </h3>
+                            <span class="quick-actions-badge">PRD §15</span>
+                        </div>
+                        <span class="quick-actions-role-pill">Self-Service</span>
                     </div>
-                    <div class="action-grid">
-                        <a href="#" onclick="navigateTo('employee-leave.html')" class="action-card">
-                            <div class="action-icon"><i data-lucide="plus-circle"></i></div>
-                            <h3>Apply Leave</h3>
-                        </a>
-                        <a href="#" onclick="navigateTo('employee-docs.html')" class="action-card">
-                            <div class="action-icon"><i data-lucide="download"></i></div>
-                            <h3>Payslip</h3>
-                        </a>
-                        <a href="#" class="action-card" onclick="navigateTo('employee-message.html')">
-                            <div class="action-icon"><i data-lucide="message-square"></i></div>
-                            <h3>HR Message</h3>
-                        </a>
-                        <a href="#" onclick="navigateTo('employee-policy.html')" class="action-card">
-                            <div class="action-icon"><i data-lucide="info"></i></div>
-                            <h3>Policy</h3>
-                        </a>
+                    <div class="quick-actions-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <!-- Action 1: Documents (PRD §15 Mandatory) -->
+                        <div class="quick-action-item" data-quick-action="documents" role="button" tabindex="0" title="Open Employee Document Repository (PRD §15)">
+                            <div class="action-icon-wrap">
+                                <i data-lucide="file-text"></i>
+                            </div>
+                            <div class="action-text-group">
+                                <div class="action-title">
+                                    <span>Documents</span>
+                                    <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 12px; height: 12px;"></i>
+                                </div>
+                                <p class="action-desc">Official files & policies</p>
+                            </div>
+                        </div>
+
+                        <!-- Action 2: Attendance -->
+                        <div class="quick-action-item" data-quick-action="attendance" role="button" tabindex="0" title="Clock-in & Punch History">
+                            <div class="action-icon-wrap">
+                                <i data-lucide="calendar-check"></i>
+                            </div>
+                            <div class="action-text-group">
+                                <div class="action-title">
+                                    <span>Attendance</span>
+                                    <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 12px; height: 12px;"></i>
+                                </div>
+                                <p class="action-desc">Clock-in & punch records</p>
+                            </div>
+                        </div>
+
+                        <!-- Action 3: Job Details (PRD §13/§14) -->
+                        <div class="quick-action-item" data-quick-action="job-details" role="button" tabindex="0" title="Profile, L1/L2 Reporting Managers & Statutory Details">
+                            <div class="action-icon-wrap">
+                                <i data-lucide="briefcase"></i>
+                            </div>
+                            <div class="action-text-group">
+                                <div class="action-title">
+                                    <span>Job Details</span>
+                                    <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 12px; height: 12px;"></i>
+                                </div>
+                                <p class="action-desc">Profile, L1/L2 & statutory</p>
+                            </div>
+                        </div>
+
+                        <!-- Action 4: Payslips -->
+                        <div class="quick-action-item" data-quick-action="payslips" role="button" tabindex="0" title="Download Monthly Pay Vouchers">
+                            <div class="action-icon-wrap">
+                                <i data-lucide="credit-card"></i>
+                            </div>
+                            <div class="action-text-group">
+                                <div class="action-title">
+                                    <span>Payslips</span>
+                                    <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 12px; height: 12px;"></i>
+                                </div>
+                                <p class="action-desc">Download pay vouchers</p>
+                            </div>
+                        </div>
+
+                        <!-- Action 5: Leave Request -->
+                        <div class="quick-action-item" data-quick-action="leave" role="button" tabindex="0" title="Apply for Leave">
+                            <div class="action-icon-wrap">
+                                <i data-lucide="clock"></i>
+                            </div>
+                            <div class="action-text-group">
+                                <div class="action-title">
+                                    <span>Apply Leave</span>
+                                    <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 12px; height: 12px;"></i>
+                                </div>
+                                <p class="action-desc">Time-off & approvals</p>
+                            </div>
+                        </div>
+
+                        <!-- Action 6: HR Messages & Task Update -->
+                        <div class="quick-action-item" data-quick-action="tasks" role="button" tabindex="0" title="HR Messages & Task Update">
+                            <div class="action-icon-wrap">
+                                <i data-lucide="message-square"></i>
+                            </div>
+                            <div class="action-text-group">
+                                <div class="action-title">
+                                    <span>HR Message</span>
+                                    <i data-lucide="chevron-right" class="action-arrow-hint" style="width: 12px; height: 12px;"></i>
+                                </div>
+                                <p class="action-desc">Direct HR desk</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -717,6 +792,7 @@
         </main>
     </div>
 
+    <script src="quick-actions-controller.js"></script>
     <script type="module">
         import { attendanceEngine } from "./attendance-engine.js";
         import { 
@@ -726,6 +802,9 @@
         } from "./firebase-config.js";
 
         lucide.createIcons();
+        if (window.QuickActionsController) {
+            window.QuickActionsController.init({ role: 'employee' });
+        }
         
         window.navigateTo = (page) => {
             const urlParams = new URLSearchParams(window.location.search);
