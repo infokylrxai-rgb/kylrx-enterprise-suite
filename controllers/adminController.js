@@ -4,6 +4,7 @@ const { generateSecurePassword } = require('../utils/passwordGenerator');
 const { sendEmail } = require('../utils/email');
 const buRulesService = require('../services/bu-employee-type-rules-service');
 const employeeProfileService = require('../services/employee-profile-service');
+const managerAssignmentService = require('../services/manager-assignment-service');
 
 /**
  * Helper to get next sequential ID for departments
@@ -840,6 +841,168 @@ exports.deleteEmployeeDocument = async (req, res, next) => {
             status: 'success',
             message: 'Official document removed from employee record.',
             documents: filtered
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET /employees/:id/managers
+ * PRD Section 14: Retrieve L1/L2 managerial hierarchy and assignment history
+ */
+exports.getEmployeeManagers = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        let empData = null;
+        const empDoc = await db.collection('employees').doc(id).get();
+        if (empDoc.exists) {
+            empData = empDoc.data();
+        } else {
+            const userDoc = await db.collection('users').doc(id).get();
+            if (userDoc.exists) empData = userDoc.data();
+        }
+
+        if (!empData) {
+            return res.status(404).json({ status: 'error', message: 'Employee not found.' });
+        }
+
+        const l1 = empData.reportingManagerId || empData.managers?.l1ManagerId || empData['Reporting_Manager_ID'] || '';
+        const l2 = empData.secondaryManagerId || empData.managers?.l2ManagerId || empData['Secondary_Manager_ID'] || '';
+        const history = empData.managerAssignmentHistory || [];
+
+        return res.json({
+            status: 'success',
+            data: {
+                employeeId: id,
+                fullName: empData.fullName || empData.name || id,
+                reportingManagerId: l1,
+                secondaryManagerId: l2,
+                managers: {
+                    l1ManagerId: l1,
+                    l2ManagerId: l2
+                },
+                managerAssignmentHistory: history
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PUT /employees/:id/managers
+ * PRD Section 14: Super Admin / HR Manual L1/L2 Manager Assignment with circular check & audit logging
+ */
+exports.updateEmployeeManagers = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { l1ManagerId, l2ManagerId, changedBy } = req.body;
+
+        // Fetch current employee record
+        let currentEmp = null;
+        const empRef = db.collection('employees').doc(id);
+        const empSnap = await empRef.get();
+        if (empSnap.exists) {
+            currentEmp = { id: empSnap.id, employeeId: empSnap.id, ...empSnap.data() };
+        } else {
+            const userRef = db.collection('users').doc(id);
+            const userSnap = await userRef.get();
+            if (userSnap.exists) {
+                currentEmp = { id: userSnap.id, employeeId: userSnap.id, ...userSnap.data() };
+            }
+        }
+
+        if (!currentEmp) {
+            return res.status(404).json({ status: 'error', message: 'Employee not found.' });
+        }
+
+        // Fetch all active employees to run cycle detection
+        const allSnap = await db.collection('employees').get();
+        let allEmployees = allSnap.docs.map(d => ({ id: d.id, employeeId: d.id, ...d.data() }));
+        if (allEmployees.length === 0) {
+            const usersSnap = await db.collection('users').get();
+            allEmployees = usersSnap.docs.map(d => ({ id: d.id, employeeId: d.id, ...d.data() }));
+        }
+
+        // Validate circular reporting for L1
+        const l1Check = managerAssignmentService.validateAssignment(id, l1ManagerId, 'L1', allEmployees);
+        if (!l1Check.valid) {
+            return res.status(400).json({ status: 'error', message: l1Check.error });
+        }
+
+        // Validate circular reporting for L2
+        const l2Check = managerAssignmentService.validateAssignment(id, l2ManagerId, 'L2', allEmployees);
+        if (!l2Check.valid) {
+            return res.status(400).json({ status: 'error', message: l2Check.error });
+        }
+
+        // L1 and L2 cannot be the same individual
+        if (l1ManagerId && l2ManagerId && l1ManagerId === l2ManagerId) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'L1 Manager (Direct) and L2 Manager (Secondary) cannot be the same individual.'
+            });
+        }
+
+        // Prepare assignment update and audit log entries
+        const assignedBy = changedBy || req.user?.email || req.user?.uid || 'superadmin';
+        const { payload, auditEntries } = managerAssignmentService.prepareAssignmentUpdate(currentEmp, {
+            l1ManagerId,
+            l2ManagerId,
+            changedBy: assignedBy
+        });
+
+        // Atomic write to Firestore employees and users collections
+        const batch = db.batch();
+        batch.set(db.collection('employees').doc(id), payload, { merge: true });
+        batch.set(db.collection('users').doc(id), payload, { merge: true });
+
+        // Record to audit_logs collection
+        for (const auditItem of auditEntries) {
+            const auditRef = db.collection('audit_logs').doc();
+            batch.set(auditRef, {
+                ...auditItem,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        await batch.commit();
+
+        return res.json({
+            status: 'success',
+            message: 'Manager hierarchy and reporting linkages updated successfully.',
+            data: {
+                employeeId: id,
+                ...payload
+            },
+            auditEntries
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET /org-chart
+ * PRD Section 14: Hierarchical organization chart tree
+ */
+exports.getOrgChart = async (req, res, next) => {
+    try {
+        const empSnap = await db.collection('employees').get();
+        let allEmployees = empSnap.docs.map(d => ({ id: d.id, employeeId: d.id, ...d.data() }));
+        if (allEmployees.length === 0) {
+            const usersSnap = await db.collection('users').get();
+            allEmployees = usersSnap.docs.map(d => ({ id: d.id, employeeId: d.id, ...d.data() }));
+        }
+
+        const orgTree = managerAssignmentService.buildOrgTree(allEmployees);
+
+        return res.json({
+            status: 'success',
+            data: orgTree,
+            totalEmployees: allEmployees.length
         });
     } catch (error) {
         next(error);

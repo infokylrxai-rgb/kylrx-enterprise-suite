@@ -38,5 +38,10 @@ router.put("/employees/:id/profile", adminController.updateEmployeeProfile);
 router.post("/employees/:id/documents", adminController.uploadEmployeeDocument);
 router.delete("/employees/:id/documents/:docId", adminController.deleteEmployeeDocument);
 
+// PRD Section 14: Manual L1/L2 Manager Assignment & Org Chart
+router.get("/employees/:id/managers", adminController.getEmployeeManagers);
+router.put("/employees/:id/managers", adminController.updateEmployeeManagers);
+router.get("/org-chart", adminController.getOrgChart);
+
 module.exports = router;
 

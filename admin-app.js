@@ -1233,6 +1233,17 @@ function renderEmployeeTable(employees) {
         const statusColor = getStatusColor(displayStatus);
         const isTrashed = displayStatus === 'Trash';
         const isManager = (emp.role || '').toLowerCase() === 'manager';
+        const l1Id = emp.reportingManagerId || emp.managers?.l1ManagerId || emp['Reporting_Manager_ID'] || '';
+        const l2Id = emp.secondaryManagerId || emp.managers?.l2ManagerId || emp['Secondary_Manager_ID'] || '';
+
+        const resolveMgrDisplay = (mId) => {
+            if (!mId || mId === 'NONE' || mId === 'Unassigned') return 'Not Assigned';
+            const match = employees.find(e => (e.employeeId === mId || e.id === mId || e.uid === mId));
+            return match ? `${match.fullName || match.name} (${match.employeeId || match.id || mId})` : mId;
+        };
+
+        const l1Display = resolveMgrDisplay(l1Id);
+        const l2Display = resolveMgrDisplay(l2Id);
         
         return `
         <tr style="${isTrashed ? 'opacity: 0.6; background: rgba(239, 68, 68, 0.02);' : ''}">
@@ -1258,6 +1269,20 @@ function renderEmployeeTable(employees) {
                 </span>
             </td>
             <td>
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 160px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="badge-manager-l1" style="font-weight: 800; font-size: 0.65rem; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L1</span>
+                        <span style="font-size: 0.76rem; font-weight: 600; color: #1e293b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l1Display}">${l1Display}</span>
+                    </div>
+                    ${l2Id ? `
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="badge-manager-l2" style="font-weight: 800; font-size: 0.65rem; background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L2</span>
+                        <span style="font-size: 0.74rem; font-weight: 600; color: #64748b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l2Display}">${l2Display}</span>
+                    </div>
+                    ` : ''}
+                </div>
+            </td>
+            <td>
                 <div class="password-cell" onclick="const m = this.querySelector('.masked-pwd'); const r = this.querySelector('.real-pwd'); if(m.style.display==='none'){m.style.display='inline';r.style.display='none';}else{m.style.display='none';r.style.display='inline';}" style="font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; position: relative; overflow: hidden; width: fit-content; min-width: 80px; text-align: center;">
                     <span class="masked-pwd">••••••••</span>
                     <span class="real-pwd" style="display:none;">${emp.password || emp.tempPassword || '---'}</span>
@@ -1277,6 +1302,9 @@ function renderEmployeeTable(employees) {
             </td>
             <td>
                 <div style="display: flex; gap: 8px;">
+                    <button class="btn-action" onclick="window.ManagerAssignmentController ? window.ManagerAssignmentController.openAssignmentModal('${emp.id}') : (window.openEditModal && window.openEditModal('${emp.id}'))" title="Assign L1/L2 Managers (PRD §14)" style="color: #6366f1;">
+                        <i data-lucide="git-pull-request" size="14"></i>
+                    </button>
                     ${emp.invite_status === 'pending' ? `
                         <button class="btn-action" onclick="window.triggerEmailInvite('${emp.id}', '${emp.email}', '${emp.tempPassword || ''}')" title="Trigger Email Invite" style="color: #f59e0b;">
                             <i data-lucide="mail" size="14"></i>

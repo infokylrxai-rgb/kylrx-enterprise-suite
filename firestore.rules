@@ -289,6 +289,12 @@ service cloud.firestore {
       }
     }
 
+    // PRD Section 14: Manager Assignment Audit Trail
+    match /audit_logs/{logId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+    }
+
     // Fallback collection matcher
     match /{collection}/{document} {
       allow read, write: if signedIn() && collection not in [
