@@ -2,6 +2,8 @@ const { admin, db } = require('../config/firebase');
 const { generateEmployeeId } = require('../utils/idGenerator');
 const { generateSecurePassword } = require('../utils/passwordGenerator');
 const { sendEmail } = require('../utils/email');
+const buRulesService = require('../services/bu-employee-type-rules-service');
+const employeeProfileService = require('../services/employee-profile-service');
 
 /**
  * Helper to get next sequential ID for departments
@@ -51,6 +53,19 @@ exports.createDepartment = async (req, res, next) => {
 exports.createEmployee = async (req, res, next) => {
     try {
         const { name, email, phone, departmentId, role, salary, bankDetails, joiningDate, password, send_email_now } = req.body;
+
+        // PRD Section 10: Validate Business Unit & Employee Type Combination
+        const businessUnitCode = req.body.businessUnitCode || req.body['Business_Unit_Code'];
+        const employeeType = req.body.employeeType || req.body['Employment_Type'] || 'FULL_TIME';
+        if (businessUnitCode) {
+            const buCheck = buRulesService.isCombinationValid(businessUnitCode, employeeType);
+            if (!buCheck.valid) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: buCheck.error || 'Business Unit is not permitted for the selected Employee Type.'
+                });
+            }
+        }
 
         // 1. Get Department Code & Name (check departments collection with timeout)
         let deptCode = 'GEN';
@@ -203,6 +218,10 @@ exports.createEmployee = async (req, res, next) => {
             departmentId: departmentId || '',
             departmentName: deptName,
             departmentCode: deptCode,
+            businessUnitCode: businessUnitCode || 'BU-TECH',
+            'Business_Unit_Code': businessUnitCode || 'BU-TECH',
+            employeeType: employeeType,
+            'Employment_Type': employeeType,
             role: role || "employee",
             salary: salary || '',
             bankDetails: bankDetails || {},
@@ -327,6 +346,19 @@ exports.updateEmployee = async (req, res, next) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
+
+        // PRD Section 10: Validate Business Unit & Employee Type Combination on update
+        const businessUnitCode = updateData.businessUnitCode || updateData['Business_Unit_Code'];
+        const employeeType = updateData.employeeType || updateData['Employment_Type'];
+        if (businessUnitCode && employeeType) {
+            const buCheck = buRulesService.isCombinationValid(businessUnitCode, employeeType);
+            if (!buCheck.valid) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: buCheck.error || 'Business Unit is not permitted for the selected Employee Type.'
+                });
+            }
+        }
         
         // 1. Update Firebase Authentication if email or password is changed
         const authUpdates = {};
@@ -595,3 +627,223 @@ exports.transferBank = async (req, res, next) => {
         next(err);
     }
 };
+
+/**
+ * GET /bu-rules
+ * Get all business unit by employee type rules (PRD Section 10)
+ */
+exports.getBuRules = async (req, res, next) => {
+    try {
+        const rules = buRulesService.getAllRules();
+        const employeeTypes = buRulesService.getEmployeeTypes();
+        return res.json({ success: true, rules, employeeTypes });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /bu-rules
+ * Save/Update business unit by employee type rule (PRD Section 10)
+ */
+exports.saveBuRule = async (req, res, next) => {
+    try {
+        const actor = req.user?.name || req.user?.email || 'Super Admin';
+        const rule = buRulesService.saveRule(req.body, actor);
+        return res.json({ success: true, rule });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * ─────────────────────────────────────────────────────────────────
+ * PRD SECTION 13: EMPLOYEE PROFILE & OFFICIAL DOCUMENTS CONTROLLERS
+ * ─────────────────────────────────────────────────────────────────
+ */
+
+/**
+ * GET /employees/:id/profile or GET /employees/:id
+ * Retrieve comprehensive job information, resolved managers, statutory, and documents
+ */
+exports.getEmployeeProfile = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        // Fetch employee document from employees collection or users collection
+        let empDoc = await db.collection('employees').doc(id).get();
+        if (!empDoc.exists) {
+            empDoc = await db.collection('users').doc(id).get();
+        }
+
+        if (!empDoc.exists) {
+            // Also search by employeeId field
+            const q = await db.collection('employees').where('employeeId', '==', id).limit(1).get();
+            if (!q.empty) {
+                empDoc = q.docs[0];
+            } else {
+                const uq = await db.collection('users').where('employeeId', '==', id).limit(1).get();
+                if (!uq.empty) {
+                    empDoc = uq.docs[0];
+                }
+            }
+        }
+
+        if (!empDoc || !empDoc.exists) {
+            return res.status(404).json({
+                status: 'error',
+                message: `Employee '${id}' not found.`
+            });
+        }
+
+        const rawData = { id: empDoc.id, ...empDoc.data() };
+
+        // Fetch all employees to resolve manager names dynamically
+        let allEmployees = [];
+        try {
+            const allSnap = await db.collection('users').get();
+            allEmployees = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (_) {}
+
+        const profile = employeeProfileService.formatEmployeeProfile(rawData, allEmployees);
+
+        return res.json({
+            status: 'success',
+            data: profile
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PUT /employees/:id/profile
+ * Save comprehensive job details, managerial hierarchy, statutory compliance, and document metadata
+ */
+exports.updateEmployeeProfile = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const body = req.body || {};
+
+        let allEmployees = [];
+        try {
+            const allSnap = await db.collection('users').get();
+            allEmployees = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (_) {}
+
+        const profile = employeeProfileService.formatEmployeeProfile({ ...body, employeeId: id }, allEmployees);
+
+        // Update both collections for sync
+        const updatePayload = {
+            ...profile,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            await db.collection('employees').doc(id).set(updatePayload, { merge: true });
+        } catch (_) {}
+
+        try {
+            await db.collection('users').doc(id).set(updatePayload, { merge: true });
+        } catch (_) {}
+
+        return res.json({
+            status: 'success',
+            message: 'Employee job details and statutory profile updated successfully.',
+            data: profile
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /employees/:id/documents
+ * Register or update official employee document metadata
+ */
+exports.uploadEmployeeDocument = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const docPayload = req.body || {};
+
+        if (!docPayload.fileName) {
+            return res.status(400).json({ status: 'error', message: 'Document fileName is required.' });
+        }
+
+        const docRecord = {
+            docId: docPayload.docId || `doc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            docType: docPayload.docType || 'OFFER_LETTER',
+            fileName: docPayload.fileName,
+            storagePath: docPayload.storagePath || `employees/${id}/documents/${docPayload.fileName}`,
+            downloadUrl: docPayload.downloadUrl || '',
+            fileSize: Number(docPayload.fileSize || 0),
+            mimeType: docPayload.mimeType || 'application/pdf',
+            uploadedAt: new Date().toISOString()
+        };
+
+        // Fetch current documents
+        let currentDocs = [];
+        const empDoc = await db.collection('employees').doc(id).get();
+        if (empDoc.exists && Array.isArray(empDoc.data().documents)) {
+            currentDocs = empDoc.data().documents;
+        } else {
+            const userDoc = await db.collection('users').doc(id).get();
+            if (userDoc.exists && Array.isArray(userDoc.data().documents)) {
+                currentDocs = userDoc.data().documents;
+            }
+        }
+
+        // Filter out if updating existing docId
+        currentDocs = currentDocs.filter(d => d.docId !== docRecord.docId);
+        currentDocs.push(docRecord);
+
+        // Save updated documents list
+        await db.collection('employees').doc(id).set({ documents: currentDocs }, { merge: true });
+        await db.collection('users').doc(id).set({ documents: currentDocs }, { merge: true });
+
+        return res.status(201).json({
+            status: 'success',
+            message: 'Official document attached to employee record.',
+            data: docRecord,
+            documents: currentDocs
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * DELETE /employees/:id/documents/:docId
+ * Remove an official document from an employee record
+ */
+exports.deleteEmployeeDocument = async (req, res, next) => {
+    try {
+        const { id, docId } = req.params;
+
+        let currentDocs = [];
+        const empDoc = await db.collection('employees').doc(id).get();
+        if (empDoc.exists && Array.isArray(empDoc.data().documents)) {
+            currentDocs = empDoc.data().documents;
+        } else {
+            const userDoc = await db.collection('users').doc(id).get();
+            if (userDoc.exists && Array.isArray(userDoc.data().documents)) {
+                currentDocs = userDoc.data().documents;
+            }
+        }
+
+        const filtered = currentDocs.filter(d => d.docId !== docId);
+
+        await db.collection('employees').doc(id).set({ documents: filtered }, { merge: true });
+        await db.collection('users').doc(id).set({ documents: filtered }, { merge: true });
+
+        return res.json({
+            status: 'success',
+            message: 'Official document removed from employee record.',
+            documents: filtered
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+

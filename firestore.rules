@@ -2,6 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ─────────────────────────────────────────────────────────────────
+    // Multi-Tenant & Role-Based Access Control (RBAC) Helpers
+    // ─────────────────────────────────────────────────────────────────
+
     function signedIn() {
       return request.auth != null;
     }
@@ -14,14 +18,62 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/users/$(uid));
     }
 
+    // Role extraction supporting both Firebase Auth custom claims and Firestore profile
+    function getRole() {
+      return request.auth.token.role != null 
+        ? request.auth.token.role 
+        : (userExists(request.auth.uid) ? userDoc(request.auth.uid).role : '');
+    }
+
+    // Tenant Organization ID extraction
+    function getOrgId() {
+      return request.auth.token.orgId != null 
+        ? request.auth.token.orgId 
+        : (userExists(request.auth.uid) ? userDoc(request.auth.uid).orgId : null);
+    }
+
+    function isSameTenant(orgId) {
+      return getOrgId() != null && getOrgId() == orgId;
+    }
+
+    function isSuperAdmin() {
+      return signedIn() && (
+        request.auth.token.super_admin == true ||
+        getRole() in [
+          'super_admin', 'SUPER_ADMIN', 'super admin', 'Super Admin', 'superadmin'
+        ]
+      );
+    }
+
     function isStaff() {
-      return signedIn()
-        && userExists(request.auth.uid)
-        && userDoc(request.auth.uid).role in [
+      return signedIn() && (
+        isSuperAdmin() ||
+        getRole() in [
           'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR', 'hradmin', 'HR Admin',
-          'super admin', 'Super Admin', 'super_admin', 'superadmin', 'SUPER_ADMIN',
           'manager', 'Manager'
-        ];
+        ]
+      );
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // REQUIREMENT: Route Protection Gate
+    // Super Admins must have orgConfigured == true in their organization
+    // document before accessing ANY administrative collections.
+    // ─────────────────────────────────────────────────────────────────
+    function isOrgConfigured(orgId) {
+      return orgId != null 
+        && exists(/databases/$(database)/documents/organizations/$(orgId))
+        && get(/databases/$(database)/documents/organizations/$(orgId)).data.orgConfigured == true;
+    }
+
+    function canAccessAdmin() {
+      let orgId = getOrgId();
+      return signedIn() && isSuperAdmin() && isOrgConfigured(orgId);
+    }
+
+    function canAccessStaff() {
+      let orgId = getOrgId();
+      return signedIn() && isStaff() && (isOrgConfigured(orgId) || !isSuperAdmin());
     }
 
     function ownsEmployeeId(employeeId) {
@@ -37,108 +89,209 @@ service cloud.firestore {
       );
     }
 
-    // ── Payroll documents ───────────────────────────────────────────
-    match /payroll_documents/{docId} {
-      allow read: if isStaff() || ownsEmployeeId(resource.data.employeeId);
-      allow create, update: if isStaff();
-      allow delete: if isStaff();
+    // ─────────────────────────────────────────────────────────────────
+    // Organizations Collection & Subcollections (Multi-Tenant Hub)
+    // ─────────────────────────────────────────────────────────────────
+    match /organizations/{orgId} {
+      // Super Admins can read & update their organization even before orgConfigured is true
+      // (This enables the setup wizard to complete company configurations and flip the flag)
+      allow read: if signedIn() && (isSameTenant(orgId) || isSuperAdmin());
+      allow update: if signedIn() && isSuperAdmin() && isSameTenant(orgId);
+      allow create: if signedIn();
+      allow delete: if false; // Organization root docs cannot be deleted by client
+
+      // Sequential Distributed Counter: Read-only to staff, mutated only by transactional Cloud Functions
+      match /counters/{counterId} {
+        allow read: if signedIn() && isSameTenant(orgId) && isStaff();
+        allow write: if false; 
+      }
+
+      // Audit logs: Append-only via backend Cloud Functions
+      match /audit_logs/{logId} {
+        allow read: if canAccessAdmin() && isSameTenant(orgId);
+        allow write: if false;
+      }
+
+      // Provisioned Employees
+      match /employees/{empId} {
+        allow read: if signedIn() && isSameTenant(orgId) && (isStaff() || ownsEmployeeId(empId));
+        allow write: if canAccessAdmin() && isSameTenant(orgId);
+      }
     }
 
-    // ── Statutory Policy Configurations (Versioned Master Rules) ────
-    match /statutory_policy_configs/{configId} {
+    // ─────────────────────────────────────────────────────────────────
+    // Administrative Collections (GATED: Requires orgConfigured == true)
+    // ─────────────────────────────────────────────────────────────────
+
+    // Master Company Settings & Command Center
+    match /admin_settings/{settingId} {
+      allow read, write: if canAccessAdmin();
+    }
+
+    match /command_centers/{centerId} {
+      allow read: if signedIn();
+      allow write: if canAccessAdmin();
+    }
+
+    match /system_config/{configId} {
+      allow read: if signedIn();
+      allow write: if canAccessAdmin();
+    }
+
+    match /workflow_rules/{ruleId} {
       allow read: if isStaff();
-      allow create, update: if isStaff();
+      allow write: if canAccessAdmin();
+    }
+
+    // Payroll Documents
+    match /payroll_documents/{docId} {
+      allow read: if canAccessAdmin() || ownsEmployeeId(resource.data.employeeId);
+      allow create, update: if canAccessAdmin();
+      allow delete: if canAccessAdmin();
+    }
+
+    // Statutory Policy Configurations (Versioned Master Rules)
+    match /statutory_policy_configs/{configId} {
+      allow read: if canAccessStaff();
+      allow create, update: if canAccessAdmin();
       allow delete: if false; // Policy history must never be deleted
     }
 
-    // ── Payroll Runs (Independent lifecycle for calculation) ─────────
+    // Payroll Runs (Independent lifecycle for calculation)
     match /payroll_runs/{runId} {
-      allow read: if isStaff();
-      allow create: if isStaff();
-      // Locked runs cannot be modified except for audit archiving
-      allow update: if isStaff() && (
+      allow read: if canAccessStaff();
+      allow create: if canAccessAdmin();
+      allow update: if canAccessAdmin() && (
         resource.data.status != 'LOCKED' || request.resource.data.status == 'ARCHIVED'
       );
       allow delete: if false;
     }
 
-    // ── Payment Batches (Disbursement lifecycle & 4-Eyes Check) ──────
+    // Payment Batches (Disbursement lifecycle & 4-Eyes Check)
     match /payment_batches/{batchId} {
-      allow read: if isStaff();
-      allow create: if isStaff();
+      allow read: if canAccessStaff();
+      allow create: if canAccessAdmin();
       // Maker cannot be Checker (4-Eye rule enforcement)
-      allow update: if isStaff() && (
+      allow update: if canAccessAdmin() && (
         !(request.resource.data.maker_checker.checker_id != null &&
           request.resource.data.maker_checker.checker_id == resource.data.maker_checker.maker_id)
       );
-      allow delete: if isStaff() && resource.data.status in ['DRAFT', 'VALIDATION_FAILED'];
+      allow delete: if canAccessAdmin() && resource.data.status in ['DRAFT', 'VALIDATION_FAILED'];
 
       match /records/{recordId} {
-        allow read: if isStaff() || ownsEmployeeId(resource.data.employee_id);
-        allow write: if isStaff();
+        allow read: if canAccessStaff() || ownsEmployeeId(resource.data.employee_id);
+        allow write: if canAccessAdmin();
       }
     }
 
-    // ── Compliance Returns (PF ECR, ESIC, Gratuity, NPS) ─────────────
+    // Compliance Returns (PF ECR, ESIC, Gratuity, NPS)
     match /compliance_returns/{returnId} {
-      allow read: if isStaff();
-      allow create, update: if isStaff();
+      allow read: if canAccessStaff();
+      allow create, update: if canAccessAdmin();
       allow delete: if false;
     }
 
     match /statutory_exceptions/{exceptionId} {
-      allow read, write: if isStaff();
+      allow read, write: if canAccessAdmin();
     }
 
-    // ── Bank Files & Reconciliation Audit Logs ───────────────────────
+    // Bank Files & Reconciliation Audit Logs
     match /bank_files/{fileId} {
-      allow read: if isStaff();
-      allow create: if isStaff();
+      allow read: if canAccessStaff();
+      allow create: if canAccessAdmin();
       allow update, delete: if false; // Tamper-proof bank files
     }
 
     match /bank_reconciliations/{recId} {
-      allow read: if isStaff();
-      allow create: if isStaff();
-      allow update: if isStaff();
+      allow read: if canAccessStaff();
+      allow create, update: if canAccessAdmin();
       allow delete: if false;
     }
 
     match /disbursement_logs/{logId} {
-      allow read: if isStaff();
-      allow create: if isStaff();
+      allow read: if canAccessStaff();
+      allow create: if canAccessAdmin();
       allow update, delete: if false; // Append-only audit logs
     }
 
-    // ── Recruitment ATS ─────────────────────────────────────────────
+    // Recruitment ATS
     match /candidates/{candidateId} {
-      allow read, write: if isStaff();
+      allow read, write: if canAccessStaff();
 
       match /interviews/{interviewId} {
-        allow read, write: if isStaff();
+        allow read, write: if canAccessStaff();
       }
     }
 
     match /recruitment_events/{eventId} {
-      allow read, write: if isStaff();
+      allow read, write: if canAccessStaff();
     }
 
-    // ── Users & Compliance Profiles ─────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────
+    // Users & Compliance Profiles
+    // ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if isStaff() || signedIn();
-      allow delete: if isStaff();
+      allow read: if signedIn();
+      allow create: if signedIn(); // Initial user signup document creation
+      allow update: if (signedIn() && request.auth.uid == userId) || canAccessAdmin();
+      allow delete: if canAccessAdmin();
 
       match /compliance_profile/{profileId} {
-        allow read: if isStaff() || ownsEmployeeId(userId);
-        allow write: if isStaff();
+        allow read: if canAccessStaff() || ownsEmployeeId(userId);
+        allow write: if canAccessAdmin();
       }
     }
 
-    // ── Legacy collections (open during auth migration) ─────────────
+    // ─────────────────────────────────────────────────────────────────
+    // PRD Section 10: Business Unit by Employee Type Rules
+    // ─────────────────────────────────────────────────────────────────
+    match /bu_employee_type_rules/{ruleId} {
+      allow read: if signedIn();
+      allow write: if canAccessAdmin() || isStaff();
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // PRD Section 11: Alert Trigger Registry (Safe Simulation Mode)
+    // ─────────────────────────────────────────────────────────────────
+    match /alert_trigger_registry/{triggerId} {
+      allow read: if signedIn();
+      allow write: if canAccessAdmin() || isStaff();
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // PRD Section 12: Workflows & Direct Automation Configuration
+    // ─────────────────────────────────────────────────────────────────
+    match /workflows/{workflowId} {
+      allow read: if signedIn();
+      allow write: if canAccessAdmin() || isStaff();
+
+      match /automation_configs/{stageId} {
+        allow read: if signedIn();
+        allow write: if canAccessAdmin() || isStaff();
+      }
+
+      match /question_configs/{stageId} {
+        allow read: if signedIn();
+        allow write: if canAccessAdmin() || isStaff();
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // PRD Section 13: Employee Master, Job Details & Official Documents
+    // ─────────────────────────────────────────────────────────────────
+    match /employees/{employeeId} {
+      allow read: if signedIn();
+      allow write: if canAccessAdmin() || isStaff();
+
+      match /documents/{docId} {
+        allow read: if signedIn();
+        allow write: if canAccessAdmin() || isStaff();
+      }
+    }
+
+    // Fallback collection matcher
     match /{collection}/{document} {
-      allow read, write: if collection not in [
+      allow read, write: if signedIn() && collection not in [
         'payroll_documents',
         'payroll_runs',
         'payment_batches',
@@ -147,8 +300,12 @@ service cloud.firestore {
         'bank_files',
         'bank_reconciliations',
         'disbursement_logs',
+        'admin_settings',
+        'command_centers',
+        'system_config',
         'candidates',
-        'recruitment_events'
+        'recruitment_events',
+        'organizations'
       ];
     }
   }

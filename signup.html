@@ -3,11 +3,285 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up | Kylrx AI</title>
+  <title>Customer & CEO Registration | Kylrx AI</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
   <link rel="stylesheet" href="login.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+  <style>
+    /* ── CEO Registration & Organization Setup Wizard Enhancements ── */
+    .auth-card.ceo-signup-card {
+      max-width: 640px;
+      width: 100%;
+      padding: 2.25rem;
+      border-radius: 20px;
+      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05);
+      margin: 1.5rem 0;
+    }
+
+    /* Stepper Navigation Bar */
+    .step-progress-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 2rem;
+      padding-bottom: 0.5rem;
+    }
+
+    .step-progress-bar::before {
+      content: '';
+      position: absolute;
+      top: 18px;
+      left: 30px;
+      right: 30px;
+      height: 2px;
+      background: #e2e8f0;
+      z-index: 1;
+    }
+
+    .step-progress-line {
+      position: absolute;
+      top: 18px;
+      left: 30px;
+      height: 2px;
+      background: var(--primary);
+      z-index: 2;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 3;
+      cursor: pointer;
+    }
+
+    .step-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      color: #64748b;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+
+    .step-item.active .step-circle {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+
+    .step-item.completed .step-circle {
+      border-color: var(--success);
+      background: var(--success);
+      color: #ffffff;
+    }
+
+    .step-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .step-item.active .step-label {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .step-item.completed .step-label {
+      color: var(--text-main);
+    }
+
+    /* Section Panels */
+    .step-panel {
+      display: none;
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+
+    .step-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-headline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.4rem;
+    }
+
+    .section-headline h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 0;
+    }
+
+    .section-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.45;
+    }
+
+    .field-hint {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Form Fields Grid */
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.1rem;
+    }
+
+    .form-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.1rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-grid-2, .form-grid-3 {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .auth-card.ceo-signup-card {
+        padding: 1.5rem;
+      }
+      .step-label {
+        font-size: 0.65rem;
+      }
+    }
+
+    textarea.input-textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      resize: vertical;
+      min-height: 70px;
+      transition: all 0.2s ease;
+    }
+
+    textarea.input-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+
+    /* Custom Select */
+    .select-wrapper {
+      position: relative;
+    }
+    .select-wrapper select {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 2.6rem;
+      font-size: 0.92rem;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      outline: none;
+      color: var(--text-main);
+      font-family: inherit;
+      cursor: pointer;
+      appearance: none;
+      transition: all 0.2s;
+    }
+    .select-wrapper select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+    .select-wrapper .chevron-icon {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #94a3b8;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    /* Buttons navigation */
+    .wizard-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .badge-superadmin {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    /* Demo Data Bar */
+    .demo-data-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 6px 12px;
+      margin-bottom: 1.25rem;
+    }
+  </style>
 </head>
 <body>
   <div class="split-layout">
@@ -19,37 +293,37 @@
           <img src="logo.jpg" alt="Logo">
           <span>Kylrx <span>AI</span></span>
         </a>
-        <div class="tagline-badge">INTELLIGENT HR AUTOMATION</div>
+        <div class="tagline-badge">ENTERPRISE HR & PAYROLL SUITE</div>
         <h1 class="hero-title">One Platform.<br>Infinite <span>Possibilities.</span></h1>
-        <p class="hero-subtitle">Automate workflows, streamline HR operations and empower your workforce with AI-driven insights.</p>
+        <p class="hero-subtitle">Unified Customer Registration: Setup your corporate legal entity and initialize your Super Admin tenant in under 2 minutes.</p>
         
         <div class="feature-list">
           <div class="feature-item">
-            <div class="feature-icon blue"><i data-lucide="zap"></i></div>
+            <div class="feature-icon blue"><i data-lucide="shield-check"></i></div>
             <div class="feature-text">
-              <h3>Smart Automation</h3>
-              <p>Automate repetitive tasks and save time.</p>
+              <h3>Automated Super Admin Provisioning</h3>
+              <p>CEO credentials are automatically assigned Super Admin custom claims and governance access.</p>
             </div>
           </div>
           <div class="feature-item">
-            <div class="feature-icon green"><i data-lucide="shield-check"></i></div>
+            <div class="feature-icon green"><i data-lucide="building"></i></div>
             <div class="feature-text">
-              <h3>Secure & Compliant</h3>
-              <p>Enterprise-grade security and compliance.</p>
+              <h3>21 Statutory Attributes</h3>
+              <p>Captures your master legal structure directly matching the official Templates.xlsx schema.</p>
             </div>
           </div>
           <div class="feature-item">
-            <div class="feature-icon purple"><i data-lucide="bar-chart-3"></i></div>
+            <div class="feature-icon purple"><i data-lucide="hash"></i></div>
             <div class="feature-text">
-              <h3>Data-Driven Insights</h3>
-              <p>Make better decisions with real-time analytics.</p>
+              <h3>Atomic Employee ID (EMP0001)</h3>
+              <p>Continuous gapless sequence generator provisioned immediately for subsequent workforce onboarding.</p>
             </div>
           </div>
           <div class="feature-item">
-            <div class="feature-icon orange"><i data-lucide="users"></i></div>
+            <div class="feature-icon orange"><i data-lucide="sparkles"></i></div>
             <div class="feature-text">
-              <h3>Role-Based Access</h3>
-              <p>HR Admin & Super Admin – Complete control.</p>
+              <h3>Zero-Friction Launch</h3>
+              <p>Instantly unlocks the Command Center and Administrative Console without gating delays.</p>
             </div>
           </div>
         </div>
@@ -59,7 +333,7 @@
 
     <!-- Right Column (Centered Auth Card) -->
     <div class="split-right">
-      <div class="auth-card">
+      <div class="auth-card ceo-signup-card">
         
         <!-- Mobile Header (hidden on Desktop) -->
         <a href="index.html" class="brand-logo mobile-logo">
@@ -68,112 +342,424 @@
         </a>
 
         <div class="auth-header">
-          <h2>Create your Kylrx AI Account</h2>
-          <p>Set up your unified HR & Payroll Automation platform</p>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <h2 style="margin: 0; font-size: 1.65rem;">Create Enterprise Account</h2>
+            <span class="badge-superadmin"><i data-lucide="shield"></i> CEO / Super Admin</span>
+          </div>
+          <p>Register your corporate identity and provision your master organization instance.</p>
         </div>
 
-        <form id="signupForm">
-          <div class="form-row">
-            <!-- Full Name -->
-            <div class="form-group">
-              <label for="name">Full Name</label>
-              <div class="input-wrapper">
-                <i data-lucide="user" class="icon-left"></i>
-                <input type="text" id="name" placeholder="John Doe" required>
-              </div>
-            </div>
-
-            <!-- Email Address -->
-            <div class="form-group">
-              <label for="email">Official Email</label>
-              <div class="input-wrapper">
-                <i data-lucide="mail" class="icon-left"></i>
-                <input type="email" id="email" placeholder="you@company.com" required>
-              </div>
-              <div id="emailFeedback" class="validation-feedback"></div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <!-- Company Name -->
-            <div class="form-group">
-              <label for="company">Company Name</label>
-              <div class="input-wrapper">
-                <i data-lucide="building" class="icon-left"></i>
-                <input type="text" id="company" placeholder="Acme Corp" required>
-              </div>
-            </div>
-
-            <!-- Role Selection -->
-            <div class="form-group">
-              <label for="role">Select Your Role</label>
-              <div class="input-wrapper">
-                <i data-lucide="briefcase" class="icon-left"></i>
-                <select id="role" required style="width: 100%; padding: 0.875rem 1rem 0.875rem 2.75rem; font-size: 0.95rem; border: none; background: transparent; outline: none; color: var(--text-main); font-family: inherit; cursor: pointer;">
-                  <option value="" disabled selected>Choose role...</option>
-                  <option value="hrms">HR Admin</option>
-                  <option value="super_admin">Super Admin</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <!-- Password -->
-            <div class="form-group">
-              <label for="password">Password</label>
-              <div class="input-wrapper">
-                <i data-lucide="lock" class="icon-left"></i>
-                <input type="password" id="password" placeholder="••••••••" required>
-                <button type="button" class="eye-btn" data-target="password">
-                  <i data-lucide="eye"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Confirm Password -->
-            <div class="form-group">
-              <label for="confirmPassword">Confirm Password</label>
-              <div class="input-wrapper">
-                <i data-lucide="lock" class="icon-left"></i>
-                <input type="password" id="confirmPassword" placeholder="••••••••" required>
-                <button type="button" class="eye-btn" data-target="confirmPassword">
-                  <i data-lucide="eye"></i>
-                </button>
-              </div>
-              <div id="confirmFeedback" class="validation-feedback"></div>
-            </div>
-          </div>
-
-          <!-- Password Strength Container -->
-          <div class="strength-container">
-            <div class="strength-bar"><div class="strength-bar-fill bg-danger" id="strengthFill"></div></div>
-            <div class="strength-text" id="strengthText">Password Strength: None</div>
-            <ul class="strength-checklist">
-              <li id="chkLength"><i data-lucide="x-circle"></i> At least 8 characters</li>
-              <li id="chkUpper"><i data-lucide="x-circle"></i> One uppercase letter</li>
-              <li id="chkLower"><i data-lucide="x-circle"></i> One lowercase letter</li>
-              <li id="chkNumber"><i data-lucide="x-circle"></i> One number</li>
-              <li id="chkSpecial"><i data-lucide="x-circle"></i> One special character</li>
-            </ul>
-          </div>
-
-          <!-- Terms & Conditions Checkbox -->
-          <div class="form-group" style="margin-top: 1.25rem;">
-            <label class="terms-checkbox">
-              <input type="checkbox" id="terms" required>
-              <span>I agree to the <a href="javascript:void(0)" id="showTerms">Terms & Conditions</a> and <a href="javascript:void(0)" id="showPrivacy">Privacy Policy</a></span>
-            </label>
-          </div>
-
-          <div id="errorMessage" class="error-msg">Registration failed. Contact support.</div>
-
-          <button type="submit" id="signupBtn" class="btn-primary">
-            <span>Create Account &rarr;</span>
+        <!-- 1-Click QA Quick-Fill Bar -->
+        <div class="demo-data-bar">
+          <span style="font-size: 0.75rem; color: #64748b; font-weight: 600;">Testing setup?</span>
+          <button type="button" id="btnFillDemoSignup" style="background: none; border: none; color: var(--primary); font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Fill Kylrx Demo Setup
           </button>
+        </div>
+
+        <!-- Stepper Navigation Header -->
+        <div class="step-progress-bar" id="signupStepper">
+          <div class="step-progress-line" id="stepProgressLine"></div>
+          
+          <div class="step-item active" data-step="1" id="stepIndicator1">
+            <div class="step-circle">1</div>
+            <span class="step-label">Account</span>
+          </div>
+          
+          <div class="step-item" data-step="2" id="stepIndicator2">
+            <div class="step-circle">2</div>
+            <span class="step-label">Company</span>
+          </div>
+          
+          <div class="step-item" data-step="3" id="stepIndicator3">
+            <div class="step-circle">3</div>
+            <span class="step-label">Address</span>
+          </div>
+          
+          <div class="step-item" data-step="4" id="stepIndicator4">
+            <div class="step-circle">4</div>
+            <span class="step-label">Statutory</span>
+          </div>
+        </div>
+
+        <form id="signupForm" novalidate>
+          
+          <!-- ══════════════════════════════════════════════════════════════
+               SECTION A: CEO / SUPER ADMIN ACCOUNT CREDENTIALS (STEP 1)
+               ══════════════════════════════════════════════════════════════ -->
+          <div class="step-panel active" id="panelStep1">
+            <div class="section-headline">
+              <i data-lucide="user-check" style="color: var(--primary); width: 20px; height: 20px;"></i>
+              <h3>A. CEO / Super Admin Account Credentials</h3>
+            </div>
+            <p class="section-desc">Create the master executive administrator profile that holds global tenant permissions.</p>
+
+            <div class="form-grid-2">
+              <!-- Full Name -->
+              <div class="form-group">
+                <label for="name">Full Name *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="user" class="icon-left"></i>
+                  <input type="text" id="name" name="fullName" placeholder="John Doe" required>
+                </div>
+              </div>
+
+              <!-- Official Email -->
+              <div class="form-group">
+                <label for="email">Official Email *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="mail" class="icon-left"></i>
+                  <input type="email" id="email" name="officialEmail" placeholder="ceo@company.com" required>
+                </div>
+                <div id="emailFeedback" class="validation-feedback"></div>
+                <span class="field-hint">Serves as primary login & column 21 (Official_Email)</span>
+              </div>
+            </div>
+
+            <!-- Password & Confirm Password -->
+            <div class="form-grid-2" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label for="password">Password *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="lock" class="icon-left"></i>
+                  <input type="password" id="password" placeholder="••••••••" required>
+                  <button type="button" class="eye-btn" data-target="password">
+                    <i data-lucide="eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="confirmPassword">Confirm Password *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="lock" class="icon-left"></i>
+                  <input type="password" id="confirmPassword" placeholder="••••••••" required>
+                  <button type="button" class="eye-btn" data-target="confirmPassword">
+                    <i data-lucide="eye"></i>
+                  </button>
+                </div>
+                <div id="confirmFeedback" class="validation-feedback"></div>
+              </div>
+            </div>
+
+            <!-- 6-Point Password Strength Meter -->
+            <div class="strength-container" style="margin-top: 0.25rem;">
+              <div class="strength-bar"><div class="strength-bar-fill bg-danger" id="strengthFill"></div></div>
+              <div class="strength-text" id="strengthText">Password Strength: None</div>
+              <ul class="strength-checklist">
+                <li id="chkLength"><i data-lucide="x-circle"></i> At least 8 characters</li>
+                <li id="chkUpper"><i data-lucide="x-circle"></i> One uppercase letter</li>
+                <li id="chkLower"><i data-lucide="x-circle"></i> One lowercase letter</li>
+                <li id="chkNumber"><i data-lucide="x-circle"></i> One number</li>
+                <li id="chkSpecial"><i data-lucide="x-circle"></i> One special character (@$!%*?&#)</li>
+              </ul>
+            </div>
+
+            <!-- Terms & Conditions Checkbox -->
+            <div class="form-group" style="margin-top: 1rem;">
+              <label class="terms-checkbox">
+                <input type="checkbox" id="terms" required>
+                <span>I agree to the <a href="javascript:void(0)" id="showTerms">Terms of Service</a> and <a href="javascript:void(0)" id="showPrivacy">Privacy Policy</a></span>
+              </label>
+            </div>
+
+            <div class="wizard-actions" style="justify-content: flex-end;">
+              <button type="button" class="btn-primary" id="btnNext1">
+                <span>Next: Company Profile &rarr;</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════════════
+               SECTION B: COMPANY & LEGAL PROFILE (STEP 2)
+               Attributes 1 - 7: Legal_Name, Display_Name, Organization_Type,
+               Industry, Website, Official_Phone, Logo_URL
+               ══════════════════════════════════════════════════════════════ -->
+          <div class="step-panel" id="panelStep2">
+            <div class="section-headline">
+              <i data-lucide="building-2" style="color: var(--primary); width: 20px; height: 20px;"></i>
+              <h3>B. Company & Legal Profile</h3>
+            </div>
+            <p class="section-desc">Statutory corporate identity matching the 'Organization' sheet in Templates.xlsx.</p>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="legalName">1. Legal Name *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="file-badge" class="icon-left"></i>
+                  <input type="text" id="legalName" name="Legal_Name" placeholder="e.g. Kylrx Technologies Pvt. Ltd." required>
+                </div>
+                <span class="field-hint">Exact name registered with MCA / Registrar</span>
+              </div>
+
+              <div class="form-group">
+                <label for="displayName">2. Display Name *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="briefcase" class="icon-left"></i>
+                  <input type="text" id="displayName" name="Display_Name" placeholder="e.g. Kylrx AI" required>
+                </div>
+                <span class="field-hint">Brand name shown across employee portal</span>
+              </div>
+            </div>
+
+            <div class="form-grid-2" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label for="orgType">3. Organization Type *</label>
+                <div class="select-wrapper">
+                  <i data-lucide="git-branch" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 1.15rem; height: 1.15rem;"></i>
+                  <select id="orgType" name="Organization_Type" required>
+                    <option value="Private Limited" selected>Private Limited</option>
+                    <option value="Public Limited">Public Limited</option>
+                    <option value="LLP">Limited Liability Partnership (LLP)</option>
+                    <option value="Partnership">Partnership</option>
+                    <option value="Sole Proprietorship">Sole Proprietorship</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <i data-lucide="chevron-down" class="chevron-icon"></i>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="industry">4. Industry *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="layers" class="icon-left"></i>
+                  <input type="text" id="industry" name="Industry" placeholder="e.g. Technology & HR Automation" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid-2" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label for="website">5. Website</label>
+                <div class="input-wrapper">
+                  <i data-lucide="globe" class="icon-left"></i>
+                  <input type="url" id="website" name="Website" placeholder="https://kylrx.ai">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="officialPhone">6. Official Phone *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="phone" class="icon-left"></i>
+                  <input type="tel" id="officialPhone" name="Official_Phone" placeholder="+91 80 4123 4567" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Logo URL & File Upload to Firebase Storage -->
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label for="logoUrl">7. Logo URL / Upload</label>
+              <div style="display: flex; gap: 10px;">
+                <div class="input-wrapper" style="flex: 1;">
+                  <i data-lucide="image" class="icon-left"></i>
+                  <input type="text" id="logoUrl" name="Logo_URL" placeholder="https://kylrx.ai/logo.jpg or upload below">
+                </div>
+                <label class="btn-secondary" style="margin: 0; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                  <i data-lucide="upload" style="width: 16px; height: 16px;"></i> Browse File
+                  <input type="file" id="logoFileInput" accept="image/*" style="display: none;">
+                </label>
+              </div>
+              <span class="field-hint" id="logoUploadStatus">Direct image URL or upload brand logo to Firebase Storage</span>
+            </div>
+
+            <div class="wizard-actions">
+              <button type="button" class="btn-secondary" id="btnBack2">&larr; Back</button>
+              <button type="button" class="btn-primary" id="btnNext2">Next: Address & Regional &rarr;</button>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════════════
+               SECTION C: ADDRESS & REGIONAL SETTINGS (STEP 3)
+               Attributes 8 - 16: Country, State, City, PIN_Code,
+               Registered_Address, Corporate_Address, Time_Zone,
+               Currency, Financial_Year_Start
+               ══════════════════════════════════════════════════════════════ -->
+          <div class="step-panel" id="panelStep3">
+            <div class="section-headline">
+              <i data-lucide="map-pin" style="color: var(--primary); width: 20px; height: 20px;"></i>
+              <h3>C. Address & Regional Settings</h3>
+            </div>
+            <p class="section-desc">Headquarters locations, roster time zone, and fiscal year configurations.</p>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="country">8. Country *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="flag" class="icon-left"></i>
+                  <input type="text" id="country" name="Country" value="India" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="state">9. State *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="map" class="icon-left"></i>
+                  <input type="text" id="state" name="State" placeholder="e.g. Karnataka" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid-2" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label for="city">10. City *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="compass" class="icon-left"></i>
+                  <input type="text" id="city" name="City" placeholder="e.g. Bengaluru" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="pinCode">11. PIN Code *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="navigation" class="icon-left"></i>
+                  <input type="text" id="pinCode" name="PIN_Code" placeholder="e.g. 560103" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Addresses -->
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label for="registeredAddress">12. Registered Address *</label>
+              <textarea id="registeredAddress" name="Registered_Address" class="input-textarea" placeholder="Official legal registered address as registered on incorporation" required></textarea>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label for="corporateAddress" style="margin: 0;">13. Corporate Address *</label>
+                <label style="font-size: 0.75rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                  <input type="checkbox" id="sameAddressCheck"> Same as Registered Address
+                </label>
+              </div>
+              <textarea id="corporateAddress" name="Corporate_Address" class="input-textarea" placeholder="Operating headquarters / corporate office campus" required></textarea>
+            </div>
+
+            <!-- Regional Standards -->
+            <div class="form-grid-3" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label for="timeZone">14. Time Zone *</label>
+                <div class="select-wrapper">
+                  <i data-lucide="clock" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 1.15rem; height: 1.15rem;"></i>
+                  <select id="timeZone" name="Time_Zone" required>
+                    <option value="Asia/Kolkata" selected>Asia/Kolkata (IST)</option>
+                    <option value="UTC">UTC</option>
+                    <option value="America/New_York">America/New_York (EST)</option>
+                    <option value="Europe/London">Europe/London (GMT)</option>
+                    <option value="Asia/Singapore">Asia/Singapore (SGT)</option>
+                    <option value="Asia/Dubai">Asia/Dubai (GST)</option>
+                  </select>
+                  <i data-lucide="chevron-down" class="chevron-icon"></i>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="currency">15. Currency *</label>
+                <div class="select-wrapper">
+                  <i data-lucide="coins" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 1.15rem; height: 1.15rem;"></i>
+                  <select id="currency" name="Currency" required>
+                    <option value="INR" selected>INR (₹)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="AED">AED</option>
+                    <option value="SGD">SGD (S$)</option>
+                  </select>
+                  <i data-lucide="chevron-down" class="chevron-icon"></i>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="fyStart">16. Financial Year Start *</label>
+                <div class="select-wrapper">
+                  <i data-lucide="calendar" class="icon-left" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 1.15rem; height: 1.15rem;"></i>
+                  <select id="fyStart" name="Financial_Year_Start" required>
+                    <option value="04-01" selected>04-01 (April)</option>
+                    <option value="01-01">01-01 (January)</option>
+                    <option value="07-01">07-01 (July)</option>
+                    <option value="10-01">10-01 (October)</option>
+                  </select>
+                  <i data-lucide="chevron-down" class="chevron-icon"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="wizard-actions">
+              <button type="button" class="btn-secondary" id="btnBack3">&larr; Back</button>
+              <button type="button" class="btn-primary" id="btnNext3">Next: Statutory Compliance &rarr;</button>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════════════
+               SECTION D: STATUTORY & LEGAL COMPLIANCE IDENTIFIERS (STEP 4)
+               Attributes 17 - 20: PAN, TAN, CIN_or_LLPIN, GSTIN
+               (Attribute 21 Official_Email collected in Section A)
+               ══════════════════════════════════════════════════════════════ -->
+          <div class="step-panel" id="panelStep4">
+            <div class="section-headline">
+              <i data-lucide="shield-alert" style="color: var(--primary); width: 20px; height: 20px;"></i>
+              <h3>D. Statutory & Legal Compliance Identifiers</h3>
+            </div>
+            <p class="section-desc">Federal tax registrations for automated payroll TDS, corporate filings, and compliance.</p>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="pan">17. PAN *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="credit-card" class="icon-left"></i>
+                  <input type="text" id="pan" name="PAN" placeholder="e.g. AAACK1234F" maxlength="10" style="text-transform: uppercase; font-family: monospace;" required>
+                </div>
+                <span class="field-hint">10-character Permanent Account Number</span>
+              </div>
+
+              <div class="form-group">
+                <label for="tan">18. TAN *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="hash" class="icon-left"></i>
+                  <input type="text" id="tan" name="TAN" placeholder="e.g. BLRK12345D" maxlength="10" style="text-transform: uppercase; font-family: monospace;" required>
+                </div>
+                <span class="field-hint">10-character Tax Deduction Account Number</span>
+              </div>
+            </div>
+
+            <div class="form-grid-2" style="margin-top: 0.5rem;">
+              <div class="form-group">
+                <label for="cin">19. CIN or LLPIN</label>
+                <div class="input-wrapper">
+                  <i data-lucide="file-text" class="icon-left"></i>
+                  <input type="text" id="cin" name="CIN_or_LLPIN" placeholder="e.g. U72200KA2026PTC123456" maxlength="21" style="text-transform: uppercase; font-family: monospace;">
+                </div>
+                <span class="field-hint">21-character Corporate Identification No</span>
+              </div>
+
+              <div class="form-group">
+                <label for="gstin">20. GSTIN *</label>
+                <div class="input-wrapper">
+                  <i data-lucide="receipt" class="icon-left"></i>
+                  <input type="text" id="gstin" name="GSTIN" placeholder="e.g. 29AAACK1234F1Z5" maxlength="15" style="text-transform: uppercase; font-family: monospace;" required>
+                </div>
+                <span class="field-hint">15-character Goods & Services Tax ID</span>
+              </div>
+            </div>
+
+            <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 12px 16px; margin: 1.25rem 0; display: flex; align-items: center; gap: 12px;">
+              <div style="color: #166534;"><i data-lucide="check-circle" style="width: 22px; height: 22px;"></i></div>
+              <div style="font-size: 0.8rem; color: #166534; line-height: 1.45;">
+                <strong>Ready for Automated Onboarding:</strong> Upon submitting, your CEO profile will be provisioned with Super Admin custom claims, your organization marked <code>orgConfigured: true</code>, and your continuous sequential employee ID counter (EMP0001) initialized.
+              </div>
+            </div>
+
+            <div id="errorMessage" class="error-msg" style="display: none; margin-bottom: 1rem;"></div>
+
+            <div class="wizard-actions">
+              <button type="button" class="btn-secondary" id="btnBack4">&larr; Back</button>
+              <button type="submit" id="signupBtn" class="btn-primary" style="padding: 0.95rem 1.75rem;">
+                <span>Complete Setup & Launch Dashboard &rarr;</span>
+              </button>
+            </div>
+          </div>
+
         </form>
 
-        <div class="auth-footer">
+        <div class="auth-footer" style="margin-top: 1.75rem;">
           Already have an account? <a href="login.html">Login here</a>
         </div>
 
@@ -183,10 +769,10 @@
 
   <!-- Custom Alert Overlay -->
   <div id="customOverlay" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999;">
-    <div style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:400px; text-align:center; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+    <div style="background:white; padding:2.5rem; border-radius:24px; width:90%; max-width:440px; text-align:center; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
       <div id="alertIcon" style="color:#2563eb; margin-bottom:1.5rem; display:flex; justify-content:center;"><i data-lucide="info" style="width:40px; height:40px;"></i></div>
       <h2 id="alertTitle" style="font-size:1.5rem; font-weight:700; margin-bottom:0.5rem;">Notification</h2>
-      <p id="alertMsg" style="color:#64748b; margin-bottom:2rem; line-height:1.6;"></p>
+      <p id="alertMsg" style="color:#64748b; margin-bottom:2rem; line-height:1.6; font-size: 0.95rem;"></p>
       <button id="closeAlertBtn" style="background:#2563eb; color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer;">Understood</button>
     </div>
   </div>
@@ -194,25 +780,22 @@
   <!-- Terms & Conditions Modal -->
   <div id="termsModal" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999; padding: 1.5rem;">
     <div style="background:white; padding:2.5rem; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; text-align:left;">
-      <button onclick="closeModal('termsModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="closeModal('termsModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i data-lucide="x"></i></button>
       <h2 style="font-size:1.75rem; font-weight:800; margin-bottom:0.5rem; color:#0f172a;">Terms of Service</h2>
       <p style="font-size:0.85rem; color:#64748b; margin-bottom:1.5rem;">Effective Date: May 27, 2026</p>
       <div style="font-size:0.95rem; color:#475569; line-height:1.7; display:flex; flex-direction:column; gap:1.25rem;">
         <p>Welcome to Kylrx AI. By subscribing to our SaaS platform, your organization agrees to be bound by these Terms of Service.</p>
-        
         <div>
           <h4 style="font-weight:700; color:#0f172a; margin-bottom:0.25rem;">1. Platform License & Access</h4>
-          <p>Kylrx AI grants a non-exclusive, non-transferable, revocable license to access our platform in accordance with the features detailed in your subscribed plan (Starter, Growth, Scale, or Enterprise).</p>
+          <p>Kylrx AI grants a non-exclusive, non-transferable, revocable license to access our platform in accordance with the features detailed in your subscribed plan.</p>
         </div>
-        
         <div>
           <h4 style="font-weight:700; color:#0f172a; margin-bottom:0.25rem;">2. Data Security & Ownership</h4>
-          <p>Your organization retains complete ownership of all data submitted to the platform. Kylrx AI commits to maintaining robust backup regimes and SOC 2 security standards as outlined in our security protocol.</p>
+          <p>Your organization retains complete ownership of all data submitted to the platform. Kylrx AI commits to maintaining robust backup regimes and SOC 2 security standards.</p>
         </div>
-        
         <div>
-          <h4 style="font-weight:700; color:#0f172a; margin-bottom:0.25rem;">3. Payments, Cancellations & Service Levels</h4>
-          <p>Billing is managed on a monthly or annual cycle. Subscriptions can be upgraded, downgraded, or canceled with a 30-day notice. We offer a guaranteed 99.9% uptime SLA commit for all Scale and Enterprise instances.</p>
+          <h4 style="font-weight:700; color:#0f172a; margin-bottom:0.25rem;">3. Service Levels & Compliance</h4>
+          <p>We provide enterprise-grade availability SLAs and statutory calculation accuracy for Indian and global employment jurisdictions.</p>
         </div>
       </div>
       <button onclick="closeModal('termsModal')" style="background:#2563eb; color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; margin-top:2rem;">Close</button>
@@ -222,25 +805,18 @@
   <!-- Privacy Policy Modal -->
   <div id="privacyModal" style="position:fixed; inset:0; background:rgba(15,23,42,0.4); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999; padding: 1.5rem;">
     <div style="background:white; padding:2.5rem; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; border:1px solid #dbeafe; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1); position:relative; text-align:left;">
-      <button onclick="closeModal('privacyModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="closeModal('privacyModal')" style="position:absolute; top:1.5rem; right:1.5rem; background:transparent; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i data-lucide="x"></i></button>
       <h2 style="font-size:1.75rem; font-weight:800; margin-bottom:0.5rem; color:#0f172a;">Privacy Policy</h2>
       <p style="font-size:0.85rem; color:#64748b; margin-bottom:1.5rem;">Last Updated: May 27, 2026</p>
       <div style="font-size:0.95rem; color:#475569; line-height:1.7; display:flex; flex-direction:column; gap:1.25rem;">
-        <p>At Kylrx AI, we prioritize the confidentiality and safety of your employee and organizational data. This Privacy Policy details our data collection, usage, and security practices.</p>
-        
+        <p>At Kylrx AI, we prioritize the confidentiality and safety of your organizational and statutory tax data.</p>
         <div>
           <h4 style="font-weight:700; color:#0f172a; margin-bottom:0.25rem;">1. Information We Collect</h4>
-          <p>To deliver AI-powered HR and payroll services, we process: employee roster details, secure biometric attendance tokens (where TVC is enabled), clock-in/out stamps, leave entries, and salary calculation parameters.</p>
+          <p>To deliver AI-powered HR, tax compliance, and payroll services, we process: employer registration details (PAN, TAN, GSTIN, CIN), employee rosters, biometric attendance, and compensation parameters.</p>
         </div>
-        
         <div>
-          <h4 style="font-weight:700; color:#0f172a; margin-bottom:0.25rem;">2. Use of AI and Machine Learning</h4>
-          <p>We use automated systems to run payroll calculations, evaluate anomaly alerts, and answer questions via our AI Assistant. We do NOT use your private organizational data to train public models. All learning is strictly partitioned to your individual company instance.</p>
-        </div>
-        
-        <div>
-          <h4 style="font-weight:700; color:#0f172a; margin-bottom:0.25rem;">3. Security Framework</h4>
-          <p>We leverage advanced serverless infrastructure and high-fidelity encryption systems (AES-256 and TLS 1.3) to protect data at rest and in transit. Secure logins are supported by Single Sign-On (SSO) protocols.</p>
+          <h4 style="font-weight:700; color:#0f172a; margin-bottom:0.25rem;">2. Security Framework</h4>
+          <p>We leverage advanced serverless infrastructure and high-fidelity encryption systems (AES-256 and TLS 1.3) to protect data at rest and in transit.</p>
         </div>
       </div>
       <button onclick="closeModal('privacyModal')" style="background:#2563eb; color:white; width:100%; padding:1rem; border:none; border-radius:12px; font-weight:700; cursor:pointer; margin-top:2rem;">Close</button>
@@ -248,22 +824,36 @@
   </div>
 
   <script>
-    function showAlert(title, msg, icon='circle-info') {
+    window.customAlertCallback = null;
+    function showAlert(title, msg, icon='info') {
       document.getElementById('alertTitle').textContent = title;
       document.getElementById('alertMsg').textContent = msg;
-      document.getElementById('alertIcon').innerHTML = `<i class="fa-solid fa-${icon}"></i>`;
+      const iconBox = document.getElementById('alertIcon');
+      if (icon === 'check' || icon === 'circle-check') {
+        iconBox.innerHTML = '<i data-lucide="check-circle" style="width:40px; height:40px; color:#16a34a;"></i>';
+      } else if (icon === 'triangle-alert' || icon === 'alert-circle') {
+        iconBox.innerHTML = '<i data-lucide="alert-triangle" style="width:40px; height:40px; color:#dc2626;"></i>';
+      } else {
+        iconBox.innerHTML = '<i data-lucide="info" style="width:40px; height:40px; color:#2563eb;"></i>';
+      }
+      if (window.lucide) lucide.createIcons();
       document.getElementById('customOverlay').style.display = 'flex';
     }
 
     function closeAlert() {
       document.getElementById('customOverlay').style.display = 'none';
+      if (typeof window.customAlertCallback === 'function') {
+        const cb = window.customAlertCallback;
+        window.customAlertCallback = null;
+        cb();
+      }
     }
     
     document.getElementById('closeAlertBtn').onclick = closeAlert;
 
-    // Policy and Terms Modals Control
     function openModal(id) {
       document.getElementById(id).style.display = 'flex';
+      if (window.lucide) lucide.createIcons();
     }
     function closeModal(id) {
       document.getElementById(id).style.display = 'none';

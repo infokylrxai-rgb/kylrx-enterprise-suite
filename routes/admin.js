@@ -27,4 +27,16 @@ router.put("/employees/:id", adminController.updateEmployee);
 router.delete("/employees/:id", adminController.deleteEmployee);
 router.post("/managers", validateEmployee, adminController.createManager);
 
+// PRD Section 10: Business Unit by Employee Type Rules
+router.get("/bu-rules", adminController.getBuRules);
+router.post("/bu-rules", adminController.saveBuRule);
+
+// PRD Section 13: Employee Job Details & Official Documents
+router.get("/employees/:id/profile", adminController.getEmployeeProfile);
+router.get("/employees/:id", adminController.getEmployeeProfile);
+router.put("/employees/:id/profile", adminController.updateEmployeeProfile);
+router.post("/employees/:id/documents", adminController.uploadEmployeeDocument);
+router.delete("/employees/:id/documents/:docId", adminController.deleteEmployeeDocument);
+
 module.exports = router;
+

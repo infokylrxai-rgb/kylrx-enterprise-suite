@@ -262,4 +262,95 @@ router.get('/:id/audit-trail', (req, res) => {
     }
 });
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   QUESTION CONFIGURATION ENDPOINTS (PRD §9)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// GET /api/workflow-builder/:id/question-configs — List all question configs for a workflow
+router.get('/:id/question-configs', (req, res) => {
+    try {
+        const configs = workflowBuilderService.listQuestionConfigs(req.params.id);
+        res.status(200).json({ success: true, questionConfigs: configs });
+    } catch (err) {
+        logger.error(`[WorkflowBuilderAPI] Error fetching question configs for '${req.params.id}':`, err);
+        res.status(404).json({ success: false, error: err.message });
+    }
+});
+
+// GET /api/workflow-builder/:id/question-configs/:stageId — Get question config for a specific stage
+router.get('/:id/question-configs/:stageId', (req, res) => {
+    try {
+        const config = workflowBuilderService.getQuestionConfig(req.params.id, req.params.stageId);
+        res.status(200).json({ success: true, questionConfig: config });
+    } catch (err) {
+        logger.error(`[WorkflowBuilderAPI] Error fetching question config for '${req.params.stageId}':`, err);
+        res.status(404).json({ success: false, error: err.message });
+    }
+});
+
+// POST /api/workflow-builder/:id/question-configs/:stageId — Save question config for a specific stage
+router.post(['/:id/question-configs/:stageId', '/:id/question-configs'], (req, res) => {
+    try {
+        const stageId = req.params.stageId || req.body?.stageId;
+        const actor = req.body?.actor || 'HR Administrator';
+        if (!stageId) {
+            return res.status(400).json({ success: false, error: 'Stage ID is required.' });
+        }
+        const record = workflowBuilderService.saveQuestionConfig(req.params.id, stageId, req.body, { actor });
+        res.status(200).json({
+            success: true,
+            questionConfig: record,
+            message: `Question configuration for stage '${stageId}' saved successfully.`
+        });
+    } catch (err) {
+        logger.error(`[WorkflowBuilderAPI] Error saving question config for '${req.params.id}':`, err);
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   AUTOMATION CONFIGURATION ENDPOINTS (PRD §12)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+// GET /api/workflow-builder/:id/automations — List all automation configs for a workflow
+router.get('/:id/automations', (req, res) => {
+    try {
+        const configs = workflowBuilderService.listAutomationConfigs(req.params.id);
+        res.status(200).json({ success: true, automationConfigs: configs });
+    } catch (err) {
+        logger.error(`[WorkflowBuilderAPI] Error fetching automation configs for '${req.params.id}':`, err);
+        res.status(404).json({ success: false, error: err.message });
+    }
+});
+
+// GET /api/workflow-builder/:id/automations/:stageId — Get automation config for a specific stage
+router.get('/:id/automations/:stageId', (req, res) => {
+    try {
+        const config = workflowBuilderService.getAutomationConfig(req.params.id, req.params.stageId);
+        res.status(200).json({ success: true, automationConfig: config });
+    } catch (err) {
+        logger.error(`[WorkflowBuilderAPI] Error fetching automation config for '${req.params.stageId}':`, err);
+        res.status(404).json({ success: false, error: err.message });
+    }
+});
+
+// POST /api/workflow-builder/:id/automations/:stageId — Save automation config for a specific stage
+router.post(['/:id/automations/:stageId', '/:id/automations'], (req, res) => {
+    try {
+        const stageId = req.params.stageId || req.body?.stageId;
+        const actor = req.body?.actor || 'HR Administrator';
+        if (!stageId) {
+            return res.status(400).json({ success: false, error: 'Stage ID is required.' });
+        }
+        const record = workflowBuilderService.saveAutomationConfig(req.params.id, stageId, req.body, { actor });
+        res.status(200).json({
+            success: true,
+            automationConfig: record,
+            message: `Automation action for stage '${stageId}' saved successfully.`
+        });
+    } catch (err) {
+        logger.error(`[WorkflowBuilderAPI] Error saving automation config for '${req.params.id}':`, err);
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
 module.exports = router;
+

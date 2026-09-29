@@ -1304,9 +1304,1066 @@
         .toast.success { border-left: 4px solid var(--accent-green); }
         .toast.error { border-left: 4px solid var(--accent-red); }
         .toast.info { border-left: 4px solid var(--accent-blue); }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        /* ─── PRD §9 QUESTION CUSTOMIZATION DRAWER & CONTROLS ─── */
+        .qd-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 1200;
+            transition: opacity 0.25s ease;
+        }
+
+        .qd-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 600px;
+            max-width: 95vw;
+            height: 100vh;
+            background: #ffffff;
+            box-shadow: -8px 0 32px rgba(15, 23, 42, 0.16);
+            z-index: 1210;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #d1e7ff;
+            animation: qdSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes qdSlideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .qd-header {
+            padding: 16px 20px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .qd-header-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .qd-badge-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        }
+
+        .qd-header-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .qd-header-subtitle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+        }
+
+        .qd-stage-pill {
+            font-size: 11px;
+            font-weight: 600;
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid #bfdbfe;
+        }
+
+        .qd-stage-id {
+            font-size: 10.5px;
+            color: #64748b;
+            font-family: monospace;
+        }
+
+        .qd-close-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            color: #64748b;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .qd-close-btn:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        /* Strict Boundary Banner */
+        .qd-boundary-banner {
+            background: #f0fdf4;
+            border-bottom: 1px solid #bbf7d0;
+            padding: 10px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .qd-boundary-icon {
+            color: #16a34a;
+            font-size: 15px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .qd-boundary-title {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #15803d;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .qd-boundary-desc {
+            font-size: 10.5px;
+            color: #166534;
+            line-height: 1.35;
+            margin-top: 1px;
+        }
+
+        /* Tabs */
+        .qd-nav-tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+            padding: 0 16px;
+            gap: 4px;
+        }
+
+        .qd-tab {
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .qd-tab:hover {
+            color: #2563eb;
+        }
+
+        .qd-tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background: #ffffff;
+            font-weight: 700;
+        }
+
+        /* Drawer Body */
+        .qd-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+            background: #f8fafc;
+        }
+
+        .qd-tab-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Editor Card */
+        .qd-editor-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        }
+
+        .qd-editor-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .qd-editor-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .qd-btn-text {
+            background: none;
+            border: none;
+            font-size: 11px;
+            color: #ef4444;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .qd-btn-text:hover {
+            background: #fee2e2;
+        }
+
+        .qd-form-group {
+            margin-bottom: 12px;
+        }
+
+        .qd-form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .qd-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .qd-sublabel {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: none;
+            font-weight: 400;
+        }
+
+        .qd-required-star {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        .qd-input, .qd-select, .qd-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 12.5px;
+            color: #0f172a;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+        }
+
+        .qd-input:focus, .qd-select:focus, .qd-textarea:focus {
+            background: #ffffff;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        /* Toggle switch */
+        .qd-toggle-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            height: 36px;
+        }
+
+        .qd-toggle-switch input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .qd-toggle-slider {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 20px;
+            background-color: #cbd5e1;
+            border-radius: 20px;
+            transition: 0.2s;
+        }
+
+        .qd-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .qd-toggle-switch input:checked + .qd-toggle-slider {
+            background-color: #2563eb;
+        }
+
+        .qd-toggle-switch input:checked + .qd-toggle-slider:before {
+            transform: translateX(18px);
+        }
+
+        .qd-toggle-label {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .qd-options-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .qd-chip {
+            font-size: 11px;
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            border-radius: 4px;
+            padding: 2px 8px;
+        }
+
+        .qd-btn-add {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .qd-btn-add:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        /* Questions List */
+        .qd-list-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .qd-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .qd-list-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .qd-list-hint {
+            font-size: 10.5px;
+            color: #64748b;
+        }
+
+        .qd-questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .qd-q-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .qd-q-card:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+        }
+
+        .qd-q-card.editing {
+            border-color: #2563eb;
+            background: #eff6ff;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        .qd-q-order {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .qd-q-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .qd-q-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+
+        .qd-q-type-badge {
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .qd-badge-text { background: #e0e7ff; color: #3730a3; }
+        .qd-badge-textarea { background: #dbeafe; color: #1e40af; }
+        .qd-badge-rating { background: #fef3c7; color: #92400e; }
+        .qd-badge-select { background: #ede9fe; color: #5b21b6; }
+        .qd-badge-multiselect { background: #fae8ff; color: #86198f; }
+        .qd-badge-file { background: #ccfbf1; color: #115e59; }
+
+        .qd-q-req-badge {
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .qd-req-yes { background: #fee2e2; color: #b91c1c; }
+        .qd-req-no { background: #f1f5f9; color: #64748b; }
+
+        .qd-q-prompt {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #0f172a;
+            word-break: break-word;
+        }
+
+        .qd-q-meta {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .qd-q-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .qd-btn-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #475569;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .qd-btn-icon:hover {
+            background: #f1f5f9;
+            color: #2563eb;
+            border-color: #93c5fd;
+        }
+
+        .qd-btn-icon.delete:hover {
+            background: #fee2e2;
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+
+        .qd-btn-icon:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Live Preview Simulator */
+        .qd-preview-wrapper {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+        }
+
+        .qd-preview-device-header {
+            background: #f1f5f9;
+            padding: 8px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .qd-preview-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .qd-preview-dots span {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            display: inline-block;
+        }
+
+        .qd-preview-bar-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .qd-preview-tag {
+            font-size: 9.5px;
+            background: #dcfce7;
+            color: #15803d;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .qd-preview-form-body {
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .qd-sim-rating-grid {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .qd-sim-rating-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .qd-sim-rating-btn:hover, .qd-sim-rating-btn.active {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+            transform: scale(1.08);
+        }
+
+        .qd-sim-file-drop {
+            border: 2px dashed #93c5fd;
+            background: #f8fbff;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            color: #2563eb;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .qd-sim-file-drop:hover {
+            background: #eff6ff;
+            border-color: #2563eb;
+        }
+
+        /* Enterprise Presets Grid */
+        .qd-presets-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .qd-preset-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .qd-preset-card:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .qd-preset-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .qd-preset-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qd-preset-desc {
+            font-size: 11px;
+            color: #64748b;
+            line-height: 1.35;
+        }
+
+        .qd-preset-tags {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        /* Drawer Footer */
+        .qd-footer {
+            padding: 14px 20px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .qd-footer-right {
+            display: flex;
+            gap: 8px;
+        }
+
+        .qd-btn-primary {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+            transition: all 0.15s ease;
+        }
+
+        .qd-btn-primary:hover {
+            background: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .qd-btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .qd-btn-secondary:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        /* Canvas Node Questions Badge */
+        .node-question-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 6px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid #bfdbfe;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .node-question-badge:hover {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        /* ─── PRD §12 DIRECT AUTOMATION & WORKFLOW INTEGRATION ─── */
+        .ad-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 2100;
+        }
+
+        .ad-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 660px;
+            max-width: 95vw;
+            background: #ffffff;
+            box-shadow: -10px 0 40px rgba(15, 23, 42, 0.2);
+            z-index: 2110;
+            display: flex;
+            flex-direction: column;
+            animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #0f172a;
+        }
+
+        .ad-header {
+            padding: 16px 20px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ad-header-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ad-badge-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .ad-header-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .ad-header-subtitle {
+            font-size: 11.5px;
+            color: #64748b;
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ad-stage-pill {
+            font-weight: 700;
+            color: #047857;
+            background: #ecfdf5;
+            padding: 1px 8px;
+            border-radius: 4px;
+            border: 1px solid #a7f3d0;
+        }
+
+        .ad-boundary-banner {
+            background: #f0fdf4;
+            border-bottom: 1px solid #bbf7d0;
+            padding: 10px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .ad-boundary-icon {
+            color: #059669;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .ad-boundary-title {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #14532d;
+        }
+
+        .ad-boundary-desc {
+            font-size: 11px;
+            color: #166534;
+            line-height: 1.35;
+        }
+
+        .ad-nav-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 16px;
+            gap: 6px;
+        }
+
+        .ad-tab {
+            padding: 10px 14px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .ad-tab:hover {
+            color: #047857;
+        }
+
+        .ad-tab.active {
+            color: #047857;
+            font-weight: 700;
+            border-bottom-color: #10b981;
+            background: #ffffff;
+        }
+
+        .ad-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 20px;
+            background: #ffffff;
+        }
+
+        .ad-form-section {
+            margin-bottom: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .ad-section-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ad-form-group {
+            margin-bottom: 12px;
+        }
+
+        .ad-form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ad-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .ad-input, .ad-select, .ad-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 12.5px;
+            color: #0f172a;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+        }
+
+        .ad-input:focus, .ad-select:focus, .ad-textarea:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+
+        .ad-var-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .ad-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 10.5px;
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .ad-chip:hover {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .ad-footer {
+            padding: 14px 20px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ad-btn-primary {
+            background: #059669;
+            color: #ffffff;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
+            transition: all 0.15s ease;
+        }
+
+        .ad-btn-primary:hover {
+            background: #047857;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Canvas Node Automation Badges */
+        .node-automation-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid #a7f3d0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .node-automation-badge:hover {
+            background: #059669;
+            color: #ffffff;
+            border-color: #059669;
+        }
+
+        .node-automation-add-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 9.5px;
+            font-weight: 600;
+            border: 1px dashed #cbd5e1;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .node-automation-add-link:hover {
+            background: #f0fdf4;
+            color: #059669;
+            border-color: #86efac;
         }
     </style>
 </head>
@@ -1415,6 +2472,8 @@
             </div>
 
             <div class="header-actions">
+                <button id="btn-automation-drawer" class="btn btn-outline" style="border-color: #86efac; color: #15803d; background: #f0fdf4; font-weight: 700;" onclick="window.openAutomationDrawer()" title="Configure Direct Workflow Automations (PRD §12)"><i class="fas fa-bolt"></i> Automation</button>
+                <button id="btn-open-questions-top" class="btn btn-outline" style="border-color: #93c5fd; color: #1d4ed8;" title="Customize Questions for Selected Stage (PRD §9)"><i class="fas fa-clipboard-question"></i> Customize Questions</button>
                 <button id="btn-ai-creator" class="btn btn-ai"><i class="fas fa-wand-magic-sparkles"></i> AI Creator</button>
                 <button id="btn-new-workflow" class="btn btn-outline"><i class="fas fa-plus"></i> New Flow</button>
                 <button id="btn-save" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
@@ -1740,6 +2799,437 @@
                 <div style="display:flex; gap:8px;">
                     <button id="btn-publish-from-test" class="btn btn-success" style="display:none;"><i class="fas fa-check-double"></i> Approve & Publish</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUESTION CUSTOMIZATION SLIDE-OUT DRAWER (PRD §9) -->
+    <div id="questionDrawerOverlay" class="qd-overlay" style="display:none;" onclick="closeQuestionCustomizationDrawer()"></div>
+
+    <div id="questionDrawer" class="qd-drawer" style="display:none;">
+        <!-- Drawer Header -->
+        <div class="qd-header">
+            <div class="qd-header-title-wrap">
+                <div class="qd-badge-icon"><i class="fas fa-clipboard-question"></i></div>
+                <div>
+                    <div class="qd-header-title">Stage Question Customization</div>
+                    <div class="qd-header-subtitle">
+                        <span id="qdStageLabel" class="qd-stage-pill">Stage Name</span>
+                        <span id="qdStageId" class="qd-stage-id">stage_id</span>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="qd-close-btn" onclick="closeQuestionCustomizationDrawer()" title="Close Drawer">&times;</button>
+        </div>
+
+        <!-- Strict Architectural Boundary Notice -->
+        <div class="qd-boundary-banner">
+            <i class="fas fa-shield-halved qd-boundary-icon"></i>
+            <div>
+                <div class="qd-boundary-title">Strict Architectural Boundary (PRD §9)</div>
+                <div class="qd-boundary-desc">
+                    Customizations apply strictly to the prompts and fields presented to users. Core workflow routing, stage connections, and execution engines remain isolated and unchanged.
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer Navigation Tabs -->
+        <div class="qd-nav-tabs">
+            <button type="button" class="qd-tab active" id="qd-tab-builder" onclick="switchQdTab('builder')">
+                <i class="fas fa-list-check"></i> Question Builder (<span id="qd-question-count">0</span>)
+            </button>
+            <button type="button" class="qd-tab" id="qd-tab-preview" onclick="switchQdTab('preview')">
+                <i class="fas fa-eye"></i> Live End-User Preview
+            </button>
+            <button type="button" class="qd-tab" id="qd-tab-presets" onclick="switchQdTab('presets')">
+                <i class="fas fa-wand-magic-sparkles"></i> Enterprise Presets
+            </button>
+        </div>
+
+        <!-- Drawer Body -->
+        <div class="qd-body">
+            <!-- Tab 1: Builder -->
+            <div id="qd-content-builder" class="qd-tab-content">
+                <!-- Question Creation / Edit Box -->
+                <div class="qd-editor-card">
+                    <div class="qd-editor-card-header">
+                        <span id="qd-form-heading" class="qd-editor-title"><i class="fas fa-plus-circle"></i> Add Question</span>
+                        <button type="button" id="qd-btn-cancel-edit" class="qd-btn-text" style="display:none;" onclick="cancelQuestionEdit()">Cancel Edit</button>
+                    </div>
+
+                    <form id="qd-question-form" onsubmit="handleQuestionFormSubmit(event)">
+                        <!-- Question Prompt -->
+                        <div class="qd-form-group">
+                            <label class="qd-label" for="qd-input-prompt">
+                                Question Prompt / Label <span class="qd-required-star">*</span>
+                            </label>
+                            <input type="text" id="qd-input-prompt" class="qd-input" placeholder="e.g. What key milestones were accomplished this quarter?" required />
+                        </div>
+
+                        <!-- Grid: Type & Mandatory -->
+                        <div class="qd-form-row">
+                            <div class="qd-form-group" style="flex: 2;">
+                                <label class="qd-label" for="qd-input-type">Response Type</label>
+                                <select id="qd-input-type" class="qd-select" onchange="handleQuestionTypeChange()">
+                                    <option value="text">Short Text (Single Line)</option>
+                                    <option value="textarea">Long Text (Multi-Line Paragraph)</option>
+                                    <option value="rating">Rating Scale (Numeric / Stars)</option>
+                                    <option value="select">Single Select (Dropdown)</option>
+                                    <option value="multiselect">Multi-Select (Checkboxes)</option>
+                                    <option value="file">File Upload (Document / Attachment)</option>
+                                </select>
+                            </div>
+                            <div class="qd-form-group" style="flex: 1.2;">
+                                <label class="qd-label">Mandatory</label>
+                                <label class="qd-toggle-switch">
+                                    <input type="checkbox" id="qd-input-required" onchange="document.getElementById('qd-required-text').textContent = this.checked ? 'Required: Yes' : 'Required: No'" />
+                                    <span class="qd-toggle-slider"></span>
+                                    <span class="qd-toggle-label" id="qd-required-text">Required: No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Conditional: Rating Scale -->
+                        <div class="qd-form-group" id="qd-field-scale-group" style="display:none;">
+                            <label class="qd-label" for="qd-input-scale">Rating Scale Range</label>
+                            <select id="qd-input-scale" class="qd-select">
+                                <option value="5">1 to 5 Stars / Rating</option>
+                                <option value="10">1 to 10 Scale</option>
+                            </select>
+                        </div>
+
+                        <!-- Conditional: Options List -->
+                        <div class="qd-form-group" id="qd-field-options-group" style="display:none;">
+                            <label class="qd-label" for="qd-input-options">
+                                Options List <span class="qd-sublabel">(Comma-separated values)</span>
+                            </label>
+                            <input type="text" id="qd-input-options" class="qd-input" placeholder="e.g. Exceeded Expectations, Met Expectations, Needs Improvement" oninput="updateOptionsPreview()" />
+                            <div id="qd-options-chips-preview" class="qd-options-preview"></div>
+                        </div>
+
+                        <!-- Placeholder / Help Text -->
+                        <div class="qd-form-group">
+                            <label class="qd-label" for="qd-input-placeholder">Placeholder / Guidance Text</label>
+                            <input type="text" id="qd-input-placeholder" class="qd-input" placeholder="e.g. Summarize specific outcomes, metrics, or blockers..." />
+                        </div>
+
+                        <!-- Action Button -->
+                        <div class="qd-form-actions">
+                            <button type="submit" id="qd-btn-submit-question" class="qd-btn-add">
+                                <i class="fas fa-plus"></i> <span id="qd-submit-text">Add Question to Stage</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Staged Questions Reorderable List -->
+                <div class="qd-list-section">
+                    <div class="qd-list-header">
+                        <span class="qd-list-title"><i class="fas fa-stream"></i> Configured Questions</span>
+                        <span class="qd-list-hint">Use ▲ / ▼ to reorder</span>
+                    </div>
+                    <div id="qd-questions-list-container" class="qd-questions-list">
+                        <!-- Dynamic Question Cards -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Live Preview -->
+            <div id="qd-content-preview" class="qd-tab-content" style="display:none;">
+                <div class="qd-preview-wrapper">
+                    <div class="qd-preview-device-header">
+                        <div class="qd-preview-dots"><span></span><span></span><span></span></div>
+                        <div class="qd-preview-bar-title" id="qd-preview-title">Stage Form Preview</div>
+                        <span class="qd-preview-tag">Interactive</span>
+                    </div>
+                    <div class="qd-preview-form-body" id="qd-preview-form-container">
+                        <!-- Dynamically Rendered Form Controls -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Presets -->
+            <div id="qd-content-presets" class="qd-tab-content" style="display:none;">
+                <div class="qd-presets-grid" id="qd-presets-container">
+                    <!-- Dynamic Preset Templates -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="qd-footer">
+            <button type="button" class="qd-btn-secondary" onclick="resetStageQuestions()">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+            <div class="qd-footer-right">
+                <button type="button" class="qd-btn-secondary" onclick="closeQuestionCustomizationDrawer()">Cancel</button>
+                <button type="button" id="qd-btn-save-firestore" class="qd-btn-primary" onclick="saveQuestionsToFirestore()">
+                    <i class="fas fa-cloud-arrow-up"></i> Save to Cloud Firestore
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── PRD §12: DIRECT AUTOMATION ACTION CONFIGURATION DRAWER ─── -->
+    <div id="automationDrawerOverlay" class="ad-overlay" style="display:none;" onclick="closeAutomationDrawer()"></div>
+
+    <div id="automationDrawer" class="ad-drawer" style="display:none;">
+        <!-- Drawer Header -->
+        <div class="ad-header">
+            <div class="ad-header-title-wrap">
+                <div class="ad-badge-icon"><i class="fas fa-bolt"></i></div>
+                <div>
+                    <div class="ad-header-title">Workflow Automation Action Configuration</div>
+                    <div class="ad-header-subtitle">
+                        <span id="adStageLabel" class="ad-stage-pill">Workflow Action Binding</span>
+                        <span id="adStageId" style="font-family: monospace; font-size: 11px; color: #64748b;">(PRD §12 Direct Integration)</span>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="qd-close-btn" onclick="closeAutomationDrawer()" title="Close Drawer">&times;</button>
+        </div>
+
+        <!-- Architectural Alignment Banner -->
+        <div class="ad-boundary-banner">
+            <i class="fas fa-link ad-boundary-icon"></i>
+            <div>
+                <div class="ad-boundary-title">Direct Studio Integration & 'Workflow' Sheet Alignment (PRD §12)</div>
+                <div class="ad-boundary-desc">
+                    Configures automated actions (notifications, approval routing, webhooks, calendar events, status updates) triggered on stage transition without leaving the visual canvas. Persists directly to Cloud Firestore.
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="ad-nav-tabs">
+            <button type="button" class="ad-tab active" id="ad-tab-action" onclick="switchAdTab('action')">
+                <i class="fas fa-sliders-h"></i> Action &amp; Routing
+            </button>
+            <button type="button" class="ad-tab" id="ad-tab-template" onclick="switchAdTab('template')">
+                <i class="fas fa-code"></i> Payload &amp; Templates
+            </button>
+            <button type="button" class="ad-tab" id="ad-tab-sla" onclick="switchAdTab('sla')">
+                <i class="fas fa-clock"></i> SLA &amp; Retry Policies
+            </button>
+        </div>
+
+        <!-- Drawer Body -->
+        <div class="ad-body">
+            <!-- TAB 1: Action & Routing -->
+            <div id="ad-content-action" class="ad-tab-content">
+                <!-- Section 1: Trigger & Stage Binding -->
+                <div class="ad-form-section">
+                    <div class="ad-section-title"><i class="fas fa-crosshairs" style="color: #059669;"></i> Stage &amp; Trigger Wiring</div>
+                    
+                    <div class="ad-form-row">
+                        <div class="ad-form-group" style="flex: 1.5;">
+                            <label class="ad-label" for="ad-input-stage">Target Workflow Stage / Node</label>
+                            <select id="ad-input-stage" class="ad-select" onchange="handleAdStageSelectChange()">
+                                <!-- Dynamically populated from canvas nodes -->
+                            </select>
+                        </div>
+                        <div class="ad-form-group" style="flex: 1.5;">
+                            <label class="ad-label" for="ad-input-trigger-key">Trigger Event Key (Alert Monitor)</label>
+                            <input type="text" id="ad-input-trigger-key" class="ad-input" list="ad-trigger-key-list" placeholder="e.g. EVT_LEAVE_SUBMITTED" value="EVT_LEAVE_SUBMITTED" />
+                            <datalist id="ad-trigger-key-list">
+                                <option value="EVT_LEAVE_SUBMITTED">Leave Request Submitted</option>
+                                <option value="EVT_ABSENCE_EXCEEDED">Consecutive Absence Exceeded</option>
+                                <option value="EVT_PROBATION_EXPIRY">Probation Expiry Warning</option>
+                                <option value="EVT_RETENTION_1YR_WARNING">1-Year Retention Milestone</option>
+                                <option value="EVT_PAYROLL_SPIKE">Gross Payroll Variance Anomaly</option>
+                                <option value="EVT_POLICY_UNACKED">Policy Acknowledgement Pending</option>
+                                <option value="EVT_EXIT_PENDING">Exit Clearance 48h SLA Stagnation</option>
+                                <option value="EVT_STAGE_ENTERED">Default Stage Entry</option>
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <div class="ad-form-row">
+                        <div class="ad-form-group" style="flex: 1;">
+                            <label class="ad-label" for="ad-input-workflow-code">Workflow Code</label>
+                            <input type="text" id="ad-input-workflow-code" class="ad-input" placeholder="e.g. WF_LEAVE_APPROVAL" value="WF_LEAVE_APPROVAL" />
+                        </div>
+                        <div class="ad-form-group" style="flex: 1;">
+                            <label class="ad-label" for="ad-input-module">Module</label>
+                            <select id="ad-input-module" class="ad-select">
+                                <option value="leave_attendance">Leave &amp; Attendance</option>
+                                <option value="onboarding">Onboarding &amp; Hiring</option>
+                                <option value="payroll">Payroll &amp; Compensation</option>
+                                <option value="exit_offboarding">Exit &amp; Offboarding</option>
+                                <option value="policies">Policies &amp; Compliance</option>
+                                <option value="pms">Performance Management</option>
+                            </select>
+                        </div>
+                        <div class="ad-form-group" style="flex: 0.8;">
+                            <label class="ad-label" for="ad-input-step-no">Step No</label>
+                            <input type="number" id="ad-input-step-no" class="ad-input" min="1" max="99" value="1" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Action Type & Approver Routing -->
+                <div class="ad-form-section">
+                    <div class="ad-section-title"><i class="fas fa-bolt" style="color: #059669;"></i> Targeted Automation Action</div>
+
+                    <div class="ad-form-group">
+                        <label class="ad-label" for="ad-input-action-type">Action Type</label>
+                        <select id="ad-input-action-type" class="ad-select" onchange="handleAdActionTypeChange()">
+                            <option value="NOTIFY_AND_ROUTE">Notify &amp; Route for Approval (L1/L2 Management)</option>
+                            <option value="DISPATCH_ALERT">Dispatch Custom Multi-Channel Alert (Email / SMS / In-App)</option>
+                            <option value="ASSIGN_TASK">Assign Operational Task to Role / Department</option>
+                            <option value="TRIGGER_WEBHOOK">Execute External Webhook Call (Slack / Teams / ERP)</option>
+                            <option value="CALENDAR_REMINDER">Schedule Calendar Reminder / Meeting</option>
+                            <option value="UPDATE_RECORD_STATUS">Auto-Update Employee Record Status</option>
+                        </select>
+                    </div>
+
+                    <div class="ad-form-row">
+                        <div class="ad-form-group" style="flex: 1.5;">
+                            <label class="ad-label" for="ad-input-approver-type">Target Approver / Role</label>
+                            <select id="ad-input-approver-type" class="ad-select" onchange="handleAdApproverTypeChange()">
+                                <option value="L1_MANAGER">Reporting Manager (L1)</option>
+                                <option value="L2_MANAGER">Secondary Manager (L2)</option>
+                                <option value="HR_OPERATIONS">HR Operations Lead</option>
+                                <option value="FINANCE_CONTROLLER">Finance Controller</option>
+                                <option value="DEPARTMENT_HEAD">Department Head</option>
+                                <option value="EMPLOYEE">Target Employee</option>
+                                <option value="CUSTOM_ROLE">Custom Role Code</option>
+                            </select>
+                        </div>
+                        <div class="ad-form-group" style="flex: 1;">
+                            <label class="ad-label" for="ad-input-role-code">Approver Role Code</label>
+                            <input type="text" id="ad-input-role-code" class="ad-input" value="MGR_L1" placeholder="e.g. MGR_L1" />
+                        </div>
+                    </div>
+
+                    <div class="ad-form-group">
+                        <label class="qd-toggle-switch">
+                            <input type="checkbox" id="ad-input-mandatory" checked onchange="document.getElementById('ad-mandatory-label').textContent = this.checked ? 'Mandatory Step: Yes (Blocks execution)' : 'Mandatory Step: No (Optional / Informational)'" />
+                            <span class="qd-toggle-slider"></span>
+                            <span class="qd-toggle-label" id="ad-mandatory-label">Mandatory Step: Yes (Blocks execution)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Payload & Templates -->
+            <div id="ad-content-template" class="ad-tab-content" style="display:none;">
+                <div class="ad-form-section">
+                    <div class="ad-section-title"><i class="fas fa-file-code" style="color: #059669;"></i> Dynamic Notification &amp; Payload Template</div>
+
+                    <div class="ad-form-group">
+                        <label class="ad-label" for="ad-input-template-subject">Notification Subject / Alert Headline</label>
+                        <input type="text" id="ad-input-template-subject" class="ad-input" placeholder="e.g. Action Required: Leave request for {{employeeName}}" value="Action Required: {{transactionType}} pending review for {{employeeName}}" />
+                    </div>
+
+                    <div class="ad-form-group">
+                        <label class="ad-label" for="ad-input-template-body">
+                            Payload / Message Template <span style="color: #64748b; font-weight: normal;">(Supports dynamic variables)</span>
+                        </label>
+                        <textarea id="ad-input-template-body" class="ad-textarea" rows="5" placeholder="Enter message with variable placeholders...">Leave request pending review for {{employeeName}} (Department: {{department}}). Please verify attendance records and approve via {{approvalLink}}.</textarea>
+                        
+                        <div style="margin-top: 8px;">
+                            <span style="font-size: 10.5px; font-weight: 700; color: #475569; text-transform: uppercase;">Click to Insert Variable Placeholder:</span>
+                            <div class="ad-var-chips">
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{employeeName}}')">{{employeeName}}</span>
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{employeeId}}')">{{employeeId}}</span>
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{department}}')">{{department}}</span>
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{reportingManager}}')">{{reportingManager}}</span>
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{stepNo}}')">{{stepNo}}</span>
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{slaHours}}')">{{slaHours}}</span>
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{slaDeadline}}')">{{slaDeadline}}</span>
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{approvalLink}}')">{{approvalLink}}</span>
+                                <span class="ad-chip" onclick="insertVariableIntoTemplate('{{transactionType}}')">{{transactionType}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conditional: Webhook Endpoint -->
+                <div class="ad-form-section" id="ad-webhook-section" style="display:none;">
+                    <div class="ad-section-title"><i class="fas fa-network-wired" style="color: #059669;"></i> Outbound Webhook Configuration</div>
+                    <div class="ad-form-group">
+                        <label class="ad-label" for="ad-input-webhook-url">Destination Webhook URL</label>
+                        <input type="url" id="ad-input-webhook-url" class="ad-input" placeholder="https://hooks.slack.com/services/..." value="https://hooks.slack.com/services/T00/B00/workflow-events" />
+                    </div>
+                    <div class="ad-form-group">
+                        <label class="ad-label" for="ad-input-webhook-headers">Custom HTTP Headers (JSON)</label>
+                        <input type="text" id="ad-input-webhook-headers" class="ad-input" placeholder='{"Authorization": "Bearer token"}' value='{"Content-Type": "application/json"}' />
+                    </div>
+                </div>
+
+                <!-- Conditional: Status Mutation -->
+                <div class="ad-form-section" id="ad-status-mutation-section" style="display:none;">
+                    <div class="ad-section-title"><i class="fas fa-user-pen" style="color: #059669;"></i> Employee / Record Status Mutation</div>
+                    <div class="ad-form-row">
+                        <div class="ad-form-group" style="flex: 1;">
+                            <label class="ad-label" for="ad-input-status-field">Target Field</label>
+                            <input type="text" id="ad-input-status-field" class="ad-input" value="employmentStatus" placeholder="e.g. employmentStatus" />
+                        </div>
+                        <div class="ad-form-group" style="flex: 1;">
+                            <label class="ad-label" for="ad-input-status-value">Target Value</label>
+                            <select id="ad-input-status-value" class="ad-select">
+                                <option value="ACTIVE">ACTIVE</option>
+                                <option value="ON_LEAVE">ON_LEAVE</option>
+                                <option value="PROBATION_CONFIRMED">PROBATION_CONFIRMED</option>
+                                <option value="CLEARANCE_INITIATED">CLEARANCE_INITIATED</option>
+                                <option value="OFFBOARDED">OFFBOARDED</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: SLA & Retry Policies -->
+            <div id="ad-content-sla" class="ad-tab-content" style="display:none;">
+                <div class="ad-form-section">
+                    <div class="ad-section-title"><i class="fas fa-stopwatch" style="color: #059669;"></i> SLA Timers &amp; Escalation Gate</div>
+
+                    <div class="ad-form-row">
+                        <div class="ad-form-group" style="flex: 1;">
+                            <label class="ad-label" for="ad-input-sla-hours">SLA Deadline (Hours)</label>
+                            <input type="number" id="ad-input-sla-hours" class="ad-input" min="1" max="720" value="24" />
+                        </div>
+                        <div class="ad-form-group" style="flex: 1.5;">
+                            <label class="ad-label" for="ad-input-escalation-action">Escalation Action on Timeout</label>
+                            <select id="ad-input-escalation-action" class="ad-select">
+                                <option value="AUTO_ESCALATE_TO_L2">Auto-Escalate to L2 Manager</option>
+                                <option value="ESCALATE_TO_HRBP">Escalate to Department HRBP</option>
+                                <option value="NOTIFY_ADMIN">Dispatch Warning to Super Admin</option>
+                                <option value="AUTO_APPROVE">Auto-Approve Transaction</option>
+                                <option value="AUTO_REJECT">Auto-Reject / Halt Workflow</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ad-form-section">
+                    <div class="ad-section-title"><i class="fas fa-rotate" style="color: #059669;"></i> Automatic Retry Rules</div>
+
+                    <div class="ad-form-row">
+                        <div class="ad-form-group" style="flex: 1;">
+                            <label class="ad-label" for="ad-input-retry-count">Max Retry Attempts</label>
+                            <input type="number" id="ad-input-retry-count" class="ad-input" min="0" max="10" value="3" />
+                        </div>
+                        <div class="ad-form-group" style="flex: 1;">
+                            <label class="ad-label" for="ad-input-retry-interval">Retry Interval (Minutes)</label>
+                            <input type="number" id="ad-input-retry-interval" class="ad-input" min="1" max="1440" value="15" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="ad-footer">
+            <button type="button" class="qd-btn-secondary" onclick="resetAutomationForm()">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="qd-btn-secondary" onclick="closeAutomationDrawer()">Cancel</button>
+                <button type="button" id="ad-btn-save-firestore" class="ad-btn-primary" onclick="saveAutomationToFirestore()">
+                    <i class="fas fa-cloud-arrow-up"></i> Save to Cloud Firestore
+                </button>
             </div>
         </div>
     </div>

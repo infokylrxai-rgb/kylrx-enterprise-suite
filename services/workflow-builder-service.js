@@ -1161,6 +1161,184 @@ class WorkflowBuilderService {
         this.executeWorkflow('wf_sample_onboarding', { name: 'Alex Mercer', department: 'Engineering' }, { actor: 'HR Automation Engine', pinnedVersion: 1 });
         this.executeWorkflow('wf_sample_exit', { name: 'Vikram Malhotra', department: 'Finance' }, { actor: 'HR Automation Engine', pinnedVersion: 1 });
     }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       QUESTION CUSTOMIZATION ENGINE (PRD §9)
+       Strict boundary: Questions apply to stage prompts without altering workflow routing
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    saveQuestionConfig(workflowId, stageId, data, options = {}) {
+        const actor = options.actor || 'HR Administrator';
+        const wf = this.workflows.get(workflowId);
+        if (!wf) {
+            throw new Error(`Workflow '${workflowId}' not found.`);
+        }
+
+        if (!this.questionConfigs) {
+            this.questionConfigs = new Map();
+        }
+
+        const configKey = `${workflowId}_${stageId}`;
+        const questions = Array.isArray(data.questions) ? data.questions.map((q, idx) => ({
+            questionId: q.questionId || `q_${Date.now()}_${idx}`,
+            prompt: q.prompt || '',
+            type: q.type || 'text',
+            required: Boolean(q.required),
+            placeholder: q.placeholder || '',
+            options: Array.isArray(q.options) ? q.options : [],
+            scale: q.scale || (q.type === 'rating' ? 5 : null),
+            order: Number.isInteger(q.order) ? q.order : idx + 1
+        })) : [];
+
+        const record = {
+            workflowId,
+            stageId,
+            stageLabel: data.stageLabel || stageId,
+            questions,
+            updatedAt: new Date().toISOString(),
+            updatedBy: actor
+        };
+
+        this.questionConfigs.set(configKey, record);
+
+        // Also merge into workflow object for portability
+        if (!wf.questionConfigs) {
+            wf.questionConfigs = {};
+        }
+        wf.questionConfigs[stageId] = record;
+
+        logger.info(`[WorkflowBuilder] Question config saved for stage '${stageId}' in workflow '${workflowId}' (${questions.length} questions).`);
+        return record;
+    }
+
+    getQuestionConfig(workflowId, stageId) {
+        if (!this.questionConfigs) {
+            this.questionConfigs = new Map();
+        }
+        const configKey = `${workflowId}_${stageId}`;
+        let record = this.questionConfigs.get(configKey);
+        if (!record) {
+            const wf = this.workflows.get(workflowId);
+            record = wf?.questionConfigs?.[stageId] || null;
+        }
+        return record || { workflowId, stageId, questions: [] };
+    }
+
+    listQuestionConfigs(workflowId) {
+        const wf = this.workflows.get(workflowId);
+        if (!wf) {
+            throw new Error(`Workflow '${workflowId}' not found.`);
+        }
+        const result = {};
+        if (wf.questionConfigs) {
+            Object.assign(result, wf.questionConfigs);
+        }
+        if (this.questionConfigs) {
+            for (const [key, val] of this.questionConfigs.entries()) {
+                if (key.startsWith(`${workflowId}_`)) {
+                    result[val.stageId] = val;
+                }
+            }
+        }
+        return result;
+    }
+
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       AUTOMATION CONFIGURATION METHODS (PRD §12)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+    saveAutomationConfig(workflowId, stageId, data = {}, options = {}) {
+        const actor = options.actor || 'HR Administrator';
+        const wf = this.workflows.get(workflowId);
+        if (!wf) {
+            throw new Error(`Workflow '${workflowId}' not found.`);
+        }
+
+        if (!this.automationConfigs) {
+            this.automationConfigs = new Map();
+        }
+
+        const configKey = `${workflowId}_${stageId}`;
+
+        const automationConfig = {
+            enabled: data.automationConfig?.enabled !== false && data.enabled !== false,
+            actionType: data.automationConfig?.actionType || data.actionType || 'NOTIFY_AND_ROUTE',
+            targetApprover: data.automationConfig?.targetApprover || data.targetApprover || data.approverType || 'L1_MANAGER',
+            approverRoleCode: data.automationConfig?.approverRoleCode || data.approverRoleCode || 'MGR_L1',
+            slaHours: Number(data.automationConfig?.slaHours || data.slaHours || 24),
+            isMandatory: data.automationConfig?.isMandatory !== undefined ? Boolean(data.automationConfig.isMandatory) : (data.isMandatory !== undefined ? Boolean(data.isMandatory) : true),
+            emailTemplate: data.automationConfig?.emailTemplate || data.emailTemplate || 'Action pending review for {{employeeName}}',
+            escalationAction: data.automationConfig?.escalationAction || data.escalationAction || 'AUTO_ESCALATE_TO_L2',
+            retryRules: data.automationConfig?.retryRules || data.retryRules || { maxRetries: 3, retryIntervalMinutes: 15 },
+            webhookConfig: data.automationConfig?.webhookConfig || data.webhookConfig || null,
+            statusMutation: data.automationConfig?.statusMutation || data.statusMutation || null,
+            calendarConfig: data.automationConfig?.calendarConfig || data.calendarConfig || null
+        };
+
+        const record = {
+            workflowId,
+            stageId,
+            stageLabel: data.stageLabel || stageId,
+            workflowCode: data.workflowCode || wf.code || `WF_${workflowId.toUpperCase()}`,
+            module: data.module || wf.module || 'leave_attendance',
+            transactionType: data.transactionType || 'WORKFLOW_TASK',
+            stepNo: Number(data.stepNo || 1),
+            approverType: automationConfig.targetApprover,
+            approverRoleCode: automationConfig.approverRoleCode,
+            slaHours: automationConfig.slaHours,
+            mandatory: automationConfig.isMandatory,
+            triggerEventKey: data.triggerEventKey || 'EVT_STAGE_ENTERED',
+            automationConfig,
+            updatedAt: new Date().toISOString(),
+            updatedBy: actor
+        };
+
+        this.automationConfigs.set(configKey, record);
+
+        if (!wf.automationConfigs) {
+            wf.automationConfigs = {};
+        }
+        wf.automationConfigs[stageId] = record;
+
+        // Synchronize top-level workflow properties per PRD §12 Firestore schema
+        wf.workflowCode = record.workflowCode;
+        wf.stepNo = record.stepNo;
+        wf.triggerEventKey = record.triggerEventKey;
+        wf.automationConfig = automationConfig;
+
+        logger.info(`[WorkflowBuilder] Automation config saved for stage '${stageId}' in workflow '${workflowId}' (${automationConfig.actionType}).`);
+        return record;
+    }
+
+    getAutomationConfig(workflowId, stageId) {
+        if (!this.automationConfigs) {
+            this.automationConfigs = new Map();
+        }
+        const configKey = `${workflowId}_${stageId}`;
+        let record = this.automationConfigs.get(configKey);
+        if (!record) {
+            const wf = this.workflows.get(workflowId);
+            record = wf?.automationConfigs?.[stageId] || null;
+        }
+        return record || null;
+    }
+
+    listAutomationConfigs(workflowId) {
+        const wf = this.workflows.get(workflowId);
+        if (!wf) {
+            throw new Error(`Workflow '${workflowId}' not found.`);
+        }
+        const result = {};
+        if (wf.automationConfigs) {
+            Object.assign(result, wf.automationConfigs);
+        }
+        if (this.automationConfigs) {
+            for (const [key, val] of this.automationConfigs.entries()) {
+                if (key.startsWith(`${workflowId}_`)) {
+                    result[val.stageId] = val;
+                }
+            }
+        }
+        return result;
+    }
 }
 
 module.exports = new WorkflowBuilderService();

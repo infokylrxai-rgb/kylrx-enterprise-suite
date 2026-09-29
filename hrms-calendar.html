@@ -619,12 +619,16 @@
                 const dayOfWeek = new Date(year, month, i).getDay();
                 const weeklyOff = localStorage.getItem('weekly_off_config') || 'sat-sun';
                 let isWeeklyOff = false;
-                if (weeklyOff === 'sat-sun') {
+                if (weeklyOff === 'none') {
+                    isWeeklyOff = false; // None: Employees can also work on Sun & Sat based on company settings
+                } else if (weeklyOff === 'sat-sun') {
                     isWeeklyOff = (dayOfWeek === 0 || dayOfWeek === 6);
-                } else if (weeklyOff === 'sun') {
+                } else if (weeklyOff === 'sun' || weeklyOff === 'sun-only') {
                     isWeeklyOff = (dayOfWeek === 0);
                 } else if (weeklyOff === 'sat') {
                     isWeeklyOff = (dayOfWeek === 6);
+                } else if (weeklyOff === 'fri-sat') {
+                    isWeeklyOff = (dayOfWeek === 5 || dayOfWeek === 6);
                 }
 
                 if (isWeeklyOff) {

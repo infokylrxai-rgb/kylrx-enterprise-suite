@@ -5,6 +5,7 @@ const automationEngine = require('../services/automation-engine');
 const eventBus = require('../services/event-bus');
 const logger = require('../utils/logger');
 const { db } = require('../config/firebase');
+const triggerRegistryService = require('../services/alert-trigger-registry-service');
 
 /**
  * Enterprise Alert Builder Route Handler
@@ -722,6 +723,47 @@ router.get('/stats', (req, res) => {
         });
     } catch (error) {
         logger.error('[AlertBuilder] Error fetching stats:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * PRD Section 11: Alert Trigger Registry & Safe AI Simulation Endpoints
+ */
+
+/**
+ * GET /api/alerts/triggers
+ * Returns all technical triggers with human-readable descriptions and sample payloads
+ */
+router.get('/triggers', (req, res) => {
+    try {
+        const triggers = triggerRegistryService.getAllTriggers();
+        res.status(200).json({
+            success: true,
+            count: triggers.length,
+            triggers
+        });
+    } catch (error) {
+        logger.error('[AlertBuilder] Error fetching trigger registry:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/alerts/simulate
+ * Sandboxed Dry-Run Guarantee: Executes evaluation rules without writing changes to Firestore,
+ * mutating employee records, dispatching emails/SMS, or executing external webhooks.
+ */
+router.post('/simulate', (req, res) => {
+    try {
+        const { eventKey, payload, options } = req.body;
+        if (!eventKey) {
+            return res.status(400).json({ success: false, error: 'eventKey is required for simulation.' });
+        }
+        const simulationResult = triggerRegistryService.runSandboxedDryRun(eventKey, payload || {}, options || {});
+        res.status(200).json(simulationResult);
+    } catch (error) {
+        logger.error('[AlertBuilder] Error in AI simulation sandbox:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });

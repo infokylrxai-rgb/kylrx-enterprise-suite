@@ -1,10 +1,730 @@
 import { db } from "./firebase-config.js";
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc, limit, orderBy } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { 
+    collection, 
+    doc, 
+    setDoc, 
+    updateDoc, 
+    serverTimestamp, 
+    getDoc, 
+    query, 
+    where, 
+    getDocs, 
+    addDoc, 
+    limit, 
+    orderBy,
+    arrayUnion,
+    deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 /**
- * Enterprise Performance Management (PMS) Service
- * Handles Tasks, EOD Summaries, Scoring, and Productivity Engine.
+ * ============================================================================
+ * Enterprise Performance Management System (PMS) Engine - PRD Section 8
+ * Strict Schema:
+ *   1. pms_cycles/{cycleId}: { cycleName, cycleType, startDate, endDate, status, createdBy, createdAt }
+ *   2. pms_tasks/{taskId}: { cycleId, employeeId, assignedBy, title, description, status, reviewStatus, feedback, createdAt, completedAt }
+ *   3. pms_reviews/{reviewId}: { cycleId, employeeId, reviewerId, delegatedTo, delegationHistory: [], overallScore, status }
+ * ============================================================================
  */
+
+/* ========================================================================== */
+/* SECTION 8.1: SUPER ADMIN PMS CYCLE ENGINE                                   */
+/* ========================================================================== */
+
+/**
+ * Creates and schedules a new PMS cycle.
+ * Supported cycle types: 'Quarterly' | 'Biannual' | 'Annual' | 'Custom'
+ */
+export async function createPMSCycle({ cycleName, cycleType = 'Quarterly', startDate, endDate, status = 'scheduled', createdBy = 'Super Admin', attachments = [] }) {
+    console.log(`[PMS Engine] Creating cycle "${cycleName}" (${cycleType})...`);
+    try {
+        const cycleId = `CYCLE-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+        const cycleRef = doc(db, 'pms_cycles', cycleId);
+
+        const payload = {
+            cycleId,
+            cycleName: cycleName.trim(),
+            cycleType, // 'Quarterly', 'Biannual', 'Annual', 'Custom'
+            startDate,
+            endDate,
+            status, // 'scheduled' | 'active' | 'completed' | 'draft'
+            createdBy,
+            attachments: Array.isArray(attachments) ? attachments : [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+
+        await setDoc(cycleRef, payload);
+        console.log(`[PMS Engine] Cycle created: ${cycleId}`);
+        return { success: true, cycleId, cycle: payload };
+    } catch (err) {
+        console.error('[PMS Engine] Error creating PMS cycle:', err);
+        throw err;
+    }
+}
+
+/**
+ * Fetches all PMS cycles ordered by creation date.
+ */
+export async function getPMSCycles() {
+    try {
+        const cyclesRef = collection(db, 'pms_cycles');
+        const snap = await getDocs(cyclesRef);
+        const cycles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Sort desc in memory
+        return cycles.sort((a, b) => {
+            const timeA = a.createdAt?.seconds || 0;
+            const timeB = b.createdAt?.seconds || 0;
+            return timeB - timeA;
+        });
+    } catch (err) {
+        console.warn('[PMS Engine] Notice fetching cycles:', err.message);
+        return [];
+    }
+}
+
+/**
+ * Fetches the currently active PMS cycle, or null if none is active.
+ */
+export async function getActivePMSCycle() {
+    try {
+        const q = query(collection(db, 'pms_cycles'), where('status', '==', 'active'), limit(1));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            return { id: snap.docs[0].id, ...snap.docs[0].data() };
+        }
+        // Fallback: check scheduled cycles
+        const allCycles = await getPMSCycles();
+        return allCycles.find(c => c.status === 'active') || allCycles[0] || null;
+    } catch (err) {
+        console.warn('[PMS Engine] Notice finding active cycle:', err.message);
+        return null;
+    }
+}
+
+/**
+ * Updates PMS Cycle status (e.g. 'active', 'completed', 'scheduled').
+ */
+export async function updatePMSCycleStatus(cycleId, newStatus) {
+    try {
+        const cycleRef = doc(db, 'pms_cycles', cycleId);
+        await updateDoc(cycleRef, {
+            status: newStatus,
+            updatedAt: serverTimestamp()
+        });
+        return { success: true };
+    } catch (err) {
+        console.error('[PMS Engine] Error updating cycle status:', err);
+        throw err;
+    }
+}
+
+/**
+ * Rolls out a PMS Cycle:
+ * 1. Sets cycle status to 'active'.
+ * 2. Enrolls all active employees and initializes their pms_reviews document.
+ * 3. Automatically dispatches in-app notifications to each employee.
+ * 4. Automatically triggers email alerts to each employee via POST /api/email/send.
+ */
+export async function rolloutPMSCycle(cycleId) {
+    console.log(`[PMS Engine] Initiating cycle rollout for ${cycleId}...`);
+    try {
+        const cycleDoc = await getDoc(doc(db, 'pms_cycles', cycleId));
+        if (!cycleDoc.exists()) {
+            throw new Error(`Cycle ${cycleId} not found.`);
+        }
+        const cycleData = cycleDoc.data();
+
+        // 1. Mark cycle as active
+        await updateDoc(doc(db, 'pms_cycles', cycleId), {
+            status: 'active',
+            rolledOutAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        // 2. Query all enrolled employees from employees and users collections
+        const enrolledEmployees = await getEnrolledEmployees();
+        console.log(`[PMS Engine] Enrolled employee count: ${enrolledEmployees.length}`);
+
+        const notificationResults = [];
+        const emailResults = [];
+
+        // 3. For each employee, create initial pms_reviews and dispatch alerts
+        for (const emp of enrolledEmployees) {
+            const empId = emp.employeeId || emp.id || emp.uid;
+            const empName = emp.name || emp.fullName || 'Employee';
+            const empEmail = emp.email || emp.officialEmail || '';
+            const reviewerId = emp.reportingManager || emp.l1Manager || 'MANAGER-DEFAULT';
+
+            // Ensure pms_reviews document exists for this cycle & employee
+            const reviewId = `REV-${cycleId}-${empId}`;
+            const reviewRef = doc(db, 'pms_reviews', reviewId);
+            const reviewSnap = await getDoc(reviewRef);
+
+            if (!reviewSnap.exists()) {
+                await setDoc(reviewRef, {
+                    reviewId,
+                    cycleId,
+                    employeeId: empId,
+                    employeeName: empName,
+                    employeeEmail: empEmail,
+                    reviewerId: reviewerId,
+                    delegatedTo: null,
+                    delegationHistory: [],
+                    overallScore: 0,
+                    status: 'in_progress', // 'in_progress' | 'submitted' | 'reviewed'
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+            }
+
+            // In-app Notification dispatch
+            try {
+                await addDoc(collection(db, 'notifications'), {
+                    target: empId,
+                    targetUid: emp.uid || empId,
+                    title: `PMS Review Cycle Rolled Out: ${cycleData.cycleName}`,
+                    text: `Performance cycle "${cycleData.cycleName}" (${cycleData.startDate || 'Immediate'} to ${cycleData.endDate || 'TBD'}) is now active. Please log your deliverables and tasks.`,
+                    message: `Performance cycle "${cycleData.cycleName}" is now active. Please log your deliverables and tasks.`,
+                    priority: 'high',
+                    type: 'pms_cycle_rollout',
+                    cycleId: cycleId,
+                    read: false,
+                    timestamp: serverTimestamp(),
+                    createdAt: serverTimestamp()
+                });
+                notificationResults.push({ employeeId: empId, status: 'dispatched' });
+            } catch (notifErr) {
+                console.warn(`[PMS Engine] In-app notification error for ${empId}:`, notifErr.message);
+            }
+
+            // Email Notification trigger via /api/email/send
+            if (empEmail && empEmail.includes('@')) {
+                try {
+                    const emailPayload = {
+                        to: empEmail,
+                        subject: `Action Required: ${cycleData.cycleName} Performance Review Cycle is Active`,
+                        html: `
+                            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                                    <div style="width: 44px; height: 44px; border-radius: 12px; background: #2563eb; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px;">K</div>
+                                    <div>
+                                        <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a;">Kylrx.ai PMS Engine</h2>
+                                        <p style="margin: 0; font-size: 13px; color: #64748b;">Enterprise Performance Management System</p>
+                                    </div>
+                                </div>
+                                <div style="padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+                                    <span style="display: inline-block; padding: 4px 10px; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">Active Cycle</span>
+                                    <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #0f172a; font-weight: 700;">${cycleData.cycleName}</h3>
+                                    <p style="margin: 0 0 16px 0; font-size: 14px; color: #475569;">
+                                        Hello <strong>${empName}</strong>, a new performance review cycle has been officially rolled out.
+                                    </p>
+                                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                        <tr><td style="padding: 6px 0; color: #64748b;"><strong>Cycle Type:</strong></td><td style="padding: 6px 0; color: #0f172a; text-align: right;">${cycleData.cycleType}</td></tr>
+                                        <tr><td style="padding: 6px 0; color: #64748b;"><strong>Start Date:</strong></td><td style="padding: 6px 0; color: #0f172a; text-align: right;">${cycleData.startDate || 'Immediate'}</td></tr>
+                                        <tr><td style="padding: 6px 0; color: #64748b;"><strong>End Date:</strong></td><td style="padding: 6px 0; color: #0f172a; text-align: right;">${cycleData.endDate || 'Open'}</td></tr>
+                                    </table>
+                                </div>
+                                <p style="font-size: 14px; color: #334155; line-height: 1.6; margin-bottom: 24px;">
+                                    Please log into your Employee Workspace to record your work logs, define self-assigned deliverables, and monitor your real-time goal completion progress.
+                                </p>
+                                <div style="text-align: center; margin-bottom: 24px;">
+                                    <a href="${typeof window !== 'undefined' ? window.location.origin : ''}/employee-appraisal.html?cycle=${cycleId}" style="display: inline-block; padding: 14px 28px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">Open PMS Dashboard &rarr;</a>
+                                </div>
+                                <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                                    Automated dispatch from Kylrx.ai Enterprise PMS Cycle Engine.
+                                </p>
+                            </div>
+                        `,
+                        text: `Hello ${empName},\n\nA new PMS review cycle "${cycleData.cycleName}" (${cycleData.cycleType}) has been rolled out.\nPeriod: ${cycleData.startDate} to ${cycleData.endDate}.\n\nPlease log in to Kylrx.ai and record your deliverables and tasks.\nAccess portal: ${typeof window !== 'undefined' ? window.location.origin : ''}/employee-appraisal.html`
+                    };
+
+                    await fetch('/api/email/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(emailPayload)
+                    });
+                    emailResults.push({ email: empEmail, status: 'sent' });
+                } catch (emailErr) {
+                    console.warn(`[PMS Engine] Email alert trigger notice for ${empEmail}:`, emailErr.message);
+                    emailResults.push({ email: empEmail, status: 'error', error: emailErr.message });
+                }
+            }
+        }
+
+        return {
+            success: true,
+            cycleId,
+            enrolledCount: enrolledEmployees.length,
+            notificationsDispatched: notificationResults.length,
+            emailsSent: emailResults.filter(e => e.status === 'sent').length
+        };
+    } catch (err) {
+        console.error('[PMS Engine] Error during cycle rollout:', err);
+        throw err;
+    }
+}
+
+/**
+ * Helper to fetch all enrolled employees from both 'employees' and 'users' collections.
+ */
+export async function getEnrolledEmployees() {
+    const candidateMap = new Map();
+
+    try {
+        const empSnap = await getDocs(collection(db, 'employees'));
+        empSnap.forEach(d => {
+            const data = d.data();
+            const id = data.employeeId || d.id;
+            candidateMap.set(id, {
+                id: d.id,
+                employeeId: id,
+                uid: data.uid || d.id,
+                name: data.name || data.fullName || 'Employee',
+                email: data.email || data.officialEmail || '',
+                role: data.role || 'employee',
+                department: data.department || data.departmentName || 'General',
+                reportingManager: data.l1Manager || data.reportingManager || '',
+                status: data.status || 'Active'
+            });
+        });
+    } catch (e) {
+        console.warn('[PMS Engine] Error loading employees collection:', e.message);
+    }
+
+    try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        usersSnap.forEach(d => {
+            const data = d.data();
+            const id = data.employeeId || d.id;
+            if (!candidateMap.has(id)) {
+                candidateMap.set(id, {
+                    id: d.id,
+                    employeeId: id,
+                    uid: d.id,
+                    name: data.name || data.fullName || 'Employee',
+                    email: data.email || data.officialEmail || '',
+                    role: data.role || 'employee',
+                    department: data.department || 'General',
+                    reportingManager: data.reportingManager || '',
+                    status: 'Active'
+                });
+            }
+        });
+    } catch (e) {
+        console.warn('[PMS Engine] Error loading users collection:', e.message);
+    }
+
+    return Array.from(candidateMap.values());
+}
+
+/* ========================================================================== */
+/* SECTION 8.2: EMPLOYEE TASK LOGGING & REAL-TIME PROGRESS TRACKING            */
+/* ========================================================================== */
+
+/**
+ * Creates a work log / task in collection `pms_tasks/{taskId}`.
+ * Schema: { cycleId, employeeId, assignedBy, title, description, status: ('pending' | 'completed'), reviewStatus: ('under_review' | 'accepted' | 'rejected'), feedback, createdAt, completedAt }
+ */
+export async function createPMSTask({ cycleId, employeeId, assignedBy, title, description, status = 'pending', reviewStatus = 'under_review', attachments = [] }) {
+    console.log(`[PMS Tasks] Creating task for employee ${employeeId}: "${title}"...`);
+    try {
+        const taskId = `PMS-TASK-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const taskRef = doc(db, 'pms_tasks', taskId);
+
+        const payload = {
+            taskId,
+            cycleId: cycleId || 'DEFAULT-CYCLE',
+            employeeId,
+            assignedBy: assignedBy || employeeId, // employeeId for self-assigned, or managerId
+            title: title.trim(),
+            description: (description || '').trim(),
+            status, // 'pending' | 'completed'
+            reviewStatus, // 'under_review' | 'accepted' | 'rejected'
+            feedback: '',
+            attachments: Array.isArray(attachments) ? attachments : [],
+            createdAt: serverTimestamp(),
+            completedAt: status === 'completed' ? serverTimestamp() : null
+        };
+
+        await setDoc(taskRef, payload);
+        return { success: true, taskId, task: payload };
+    } catch (err) {
+        console.error('[PMS Tasks] Error creating task:', err);
+        throw err;
+    }
+}
+
+/**
+ * Marks a task as completed with optional work notes.
+ * Moves the task into reviewStatus = 'under_review' and marks status = 'completed'.
+ */
+export async function completePMSTask(taskId, completionNotes = '') {
+    console.log(`[PMS Tasks] Marking task ${taskId} as completed...`);
+    try {
+        const taskRef = doc(db, 'pms_tasks', taskId);
+        const updates = {
+            status: 'completed',
+            reviewStatus: 'under_review',
+            completedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        };
+        if (completionNotes) {
+            updates.completionNotes = completionNotes.trim();
+        }
+
+        await updateDoc(taskRef, updates);
+        return { success: true };
+    } catch (err) {
+        console.error('[PMS Tasks] Error completing task:', err);
+        throw err;
+    }
+}
+
+/**
+ * Fetches all PMS tasks for a specific employee and cycle.
+ */
+export async function getPMSTasks(cycleId, employeeId) {
+    try {
+        let q;
+        if (cycleId && employeeId) {
+            q = query(
+                collection(db, 'pms_tasks'),
+                where('cycleId', '==', cycleId),
+                where('employeeId', '==', employeeId)
+            );
+        } else if (employeeId) {
+            q = query(
+                collection(db, 'pms_tasks'),
+                where('employeeId', '==', employeeId)
+            );
+        } else if (cycleId) {
+            q = query(
+                collection(db, 'pms_tasks'),
+                where('cycleId', '==', cycleId)
+            );
+        } else {
+            q = collection(db, 'pms_tasks');
+        }
+
+        const snap = await getDocs(q);
+        const tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Sort descending by creation
+        return tasks.sort((a, b) => {
+            const timeA = a.createdAt?.seconds || 0;
+            const timeB = b.createdAt?.seconds || 0;
+            return timeB - timeA;
+        });
+    } catch (err) {
+        console.warn('[PMS Tasks] Error fetching tasks:', err.message);
+        return [];
+    }
+}
+
+/**
+ * Real-time dynamic progress calculation.
+ * Strictly computes: completionPercentage = (completedTasks / totalTasks) * 100
+ */
+export function calculateCompletionPercentage(tasksOrCompleted = [], maybeTotal = null) {
+    if (typeof tasksOrCompleted === 'number' && typeof maybeTotal === 'number') {
+        if (maybeTotal === 0) return 0;
+        return Math.round(((tasksOrCompleted / maybeTotal) * 100) * 10) / 10;
+    }
+    const tasks = Array.isArray(tasksOrCompleted) ? tasksOrCompleted : [];
+    const totalTasks = tasks.length;
+    if (totalTasks === 0) {
+        return {
+            totalTasks: 0,
+            completedTasks: 0,
+            pendingTasks: 0,
+            acceptedTasks: 0,
+            rejectedTasks: 0,
+            completionPercentage: 0
+        };
+    }
+
+    const completedTasks = tasks.filter(t => t.status === 'completed').length;
+    const pendingTasks = tasks.filter(t => t.status === 'pending').length;
+    const acceptedTasks = tasks.filter(t => t.reviewStatus === 'accepted').length;
+    const rejectedTasks = tasks.filter(t => t.reviewStatus === 'rejected').length;
+
+    // Strict formula: (completedTasks / totalTasks) * 100
+    const rawPercentage = (completedTasks / totalTasks) * 100;
+    const completionPercentage = Math.round(rawPercentage * 10) / 10; // 1 decimal place, e.g. 66.7 or 100
+
+    return {
+        totalTasks,
+        completedTasks,
+        pendingTasks,
+        acceptedTasks,
+        rejectedTasks,
+        completionPercentage
+    };
+}
+
+/**
+ * Super Admin & Manager Console aliases for cross-module compatibility
+ */
+export const assignManagerDeliverable = assignGoalToTeamMember;
+export async function reviewTaskDeliverable(taskId, decision, feedback = '') {
+    if (decision === 'accepted') return await acceptPMSTask(taskId, 'Super Admin', feedback);
+    return await rejectPMSTask(taskId, 'Super Admin', feedback);
+}
+export const delegateManagerReview = delegatePMSReview;
+export async function updateTaskCompletion(taskId, markCompleted) {
+    if (markCompleted) return await completePMSTask(taskId);
+    const taskRef = doc(db, 'pms_tasks', taskId);
+    await updateDoc(taskRef, {
+        status: 'pending',
+        reviewStatus: 'under_review',
+        updatedAt: serverTimestamp()
+    });
+    return { success: true };
+}
+
+/* ========================================================================== */
+/* SECTION 8.3: MANAGER REVIEW & BINARY ACCEPT / REJECT WORKFLOWS              */
+/* ========================================================================== */
+
+/**
+ * Managers can assign specific goals/tasks directly to their team members.
+ */
+export async function assignGoalToTeamMember({ cycleId, employeeId, assignedBy, title, description, attachments = [] }) {
+    console.log(`[PMS Review] Manager ${assignedBy} assigning goal to ${employeeId}: "${title}"...`);
+    return await createPMSTask({
+        cycleId,
+        employeeId,
+        assignedBy,
+        title,
+        description,
+        status: 'pending',
+        reviewStatus: 'under_review',
+        attachments
+    });
+}
+
+/**
+ * Binary Action: ACCEPT a submitted task.
+ * Marks reviewStatus = 'accepted', logs reviewer feedback and timestamp.
+ */
+export async function acceptPMSTask(taskId, reviewerId, feedback = '') {
+    console.log(`[PMS Review] Accepting task ${taskId} by ${reviewerId}...`);
+    try {
+        const taskRef = doc(db, 'pms_tasks', taskId);
+        await updateDoc(taskRef, {
+            reviewStatus: 'accepted',
+            feedback: feedback.trim(),
+            reviewedBy: reviewerId,
+            reviewedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        // Also update review score or metrics if associated review exists
+        const taskDoc = await getDoc(taskRef);
+        if (taskDoc.exists()) {
+            const td = taskDoc.data();
+            await recomputeReviewScore(td.cycleId, td.employeeId);
+        }
+
+        return { success: true };
+    } catch (err) {
+        console.error('[PMS Review] Error accepting task:', err);
+        throw err;
+    }
+}
+
+/**
+ * Binary Action: REJECT a submitted task.
+ * Crucial rule: Moves the task back to employee's active queue:
+ * status = 'pending', reviewStatus = 'rejected', with optional reviewer remarks.
+ */
+export async function rejectPMSTask(taskId, reviewerId, feedback = '') {
+    console.log(`[PMS Review] Rejecting task ${taskId} by ${reviewerId}...`);
+    try {
+        const taskRef = doc(db, 'pms_tasks', taskId);
+        await updateDoc(taskRef, {
+            status: 'pending', // MOVES BACK TO ACTIVE QUEUE!
+            reviewStatus: 'rejected',
+            feedback: (feedback || 'Needs rework. Please check reviewer notes and re-submit.').trim(),
+            reviewedBy: reviewerId,
+            reviewedAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
+        // Notify employee of rejected task so they can revise immediately
+        const taskDoc = await getDoc(taskRef);
+        if (taskDoc.exists()) {
+            const td = taskDoc.data();
+            try {
+                await addDoc(collection(db, 'notifications'), {
+                    target: td.employeeId,
+                    targetUid: td.employeeId,
+                    title: `Task Needs Rework: ${td.title}`,
+                    text: `Your task was marked for revision by reviewer. Feedback: "${feedback || 'Needs revision'}"`,
+                    message: `Task "${td.title}" requires revisions.`,
+                    priority: 'high',
+                    type: 'pms_task_rejected',
+                    taskId,
+                    read: false,
+                    timestamp: serverTimestamp()
+                });
+            } catch (notifErr) {
+                console.warn('[PMS Review] Error dispatching rejection notification:', notifErr);
+            }
+            await recomputeReviewScore(td.cycleId, td.employeeId);
+        }
+
+        return { success: true };
+    } catch (err) {
+        console.error('[PMS Review] Error rejecting task:', err);
+        throw err;
+    }
+}
+
+/* ========================================================================== */
+/* SECTION 8.4: TRACEABLE DELEGATION & PMS ASSIGNMENT ENGINE                   */
+/* ========================================================================== */
+
+/**
+ * Allows managers to reassign / delegate their PMS review responsibilities for an
+ * employee to another peer or team member.
+ * Maintains a transparent, immutable audit trail in Firestore recording:
+ * `originalManagerId`, `delegatedToId`, `delegatedAt`, and `reason`.
+ * Ensures reassignment updates are immediately visible on the review cards.
+ */
+export async function delegatePMSReview({ reviewId, cycleId, employeeId, originalManagerId, delegatedToId, delegatedToName = '', delegatedByName = '', reason }) {
+    console.log(`[PMS Delegation] Delegating review for employee ${employeeId} from ${originalManagerId} to ${delegatedToId}...`);
+    try {
+        let targetDocId = reviewId;
+        if (!targetDocId && cycleId && employeeId) {
+            targetDocId = `REV-${cycleId}-${employeeId}`;
+        }
+
+        let reviewRef = doc(db, 'pms_reviews', targetDocId);
+        let reviewSnap = await getDoc(reviewRef);
+
+        const nowIso = new Date().toISOString();
+        const delegationRecord = {
+            originalManagerId: originalManagerId || 'MANAGER-ORIG',
+            delegatedToId: delegatedToId,
+            delegatedToName: delegatedToName || delegatedToId,
+            delegatedByName: delegatedByName || originalManagerId,
+            delegatedAt: nowIso,
+            reason: (reason || 'Operational reassignment / peer review delegation').trim()
+        };
+
+        if (!reviewSnap.exists()) {
+            // Create review doc if not yet existing
+            await setDoc(reviewRef, {
+                reviewId: targetDocId,
+                cycleId: cycleId || 'DEFAULT',
+                employeeId,
+                reviewerId: originalManagerId,
+                delegatedTo: delegatedToId,
+                delegationHistory: [delegationRecord],
+                overallScore: 0,
+                status: 'in_progress',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        } else {
+            // Append to immutable delegationHistory and update delegatedTo
+            await updateDoc(reviewRef, {
+                delegatedTo: delegatedToId,
+                delegationHistory: arrayUnion(delegationRecord),
+                updatedAt: serverTimestamp()
+            });
+        }
+
+        // Notify the newly delegated reviewer
+        try {
+            await addDoc(collection(db, 'notifications'), {
+                target: delegatedToId,
+                targetUid: delegatedToId,
+                title: 'PMS Review Delegated to You',
+                text: `${delegatedByName || 'A peer manager'} delegated performance review responsibility for employee ${employeeId} to you. Reason: ${reason}`,
+                message: `PMS Review responsibility delegated to you.`,
+                priority: 'normal',
+                type: 'pms_review_delegated',
+                read: false,
+                timestamp: serverTimestamp()
+            });
+        } catch (notifErr) {
+            console.warn('[PMS Delegation] Error dispatching delegation notice:', notifErr);
+        }
+
+        console.log(`[PMS Delegation] Delegation successfully recorded with immutable audit entry.`);
+        return { success: true, delegationRecord };
+    } catch (err) {
+        console.error('[PMS Delegation] Failed to delegate review:', err);
+        throw err;
+    }
+}
+
+/**
+ * Fetches PMS reviews for a cycle and manager, including delegated responsibilities.
+ */
+export async function getPMSReviews(cycleId, managerId) {
+    try {
+        const reviewsRef = collection(db, 'pms_reviews');
+        let reviewsSnap;
+
+        if (cycleId) {
+            const q = query(reviewsRef, where('cycleId', '==', cycleId));
+            reviewsSnap = await getDocs(q);
+        } else {
+            reviewsSnap = await getDocs(reviewsRef);
+        }
+
+        let allReviews = reviewsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Filter for reviews assigned directly OR delegated to this manager
+        if (managerId && managerId !== 'admin' && managerId !== 'superadmin') {
+            allReviews = allReviews.filter(r => 
+                r.reviewerId === managerId || 
+                r.delegatedTo === managerId || 
+                (r.delegationHistory && r.delegationHistory.some(dh => dh.delegatedToId === managerId))
+            );
+        }
+
+        return allReviews;
+    } catch (err) {
+        console.warn('[PMS Reviews] Error fetching reviews:', err.message);
+        return [];
+    }
+}
+
+/**
+ * Helper to recompute overallScore for an employee in pms_reviews based on accepted tasks.
+ */
+async function recomputeReviewScore(cycleId, employeeId) {
+    try {
+        const reviewId = `REV-${cycleId}-${employeeId}`;
+        const reviewRef = doc(db, 'pms_reviews', reviewId);
+        const reviewSnap = await getDoc(reviewRef);
+        if (!reviewSnap.exists()) return;
+
+        const tasks = await getPMSTasks(cycleId, employeeId);
+        const { completionPercentage, totalTasks, acceptedTasks } = calculateCompletionPercentage(tasks);
+
+        // Overall score calculated based on percentage of accepted tasks
+        const score = totalTasks > 0 ? Math.round((acceptedTasks / totalTasks) * 100) : 0;
+
+        await updateDoc(reviewRef, {
+            overallScore: score,
+            completionPercentage,
+            updatedAt: serverTimestamp()
+        });
+    } catch (e) {
+        console.warn('[PMS Review] Recompute score notice:', e.message);
+    }
+}
+
+/* ========================================================================== */
+/* EXISTING PMS SERVICE FUNCTIONS (PRESERVED FOR BACKWARD COMPATIBILITY)       */
+/* ========================================================================== */
+
 
 export async function submitTask(employeeId, taskData) {
     console.log(`[PMS] Adding task for ${employeeId}: ${taskData.title}...`);
@@ -464,3 +1184,177 @@ export async function getOrgMetrics() {
         return { currentArr: 0, arrTarget: 100, currency: '₹' };
     }
 }
+
+export async function uploadPMSDocument({ title, category, description, fileObj, uploadedBy }) {
+    try {
+        const docId = `DOC-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const docRef = doc(db, 'pms_documents', docId);
+        const payload = {
+            docId,
+            id: docId,
+            title: title || fileObj.name,
+            category: category || 'General PMS Document',
+            description: description || '',
+            name: fileObj.name,
+            size: fileObj.size || 0,
+            sizeFormatted: fileObj.sizeFormatted || ((fileObj.size / 1024).toFixed(1) + ' KB'),
+            type: fileObj.type || 'application/octet-stream',
+            dataUrl: fileObj.dataUrl || '',
+            uploadedBy: uploadedBy || 'Super Admin',
+            createdAt: serverTimestamp(),
+            uploadedAt: new Date().toISOString()
+        };
+        await setDoc(docRef, payload);
+        console.log(`[PMS Engine] Document uploaded to pms_documents: ${docId}`);
+        return { success: true, docId, document: payload };
+    } catch (err) {
+        console.error('[PMS Engine] Error uploading PMS document:', err);
+        throw err;
+    }
+}
+
+export async function getPMSDocuments() {
+    try {
+        const snap = await getDocs(collection(db, 'pms_documents'));
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        return docs.sort((a, b) => {
+            const timeA = a.createdAt?.seconds || 0;
+            const timeB = b.createdAt?.seconds || 0;
+            return timeB - timeA;
+        });
+    } catch (err) {
+        console.warn('[PMS Engine] Error fetching pms_documents:', err.message);
+        return [];
+    }
+}
+
+export async function deletePMSDocument(docId) {
+    try {
+        await deleteDoc(doc(db, 'pms_documents', docId));
+        return { success: true };
+    } catch (err) {
+        console.error('[PMS Engine] Error deleting pms_document:', err);
+        throw err;
+    }
+}
+
+export async function addAttachmentToPMSCycle(cycleId, fileObj) {
+    try {
+        const cycleRef = doc(db, 'pms_cycles', cycleId);
+        const snap = await getDoc(cycleRef);
+        if (!snap.exists()) throw new Error(`Cycle ${cycleId} not found`);
+        const currentAtts = snap.data().attachments || [];
+        currentAtts.push(fileObj);
+        await updateDoc(cycleRef, {
+            attachments: currentAtts,
+            updatedAt: serverTimestamp()
+        });
+        return { success: true, attachments: currentAtts };
+    } catch (err) {
+        console.error('[PMS Engine] Error adding attachment to cycle:', err);
+        throw err;
+    }
+}
+
+export async function removeAttachmentFromPMSCycle(cycleId, fileIdx) {
+    try {
+        const cycleRef = doc(db, 'pms_cycles', cycleId);
+        const snap = await getDoc(cycleRef);
+        if (!snap.exists()) throw new Error(`Cycle ${cycleId} not found`);
+        const currentAtts = snap.data().attachments || [];
+        currentAtts.splice(fileIdx, 1);
+        await updateDoc(cycleRef, {
+            attachments: currentAtts,
+            updatedAt: serverTimestamp()
+        });
+        return { success: true, attachments: currentAtts };
+    } catch (err) {
+        console.error('[PMS Engine] Error removing attachment from cycle:', err);
+        throw err;
+    }
+}
+
+export async function getAllPMSUploadedFiles() {
+    try {
+        const [cycles, allTasks, pmsDocs] = await Promise.all([
+            getPMSCycles(),
+            getPMSTasks(),
+            getPMSDocuments()
+        ]);
+
+        const aggregated = [];
+
+        // 1. Files from Review Cycles
+        for (const cycle of cycles) {
+            const atts = cycle.attachments || [];
+            atts.forEach((att, idx) => {
+                aggregated.push({
+                    fileId: `att-cycle-${cycle.cycleId || cycle.id}-${idx}`,
+                    id: `att-cycle-${cycle.cycleId || cycle.id}-${idx}`,
+                    name: att.name,
+                    size: att.size,
+                    sizeFormatted: att.sizeFormatted || ((att.size / 1024).toFixed(1) + ' KB'),
+                    type: att.type || 'application/octet-stream',
+                    dataUrl: att.dataUrl,
+                    uploadedAt: att.uploadedAt || cycle.createdAt?.toDate ? cycle.createdAt.toDate().toISOString() : new Date().toISOString(),
+                    uploadedBy: cycle.createdBy || 'Super Admin',
+                    source: 'cycle',
+                    sourceId: cycle.cycleId || cycle.id,
+                    sourceTitle: cycle.cycleName || 'PMS Cycle',
+                    category: 'Review Cycle Policy / Guidelines',
+                    fileIdx: idx
+                });
+            });
+        }
+
+        // 2. Files from Tasks & Goals
+        for (const task of allTasks) {
+            const atts = task.attachments || [];
+            atts.forEach((att, idx) => {
+                const isGoal = task.type === 'goal' || task.assignedBy !== 'self';
+                aggregated.push({
+                    fileId: `att-task-${task.taskId || task.id}-${idx}`,
+                    id: `att-task-${task.taskId || task.id}-${idx}`,
+                    name: att.name,
+                    size: att.size,
+                    sizeFormatted: att.sizeFormatted || ((att.size / 1024).toFixed(1) + ' KB'),
+                    type: att.type || 'application/octet-stream',
+                    dataUrl: att.dataUrl,
+                    uploadedAt: att.uploadedAt || task.createdAt?.toDate ? task.createdAt.toDate().toISOString() : new Date().toISOString(),
+                    uploadedBy: task.assignedBy || task.employeeId || 'Employee',
+                    source: isGoal ? 'goal' : 'task',
+                    sourceId: task.taskId || task.id,
+                    sourceTitle: task.title || 'Work Task',
+                    category: isGoal ? 'Manager Goal PRD / Criteria' : 'Employee Work Log Evidence',
+                    fileIdx: idx
+                });
+            });
+        }
+
+        // 3. Standalone PMS Documents
+        for (const docItem of pmsDocs) {
+            aggregated.push({
+                fileId: `pms-doc-${docItem.id}`,
+                id: docItem.id,
+                name: docItem.name || docItem.title,
+                size: docItem.size,
+                sizeFormatted: docItem.sizeFormatted || ((docItem.size / 1024).toFixed(1) + ' KB'),
+                type: docItem.type || 'application/octet-stream',
+                dataUrl: docItem.dataUrl,
+                uploadedAt: docItem.uploadedAt || (docItem.createdAt?.toDate ? docItem.createdAt.toDate().toISOString() : new Date().toISOString()),
+                uploadedBy: docItem.uploadedBy || 'Super Admin',
+                source: 'document',
+                sourceId: docItem.id,
+                sourceTitle: docItem.title || 'PMS Document',
+                category: docItem.category || 'General PMS Document',
+                isStandaloneDoc: true
+            });
+        }
+
+        return aggregated.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    } catch (err) {
+        console.error('[PMS Engine] Error aggregating all uploaded files:', err);
+        return [];
+    }
+}
+

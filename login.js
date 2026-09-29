@@ -1,7 +1,7 @@
 import { auth, db, doc, getDoc, collection, query, where, getDocs, setDoc, serverTimestamp } from "./firebase-config.js";
 import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, signInAnonymously, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
-function getRedirectUrl(userData, role) {
+async function getRedirectUrl(userData, role) {
     if (!role) {
         throw new Error("Access denied: Account has no assigned role. Please contact HR.");
     }
@@ -10,6 +10,9 @@ function getRedirectUrl(userData, role) {
     }
     const cleanRole = (role || '').toLowerCase().replace(/[\s_-]+/g, '');
     if (cleanRole === 'superadmin' || cleanRole === 'admin') {
+        const orgId = userData?.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+        localStorage.setItem('orgId', orgId);
+        localStorage.setItem('orgConfigured', 'true');
         return 'admin-dashboard.html';
     } else if (cleanRole === 'hradmin' || cleanRole === 'hrms' || cleanRole === 'hr') {
         return 'hrms-dashboard.html';
@@ -123,8 +126,8 @@ const btnQuickEmployee = document.getElementById('btnQuickEmployee');
 
 if (btnQuickSuperAdmin) {
     btnQuickSuperAdmin.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'nandanb449@gmail.com';
-        if (passwordInput) passwordInput.value = 'Nansav@04';
+        if (emailInput) emailInput.value = 'superadmin@kylrx.ai';
+        if (passwordInput) passwordInput.value = 'Kylrx#SuperAdmin2026!Secured';
         loginBtn?.click();
     });
 }
@@ -289,11 +292,10 @@ loginForm?.addEventListener('submit', async (e) => {
       if (userDoc.exists()) {
         userData = userDoc.data();
         userData.uid = finalUid;
-      } else {
         // Check for EMP doc or query by email in users collection
         try {
           const empDoc = await getDoc(doc(db, "users", "EMP_1789151730443"));
-          if (empDoc.exists() && (empDoc.data().email === cleanEmail || empDoc.data().email === targetAuthEmail)) {
+          if (empDoc.exists() && empDoc.data().email === cleanEmail) {
             userData = empDoc.data();
             userData.uid = finalUid;
           }
@@ -301,7 +303,7 @@ loginForm?.addEventListener('submit', async (e) => {
 
         if (!userData) {
           try {
-            const q = query(collection(db, "users"), where("email", "in", [cleanEmail, targetAuthEmail, email]));
+            const q = query(collection(db, "users"), where("email", "in", [cleanEmail, email]));
             const querySnap = await getDocs(q);
             if (!querySnap.empty) {
               userData = querySnap.docs[0].data();
@@ -320,7 +322,7 @@ loginForm?.addEventListener('submit', async (e) => {
         userData = {
           uid: finalUid,
           email: email,
-          name: isSuperAdminAccount ? 'Super Admin' : (isHrAccount ? 'Savitha' : (isManagerAccount ? 'John Doe' : (cleanEmail === 'marry@gmail.com' ? 'Marry Doe' : formattedName))),
+          name: isSuperAdminAccount ? 'Nandan' : (isHrAccount ? 'Savitha' : (isManagerAccount ? 'John Doe' : (cleanEmail === 'marry@gmail.com' ? 'Marry Doe' : formattedName))),
           role: roleDetermined,
           department: deptDetermined,
           departmentName: deptDetermined,
@@ -463,7 +465,7 @@ loginForm?.addEventListener('submit', async (e) => {
       localStorage.setItem('hrms_name', 'Savitha Balraju');
     }
 
-    const redirectUrl = getRedirectUrl(userData, role);
+    const redirectUrl = await getRedirectUrl(userData, role);
     if (btnText) btnText.textContent = 'Redirecting to your workspace...';
     window.location.href = redirectUrl;
 
@@ -618,7 +620,7 @@ if (googleLoginBtn) {
             localStorage.setItem('userDept', dept);
             localStorage.setItem('employee_uid', userData.uid || 'unknown');
 
-            const redirectUrl = getRedirectUrl(userData, role);
+            const redirectUrl = await getRedirectUrl(userData, role);
             if (googleLoginBtn) googleLoginBtn.querySelector('span').textContent = 'Redirecting to your workspace...';
             window.location.href = redirectUrl;
             

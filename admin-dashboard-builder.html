@@ -510,9 +510,9 @@
         .modal {
             background: white;
             width: 100%;
-            max-width: 450px;
+            max-width: 520px;
             border-radius: 24px;
-            padding: 2.5rem;
+            padding: 2rem 2.25rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
             position: relative;
             transform: translateY(0);
@@ -1443,12 +1443,12 @@
                             command center.</p>
                     </div>
                     <div class="form-group">
-                        <label>Department Name</label>
+                        <label>Department Name <span style="color: #ef4444; font-weight: 800;">*</span></label>
                         <input type="text" class="form-input" id="deptName" placeholder="e.g. Executive Leadership"
                             required>
                     </div>
                     <div class="form-group">
-                        <label>Unit ID</label>
+                        <label>Unit ID <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">(Auto-generated)</span></label>
                         <div style="position: relative;">
                             <input type="text" class="form-input" id="unitId"
                                 style="width: 100%; padding-right: 40px; background: #f8fafc; cursor: not-allowed;"
@@ -1457,8 +1457,23 @@
                                 style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 16px; color: var(--text-muted);"></i>
                         </div>
                     </div>
+
                     <div class="form-group">
-                        <label>Deployment Target</label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                            <label style="margin-bottom: 0;">Sub-Departments <span style="color: #ef4444; font-weight: 800;">*</span></label>
+                            <span style="font-size: 0.7rem; color: var(--primary); font-weight: 700;">PRD Organization Mapping</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-input" id="subDeptInput" placeholder="Add sub-department (e.g. Frontend Platform, QA)" style="flex: 1; padding: 10px 14px; font-size: 0.88rem;">
+                            <button type="button" class="action-btn btn-edit" id="btnAddSubDept" style="padding: 10px 14px; border: none; cursor: pointer; white-space: nowrap; border-radius: 10px; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Add
+                            </button>
+                        </div>
+                        <div id="subDeptChipsContainer" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; min-height: 24px;"></div>
+                        <div id="subDeptSuggestions" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Deployment Target <span style="color: #ef4444; font-weight: 800;">*</span></label>
                         <div style="display: flex; gap: 12px; margin-top: 8px;">
                             <label
                                 style="flex: 1; border: 1.5px solid var(--border); padding: 12px 14px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.25s ease;"
@@ -1908,10 +1923,106 @@
         const iconOptions = document.querySelectorAll('.icon-option');
         const deptNameInput = document.getElementById('deptName');
         const unitIdInput = document.getElementById('unitId');
+        const subDeptInput = document.getElementById('subDeptInput');
+        const btnAddSubDept = document.getElementById('btnAddSubDept');
+        const subDeptChipsContainer = document.getElementById('subDeptChipsContainer');
+        const subDeptSuggestions = document.getElementById('subDeptSuggestions');
         const loadingState = document.getElementById('loadingState');
         const deployBtn = document.getElementById('deployBtn');
 
         let editingId = null;
+        let subDepartmentsList = [];
+
+        const SUB_DEPT_SUGGESTIONS_MAP = {
+            'engineering': ['Frontend Platform & UI', 'Cloud Architecture & APIs', 'QA & Testing', 'DevOps & SRE'],
+            'tech': ['Frontend Platform & UI', 'Cloud Architecture & APIs', 'DevOps & SRE Systems'],
+            'software': ['Frontend Web & UI', 'Cloud Architecture & APIs', 'Quality Assurance'],
+            'ai': ['Foundation Models & Training', 'MLOps & Inference', 'Generative AI & Agentic R&D'],
+            'artificial': ['Foundation Models & Training', 'MLOps & Inference', 'Generative AI & Agentic R&D'],
+            'research': ['Model Evaluation & Safety', 'Synthetic Data Pipelines', 'Applied AI Systems'],
+            'hr': ['People Operations', 'Statutory Compliance & ECR', 'Talent Acquisition & Hiring', 'Payroll & Benefits'],
+            'human': ['People Operations', 'Statutory Compliance & ECR', 'Talent Acquisition & Hiring'],
+            'people': ['Culture & Talent', 'Employee Experience', 'HR Operations'],
+            'finance': ['Payroll Disbursement & Banking', 'Treasury & Tax Compliance', 'General Ledger & Audit'],
+            'accounts': ['Accounts Payable & Invoicing', 'Statutory Filing', 'Financial Reporting'],
+            'cyber': ['SOC & Threat Detection', 'Identity Governance & IAM', 'Vulnerability Management'],
+            'security': ['SOC & Threat Detection', 'Identity Governance & IAM', 'Vulnerability Management'],
+            'operations': ['Enterprise Client Operations', 'Facility Management', 'Logistics & Supply']
+        };
+
+        window.renderSubDeptChips = () => {
+            if (!subDeptChipsContainer) return;
+            if (subDepartmentsList.length === 0) {
+                subDeptChipsContainer.innerHTML = '<span style="font-size: 0.72rem; color: #ef4444; font-weight: 600;"><i data-lucide="alert-circle" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 3px;"></i>At least 1 sub-department is mandatory.</span>';
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+            subDeptChipsContainer.innerHTML = subDepartmentsList.map((sd, idx) => `
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-soft); border-radius: 8px; font-size: 0.76rem; font-weight: 700;">
+                    <span>${sd}</span>
+                    <i data-lucide="x" style="width: 13px; height: 13px; cursor: pointer; opacity: 0.75; transition: 0.2s;" onclick="removeSubDepartment(${idx})"></i>
+                </span>
+            `).join('');
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.addSubDepartment = (name) => {
+            const trimmed = (name || '').trim();
+            if (!trimmed) return;
+            if (!subDepartmentsList.includes(trimmed)) {
+                subDepartmentsList.push(trimmed);
+                renderSubDeptChips();
+            }
+            if (subDeptInput) {
+                subDeptInput.value = '';
+                subDeptInput.style.borderColor = '';
+                subDeptInput.style.boxShadow = '';
+            }
+        };
+
+        window.removeSubDepartment = (idx) => {
+            subDepartmentsList.splice(idx, 1);
+            renderSubDeptChips();
+        };
+
+        window.updateSubDeptSuggestions = (deptName) => {
+            if (!subDeptSuggestions) return;
+            const lower = (deptName || '').toLowerCase().trim();
+            if (!lower) {
+                subDeptSuggestions.innerHTML = '';
+                return;
+            }
+            let matched = [];
+            for (const [key, suggestions] of Object.entries(SUB_DEPT_SUGGESTIONS_MAP)) {
+                if (lower.includes(key)) {
+                    matched = suggestions;
+                    break;
+                }
+            }
+            if (matched.length === 0) {
+                const prefix = deptName.trim();
+                matched = [`${prefix} Core Operations`, `${prefix} Quality & Systems`];
+            }
+            subDeptSuggestions.innerHTML = `
+                <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 700; width: 100%; margin-top: 2px;">Quick Suggestions:</div>
+                ${matched.map(s => `
+                    <button type="button" onclick="addSubDepartment('${s.replace(/'/g, "\\'")}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 3px 8px; font-size: 0.7rem; color: #334155; font-weight: 600; cursor: pointer; transition: 0.15s;">
+                        + ${s}
+                    </button>
+                `).join('')}
+            `;
+        };
+
+        btnAddSubDept?.addEventListener('click', () => {
+            if (subDeptInput) addSubDepartment(subDeptInput.value);
+        });
+
+        subDeptInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addSubDepartment(subDeptInput.value);
+            }
+        });
 
         window.applyEmployeeColorLock = (isEmployee) => {
             const circles = document.querySelectorAll('#primaryColorGrid .color-circle');
@@ -2072,8 +2183,47 @@
             }
         };
 
-        // Wizard Navigation
+        // Wizard Navigation with Mandatory Field Validations
         window.nextStep = (step) => {
+            if (currentStep === 1 && step > 1) {
+                const nameVal = deptNameInput ? deptNameInput.value.trim() : '';
+                if (!nameVal) {
+                    if (deptNameInput) {
+                        deptNameInput.focus();
+                        deptNameInput.style.borderColor = '#ef4444';
+                        deptNameInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
+                    }
+                    window.showCustomAlert("Required Field Missing", "Department Name is mandatory. Please enter a Department Name to proceed.", "error");
+                    return;
+                } else if (deptNameInput) {
+                    deptNameInput.style.borderColor = '';
+                    deptNameInput.style.boxShadow = '';
+                }
+
+                // If user typed in subDeptInput without clicking Add, auto-commit it
+                if (subDeptInput && subDeptInput.value.trim() && !subDepartmentsList.includes(subDeptInput.value.trim())) {
+                    subDepartmentsList.push(subDeptInput.value.trim());
+                    renderSubDeptChips();
+                    subDeptInput.value = '';
+                    subDeptInput.style.borderColor = '';
+                    subDeptInput.style.boxShadow = '';
+                }
+
+                // Sub-Department is mandatory
+                if (subDepartmentsList.length === 0) {
+                    if (subDeptInput) {
+                        subDeptInput.focus();
+                        subDeptInput.style.borderColor = '#ef4444';
+                        subDeptInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
+                    }
+                    window.showCustomAlert("Mandatory Field Missing", "Sub-Department is mandatory. Please add at least one Sub-Department before proceeding.", "error");
+                    return;
+                } else if (subDeptInput) {
+                    subDeptInput.style.borderColor = '';
+                    subDeptInput.style.boxShadow = '';
+                }
+            }
+
             document.querySelectorAll('.modal-step').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.step-dot').forEach(d => d.classList.remove('active'));
 
@@ -2101,6 +2251,7 @@
                     <div class="summary-row"><span class="summary-label">Target:</span><span class="summary-value" style="color: var(--primary)">${targetDashboardType}</span></div>
                     <div class="summary-row"><span class="summary-label">Name:</span><span class="summary-value">${deptNameInput.value}</span></div>
                     <div class="summary-row"><span class="summary-label">ID:</span><span class="summary-value">${unitIdInput.value}</span></div>
+                    <div class="summary-row"><span class="summary-label">Sub-Depts:</span><span class="summary-value">${subDepartmentsList.length > 0 ? subDepartmentsList.join(', ') : 'None configured'}</span></div>
                 </div>
             `;
 
@@ -2266,6 +2417,10 @@
         createBtn.onclick = () => {
             editingId = null;
             centerForm.reset();
+            subDepartmentsList = [];
+            renderSubDeptChips();
+            if (subDeptSuggestions) subDeptSuggestions.innerHTML = '';
+            if (subDeptInput) subDeptInput.value = '';
             deployBtn.innerHTML = 'Authorize & Deploy Unit';
             window.selectTarget('Manager');
             nextStep(1);
@@ -2278,7 +2433,7 @@
             if (e.target === modalOverlay) modalOverlay.style.display = 'none';
         }
 
-        // Auto-generate Unit ID
+        // Auto-generate Unit ID and dynamic sub-department suggestions
         deptNameInput.oninput = (e) => {
             const val = e.target.value.trim();
             if (val.length >= 3) {
@@ -2288,6 +2443,7 @@
             } else {
                 unitIdInput.value = '';
             }
+            updateSubDeptSuggestions(val);
         }
 
         iconOptions.forEach(opt => {
@@ -2307,6 +2463,9 @@
             editingId = id;
             deptNameInput.value = data.name;
             unitIdInput.value = data.unitId;
+            subDepartmentsList = Array.isArray(data.subDepartments) ? [...data.subDepartments] : (data.subDepartment ? [data.subDepartment] : []);
+            renderSubDeptChips();
+            updateSubDeptSuggestions(data.name || '');
             selectedIcon = data.icon || 'layers';
             targetDashboardType = data.targetType || 'Manager Suite';
             selectedPrimaryColor = (targetDashboardType === 'Employee Portal') ? '#ec4899' : (data.primaryColor || '#3b82f6');
@@ -2577,7 +2736,20 @@
                 </div>
                 <div class="dept-info">
                     <h3>${displayName}</h3>
-                    <span class="dept-id-tag">${data.unitId}</span>
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                        <span class="dept-id-tag">${data.unitId}</span>
+                        ${(data.subDepartments && data.subDepartments.length > 0) ? `
+                            <span style="font-size: 0.65rem; background: #e0f2fe; color: #0284c7; padding: 2px 7px; border-radius: 6px; font-weight: 700; border: 1px solid #bae6fd;">
+                                ${data.subDepartments.length} Sub-Dept${data.subDepartments.length > 1 ? 's' : ''}
+                            </span>
+                        ` : ''}
+                    </div>
+                    ${(data.subDepartments && data.subDepartments.length > 0) ? `
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">
+                            ${data.subDepartments.slice(0, 2).map(sd => `<span style="font-size: 0.65rem; background: #f8fafc; color: #475569; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; font-weight: 600;">${sd}</span>`).join('')}
+                            ${data.subDepartments.length > 2 ? `<span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">+${data.subDepartments.length - 2} more</span>` : ''}
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="card-stats">
                     <div class="stat-item">
@@ -2644,9 +2816,16 @@
 
             const finalPrimaryColor = (targetDashboardType === 'Employee Portal') ? '#ec4899' : selectedPrimaryColor;
 
+            // Auto-collect any typed sub-department not yet added as chip
+            if (subDeptInput && subDeptInput.value.trim() && !subDepartmentsList.includes(subDeptInput.value.trim())) {
+                subDepartmentsList.push(subDeptInput.value.trim());
+            }
+
             const updatedData = {
                 name: deptNameInput.value,
                 unitId: unitIdInput.value,
+                subDepartment: subDepartmentsList[0] || '',
+                subDepartments: subDepartmentsList,
                 targetType: targetDashboardType,
                 icon: selectedIcon,
                 apps: apps,
@@ -2672,6 +2851,9 @@
                 }
                 modalOverlay.style.display = 'none';
                 centerForm.reset();
+                subDepartmentsList = [];
+                renderSubDeptChips();
+                if (subDeptSuggestions) subDeptSuggestions.innerHTML = '';
                 editingId = null;
                 nextStep(1);
             } catch (err) {

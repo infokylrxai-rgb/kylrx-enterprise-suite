@@ -1,6 +1,7 @@
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { collection, getDocs, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, getDocs, setDoc, doc, getDoc, runTransaction, serverTimestamp, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { allocateAtomicEmployeeIds } from "./services/atomic-counter-service.js";
 
 // State Management
 let state = {
@@ -121,31 +122,52 @@ onAuthStateChanged(auth, async (user) => {
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
                 data = userDoc.data();
+            } else if (user.email) {
+                const q = query(collection(db, 'users'), where('email', 'in', [user.email, user.email.toLowerCase()]));
+                const qSnap = await getDocs(q);
+                if (!qSnap.empty) {
+                    data = qSnap.docs[0].data();
+                }
             }
         } catch (err) {
-            console.warn('Admin fetch failed, using fallback.');
+            console.warn('Admin fetch failed, using fallback:', err);
         }
 
         if (!data) {
             data = {
-                name: localStorage.getItem('userName') || 'Nandan',
+                name: localStorage.getItem('userName') || localStorage.getItem('user_name') || 'Nandan',
                 role: localStorage.getItem('userRole') || 'SUPER_ADMIN'
             };
         }
 
-        // Determine user display name (avoid literal "Super Admin" placeholder)
-        let resolvedName = data.name || data.displayName || localStorage.getItem('userName');
-        if (!resolvedName || resolvedName === 'Super Admin' || resolvedName === 'superadmin' || resolvedName.includes('@')) {
-            resolvedName = 'Nandan';
+        // Determine user display name (avoid literal "Super Admin" / "Username" placeholder)
+        let resolvedName = data.name || data.displayName || user.displayName || localStorage.getItem('userName') || localStorage.getItem('user_name');
+        if (!resolvedName || resolvedName === 'Super Admin' || resolvedName === 'superadmin' || resolvedName === 'Username' || resolvedName === 'jame' || resolvedName.includes('@')) {
+            if (user?.email?.toLowerCase().includes('nandan') || user?.email === 'superadmin@kylrx.ai' || (data.role || '').toUpperCase().includes('ADMIN') || (localStorage.getItem('userRole') || '').toUpperCase().includes('ADMIN')) {
+                resolvedName = 'Nandan';
+            } else if (resolvedName && resolvedName.includes('@')) {
+                const prefix = resolvedName.split('@')[0].replace(/[._-]/g, ' ');
+                resolvedName = prefix.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'Nandan';
+            } else {
+                resolvedName = 'Nandan';
+            }
         }
 
+        // Persist resolved name
+        try {
+            localStorage.setItem('userName', resolvedName);
+            localStorage.setItem('user_name', resolvedName);
+        } catch (_) {}
+
         // Update UI
+        const firstName = resolvedName.split(' ')[0] || resolvedName;
         const welcomeUserNameEl = document.getElementById('welcomeUserName');
         if (welcomeUserNameEl) {
-            welcomeUserNameEl.textContent = resolvedName.split(' ')[0] || resolvedName;
-        } else {
-            const welcomeText = document.querySelector('.welcome-text h1');
-            if (welcomeText) welcomeText.innerHTML = `Welcome back, ${resolvedName.split(' ')[0] || resolvedName} 👋`;
+            welcomeUserNameEl.textContent = firstName;
+        }
+        const welcomeText = document.querySelector('.welcome-text h1');
+        if (welcomeText) {
+            welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${firstName}</span> 👋`;
         }
         
         // Update Profile Trigger (Top Right)
@@ -166,14 +188,19 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         if (isLoggedIn) {
-            const storedName = localStorage.getItem('userName');
-            let resolvedName = (storedName && storedName !== 'Super Admin' && storedName !== 'superadmin' && !storedName.includes('@'))
+            const storedName = localStorage.getItem('userName') || localStorage.getItem('user_name');
+            let resolvedName = (storedName && storedName !== 'Super Admin' && storedName !== 'superadmin' && storedName !== 'Username' && storedName !== 'jame' && !storedName.includes('@'))
                 ? storedName
                 : 'Nandan';
 
+            const firstName = resolvedName.split(' ')[0] || resolvedName;
             const welcomeUserNameEl = document.getElementById('welcomeUserName');
             if (welcomeUserNameEl) {
-                welcomeUserNameEl.textContent = resolvedName.split(' ')[0] || resolvedName;
+                welcomeUserNameEl.textContent = firstName;
+            }
+            const welcomeText = document.querySelector('.welcome-text h1');
+            if (welcomeText) {
+                welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${firstName}</span> 👋`;
             }
             const profileAvatar = document.querySelector('.p-avatar');
             if (profileAvatar) {
@@ -959,6 +986,7 @@ async function loadEmployees() {
 
                 renderEmployeeTable(state.employees);
                 updateStats();
+                populateManagerDropdowns();
                 localStorage.setItem('admin_employees_cache', JSON.stringify(state.employees));
             });
         }, (err) => {
@@ -968,6 +996,163 @@ async function loadEmployees() {
         console.error('Failed to load employees from Firestore:', fbError);
     }
 }
+
+// Catalog of standard enterprise sub-departments mapping to Department / Cost Center
+const SUB_DEPARTMENTS_CATALOG = [
+    // Engineering (ENG) -> Cost Center CC-ENG-101
+    { code: 'ENG-FRONTEND', name: 'Frontend Platform & UI', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'] },
+    { code: 'ENG-BACKEND', name: 'Cloud Architecture & APIs', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'] },
+    { code: 'ENG-QA', name: 'Quality Assurance & Testing', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'] },
+    { code: 'ENG-DEVOPS', name: 'DevOps & SRE Systems', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'] },
+    // AI Research & Foundation (AI-LABS) -> CC-AI-102
+    { code: 'AI-MODELS', name: 'Foundation Models & Training', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'] },
+    { code: 'AI-ENG', name: 'MLOps & Inference Infrastructure', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'] },
+    { code: 'AI-RESEARCH', name: 'Generative AI & Agentic Systems', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'] },
+    // Human Resources (HR) -> CC-HR-201
+    { code: 'HR-COMPLIANCE', name: 'Statutory Compliance & ECR', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'] },
+    { code: 'HR-OPS', name: 'People Operations & Talent Acquisition', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'] },
+    { code: 'HR-PAYROLL', name: 'Compensation, Benefits & Payroll', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'] },
+    // Finance & Accounts (FIN) -> CC-FIN-301
+    { code: 'FIN-PAYROLL', name: 'Payroll Disbursement & Banking', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'] },
+    { code: 'FIN-TAX', name: 'Treasury, Audit & Tax Compliance', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'] },
+    { code: 'FIN-ACCOUNTS', name: 'General Ledger & Financial Control', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'] },
+    // Cybersecurity & IAM (CYBER)
+    { code: 'CYBER-SEC', name: 'SOC, Threat Detection & Compliance', deptCodes: ['CYBER', 'CYBERSECURITY', 'SECURITY'] },
+    { code: 'CYBER-IAM', name: 'Identity Governance & Access Mgmt', deptCodes: ['CYBER', 'CYBERSECURITY', 'SECURITY'] },
+    // HRMS Core / Operations
+    { code: 'HRMS-CORE', name: 'HRMS Core Architecture & Security', deptCodes: ['HRMS', 'HRMS CORE (SYSTEM)', 'OPERATIONS'] },
+    { code: 'OPS-SUPPORT', name: 'Enterprise Client Operations', deptCodes: ['OPS', 'OPERATIONS', 'GENERAL'] }
+];
+
+/**
+ * Dynamically filter and populate Sub-Department dropdown based on selected Department
+ */
+function updateSubDepartmentsForSelectedDept() {
+    const deptSelect = document.getElementById('deptSelect');
+    const subDeptSelect = document.getElementById('subDeptSelect');
+    if (!subDeptSelect) return;
+
+    const selectedDeptId = deptSelect ? deptSelect.value.trim() : '';
+    if (!selectedDeptId) {
+        subDeptSelect.innerHTML = '<option value="">Select Department First</option>';
+        subDeptSelect.disabled = true;
+        return;
+    }
+
+    // Identify department details
+    let deptName = '';
+    let deptCode = '';
+    if (selectedDeptId.toLowerCase() === 'hrms') {
+        deptName = 'HRMS';
+        deptCode = 'HRMS';
+    } else {
+        const found = (state.departments || []).find(d => 
+            (d.departmentId || d.id || d.unitId || '').toLowerCase() === selectedDeptId.toLowerCase()
+        );
+        if (found) {
+            deptName = (found.name || found.departmentName || '').toUpperCase();
+            deptCode = (found.unitId || found.departmentCode || found.code || '').toUpperCase();
+        } else {
+            deptCode = selectedDeptId.toUpperCase();
+            deptName = selectedDeptId.toUpperCase();
+        }
+    }
+
+    // Filter matching sub-departments
+    let filteredSubs = SUB_DEPARTMENTS_CATALOG.filter(sub => {
+        return sub.deptCodes.some(c => 
+            deptCode.includes(c) || c.includes(deptCode) || 
+            deptName.includes(c) || c.includes(deptName)
+        );
+    });
+
+    if (filteredSubs.length === 0) {
+        filteredSubs = [
+            { code: `${deptCode || 'DEPT'}-CORE`, name: `${deptName || 'Department'} Core Operations` },
+            { code: `${deptCode || 'DEPT'}-OPS`, name: `${deptName || 'Department'} Field Operations` }
+        ];
+    }
+
+    subDeptSelect.disabled = false;
+    subDeptSelect.innerHTML = '<option value="">Select Sub-Department</option>' + 
+        filteredSubs.map(s => `<option value="${s.code}">${s.code} - ${s.name}</option>`).join('');
+}
+window.updateSubDepartmentsForSelectedDept = updateSubDepartmentsForSelectedDept;
+
+/**
+ * Fetch and populate L1 & L2 Manager selection dropdowns from active employees
+ */
+async function populateManagerDropdowns() {
+    const l1Select = document.getElementById('l1ManagerSelect');
+    const l2Select = document.getElementById('l2ManagerSelect');
+    if (!l1Select && !l2Select) return;
+
+    let candidateList = [];
+
+    try {
+        const empSnap = await getDocs(collection(db, 'employees'));
+        empSnap.forEach(d => {
+            const data = d.data();
+            candidateList.push({
+                id: d.id,
+                employeeId: data.employeeId || d.id,
+                name: data.name || data.fullName || 'Employee',
+                role: data.role || data.roleType || 'Staff',
+                designation: data.designation || data.designationCode || '',
+                status: data.status || 'Active'
+            });
+        });
+    } catch (e) {
+        console.warn('Direct employees collection query notice:', e.message);
+    }
+
+    // Merge with state.employees
+    if (state.employees && state.employees.length > 0) {
+        state.employees.forEach(emp => {
+            const id = emp.employeeId || emp.id || emp.uid;
+            if (!candidateList.some(c => c.employeeId === id || c.id === id)) {
+                candidateList.push({
+                    id: emp.id || id,
+                    employeeId: id,
+                    name: emp.name || emp.fullName || 'Employee',
+                    role: emp.role || 'Staff',
+                    designation: emp.designation || '',
+                    status: emp.status || 'Active'
+                });
+            }
+        });
+    }
+
+    // Fallback managers if list is empty
+    if (candidateList.length === 0) {
+        candidateList = [
+            { id: 'EMP0001', employeeId: 'EMP0001', name: 'Super Admin', role: 'Executive Leadership', designation: 'Executive Director', status: 'Active' },
+            { id: 'EMP0002', employeeId: 'EMP0002', name: 'John Doe', role: 'Manager', designation: 'Engineering Manager', status: 'Active' }
+        ];
+    }
+
+    // Filter active and sort
+    const activeManagers = candidateList.filter(c => c.status !== 'Terminated' && c.status !== 'Inactive');
+    activeManagers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    const optionsHtml = activeManagers.map(m => {
+        const title = m.designation ? `${m.name} (${m.designation})` : `${m.name} [${m.role}]`;
+        return `<option value="${m.employeeId}">${m.employeeId} - ${title}</option>`;
+    }).join('');
+
+    if (l1Select) {
+        const curVal = l1Select.value;
+        l1Select.innerHTML = '<option value="">Select L1 Manager</option>' + optionsHtml;
+        if (curVal) l1Select.value = curVal;
+    }
+
+    if (l2Select) {
+        const curVal = l2Select.value;
+        l2Select.innerHTML = '<option value="">None / Not Assigned</option>' + optionsHtml;
+        if (curVal) l2Select.value = curVal;
+    }
+}
+window.populateManagerDropdowns = populateManagerDropdowns;
 
 function updateDeptSelects() {
     const selects = [document.getElementById('deptSelect'), document.getElementById('filterDept')];
@@ -996,6 +1181,8 @@ function updateDeptSelects() {
             select.appendChild(opt);
         });
     });
+
+    updateSubDepartmentsForSelectedDept();
 }
 
 function updateStats() {
@@ -1205,12 +1392,30 @@ function setupEventListeners() {
         const form = document.getElementById('empForm');
         if (form) {
             form.reset();
+            if (form.employeeType) {
+                form.employeeType.value = 'FULL_TIME';
+            }
+            if (window.empTypeBuGatingHandler && typeof window.empTypeBuGatingHandler.refresh === 'function') {
+                window.empTypeBuGatingHandler.refresh();
+            }
+            if (window.populateManagerDropdowns) window.populateManagerDropdowns();
+            if (window.updateSubDepartmentsForSelectedDept) window.updateSubDepartmentsForSelectedDept();
             if (window.updateRolesForDept) window.updateRolesForDept();
             if (window.generatePassword) window.generatePassword();
-        }
-        
         openModal('empModal');
+        if (window.EmployeeProfileController && typeof window.EmployeeProfileController.resetProfileModal === 'function') {
+            window.EmployeeProfileController.resetProfileModal();
+        }
     });
+
+    // PRD Section 10: Real-time Dynamic Form Gating for Employee Type & Business Unit
+    const empTypeEl = document.getElementById('employeeTypeSelect');
+    const buSelectEl = document.getElementById('buSelect');
+    if (empTypeEl && buSelectEl && window.KylrxBuRules) {
+        window.empTypeBuGatingHandler = window.KylrxBuRules.bindEmployeeTypeAndBuGating(empTypeEl, buSelectEl, {
+            noticeContainerId: 'buMismatchNotice'
+        });
+    }
 
     // Messages button → navigate to admin-message.html
     document.getElementById('btnMessages')?.addEventListener('click', () => {
@@ -1241,8 +1446,9 @@ function setupEventListeners() {
         btn.addEventListener('click', () => closeModal(btn.dataset.close));
     });
 
-    // ── Password auto-generation on dept/role change ───────────────────────────
+    // ── Password auto-generation and dynamic subdept on dept/role change ───────
     document.getElementById('deptSelect')?.addEventListener('change', () => {
+        if (window.updateSubDepartmentsForSelectedDept) window.updateSubDepartmentsForSelectedDept();
         if (window.generatePassword) window.generatePassword();
     });
     document.getElementById('roleType')?.addEventListener('change', () => {
@@ -1484,6 +1690,16 @@ function setupEventListeners() {
         e.preventDefault();
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
+
+        // PRD Section 10: Validate Business Unit & Employee Type Combination
+        if (window.KylrxBuRules && typeof window.KylrxBuRules.isCombinationValid === 'function') {
+            const check = window.KylrxBuRules.isCombinationValid(data.businessUnitCode, data.employeeType);
+            if (!check.valid) {
+                showError('Eligibility Constraint (PRD §10)', check.error || 'The selected Business Unit is not eligible for this Employee Type.');
+                return;
+            }
+        }
+
         const email = data.email;
         const password = data.password || 'TempPass123!';
         const send_email_now = data.dispatch_action === 'email';
@@ -1511,169 +1727,362 @@ function setupEventListeners() {
             };
 
             if (data.editId) {
-                // UPDATE MODE via Backend
+                // UPDATE MODE
+                const editId = data.editId;
+                const dept = (state.departments || []).find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
+                const deptName = dept ? (dept.name || dept.departmentName) : (data.departmentId === 'hrms' ? 'HRMS Core' : 'General');
+                const deptCode = dept ? (dept.unitId || dept.departmentCode) : (data.departmentId === 'hrms' ? 'HRMS' : 'UNIT');
+                const costCenterCode = data.costCenterCode || dept?.costCenterCode || `CC-${deptCode}-101`;
+
+                const existingEmp = (state.employees || []).find(e => (e.id === editId || e.uid === editId || e.employeeId === editId));
+                const currentDocs = (window.EmployeeProfileController && typeof window.EmployeeProfileController.getCurrentDocuments === 'function')
+                    ? window.EmployeeProfileController.getCurrentDocuments()
+                    : (existingEmp?.documents || []);
+
+                const updatedEmployee = {
+                    name: data.name,
+                    fullName: data.name,
+                    email: email,
+                    role: (data.roleType || 'employee').toLowerCase(),
+                    departmentId: data.departmentId,
+                    departmentName: deptName,
+                    departmentCode: deptCode,
+                    Cost_Center_Code: costCenterCode,
+                    costCenterCode: costCenterCode,
+                    subDepartmentCode: data.subDepartmentCode || '',
+                    'Sub-Department_Code': data.subDepartmentCode || '',
+                    designation: data.designation || 'DES-SE',
+                    designationCode: data.designation || 'DES-SE',
+                    'Designation_Code': data.designation || 'DES-SE',
+                    employeeType: data.employeeType || 'FULL_TIME',
+                    'Employment_Type': data.employeeType || 'FULL_TIME',
+                    businessUnitCode: data.businessUnitCode || 'BU-TECH',
+                    'Business_Unit_Code': data.businessUnitCode || 'BU-TECH',
+                    locationCode: data.locationCode || 'LOC-BLR',
+                    'Location_Code': data.locationCode || 'LOC-BLR',
+                    shiftCode: data.shiftCode || 'SHIFT-GEN',
+                    'Shift_Code': data.shiftCode || 'SHIFT-GEN',
+                    workMode: data.workMode || 'Hybrid',
+                    'Work_Mode': data.workMode || 'Hybrid',
+                    probationEndDate: data.probationEndDate || '',
+                    'Probation_End_Date': data.probationEndDate || '',
+                    noticePeriodDays: parseInt(data.noticePeriodDays, 10) || 60,
+                    'Notice_Period_Days': parseInt(data.noticePeriodDays, 10) || 60,
+                    reportingManagerId: data.reportingManagerId || '',
+                    reportingManager: data.reportingManagerId || '',
+                    'Reporting_Manager_ID': data.reportingManagerId || '',
+                    secondaryManagerId: data.secondaryManagerId || '',
+                    'Secondary_Manager_ID': data.secondaryManagerId || '',
+                    uan: data.uan || '',
+                    'UAN': data.uan || '',
+                    pfMemberId: data.pfMemberId || '',
+                    'PF_Member_ID': data.pfMemberId || '',
+                    epfoEstablishmentId: data.epfoEstablishmentId || 'KN/BNG/0012345',
+                    esicIp: data.esicIp || '',
+                    'ESIC_IP': data.esicIp || '',
+                    esicEmployerCode: data.esicEmployerCode || '31001234560000001',
+                    dispensaryBranch: data.dispensaryBranch || 'Indiranagar Branch',
+                    pan: (data.pan || '').toUpperCase(),
+                    'PAN': (data.pan || '').toUpperCase(),
+                    aadhaarLast4: data.aadhaarLast4 || '',
+                    'Aadhaar_Last_4': data.aadhaarLast4 || '',
+                    phone: data.phone || '',
+                    salary: data.salary || '',
+                    annualSalary: data.salary || '',
+                    address: data.address || '',
+                    joiningDate: data.joiningDate || new Date().toISOString(),
+                    'Date_of_Joining': data.joiningDate || new Date().toISOString(),
+                    tempPassword: data.password || '',
+                    password: data.password || '',
+                    documents: currentDocs,
+                    jobDetails: {
+                        designationCode: data.designation || 'DES-SE',
+                        departmentCode: deptCode,
+                        subDepartmentCode: data.subDepartmentCode || '',
+                        businessUnitCode: data.businessUnitCode || 'BU-TECH',
+                        costCenterCode: costCenterCode,
+                        locationCode: data.locationCode || 'LOC-BLR',
+                        shiftCode: data.shiftCode || 'SHIFT-GEN',
+                        workMode: data.workMode || 'Hybrid',
+                        employmentCategory: data.employeeType || 'FULL_TIME',
+                        dateOfJoining: data.joiningDate || new Date().toISOString().split('T')[0],
+                        probationEndDate: data.probationEndDate || '',
+                        noticePeriodDays: parseInt(data.noticePeriodDays, 10) || 60
+                    },
+                    managers: {
+                        l1ManagerId: data.reportingManagerId || '',
+                        l2ManagerId: data.secondaryManagerId || ''
+                    },
+                    statutory: {
+                        uan: data.uan || '',
+                        pfMemberId: data.pfMemberId || '',
+                        epfoEstablishmentId: data.epfoEstablishmentId || 'KN/BNG/0012345',
+                        esicIpNumber: data.esicIp || '',
+                        esicEmployerCode: data.esicEmployerCode || '31001234560000001',
+                        dispensaryBranch: data.dispensaryBranch || 'Indiranagar Branch',
+                        pan: (data.pan || '').toUpperCase(),
+                        aadhaarLast4: data.aadhaarLast4 || ''
+                    },
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Non-blocking writes to Firestore employees/{editId} and users/{editId}
+                try {
+                    await setDoc(doc(db, "employees", editId), updatedEmployee, { merge: true });
+                    await setDoc(doc(db, "users", editId), updatedEmployee, { merge: true });
+                } catch (fsErr) {
+                    console.warn('Firestore update write notice:', fsErr.message);
+                }
+
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 3500);
-                    const response = await fetch(`http://localhost:3000/api/admin/employees/${data.editId}`, {
+                    await fetch(`http://localhost:3000/api/admin/employees/${data.editId}`, {
                         method: 'PUT',
                         signal: controller.signal,
                         headers: headers,
-                        body: JSON.stringify({
-                            name: data.name,
-                            email: email,
-                            role: (data.roleType || 'employee').toLowerCase(),
-                            departmentId: data.departmentId,
-                            phone: data.phone || '',
-                            salary: data.salary || '',
-                            address: data.address || '',
-                            joiningDate: data.joiningDate || new Date().toISOString()
-                        })
+                        body: JSON.stringify(updatedEmployee)
                     });
                     clearTimeout(timeoutId);
-                    if (!response.ok) throw new Error('Update failed');
                 } catch (err) {
                     console.warn('Backend update notice (updating local view):', err.message);
                 }
 
-                const dept = state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
-                const deptName = dept ? (dept.name || dept.departmentName) : 'General';
-                const deptCode = dept ? (dept.unitId || dept.departmentCode) : 'UNIT';
-
                 state.employees = (state.employees || []).map(emp => {
-                    if (emp.id === data.editId || emp.uid === data.editId) {
+                    if (emp.id === data.editId || emp.uid === data.editId || emp.employeeId === data.editId) {
                         return {
                             ...emp,
-                            name: data.name,
-                            email: email,
-                            role: (data.roleType || 'employee').toLowerCase(),
-                            departmentId: data.departmentId,
-                            departmentName: deptName,
-                            departmentCode: deptCode,
-                            phone: data.phone || '',
-                            salary: data.salary || '',
-                            address: data.address || '',
-                            tempPassword: data.password || emp.tempPassword || ''
+                            ...updatedEmployee,
+                            id: emp.id || editId,
+                            uid: emp.uid || editId,
+                            employeeId: emp.employeeId || editId
                         };
                     }
                     return emp;
                 });
                 renderEmployeeTable(state.employees);
                 updateStats();
+                populateManagerDropdowns();
                 localStorage.setItem('admin_employees_cache', JSON.stringify(state.employees));
 
                 showSuccess('Update Successful', `The personnel record for ${data.name} has been successfully modified.`, {});
             } else {
                 // CREATE MODE (Draft / Email)
-                let createdEmployee = null;
+                // 1. Allocate Sequential Gapless Employee ID via Atomic Counter Service
+                const orgId = localStorage.getItem('current_org_id') || localStorage.getItem('tenant_id') || 'org_kylrx';
+                let allocatedEmployeeId = null;
+
+                try {
+                    const allocResult = await allocateAtomicEmployeeIds(db, runTransaction, doc, serverTimestamp, orgId, 1, { prefix: 'EMP', padLength: 4 });
+                    if (allocResult && allocResult.assignedIds && allocResult.assignedIds.length > 0) {
+                        allocatedEmployeeId = allocResult.assignedIds[0];
+                    }
+                } catch (counterErr) {
+                    console.warn('Atomic counter allocation fallback:', counterErr.message);
+                    // Contiguous sequential calculation fallback
+                    const existingSeqNumbers = (state.employees || [])
+                        .map(e => (e.employeeId || '').match(/EMP(\d+)/i))
+                        .filter(Boolean)
+                        .map(m => parseInt(m[1], 10));
+                    const nextSeq = existingSeqNumbers.length > 0 ? Math.max(...existingSeqNumbers) + 1 : 1;
+                    allocatedEmployeeId = `EMP${String(nextSeq).padStart(4, '0')}`;
+                }
+
+                const employeeId = allocatedEmployeeId;
+                const docId = employeeId;
+                const dept = (state.departments || []).find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
+                const deptName = dept ? (dept.name || dept.departmentName) : (data.departmentId === 'hrms' ? 'HRMS Core' : 'General');
+                const deptCode = dept ? (dept.unitId || dept.departmentCode) : (data.departmentId === 'hrms' ? 'HRMS' : 'UNIT');
+                const costCenterCode = data.costCenterCode || dept?.costCenterCode || `CC-${deptCode}-101`;
+
+                const isTemporary = send_email_now;
+                const tempExpiresAt = send_email_now ? (Date.now() + 86400000) : null;
+                const status = send_email_now ? 'Invitation Sent' : 'Active';
+                const invite_status = send_email_now ? 'sent' : 'draft';
+
+                const createdDocs = (window.EmployeeProfileController && typeof window.EmployeeProfileController.getCurrentDocuments === 'function')
+                    ? window.EmployeeProfileController.getCurrentDocuments()
+                    : [];
+
+                const createdEmployee = {
+                    id: docId,
+                    uid: docId,
+                    employeeId: employeeId,
+                    name: data.name,
+                    fullName: data.name,
+                    email: email,
+                    role: (data.roleType || 'employee').toLowerCase(),
+                    departmentId: data.departmentId,
+                    departmentName: deptName,
+                    departmentCode: deptCode,
+                    Cost_Center_Code: costCenterCode,
+                    costCenterCode: costCenterCode,
+                    subDepartmentCode: data.subDepartmentCode || '',
+                    'Sub-Department_Code': data.subDepartmentCode || '',
+                    designation: data.designation || 'DES-SE',
+                    designationCode: data.designation || 'DES-SE',
+                    'Designation_Code': data.designation || 'DES-SE',
+                    employeeType: data.employeeType || 'FULL_TIME',
+                    'Employment_Type': data.employeeType || 'FULL_TIME',
+                    businessUnitCode: data.businessUnitCode || 'BU-TECH',
+                    'Business_Unit_Code': data.businessUnitCode || 'BU-TECH',
+                    locationCode: data.locationCode || 'LOC-BLR',
+                    'Location_Code': data.locationCode || 'LOC-BLR',
+                    shiftCode: data.shiftCode || 'SHIFT-GEN',
+                    'Shift_Code': data.shiftCode || 'SHIFT-GEN',
+                    workMode: data.workMode || 'Hybrid',
+                    'Work_Mode': data.workMode || 'Hybrid',
+                    probationEndDate: data.probationEndDate || '',
+                    'Probation_End_Date': data.probationEndDate || '',
+                    noticePeriodDays: parseInt(data.noticePeriodDays, 10) || 60,
+                    'Notice_Period_Days': parseInt(data.noticePeriodDays, 10) || 60,
+                    reportingManagerId: data.reportingManagerId || '',
+                    reportingManager: data.reportingManagerId || '',
+                    'Reporting_Manager_ID': data.reportingManagerId || '',
+                    secondaryManagerId: data.secondaryManagerId || '',
+                    'Secondary_Manager_ID': data.secondaryManagerId || '',
+                    uan: data.uan || '',
+                    'UAN': data.uan || '',
+                    pfMemberId: data.pfMemberId || '',
+                    'PF_Member_ID': data.pfMemberId || '',
+                    epfoEstablishmentId: data.epfoEstablishmentId || 'KN/BNG/0012345',
+                    esicIp: data.esicIp || '',
+                    'ESIC_IP': data.esicIp || '',
+                    esicEmployerCode: data.esicEmployerCode || '31001234560000001',
+                    dispensaryBranch: data.dispensaryBranch || 'Indiranagar Branch',
+                    pan: (data.pan || '').toUpperCase(),
+                    'PAN': (data.pan || '').toUpperCase(),
+                    aadhaarLast4: data.aadhaarLast4 || '',
+                    'Aadhaar_Last_4': data.aadhaarLast4 || '',
+                    phone: data.phone || '',
+                    salary: data.salary || '',
+                    annualSalary: data.salary || '',
+                    address: data.address || '',
+                    tempPassword: password,
+                    password: password,
+                    isTemporary: isTemporary,
+                    tempExpiresAt: tempExpiresAt,
+                    status: status,
+                    invite_status: invite_status,
+                    joiningDate: data.joiningDate || new Date().toISOString(),
+                    'Date_of_Joining': data.joiningDate || new Date().toISOString(),
+                    documents: createdDocs,
+                    jobDetails: {
+                        designationCode: data.designation || 'DES-SE',
+                        departmentCode: deptCode,
+                        subDepartmentCode: data.subDepartmentCode || '',
+                        businessUnitCode: data.businessUnitCode || 'BU-TECH',
+                        costCenterCode: costCenterCode,
+                        locationCode: data.locationCode || 'LOC-BLR',
+                        shiftCode: data.shiftCode || 'SHIFT-GEN',
+                        workMode: data.workMode || 'Hybrid',
+                        employmentCategory: data.employeeType || 'FULL_TIME',
+                        dateOfJoining: data.joiningDate || new Date().toISOString().split('T')[0],
+                        probationEndDate: data.probationEndDate || '',
+                        noticePeriodDays: parseInt(data.noticePeriodDays, 10) || 60
+                    },
+                    managers: {
+                        l1ManagerId: data.reportingManagerId || '',
+                        l2ManagerId: data.secondaryManagerId || ''
+                    },
+                    statutory: {
+                        uan: data.uan || '',
+                        pfMemberId: data.pfMemberId || '',
+                        epfoEstablishmentId: data.epfoEstablishmentId || 'KN/BNG/0012345',
+                        esicIpNumber: data.esicIp || '',
+                        esicEmployerCode: data.esicEmployerCode || '31001234560000001',
+                        dispensaryBranch: data.dispensaryBranch || 'Indiranagar Branch',
+                        pan: (data.pan || '').toUpperCase(),
+                        aadhaarLast4: data.aadhaarLast4 || ''
+                    },
+                    createdAt: new Date().toISOString()
+                };
+
+                // Save to Firestore collections employees/{employeeId} and users/{employeeId}
+                try {
+                    await setDoc(doc(db, "employees", employeeId), createdEmployee, { merge: true });
+                    await setDoc(doc(db, "users", employeeId), createdEmployee, { merge: true });
+                } catch (fsErr) {
+                    console.warn('Firestore direct write notice:', fsErr.message);
+                }
+
+                // Forward to backend if available
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 3500);
-
-                    const response = await fetch('http://localhost:3000/api/admin/employees', {
+                    await fetch('http://localhost:3000/api/admin/employees', {
                         method: 'POST',
                         signal: controller.signal,
                         headers: headers,
-                        body: JSON.stringify({
-                            name: data.name,
-                            email: email,
-                            role: (data.roleType || 'employee').toLowerCase(),
-                            departmentId: data.departmentId,
-                            phone: data.phone || '',
-                            salary: data.salary || '',
-                            address: data.address || '',
-                            joiningDate: data.joiningDate || new Date().toISOString(),
-                            password: password,
-                            send_email_now: send_email_now
-                        })
+                        body: JSON.stringify(createdEmployee)
                     });
                     clearTimeout(timeoutId);
-
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result && result.data) {
-                            createdEmployee = {
-                                id: result.data.uid || ('EMP_' + Date.now()),
-                                uid: result.data.uid || ('EMP_' + Date.now()),
-                                employeeId: result.data.employeeId,
-                                name: data.name,
-                                email: email,
-                                role: (data.roleType || 'employee').toLowerCase(),
-                                departmentId: data.departmentId,
-                                departmentName: result.data.departmentName || (state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId)?.name || 'General'),
-                                departmentCode: result.data.departmentCode || 'UNIT',
-                                phone: data.phone || '',
-                                salary: data.salary || '',
-                                address: data.address || '',
-                                tempPassword: result.data.tempPassword || password,
-                                password: password,
-                                status: 'Active',
-                                invite_status: send_email_now ? 'sent' : 'pending',
-                                joiningDate: data.joiningDate || new Date().toISOString(),
-                                createdAt: new Date().toISOString()
-                            };
-                        }
-                    }
                 } catch (err) {
-                    console.warn('Backend creation notice (using local provisioning):', err.message);
+                    // Backend offline or local demo fallback
                 }
 
-                // If backend was slow or offline, create locally with generated ID
-                if (!createdEmployee) {
-                    const dept = state.departments.find(d => (d.departmentId || d.id || d.unitId) === data.departmentId);
-                    const deptCode = dept ? (dept.unitId || dept.departmentCode || 'GEN') : 'GEN';
-                    const deptName = dept ? (dept.name || dept.departmentName || 'General') : 'General';
-                    const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-                    const employeeId = `${deptCode}-${randomHex}`;
-                    const tempUid = 'EMP_' + Date.now();
+                // If "Save & Trigger Invite Email", dispatch OTP invitation email
+                if (send_email_now) {
+                    try {
+                        const emailPayload = {
+                            to: email,
+                            subject: 'Welcome to Kylrx.ai - Account Provisioned & Temporary Credentials',
+                            html: `
+                                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1e293b; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;">
+                                    <div style="text-align: center; margin-bottom: 24px;">
+                                        <h1 style="color: #2563eb; font-size: 24px; margin: 0;">KYLRX.AI ENTERPRISE</h1>
+                                        <p style="color: #64748b; font-size: 13px; margin: 4px 0 0 0;">Official Personnel Onboarding & Access Portal</p>
+                                    </div>
+                                    <p>Dear <strong>${data.name}</strong>,</p>
+                                    <p>Your enterprise personnel profile has been provisioned. Below are your official onboarding credentials:</p>
+                                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                                        <p style="margin: 6px 0;"><strong>Employee ID:</strong> <span style="font-family: monospace; font-weight: bold; color: #0f172a;">${employeeId}</span></p>
+                                        <p style="margin: 6px 0;"><strong>Official Email:</strong> ${email}</p>
+                                        <p style="margin: 6px 0;"><strong>Department:</strong> ${deptName}</p>
+                                        <p style="margin: 6px 0;"><strong>Designation:</strong> ${createdEmployee.designation}</p>
+                                        <p style="margin: 6px 0;"><strong>Reporting Manager:</strong> ${createdEmployee.reportingManagerId || 'Primary Administrator'}</p>
+                                        <p style="margin: 6px 0;"><strong>Temporary Access Key:</strong> <code style="background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-weight: bold; color: #2563eb;">${password}</code></p>
+                                        <p style="margin: 12px 0 0 0; color: #dc2626; font-size: 12px; font-weight: 600;">
+                                            ⏱️ Security Notice: This temporary credential is valid for 24 hours (Expires: ${new Date(tempExpiresAt).toLocaleString()}).
+                                        </p>
+                                    </div>
+                                    <div style="text-align: center; margin: 28px 0;">
+                                        <a href="${window.location.origin}/index.html" style="background: #2563eb; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Log In to Kylrx Enterprise</a>
+                                    </div>
+                                    <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 32px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                                        This is an automated system email from Kylrx.ai Super Admin Console.
+                                    </p>
+                                </div>
+                            `,
+                            text: `Welcome to Kylrx.ai, ${data.name}!\nYour Employee ID: ${employeeId}\nOfficial Email: ${email}\nTemporary Access Key: ${password}\nValidity: 24 Hours (Expires: ${new Date(tempExpiresAt).toLocaleString()}).\nPlease log in at ${window.location.origin}/index.html`
+                        };
 
-                    createdEmployee = {
-                        id: tempUid,
-                        uid: tempUid,
-                        employeeId: employeeId,
-                        name: data.name,
-                        email: email,
-                        role: (data.roleType || 'employee').toLowerCase(),
-                        departmentId: data.departmentId,
-                        departmentName: deptName,
-                        departmentCode: deptCode,
-                        phone: data.phone || '',
-                        salary: data.salary || '',
-                        address: data.address || '',
-                        tempPassword: password,
-                        password: password,
-                        status: 'Active',
-                        invite_status: send_email_now ? 'sent' : 'pending',
-                        joiningDate: data.joiningDate || new Date().toISOString(),
-                        createdAt: new Date().toISOString()
-                    };
+                        await fetch('/api/email/send', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(emailPayload)
+                        });
+                    } catch (mailErr) {
+                        console.warn('Invitation email trigger notice:', mailErr.message);
+                    }
                 }
 
                 // Prepend to state.employees and render immediately
                 state.employees = [createdEmployee, ...(state.employees || []).filter(e => e.email !== email)];
                 renderEmployeeTable(state.employees);
                 updateStats();
+                populateManagerDropdowns();
                 localStorage.setItem('admin_employees_cache', JSON.stringify(state.employees));
-
-                // Non-blocking background Firestore sync
-                (async () => {
-                    try {
-                        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-                        await setDoc(doc(db, "users", createdEmployee.uid), createdEmployee, { merge: true });
-                    } catch (fsErr) {
-                        console.warn('Background Firestore write notice:', fsErr.message);
-                    }
-                })();
 
                 showSuccess(
                     send_email_now ? 'User Provisioned & Invited' : 'Saved to Dashboard',
                     send_email_now 
-                        ? `The new ${data.roleType} account has been created and invitation credentials were sent to ${email}.`
-                        : `The new ${data.roleType} account has been saved to your dashboard only. Credentials are ready below.`,
+                        ? `The new ${data.roleType} account (${employeeId}) has been created and invitation credentials were sent to ${email}.`
+                        : `The new ${data.roleType} account (${employeeId}) has been saved to your dashboard only. Credentials are ready below.`,
                     {
                         "Employee ID": createdEmployee.employeeId,
                         "Initial Password": createdEmployee.tempPassword,
-                        "Status": send_email_now ? "Email Dispatched" : "Saved to Dashboard Only"
+                        "Status": send_email_now ? "Email Dispatched (24h validity)" : "Saved to Dashboard Only (Active)"
                     }
                 );
             }
@@ -1920,13 +2329,89 @@ window.openEditModal = async (id) => {
         }
         form.departmentId.value = deptId;
         
+        if (window.updateSubDepartmentsForSelectedDept) window.updateSubDepartmentsForSelectedDept();
+        if (form.subDepartmentCode) {
+            form.subDepartmentCode.value = emp.subDepartmentCode || emp['Sub-Department_Code'] || '';
+        }
+        if (form.designation) {
+            form.designation.value = emp.designation || emp.designationCode || emp['Designation_Code'] || 'DES-SE';
+        }
+        if (form.employeeType) {
+            form.employeeType.value = emp.employeeType || emp.employmentType || emp['Employment_Type'] || 'FULL_TIME';
+            if (window.empTypeBuGatingHandler && typeof window.empTypeBuGatingHandler.refresh === 'function') {
+                window.empTypeBuGatingHandler.refresh();
+            }
+        }
+        if (form.businessUnitCode) {
+            form.businessUnitCode.value = emp.businessUnitCode || emp['Business_Unit_Code'] || 'BU-TECH';
+        }
+
+        if (form.costCenterCode) {
+            form.costCenterCode.value = emp.costCenterCode || emp.Cost_Center_Code || emp.jobDetails?.costCenterCode || 'CC-ENG-101';
+        }
+        if (form.locationCode) {
+            form.locationCode.value = emp.locationCode || emp.Location_Code || emp.jobDetails?.locationCode || 'LOC-BLR';
+        }
+        if (form.shiftCode) {
+            form.shiftCode.value = emp.shiftCode || emp.Shift_Code || emp.jobDetails?.shiftCode || 'SHIFT-GEN';
+        }
+        if (form.workMode) {
+            form.workMode.value = emp.workMode || emp.Work_Mode || emp.jobDetails?.workMode || 'Hybrid';
+        }
+        if (form.probationEndDate) {
+            const probDate = emp.probationEndDate || emp.Probation_End_Date || emp.jobDetails?.probationEndDate || '';
+            form.probationEndDate.value = probDate.includes('T') ? probDate.split('T')[0] : probDate;
+        }
+        if (form.noticePeriodDays) {
+            form.noticePeriodDays.value = emp.noticePeriodDays || emp.Notice_Period_Days || emp.jobDetails?.noticePeriodDays || 60;
+        }
+
+        // L1 & L2 Managers
+        if (window.populateManagerDropdowns) await window.populateManagerDropdowns();
+        if (form.reportingManagerId) {
+            form.reportingManagerId.value = emp.reportingManagerId || emp.reportingManager || emp['Reporting_Manager_ID'] || emp.managers?.l1ManagerId || '';
+        }
+        if (form.secondaryManagerId) {
+            form.secondaryManagerId.value = emp.secondaryManagerId || emp.secondaryManager || emp['Secondary_Manager_ID'] || emp.managers?.l2ManagerId || '';
+        }
+
+        // Statutory & Compliance
+        if (form.uan) {
+            form.uan.value = emp.uan || emp['UAN'] || emp.statutory?.uan || '';
+        }
+        if (form.pfMemberId) {
+            form.pfMemberId.value = emp.pfMemberId || emp['PF_Member_ID'] || emp.statutory?.pfMemberId || '';
+        }
+        if (form.epfoEstablishmentId) {
+            form.epfoEstablishmentId.value = emp.epfoEstablishmentId || emp.statutory?.epfoEstablishmentId || 'KN/BNG/0012345';
+        }
+        if (form.esicIp) {
+            form.esicIp.value = emp.esicIp || emp['ESIC_IP'] || emp.statutory?.esicIpNumber || '';
+        }
+        if (form.esicEmployerCode) {
+            form.esicEmployerCode.value = emp.esicEmployerCode || emp.statutory?.esicEmployerCode || '31001234560000001';
+        }
+        if (form.dispensaryBranch) {
+            form.dispensaryBranch.value = emp.dispensaryBranch || emp.statutory?.dispensaryBranch || 'Indiranagar Branch';
+        }
+        if (form.pan) {
+            form.pan.value = emp.pan || emp['PAN'] || emp.statutory?.pan || '';
+        }
+        if (form.aadhaarLast4) {
+            form.aadhaarLast4.value = emp.aadhaarLast4 || emp['Aadhaar_Last_4'] || emp.statutory?.aadhaarLast4 || '';
+        }
+
         if (window.updateRolesForDept) window.updateRolesForDept();
         
         form.roleType.value = emp.role || 'employee';
         form.phone.value = emp.phone || '';
-        form.salary.value = emp.salary || '';
+        form.salary.value = emp.salary || emp.annualSalary || emp.jobDetails?.annualSalary || '';
         form.address.value = emp.address || '';
         form.password.value = emp.tempPassword || emp.password || '';
+        if (form.joiningDate && (emp.joiningDate || emp.jobDetails?.dateOfJoining)) {
+            const doj = emp.joiningDate || emp.jobDetails?.dateOfJoining;
+            form.joiningDate.value = doj.includes('T') ? doj.split('T')[0] : doj;
+        }
         
         // Update button text to Save Changes
         const submitBtn = form.querySelector('button[type="submit"]');
@@ -1937,6 +2422,9 @@ window.openEditModal = async (id) => {
     }
 
     openModal('empModal');
+    if (window.EmployeeProfileController && typeof window.EmployeeProfileController.openProfileModal === 'function') {
+        await window.EmployeeProfileController.openProfileModal(id);
+    }
 };
 
 /**
@@ -1946,7 +2434,11 @@ function openModal(id) {
     const modal = document.getElementById(id);
     if (modal) {
         modal.style.display = 'flex';
-        setTimeout(() => modal.classList.add('active'), 10);
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => {
+            modal.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+        }, 10);
     }
 }
 

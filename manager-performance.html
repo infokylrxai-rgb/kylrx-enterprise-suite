@@ -451,17 +451,215 @@
         </div>
         <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
             <i data-lucide="activity" class="animate-pulse" size="48" style="opacity: 0.2; margin-bottom: 1rem;"></i>
-            <p>Based on current velocity, your team is projected to complete all quarterly goals 4 days ahead of schedule.</p>
         </div>
     </div>
 </div>
 
-        </main>
+<!-- ========================================================================== -->
+<!-- SECTION 8: MANAGER PMS REVIEW & EVALUATION INTERFACE                        -->
+<!-- ========================================================================== -->
+<div class="card" style="margin-top: 1.5rem; border-top: 4px solid var(--primary);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">Performance Reviews & Team Goals (PRD §8)</h2>
+                <span id="activeCycleBadge" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">Active Cycle</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Inspect submitted deliverables, assign team goals, take binary accept/reject actions, or delegate reviews with transparent audit tracking.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button onclick="openAssignGoalModal()" style="background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                <span>Assign Goal to Member</span>
+            </button>
+            <button onclick="loadPmsReviewsData()" class="btn-ghost" title="Refresh Reviews" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; width: 40px; height: 40px;">
+                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
     </div>
+
+    <!-- Review Filter Tabs -->
+    <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <button class="pms-tab active" data-filter="all" onclick="filterPmsTasks('all', this)" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: 1px solid #2563eb; background: #2563eb; color: white;">All Deliverables (<span id="countPmsAll">0</span>)</button>
+        <button class="pms-tab" data-filter="under_review" onclick="filterPmsTasks('under_review', this)" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: white; color: var(--text-muted);">Under Review (<span id="countPmsReview">0</span>)</button>
+        <button class="pms-tab" data-filter="accepted" onclick="filterPmsTasks('accepted', this)" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: white; color: var(--text-muted);">Accepted (<span id="countPmsAccepted">0</span>)</button>
+        <button class="pms-tab" data-filter="rejected" onclick="filterPmsTasks('rejected', this)" style="padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: white; color: var(--text-muted);">Needs Rework / Rejected (<span id="countPmsRejected">0</span>)</button>
+    </div>
+
+    <!-- Review Cards Container -->
+    <div id="pmsReviewsContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
+            <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; color: var(--primary); margin: 0 auto 8px;"></i>
+            <p style="margin: 0; font-size: 0.85rem;">Hydrating performance deliverables and team tasks...</p>
+        </div>
+    </div>
+</div>
+
+</main>
+</div>
+
+<!-- Assign Goal Modal -->
+<div id="pmsAssignGoalModal" class="custom-alert-overlay">
+    <div class="custom-alert-card" style="max-width: 520px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="target" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.2rem; margin: 0; color: #0f172a;">Assign Goal / Deliverable</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Assign performance deliverables directly to a team member</p>
+                </div>
+            </div>
+            <button class="btn-ghost" onclick="closePmsAssignModal()"><i data-lucide="x"></i></button>
+        </div>
+
+        <form id="pmsAssignGoalForm" onsubmit="handleAssignGoalSubmit(event)">
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Team Member *</label>
+                    <select id="pmsGoalMemberSelect" required style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;">
+                        <option value="">Select team member...</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Goal / Task Title *</label>
+                    <input type="text" id="pmsGoalTitle" placeholder="e.g. Implement Zero-Trust Auth Architecture" required style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;">
+                </div>
+                <div>
+                    <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Detailed Requirements / KPI Deliverables</label>
+                    <textarea id="pmsGoalDesc" rows="3" placeholder="Specify key results, acceptance criteria, or target milestones..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc; resize: vertical;"></textarea>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closePmsAssignModal()">Cancel</button>
+                <button type="submit" class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;">Assign Goal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Binary Action Reject Modal -->
+<div id="pmsRejectTaskModal" class="custom-alert-overlay">
+    <div class="custom-alert-card" style="max-width: 480px; text-align: left;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="alert-circle" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Reject Deliverable</h2>
+                <p style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0;">Moves task back to the employee's active queue for rework</p>
+            </div>
+        </div>
+
+        <p style="font-size: 0.85rem; color: #334155; margin-bottom: 1rem;" id="rejectTaskPrompt">
+            Please provide specific reviewer remarks explaining why this task is being rejected and what revisions are required.
+        </p>
+
+        <input type="hidden" id="rejectTaskId">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Reviewer Remarks / Feedback *</label>
+            <textarea id="rejectFeedback" rows="3" required placeholder="Specify what needs correction or completion..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closePmsRejectModal()">Cancel</button>
+            <button class="alert-btn" style="background: #dc2626; color: white; margin: 0; flex: 2;" onclick="confirmTaskRejection()">Reject & Return to Queue</button>
+        </div>
+    </div>
+</div>
+
+<!-- Traceable Delegation Modal -->
+<div id="pmsDelegateModal" class="custom-alert-overlay">
+    <div class="custom-alert-card" style="max-width: 520px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="share-2" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.2rem; margin: 0; color: #0f172a;">Delegate PMS Review</h2>
+                    <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Reassign evaluation responsibility with immutable audit tracking</p>
+                </div>
+            </div>
+            <button class="btn-ghost" onclick="closePmsDelegateModal()"><i data-lucide="x"></i></button>
+        </div>
+
+        <form id="pmsDelegateForm" onsubmit="handleDelegateSubmit(event)">
+            <input type="hidden" id="delegateReviewId">
+            <input type="hidden" id="delegateEmployeeId">
+
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
+                <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="font-size: 0.75rem; color: #64748b;">Evaluating Employee:</div>
+                    <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem;" id="delegateEmployeeName">Employee Name</div>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Reassign / Delegate To *</label>
+                    <select id="delegateTargetSelect" required style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;">
+                        <option value="">Select peer manager or team lead...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Reason for Delegation (Audit Trail) *</label>
+                    <textarea id="delegateReason" rows="3" required placeholder="e.g. Delegating to Technical Lead for code & architecture review; Manager on leave" style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;"></textarea>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closePmsDelegateModal()">Cancel</button>
+                <button type="submit" class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;">Record Immutable Delegation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Traceable Audit Trail Modal -->
+<div id="pmsAuditModal" class="custom-alert-overlay">
+    <div class="custom-alert-card" style="max-width: 580px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 40px; height: 40px; border-radius: 12px; background: #f1f5f9; color: #334155; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="history" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.2rem; margin: 0; color: #0f172a;">Delegation Audit Trail</h2>
+                    <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Immutable Firestore evaluation log</p>
+                </div>
+            </div>
+            <button class="btn-ghost" onclick="document.getElementById('pmsAuditModal').style.display='none'"><i data-lucide="x"></i></button>
+        </div>
+
+        <div id="pmsAuditTrailList" style="display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; margin-bottom: 1.5rem;">
+            <!-- Dynamic entries -->
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; width: 120px;" onclick="document.getElementById('pmsAuditModal').style.display='none'">Close</button>
+        </div>
+    </div>
+</div>
+
 
     <script type="module">
         import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs } from "./firebase-config.js";
-        import { getPendingReviews, scorePerformance } from "./pms-service.js";
+        import { 
+            getPendingReviews, 
+            scorePerformance,
+            createPMSTask,
+            getPMSTasks,
+            acceptPMSTask,
+            rejectPMSTask,
+            delegatePMSReview,
+            getPMSReviews,
+            getActivePMSCycle,
+            getEnrolledEmployees,
+            calculateCompletionPercentage
+        } from "./pms-service.js";
         import { managerAttendanceService } from "./manager-attendance-service.js";
         
         let currentDeptConfig = null;
@@ -1601,7 +1799,383 @@ window.viewTeam = async (id) => {
                 window.openTeamManager();
             }, 800);
         }
+
+        /* ================================================================== */
+        /* PRD SECTION 8: MANAGER PMS REVIEW & DELEGATION ENGINE CONTROLLER   */
+        /* ================================================================== */
+
+        let pmsState = {
+            activeCycle: null,
+            tasks: [],
+            reviews: [],
+            teamMembers: [],
+            currentFilter: 'all',
+            currentManagerId: localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'MANAGER-DEFAULT',
+            currentManagerName: localStorage.getItem('userName') || 'Department Manager'
+        };
+
+        window.loadPmsReviewsData = async function() {
+            const container = document.getElementById('pmsReviewsContainer');
+            if (!container) return;
+
+            try {
+                // 1. Resolve Active Cycle
+                const activeCycle = await getActivePMSCycle();
+                pmsState.activeCycle = activeCycle;
+                const cycleBadge = document.getElementById('activeCycleBadge');
+                if (cycleBadge) {
+                    cycleBadge.textContent = activeCycle ? activeCycle.cycleName : 'No Active Cycle';
+                    cycleBadge.title = activeCycle ? `${activeCycle.cycleType} (${activeCycle.startDate} to ${activeCycle.endDate})` : '';
+                }
+
+                const cycleId = activeCycle ? (activeCycle.cycleId || activeCycle.id) : null;
+
+                // 2. Fetch Team Members
+                const enrolled = await getEnrolledEmployees();
+                pmsState.teamMembers = enrolled;
+                populateGoalMemberSelect(enrolled);
+                populateDelegateSelect(enrolled);
+
+                // 3. Fetch PMS Reviews
+                const reviews = await getPMSReviews(cycleId, pmsState.currentManagerId);
+                pmsState.reviews = reviews;
+
+                // 4. Fetch Tasks
+                const allTasks = await getPMSTasks(cycleId, null);
+                pmsState.tasks = allTasks;
+
+                // Update counters
+                updatePmsTabCounters(allTasks);
+
+                // Render current view
+                renderPmsTasksView();
+            } catch (err) {
+                console.error('[PMS Review] Error loading review data:', err);
+                if (container) {
+                    container.innerHTML = `<div style="text-align:center; padding:2rem; color:#dc2626;">Error loading deliverables: ${err.message}</div>`;
+                }
+            }
+        };
+
+        function updatePmsTabCounters(tasks) {
+            const cAll = document.getElementById('countPmsAll');
+            const cReview = document.getElementById('countPmsReview');
+            const cAccepted = document.getElementById('countPmsAccepted');
+            const cRejected = document.getElementById('countPmsRejected');
+
+            if (cAll) cAll.textContent = tasks.length;
+            if (cReview) cReview.textContent = tasks.filter(t => t.reviewStatus === 'under_review').length;
+            if (cAccepted) cAccepted.textContent = tasks.filter(t => t.reviewStatus === 'accepted').length;
+            if (cRejected) cRejected.textContent = tasks.filter(t => t.reviewStatus === 'rejected').length;
+        }
+
+        window.filterPmsTasks = function(filterType, tabEl) {
+            pmsState.currentFilter = filterType;
+            document.querySelectorAll('.pms-tab').forEach(t => {
+                t.style.background = 'white';
+                t.style.color = 'var(--text-muted)';
+                t.style.borderColor = 'var(--border)';
+            });
+            if (tabEl) {
+                tabEl.style.background = '#2563eb';
+                tabEl.style.color = 'white';
+                tabEl.style.borderColor = '#2563eb';
+            }
+            renderPmsTasksView();
+        };
+
+        function renderPmsTasksView() {
+            const container = document.getElementById('pmsReviewsContainer');
+            if (!container) return;
+
+            let filtered = pmsState.tasks || [];
+            if (pmsState.currentFilter === 'under_review') {
+                filtered = filtered.filter(t => t.reviewStatus === 'under_review');
+            } else if (pmsState.currentFilter === 'accepted') {
+                filtered = filtered.filter(t => t.reviewStatus === 'accepted');
+            } else if (pmsState.currentFilter === 'rejected') {
+                filtered = filtered.filter(t => t.reviewStatus === 'rejected');
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem 1.5rem; background: var(--bg); border-radius: 16px; border: 1.5px dashed var(--border); color: var(--text-muted);">
+                        <i data-lucide="check-circle-2" style="width: 36px; height: 36px; color: #94a3b8; margin: 0 auto 8px;"></i>
+                        <p style="font-weight: 700; margin: 0; font-size: 0.95rem;">No deliverables found in this category.</p>
+                        <p style="font-size: 0.8rem; margin: 4px 0 0;">Assign new goals to your team or wait for employee work log submissions.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = filtered.map(task => {
+                // Find employee metadata
+                const emp = pmsState.teamMembers.find(m => m.employeeId === task.employeeId || m.id === task.employeeId) || {
+                    name: 'Employee ' + (task.employeeId || 'Staff'),
+                    department: 'Operations',
+                    role: 'Specialist'
+                };
+
+                // Find review metadata to check delegation status
+                const review = pmsState.reviews.find(r => r.employeeId === task.employeeId) || {};
+                const isDelegated = review.delegatedTo && review.delegatedTo !== pmsState.currentManagerId;
+                const delegationCount = (review.delegationHistory && review.delegationHistory.length) || 0;
+                const lastDelegation = delegationCount > 0 ? review.delegationHistory[delegationCount - 1] : null;
+
+                const isAccepted = task.reviewStatus === 'accepted';
+                const isRejected = task.reviewStatus === 'rejected';
+                const isUnderReview = task.reviewStatus === 'under_review' || (!isAccepted && !isRejected);
+
+                const statusPill = isAccepted
+                    ? `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">Accepted</span>`
+                    : isRejected
+                        ? `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;">Needs Rework</span>`
+                        : `<span style="padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">Under Review</span>`;
+
+                return `
+                    <div style="background: white; border: 1.5px solid ${isRejected ? '#fca5a5' : isAccepted ? '#bbf7d0' : 'var(--border)'}; border-radius: 18px; padding: 1.5rem; box-shadow: var(--shadow-sm); transition: 0.2s;">
+                        <!-- Header with Employee details -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem;">
+                                    ${emp.name.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; font-size: 0.95rem; color: #0f172a;">${emp.name}</div>
+                                    <div style="font-size: 0.75rem; color: #64748b;">${emp.role || 'Team Member'} • ${emp.department || 'Unit'} • ID: ${task.employeeId}</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                ${statusPill}
+                            </div>
+                        </div>
+
+                        <!-- Delegation Banner (Transparent & Immediately Visible) -->
+                        ${lastDelegation ? `
+                            <div style="margin-bottom: 12px; padding: 8px 12px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 0.78rem; color: #1e40af; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="share-2" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                                    <span><strong>Reassigned to:</strong> ${lastDelegation.delegatedToName || lastDelegation.delegatedToId} on ${new Date(lastDelegation.delegatedAt).toLocaleDateString()}</span>
+                                    <span style="color: #64748b;">(Reason: "${lastDelegation.reason}")</span>
+                                </div>
+                                <button onclick="openAuditTrailModal('${review.id || review.reviewId}')" style="background: none; border: none; color: #2563eb; font-weight: 800; cursor: pointer; text-decoration: underline; font-size: 0.75rem; padding: 0;">
+                                    View Audit History (${delegationCount})
+                                </button>
+                            </div>
+                        ` : ''}
+
+                        <!-- Deliverable Title & Description -->
+                        <div style="margin-bottom: 12px;">
+                            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">${task.title}</h3>
+                            <p style="font-size: 0.85rem; color: #475569; margin: 0; line-height: 1.5;">${task.description || 'No detailed instructions provided.'}</p>
+                        </div>
+
+                        <!-- Work logs / completion notes if submitted -->
+                        ${task.completionNotes ? `
+                            <div style="background: #f8fafc; border-left: 3px solid #2563eb; padding: 10px 14px; border-radius: 0 10px 10px 0; margin-bottom: 12px; font-size: 0.82rem; color: #334155;">
+                                <strong>Employee Work Log:</strong> "${task.completionNotes}"
+                            </div>
+                        ` : ''}
+
+                        <!-- Rejection remarks if rejected -->
+                        ${task.feedback ? `
+                            <div style="background: #fff1f2; border: 1px solid #fecaca; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.82rem; color: #991b1b;">
+                                <strong>Reviewer Feedback / Revision Notice:</strong> "${task.feedback}"
+                            </div>
+                        ` : ''}
+
+                        <!-- Action Bar: Binary Accept / Reject + Traceable Delegation -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; flex-wrap: wrap; gap: 8px;">
+                            <div style="font-size: 0.75rem; color: #94a3b8;">
+                                Logged: ${task.createdAt?.seconds ? new Date(task.createdAt.seconds * 1000).toLocaleDateString() : 'Recent'}
+                            </div>
+
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <!-- Binary Action: ACCEPT -->
+                                <button onclick="acceptTaskAction('${task.id || task.taskId}')" style="background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+                                    <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                    <span>Accept</span>
+                                </button>
+
+                                <!-- Binary Action: REJECT (moves back to employee active queue) -->
+                                <button onclick="openRejectTaskModal('${task.id || task.taskId}', '${task.title.replace(/'/g, "\\'")}')" style="background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+                                    <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i>
+                                    <span>Reject (Rework)</span>
+                                </button>
+
+                                <!-- Traceable Delegation Action -->
+                                <button onclick="openDelegateModal('${review.id || review.reviewId || ''}', '${task.employeeId}', '${emp.name.replace(/'/g, "\\'")}')" style="background: white; color: #2563eb; border: 1.5px solid #bfdbfe; padding: 7px 12px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                                    <span>Delegate Review</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function populateGoalMemberSelect(enrolled) {
+            const select = document.getElementById('pmsGoalMemberSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="">Select team member...</option>' + 
+                enrolled.map(e => `<option value="${e.employeeId || e.id}">${e.name} (${e.role || 'Staff'})</option>`).join('');
+        }
+
+        function populateDelegateSelect(enrolled) {
+            const select = document.getElementById('delegateTargetSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="">Select peer manager or team lead...</option>' + 
+                enrolled.map(e => `<option value="${e.employeeId || e.id}">${e.name} (${e.role || 'Team Lead'})</option>`).join('');
+        }
+
+        // Modal Open / Close
+        window.openAssignGoalModal = function() {
+            document.getElementById('pmsAssignGoalModal').style.display = 'flex';
+        };
+        window.closePmsAssignModal = function() {
+            document.getElementById('pmsAssignGoalModal').style.display = 'none';
+        };
+
+        window.handleAssignGoalSubmit = async function(e) {
+            e.preventDefault();
+            const memberId = document.getElementById('pmsGoalMemberSelect').value;
+            const title = document.getElementById('pmsGoalTitle').value;
+            const desc = document.getElementById('pmsGoalDesc').value;
+            const cycleId = pmsState.activeCycle ? (pmsState.activeCycle.cycleId || pmsState.activeCycle.id) : 'DEFAULT-CYCLE';
+
+            try {
+                await createPMSTask({
+                    cycleId,
+                    employeeId: memberId,
+                    assignedBy: pmsState.currentManagerId,
+                    title,
+                    description: desc,
+                    status: 'pending',
+                    reviewStatus: 'under_review'
+                });
+
+                closePmsAssignModal();
+                document.getElementById('pmsAssignGoalForm').reset();
+                alert(`Goal "${title}" successfully assigned to team member.`);
+                loadPmsReviewsData();
+            } catch (err) {
+                alert('Failed to assign goal: ' + err.message);
+            }
+        };
+
+        // Binary Action: Accept Task
+        window.acceptTaskAction = async function(taskId) {
+            if (!confirm('Accept this submitted deliverable as complete?')) return;
+            try {
+                await acceptPMSTask(taskId, pmsState.currentManagerId, 'Deliverable verified and approved.');
+                loadPmsReviewsData();
+            } catch (err) {
+                alert('Error accepting deliverable: ' + err.message);
+            }
+        };
+
+        // Binary Action: Reject Task (Prompt for feedback)
+        window.openRejectTaskModal = function(taskId, title) {
+            document.getElementById('rejectTaskId').value = taskId;
+            document.getElementById('rejectTaskPrompt').textContent = `Provide reviewer feedback for rejecting "${title}". This task will move back to the employee's active queue for rework.`;
+            document.getElementById('rejectFeedback').value = '';
+            document.getElementById('pmsRejectTaskModal').style.display = 'flex';
+        };
+        window.closePmsRejectModal = function() {
+            document.getElementById('pmsRejectTaskModal').style.display = 'none';
+        };
+        window.confirmTaskRejection = async function() {
+            const taskId = document.getElementById('rejectTaskId').value;
+            const feedback = document.getElementById('rejectFeedback').value;
+            if (!feedback.trim()) {
+                alert('Reviewer remarks are required when rejecting a deliverable.');
+                return;
+            }
+
+            try {
+                await rejectPMSTask(taskId, pmsState.currentManagerId, feedback);
+                closePmsRejectModal();
+                loadPmsReviewsData();
+            } catch (err) {
+                alert('Error rejecting deliverable: ' + err.message);
+            }
+        };
+
+        // Traceable Delegation Handlers
+        window.openDelegateModal = function(reviewId, empId, empName) {
+            document.getElementById('delegateReviewId').value = reviewId || '';
+            document.getElementById('delegateEmployeeId').value = empId;
+            document.getElementById('delegateEmployeeName').textContent = empName;
+            document.getElementById('delegateReason').value = '';
+            document.getElementById('pmsDelegateModal').style.display = 'flex';
+        };
+        window.closePmsDelegateModal = function() {
+            document.getElementById('pmsDelegateModal').style.display = 'none';
+        };
+
+        window.handleDelegateSubmit = async function(e) {
+            e.preventDefault();
+            const reviewId = document.getElementById('delegateReviewId').value;
+            const empId = document.getElementById('delegateEmployeeId').value;
+            const targetSelect = document.getElementById('delegateTargetSelect');
+            const delegatedToId = targetSelect.value;
+            const delegatedToName = targetSelect.options[targetSelect.selectedIndex].text;
+            const reason = document.getElementById('delegateReason').value;
+            const cycleId = pmsState.activeCycle ? (pmsState.activeCycle.cycleId || pmsState.activeCycle.id) : 'DEFAULT';
+
+            try {
+                await delegatePMSReview({
+                    reviewId: reviewId || `REV-${cycleId}-${empId}`,
+                    cycleId,
+                    employeeId: empId,
+                    originalManagerId: pmsState.currentManagerId,
+                    delegatedToId,
+                    delegatedToName,
+                    delegatedByName: pmsState.currentManagerName,
+                    reason
+                });
+
+                closePmsDelegateModal();
+                alert(`Review responsibility successfully delegated to ${delegatedToName}. Audit trail updated.`);
+                loadPmsReviewsData();
+            } catch (err) {
+                alert('Delegation failed: ' + err.message);
+            }
+        };
+
+        window.openAuditTrailModal = function(reviewId) {
+            const review = pmsState.reviews.find(r => r.id === reviewId || r.reviewId === reviewId);
+            const listEl = document.getElementById('pmsAuditTrailList');
+            if (!review || !review.delegationHistory || review.delegationHistory.length === 0) {
+                listEl.innerHTML = `<div style="text-align:center; padding:1.5rem; color:#64748b;">No previous delegations recorded for this evaluation.</div>`;
+            } else {
+                listEl.innerHTML = review.delegationHistory.map((dh, i) => `
+                    <div style="padding:12px; background:#f8fafc; border-radius:12px; border:1px solid var(--border); font-size:0.82rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <strong style="color:#0f172a;">#${i+1} Delegation Reassignment</strong>
+                            <span style="color:#64748b; font-size:0.75rem;">${new Date(dh.delegatedAt).toLocaleString()}</span>
+                        </div>
+                        <div style="color:#334155; margin-bottom:4px;">
+                            From <strong>${dh.delegatedByName || dh.originalManagerId}</strong> &rarr; To <strong>${dh.delegatedToName || dh.delegatedToId}</strong>
+                        </div>
+                        <div style="color:#64748b; font-style:italic;">
+                            Reason: "${dh.reason}"
+                        </div>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('pmsAuditModal').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        // Initialize PMS Review data on page load
+        loadPmsReviewsData();
     </script>
+
 
     <!-- Manager EOD Audit Modal -->
     <div id="mgrEodAuditModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">

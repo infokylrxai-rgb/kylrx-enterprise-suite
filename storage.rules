@@ -43,6 +43,12 @@ service firebase.storage {
       allow read, write: if isStaff();
     }
 
+    // PRD Section 13: Official Employee Documents (Offer Letter, NDA, Aadhaar, PAN, Bank Proof, etc.)
+    match /employees/{employeeId}/documents/{fileName} {
+      allow read: if ownsEmployeeRecord(employeeId) || isStaff();
+      allow write: if isStaff();
+    }
+
     // Deny all other storage paths by default
     match /{allPaths=**} {
       allow read, write: if false;

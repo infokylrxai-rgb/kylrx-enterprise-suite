@@ -15,7 +15,9 @@
  * - Instant offline resilient seeding with seamless live API sync
  */
 
-const API = 'http://localhost:3000/api';
+const API = (typeof window !== 'undefined' && window.location && (window.location.port === '5500' || window.location.port === '5501'))
+    ? `${window.location.origin}/api`
+    : 'http://localhost:3000/api';
 
 const CATEGORY_STYLES = {
     'Onboarding':           { lucide: 'user-plus',   icon: 'fa-user-plus',         bg: '#eff6ff', color: '#2563eb', tag: 'tag-blue' },
@@ -57,28 +59,38 @@ async function loadTemplates() {
         renderGatingRules(allTemplates);
     }
 
-    // 2. Fetch live data from API
+    // 2. Fetch live data from API with resilient timeout
     try {
-        const res = await fetch(`${API}/document-templates`);
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data) && json.data.length) {
-            allTemplates = json.data;
-            renderStats(allTemplates);
-            renderTemplateGrid(allTemplates);
-            renderGatingRules(allTemplates);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(`${API}/document-templates`, { signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data) && json.data.length) {
+                allTemplates = json.data;
+                renderStats(allTemplates);
+                renderTemplateGrid(allTemplates);
+                renderGatingRules(allTemplates);
+            }
         }
     } catch (err) {
-        console.warn('Backend templates notice (running with resilient local seed):', err.message);
+        console.debug('Backend templates running with resilient local seed:', err.message);
     }
 }
 
 async function loadNotifBadge() {
     try {
-        const res = await fetch(`${API}/notification-center/summary`);
-        const json = await res.json();
-        if (json.success) {
-            const badge = document.getElementById('sidebar-notif-badge');
-            if (badge) badge.textContent = json.data.totalActionable || '—';
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(`${API}/notification-center/summary`, { signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+            const json = await res.json();
+            if (json.success) {
+                const badge = document.getElementById('sidebar-notif-badge');
+                if (badge) badge.textContent = json.data.totalActionable || '—';
+            }
         }
     } catch (_) {}
 }
@@ -767,13 +779,18 @@ async function loadGeneratedDocs() {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);"><div class="spinner" style="margin:0 auto 8px;"></div>Loading documents archive…</td></tr>';
 
     try {
-        const res = await fetch(`${API}/document-templates/generated`);
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-            generatedDocsList = json.data;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(`${API}/document-templates/generated`, { signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data)) {
+                generatedDocsList = json.data;
+            }
         }
     } catch (err) {
-        console.warn('Backend generated docs notice (using local cache):', err.message);
+        console.debug('Backend generated docs notice (using local cache):', err.message);
     }
 
     renderGeneratedDocsTable(generatedDocsList);

@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="utils/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .leave-grid {
             display: grid;
@@ -259,9 +261,11 @@
                                 <div style="display: flex; align-items: center; gap: 6px; margin-right: 0.5rem;">
                                     <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Weekly Off:</label>
                                     <select id="weeklyOffConfig" style="padding: 6px 12px; font-size: 0.75rem; border-radius: 10px; font-weight: 700; background: #f8fafc; border: 1px solid var(--border); color: #1e293b; outline: none; cursor: pointer; transition: 0.2s;">
-                                        <option value="sat-sun">Sat & Sun</option>
+                                        <option value="sat-sun">Sat &amp; Sun</option>
                                         <option value="sun">Sun Only</option>
                                         <option value="sat">Sat Only</option>
+                                        <option value="fri-sat">Fri &amp; Sat</option>
+                                        <option value="none">None (Can work Sat &amp; Sun)</option>
                                     </select>
                                 </div>
                                 <button class="btn btn-outline" id="prevMonthBtn" style="padding: 6px 12px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px;"><i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i> Previous</button>
@@ -304,33 +308,39 @@
                         </div>
                     </div>
 
-                    <!-- Bulk CSV Import Center -->
+                    <!-- Bulk Import Center (CSV & Excel) -->
                     <div class="card" style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 24px; border: 1px solid var(--border);">
-                        <h3 style="font-weight: 800; margin-bottom: 0.5rem;">Bulk Import Center (CSV)</h3>
-                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">Upload CSV files to bulk add Holidays and custom Leave Types.</p>
+                        <h3 style="font-weight: 800; margin-bottom: 0.5rem;">Bulk Import Center (CSV &amp; Excel)</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">Upload CSV or Excel (.xlsx, .xls) spreadsheets to bulk add Holidays and custom Leave Types.</p>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                            <!-- Holiday CSV Upload -->
+                            <!-- Holiday Upload -->
                             <div style="border: 1.5px dashed var(--border); padding: 1.5rem; border-radius: 16px; text-align: center; background: #f8fbff;">
                                 <i data-lucide="calendar" style="width: 32px; height: 32px; color: var(--primary); margin: 0 auto 0.75rem;"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main);">National Holidays</h4>
-                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Format: holiday name,date,type</p>
-                                <button type="button" class="btn btn-outline" onclick="window.downloadHolidayCSVTemplate()" style="padding: 6px 12px; font-size: 0.7rem; margin: 0 auto 10px; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border); background: white; cursor: pointer; border-radius: 8px;"><i data-lucide="download" style="width: 12px; height: 12px;"></i> Template</button>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">Columns: Name, Date, Type (.xlsx / .csv)</p>
+                                <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-outline" onclick="window.downloadHolidayCSVTemplate()" style="padding: 5px 10px; font-size: 0.7rem; border: 1px solid var(--border); background: white; cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;" title="Download CSV Template"><i data-lucide="download" style="width: 12px; height: 12px;"></i> CSV Template</button>
+                                    <button type="button" class="btn btn-outline" onclick="window.downloadHolidayExcelTemplate()" style="padding: 5px 10px; font-size: 0.7rem; border: 1px solid #bfdbfe; background: #eff6ff; color: #1d4ed8; cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;" title="Download Excel (.xlsx) Template"><i data-lucide="file-spreadsheet" style="width: 12px; height: 12px;"></i> Excel (.xlsx)</button>
+                                </div>
                                 <div style="position: relative; margin-top: 8px;">
-                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('csvHolidayInput').click()" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 8px; border: none; background: var(--primary); color: white; border-radius: 8px; cursor: pointer;"><i data-lucide="upload-cloud" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> Upload CSV</button>
-                                    <input type="file" id="csvHolidayInput" accept=".csv" style="display: none;" onchange="window.handleCSVHolidayUpload(event)">
+                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('csvHolidayInput').click()" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 9px; border: none; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="upload-cloud" style="width: 15px; height: 15px;"></i> Upload CSV / Excel</button>
+                                    <input type="file" id="csvHolidayInput" accept=".csv, .xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv" style="display: none;" onchange="window.handleCSVHolidayUpload(event)">
                                 </div>
                             </div>
                             
-                            <!-- Leave Type CSV Upload -->
+                            <!-- Leave Type Upload -->
                             <div style="border: 1.5px dashed var(--border); padding: 1.5rem; border-radius: 16px; text-align: center; background: #f8fbff;">
                                 <i data-lucide="file-spreadsheet" style="width: 32px; height: 32px; color: var(--primary); margin: 0 auto 0.75rem;"></i>
                                 <h4 style="font-size: 0.9rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main);">Leave Types</h4>
-                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Format: leave type name,description,accrual rate</p>
-                                <button type="button" class="btn btn-outline" onclick="window.downloadLeaveCSVTemplate()" style="padding: 6px 12px; font-size: 0.7rem; margin: 0 auto 10px; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border); background: white; cursor: pointer; border-radius: 8px;"><i data-lucide="download" style="width: 12px; height: 12px;"></i> Template</button>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">Columns: Name, Description, Accrual Rate</p>
+                                <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-outline" onclick="window.downloadLeaveCSVTemplate()" style="padding: 5px 10px; font-size: 0.7rem; border: 1px solid var(--border); background: white; cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;" title="Download CSV Template"><i data-lucide="download" style="width: 12px; height: 12px;"></i> CSV Template</button>
+                                    <button type="button" class="btn btn-outline" onclick="window.downloadLeaveExcelTemplate()" style="padding: 5px 10px; font-size: 0.7rem; border: 1px solid #bfdbfe; background: #eff6ff; color: #1d4ed8; cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;" title="Download Excel (.xlsx) Template"><i data-lucide="file-spreadsheet" style="width: 12px; height: 12px;"></i> Excel (.xlsx)</button>
+                                </div>
                                 <div style="position: relative; margin-top: 8px;">
-                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('csvLeaveInput').click()" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 8px; border: none; background: var(--primary); color: white; border-radius: 8px; cursor: pointer;"><i data-lucide="upload-cloud" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> Upload CSV</button>
-                                    <input type="file" id="csvLeaveInput" accept=".csv" style="display: none;" onchange="window.handleCSVLeaveUpload(event)">
+                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('csvLeaveInput').click()" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 9px; border: none; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="upload-cloud" style="width: 15px; height: 15px;"></i> Upload CSV / Excel</button>
+                                    <input type="file" id="csvLeaveInput" accept=".csv, .xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv" style="display: none;" onchange="window.handleCSVLeaveUpload(event)">
                                 </div>
                             </div>
                         </div>
@@ -592,8 +602,7 @@
 
     <script type="module">
         import { getLeaveStats, listenToPendingLeaves, processLeaveAction, getLeavePolicies, getUpcomingHolidays, deleteHoliday, listenToHolidays, saveHoliday, savePolicy, getHeatmapData, listenToWeeklyOff, updateWeeklyOff, listenToLeaveTypes, saveLeaveType, deleteLeaveType, bulkSaveLeaveTypes, listenToDeptWeekOffs, saveDeptWeekOff, bulkSaveHolidays } from "./leave-service.js";
-        import { db } from "./firebase-config.js";
-        import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, collection, onSnapshot } from "./firebase-config.js";
 
         const todayDate = new Date();
         let currentYear = todayDate.getFullYear();
@@ -740,8 +749,10 @@
                                 <option value="sat-sun" ${val === 'sat-sun' ? 'selected' : ''}>Sat &amp; Sun</option>
                                 <option value="sun" ${val === 'sun' ? 'selected' : ''}>Sun Only</option>
                                 <option value="sat" ${val === 'sat' ? 'selected' : ''}>Sat Only</option>
+                                <option value="fri-sat" ${val === 'fri-sat' ? 'selected' : ''}>Fri &amp; Sat</option>
                                 <option value="mon" ${val === 'mon' ? 'selected' : ''}>Mon Only</option>
                                 <option value="rotational" ${val === 'rotational' ? 'selected' : ''}>Rotational Roster</option>
+                                <option value="none" ${val === 'none' ? 'selected' : ''}>None (Can work Sat &amp; Sun)</option>
                             </select>
                         </div>
                     `;
@@ -809,8 +820,15 @@
                 });
                 weeklyOffSelect.addEventListener('change', async () => {
                     try {
-                        await updateWeeklyOff(weeklyOffSelect.value);
-                        showToast('Weekly off configuration updated in Firestore.');
+                        const val = weeklyOffSelect.value;
+                        await updateWeeklyOff(val);
+                        localStorage.setItem('weekly_off_config', val);
+                        try {
+                            const hrRef = doc(db, 'system_config', 'onboarding_hr');
+                            await setDoc(hrRef, { default_weekoff: val, updatedAt: new Date().toISOString() }, { merge: true });
+                        } catch (_) {}
+                        showToast(`Weekly off updated to ${weeklyOffSelect.options[weeklyOffSelect.selectedIndex].text}`);
+                        generateHeatmap(currentYear, currentMonth);
                     } catch (err) {
                         showToast('Failed to sync weekly off configuration: ' + err.message, true);
                     }
@@ -1143,6 +1161,73 @@
             if (window.lucide) lucide.createIcons();
         }
 
+        // Universal Excel & CSV File Processing Engine
+        function isExcelFile(file, buffer) {
+            const lowerName = (file?.name || '').toLowerCase();
+            if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls')) {
+                return true;
+            }
+            if (buffer && buffer.byteLength >= 4) {
+                const bytes = new Uint8Array(buffer.slice(0, 4));
+                // 0x50, 0x4B is 'PK' (ZIP archive / XLSX)
+                if (bytes[0] === 0x50 && bytes[1] === 0x4B) return true;
+                // 0xD0, 0xCF, 0x11, 0xE0 (OLE2 compound / XLS)
+                if (bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0) return true;
+            }
+            return false;
+        }
+
+        async function extractFileRows(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error("Unable to read file: " + (reader.error?.message || "Unknown error")));
+                reader.onload = (e) => {
+                    try {
+                        const buffer = e.target.result;
+                        const isExcel = isExcelFile(file, buffer);
+                        
+                        if (isExcel) {
+                            if (typeof XLSX === 'undefined') {
+                                throw new Error("Excel parsing engine (SheetJS) is still loading. Please try again in a moment.");
+                            }
+                            const data = new Uint8Array(buffer);
+                            const workbook = XLSX.read(data, { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
+                            if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+                                throw new Error("The Excel workbook is empty and contains no sheets.");
+                            }
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const rawRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '', raw: false, dateNF: 'yyyy-mm-dd' });
+                            
+                            // Filter out empty rows and trim cells
+                            const cleaned = [];
+                            for (const row of rawRows) {
+                                if (!Array.isArray(row)) continue;
+                                const isNonEmpty = row.some(cell => String(cell != null ? cell : '').trim() !== '');
+                                if (isNonEmpty) {
+                                    cleaned.push(row.map(cell => String(cell != null ? cell : '').trim()));
+                                }
+                            }
+                            resolve({ rows: cleaned, isExcel: true, fileName: file.name });
+                        } else {
+                            // Plain CSV / Text parsing
+                            let text = "";
+                            try {
+                                const decoder = new TextDecoder('utf-8');
+                                text = decoder.decode(buffer).replace(/^\uFEFF/, '');
+                            } catch (_) {
+                                text = String.fromCharCode.apply(null, new Uint8Array(buffer));
+                            }
+                            const cleaned = parseCSV(text);
+                            resolve({ rows: cleaned, isExcel: false, fileName: file.name });
+                        }
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
         function parseCSV(text) {
             const lines = text.split(/\r?\n/);
             const result = [];
@@ -1164,15 +1249,87 @@
                     }
                 }
                 cells.push(currentCell.trim());
-                result.push(cells);
+                if (cells.some(c => c !== '')) {
+                    result.push(cells);
+                }
             }
             return result;
         }
 
+        function findColumnIndex(headers, candidates) {
+            if (!headers || !Array.isArray(headers)) return -1;
+            for (let i = 0; i < headers.length; i++) {
+                const clean = String(headers[i] || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                for (const cand of candidates) {
+                    const candClean = cand.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (clean === candClean) return i;
+                }
+            }
+            return -1;
+        }
+
+        function normalizeDateString(val) {
+            if (!val && val !== 0) return null;
+            if (val instanceof Date && !isNaN(val.getTime())) {
+                const y = val.getFullYear();
+                const m = String(val.getMonth() + 1).padStart(2, '0');
+                const d = String(val.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+            let s = String(val).trim();
+            if (!s) return null;
+            
+            // Numeric Excel serial (e.g. 45000)
+            if (/^\d{5}$/.test(s)) {
+                const serial = parseInt(s, 10);
+                const utcDays = Math.floor(serial - 25569);
+                const date = new Date(utcDays * 86400 * 1000);
+                if (!isNaN(date.getTime())) {
+                    const y = date.getUTCFullYear();
+                    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+                    const d = String(date.getUTCDate()).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                }
+            }
+            
+            // ISO format YYYY-MM-DD
+            const isoMatch = s.match(/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/);
+            if (isoMatch) {
+                return `${isoMatch[1]}-${isoMatch[2].padStart(2, '0')}-${isoMatch[3].padStart(2, '0')}`;
+            }
+            
+            // DD-MM-YYYY or MM-DD-YYYY or DD/MM/YYYY
+            const dmyMatch = s.match(/^(\d{1,2})[-\/\.](\d{1,2})[-\/\.](\d{4})$/);
+            if (dmyMatch) {
+                let p1 = parseInt(dmyMatch[1], 10);
+                let p2 = parseInt(dmyMatch[2], 10);
+                const year = dmyMatch[3];
+                let day = p1;
+                let month = p2;
+                if (p1 > 12 && p2 <= 12) {
+                    day = p1;
+                    month = p2;
+                } else if (p2 > 12 && p1 <= 12) {
+                    month = p1;
+                    day = p2;
+                }
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            }
+            
+            const parsed = new Date(s);
+            if (!isNaN(parsed.getTime())) {
+                const y = parsed.getFullYear();
+                const m = String(parsed.getMonth() + 1).padStart(2, '0');
+                const d = String(parsed.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+            return null;
+        }
+
         window.downloadHolidayCSVTemplate = () => {
             const headers = "Name,Date,Type\n";
-            const sample = "Diwali,2026-10-24,National\nChristmas,2026-12-25,National\nLocal Holiday,2026-11-12,Regional";
-            const blob = new Blob([headers + sample], { type: 'text/csv' });
+            const sample = "Diwali Festival,2026-10-24,National\nChristmas Day,2026-12-25,National\nRegional Holiday,2026-11-12,Regional\nNew Year's Day,2027-01-01,National";
+            const blob = new Blob([headers + sample], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1183,10 +1340,28 @@
             URL.revokeObjectURL(url);
         };
 
+        window.downloadHolidayExcelTemplate = () => {
+            if (typeof XLSX === 'undefined') {
+                return window.downloadHolidayCSVTemplate();
+            }
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                ["Name", "Date", "Type"],
+                ["Diwali Festival", "2026-10-24", "National"],
+                ["Christmas Day", "2026-12-25", "National"],
+                ["Regional Holiday", "2026-11-12", "Regional"],
+                ["New Year's Day", "2027-01-01", "National"]
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }];
+            XLSX.utils.book_append_sheet(wb, ws, "National Holidays");
+            XLSX.writeFile(wb, "Kylrx_AI_Holidays_Template.xlsx");
+        };
+
         window.downloadLeaveCSVTemplate = () => {
             const headers = "Name,Description,Accrual Rate\n";
-            const sample = "Sabbatical,Extended career break,1.5\nStudy Leave,For educational courses,2.0\nPaternity Leave,For new fathers,0.0";
-            const blob = new Blob([headers + sample], { type: 'text/csv' });
+            const sample = "Sabbatical,Extended career break,1.5\nStudy Leave,For educational courses,2.0\nPaternity Leave,For new fathers,0.0\nBereavement Leave,Compassionate leave,0.0";
+            const blob = new Blob([headers + sample], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1195,6 +1370,24 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        };
+
+        window.downloadLeaveExcelTemplate = () => {
+            if (typeof XLSX === 'undefined') {
+                return window.downloadLeaveCSVTemplate();
+            }
+            const wb = XLSX.utils.book_new();
+            const wsData = [
+                ["Name", "Description", "Accrual Rate"],
+                ["Sabbatical", "Extended career break", 1.5],
+                ["Study Leave", "For educational courses", 2.0],
+                ["Paternity Leave", "For new fathers", 0.0],
+                ["Bereavement Leave", "Compassionate leave", 0.0]
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!cols'] = [{ wch: 25 }, { wch: 35 }, { wch: 15 }];
+            XLSX.utils.book_append_sheet(wb, ws, "Leave Types");
+            XLSX.writeFile(wb, "Kylrx_AI_Leave_Types_Template.xlsx");
         };
 
         window.handleCSVHolidayUpload = async (event) => {
@@ -1208,28 +1401,30 @@
             if (statusDiv) {
                 statusDiv.style.display = 'block';
                 statusDiv.style.color = 'var(--primary)';
-                statusDiv.textContent = 'Parsing CSV file...';
+                statusDiv.textContent = `Reading ${file.name}...`;
             }
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const text = e.target.result;
-                const rows = parseCSV(text);
-                if (rows.length < 2) {
-                    displayCSVErrors(["CSV file is empty or missing headers."]);
+            try {
+                const { rows, isExcel, fileName } = await extractFileRows(file);
+                
+                if (!rows || rows.length < 2) {
+                    displayCSVErrors([`The file "${fileName}" is empty or does not contain any data rows.`]);
                     return;
                 }
 
-                const headers = rows[0].map(h => h.toLowerCase().trim());
-                const requiredHeaders = ['name', 'date', 'type'];
-                const headerIndices = {};
-                
-                requiredHeaders.forEach(req => {
-                    headerIndices[req] = headers.indexOf(req);
-                });
+                const headerRow = rows[0];
+                const nameIdx = findColumnIndex(headerRow, ['name', 'holidayname', 'holiday', 'festival', 'title', 'occasion', 'event']);
+                const dateIdx = findColumnIndex(headerRow, ['date', 'holidaydate', 'day', 'eventdate']);
+                const typeIdx = findColumnIndex(headerRow, ['type', 'holidaytype', 'category', 'kind']);
 
-                if (headerIndices['name'] === -1 || headerIndices['date'] === -1 || headerIndices['type'] === -1) {
-                    displayCSVErrors([`Missing required headers. Found: [${rows[0].join(', ')}]. Required: [Name, Date, Type]`]);
+                if (nameIdx === -1 || dateIdx === -1) {
+                    const foundList = headerRow.map(h => String(h || '').trim()).filter(Boolean);
+                    displayCSVErrors([
+                        `Missing required headers in "${fileName}".`,
+                        `Detected columns: [${foundList.join(', ') || 'None detected'}]`,
+                        `Required columns: Name, Date (Type is optional and defaults to "National").`,
+                        `Tip: You can download the sample CSV or Excel template above.`
+                    ]);
                     return;
                 }
 
@@ -1238,44 +1433,32 @@
 
                 for (let i = 1; i < rows.length; i++) {
                     const cells = rows[i];
-                    if (cells.length === 1 && cells[0] === '') continue;
-
                     const rowNum = i + 1;
-                    const name = cells[headerIndices['name']];
-                    const dateStr = cells[headerIndices['date']];
-                    const type = cells[headerIndices['type']];
+                    const name = String(cells[nameIdx] || '').trim();
+                    const rawDate = cells[dateIdx];
+                    const dateStr = normalizeDateString(rawDate);
+                    
+                    let rawType = typeIdx >= 0 ? String(cells[typeIdx] || '').trim().toLowerCase() : 'national';
+                    if (!rawType) rawType = 'national';
 
                     if (!name) {
-                        errors.push(`Row ${rowNum}: Name is required.`);
+                        errors.push(`Row ${rowNum}: Holiday Name is required.`);
                     }
 
-                    if (!dateStr) {
-                        errors.push(`Row ${rowNum}: Date is required.`);
-                    } else {
-                        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-                        if (!dateRegex.test(dateStr)) {
-                            errors.push(`Row ${rowNum}: Date "${dateStr}" must be in YYYY-MM-DD format.`);
-                        } else {
-                            const timestamp = Date.parse(dateStr);
-                            if (isNaN(timestamp)) {
-                                errors.push(`Row ${rowNum}: Date "${dateStr}" is not a valid calendar date.`);
-                            }
-                        }
+                    if (!rawDate) {
+                        errors.push(`Row ${rowNum}: Holiday Date is required.`);
+                    } else if (!dateStr) {
+                        errors.push(`Row ${rowNum}: Date "${rawDate}" could not be recognized. Please use YYYY-MM-DD or DD/MM/YYYY format.`);
                     }
 
-                    if (!type) {
-                        errors.push(`Row ${rowNum}: Type is required.`);
-                    } else {
-                        const validTypes = ['National', 'Regional', 'Optional'];
-                        if (!validTypes.some(t => t.toLowerCase() === type.toLowerCase())) {
-                            errors.push(`Row ${rowNum}: Type "${type}" is invalid. Must be one of: National, Regional, Optional.`);
-                        }
+                    let finalType = 'National';
+                    if (rawType.includes('reg')) {
+                        finalType = 'Regional';
+                    } else if (rawType.includes('opt') || rawType.includes('rest')) {
+                        finalType = 'Optional';
                     }
 
-                    if (errors.length === 0) {
-                        let finalType = 'National';
-                        if (type.toLowerCase() === 'regional') finalType = 'Regional';
-                        if (type.toLowerCase() === 'optional') finalType = 'Optional';
+                    if (name && dateStr) {
                         validHolidays.push({ name, date: dateStr, type: finalType });
                     }
                 }
@@ -1286,22 +1469,20 @@
                 }
 
                 if (validHolidays.length === 0) {
-                    displayCSVErrors(["No valid holiday records found in the CSV file."]);
+                    displayCSVErrors([`No valid holiday records could be extracted from "${fileName}".`]);
                     return;
                 }
 
-                try {
-                    statusDiv.textContent = `Uploading ${validHolidays.length} holidays...`;
-                    await bulkSaveHolidays(validHolidays);
-                    statusDiv.style.color = '#10b981';
-                    statusDiv.textContent = `Successfully imported ${validHolidays.length} holidays.`;
-                    showToast(`Successfully imported ${validHolidays.length} holidays.`);
-                    setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
-                } catch (err) {
-                    displayCSVErrors([`Failed to import holidays: ${err.message}`]);
-                }
-            };
-            reader.readAsText(file);
+                statusDiv.textContent = `Importing ${validHolidays.length} holidays from ${fileName}...`;
+                await bulkSaveHolidays(validHolidays);
+                statusDiv.style.color = '#10b981';
+                statusDiv.textContent = `Successfully imported ${validHolidays.length} holidays from ${fileName}!`;
+                showToast(`Successfully imported ${validHolidays.length} holidays.`);
+                setTimeout(() => { if (statusDiv) statusDiv.style.display = 'none'; }, 5000);
+            } catch (err) {
+                console.error('[IMPORT] Holiday upload failed:', err);
+                displayCSVErrors([`Error processing "${file.name}": ${err.message}`]);
+            }
         };
 
         window.handleCSVLeaveUpload = async (event) => {
@@ -1315,28 +1496,30 @@
             if (statusDiv) {
                 statusDiv.style.display = 'block';
                 statusDiv.style.color = 'var(--primary)';
-                statusDiv.textContent = 'Parsing CSV file...';
+                statusDiv.textContent = `Reading ${file.name}...`;
             }
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const text = e.target.result;
-                const rows = parseCSV(text);
-                if (rows.length < 2) {
-                    displayCSVErrors(["CSV file is empty or missing headers."]);
+            try {
+                const { rows, isExcel, fileName } = await extractFileRows(file);
+
+                if (!rows || rows.length < 2) {
+                    displayCSVErrors([`The file "${fileName}" is empty or does not contain data rows.`]);
                     return;
                 }
 
-                const headers = rows[0].map(h => h.toLowerCase().replace(/\s+/g, ''));
-                const requiredHeaders = ['name', 'description', 'accrualrate'];
-                const headerIndices = {};
-                
-                requiredHeaders.forEach(req => {
-                    headerIndices[req] = headers.indexOf(req);
-                });
+                const headerRow = rows[0];
+                const nameIdx = findColumnIndex(headerRow, ['name', 'leavetypename', 'leavename', 'leavetype', 'type', 'title']);
+                const descIdx = findColumnIndex(headerRow, ['description', 'desc', 'details', 'info', 'leavedescription']);
+                const accrualIdx = findColumnIndex(headerRow, ['accrualrate', 'accrual', 'rate', 'days', 'annualquota', 'quota', 'credits']);
 
-                if (headerIndices['name'] === -1 || headerIndices['description'] === -1 || headerIndices['accrualrate'] === -1) {
-                    displayCSVErrors([`Missing required headers. Found: [${rows[0].join(', ')}]. Required: [Name, Description, Accrual Rate]`]);
+                if (nameIdx === -1) {
+                    const foundList = headerRow.map(h => String(h || '').trim()).filter(Boolean);
+                    displayCSVErrors([
+                        `Missing required headers in "${fileName}".`,
+                        `Detected columns: [${foundList.join(', ') || 'None detected'}]`,
+                        `Required column: Name (Description and Accrual Rate are optional).`,
+                        `Tip: You can download the sample CSV or Excel template above.`
+                    ]);
                     return;
                 }
 
@@ -1345,32 +1528,26 @@
 
                 for (let i = 1; i < rows.length; i++) {
                     const cells = rows[i];
-                    if (cells.length === 1 && cells[0] === '') continue;
-
                     const rowNum = i + 1;
-                    const name = cells[headerIndices['name']];
-                    const description = cells[headerIndices['description']];
-                    const accrualStr = cells[headerIndices['accrualrate']];
+                    const name = String(cells[nameIdx] || '').trim();
+                    const description = descIdx >= 0 ? String(cells[descIdx] || '').trim() : 'Custom Leave';
+                    const rawAccrual = accrualIdx >= 0 ? String(cells[accrualIdx] || '').trim() : '1.0';
 
                     if (!name) {
-                        errors.push(`Row ${rowNum}: Name is required.`);
+                        errors.push(`Row ${rowNum}: Leave Type Name is required.`);
                     }
 
-                    if (!description) {
-                        errors.push(`Row ${rowNum}: Description is required.`);
+                    let accrualNum = parseFloat(rawAccrual || '1.0');
+                    if (isNaN(accrualNum) || accrualNum < 0) {
+                        errors.push(`Row ${rowNum}: Accrual Rate "${rawAccrual}" must be a valid non-negative number.`);
                     }
 
-                    if (!accrualStr) {
-                        errors.push(`Row ${rowNum}: Accrual Rate is required.`);
-                    } else {
-                        const accrualNum = parseFloat(accrualStr);
-                        if (isNaN(accrualNum) || accrualNum < 0) {
-                            errors.push(`Row ${rowNum}: Accrual Rate "${accrualStr}" must be a valid positive number.`);
-                        }
-                    }
-
-                    if (errors.length === 0) {
-                        validLeaveTypes.push({ name, description, accrualRate: accrualStr });
+                    if (name && !isNaN(accrualNum) && accrualNum >= 0) {
+                        validLeaveTypes.push({
+                            name,
+                            description: description || 'Custom Leave Plan',
+                            accrualRate: String(accrualNum)
+                        });
                     }
                 }
 
@@ -1380,22 +1557,20 @@
                 }
 
                 if (validLeaveTypes.length === 0) {
-                    displayCSVErrors(["No valid leave type records found in the CSV file."]);
+                    displayCSVErrors([`No valid leave type records could be extracted from "${fileName}".`]);
                     return;
                 }
 
-                try {
-                    statusDiv.textContent = `Uploading ${validLeaveTypes.length} leave types...`;
-                    await bulkSaveLeaveTypes(validLeaveTypes);
-                    statusDiv.style.color = '#10b981';
-                    statusDiv.textContent = `Successfully imported ${validLeaveTypes.length} leave types.`;
-                    showToast(`Successfully imported ${validLeaveTypes.length} leave types.`);
-                    setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
-                } catch (err) {
-                    displayCSVErrors([`Failed to import leave types: ${err.message}`]);
-                }
-            };
-            reader.readAsText(file);
+                statusDiv.textContent = `Importing ${validLeaveTypes.length} leave types from ${fileName}...`;
+                await bulkSaveLeaveTypes(validLeaveTypes);
+                statusDiv.style.color = '#10b981';
+                statusDiv.textContent = `Successfully imported ${validLeaveTypes.length} leave types from ${fileName}!`;
+                showToast(`Successfully imported ${validLeaveTypes.length} leave types.`);
+                setTimeout(() => { if (statusDiv) statusDiv.style.display = 'none'; }, 5000);
+            } catch (err) {
+                console.error('[IMPORT] Leave upload failed:', err);
+                displayCSVErrors([`Error processing "${file.name}": ${err.message}`]);
+            }
         };
 
         async function generateHeatmap(year, month) {
@@ -1428,12 +1603,16 @@
                 // Dynamic Weekly Off detection based on configuration option
                 const dayOfWeek = new Date(year, month, i).getDay(); // 0 is Sunday, 6 is Saturday
                 let isWeeklyOff = false;
-                if (weeklyOff === 'sat-sun') {
+                if (weeklyOff === 'none') {
+                    isWeeklyOff = false; // None: Employees can also work on Sun & Sat based on company settings
+                } else if (weeklyOff === 'sat-sun') {
                     isWeeklyOff = (dayOfWeek === 0 || dayOfWeek === 6);
-                } else if (weeklyOff === 'sun') {
+                } else if (weeklyOff === 'sun' || weeklyOff === 'sun-only') {
                     isWeeklyOff = (dayOfWeek === 0);
                 } else if (weeklyOff === 'sat') {
                     isWeeklyOff = (dayOfWeek === 6);
+                } else if (weeklyOff === 'fri-sat') {
+                    isWeeklyOff = (dayOfWeek === 5 || dayOfWeek === 6);
                 }
 
                 // Format date string to match against activeHolidays

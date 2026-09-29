@@ -21,6 +21,7 @@ import exitAdapter from '../modules/exit-module-adapter.js';
 import payrollAdapter from '../modules/payroll-module-adapter.js';
 import statutoryAdapter from '../modules/statutory-module-adapter.js';
 import policyAdapter from '../modules/policy-module-adapter.js';
+import buRulesService from '../services/bu-employee-type-rules-service.js';
 
 describe('18. Non-Negotiable Product Rules Suite (Rules 24 - 33)', () => {
 
@@ -237,5 +238,136 @@ describe('18. Non-Negotiable Product Rules Suite (Rules 24 - 33)', () => {
         const js = fs.readFileSync(jsPath, 'utf8');
         assert.ok(js.includes('renderConfigPanel'), 'Must provide point-and-click configuration panels for HR');
         assert.ok(js.includes('addNodeToCanvas'), 'Must support visual canvas drag-and-drop / click addition');
+
+        // PRD Section 9: Flow Designer Question Customization & Strict Architectural Boundary
+        assert.ok(html.includes('id="questionDrawer"'), 'Must have slide-out question drawer for stage customization');
+        assert.ok(html.includes('Strict Architectural Boundary (PRD §9)'), 'Must enforce strict boundary disclaimer');
+        assert.ok(js.includes('openQuestionCustomizationDrawer'), 'Must provide openQuestionCustomizationDrawer controller');
+        assert.ok(js.includes('saveQuestionsToFirestore'), 'Must provide saveQuestionsToFirestore controller');
+
+        // Verify service level isolation: questions do not mutate canvas nodes/connections
+        const sampleWf = workflowService.getWorkflow('wf_sample_onboarding');
+        const initialNodesCount = sampleWf.canvas.nodes.length;
+        const initialEdgesCount = sampleWf.canvas.connections.length;
+
+        const qConfig = workflowService.saveQuestionConfig('wf_sample_onboarding', 'n4', {
+            stageLabel: 'HR Director Sign-off',
+            questions: [
+                { questionId: 'q_test_1', prompt: 'Manager verification remarks', type: 'textarea', required: true, order: 1 },
+                { questionId: 'q_test_2', prompt: 'Work velocity rating', type: 'rating', scale: 5, required: true, order: 2 }
+            ]
+        }, { actor: 'HR Architect' });
+
+        assert.equal(qConfig.questions.length, 2);
+        assert.equal(sampleWf.canvas.nodes.length, initialNodesCount, 'Canvas nodes must remain unchanged');
+        assert.equal(sampleWf.canvas.connections.length, initialEdgesCount, 'Canvas connections must remain unchanged');
+
+        const fetched = workflowService.getQuestionConfig('wf_sample_onboarding', 'n4');
+        assert.equal(fetched.questions[0].prompt, 'Manager verification remarks');
+    });
+
+    // PRD Section 10: Business Unit Configuration by Employee Type Rules
+    it('PRD Section 10: Business Unit by Employee Type Rules & Form Gating validation', () => {
+        // 1. Verify canonical employee types
+        const types = buRulesService.getEmployeeTypes();
+        assert.ok(types.length >= 5, 'Must support canonical employee types');
+        const typeCodes = types.map(t => t.code);
+        assert.ok(typeCodes.includes('FULL_TIME'));
+        assert.ok(typeCodes.includes('CONTRACTOR'));
+        assert.ok(typeCodes.includes('INTERN'));
+        assert.ok(typeCodes.includes('CONSULTANT'));
+        assert.ok(typeCodes.includes('EXECUTIVE'));
+
+        // 2. Verify default Business Unit rules mapping
+        const allRules = buRulesService.getAllRules();
+        assert.ok(allRules.length >= 5, 'Must provide default business unit rules');
+        
+        // 3. Allowed Business Units filtering by Employee Type
+        const ftBUs = buRulesService.getAllowedBusinessUnits('FULL_TIME');
+        assert.ok(ftBUs.length > 0, 'Full time should be allowed in multiple business units');
+
+        const internBUs = buRulesService.getAllowedBusinessUnits('INTERN');
+        const internCodes = internBUs.map(b => b.businessUnitCode);
+        assert.ok(internCodes.includes('BU_ENG') || internCodes.includes('BU-TECH'));
+        // Executive BU should not allow INTERN by default
+        assert.equal(internCodes.includes('BU-EXEC'), false, 'Executive unit should not allow Interns');
+
+        // 4. Incompatible pair combination rejection
+        const invalidCheck = buRulesService.isCombinationValid('BU-EXEC', 'INTERN');
+        assert.equal(invalidCheck.valid, false, 'BU-EXEC + INTERN must be invalid');
+        assert.ok(invalidCheck.error.includes('does not permit'), 'Must return descriptive error explanation');
+
+        const validCheck = buRulesService.isCombinationValid('BU-EXEC', 'EXECUTIVE');
+        assert.equal(validCheck.valid, true, 'BU-EXEC + EXECUTIVE must be valid');
+
+        // 5. Dynamic rule upsert and Firestore schema compatibility
+        buRulesService.saveRule({
+            businessUnitCode: 'BU-CUSTOM-LAB',
+            businessUnitName: 'Advanced AI Research Lab',
+            allowedEmployeeTypes: ['FULL_TIME', 'CONSULTANT'],
+            isActive: true
+        }, 'Super Admin');
+
+        const customCheck = buRulesService.isCombinationValid('BU-CUSTOM-LAB', 'CONSULTANT');
+        assert.equal(customCheck.valid, true);
+        const customInvalid = buRulesService.isCombinationValid('BU-CUSTOM-LAB', 'CONTRACTOR');
+        assert.equal(customInvalid.valid, false);
+
+        // 6. Verify UI and Form Gating Script presence in Admin Dashboard
+        const dashHtmlPath = path.resolve(rootDir, 'admin-dashboard.html');
+        assert.ok(fs.existsSync(dashHtmlPath));
+        const dashHtml = fs.readFileSync(dashHtmlPath, 'utf8');
+
+        assert.ok(dashHtml.includes('id="employeeTypeSelect"'), 'Must have Employee Type selector');
+        assert.ok(dashHtml.includes('id="buMismatchNotice"'), 'Must have inline mismatch notice element');
+        assert.ok(dashHtml.includes('id="buRulesModal"'), 'Must provide Super Admin BU Rules modal');
+        assert.ok(dashHtml.includes('bu-employee-type-rules.js'), 'Must load BU rules engine script');
+
+        // 7. Verify Client Script File Integrity
+        const clientScriptPath = path.resolve(rootDir, 'bu-employee-type-rules.js');
+        assert.ok(fs.existsSync(clientScriptPath));
+        const clientScript = fs.readFileSync(clientScriptPath, 'utf8');
+        assert.ok(clientScript.includes('bindEmployeeTypeAndBuGating'), 'Must provide client binding function');
+        assert.ok(clientScript.includes('bu_employee_type_rules'), 'Must target Firestore bu_employee_type_rules collection');
+    });
+
+    it('PRD Section 11: Simplified Alert Monitor & Safe AI Simulation Sandbox validation', async () => {
+        const rootDir = process.cwd();
+
+        // 1. Verify Alert Trigger Registry Service
+        const alertServicePath = path.resolve(rootDir, 'services', 'alert-trigger-registry-service.js');
+        assert.ok(fs.existsSync(alertServicePath), 'alert-trigger-registry-service.js must exist');
+        const alertService = (await import('../services/alert-trigger-registry-service.js')).default;
+
+        const triggers = alertService.getAllTriggers();
+        assert.ok(triggers.length >= 6, 'Must register canonical triggers');
+        assert.ok(alertService.getTriggerByKey('EVT_ABSENCE_EXCEEDED'));
+
+        // 2. Verify Dry-Run Simulation (0 side effects)
+        const simRes = await alertService.runSandboxedDryRun('EVT_ABSENCE_EXCEEDED', {
+            employeeId: 'EMP0102',
+            consecutiveDays: 4
+        });
+        assert.strictEqual(simRes.success, true);
+        assert.strictEqual(simRes.conditionMet, true);
+        assert.strictEqual(simRes.dryRunGuarantee.firestoreWrites, 0);
+        assert.strictEqual(simRes.dryRunGuarantee.certifiedSafe, true);
+
+        // 3. Verify HTML & UI integration
+        const htmlPath = path.resolve(rootDir, 'admin-alert-builder.html');
+        assert.ok(fs.existsSync(htmlPath));
+        const html = fs.readFileSync(htmlPath, 'utf8');
+
+        assert.ok(html.includes('id="alertSetupGuideDrawer"'), 'Must have Setup Guide Drawer');
+        assert.ok(html.includes('id="aiSimulationSandboxModal"'), 'Must have Safe AI Simulation Modal');
+        assert.ok(html.includes('id="simTraceTerminal"'), 'Must have Simulation Trace Terminal');
+        assert.ok(html.includes('alert-trigger-registry.js'), 'Must link alert-trigger-registry.js script');
+
+        // 4. Verify Firestore Rules
+        const rulesPath = path.resolve(rootDir, 'firestore.rules');
+        const rules = fs.readFileSync(rulesPath, 'utf8');
+        assert.ok(rules.includes('match /alert_trigger_registry/{triggerId}'), 'Firestore rules must secure alert_trigger_registry');
     });
 });
+
+

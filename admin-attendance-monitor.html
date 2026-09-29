@@ -188,13 +188,25 @@
         <main class="main-content">
             <header class="header-actions">
                 <div class="welcome-text">
-                    <h1>Attendance Command Center</h1>
-                    <p>Track workforce punctuality, missing punches, and regularization requests.</p>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <h1>Attendance Command Center</h1>
+                        <div id="firebaseConnectionBadge" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 100px; font-size: 0.72rem; font-weight: 800; color: #065f46;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 6px #10b981;"></span>
+                            <span id="firebaseStatusText">Firebase Live: kylrxai</span>
+                        </div>
+                    </div>
+                    <p>Track workforce punctuality, missing punches, and regularization requests in real-time.</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                    <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'"><i data-lucide="message-square"></i></button>
-                    <div style="width: 1px; height: 24px; background: var(--border);"></div>
-                    <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'"><i data-lucide="bell"></i></button>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <button class="btn btn-primary" id="btnOpenRaiseRegModal" style="font-size: 0.8rem; padding: 8px 16px; border-radius: 12px; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                        <span>New Regularization</span>
+                    </button>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; background: white; padding: 6px; border-radius: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                        <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'"><i data-lucide="message-square"></i></button>
+                        <div style="width: 1px; height: 24px; background: var(--border);"></div>
+                        <button class="action-icon" title="Notifications" onclick="window.location.href='admin-notifications.html'"><i data-lucide="bell"></i></button>
+                    </div>
                 </div>
             </header>
 
@@ -251,24 +263,9 @@
                         </div>
 
                         <div class="attendance-timeline" id="attendanceTimeline">
-                            <div class="log-row">
-                                <span class="time-badge">09:02 AM</span>
-                                <span class="time-badge" style="color: var(--text-muted);">06:05 PM</span>
-                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">Arjun Mehta</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Engineering • Shift A</p></div>
-                                <span class="status-badge status-present">On-Time</span>
-                                <i data-lucide="map-pin" size="16" style="color: var(--text-muted); justify-self: end;"></i>
-                            </div>
-                            <div class="log-row">
-                                <span class="time-badge" style="color: #f59e0b;">09:45 AM</span>
-                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">Sarah Jenkins</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Marketing • Shift A</p></div>
-                                <span class="status-badge status-late">Late (45m)</span>
-                                <i data-lucide="map-pin" size="16" style="color: var(--text-muted); justify-self: end;"></i>
-                            </div>
-                            <div class="log-row" style="background: #fff1f2; border-color: #fecaca;">
-                                <span class="time-badge" style="color: #ef4444;">--:--</span>
-                                <div><h4 style="font-size: 0.9rem; font-weight: 700;">David Vane</h4><p style="font-size: 0.75rem; color: var(--text-muted);">Sales • Shift B</p></div>
-                                <span class="status-badge status-missing">Missing</span>
-                                <i data-lucide="alert-triangle" size="16" style="color: #ef4444; justify-self: end;"></i>
+                            <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                <i data-lucide="loader" class="animate-spin" style="width: 24px; height: 24px; margin-bottom: 8px;"></i>
+                                <p>Syncing attendance logs from Firebase...</p>
                             </div>
                         </div>
 
@@ -280,47 +277,38 @@
 
                 <div class="attendance-right">
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem;">
-                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Regularization Queue</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                            <div>
+                                <h3 style="font-weight: 800; margin: 0; font-size: 1.1rem;">Regularization Queue</h3>
+                                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Real-time Firestore stream</p>
+                            </div>
+                            <span id="queueBadgeCount" style="padding: 3px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; background: #eff6ff; color: var(--primary);">0 Pending</span>
+                        </div>
                         
-                        <div class="request-card">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div>
-                                    <h4 style="font-size: 0.85rem; font-weight: 700;">Michael Scott</h4>
-                                    <p style="font-size: 0.7rem; color: var(--text-muted);">Oct 12 • Late Login</p>
-                                </div>
-                                <span class="badge" style="background: #fef2f2; color: #ef4444; font-size: 0.6rem;">SLA BREACH</span>
-                            </div>
-                            <div class="reason-box">"Internet outage in the area. Logged in via mobile hotspot initially."</div>
-                            <div style="display: flex; gap: 8px; margin-top: 1rem;">
-                                <button class="btn btn-outline" style="flex:1; padding: 6px; font-size: 0.75rem;">Reject</button>
-                                <button class="btn btn-primary" style="flex:1; padding: 6px; font-size: 0.75rem;">Approve</button>
+                        <div id="regularizationQueueContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+                                <i data-lucide="loader" class="animate-spin" style="margin-bottom: 8px;"></i>
+                                <p>Syncing regularization queue...</p>
                             </div>
                         </div>
 
-                        <div class="request-card">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div>
-                                    <h4 style="font-size: 0.85rem; font-weight: 700;">Pam Beesly</h4>
-                                    <p style="font-size: 0.7rem; color: var(--text-muted);">Oct 14 • Missing Punch</p>
-                                </div>
-                                <span class="badge" style="background: var(--bg-soft); color: var(--text-muted); font-size: 0.6rem;">Pending</span>
-                            </div>
-                            <div class="reason-box">"Forgot to punch out while leaving for client meeting."</div>
-                            <div style="display: flex; gap: 8px; margin-top: 1rem;">
-                                <button class="btn btn-outline" style="flex:1; padding: 6px; font-size: 0.75rem;">Reject</button>
-                                <button class="btn btn-primary" style="flex:1; padding: 6px; font-size: 0.75rem;">Approve</button>
-                            </div>
-                        </div>
-
-                        <button class="btn btn-outline" style="width:100%; margin-top: 1rem; font-size: 0.75rem;">View All (12)</button>
+                        <button class="btn btn-outline" id="btnViewAllRegularizations" style="width:100%; margin-top: 1rem; font-size: 0.75rem; justify-content: center; display: flex; align-items: center; gap: 6px;">
+                            <i data-lucide="layers" style="width: 14px; height: 14px;"></i>
+                            <span>View All Requests</span>
+                        </button>
                     </div>
 
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
-                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Shift Settings</h3>
-                        <div id="shiftListContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                            <div>
+                                <h3 style="font-weight: 800; margin: 0; font-size: 1.1rem;">Shift Settings</h3>
+                                <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Workforce schedules</p>
+                            </div>
+                            <button class="btn btn-outline" id="btnManageShifts" style="padding: 4px 10px; font-size: 0.75rem;">Manage</button>
+                        </div>
+                        <div id="shiftListContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
                             <!-- Dynamic Shifts will load here -->
                         </div>
-                        <button class="btn btn-outline" id="btnManageShifts" style="width:100%; margin-top: 1.5rem; font-size: 0.75rem;">Manage Shifts</button>
                     </div>
                 </div>
             </div>
@@ -427,550 +415,531 @@
         </div>
     </div>
 
+    <!-- View All Regularizations Modal -->
+    <div id="allRegModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s;">
+        <div style="background:white; padding:2rem; border-radius:20px; width:740px; max-width:92%; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:1rem;">
+                <div>
+                    <h3 style="font-weight:800; font-size:1.3rem; margin:0;">Regularization Audit & Requests</h3>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Live records from Firebase Firestore collection <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">attendance_regularizations</code></p>
+                </div>
+                <button id="btnCloseAllRegModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:6px; border-radius:8px;"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:1rem; flex-wrap:wrap;">
+                <div style="display:flex; gap:6px;" id="regTabGroup">
+                    <button class="btn-filter-reg active" data-tab="All" style="padding:6px 14px; border-radius:8px; border:1px solid var(--primary); background:var(--primary); color:white; font-size:0.75rem; font-weight:700; cursor:pointer;">All</button>
+                    <button class="btn-filter-reg" data-tab="Pending" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size:0.75rem; font-weight:700; cursor:pointer;">Pending</button>
+                    <button class="btn-filter-reg" data-tab="Approved" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size:0.75rem; font-weight:700; cursor:pointer;">Approved</button>
+                    <button class="btn-filter-reg" data-tab="Rejected" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size:0.75rem; font-weight:700; cursor:pointer;">Rejected</button>
+                </div>
+                <input type="text" id="regModalSearch" placeholder="Search employee or reason..." style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; font-family:inherit; min-width:220px;">
+            </div>
+
+            <div id="allRegListContainer" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:10px; padding-right:6px;">
+                <!-- Populated dynamically via Firebase onSnapshot -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Raise Regularization Modal -->
+    <div id="raiseRegModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s;">
+        <div style="background:white; padding:2rem; border-radius:20px; width:480px; max-width:92%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+                <div>
+                    <h3 style="font-weight:800; font-size:1.2rem; margin:0;">New Regularization Request</h3>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Submit punch correction directly to backend Firebase</p>
+                </div>
+                <button id="btnCloseRaiseRegModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted);"><i data-lucide="x"></i></button>
+            </div>
+
+            <form id="raiseRegForm" style="display:flex; flex-direction:column; gap:12px;">
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Employee</label>
+                    <select id="regEmployeeSelect" required style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; background:white;">
+                        <option value="">Loading workforce...</option>
+                    </select>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Date</label>
+                        <input type="date" id="regDate" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Correction Type</label>
+                        <select id="regType" required style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; background:white;">
+                            <option value="Missing Punch Regularization">Missing Punch</option>
+                            <option value="Late Login Regularization">Late Login</option>
+                            <option value="Short Hours Correction">Short Hours Correction</option>
+                            <option value="WFH Attendance Regularization">WFH Correction</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Corrected Clock-In</label>
+                        <input type="text" id="regInTime" value="09:00 AM" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Corrected Clock-Out</label>
+                        <input type="text" id="regOutTime" value="06:00 PM" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Reason / Explanation</label>
+                    <textarea id="regReason" rows="3" required placeholder="Reason for missing/late punch..." style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; resize:none;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:4px;">
+                    <i data-lucide="send"></i> Submit to Firebase
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reject Reason Prompt Modal -->
+    <div id="rejectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.2s;">
+        <div style="background:white; padding:1.75rem; border-radius:16px; width:400px; max-width:90%; box-shadow:0 20px 25px -5px rgba(0,0,0,0.25);">
+            <h3 style="font-weight:800; font-size:1.1rem; color:#b91c1c; margin-bottom:8px;">Reject Regularization</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Specify why this regularization request is being rejected:</p>
+            <textarea id="rejectReasonInput" rows="3" placeholder="e.g., Ineligible date / Exceeded monthly regularization quota" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; resize:none; margin-bottom:1rem;"></textarea>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button id="btnCancelReject" class="btn btn-outline" style="padding:8px 16px;">Cancel</button>
+                <button id="btnConfirmReject" class="btn btn-primary" style="background:#ef4444; border-color:#ef4444; padding:8px 16px;">Reject Request</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
-        import { auth, db } from "./firebase-config.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-        import { getAllAttendanceLogs, getPendingRegularizations, processRegularization, getAttendanceStats, getShifts, addShift, deleteShift } from "./attendance-service.js";
+        import { 
+            auth, 
+            db, 
+            doc, 
+            getDoc, 
+            collection, 
+            getDocs, 
+            onSnapshot, 
+            onAuthStateChanged, 
+            checkBackendFirebaseStatus 
+        } from "./firebase-config.js";
+        
+        import { 
+            getAllAttendanceLogs, 
+            listenToAttendanceLogs, 
+            listenToPendingRegularizations, 
+            listenToAllRegularizations, 
+            processRegularization, 
+            submitRegularization, 
+            listenToAttendanceStats, 
+            listenToShifts, 
+            getShifts, 
+            addShift, 
+            deleteShift, 
+            seedSampleRegularizationsIfEmpty, 
+            seedDefaultShiftsIfEmpty, 
+            seedSampleAttendanceIfEmpty 
+        } from "./attendance-service.js";
 
-        async function loadAttendanceLogs(filters = { status: 'All', type: 'All', period: 'today' }) {
-            const timelineContainer = document.querySelector('.attendance-timeline');
-            if (!timelineContainer) return;
+        // Global State
+        let currentLogs = [];
+        let pendingRequests = [];
+        let allRequests = [];
+        let currentShifts = [];
+        let registeredUsers = [];
+        let currentFilters = { status: 'All', type: 'All', period: 'today', startDate: '', endDate: '' };
+        let activeRegModalTab = 'All';
+        let rejectingRequestId = null;
+        let currentActorId = 'admin';
 
-            try {
-                const logs = await getAllAttendanceLogs();
-                
-                // Sort logs by date descending so the latest logs show first!
-                logs.sort((a, b) => b.date.localeCompare(a.date));
-
-                const filteredLogs = logs.filter(log => {
-                    let match = true;
-                    if (filters.status !== 'All' && log.status !== filters.status) match = false;
-                    const logType = log.type || 'Office';
-                    if (filters.type !== 'All' && logType !== filters.type) match = false;
-                    
-                    if (filters.period && filters.period !== 'All') {
-                        const logDate = new Date(log.date);
-                        const today = new Date();
-                        
-                        if (filters.period === 'today') {
-                            const todayStr = today.toISOString().split('T')[0];
-                            if (log.date !== todayStr) match = false;
-                        } else if (filters.period === 'custom') {
-                            if (filters.startDate && log.date < filters.startDate) match = false;
-                            if (filters.endDate && log.date > filters.endDate) match = false;
-                        } else if (filters.period === 'week') {
-                            // Within last 7 days
-                            const diffTime = Math.abs(today - logDate);
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            if (diffDays > 7) match = false;
-                        } else if (filters.period === 'month') {
-                            // Same month and year
-                            if (logDate.getMonth() !== today.getMonth() || logDate.getFullYear() !== today.getFullYear()) match = false;
-                        } else if (filters.period === 'year') {
-                            // Same year
-                            if (logDate.getFullYear() !== today.getFullYear()) match = false;
-                        }
-                    }
-                    return match;
-                });
-
-                if (filteredLogs.length > 0) {
-                    timelineContainer.innerHTML = '';
-                    filteredLogs.forEach(log => {
-                        const row = document.createElement('div');
-                        row.className = 'log-row';
-                        
-                        const punchIn = log.punchIn?.toDate ? log.punchIn.toDate() : (log.punchIn ? new Date(log.punchIn) : null);
-                        const punchOut = log.punchOut?.toDate ? log.punchOut.toDate() : (log.punchOut ? new Date(log.punchOut) : null);
-                        
-                        const inStr = punchIn ? punchIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
-                        const outStr = punchOut ? punchOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
-                        
-                        const statusClass = log.status === 'On-Time' ? 'status-present' : (log.status === 'Late' ? 'status-late' : 'status-missing');
-                        const rowStyle = log.status === 'Missing' ? 'background: #fff1f2; border-color: #fecaca;' : '';
-
-                        row.style = rowStyle;
-                        row.innerHTML = `
-                            <span class="time-badge" style="color: ${log.status === 'Late' ? '#f59e0b' : (log.status === 'Missing' ? '#ef4444' : 'var(--primary)')}">${inStr}</span>
-                            <span class="time-badge" style="color: var(--text-muted);">${outStr}</span>
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 700;">${log.userName || 'Employee'}</h4>
-                                <p style="font-size: 0.75rem; color: var(--text-muted);">${log.department || 'General'} • ${log.type || 'Office'}</p>
-                            </div>
-                            <span class="status-badge ${statusClass}">${log.status}</span>
-                            <i data-lucide="${log.status === 'Missing' ? 'alert-triangle' : 'map-pin'}" size="16" style="color: ${log.status === 'Missing' ? '#ef4444' : 'var(--text-muted)'}; justify-self: end;"></i>
-                        `;
-                        timelineContainer.appendChild(row);
-                    });
-                    if (window.lucide) lucide.createIcons();
-                } else {
-                    timelineContainer.innerHTML = '<p style="text-align:center; padding: 2rem; color: var(--text-muted);">No logs found matching criteria.</p>';
-                }
-            } catch (err) {
-                console.error("Error loading logs:", err);
-            }
-        }
-
-        async function updateDashboardStats() {
-            try {
-                const stats = await getAttendanceStats();
-                document.getElementById('stat-active-login').textContent = stats.activeLogin;
-                document.getElementById('stat-late-login').textContent = stats.lateLogin;
-                document.getElementById('stat-missing-punch').textContent = stats.missingPunch;
-                document.getElementById('stat-wfh').textContent = stats.onFieldWfh;
-            } catch (err) {
-                console.error("Failed to load attendance stats:", err);
-            }
-        }
-
-        async function loadShiftsData() {
-            const container = document.getElementById('shiftListContainer');
-            const modalContainer = document.getElementById('modalShiftList');
-            if (!container || !modalContainer) return;
-
-            try {
-                const shifts = await getShifts();
-                let mainHtml = '';
-                let modalHtml = '';
-
-                shifts.forEach(shift => {
-                    mainHtml += `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.85rem; font-weight: 600;">${shift.name}</span>
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">${shift.time}</span>
-                        </div>
-                    `;
-                    modalHtml += `
-                        <div style="display: flex; justify-content: space-between; align-items: center; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid var(--border);">
-                            <div>
-                                <div style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${shift.name}</div>
-                                <div style="font-size: 0.75rem; color: var(--text-muted);">${shift.time}</div>
-                            </div>
-                            <button class="btn-delete-shift" data-id="${shift.id}" style="background:rgba(239, 68, 68, 0.1); border:none; border-radius:8px; padding:6px; color:#ef4444; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'" title="Delete Shift">
-                                <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
-                            </button>
-                        </div>
-                    `;
-                });
-
-                container.innerHTML = mainHtml;
-                modalContainer.innerHTML = modalHtml || '<p style="text-align:center; color:var(--text-muted); font-size:0.8rem;">No custom shifts configured.</p>';
-                if (window.lucide) lucide.createIcons();
-
-                document.querySelectorAll('.btn-delete-shift').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const id = e.currentTarget.getAttribute('data-id');
-                        if (confirm('Delete this shift?')) {
-                            try {
-                                await deleteShift(id);
-                                showToast("Shift deleted successfully!");
-                                loadShiftsData();
-                            } catch (err) {
-                                showToast("Failed to delete shift.", true);
-                            }
-                        }
-                    });
-                });
-            } catch (err) {
-                console.error("Failed to load shifts:", err);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.lucide) lucide.createIcons();
-            
-            // Listen for weekly off config in real-time
-            onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
-                const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
-                localStorage.setItem('weekly_off_config', val);
-                if (typeof loadAttendanceSheet === 'function') {
-                    loadAttendanceSheet();
-                }
-            });
-            
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    console.log("User logged in:", user.uid);
-                    
-                    try {
-                        const userDoc = await getDoc(doc(db, "users", user.uid));
-                        if (userDoc.exists()) {
-                            const userData = userDoc.data();
-                            const role = userData.role || 'Admin';
-                            console.log("Logged-in user role:", role);
-                            if (role === 'HRMS') {
-                                const navMenu = document.querySelector('.nav-menu');
-                                if (navMenu) {
-                                    navMenu.innerHTML = `
-                                        <div class="nav-label">Strategic Hub</div>
-                                        <div class="nav-item">
-                                            <a href="hrms-dashboard.html" class="nav-link">
-                                                <i data-lucide="layout-dashboard"></i>
-                                                <span>Dashboard Overview</span>
-                                            </a>
-                                        </div>
-                                        
-                                        <div class="nav-label">Operations</div>
-                                        <div class="nav-item">
-                                            <a href="hrms-calendar.html" class="nav-link">
-                                                <i data-lucide="calendar-check"></i>
-                                                <span>Leave & Attendance</span>
-                                            </a>
-                                        </div>
-                                        
-                                        <div class="nav-label">Intelligence</div>
-                                        <div class="nav-item">
-                                            <a href="admin-analysis.html" class="nav-link">
-                                                <i data-lucide="brain-circuit"></i>
-                                                <span>AI Insights</span>
-                                            </a>
-                                        </div>
-                                    `;
-                                    if (window.lucide) lucide.createIcons();
-                                }
-                                
-                                const logoLink = document.querySelector('.logo');
-                                if (logoLink) {
-                                    logoLink.setAttribute('href', 'hrms-dashboard.html');
-                                    logoLink.innerHTML = `
-                                        <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                                        <span class="logo-text">Kylrx AI</span>
-                                    `;
-                                    if (window.lucide) lucide.createIcons();
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Error setting role-based sidebar:", e);
-                    }
-
-                    loadAttendanceLogs();
-                    loadRegularizationQueue();
-                    updateDashboardStats();
-                    loadShiftsData();
-                    setupActionButtons();
-                } else {
-                    console.warn("No user logged in. Redirecting...");
-                    // window.location.href = 'login.html';
-                }
-            });
-        });
-
+        // Toast Helper
         window.showToast = (msg, isError = false) => {
             const id = isError ? 'errorToast' : 'successToast';
             const toast = document.getElementById(id);
+            if (!toast) return;
             toast.querySelector('span').textContent = msg;
             toast.classList.add('active');
             if (window.lucide) lucide.createIcons();
-            setTimeout(() => toast.classList.remove('active'), 3000);
+            setTimeout(() => toast.classList.remove('active'), 3200);
         };
 
-        function setupActionButtons() {
-            // Filter Modal Logic
-            const filterModal = document.getElementById('filterModal');
-            
-            // Toggle Custom Date inputs
-            document.getElementById('filterPeriod')?.addEventListener('change', (e) => {
-                const container = document.getElementById('customDateRangeContainer');
-                if (container) {
-                    container.style.display = e.target.value === 'custom' ? 'flex' : 'none';
+        // Filter Logic for Timeline Logs
+        function applyLogFilters(logs, filters) {
+            return logs.filter(log => {
+                let match = true;
+                if (filters.status !== 'All') {
+                    if (filters.status === 'On-Time' && (log.status !== 'On-Time' && log.status !== 'Present')) match = false;
+                    else if (filters.status === 'Late' && log.status !== 'Late') match = false;
+                    else if (filters.status === 'Missing' && log.status !== 'Missing') match = false;
                 }
-            });
-
-            document.getElementById('btnFilters')?.addEventListener('click', () => {
-                filterModal.style.display = 'flex';
-                setTimeout(() => filterModal.style.opacity = '1', 10);
-            });
-            document.getElementById('btnCloseFilterModal')?.addEventListener('click', () => {
-                filterModal.style.opacity = '0';
-                setTimeout(() => filterModal.style.display = 'none', 300);
-            });
-
-            document.getElementById('btnApplyFilters')?.addEventListener('click', () => {
-                const status = document.getElementById('filterStatus').value;
-                const type = document.getElementById('filterType').value;
-                const period = document.getElementById('filterPeriod').value;
-                const startDate = document.getElementById('filterStartDate').value;
-                const endDate = document.getElementById('filterEndDate').value;
-                loadAttendanceLogs({ status, type, period, startDate, endDate });
-                filterModal.style.opacity = '0';
-                setTimeout(() => filterModal.style.display = 'none', 300);
-                showToast("Filters applied.");
-            });
-
-            document.getElementById('btnClearFilters')?.addEventListener('click', () => {
-                document.getElementById('filterStatus').value = 'All';
-                document.getElementById('filterType').value = 'All';
-                document.getElementById('filterPeriod').value = 'today';
-                document.getElementById('filterStartDate').value = '';
-                document.getElementById('filterEndDate').value = '';
-                document.getElementById('customDateRangeContainer').style.display = 'none';
-                loadAttendanceLogs({ status: 'All', type: 'All', period: 'today' });
-                filterModal.style.opacity = '0';
-                setTimeout(() => filterModal.style.display = 'none', 300);
-                showToast("Filters cleared.");
-            });
-
-            // Shift Modal Logic
-            const shiftModal = document.getElementById('shiftModal');
-            document.getElementById('btnManageShifts')?.addEventListener('click', () => {
-                shiftModal.style.display = 'flex';
-                setTimeout(() => shiftModal.style.opacity = '1', 10);
-            });
-            document.getElementById('btnCloseShiftModal')?.addEventListener('click', () => {
-                shiftModal.style.opacity = '0';
-                setTimeout(() => shiftModal.style.display = 'none', 300);
-            });
-            
-            document.getElementById('btnSaveNewShift')?.addEventListener('click', async () => {
-                const nameInput = document.getElementById('newShiftName');
-                const timeInput = document.getElementById('newShiftTime');
-                if(!nameInput.value || !timeInput.value) {
-                    showToast("Please provide both name and time for the shift.", true);
-                    return;
-                }
-                try {
-                    await addShift({ name: nameInput.value, time: timeInput.value });
-                    showToast("Shift added successfully.");
-                    nameInput.value = ''; timeInput.value = '';
-                    await loadShiftsData();
-                } catch(e) {
-                    showToast("Failed to add shift.", true);
-                }
-            });
-
-            document.getElementById('btnExport')?.addEventListener('click', async () => {
-                try {
-                    const logs = await getAllAttendanceLogs();
-                    if (logs.length === 0) {
-                        showToast("No logs available to export.", true);
-                        return;
-                    }
-
-                    // Get current filter values to do customized Excel/CSV download!
-                    const status = document.getElementById('filterStatus').value;
-                    const type = document.getElementById('filterType').value;
-                    const period = document.getElementById('filterPeriod').value;
-                    const startDate = document.getElementById('filterStartDate').value;
-                    const endDate = document.getElementById('filterEndDate').value;
-
-                    // Filter the logs exactly as shown in UI
-                    const filteredLogs = logs.filter(log => {
-                        let match = true;
-                        if (status !== 'All' && log.status !== status) match = false;
-                        const logType = log.type || 'Office';
-                        if (type !== 'All' && logType !== type) match = false;
-                        
-                        if (period && period !== 'All') {
-                            const logDate = new Date(log.date);
-                            const today = new Date();
-                            
-                            if (period === 'today') {
-                                const todayStr = today.toISOString().split('T')[0];
-                                if (log.date !== todayStr) match = false;
-                            } else if (period === 'custom') {
-                                if (startDate && log.date < startDate) match = false;
-                                if (endDate && log.date > endDate) match = false;
-                            } else if (period === 'week') {
-                                const diffTime = Math.abs(today - logDate);
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                if (diffDays > 7) match = false;
-                            } else if (period === 'month') {
-                                if (logDate.getMonth() !== today.getMonth() || logDate.getFullYear() !== today.getFullYear()) match = false;
-                            } else if (period === 'year') {
-                                if (logDate.getFullYear() !== today.getFullYear()) match = false;
-                            }
-                        }
-                        return match;
-                    });
-
-                    if (filteredLogs.length === 0) {
-                        showToast("No logs matching the selected filters.", true);
-                        return;
-                    }
-
-                    let csv = 'Date,Employee ID,Employee Name,Department,Punch In,Punch Out,Type,Status\n';
-                    filteredLogs.forEach(log => {
-                        const punchIn = log.punchIn?.toDate ? log.punchIn.toDate() : (log.punchIn ? new Date(log.punchIn) : null);
-                        const punchOut = log.punchOut?.toDate ? log.punchOut.toDate() : (log.punchOut ? new Date(log.punchOut) : null);
-                        
-                        const inTime = punchIn ? punchIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
-                        const outTime = punchOut ? punchOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
-                        
-                        const escapeCsv = (str) => `"${(str || '').replace(/"/g, '""')}"`;
-                        csv += `${escapeCsv(log.date)},${escapeCsv(log.userId || log.employeeId || '')},${escapeCsv(log.userName || 'Employee')},${escapeCsv(log.department || 'General')},${escapeCsv(inTime)},${escapeCsv(outTime)},${escapeCsv(log.type || 'Office')},${escapeCsv(log.status)}\n`;
-                    });
-
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.setAttribute('hidden', '');
-                    a.setAttribute('href', url);
-                    a.setAttribute('download', `Attendance_Logs_Custom_${new Date().toISOString().split('T')[0]}.csv`);
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    showToast("Logs exported successfully.");
-                } catch (err) {
-                    showToast("Export failed: " + err.message, true);
-                }
-            });
-
-            // Tab Switching Logic
-            const tabTimeline = document.getElementById('tabTimeline');
-            const tabSheet = document.getElementById('tabSheet');
-            const timelineDiv = document.getElementById('attendanceTimeline');
-            const sheetDiv = document.getElementById('attendanceSheetContainer');
-            const timelineActions = document.getElementById('timelineActions');
-            const sheetActions = document.getElementById('sheetActions');
-
-            tabTimeline?.addEventListener('click', () => {
-                tabTimeline.classList.add('active');
-                tabTimeline.style.color = 'var(--primary)';
-                tabTimeline.style.borderBottom = '3px solid var(--primary)';
+                const logType = log.type || 'Office';
+                if (filters.type !== 'All' && logType !== filters.type) match = false;
                 
-                tabSheet.classList.remove('active');
-                tabSheet.style.color = 'var(--text-muted)';
-                tabSheet.style.borderBottom = 'none';
-
-                timelineDiv.style.display = 'flex';
-                sheetDiv.style.display = 'none';
-
-                timelineActions.style.display = 'flex';
-                sheetActions.style.display = 'none';
-            });
-
-            tabSheet?.addEventListener('click', () => {
-                tabSheet.classList.add('active');
-                tabSheet.style.color = 'var(--primary)';
-                tabSheet.style.borderBottom = '3px solid var(--primary)';
-                
-                tabTimeline.classList.remove('active');
-                tabTimeline.style.color = 'var(--text-muted)';
-                tabTimeline.style.borderBottom = 'none';
-
-                timelineDiv.style.display = 'none';
-                sheetDiv.style.display = 'block';
-
-                timelineActions.style.display = 'none';
-                sheetActions.style.display = 'flex';
-
-                loadAttendanceSheet();
-            });
-
-            // Sheet Scale & Dept Change Events
-            document.getElementById('sheetScale')?.addEventListener('change', loadAttendanceSheet);
-            document.getElementById('sheetDept')?.addEventListener('change', loadAttendanceSheet);
-
-            // Export Sheet Event
-            document.getElementById('btnExportSheet')?.addEventListener('click', async () => {
-                try {
-                    const scale = document.getElementById('sheetScale').value;
-                    const selectedDept = document.getElementById('sheetDept').value;
+                if (filters.period && filters.period !== 'All') {
+                    const logDate = new Date(log.date);
+                    const today = new Date();
                     
-                    const userSnap = await getDocs(collection(db, 'users'));
-                    let employees = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => (u.role || '').toLowerCase() !== 'admin');
-                    if (selectedDept !== 'All') {
-                        employees = employees.filter(e => (e.department || e.departmentName || '').toLowerCase() === selectedDept.toLowerCase());
+                    if (filters.period === 'today') {
+                        const todayStr = today.toISOString().split('T')[0];
+                        if (log.date !== todayStr) match = false;
+                    } else if (filters.period === 'custom') {
+                        if (filters.startDate && log.date < filters.startDate) match = false;
+                        if (filters.endDate && log.date > filters.endDate) match = false;
+                    } else if (filters.period === 'week') {
+                        const diffTime = Math.abs(today - logDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays > 7) match = false;
+                    } else if (filters.period === 'month') {
+                        if (logDate.getMonth() !== today.getMonth() || logDate.getFullYear() !== today.getFullYear()) match = false;
+                    } else if (filters.period === 'year') {
+                        if (logDate.getFullYear() !== today.getFullYear()) match = false;
                     }
-
-                    const logs = await getAllAttendanceLogs();
-                    const holidaySnap = await getDocs(collection(db, 'holidays'));
-                    const holidays = holidaySnap.docs.map(doc => doc.data());
-                    const weeklyOff = localStorage.getItem('weekly_off_config') || 'sat-sun';
-
-                    let dates = [];
-                    const now = new Date();
-
-                    if (scale === 'weekly') {
-                        const currentDay = now.getDay();
-                        const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
-                        const monday = new Date(now);
-                        monday.setDate(now.getDate() + distanceToMon);
-                        for (let i = 0; i < 7; i++) {
-                            const d = new Date(monday);
-                            d.setDate(monday.getDate() + i);
-                            dates.push(d);
-                        }
-                    } else if (scale === 'monthly') {
-                        const year = now.getFullYear();
-                        const month = now.getMonth();
-                        const numDays = new Date(year, month + 1, 0).getDate();
-                        for (let i = 1; i <= numDays; i++) {
-                            dates.push(new Date(year, month, i));
-                        }
-                    } else if (scale === 'yearly') {
-                        for (let i = 0; i < 12; i++) {
-                            dates.push(new Date(now.getFullYear(), i, 1));
-                        }
-                    }
-
-                    let csv = 'Employee,Department,Role';
-                    if (scale === 'yearly') {
-                        dates.forEach(d => {
-                            csv += `,${d.toLocaleDateString('en-US', { month: 'short' })}`;
-                        });
-                    } else {
-                        dates.forEach(d => {
-                            csv += `,${d.toISOString().split('T')[0]}`;
-                        });
-                    }
-                    csv += '\n';
-
-                    employees.forEach(emp => {
-                        csv += `"${emp.name}","${emp.department || emp.departmentName || 'General'}","${emp.role}"`;
-                        
-                        if (scale === 'yearly') {
-                            dates.forEach(d => {
-                                const m = d.getMonth();
-                                const y = d.getFullYear();
-                                const monthLogs = logs.filter(l => l.userId === emp.uid && new Date(l.date).getMonth() === m && new Date(l.date).getFullYear() === y);
-                                const presentCount = monthLogs.filter(l => l.status === 'Present' || l.status === 'On-Time').length;
-                                const pct = Math.round((presentCount / 20) * 100);
-                                csv += `,${Math.min(100, pct)}%`;
-                            });
-                        } else {
-                            dates.forEach(d => {
-                                const dStr = d.toISOString().split('T')[0];
-                                const log = logs.find(l => l.userId === emp.uid && l.date === dStr);
-                                const isHol = holidays.some(h => h.date === dStr);
-                                const dayOfWeek = d.getDay();
-                                let isWknd = false;
-                                if (weeklyOff === 'sat-sun' && (dayOfWeek === 0 || dayOfWeek === 6)) isWknd = true;
-                                else if (weeklyOff === 'sunday' && dayOfWeek === 0) isWknd = true;
-                                else if (weeklyOff === 'saturday' && dayOfWeek === 6) isWknd = true;
-
-                                if (log) {
-                                    csv += `,${log.status}`;
-                                } else if (isHol) {
-                                    csv += `,Holiday`;
-                                } else if (isWknd) {
-                                    csv += `,Weekly Off`;
-                                } else {
-                                    csv += `,Absent`;
-                                }
-                            });
-                        }
-                        csv += '\n';
-                    });
-
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.setAttribute('hidden', '');
-                    a.setAttribute('href', url);
-                    a.setAttribute('download', `Attendance_Sheet_${scale}_${new Date().toISOString().split('T')[0]}.csv`);
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    showToast("Attendance Sheet exported successfully.");
-                } catch (err) {
-                    showToast("Export failed: " + err.message, true);
                 }
+                return match;
             });
         }
 
+        // Render Attendance Timeline
+        function renderTimeline(logs) {
+            const timelineContainer = document.getElementById('attendanceTimeline');
+            if (!timelineContainer) return;
+
+            if (!logs || logs.length === 0) {
+                timelineContainer.innerHTML = `
+                    <div style="text-align:center; padding:3rem 1.5rem; color:var(--text-muted);">
+                        <i data-lucide="clock" style="width:36px; height:36px; margin:0 auto 12px; opacity:0.4;"></i>
+                        <p style="font-weight:700; font-size:0.95rem; margin-bottom:4px;">No Attendance Punches Found</p>
+                        <p style="font-size:0.8rem;">No punches recorded for the selected filter (${currentFilters.period}). Change filters or select 'All-Time'.</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            timelineContainer.innerHTML = '';
+            logs.forEach(log => {
+                const row = document.createElement('div');
+                row.className = 'log-row';
+                
+                const punchIn = log.punchIn?.toDate ? log.punchIn.toDate() : (log.punchIn ? new Date(log.punchIn) : null);
+                const punchOut = log.punchOut?.toDate ? log.punchOut.toDate() : (log.punchOut ? new Date(log.punchOut) : null);
+                
+                const inStr = punchIn ? punchIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const outStr = punchOut ? punchOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                
+                const statusClass = (log.status === 'On-Time' || log.status === 'Present') ? 'status-present' : (log.status === 'Late' ? 'status-late' : 'status-missing');
+                const rowStyle = log.status === 'Missing' ? 'background: #fff1f2; border-color: #fecaca;' : '';
+
+                row.style = rowStyle;
+                row.innerHTML = `
+                    <span class="time-badge" style="color: ${log.status === 'Late' ? '#f59e0b' : (log.status === 'Missing' ? '#ef4444' : 'var(--primary)')}">${inStr}</span>
+                    <span class="time-badge" style="color: var(--text-muted);">${outStr}</span>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <h4 style="font-size: 0.9rem; font-weight: 700; margin:0;">${log.userName || log.name || 'Employee'}</h4>
+                            ${log.regularized ? '<span style="font-size:0.62rem; font-weight:800; background:#ecfdf5; color:#059669; padding:2px 6px; border-radius:6px; border:1px solid #a7f3d0;">REGULARIZED</span>' : ''}
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top:2px;">${log.department || 'General'} • ${log.type || 'Office'} • ${log.date || ''}</p>
+                    </div>
+                    <span class="status-badge ${statusClass}">${log.status || 'Present'}</span>
+                    <i data-lucide="${log.status === 'Missing' ? 'alert-triangle' : 'map-pin'}" size="16" style="color: ${log.status === 'Missing' ? '#ef4444' : 'var(--text-muted)'}; justify-self: end;"></i>
+                `;
+                timelineContainer.appendChild(row);
+            });
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // Render Regularization Queue
+        function renderPendingQueue(requests) {
+            const queueContainer = document.getElementById('regularizationQueueContainer');
+            const badgeCount = document.getElementById('queueBadgeCount');
+            if (!queueContainer) return;
+
+            if (badgeCount) {
+                badgeCount.textContent = `${requests.length} Pending`;
+                badgeCount.style.background = requests.length > 0 ? '#eff6ff' : '#f1f5f9';
+                badgeCount.style.color = requests.length > 0 ? 'var(--primary)' : 'var(--text-muted)';
+            }
+
+            if (!requests || requests.length === 0) {
+                queueContainer.innerHTML = `
+                    <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                        <i data-lucide="check-circle-2" style="width: 28px; height: 28px; margin: 0 auto 8px; color: #10b981;"></i>
+                        <p style="font-weight: 700; margin-bottom: 2px;">Queue is Clear</p>
+                        <p style="font-size: 0.75rem;">No pending attendance regularizations in Firebase.</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            queueContainer.innerHTML = '';
+            requests.forEach(req => {
+                const card = document.createElement('div');
+                card.className = 'request-card';
+                const isBreach = req.isAfterThreshold;
+                
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h4 style="font-size: 0.85rem; font-weight: 700; margin:0;">${req.employeeName || 'Employee'}</h4>
+                            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top:2px;">${req.date} • ${req.type}</p>
+                        </div>
+                        <span class="badge" style="background: ${isBreach ? '#fef2f2' : 'var(--bg-soft)'}; color: ${isBreach ? '#ef4444' : 'var(--text-muted)'}; font-size: 0.6rem; font-weight:800; padding:3px 6px; border-radius:6px; border:1px solid ${isBreach ? '#fecaca' : 'var(--border)'};">
+                            ${isBreach ? 'SLA BREACH (>48h)' : 'Pending'}
+                        </span>
+                    </div>
+                    <div class="reason-box">"${req.reason || 'No reason provided'}"</div>
+                    <div style="display: flex; gap: 8px; margin-top: 1rem;">
+                        <button class="btn btn-outline btn-reject-queue" data-id="${req.id}" style="flex:1; padding: 7px; font-size: 0.75rem; justify-content:center; color:#ef4444; border-color:#fecaca;">Reject</button>
+                        <button class="btn btn-primary btn-approve-queue" data-id="${req.id}" style="flex:1; padding: 7px; font-size: 0.75rem; justify-content:center;">Approve</button>
+                    </div>
+                `;
+                queueContainer.appendChild(card);
+            });
+
+            if (window.lucide) lucide.createIcons();
+
+            // Event Listeners for Queue Actions
+            queueContainer.querySelectorAll('.btn-approve-queue').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    try {
+                        btn.disabled = true;
+                        btn.innerHTML = `<i data-lucide="loader" class="animate-spin" style="width:12px; height:12px;"></i> Approving...`;
+                        await processRegularization(id, currentActorId, 'approve');
+                        showToast("Regularization approved and attendance updated!");
+                    } catch (err) {
+                        showToast("Approval failed: " + err.message, true);
+                        btn.disabled = false;
+                        btn.textContent = "Approve";
+                    }
+                });
+            });
+
+            queueContainer.querySelectorAll('.btn-reject-queue').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    openRejectModal(id);
+                });
+            });
+        }
+
+        // Render All Regularizations Modal List
+        function renderAllRegularizationsModalList(requests) {
+            const container = document.getElementById('allRegListContainer');
+            if (!container) return;
+
+            const searchQuery = (document.getElementById('regModalSearch')?.value || '').toLowerCase().trim();
+            
+            let filtered = requests;
+            if (activeRegModalTab !== 'All') {
+                filtered = filtered.filter(r => (r.status || 'Pending').toLowerCase() === activeRegModalTab.toLowerCase());
+            }
+            if (searchQuery) {
+                filtered = filtered.filter(r => 
+                    (r.employeeName || '').toLowerCase().includes(searchQuery) ||
+                    (r.reason || '').toLowerCase().includes(searchQuery) ||
+                    (r.type || '').toLowerCase().includes(searchQuery) ||
+                    (r.date || '').includes(searchQuery)
+                );
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:3rem; color:var(--text-muted);">
+                        <i data-lucide="search" style="width:32px; height:32px; margin:0 auto 8px; opacity:0.4;"></i>
+                        <p style="font-weight:700;">No records found</p>
+                        <p style="font-size:0.75rem;">No regularizations matching "${activeRegModalTab}" criteria.</p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = '';
+            filtered.forEach(req => {
+                const item = document.createElement('div');
+                item.style = "background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:1rem; display:flex; flex-direction:column; gap:8px;";
+                
+                let statusBg = '#eff6ff';
+                let statusColor = 'var(--primary)';
+                if (req.status === 'Approved') { statusBg = '#ecfdf5'; statusColor = '#059669'; }
+                else if (req.status === 'Rejected') { statusBg = '#fef2f2'; statusColor = '#ef4444'; }
+                
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <h4 style="font-size:0.9rem; font-weight:700; margin:0;">${req.employeeName || 'Employee'}</h4>
+                                <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">${req.department || 'General'}</span>
+                            </div>
+                            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                                <strong>Date:</strong> ${req.date} • <strong>Type:</strong> ${req.type}
+                            </p>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            ${req.isAfterThreshold && req.status === 'Pending' ? '<span style="font-size:0.62rem; font-weight:800; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; padding:2px 6px; border-radius:6px;">SLA BREACH</span>' : ''}
+                            <span style="font-size:0.7rem; font-weight:800; background:${statusBg}; color:${statusColor}; padding:3px 8px; border-radius:6px;">${req.status || 'Pending'}</span>
+                        </div>
+                    </div>
+                    <div style="font-size:0.78rem; background:white; padding:8px 12px; border-radius:8px; border:1px solid var(--border); color:var(--text-main);">
+                        "${req.reason || 'No explanation'}"
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; color:var(--text-muted);">
+                        <span>Requested Time: <strong>${req.correctedTime || '09:00 AM'}</strong> to <strong>${req.correctedPunchOut || '06:00 PM'}</strong></span>
+                        ${req.status === 'Pending' ? `
+                            <div style="display:flex; gap:6px;">
+                                <button class="btn btn-outline btn-reject-modal" data-id="${req.id}" style="padding:4px 10px; font-size:0.7rem; color:#ef4444;">Reject</button>
+                                <button class="btn btn-primary btn-approve-modal" data-id="${req.id}" style="padding:4px 10px; font-size:0.7rem;">Approve</button>
+                            </div>
+                        ` : `
+                            <span>${req.status === 'Approved' ? 'Approved by ' + (req.approverId || 'Admin') : 'Rejection: ' + (req.rejectionComment || 'Rejected')}</span>
+                        `}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            if (window.lucide) lucide.createIcons();
+
+            container.querySelectorAll('.btn-approve-modal').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    try {
+                        btn.disabled = true;
+                        btn.textContent = '...';
+                        await processRegularization(id, currentActorId, 'approve');
+                        showToast("Regularization approved!");
+                    } catch (err) {
+                        showToast("Failed: " + err.message, true);
+                    }
+                });
+            });
+
+            container.querySelectorAll('.btn-reject-modal').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    openRejectModal(id);
+                });
+            });
+        }
+
+        // Render Shifts UI
+        function renderShiftsUI(shifts) {
+            const container = document.getElementById('shiftListContainer');
+            const modalContainer = document.getElementById('modalShiftList');
+            if (!container) return;
+
+            let mainHtml = '';
+            let modalHtml = '';
+
+            shifts.forEach(shift => {
+                mainHtml += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border);">
+                        <span style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${shift.name}</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; font-family: monospace;">${shift.time}</span>
+                    </div>
+                `;
+                modalHtml += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid var(--border);">
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${shift.name}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${shift.time}</div>
+                        </div>
+                        <button class="btn-delete-shift" data-id="${shift.id}" style="background:rgba(239, 68, 68, 0.1); border:none; border-radius:8px; padding:6px; color:#ef4444; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'" title="Delete Shift">
+                            <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = mainHtml || '<p style="text-align:center; color:var(--text-muted); font-size:0.8rem;">No shifts loaded.</p>';
+            if (modalContainer) {
+                modalContainer.innerHTML = modalHtml || '<p style="text-align:center; color:var(--text-muted); font-size:0.8rem;">No custom shifts configured.</p>';
+            }
+            if (window.lucide) lucide.createIcons();
+
+            // Wire delete handlers
+            document.querySelectorAll('.btn-delete-shift').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    if (confirm('Delete this shift definition from Firebase?')) {
+                        try {
+                            await deleteShift(id);
+                            showToast("Shift deleted successfully!");
+                        } catch (err) {
+                            showToast("Failed to delete shift: " + err.message, true);
+                        }
+                    }
+                });
+            });
+        }
+
+        // Rejection Modal Handlers
+        function openRejectModal(requestId) {
+            rejectingRequestId = requestId;
+            const modal = document.getElementById('rejectModal');
+            const input = document.getElementById('rejectReasonInput');
+            if (input) input.value = '';
+            if (modal) {
+                modal.style.display = 'flex';
+                setTimeout(() => modal.style.opacity = '1', 10);
+            }
+        }
+
+        function closeRejectModal() {
+            const modal = document.getElementById('rejectModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                setTimeout(() => modal.style.display = 'none', 200);
+            }
+            rejectingRequestId = null;
+        }
+
+        // Populate Employee dropdown in New Regularization modal
+        async function loadWorkforceForSelect() {
+            const select = document.getElementById('regEmployeeSelect');
+            const deptSelect = document.getElementById('sheetDept');
+            if (!select) return;
+
+            try {
+                const userSnap = await getDocs(collection(db, 'users'));
+                registeredUsers = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                
+                select.innerHTML = '<option value="">-- Choose Employee --</option>';
+                const depts = new Set();
+
+                registeredUsers.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.uid || u.id;
+                    opt.textContent = `${u.name || 'User'} (${u.department || u.departmentName || 'General'})`;
+                    opt.dataset.name = u.name || 'User';
+                    opt.dataset.dept = u.department || u.departmentName || 'General';
+                    select.appendChild(opt);
+
+                    const dName = u.department || u.departmentName;
+                    if (dName) depts.add(dName);
+                });
+
+                if (deptSelect && depts.size > 0) {
+                    deptSelect.innerHTML = '<option value="All">All Departments</option>';
+                    depts.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d;
+                        opt.textContent = d;
+                        deptSelect.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.warn("[ATTENDANCE] Could not load workforce select:", err);
+                select.innerHTML = `
+                    <option value="EMP_1789230184645" data-name="Marry Doe" data-dept="Cybersecurity Employee">Marry Doe (Cybersecurity)</option>
+                    <option value="EMP_1789151730443" data-name="John Doe" data-dept="Cybersecurity Manager">John Doe (Cybersecurity)</option>
+                    <option value="w2XWBkvIgkS9xonTqVM5wPNckav2" data-name="jame" data-dept="Cybersecurity">jame (Cybersecurity)</option>
+                `;
+            }
+        }
+
+        // Attendance Sheet Generator
         async function loadAttendanceSheet() {
             const container = document.getElementById('attendanceSheetContainer');
             if (!container) return;
@@ -978,65 +947,66 @@
             container.innerHTML = `
                 <div style="padding: 3rem; text-align: center; color: var(--text-muted);">
                     <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem; width: 32px; height: 32px;"></i>
-                    <p style="font-weight: 700;">Generating Attendance Sheet...</p>
+                    <p style="font-weight: 700;">Generating Attendance Sheet from Firebase...</p>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
 
             try {
-                // 1. Fetch data
-                const userSnap = await getDocs(collection(db, 'users'));
-                let employees = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => (u.role || '').toLowerCase() !== 'admin');
+                // 1. Fetch Users
+                let employees = registeredUsers;
+                if (!employees || employees.length === 0) {
+                    const userSnap = await getDocs(collection(db, 'users'));
+                    employees = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    registeredUsers = employees;
+                }
+                employees = employees.filter(u => (u.role || '').toLowerCase() !== 'admin');
                 
-                // Filter by department if selected
-                const selectedDept = document.getElementById('sheetDept').value;
+                const selectedDept = document.getElementById('sheetDept')?.value || 'All';
                 if (selectedDept !== 'All') {
                     employees = employees.filter(e => (e.department || e.departmentName || '').toLowerCase() === selectedDept.toLowerCase());
                 }
 
-                const logs = await getAllAttendanceLogs();
-                const holidaySnap = await getDocs(collection(db, 'holidays'));
-                const holidays = holidaySnap.docs.map(doc => doc.data());
-                const weeklyOff = localStorage.getItem('weekly_off_config') || 'sat-sun';
+                // 2. Fetch logs & holidays
+                const logs = currentLogs.length > 0 ? currentLogs : await getAllAttendanceLogs();
+                let holidays = [];
+                try {
+                    const holidaySnap = await getDocs(collection(db, 'holidays'));
+                    holidays = holidaySnap.docs.map(doc => doc.data());
+                } catch (_) {}
 
-                const scale = document.getElementById('sheetScale').value;
+                const weeklyOff = localStorage.getItem('weekly_off_config') || 'sat-sun';
+                const scale = document.getElementById('sheetScale')?.value || 'monthly';
                 
-                // 2. Determine time range and columns
+                // 3. Dates range
                 let dates = [];
                 const now = new Date();
 
                 if (scale === 'weekly') {
-                    // Monday to Sunday of the current week
                     const currentDay = now.getDay();
                     const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
                     const monday = new Date(now);
                     monday.setDate(now.getDate() + distanceToMon);
-
                     for (let i = 0; i < 7; i++) {
                         const d = new Date(monday);
                         d.setDate(monday.getDate() + i);
                         dates.push(d);
                     }
                 } else if (scale === 'monthly') {
-                    // All days of the current month
                     const year = now.getFullYear();
                     const month = now.getMonth();
                     const numDays = new Date(year, month + 1, 0).getDate();
-
                     for (let i = 1; i <= numDays; i++) {
                         dates.push(new Date(year, month, i));
                     }
                 } else if (scale === 'yearly') {
-                    // 12 Months
                     for (let i = 0; i < 12; i++) {
                         dates.push(new Date(now.getFullYear(), i, 1));
                     }
                 }
 
-                // 3. Render HTML
+                // 4. Render Table HTML
                 let html = `<table style="width: 100%; border-collapse: collapse; font-family: inherit; font-size: 0.8rem; background: white;">`;
-                
-                // Table Header
                 html += `<thead style="background: #f8fafc; border-bottom: 1.5px solid var(--border);"><tr>`;
                 html += `<th style="padding: 14px 16px; text-align: left; font-weight: 800; color: var(--text-main); position: sticky; left: 0; background: #f8fafc; z-index: 10; border-right: 1px solid var(--border);">Employee</th>`;
                 
@@ -1049,24 +1019,22 @@
                     dates.forEach(d => {
                         const dStr = d.getDate();
                         const wName = d.toLocaleDateString('en-US', { weekday: 'short' }).substring(0, 2);
-                        html += `<th style="padding: 14px; text-align: center; font-weight: 800; color: var(--text-main); min-width: 50px; border-left: 1px solid #f1f5f9;">
-                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">${wName}</div>
-                            <div style="font-size: 0.9rem; margin-top: 2px;">${dStr}</div>
+                        html += `<th style="padding: 12px 6px; text-align: center; font-weight: 800; color: var(--text-main); min-width: 44px; border-left: 1px solid #f1f5f9;">
+                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">${wName}</div>
+                            <div style="font-size: 0.85rem; margin-top: 2px;">${dStr}</div>
                         </th>`;
                     });
                 }
                 html += `</tr></thead><tbody>`;
 
-                // Table Rows
                 if (employees.length === 0) {
-                    html += `<tr><td colspan="${dates.length + 1}" style="padding: 3rem; text-align: center; color: var(--text-muted);">No employees found in this criteria.</td></tr>`;
+                    html += `<tr><td colspan="${dates.length + 1}" style="padding: 3rem; text-align: center; color: var(--text-muted);">No employees found in directory.</td></tr>`;
                 } else {
                     employees.forEach(emp => {
-                        html += `<tr style="border-bottom: 1px solid #f1f5f9; hover: background: #fafafa;">`;
-                        
-                        // Employee Info Cell
+                        const empUid = emp.uid || emp.id;
+                        html += `<tr style="border-bottom: 1px solid #f1f5f9;">`;
                         html += `<td style="padding: 12px 16px; font-weight: 700; color: var(--text-main); position: sticky; left: 0; background: white; z-index: 9; border-right: 1px solid var(--border); box-shadow: 4px 0 8px -4px rgba(0,0,0,0.05);">
-                            <div>${emp.name}</div>
+                            <div>${emp.name || 'Employee'}</div>
                             <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-top: 2px;">${emp.department || emp.departmentName || 'General'}</div>
                         </td>`;
 
@@ -1074,15 +1042,14 @@
                             dates.forEach(d => {
                                 const m = d.getMonth();
                                 const y = d.getFullYear();
-                                const monthLogs = logs.filter(l => l.userId === emp.uid && new Date(l.date).getMonth() === m && new Date(l.date).getFullYear() === y);
+                                const monthLogs = logs.filter(l => (l.userId === empUid || l.employeeId === empUid) && new Date(l.date).getMonth() === m && new Date(l.date).getFullYear() === y);
                                 const presentCount = monthLogs.filter(l => l.status === 'Present' || l.status === 'On-Time').length;
-                                const pct = Math.round((presentCount / 20) * 100);
-                                const displayPct = Math.min(100, pct);
+                                const displayPct = Math.min(100, Math.round((presentCount / 22) * 100));
 
                                 let pctColor = 'var(--text-muted)';
                                 let pctBg = '#f1f5f9';
-                                if (displayPct >= 90) { pctColor = '#059669'; pctBg = '#ecfdf5'; }
-                                else if (displayPct >= 75) { pctColor = 'var(--primary)'; pctBg = '#eff6ff'; }
+                                if (displayPct >= 85) { pctColor = '#059669'; pctBg = '#ecfdf5'; }
+                                else if (displayPct >= 65) { pctColor = 'var(--primary)'; pctBg = '#eff6ff'; }
                                 else if (displayPct > 0) { pctColor = '#d97706'; pctBg = '#fffbeb'; }
 
                                 html += `<td style="padding: 12px; text-align: center;">
@@ -1094,30 +1061,32 @@
                         } else {
                             dates.forEach(d => {
                                 const dStr = d.toISOString().split('T')[0];
-                                const log = logs.find(l => l.userId === emp.uid && l.date === dStr);
+                                const log = logs.find(l => (l.userId === empUid || l.employeeId === empUid) && l.date === dStr);
                                 const isHol = holidays.some(h => h.date === dStr);
                                 const dayOfWeek = d.getDay();
                                 let isWknd = false;
-                                if (weeklyOff === 'sat-sun' && (dayOfWeek === 0 || dayOfWeek === 6)) isWknd = true;
-                                else if (weeklyOff === 'sunday' && dayOfWeek === 0) isWknd = true;
-                                else if (weeklyOff === 'saturday' && dayOfWeek === 6) isWknd = true;
+                                if (weeklyOff === 'none') {
+                                    isWknd = false; // 'none' means employees can also work on Sun & Sat based on company settings
+                                } else if (weeklyOff === 'sat-sun' && (dayOfWeek === 0 || dayOfWeek === 6)) {
+                                    isWknd = true;
+                                } else if ((weeklyOff === 'sunday' || weeklyOff === 'sun' || weeklyOff === 'sun-only') && dayOfWeek === 0) {
+                                    isWknd = true;
+                                } else if ((weeklyOff === 'saturday' || weeklyOff === 'sat') && dayOfWeek === 6) {
+                                    isWknd = true;
+                                } else if (weeklyOff === 'fri-sat' && (dayOfWeek === 5 || dayOfWeek === 6)) {
+                                    isWknd = true;
+                                }
 
                                 let cellHtml = '';
-                                
                                 if (log) {
-                                    const inTime = log.punchIn ? (log.punchIn.toDate ? log.punchIn.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date(log.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : '--';
-                                    const outTime = log.punchOut ? (log.punchOut.toDate ? log.punchOut.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date(log.punchOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : '--';
-                                    const duration = log.durationHours ? parseFloat(log.durationHours).toFixed(1) + 'h' : '--';
-                                    const tooltipText = `In: ${inTime} | Out: ${outTime} | Work: ${duration}`;
-
                                     if (log.status === 'Present' || log.status === 'On-Time') {
-                                        cellHtml = `<div class="sheet-cell-badge" style="background: #ecfdf5; color: #059669; border: 1.5px solid #059669;" title="${tooltipText}">P</div>`;
+                                        cellHtml = `<div class="sheet-cell-badge" style="background: #ecfdf5; color: #059669; border: 1.5px solid #059669;" title="Present / On-Time">P</div>`;
                                     } else if (log.status === 'Late' || log.status === 'Short Hours') {
-                                        cellHtml = `<div class="sheet-cell-badge" style="background: #fff7ed; color: #ea580c; border: 1.5px solid #ea580c;" title="${tooltipText}">L</div>`;
+                                        cellHtml = `<div class="sheet-cell-badge" style="background: #fff7ed; color: #ea580c; border: 1.5px solid #ea580c;" title="Late Login">L</div>`;
                                     } else if (log.status === 'Missing') {
-                                        cellHtml = `<div class="sheet-cell-badge" style="background: #fef2f2; color: #dc2626; border: 1.5px solid #dc2626;" title="${tooltipText}">M</div>`;
+                                        cellHtml = `<div class="sheet-cell-badge" style="background: #fef2f2; color: #dc2626; border: 1.5px solid #dc2626;" title="Missing Punch">M</div>`;
                                     } else {
-                                        cellHtml = `<div class="sheet-cell-badge" style="background: #f1f5f9; color: #64748b; border: 1.5px solid #cbd5e1;" title="${tooltipText}">?</div>`;
+                                        cellHtml = `<div class="sheet-cell-badge" style="background: #eff6ff; color: var(--primary); border: 1.5px solid var(--primary);" title="${log.status}">P</div>`;
                                     }
                                 } else if (isHol) {
                                     cellHtml = `<div class="sheet-cell-badge" style="background: #fef9c3; color: #ca8a04; border: 1.5px solid #eab308;" title="Public Holiday">H</div>`;
@@ -1127,114 +1096,421 @@
                                     cellHtml = `<div class="sheet-cell-badge" style="background: #fef2f2; color: #ef4444; border: 1.5px solid #fecaca;" title="Absent">A</div>`;
                                 }
 
-                                html += `<td style="padding: 10px; text-align: center; border-left: 1px solid #f1f5f9;">${cellHtml}</td>`;
+                                html += `<td style="padding: 8px 4px; text-align: center; border-left: 1px solid #f1f5f9;">${cellHtml}</td>`;
                             });
                         }
-
                         html += `</tr>`;
                     });
                 }
 
                 html += `</tbody></table>`;
-                html += `
-                    <style>
-                        .sheet-cell-badge {
-                            width: 24px;
-                            height: 24px;
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 0.7rem;
-                            font-weight: 800;
-                            margin: 0 auto;
-                            cursor: pointer;
-                            transition: transform 0.2s;
-                        }
-                        .sheet-cell-badge:hover {
-                            transform: scale(1.2);
-                        }
-                    </style>
-                `;
-
                 container.innerHTML = html;
             } catch (err) {
-                console.error("Failed to build sheet view:", err);
-                container.innerHTML = `<div style="padding: 3rem; text-align: center; color: var(--danger);">Failed to load attendance sheet: ${err.message}</div>`;
+                console.error("[ATTENDANCE] Sheet generator error:", err);
+                container.innerHTML = `<div style="padding:3rem; text-align:center; color:var(--danger);">Error generating sheet: ${err.message}</div>`;
             }
         }
 
+        // Main Initialization
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.lucide) lucide.createIcons();
 
-        async function loadRegularizationQueue() {
-            const queueContainer = document.querySelector('.attendance-right .ai-glass-card');
-            const queueInner = document.createElement('div');
-            
-            try {
-                const requests = await getPendingRegularizations();
-                // Clear existing cards (except title and view all button)
-                const title = queueContainer.querySelector('h3');
-                const viewAllBtn = queueContainer.querySelector('.btn-outline');
-                queueContainer.innerHTML = '';
-                queueContainer.appendChild(title);
+            // Set default date for New Regularization modal
+            const regDateInput = document.getElementById('regDate');
+            if (regDateInput) regDateInput.value = new Date().toISOString().split('T')[0];
 
-                if (requests.length > 0) {
-                    requests.forEach(req => {
-                        const card = document.createElement('div');
-                        card.className = 'request-card';
-                        card.innerHTML = `
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div>
-                                    <h4 style="font-size: 0.85rem; font-weight: 700;">${req.employeeName || 'Employee'}</h4>
-                                    <p style="font-size: 0.7rem; color: var(--text-muted);">${req.date} • ${req.type}</p>
-                                </div>
-                                <span class="badge" style="background: ${req.isAfterThreshold ? '#fef2f2' : 'var(--bg-soft)'}; color: ${req.isAfterThreshold ? '#ef4444' : 'var(--text-muted)'}; font-size: 0.6rem;">
-                                    ${req.isAfterThreshold ? 'SLA BREACH' : 'Pending'}
-                                </span>
-                            </div>
-                            <div class="reason-box">"${req.reason || 'No reason provided'}"</div>
-                            <div style="display: flex; gap: 8px; margin-top: 1rem;">
-                                <button class="btn btn-outline btn-reject" data-id="${req.id}" style="flex:1; padding: 6px; font-size: 0.75rem;">Reject</button>
-                                <button class="btn btn-primary btn-approve" data-id="${req.id}" style="flex:1; padding: 6px; font-size: 0.75rem;">Approve</button>
-                            </div>
-                        `;
-                        queueContainer.appendChild(card);
-                    });
-
-                    // Add Event Listeners
-                    document.querySelectorAll('.btn-approve').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            const id = e.target.getAttribute('data-id');
-                            try {
-                                await processRegularization(id, auth.currentUser.uid, 'approve');
-                                showToast("Request approved.");
-                                loadRegularizationQueue();
-                                loadAttendanceLogs();
-                            } catch (err) { showToast("Approval failed: " + err.message, true); }
-                        });
-                    });
-
-                    document.querySelectorAll('.btn-reject').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            const id = e.target.getAttribute('data-id');
-                            const comment = prompt("Enter rejection reason:");
-                            if (comment === null) return;
-                            try {
-                                await processRegularization(id, auth.currentUser.uid, 'reject', comment);
-                                showToast("Request rejected.");
-                                loadRegularizationQueue();
-                            } catch (err) { showToast("Rejection failed: " + err.message, true); }
-                        });
-                    });
-                } else {
-                    const emptyMsg = document.createElement('p');
-                    emptyMsg.style = "text-align: center; font-size: 0.8rem; color: var(--text-muted); padding: 1rem;";
-                    emptyMsg.textContent = "No pending requests.";
-                    queueContainer.appendChild(emptyMsg);
+            // 1. Check backend Firebase connectivity
+            checkBackendFirebaseStatus().then(res => {
+                const statusEl = document.getElementById('firebaseStatusText');
+                if (statusEl && res.online) {
+                    statusEl.textContent = `Firebase Live: ${res.projectId || 'kylrxai'} (Backend Online)`;
                 }
-                queueContainer.appendChild(viewAllBtn);
-            } catch (err) {
-                console.error("Error loading queue:", err);
-            }
+            });
+
+            // 2. Auto-seed sample Firebase records if empty
+            await seedDefaultShiftsIfEmpty();
+            await seedSampleRegularizationsIfEmpty();
+            await seedSampleAttendanceIfEmpty();
+
+            // 3. Load workforce into dropdowns
+            await loadWorkforceForSelect();
+
+            // 4. Bind action buttons & modals
+            setupActionButtons();
+
+            // 5. Connect Real-Time Firebase Listeners
+            // Top Stats
+            listenToAttendanceStats((stats) => {
+                document.getElementById('stat-active-login').textContent = stats.activeLogin;
+                document.getElementById('stat-late-login').textContent = stats.lateLogin;
+                document.getElementById('stat-missing-punch').textContent = stats.missingPunch;
+                document.getElementById('stat-wfh').textContent = stats.onFieldWfh;
+            });
+
+            // Attendance Timeline
+            listenToAttendanceLogs((logs) => {
+                currentLogs = logs;
+                const filtered = applyLogFilters(logs, currentFilters);
+                renderTimeline(filtered);
+            });
+
+            // Regularization Queue
+            listenToPendingRegularizations((requests) => {
+                pendingRequests = requests;
+                renderPendingQueue(requests);
+            });
+
+            // View All Requests stream
+            listenToAllRegularizations((requests) => {
+                allRequests = requests;
+                renderAllRegularizationsModalList(requests);
+            });
+
+            // Shifts
+            listenToShifts((shifts) => {
+                currentShifts = shifts;
+                renderShiftsUI(shifts);
+            });
+
+            // Weekly off config listener
+            onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
+                const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
+                localStorage.setItem('weekly_off_config', val);
+                const sheetContainer = document.getElementById('attendanceSheetContainer');
+                if (sheetContainer && sheetContainer.style.display !== 'none') {
+                    loadAttendanceSheet();
+                }
+            });
+
+            // 6. User Auth Listener (Updates actor ID & custom role sidebar)
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentActorId = user.uid;
+                    console.log("🔥 Authenticated Firebase Admin:", user.uid);
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            if (userData.role === 'HRMS') {
+                                const navMenu = document.querySelector('.nav-menu');
+                                if (navMenu) {
+                                    navMenu.innerHTML = `
+                                        <div class="nav-label">Strategic Hub</div>
+                                        <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                                        <div class="nav-label">Operations</div>
+                                        <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link active"><i data-lucide="clock"></i><span>Attendance & Regularization</span></a></div>
+                                        <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar-check"></i><span>Leave & Holidays</span></a></div>
+                                        <div class="nav-label">Intelligence</div>
+                                        <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="brain-circuit"></i><span>AI Insights</span></a></div>
+                                    `;
+                                    if (window.lucide) lucide.createIcons();
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Sidebar sync note:", e);
+                    }
+                }
+            });
+        });
+
+        // Setup All UI Handlers & Modals
+        function setupActionButtons() {
+            // Filter Modal Handlers
+            const filterModal = document.getElementById('filterModal');
+            document.getElementById('btnFilters')?.addEventListener('click', () => {
+                filterModal.style.display = 'flex';
+                setTimeout(() => filterModal.style.opacity = '1', 10);
+            });
+            document.getElementById('btnCloseFilterModal')?.addEventListener('click', () => {
+                filterModal.style.opacity = '0';
+                setTimeout(() => filterModal.style.display = 'none', 200);
+            });
+            document.getElementById('filterPeriod')?.addEventListener('change', (e) => {
+                const container = document.getElementById('customDateRangeContainer');
+                if (container) container.style.display = e.target.value === 'custom' ? 'flex' : 'none';
+            });
+            document.getElementById('btnApplyFilters')?.addEventListener('click', () => {
+                currentFilters.status = document.getElementById('filterStatus').value;
+                currentFilters.type = document.getElementById('filterType').value;
+                currentFilters.period = document.getElementById('filterPeriod').value;
+                currentFilters.startDate = document.getElementById('filterStartDate').value;
+                currentFilters.endDate = document.getElementById('filterEndDate').value;
+                
+                renderTimeline(applyLogFilters(currentLogs, currentFilters));
+                filterModal.style.opacity = '0';
+                setTimeout(() => filterModal.style.display = 'none', 200);
+                showToast("Filters applied.");
+            });
+            document.getElementById('btnClearFilters')?.addEventListener('click', () => {
+                document.getElementById('filterStatus').value = 'All';
+                document.getElementById('filterType').value = 'All';
+                document.getElementById('filterPeriod').value = 'today';
+                document.getElementById('filterStartDate').value = '';
+                document.getElementById('filterEndDate').value = '';
+                document.getElementById('customDateRangeContainer').style.display = 'none';
+                currentFilters = { status: 'All', type: 'All', period: 'today', startDate: '', endDate: '' };
+                renderTimeline(applyLogFilters(currentLogs, currentFilters));
+                filterModal.style.opacity = '0';
+                setTimeout(() => filterModal.style.display = 'none', 200);
+                showToast("Filters cleared.");
+            });
+
+            // Shift Management Modal Handlers
+            const shiftModal = document.getElementById('shiftModal');
+            document.getElementById('btnManageShifts')?.addEventListener('click', () => {
+                shiftModal.style.display = 'flex';
+                setTimeout(() => shiftModal.style.opacity = '1', 10);
+            });
+            document.getElementById('btnCloseShiftModal')?.addEventListener('click', () => {
+                shiftModal.style.opacity = '0';
+                setTimeout(() => shiftModal.style.display = 'none', 200);
+            });
+            document.getElementById('btnSaveNewShift')?.addEventListener('click', async () => {
+                const nameInput = document.getElementById('newShiftName');
+                const timeInput = document.getElementById('newShiftTime');
+                if (!nameInput.value.trim() || !timeInput.value.trim()) {
+                    showToast("Please provide both name and time for the shift.", true);
+                    return;
+                }
+                try {
+                    await addShift({ name: nameInput.value.trim(), time: timeInput.value.trim() });
+                    showToast("Shift added successfully to Firebase.");
+                    nameInput.value = '';
+                    timeInput.value = '';
+                } catch(e) {
+                    showToast("Failed to add shift: " + e.message, true);
+                }
+            });
+
+            // View All Regularizations Modal Handlers
+            const allRegModal = document.getElementById('allRegModal');
+            document.getElementById('btnViewAllRegularizations')?.addEventListener('click', () => {
+                allRegModal.style.display = 'flex';
+                setTimeout(() => allRegModal.style.opacity = '1', 10);
+                renderAllRegularizationsModalList(allRequests);
+            });
+            document.getElementById('btnCloseAllRegModal')?.addEventListener('click', () => {
+                allRegModal.style.opacity = '0';
+                setTimeout(() => allRegModal.style.display = 'none', 200);
+            });
+            document.querySelectorAll('#regTabGroup .btn-filter-reg').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('#regTabGroup .btn-filter-reg').forEach(b => {
+                        b.classList.remove('active');
+                        b.style.background = 'white';
+                        b.style.color = 'var(--text-muted)';
+                        b.style.borderColor = 'var(--border)';
+                    });
+                    const target = e.currentTarget;
+                    target.classList.add('active');
+                    target.style.background = 'var(--primary)';
+                    target.style.color = 'white';
+                    target.style.borderColor = 'var(--primary)';
+                    activeRegModalTab = target.getAttribute('data-tab') || 'All';
+                    renderAllRegularizationsModalList(allRequests);
+                });
+            });
+            document.getElementById('regModalSearch')?.addEventListener('input', () => {
+                renderAllRegularizationsModalList(allRequests);
+            });
+
+            // Raise Regularization Modal Handlers
+            const raiseRegModal = document.getElementById('raiseRegModal');
+            document.getElementById('btnOpenRaiseRegModal')?.addEventListener('click', () => {
+                raiseRegModal.style.display = 'flex';
+                setTimeout(() => raiseRegModal.style.opacity = '1', 10);
+            });
+            document.getElementById('btnCloseRaiseRegModal')?.addEventListener('click', () => {
+                raiseRegModal.style.opacity = '0';
+                setTimeout(() => raiseRegModal.style.display = 'none', 200);
+            });
+            document.getElementById('raiseRegForm')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const sel = document.getElementById('regEmployeeSelect');
+                const empId = sel.value;
+                if (!empId) {
+                    showToast("Please choose an employee.", true);
+                    return;
+                }
+                const selectedOpt = sel.options[sel.selectedIndex];
+                const empName = selectedOpt.dataset.name || selectedOpt.textContent.split(' (')[0];
+                const empDept = selectedOpt.dataset.dept || 'General';
+                const date = document.getElementById('regDate').value;
+                const type = document.getElementById('regType').value;
+                const inTime = document.getElementById('regInTime').value;
+                const outTime = document.getElementById('regOutTime').value;
+                const reason = document.getElementById('regReason').value;
+
+                try {
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Submitting...';
+
+                    await submitRegularization(empId, {
+                        employeeId: empId,
+                        employeeName: empName,
+                        department: empDept,
+                        date,
+                        type,
+                        correctedTime: inTime,
+                        correctedPunchOut: outTime,
+                        reason
+                    });
+
+                    showToast("Regularization request submitted to Firebase!");
+                    document.getElementById('regReason').value = '';
+                    raiseRegModal.style.opacity = '0';
+                    setTimeout(() => raiseRegModal.style.display = 'none', 200);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="send"></i> Submit to Firebase';
+                    if (window.lucide) lucide.createIcons();
+                } catch (err) {
+                    showToast("Submission failed: " + err.message, true);
+                }
+            });
+
+            // Reject Confirmation Handlers
+            document.getElementById('btnCancelReject')?.addEventListener('click', closeRejectModal);
+            document.getElementById('btnConfirmReject')?.addEventListener('click', async () => {
+                if (!rejectingRequestId) return;
+                const reason = document.getElementById('rejectReasonInput')?.value.trim() || 'Correction request rejected';
+                try {
+                    await processRegularization(rejectingRequestId, currentActorId, 'reject', reason);
+                    showToast("Regularization request rejected.");
+                    closeRejectModal();
+                } catch (err) {
+                    showToast("Rejection failed: " + err.message, true);
+                }
+            });
+
+            // Export Logs CSV
+            document.getElementById('btnExport')?.addEventListener('click', () => {
+                try {
+                    const logs = applyLogFilters(currentLogs, currentFilters);
+                    if (logs.length === 0) {
+                        showToast("No logs available matching current filter.", true);
+                        return;
+                    }
+                    let csv = 'Date,Employee ID,Employee Name,Department,Punch In,Punch Out,Type,Status\n';
+                    logs.forEach(log => {
+                        const punchIn = log.punchIn?.toDate ? log.punchIn.toDate() : (log.punchIn ? new Date(log.punchIn) : null);
+                        const punchOut = log.punchOut?.toDate ? log.punchOut.toDate() : (log.punchOut ? new Date(log.punchOut) : null);
+                        const inTime = punchIn ? punchIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        const outTime = punchOut ? punchOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                        const escapeCsv = (str) => `"${(str || '').replace(/"/g, '""')}"`;
+                        csv += `${escapeCsv(log.date)},${escapeCsv(log.userId || log.employeeId || '')},${escapeCsv(log.userName || log.name || 'Employee')},${escapeCsv(log.department || 'General')},${escapeCsv(inTime)},${escapeCsv(outTime)},${escapeCsv(log.type || 'Office')},${escapeCsv(log.status)}\n`;
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.setAttribute('href', url);
+                    a.setAttribute('download', `Attendance_Logs_${new Date().toISOString().split('T')[0]}.csv`);
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast("Attendance Logs exported to CSV.");
+                } catch (err) {
+                    showToast("Export failed: " + err.message, true);
+                }
+            });
+
+            // Tab Switching (Timeline vs Sheet)
+            const tabTimeline = document.getElementById('tabTimeline');
+            const tabSheet = document.getElementById('tabSheet');
+            const timelineDiv = document.getElementById('attendanceTimeline');
+            const sheetDiv = document.getElementById('attendanceSheetContainer');
+            const timelineActions = document.getElementById('timelineActions');
+            const sheetActions = document.getElementById('sheetActions');
+
+            tabTimeline?.addEventListener('click', () => {
+                tabTimeline.classList.add('active');
+                tabTimeline.style.color = 'var(--primary)';
+                tabTimeline.style.borderBottom = '3px solid var(--primary)';
+                tabSheet.classList.remove('active');
+                tabSheet.style.color = 'var(--text-muted)';
+                tabSheet.style.borderBottom = 'none';
+                timelineDiv.style.display = 'flex';
+                sheetDiv.style.display = 'none';
+                timelineActions.style.display = 'flex';
+                sheetActions.style.display = 'none';
+            });
+
+            tabSheet?.addEventListener('click', () => {
+                tabSheet.classList.add('active');
+                tabSheet.style.color = 'var(--primary)';
+                tabSheet.style.borderBottom = '3px solid var(--primary)';
+                tabTimeline.classList.remove('active');
+                tabTimeline.style.color = 'var(--text-muted)';
+                tabTimeline.style.borderBottom = 'none';
+                timelineDiv.style.display = 'none';
+                sheetDiv.style.display = 'block';
+                timelineActions.style.display = 'none';
+                sheetActions.style.display = 'flex';
+                loadAttendanceSheet();
+            });
+
+            document.getElementById('sheetScale')?.addEventListener('change', loadAttendanceSheet);
+            document.getElementById('sheetDept')?.addEventListener('change', loadAttendanceSheet);
+
+            // Export Sheet CSV
+            document.getElementById('btnExportSheet')?.addEventListener('click', async () => {
+                try {
+                    const scale = document.getElementById('sheetScale')?.value || 'monthly';
+                    const selectedDept = document.getElementById('sheetDept')?.value || 'All';
+                    let employees = registeredUsers.filter(u => (u.role || '').toLowerCase() !== 'admin');
+                    if (selectedDept !== 'All') {
+                        employees = employees.filter(e => (e.department || e.departmentName || '').toLowerCase() === selectedDept.toLowerCase());
+                    }
+                    const logs = currentLogs;
+                    const now = new Date();
+                    let dates = [];
+
+                    if (scale === 'weekly') {
+                        const currentDay = now.getDay();
+                        const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
+                        const monday = new Date(now);
+                        monday.setDate(now.getDate() + distanceToMon);
+                        for (let i = 0; i < 7; i++) {
+                            const d = new Date(monday);
+                            d.setDate(monday.getDate() + i);
+                            dates.push(d);
+                        }
+                    } else if (scale === 'monthly') {
+                        const numDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+                        for (let i = 1; i <= numDays; i++) {
+                            dates.push(new Date(now.getFullYear(), now.getMonth(), i));
+                        }
+                    }
+
+                    let csv = 'Employee,Department,Role';
+                    dates.forEach(d => { csv += `,${d.toISOString().split('T')[0]}`; });
+                    csv += '\n';
+
+                    employees.forEach(emp => {
+                        const empUid = emp.uid || emp.id;
+                        csv += `"${emp.name || 'Employee'}","${emp.department || emp.departmentName || 'General'}","${emp.role || 'Employee'}"`;
+                        dates.forEach(d => {
+                            const dStr = d.toISOString().split('T')[0];
+                            const log = logs.find(l => (l.userId === empUid || l.employeeId === empUid) && l.date === dStr);
+                            csv += `,${log ? log.status : 'Absent'}`;
+                        });
+                        csv += '\n';
+                    });
+
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.setAttribute('href', url);
+                    a.setAttribute('download', `Attendance_Sheet_${scale}_${new Date().toISOString().split('T')[0]}.csv`);
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast("Attendance Sheet exported successfully.");
+                } catch (err) {
+                    showToast("Export failed: " + err.message, true);
+                }
+            });
         }
     </script>
 

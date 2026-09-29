@@ -331,11 +331,12 @@
                         <th>Punch Out</th>
                         <th>Duration</th>
                         <th>Status</th>
+                        <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody id="attendanceBody">
                     <tr>
-                        <td colspan="5">
+                        <td colspan="6">
                             <div class="empty-state">
                                 <i data-lucide="loader"></i>
                                 <p>Loading attendance records...</p>
@@ -346,11 +347,57 @@
             </table>
         </div>
 
+        <!-- Employee Regularization Modal -->
+        <div id="empRegModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition:opacity 0.25s;">
+            <div style="background:white; padding:2rem; border-radius:20px; width:440px; max-width:92%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+                    <div>
+                        <h3 style="font-weight:800; font-size:1.2rem; margin:0;">Request Regularization</h3>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Submit missed or late punch correction to HR</p>
+                    </div>
+                    <button id="btnCloseEmpRegModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:4px;"><i data-lucide="x"></i></button>
+                </div>
+                <form id="empRegForm" style="display:flex; flex-direction:column; gap:12px;">
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Date</label>
+                        <input type="text" id="empRegDate" readonly style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; background:#f8fafc; color:var(--text); font-weight:700;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Correction Type</label>
+                        <select id="empRegType" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; background:white;">
+                            <option value="Missing Punch Regularization">Missing Punch Regularization</option>
+                            <option value="Late Login Regularization">Late Login Regularization</option>
+                            <option value="Short Hours Correction">Short Hours Correction</option>
+                            <option value="WFH Attendance Regularization">WFH Correction</option>
+                        </select>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        <div>
+                            <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Actual Clock-In</label>
+                            <input type="text" id="empRegInTime" value="09:00 AM" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Actual Clock-Out</label>
+                            <input type="text" id="empRegOutTime" value="06:00 PM" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Reason / Explanation</label>
+                        <textarea id="empRegReason" rows="3" required placeholder="Explain why the punch was missed or delayed..." style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; resize:none;"></textarea>
+                    </div>
+                    <button type="submit" style="background:var(--primary); color:white; border:none; padding:12px; border-radius:12px; font-weight:700; cursor:pointer; margin-top:4px; font-size:0.88rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i data-lucide="send" style="width:16px; height:16px;"></i> Send Request to HR
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, query, where, orderBy, getDocs } from "./firebase-config.js";
+        import { submitRegularization } from "./attendance-service.js";
 
         lucide.createIcons();
 
@@ -453,18 +500,100 @@
                 }
                 const dt = r.date ? new Date(r.date) : new Date();
                 const dayLabel = !isNaN(dt.getTime()) ? dt.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }) : '—';
+                let actionHtml = '<span style="color:var(--text-muted); font-size:0.75rem;">—</span>';
+                if (r.regularized) {
+                    actionHtml = `<span style="font-size:0.72rem; font-weight:800; color:#059669; background:#ecfdf5; padding:3px 8px; border-radius:6px; border:1px solid #a7f3d0;">Regularized</span>`;
+                } else if (r.status !== 'Present') {
+                    actionHtml = `<button class="btn-regularize" data-date="${r.date}" data-status="${r.status}" style="background:var(--primary); color:white; border:none; padding:5px 12px; border-radius:8px; font-size:0.75rem; font-weight:700; cursor:pointer; transition:0.2s;">Regularize</button>`;
+                }
+
                 html += `<tr>
                     <td style="font-weight:700;">${dayLabel}</td>
                     <td>${fmtTime(r.punchIn)}</td>
                     <td>${fmtTime(r.punchOut)}</td>
                     <td class="duration-pill">${fmtDuration(r.durationHours)}</td>
                     <td>${statusBadge(r.status || 'Short Hours')}</td>
+                    <td style="text-align: right;">${actionHtml}</td>
                 </tr>`;
             });
 
             tbody.innerHTML = html;
             lucide.createIcons();
+
+            // Wire Regularize buttons
+            tbody.querySelectorAll('.btn-regularize').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const date = e.currentTarget.getAttribute('data-date');
+                    const status = e.currentTarget.getAttribute('data-status');
+                    openEmpRegModal(date, status);
+                });
+            });
         };
+
+        function openEmpRegModal(date, status) {
+            const modal = document.getElementById('empRegModal');
+            const dateInput = document.getElementById('empRegDate');
+            const typeSelect = document.getElementById('empRegType');
+            if (dateInput) dateInput.value = date;
+            if (typeSelect) {
+                if (status === 'Missing') typeSelect.value = 'Missing Punch Regularization';
+                else if (status === 'Late') typeSelect.value = 'Late Login Regularization';
+                else if (status === 'Short Hours') typeSelect.value = 'Short Hours Correction';
+            }
+            if (modal) {
+                modal.style.display = 'flex';
+                setTimeout(() => modal.style.opacity = '1', 10);
+            }
+        }
+
+        document.getElementById('btnCloseEmpRegModal')?.addEventListener('click', () => {
+            const modal = document.getElementById('empRegModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                setTimeout(() => modal.style.display = 'none', 200);
+            }
+        });
+
+        document.getElementById('empRegForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const date = document.getElementById('empRegDate').value;
+            const type = document.getElementById('empRegType').value;
+            const inTime = document.getElementById('empRegInTime').value;
+            const outTime = document.getElementById('empRegOutTime').value;
+            const reason = document.getElementById('empRegReason').value;
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+
+                await submitRegularization(empId, {
+                    employeeId: empId,
+                    employeeName: userName,
+                    department: localStorage.getItem('userDept') || 'General',
+                    date,
+                    type,
+                    correctedTime: inTime,
+                    correctedPunchOut: outTime,
+                    reason
+                });
+
+                alert("Attendance regularization submitted to HR successfully!");
+                document.getElementById('empRegReason').value = '';
+                const modal = document.getElementById('empRegModal');
+                if (modal) {
+                    modal.style.opacity = '0';
+                    setTimeout(() => modal.style.display = 'none', 200);
+                }
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-lucide="send" style="width:16px; height:16px;"></i> Send Request to HR';
+                if (window.lucide) lucide.createIcons();
+            } catch (err) {
+                alert("Failed to submit regularization: " + err.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Request to HR';
+            }
+        });
 
         // Update summary cards
         const updateSummary = (records) => {

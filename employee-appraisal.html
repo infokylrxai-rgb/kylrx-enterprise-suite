@@ -277,9 +277,54 @@
                 <div class="progress-label" id="progressLabel">0%</div>
             </div>
 
+            <!-- ========================================================== -->
+            <!-- PRD SECTION 8: EMPLOYEE TASK LOGGING & PROGRESS TRACKING   -->
+            <!-- ========================================================== -->
+            <div class="section" style="background: #f8fafc; border: 1.5px solid var(--border); border-radius: 20px; padding: 1.75rem; margin-bottom: 2.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <div style="font-size: 0.72rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 1px;">Deliverables & Goals (PRD §8)</div>
+                        <h3 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin: 2px 0 0;">Work Logs & Goal Progress</h3>
+                    </div>
+                    <button type="button" onclick="openAddTaskModal()" style="background: #2563eb; color: white; border: none; padding: 9px 16px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                        <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                        <span>Log Deliverable / Add Task</span>
+                    </button>
+                </div>
+
+                <!-- Dynamic Real-Time Stats Grid -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem;">
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 14px; padding: 12px; text-align: center;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #0f172a;" id="empStatTotal">0</div>
+                        <div style="font-size: 0.68rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Tasks</div>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 14px; padding: 12px; text-align: center;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #10b981;" id="empStatCompleted">0</div>
+                        <div style="font-size: 0.68rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Completed</div>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 14px; padding: 12px; text-align: center;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #2563eb;" id="empStatPct">0%</div>
+                        <div style="font-size: 0.68rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Completion %</div>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 14px; padding: 12px; text-align: center;">
+                        <div style="font-size: 1.4rem; font-weight: 800; color: #ef4444;" id="empStatRework">0</div>
+                        <div style="font-size: 0.68rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Needs Rework</div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Task List -->
+                <div id="empTasksContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="text-align: center; padding: 1.5rem; color: #64748b; font-size: 0.85rem;">
+                        <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; margin: 0 auto 6px; color: #2563eb;"></i>
+                        <p style="margin: 0;">Loading tasks from PMS engine...</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Section 1: Key Achievements -->
             <div class="section">
                 <div class="section-title">Section 1 — Key Achievements</div>
+
                 <div class="form-group">
                     <label>What were your top 3 achievements this quarter?</label>
                     <textarea id="q1" placeholder="Describe your key contributions, milestones reached, and deliverables completed..." oninput="updateProgress()"></textarea>
@@ -353,33 +398,244 @@
         </div>
     </div>
 
+    <!-- Add Task Modal -->
+    <div class="modal-overlay" id="addTaskModal">
+        <div class="status-modal" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="check-square" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: #0f172a;">Log Deliverable / Task</h2>
+                        <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Record work log or create self-assigned task</p>
+                    </div>
+                </div>
+                <button onclick="closeAddTaskModal()" style="background: #f1f5f9; border: none; border-radius: 10px; width: 32px; height: 32px; cursor: pointer;">✕</button>
+            </div>
+
+            <form id="createTaskForm" onsubmit="handleCreateTask(event)">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">Task Title *</label>
+                    <input type="text" id="taskTitleInput" required placeholder="e.g. Build GraphQL API Endpoint for Auth" style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.88rem; background: #f8fafc;">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">Work Log Description / Scope</label>
+                    <textarea id="taskDescInput" rows="3" placeholder="Detail the deliverables, technical specs, or milestone reached..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.88rem; background: #f8fafc; resize: vertical;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeAddTaskModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 2; padding: 12px; font-weight: 800;">Log Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mark Complete Modal -->
+    <div class="modal-overlay" id="completeTaskModal">
+        <div class="status-modal" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;">
+                <div style="width: 40px; height: 40px; border-radius: 12px; background: #dcfce7; color: #10b981; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="check-circle-2" style="width: 22px; height: 22px;"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: #0f172a;">Mark Task Completed</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Submit work logs for manager evaluation</p>
+                </div>
+            </div>
+
+            <p style="font-size: 0.85rem; color: #334155; margin-bottom: 1rem;" id="completeTaskPrompt">
+                Provide optional work notes or summary of completion before submitting for review.
+            </p>
+
+            <input type="hidden" id="completeTaskIdInput">
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 6px;">Completion Work Notes</label>
+                <textarea id="completeTaskNotes" rows="3" placeholder="e.g. Pull Request merged, unit tests passing at 98%, documentation updated." style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.88rem; background: #f8fafc;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeCompleteTaskModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" style="flex: 2; padding: 12px; font-weight: 800; background: #10b981;" onclick="submitCompleteTask()">Confirm & Submit</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { db } from "./firebase-config.js";
         import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { 
+            createPMSTask, 
+            completePMSTask, 
+            getPMSTasks, 
+            calculateCompletionPercentage,
+            getActivePMSCycle 
+        } from "./pms-service.js";
 
         lucide.createIcons();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const empId = urlParams.get('id') || 'demo_emp';
-        const cycle = urlParams.get('cycle') || 'Q2-2026';
+        const empId = urlParams.get('id') || localStorage.getItem('employee_uid') || localStorage.getItem('user_id') || 'demo_emp';
+        let cycle = urlParams.get('cycle') || 'Q2-2026';
 
         // Back button
         document.getElementById('backBtn').href = `employee-dashboard.html?id=${empId}`;
 
-        // Progress tracker
-        window.updateProgress = () => {
-            const fields = ['q1','q2','q3','q4','q5'];
-            const filled = fields.filter(id => document.getElementById(id).value.trim().length > 10).length;
-            const ratingsFilled = [
-                parseInt(document.getElementById('perfRating').dataset.value) > 0,
-                parseInt(document.getElementById('collabRating').dataset.value) > 0
-            ].filter(Boolean).length;
-            const total = fields.length + 2;
-            const done = filled + ratingsFilled;
-            const pct = Math.round((done / total) * 100);
-            document.getElementById('progressFill').style.width = pct + '%';
-            document.getElementById('progressLabel').textContent = pct + '%';
+        let currentTasks = [];
+
+        // Real-Time PMS Tasks Hydration & Progress Calculation
+        async function loadEmployeePmsTasks() {
+            const container = document.getElementById('empTasksContainer');
+            if (!container) return;
+
+            try {
+                // If cycle is not specified in URL, fetch active cycle from Firestore
+                const activeCycle = await getActivePMSCycle();
+                if (activeCycle) {
+                    cycle = activeCycle.cycleId || activeCycle.id;
+                    const badge = document.querySelector('.cycle-badge');
+                    if (badge) badge.textContent = `${activeCycle.cycleName} • Performance Review`;
+                }
+
+                const tasks = await getPMSTasks(cycle, empId);
+                currentTasks = tasks;
+
+                // Real-time progress computation strictly: (completedTasks / totalTasks) * 100
+                const progress = calculateCompletionPercentage(tasks);
+
+                document.getElementById('empStatTotal').textContent = progress.totalTasks;
+                document.getElementById('empStatCompleted').textContent = progress.completedTasks;
+                document.getElementById('empStatPct').textContent = `${progress.completionPercentage}%`;
+                document.getElementById('empStatRework').textContent = progress.rejectedTasks;
+
+                // Sync main appraisal progress bar with real-time completion percentage
+                document.getElementById('progressFill').style.width = `${progress.completionPercentage}%`;
+                document.getElementById('progressLabel').textContent = `${progress.completionPercentage}%`;
+
+                if (tasks.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; background: white; border-radius: 14px; border: 1.5px dashed var(--border); color: #64748b;">
+                            <i data-lucide="inbox" style="width: 32px; height: 32px; color: #94a3b8; margin: 0 auto 6px;"></i>
+                            <p style="font-weight: 700; margin: 0; font-size: 0.9rem;">No deliverables logged yet.</p>
+                            <p style="font-size: 0.78rem; margin: 4px 0 0;">Click "Log Deliverable / Add Task" above to record your accomplishments or self-assigned goals.</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                container.innerHTML = tasks.map(task => {
+                    const isCompleted = task.status === 'completed';
+                    const isAccepted = task.reviewStatus === 'accepted';
+                    const isRejected = task.reviewStatus === 'rejected';
+
+                    const statusBadge = isAccepted
+                        ? `<span style="padding: 3px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">Accepted</span>`
+                        : isRejected
+                            ? `<span style="padding: 3px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca;">Needs Rework</span>`
+                            : isCompleted
+                                ? `<span style="padding: 3px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">Under Review</span>`
+                                : `<span style="padding: 3px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">Active Queue</span>`;
+
+                    return `
+                        <div style="background: white; border: 1px solid ${isRejected ? '#fca5a5' : isCompleted ? '#bbf7d0' : 'var(--border)'}; border-radius: 14px; padding: 1rem; transition: 0.2s;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                    <input type="checkbox" ${isCompleted ? 'checked disabled' : ''} onchange="openCompleteTaskModal('${task.id || task.taskId}', '${task.title.replace(/'/g, "\\'")}')" style="margin-top: 4px; cursor: pointer; width: 18px; height: 18px; accent-color: #10b981;">
+                                    <div>
+                                        <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin: 0 0 2px 0; text-decoration: ${isCompleted ? 'line-through' : 'none'}; opacity: ${isCompleted ? '0.75' : '1'};">${task.title}</h4>
+                                        <p style="font-size: 0.8rem; color: #64748b; margin: 0; line-height: 1.4;">${task.description || 'No description'}</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    ${statusBadge}
+                                </div>
+                            </div>
+
+                            <!-- If rejected by manager, show reviewer remarks and rework notice -->
+                            ${isRejected ? `
+                                <div style="margin-top: 10px; background: #fff1f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: #991b1b;">
+                                    <strong>Reviewer Feedback:</strong> "${task.feedback || 'Revision needed'}"
+                                    <div style="margin-top: 6px; font-weight: 700; color: #b91c1c;">
+                                        &rarr; Task moved back to your active queue. Make necessary updates and check the box above to re-submit.
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <!-- If completed, show work log summary -->
+                            ${task.completionNotes ? `
+                                <div style="margin-top: 8px; font-size: 0.78rem; color: #1e40af; background: #eff6ff; padding: 6px 10px; border-radius: 8px;">
+                                    <strong>Work Log:</strong> "${task.completionNotes}"
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                lucide.createIcons();
+            } catch (err) {
+                console.error('[Employee PMS] Error loading tasks:', err);
+            }
+        }
+
+        // Add Task Handlers
+        window.openAddTaskModal = function() {
+            document.getElementById('addTaskModal').classList.add('active');
         };
+        window.closeAddTaskModal = function() {
+            document.getElementById('addTaskModal').classList.remove('active');
+        };
+        window.handleCreateTask = async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('taskTitleInput').value;
+            const desc = document.getElementById('taskDescInput').value;
+
+            try {
+                await createPMSTask({
+                    cycleId: cycle,
+                    employeeId: empId,
+                    assignedBy: empId, // Self-assigned
+                    title,
+                    description: desc,
+                    status: 'pending',
+                    reviewStatus: 'under_review'
+                });
+
+                closeAddTaskModal();
+                document.getElementById('createTaskForm').reset();
+                loadEmployeePmsTasks();
+            } catch (err) {
+                alert('Failed to log task: ' + err.message);
+            }
+        };
+
+        // Complete Task Handlers
+        window.openCompleteTaskModal = function(taskId, taskTitle) {
+            document.getElementById('completeTaskIdInput').value = taskId;
+            document.getElementById('completeTaskPrompt').textContent = `Submitting "${taskTitle}" as completed. Provide optional completion notes for your reviewer.`;
+            document.getElementById('completeTaskNotes').value = '';
+            document.getElementById('completeTaskModal').classList.add('active');
+        };
+        window.closeCompleteTaskModal = function() {
+            document.getElementById('completeTaskModal').classList.remove('active');
+            loadEmployeePmsTasks(); // Reset checkbox if cancelled
+        };
+        window.submitCompleteTask = async function() {
+            const taskId = document.getElementById('completeTaskIdInput').value;
+            const notes = document.getElementById('completeTaskNotes').value;
+
+            try {
+                await completePMSTask(taskId, notes);
+                closeCompleteTaskModal();
+                loadEmployeePmsTasks();
+            } catch (err) {
+                alert('Error completing task: ' + err.message);
+            }
+        };
+
+        // Initial task load
+        loadEmployeePmsTasks();
+
 
         // Star rating
         window.setRating = (groupId, value) => {

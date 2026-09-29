@@ -138,6 +138,7 @@ app.get("/api/firebase/status", async (req, res) => {
 
 // Serve static files from workspace root
 app.get('/favicon.ico', (req, res) => res.status(204).end());
+app.get('/api/health', (req, res) => res.json({ status: 'healthy', timestamp: new Date().toISOString() }));
 app.use(express.static(__dirname));
 
 // Route Wiring

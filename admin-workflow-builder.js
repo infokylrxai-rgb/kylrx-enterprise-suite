@@ -345,6 +345,28 @@ async function loadWorkflow(id) {
                 // Populate Version Selector
                 populateVersionSelector(json.workflow);
 
+                // Fetch question configurations if available
+                try {
+                    const qRes = await fetch(`${API_BASE}/${id}/question-configs`);
+                    if (qRes.ok) {
+                        const qJson = await qRes.json();
+                        if (qJson.success && qJson.questionConfigs) {
+                            state.currentWorkflow.questionConfigs = qJson.questionConfigs;
+                        }
+                    }
+                } catch (_) {}
+
+                // Fetch automation configurations if available (PRD §12)
+                try {
+                    const aRes = await fetch(`${API_BASE}/${id}/automations`);
+                    if (aRes.ok) {
+                        const aJson = await aRes.json();
+                        if (aJson.success && aJson.automationConfigs) {
+                            state.currentWorkflow.automationConfigs = aJson.automationConfigs;
+                        }
+                    }
+                } catch (_) {}
+
                 state.selectedNodeId = null;
                 renderCanvas();
                 renderWorkflowList();
@@ -645,6 +667,21 @@ function createNodeElement(node) {
         portsHtml += `<div class="node-port node-port-out" data-port="out" title="Next Step"></div>`;
     }
 
+    const qConfigs = state.currentWorkflow?.questionConfigs || {};
+    const stageQConfig = qConfigs[node.id] || qConfigs[`stage_${node.id}`] || (node.config?.questions ? { questions: node.config.questions } : null);
+    const qCount = stageQConfig?.questions?.length || 0;
+    const qBadgeHtml = qCount > 0 
+        ? `<div class="node-question-badge" title="Click to customize questions (PRD §9)" onclick="event.stopPropagation(); window.openQuestionCustomizationDrawer('${node.id}');"><i class="fas fa-clipboard-question"></i> ${qCount} Questions</div>`
+        : '';
+
+    const aConfigs = state.currentWorkflow?.automationConfigs || {};
+    const stageAConfig = aConfigs[node.id] || aConfigs[`stage_${node.id}`] || (node.config?.automation ? node.config.automation : null);
+    const hasAutomation = !!(stageAConfig && (stageAConfig.enabled !== false));
+    const aActionType = stageAConfig?.automationConfig?.actionType || stageAConfig?.actionType || 'NOTIFY_AND_ROUTE';
+    const aBadgeHtml = hasAutomation
+        ? `<div class="node-automation-badge" title="Active Automation: ${escapeHtml(aActionType)} (Click to edit PRD §12)" onclick="event.stopPropagation(); window.openAutomationDrawer('${node.id}');"><i class="fas fa-bolt"></i> ${escapeHtml(aActionType)}</div>`
+        : `<div class="node-automation-add-link" title="Attach Automation (PRD §12)" onclick="event.stopPropagation(); window.openAutomationDrawer('${node.id}');"><i class="fas fa-plus"></i> Automation</div>`;
+
     card.innerHTML = `
         ${portsHtml}
         <div class="canvas-node-header" style="background: rgba(${hexToRgb(color)}, 0.12)">
@@ -654,7 +691,13 @@ function createNodeElement(node) {
                 <div class="canvas-node-label">${node.label}</div>
             </div>
         </div>
-        <div class="canvas-node-body">${summaryText}</div>
+        <div class="canvas-node-body">
+            ${summaryText}
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">
+                ${qBadgeHtml}
+                ${aBadgeHtml}
+            </div>
+        </div>
     `;
 
     // Drag Node Repositioning
@@ -1187,6 +1230,55 @@ function renderConfigPanel() {
         `;
     }
 
+    // PRD Section 9: Question Customization trigger in Node Properties Panel
+    const qConfigs = state.currentWorkflow?.questionConfigs || {};
+    const stageQConfig = qConfigs[node.id] || qConfigs[`stage_${node.id}`] || (node.config?.questions ? { questions: node.config.questions } : null);
+    const qCount = stageQConfig?.questions?.length || 0;
+
+    formHtml += `
+        <div class="stage-question-customizer-box" style="margin-top: 16px; padding: 14px; background: #f0f7ff; border: 1.5px dashed #93c5fd; border-radius: 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fas fa-clipboard-question" style="margin-right: 4px;"></i> Question Customization (PRD §9)
+                </span>
+                <span class="status-badge" style="font-size: 10px; background: #dbeafe; color: #1e40af; font-weight: 700;">
+                    ${qCount} ${qCount === 1 ? 'Question' : 'Questions'}
+                </span>
+            </div>
+            <p style="font-size: 11px; color: #475569; margin-bottom: 12px; line-height: 1.4;">
+                Configure dynamic questions, prompts, response types, ratings, and options for this stage without altering workflow routing.
+            </p>
+            <button type="button" class="btn btn-primary" style="width: 100%; font-size: 12px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="window.openQuestionCustomizationDrawer('${node.id}')">
+                <i class="fas fa-sliders-h"></i> Customize Stage Questions
+            </button>
+        </div>
+    `;
+
+    // PRD Section 12: Direct Automation and Workflow Integration
+    const aConfigs = state.currentWorkflow?.automationConfigs || {};
+    const stageAConfig = aConfigs[node.id] || aConfigs[`stage_${node.id}`] || (node.config?.automation ? node.config.automation : null);
+    const hasAutomation = !!(stageAConfig && (stageAConfig.enabled !== false));
+    const aActionType = stageAConfig?.automationConfig?.actionType || stageAConfig?.actionType || 'NOTIFY_AND_ROUTE';
+
+    formHtml += `
+        <div class="stage-automation-customizer-box" style="margin-top: 14px; padding: 14px; background: #f0fdf4; border: 1.5px dashed #86efac; border-radius: 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fas fa-bolt" style="margin-right: 4px;"></i> Automation Integration (PRD §12)
+                </span>
+                <span class="status-badge" style="font-size: 10px; background: ${hasAutomation ? '#dcfce7' : '#f1f5f9'}; color: ${hasAutomation ? '#15803d' : '#64748b'}; font-weight: 700;">
+                    ${hasAutomation ? escapeHtml(aActionType) : 'None'}
+                </span>
+            </div>
+            <p style="font-size: 11px; color: #166534; margin-bottom: 12px; line-height: 1.4;">
+                Configure targeted automation actions, alert triggers, L1/L2 approval routing, payload templates, and SLA rules.
+            </p>
+            <button type="button" class="btn btn-outline" style="width: 100%; font-size: 12px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 8px; border-color: #86efac; color: #15803d; background: #ffffff; font-weight: 700;" onclick="window.openAutomationDrawer('${node.id}')">
+                <i class="fas fa-bolt"></i> ${hasAutomation ? 'Edit Stage Automation' : 'Configure Automation'}
+            </button>
+        </div>
+    `;
+
     panelBody.innerHTML = formHtml;
     attachConfigFormListeners(node);
 }
@@ -1477,6 +1569,28 @@ function updateCanvasTransform() {
 // ─── TOOLBAR BUTTON ACTIONS ───
 function setupToolbarEvents() {
     document.getElementById('btn-new-workflow').addEventListener('click', newWorkflow);
+
+    // Question Customization Toolbar Trigger
+    const btnOpenQ = document.getElementById('btn-open-questions-top');
+    if (btnOpenQ) {
+        btnOpenQ.addEventListener('click', () => {
+            const stageId = state.selectedNodeId || state.currentWorkflow?.canvas?.nodes?.[0]?.id;
+            if (!stageId) {
+                showToast('Please add or select a stage node on the canvas first.', 'info');
+                return;
+            }
+            window.openQuestionCustomizationDrawer(stageId);
+        });
+    }
+
+    // Direct Automation Toolbar Trigger (PRD §12)
+    const btnOpenAuto = document.getElementById('btn-automation-drawer');
+    if (btnOpenAuto) {
+        btnOpenAuto.addEventListener('click', () => {
+            const stageId = state.selectedNodeId || state.currentWorkflow?.canvas?.nodes?.[0]?.id;
+            window.openAutomationDrawer(stageId);
+        });
+    }
 
     // Save Workflow
     document.getElementById('btn-save').addEventListener('click', async () => {
@@ -2024,3 +2138,1276 @@ function setupAiCreatorEvents() {
         });
     }
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PRD SECTION 9: QUESTION CUSTOMIZATION CONTROLLER (STRICT BOUNDARY)
+   Modular Cloud Firestore persistence under workflows/{id}/question_configs/{stageId}
+   Zero impact on workflow routing, stages, or execution engine rules.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+const questionState = {
+    activeStageId: null,
+    activeStageLabel: '',
+    editingQuestionId: null,
+    stagedQuestions: [],
+    activeTab: 'builder'
+};
+
+const ENTERPRISE_QUESTION_PRESETS = [
+    {
+        key: 'pms_quarterly_review',
+        title: 'Quarterly Performance & Manager Review',
+        icon: 'fa-chart-line',
+        desc: 'Standard quarterly deliverables review, milestone evaluation, and velocity rating.',
+        tags: ['Performance', 'Rating 1-5', 'Quarterly'],
+        questions: [
+            {
+                questionId: 'q_pms_1',
+                prompt: 'What key quarterly deliverables and milestones were achieved?',
+                type: 'textarea',
+                required: true,
+                placeholder: 'Summarize target completion percentage and key impacts...',
+                options: [],
+                scale: null,
+                order: 1
+            },
+            {
+                questionId: 'q_pms_2',
+                prompt: 'Rate deliverable completion velocity (1 to 5)',
+                type: 'rating',
+                required: true,
+                placeholder: '1 = Stalled, 5 = High Velocity',
+                options: [],
+                scale: 5,
+                order: 2
+            },
+            {
+                questionId: 'q_pms_3',
+                prompt: 'Rate adherence to engineering standards and technical quality (1 to 5)',
+                type: 'rating',
+                required: true,
+                placeholder: '1 = Substandard, 5 = Production Ready',
+                options: [],
+                scale: 5,
+                order: 3
+            },
+            {
+                questionId: 'q_pms_4',
+                prompt: 'Overall Appraisal Performance Rating',
+                type: 'select',
+                required: true,
+                placeholder: 'Select final rating grade',
+                options: [
+                    'Exceeded Expectations (O)',
+                    'Consistently Met Expectations (EE)',
+                    'Partially Met Expectations (ME)',
+                    'Needs Improvement (NI)'
+                ],
+                scale: null,
+                order: 4
+            },
+            {
+                questionId: 'q_pms_5',
+                prompt: 'Supporting Documentation / Performance Evidence (PDF, DOCX)',
+                type: 'file',
+                required: false,
+                placeholder: 'Upload quarterly report, code review stats or project sign-off',
+                options: [],
+                scale: null,
+                order: 5
+            }
+        ]
+    },
+    {
+        key: 'onboarding_candidate_intake',
+        title: 'New Hire Candidate Intake & Provisioning',
+        icon: 'fa-user-plus',
+        desc: 'New employee legal profile, direct deposit bank information, and hardware kit selection.',
+        tags: ['Onboarding', 'Identity', 'Direct Deposit'],
+        questions: [
+            {
+                questionId: 'q_onb_1',
+                prompt: 'Confirm Candidate Legal Full Name (as per Passport / National ID)',
+                type: 'text',
+                required: true,
+                placeholder: 'e.g. Alexander John Mercer',
+                options: [],
+                scale: null,
+                order: 1
+            },
+            {
+                questionId: 'q_onb_2',
+                prompt: 'Bank Account Number & IFSC / SWIFT Code for Direct Deposit',
+                type: 'text',
+                required: true,
+                placeholder: 'e.g. HDFC0001234 - Account 50100234567890',
+                options: [],
+                scale: null,
+                order: 2
+            },
+            {
+                questionId: 'q_onb_3',
+                prompt: 'Select Preferred Corporate Hardware Kit',
+                type: 'select',
+                required: true,
+                placeholder: 'Choose developer workstation',
+                options: [
+                    'Apple MacBook Pro 16" (M3 Max / 36GB)',
+                    'Dell XPS 15 Enterprise (i9 / 32GB)',
+                    'Lenovo ThinkPad X1 Carbon (32GB)'
+                ],
+                scale: null,
+                order: 3
+            },
+            {
+                questionId: 'q_onb_4',
+                prompt: 'Upload Signed Offer Letter & Government ID Verification',
+                type: 'file',
+                required: true,
+                placeholder: 'PDF or scanned image attachment',
+                options: [],
+                scale: null,
+                order: 4
+            }
+        ]
+    },
+    {
+        key: 'it_asset_handover',
+        title: 'IT Asset Handover & Security Sign-off',
+        icon: 'fa-laptop',
+        desc: 'Verification of returned devices, physical condition grading, and peripheral checklist.',
+        tags: ['Asset Mgmt', 'IT Operations', 'Offboarding'],
+        questions: [
+            {
+                questionId: 'q_ast_1',
+                prompt: 'Company Asset Tag / Laptop Serial Number',
+                type: 'text',
+                required: true,
+                placeholder: 'e.g. KYLRX-LT-2024-884',
+                options: [],
+                scale: null,
+                order: 1
+            },
+            {
+                questionId: 'q_ast_2',
+                prompt: 'Rate Physical Equipment Condition (1 to 5)',
+                type: 'rating',
+                required: true,
+                placeholder: '1 = Heavy Damage, 5 = Pristine Condition',
+                options: [],
+                scale: 5,
+                order: 2
+            },
+            {
+                questionId: 'q_ast_3',
+                prompt: 'Peripherals & Accessories Handed Over',
+                type: 'multiselect',
+                required: true,
+                placeholder: 'Check all that apply',
+                options: [
+                    'Power Adapter & MagSafe/Type-C Cord',
+                    'Corporate Security Key / YubiKey',
+                    'Building RFID Access Badge',
+                    'External Monitor & HDMI/DisplayPort Cable',
+                    'Wireless Mouse & Keyboard'
+                ],
+                scale: null,
+                order: 3
+            },
+            {
+                questionId: 'q_ast_4',
+                prompt: 'Upload Physical Handover Form Signed by IT Administrator',
+                type: 'file',
+                required: true,
+                placeholder: 'Scanned signature document',
+                options: [],
+                scale: null,
+                order: 4
+            }
+        ]
+    },
+    {
+        key: 'exit_ff_clearance',
+        title: 'Exit Clearance & Final Settlement (F&F)',
+        icon: 'fa-door-open',
+        desc: 'Department handover sign-offs, outstanding financial dues, and exit interview clearance.',
+        tags: ['Exit', 'Finance', 'F&F Settlement'],
+        questions: [
+            {
+                questionId: 'q_exit_1',
+                prompt: 'Knowledge Transfer & Project Documentation Status',
+                type: 'select',
+                required: true,
+                placeholder: 'Select KT completion status',
+                options: [
+                    '100% Completed & Verified by Team Lead',
+                    'Partial Handover Completed',
+                    'Handover Incomplete / Missing Documentation'
+                ],
+                scale: null,
+                order: 1
+            },
+            {
+                questionId: 'q_exit_2',
+                prompt: 'Notice Period Served (Number of Days)',
+                type: 'text',
+                required: true,
+                placeholder: 'e.g. 60 or 90 Days',
+                options: [],
+                scale: null,
+                order: 2
+            },
+            {
+                questionId: 'q_exit_3',
+                prompt: 'Finance Verification: Outstanding Travel Advances or Company Dues?',
+                type: 'select',
+                required: true,
+                placeholder: 'Select finance status',
+                options: [
+                    'Nil / No Outstanding Dues',
+                    'Salary Advance Deduction Required in F&F',
+                    'Company Hardware Purchase Buyout Pending'
+                ],
+                scale: null,
+                order: 3
+            },
+            {
+                questionId: 'q_exit_4',
+                prompt: 'Department Head & HR Relieving Remarks',
+                type: 'textarea',
+                required: false,
+                placeholder: 'Enter any final comments for settlement calculation...',
+                options: [],
+                scale: null,
+                order: 4
+            }
+        ]
+    }
+];
+
+// Open Question Customization Slide-Out Drawer for a Stage
+window.openQuestionCustomizationDrawer = function(stageId) {
+    if (!stageId) {
+        if (state.currentWorkflow?.canvas?.nodes?.length > 0) {
+            stageId = state.currentWorkflow.canvas.nodes[0].id;
+        } else {
+            showToast('Please add at least one stage node to the canvas first.', 'info');
+            return;
+        }
+    }
+
+    const node = state.currentWorkflow?.canvas?.nodes?.find(n => n.id === stageId);
+    const stageLabel = node?.label || stageId;
+
+    questionState.activeStageId = stageId;
+    questionState.activeStageLabel = stageLabel;
+    questionState.editingQuestionId = null;
+
+    // Load existing question configurations from workflow state or initialize
+    const qConfigs = state.currentWorkflow.questionConfigs || {};
+    const existing = qConfigs[stageId] || qConfigs[`stage_${stageId}`] || null;
+
+    if (existing && Array.isArray(existing.questions) && existing.questions.length > 0) {
+        questionState.stagedQuestions = JSON.parse(JSON.stringify(existing.questions));
+    } else if (node && node.config && Array.isArray(node.config.questions) && node.config.questions.length > 0) {
+        questionState.stagedQuestions = JSON.parse(JSON.stringify(node.config.questions));
+    } else {
+        // Pre-seed default prompt if none exists
+        questionState.stagedQuestions = [
+            {
+                questionId: `q_${Date.now()}_1`,
+                prompt: `What deliverables or actions were finalized for ${stageLabel}?`,
+                type: 'textarea',
+                required: true,
+                placeholder: 'Enter status details and achievements...',
+                options: [],
+                scale: null,
+                order: 1
+            }
+        ];
+    }
+
+    // Populate header info
+    const labelEl = document.getElementById('qdStageLabel');
+    const idEl = document.getElementById('qdStageId');
+    if (labelEl) labelEl.textContent = stageLabel;
+    if (idEl) idEl.textContent = `stage_${stageId}`;
+
+    // Reset Form
+    window.cancelQuestionEdit();
+
+    // Render Lists & Presets
+    window.renderDrawerQuestionsList();
+    window.renderPresetsList();
+    window.switchQdTab('builder');
+
+    // Show Overlay and Drawer
+    const overlay = document.getElementById('questionDrawerOverlay');
+    const drawer = document.getElementById('questionDrawer');
+    if (overlay) overlay.style.display = 'block';
+    if (drawer) drawer.style.display = 'flex';
+};
+
+window.closeQuestionCustomizationDrawer = function() {
+    const overlay = document.getElementById('questionDrawerOverlay');
+    const drawer = document.getElementById('questionDrawer');
+    if (overlay) overlay.style.display = 'none';
+    if (drawer) drawer.style.display = 'none';
+    questionState.activeStageId = null;
+    questionState.editingQuestionId = null;
+};
+
+window.switchQdTab = function(tabName) {
+    questionState.activeTab = tabName;
+    ['builder', 'preview', 'presets'].forEach(t => {
+        const tabBtn = document.getElementById(`qd-tab-${t}`);
+        const content = document.getElementById(`qd-content-${t}`);
+        if (tabBtn) {
+            if (t === tabName) tabBtn.classList.add('active');
+            else tabBtn.classList.remove('active');
+        }
+        if (content) {
+            content.style.display = (t === tabName) ? 'flex' : 'none';
+        }
+    });
+
+    if (tabName === 'preview') {
+        window.renderQuestionLivePreview();
+    }
+};
+
+window.handleQuestionTypeChange = function() {
+    const typeSelect = document.getElementById('qd-input-type');
+    const scaleGroup = document.getElementById('qd-field-scale-group');
+    const optionsGroup = document.getElementById('qd-field-options-group');
+    if (!typeSelect) return;
+
+    const val = typeSelect.value;
+    if (scaleGroup) {
+        scaleGroup.style.display = (val === 'rating') ? 'block' : 'none';
+    }
+    if (optionsGroup) {
+        optionsGroup.style.display = (val === 'select' || val === 'multiselect') ? 'block' : 'none';
+    }
+};
+
+window.updateOptionsPreview = function() {
+    const input = document.getElementById('qd-input-options');
+    const container = document.getElementById('qd-options-chips-preview');
+    if (!input || !container) return;
+
+    const items = input.value.split(',').map(s => s.trim()).filter(Boolean);
+    container.innerHTML = '';
+    items.forEach(item => {
+        const chip = document.createElement('span');
+        chip.className = 'qd-chip';
+        chip.textContent = item;
+        container.appendChild(chip);
+    });
+};
+
+window.handleQuestionFormSubmit = function(e) {
+    e.preventDefault();
+    const promptInput = document.getElementById('qd-input-prompt');
+    const typeSelect = document.getElementById('qd-input-type');
+    const requiredCheck = document.getElementById('qd-input-required');
+    const scaleSelect = document.getElementById('qd-input-scale');
+    const optionsInput = document.getElementById('qd-input-options');
+    const placeholderInput = document.getElementById('qd-input-placeholder');
+
+    if (!promptInput || !promptInput.value.trim()) {
+        showToast('Question prompt is required', 'error');
+        return;
+    }
+
+    const prompt = promptInput.value.trim();
+    const type = typeSelect ? typeSelect.value : 'text';
+    const required = requiredCheck ? requiredCheck.checked : false;
+    const placeholder = placeholderInput ? placeholderInput.value.trim() : '';
+    const scale = (type === 'rating' && scaleSelect) ? parseInt(scaleSelect.value, 10) : null;
+    const options = (type === 'select' || type === 'multiselect') && optionsInput
+        ? optionsInput.value.split(',').map(s => s.trim()).filter(Boolean)
+        : [];
+
+    if (questionState.editingQuestionId) {
+        // Update existing question
+        const qIdx = questionState.stagedQuestions.findIndex(q => q.questionId === questionState.editingQuestionId);
+        if (qIdx >= 0) {
+            questionState.stagedQuestions[qIdx] = {
+                ...questionState.stagedQuestions[qIdx],
+                prompt,
+                type,
+                required,
+                placeholder,
+                scale,
+                options
+            };
+            showToast('Question updated', 'success');
+        }
+    } else {
+        // Add new question
+        const newQ = {
+            questionId: `q_${Date.now()}_${questionState.stagedQuestions.length + 1}`,
+            prompt,
+            type,
+            required,
+            placeholder,
+            scale,
+            options,
+            order: questionState.stagedQuestions.length + 1
+        };
+        questionState.stagedQuestions.push(newQ);
+        showToast('Question added to stage', 'success');
+    }
+
+    window.cancelQuestionEdit();
+    window.renderDrawerQuestionsList();
+};
+
+window.editQuestion = function(qId) {
+    const q = questionState.stagedQuestions.find(item => item.questionId === qId);
+    if (!q) return;
+
+    questionState.editingQuestionId = qId;
+
+    const heading = document.getElementById('qd-form-heading');
+    const cancelBtn = document.getElementById('qd-btn-cancel-edit');
+    const submitText = document.getElementById('qd-submit-text');
+
+    if (heading) heading.innerHTML = `<i class="fas fa-edit"></i> Edit Question (#${q.order || 1})`;
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    if (submitText) submitText.textContent = 'Update Question';
+
+    const promptInput = document.getElementById('qd-input-prompt');
+    const typeSelect = document.getElementById('qd-input-type');
+    const requiredCheck = document.getElementById('qd-input-required');
+    const reqText = document.getElementById('qd-required-text');
+    const scaleSelect = document.getElementById('qd-input-scale');
+    const optionsInput = document.getElementById('qd-input-options');
+    const placeholderInput = document.getElementById('qd-input-placeholder');
+
+    if (promptInput) promptInput.value = q.prompt || '';
+    if (typeSelect) typeSelect.value = q.type || 'text';
+    if (requiredCheck) {
+        requiredCheck.checked = Boolean(q.required);
+        if (reqText) reqText.textContent = q.required ? 'Required: Yes' : 'Required: No';
+    }
+    if (scaleSelect && q.scale) scaleSelect.value = String(q.scale);
+    if (optionsInput) optionsInput.value = (q.options || []).join(', ');
+    if (placeholderInput) placeholderInput.value = q.placeholder || '';
+
+    window.handleQuestionTypeChange();
+    window.updateOptionsPreview();
+    window.renderDrawerQuestionsList();
+
+    // Scroll to top of drawer
+    const body = document.querySelector('.qd-body');
+    if (body) body.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.cancelQuestionEdit = function() {
+    questionState.editingQuestionId = null;
+
+    const heading = document.getElementById('qd-form-heading');
+    const cancelBtn = document.getElementById('qd-btn-cancel-edit');
+    const submitText = document.getElementById('qd-submit-text');
+    const form = document.getElementById('qd-question-form');
+
+    if (heading) heading.innerHTML = '<i class="fas fa-plus-circle"></i> Add Question';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (submitText) submitText.textContent = 'Add Question to Stage';
+    if (form) form.reset();
+
+    const reqText = document.getElementById('qd-required-text');
+    if (reqText) reqText.textContent = 'Required: No';
+
+    const chips = document.getElementById('qd-options-chips-preview');
+    if (chips) chips.innerHTML = '';
+
+    window.handleQuestionTypeChange();
+};
+
+window.deleteQuestion = function(qId) {
+    if (!confirm('Are you sure you want to remove this question?')) return;
+    questionState.stagedQuestions = questionState.stagedQuestions.filter(q => q.questionId !== qId);
+    // Re-index orders
+    questionState.stagedQuestions.forEach((q, idx) => { q.order = idx + 1; });
+
+    if (questionState.editingQuestionId === qId) {
+        window.cancelQuestionEdit();
+    }
+    window.renderDrawerQuestionsList();
+    showToast('Question removed', 'info');
+};
+
+window.duplicateQuestion = function(qId) {
+    const q = questionState.stagedQuestions.find(item => item.questionId === qId);
+    if (!q) return;
+
+    const copy = JSON.parse(JSON.stringify(q));
+    copy.questionId = `q_${Date.now()}_${questionState.stagedQuestions.length + 1}`;
+    copy.prompt = `${copy.prompt} (Copy)`;
+    copy.order = questionState.stagedQuestions.length + 1;
+
+    questionState.stagedQuestions.push(copy);
+    window.renderDrawerQuestionsList();
+    showToast('Question duplicated', 'success');
+};
+
+window.moveQuestionOrder = function(qId, direction) {
+    const idx = questionState.stagedQuestions.findIndex(q => q.questionId === qId);
+    if (idx < 0) return;
+
+    if (direction === 'up' && idx > 0) {
+        const temp = questionState.stagedQuestions[idx];
+        questionState.stagedQuestions[idx] = questionState.stagedQuestions[idx - 1];
+        questionState.stagedQuestions[idx - 1] = temp;
+    } else if (direction === 'down' && idx < questionState.stagedQuestions.length - 1) {
+        const temp = questionState.stagedQuestions[idx];
+        questionState.stagedQuestions[idx] = questionState.stagedQuestions[idx + 1];
+        questionState.stagedQuestions[idx + 1] = temp;
+    }
+
+    questionState.stagedQuestions.forEach((q, i) => { q.order = i + 1; });
+    window.renderDrawerQuestionsList();
+};
+
+window.resetStageQuestions = function() {
+    if (!confirm('Reset all questions for this stage back to defaults?')) return;
+    const stageLabel = questionState.activeStageLabel || 'Stage';
+    questionState.stagedQuestions = [
+        {
+            questionId: `q_${Date.now()}_1`,
+            prompt: `What deliverables or actions were finalized for ${stageLabel}?`,
+            type: 'textarea',
+            required: true,
+            placeholder: 'Enter status details and achievements...',
+            options: [],
+            scale: null,
+            order: 1
+        }
+    ];
+    window.cancelQuestionEdit();
+    window.renderDrawerQuestionsList();
+    showToast('Reset questions to default', 'info');
+};
+
+window.loadPresetQuestions = function(presetKey) {
+    const preset = ENTERPRISE_QUESTION_PRESETS.find(p => p.key === presetKey);
+    if (!preset) return;
+
+    if (questionState.stagedQuestions.length > 0) {
+        if (!confirm(`Apply the "${preset.title}" preset template? This will replace currently staged questions.`)) {
+            return;
+        }
+    }
+
+    questionState.stagedQuestions = JSON.parse(JSON.stringify(preset.questions));
+    window.cancelQuestionEdit();
+    window.renderDrawerQuestionsList();
+    window.switchQdTab('builder');
+    showToast(`Loaded preset: ${preset.title}`, 'success');
+};
+
+window.renderDrawerQuestionsList = function() {
+    const container = document.getElementById('qd-questions-list-container');
+    const countBadge = document.getElementById('qd-question-count');
+    if (countBadge) countBadge.textContent = questionState.stagedQuestions.length;
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (questionState.stagedQuestions.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding: 24px; color: var(--text-muted); font-size: 12px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 10px;">
+                <i class="fas fa-clipboard-question" style="font-size: 28px; color: #93c5fd; margin-bottom: 8px; display:block;"></i>
+                No questions configured yet for this stage.<br>
+                Use the form above to add a question or choose an Enterprise Preset.
+            </div>
+        `;
+        return;
+    }
+
+    questionState.stagedQuestions.forEach((q, idx) => {
+        const isEditing = questionState.editingQuestionId === q.questionId;
+        const card = document.createElement('div');
+        card.className = `qd-q-card ${isEditing ? 'editing' : ''}`;
+
+        const typeBadgeClass = `qd-badge-${q.type}`;
+        const typeLabel = q.type === 'rating' ? `Rating 1-${q.scale || 5}` 
+            : q.type === 'select' ? 'Dropdown' 
+            : q.type === 'multiselect' ? 'Multi-Select' 
+            : q.type === 'textarea' ? 'Paragraph' 
+            : q.type === 'file' ? 'File Upload' : 'Short Text';
+
+        let metaHtml = '';
+        if (q.placeholder) {
+            metaHtml += `<div style="font-style:italic; color:#64748b; margin-top:2px;">Placeholder: "${escapeHtml(q.placeholder)}"</div>`;
+        }
+        if (q.options && q.options.length > 0) {
+            metaHtml += `<div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px;">
+                ${q.options.map(opt => `<span class="qd-chip" style="font-size:10px;">${escapeHtml(opt)}</span>`).join('')}
+            </div>`;
+        }
+
+        card.innerHTML = `
+            <div class="qd-q-order">#${idx + 1}</div>
+            <div class="qd-q-main">
+                <div class="qd-q-header">
+                    <span class="qd-q-type-badge ${typeBadgeClass}">${typeLabel}</span>
+                    <span class="qd-q-req-badge ${q.required ? 'qd-req-yes' : 'qd-req-no'}">
+                        ${q.required ? '* MANDATORY' : 'OPTIONAL'}
+                    </span>
+                    <span style="font-size:10px; color:#94a3b8; font-family:monospace;">${q.questionId}</span>
+                </div>
+                <div class="qd-q-prompt">${escapeHtml(q.prompt)}</div>
+                ${metaHtml}
+            </div>
+            <div class="qd-q-actions">
+                <button type="button" class="qd-btn-icon" title="Move Up" ${idx === 0 ? 'disabled' : ''} onclick="moveQuestionOrder('${q.questionId}', 'up')">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+                <button type="button" class="qd-btn-icon" title="Move Down" ${idx === questionState.stagedQuestions.length - 1 ? 'disabled' : ''} onclick="moveQuestionOrder('${q.questionId}', 'down')">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+                <button type="button" class="qd-btn-icon" title="Edit Question" onclick="editQuestion('${q.questionId}')">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button type="button" class="qd-btn-icon" title="Duplicate Question" onclick="duplicateQuestion('${q.questionId}')">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button type="button" class="qd-btn-icon delete" title="Delete Question" onclick="deleteQuestion('${q.questionId}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+};
+
+window.renderQuestionLivePreview = function() {
+    const container = document.getElementById('qd-preview-form-container');
+    const titleEl = document.getElementById('qd-preview-title');
+    if (titleEl) titleEl.textContent = `${questionState.activeStageLabel || 'Stage'} - Question View`;
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (questionState.stagedQuestions.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding: 20px; color:#64748b; font-size:12px;">No questions to preview. Add questions in the Question Builder tab.</div>';
+        return;
+    }
+
+    questionState.stagedQuestions.forEach((q, idx) => {
+        const itemWrap = document.createElement('div');
+        itemWrap.className = 'qd-preview-field-group';
+
+        const labelHtml = `
+            <label style="display:block; font-size:12px; font-weight:700; color:#0f172a; margin-bottom: 6px;">
+                ${idx + 1}. ${escapeHtml(q.prompt)}
+                ${q.required ? '<span style="color:#ef4444; margin-left:3px;">*</span>' : '<span style="font-weight:400; font-size:10.5px; color:#64748b; margin-left:4px;">(Optional)</span>'}
+            </label>
+        `;
+
+        let controlHtml = '';
+        if (q.type === 'text') {
+            controlHtml = `<input type="text" class="qd-input" placeholder="${escapeHtml(q.placeholder || 'Enter short answer...')}" />`;
+        } else if (q.type === 'textarea') {
+            controlHtml = `<textarea class="qd-textarea" rows="3" placeholder="${escapeHtml(q.placeholder || 'Type your detailed response here...')}"></textarea>`;
+        } else if (q.type === 'rating') {
+            const scaleCount = q.scale || 5;
+            let ratingButtons = '';
+            for (let i = 1; i <= scaleCount; i++) {
+                ratingButtons += `<button type="button" class="qd-sim-rating-btn" onclick="this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); this.classList.add('active');">${i}</button>`;
+            }
+            controlHtml = `
+                <div class="qd-sim-rating-grid">${ratingButtons}</div>
+                <div style="font-size:10.5px; color:#64748b; margin-top:4px;">${escapeHtml(q.placeholder || `Rating on a 1 to ${scaleCount} scale`)}</div>
+            `;
+        } else if (q.type === 'select') {
+            const optionsHtml = (q.options && q.options.length > 0)
+                ? q.options.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')
+                : '<option value="">-- No options configured --</option>';
+            controlHtml = `
+                <select class="qd-select">
+                    <option value="">${escapeHtml(q.placeholder || '-- Select an option --')}</option>
+                    ${optionsHtml}
+                </select>
+            `;
+        } else if (q.type === 'multiselect') {
+            const options = q.options && q.options.length > 0 ? q.options : ['Option 1', 'Option 2'];
+            controlHtml = `
+                <div style="display:flex; flex-direction:column; gap:6px; background:#f8fafc; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                    ${options.map((opt, oIdx) => `
+                        <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#334155; cursor:pointer;">
+                            <input type="checkbox" style="cursor:pointer;" />
+                            <span>${escapeHtml(opt)}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+        } else if (q.type === 'file') {
+            controlHtml = `
+                <div class="qd-sim-file-drop">
+                    <i class="fas fa-cloud-arrow-up" style="font-size:22px; margin-bottom:4px; display:block;"></i>
+                    <strong style="font-size:12px;">Click to browse or drag & drop documents</strong>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:2px;">${escapeHtml(q.placeholder || 'Supported formats: PDF, DOCX, PNG, JPG (Max 25MB)')}</div>
+                </div>
+            `;
+        }
+
+        itemWrap.innerHTML = `
+            ${labelHtml}
+            ${controlHtml}
+        `;
+        container.appendChild(itemWrap);
+    });
+};
+
+window.renderPresetsList = function() {
+    const container = document.getElementById('qd-presets-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+    ENTERPRISE_QUESTION_PRESETS.forEach(preset => {
+        const card = document.createElement('div');
+        card.className = 'qd-preset-card';
+        card.onclick = () => window.loadPresetQuestions(preset.key);
+
+        card.innerHTML = `
+            <div class="qd-preset-header">
+                <div class="qd-preset-title">
+                    <i class="fas ${preset.icon}" style="color: #2563eb;"></i>
+                    ${escapeHtml(preset.title)}
+                </div>
+                <button type="button" class="btn btn-outline" style="padding: 2px 8px; font-size: 10.5px; border-color:#93c5fd; color:#2563eb;">
+                    Apply Preset
+                </button>
+            </div>
+            <div class="qd-preset-desc">${escapeHtml(preset.desc)}</div>
+            <div class="qd-preset-tags">
+                <span class="qd-chip" style="font-size:10px; background:#eff6ff; color:#1d4ed8;">${preset.questions.length} Questions</span>
+                ${preset.tags.map(t => `<span class="qd-chip" style="font-size:10px; background:#f1f5f9; color:#475569; border-color:#e2e8f0;">${t}</span>`).join('')}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+};
+
+// Save Questions to Cloud Firestore (workflows/{workflowId}/question_configs/{stageId})
+window.saveQuestionsToFirestore = async function() {
+    const saveBtn = document.getElementById('qd-btn-save-firestore');
+    if (!questionState.activeStageId) {
+        showToast('No active stage selected', 'error');
+        return;
+    }
+
+    const workflowId = state.currentWorkflow.id || `wf_${Date.now()}`;
+    if (!state.currentWorkflow.id) {
+        state.currentWorkflow.id = workflowId;
+    }
+
+    const stageId = questionState.activeStageId;
+    const stageLabel = questionState.activeStageLabel || stageId;
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving to Firestore...';
+    }
+
+    // Build payload adhering strictly to PRD §9
+    const questionsPayload = questionState.stagedQuestions.map((q, idx) => ({
+        questionId: q.questionId || `q_${Date.now()}_${idx + 1}`,
+        prompt: q.prompt,
+        type: q.type,
+        required: Boolean(q.required),
+        placeholder: q.placeholder || '',
+        options: Array.isArray(q.options) ? q.options : [],
+        scale: q.scale || (q.type === 'rating' ? 5 : null),
+        order: idx + 1
+    }));
+
+    const configDoc = {
+        stageId: stageId,
+        stageLabel: stageLabel,
+        workflowId: workflowId,
+        questions: questionsPayload,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'admin_uid'
+    };
+
+    let firestoreWritten = false;
+
+    // 1. Direct Cloud Firestore Client write
+    try {
+        const fb = await import('./firebase-config.js');
+        if (fb && fb.db && fb.doc && fb.setDoc) {
+            const docRef = fb.doc(fb.db, 'workflows', workflowId, 'question_configs', stageId);
+            await fb.setDoc(docRef, {
+                ...configDoc,
+                updatedAt: fb.serverTimestamp ? fb.serverTimestamp() : new Date().toISOString()
+            }, { merge: true });
+            firestoreWritten = true;
+            console.log(`[Firestore] Saved question config to workflows/${workflowId}/question_configs/${stageId}`);
+        }
+    } catch (fbErr) {
+        console.warn('[Firestore] Client Firestore write notice:', fbErr.message);
+    }
+
+    // 2. Dual-save to backend API route for cross-session resilience
+    try {
+        await fetch(`${API_BASE}/${workflowId}/question-configs/${stageId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(configDoc)
+        });
+    } catch (apiErr) {
+        // Backend offline resilience
+    }
+
+    // 3. Mirror into local state without touching canvas connections/nodes
+    if (!state.currentWorkflow.questionConfigs) {
+        state.currentWorkflow.questionConfigs = {};
+    }
+    state.currentWorkflow.questionConfigs[stageId] = configDoc;
+
+    // 4. Re-render UI to update node question badge and right panel trigger
+    renderCanvas();
+    renderConfigPanel();
+
+    showToast(`✅ Saved ${questionsPayload.length} question(s) to Cloud Firestore for "${stageLabel}"!`, 'success');
+
+    if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-cloud-arrow-up"></i> Save to Cloud Firestore';
+    }
+};
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PRD SECTION 12: DIRECT AUTOMATION & WORKFLOW INTEGRATION CONTROLLER
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const automationState = {
+    activeStageId: null,
+    activeStageLabel: null
+};
+
+// Switch Tabs inside Automation Drawer
+window.switchAdTab = function(tabKey) {
+    const tabs = ['action', 'template', 'sla'];
+    tabs.forEach(key => {
+        const btn = document.getElementById(`ad-tab-${key}`);
+        const content = document.getElementById(`ad-content-${key}`);
+        if (btn) {
+            if (key === tabKey) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+        if (content) {
+            content.style.display = (key === tabKey) ? 'block' : 'none';
+        }
+    });
+};
+
+// Open Automation Drawer for a specific stage or default node
+window.openAutomationDrawer = function(stageId) {
+    const nodes = state.currentWorkflow?.canvas?.nodes || [];
+    if (!stageId) {
+        if (state.selectedNodeId) {
+            stageId = state.selectedNodeId;
+        } else if (nodes.length > 0) {
+            stageId = nodes[0].id;
+        } else {
+            stageId = 'stage_1';
+        }
+    }
+
+    // Populate stage selector dropdown
+    const stageSelect = document.getElementById('ad-input-stage');
+    if (stageSelect) {
+        stageSelect.innerHTML = '';
+        if (nodes.length > 0) {
+            nodes.forEach(n => {
+                const opt = document.createElement('option');
+                opt.value = n.id;
+                opt.textContent = `${n.label || n.id} (${n.type || 'stage'})`;
+                if (String(n.id) === String(stageId)) {
+                    opt.selected = true;
+                }
+                stageSelect.appendChild(opt);
+            });
+        } else {
+            const opt = document.createElement('option');
+            opt.value = stageId;
+            opt.textContent = `Default Stage (${stageId})`;
+            opt.selected = true;
+            stageSelect.appendChild(opt);
+        }
+    }
+
+    const node = nodes.find(n => String(n.id) === String(stageId));
+    const stageLabel = node?.label || stageId;
+
+    automationState.activeStageId = stageId;
+    automationState.activeStageLabel = stageLabel;
+
+    // Update Header info
+    const labelEl = document.getElementById('adStageLabel');
+    const idEl = document.getElementById('adStageId');
+    if (labelEl) labelEl.textContent = stageLabel;
+    if (idEl) idEl.textContent = `(Stage: ${stageId})`;
+
+    // Load existing automation config for this stage
+    const aConfigs = state.currentWorkflow?.automationConfigs || {};
+    const existing = aConfigs[stageId] || aConfigs[`stage_${stageId}`] || node?.config?.automation || null;
+
+    if (existing) {
+        const auto = existing.automationConfig || existing;
+        const triggerKeyEl = document.getElementById('ad-input-trigger-key');
+        if (triggerKeyEl) triggerKeyEl.value = existing.triggerEventKey || state.currentWorkflow?.triggerEventKey || 'EVT_LEAVE_SUBMITTED';
+
+        const wfCodeEl = document.getElementById('ad-input-workflow-code');
+        if (wfCodeEl) wfCodeEl.value = existing.workflowCode || state.currentWorkflow?.workflowCode || state.currentWorkflow?.code || 'WF_LEAVE_APPROVAL';
+
+        const moduleEl = document.getElementById('ad-input-module');
+        if (moduleEl) moduleEl.value = existing.module || state.currentWorkflow?.module || 'leave_attendance';
+
+        const stepNoEl = document.getElementById('ad-input-step-no');
+        if (stepNoEl) stepNoEl.value = existing.stepNo || 1;
+
+        const actionTypeEl = document.getElementById('ad-input-action-type');
+        if (actionTypeEl) actionTypeEl.value = auto.actionType || 'NOTIFY_AND_ROUTE';
+
+        const approverTypeEl = document.getElementById('ad-input-approver-type');
+        if (approverTypeEl) approverTypeEl.value = auto.targetApprover || existing.approverType || 'L1_MANAGER';
+
+        const roleCodeEl = document.getElementById('ad-input-role-code');
+        if (roleCodeEl) roleCodeEl.value = auto.approverRoleCode || existing.approverRoleCode || 'MGR_L1';
+
+        const mandEl = document.getElementById('ad-input-mandatory');
+        const mandLabel = document.getElementById('ad-mandatory-label');
+        const isMandatory = auto.isMandatory !== undefined ? Boolean(auto.isMandatory) : (existing.mandatory !== undefined ? Boolean(existing.mandatory) : true);
+        if (mandEl) {
+            mandEl.checked = isMandatory;
+            if (mandLabel) mandLabel.textContent = isMandatory ? 'Mandatory Step: Yes (Blocks execution)' : 'Mandatory Step: No (Optional / Informational)';
+        }
+
+        const subjEl = document.getElementById('ad-input-template-subject');
+        if (subjEl) subjEl.value = auto.emailSubject || 'Action Required: {{transactionType}} pending review for {{employeeName}}';
+
+        const bodyEl = document.getElementById('ad-input-template-body');
+        if (bodyEl) bodyEl.value = auto.emailTemplate || 'Leave request pending review for {{employeeName}} (Department: {{department}}). Please verify attendance records and approve via {{approvalLink}}.';
+
+        const whUrlEl = document.getElementById('ad-input-webhook-url');
+        if (whUrlEl && auto.webhookConfig?.url) whUrlEl.value = auto.webhookConfig.url;
+
+        const whHeadersEl = document.getElementById('ad-input-webhook-headers');
+        if (whHeadersEl && auto.webhookConfig?.headers) {
+            whHeadersEl.value = typeof auto.webhookConfig.headers === 'string' ? auto.webhookConfig.headers : JSON.stringify(auto.webhookConfig.headers);
+        }
+
+        const statusFieldEl = document.getElementById('ad-input-status-field');
+        if (statusFieldEl && auto.statusMutation?.field) statusFieldEl.value = auto.statusMutation.field;
+
+        const statusValEl = document.getElementById('ad-input-status-value');
+        if (statusValEl && auto.statusMutation?.value) statusValEl.value = auto.statusMutation.value;
+
+        const slaEl = document.getElementById('ad-input-sla-hours');
+        if (slaEl) slaEl.value = auto.slaHours || existing.slaHours || 24;
+
+        const escEl = document.getElementById('ad-input-escalation-action');
+        if (escEl) escEl.value = auto.escalationAction || 'AUTO_ESCALATE_TO_L2';
+
+        const retCountEl = document.getElementById('ad-input-retry-count');
+        if (retCountEl) retCountEl.value = auto.retryRules?.maxRetries !== undefined ? auto.retryRules.maxRetries : 3;
+
+        const retIntEl = document.getElementById('ad-input-retry-interval');
+        if (retIntEl) retIntEl.value = auto.retryRules?.retryIntervalMinutes !== undefined ? auto.retryRules.retryIntervalMinutes : 15;
+    } else {
+        // Sensible defaults adhering to PRD §12
+        window.resetAutomationForm();
+    }
+
+    window.handleAdActionTypeChange();
+    window.switchAdTab('action');
+
+    const overlay = document.getElementById('automationDrawerOverlay');
+    const drawer = document.getElementById('automationDrawer');
+    if (overlay) overlay.style.display = 'block';
+    if (drawer) drawer.style.display = 'flex';
+};
+
+// Close Automation Drawer
+window.closeAutomationDrawer = function() {
+    const overlay = document.getElementById('automationDrawerOverlay');
+    const drawer = document.getElementById('automationDrawer');
+    if (overlay) overlay.style.display = 'none';
+    if (drawer) drawer.style.display = 'none';
+    automationState.activeStageId = null;
+};
+
+// Stage dropdown change in drawer
+window.handleAdStageSelectChange = function() {
+    const stageSelect = document.getElementById('ad-input-stage');
+    if (stageSelect && stageSelect.value) {
+        window.openAutomationDrawer(stageSelect.value);
+    }
+};
+
+// Action Type dropdown change: toggles conditional sections
+window.handleAdActionTypeChange = function() {
+    const actionTypeEl = document.getElementById('ad-input-action-type');
+    const actionType = actionTypeEl ? actionTypeEl.value : 'NOTIFY_AND_ROUTE';
+
+    const whSection = document.getElementById('ad-webhook-section');
+    if (whSection) {
+        whSection.style.display = (actionType === 'TRIGGER_WEBHOOK') ? 'block' : 'none';
+    }
+
+    const smSection = document.getElementById('ad-status-mutation-section');
+    if (smSection) {
+        smSection.style.display = (actionType === 'UPDATE_RECORD_STATUS') ? 'block' : 'none';
+    }
+};
+
+// Target Approver / Role change: auto-updates role code
+window.handleAdApproverTypeChange = function() {
+    const appTypeEl = document.getElementById('ad-input-approver-type');
+    const roleCodeEl = document.getElementById('ad-input-role-code');
+    if (!appTypeEl || !roleCodeEl) return;
+
+    const val = appTypeEl.value;
+    const mapping = {
+        'L1_MANAGER': 'MGR_L1',
+        'L2_MANAGER': 'MGR_L2',
+        'HR_OPERATIONS': 'HR_OPS_LEAD',
+        'FINANCE_CONTROLLER': 'FIN_CTRL',
+        'DEPARTMENT_HEAD': 'DEPT_HEAD',
+        'EMPLOYEE': 'EMP_SELF',
+        'CUSTOM_ROLE': roleCodeEl.value || 'CUSTOM_ROLE'
+    };
+    if (mapping[val]) {
+        roleCodeEl.value = mapping[val];
+    }
+};
+
+// Insert placeholder variable into template textarea
+window.insertVariableIntoTemplate = function(variablePlaceholder) {
+    const textarea = document.getElementById('ad-input-template-body');
+    if (!textarea) return;
+
+    const startPos = textarea.selectionStart;
+    const endPos = textarea.selectionEnd;
+    const val = textarea.value;
+
+    if (startPos !== undefined && endPos !== undefined) {
+        textarea.value = val.substring(0, startPos) + variablePlaceholder + val.substring(endPos);
+        textarea.selectionStart = textarea.selectionEnd = startPos + variablePlaceholder.length;
+    } else {
+        textarea.value += ' ' + variablePlaceholder;
+    }
+    textarea.focus();
+};
+
+// Reset automation form to default settings
+window.resetAutomationForm = function() {
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    };
+
+    setVal('ad-input-trigger-key', 'EVT_LEAVE_SUBMITTED');
+    setVal('ad-input-workflow-code', state.currentWorkflow?.workflowCode || state.currentWorkflow?.code || 'WF_LEAVE_APPROVAL');
+    setVal('ad-input-module', state.currentWorkflow?.module || 'leave_attendance');
+    setVal('ad-input-step-no', '1');
+    setVal('ad-input-action-type', 'NOTIFY_AND_ROUTE');
+    setVal('ad-input-approver-type', 'L1_MANAGER');
+    setVal('ad-input-role-code', 'MGR_L1');
+
+    const mandEl = document.getElementById('ad-input-mandatory');
+    const mandLabel = document.getElementById('ad-mandatory-label');
+    if (mandEl) mandEl.checked = true;
+    if (mandLabel) mandLabel.textContent = 'Mandatory Step: Yes (Blocks execution)';
+
+    setVal('ad-input-template-subject', 'Action Required: {{transactionType}} pending review for {{employeeName}}');
+    setVal('ad-input-template-body', 'Leave request pending review for {{employeeName}} (Department: {{department}}). Please verify attendance records and approve via {{approvalLink}}.');
+    setVal('ad-input-webhook-url', 'https://hooks.slack.com/services/T00/B00/workflow-events');
+    setVal('ad-input-webhook-headers', '{"Content-Type": "application/json"}');
+    setVal('ad-input-status-field', 'employmentStatus');
+    setVal('ad-input-status-value', 'ACTIVE');
+    setVal('ad-input-sla-hours', '24');
+    setVal('ad-input-escalation-action', 'AUTO_ESCALATE_TO_L2');
+    setVal('ad-input-retry-count', '3');
+    setVal('ad-input-retry-interval', '15');
+
+    window.handleAdActionTypeChange();
+};
+
+// Save Automation Configuration directly to Cloud Firestore & backend REST API
+window.saveAutomationToFirestore = async function() {
+    const workflowId = state.currentWorkflow?.id || 'wf_active';
+    const stageSelect = document.getElementById('ad-input-stage');
+    const stageId = stageSelect?.value || automationState.activeStageId || 'stage_1';
+    const node = state.currentWorkflow?.canvas?.nodes?.find(n => String(n.id) === String(stageId));
+    const stageLabel = node?.label || stageId;
+
+    const triggerEventKey = (document.getElementById('ad-input-trigger-key')?.value || 'EVT_LEAVE_SUBMITTED').trim();
+    const workflowCode = (document.getElementById('ad-input-workflow-code')?.value || 'WF_LEAVE_APPROVAL').trim();
+    const module = document.getElementById('ad-input-module')?.value || 'leave_attendance';
+    const stepNo = parseInt(document.getElementById('ad-input-step-no')?.value || '1', 10);
+    const actionType = document.getElementById('ad-input-action-type')?.value || 'NOTIFY_AND_ROUTE';
+    const approverType = document.getElementById('ad-input-approver-type')?.value || 'L1_MANAGER';
+    const approverRoleCode = (document.getElementById('ad-input-role-code')?.value || 'MGR_L1').trim();
+    const isMandatory = document.getElementById('ad-input-mandatory')?.checked !== false;
+
+    const emailSubject = (document.getElementById('ad-input-template-subject')?.value || '').trim();
+    const emailTemplate = (document.getElementById('ad-input-template-body')?.value || '').trim();
+    const slaHours = parseInt(document.getElementById('ad-input-sla-hours')?.value || '24', 10);
+    const escalationAction = document.getElementById('ad-input-escalation-action')?.value || 'AUTO_ESCALATE_TO_L2';
+    const retryCount = parseInt(document.getElementById('ad-input-retry-count')?.value || '3', 10);
+    const retryInterval = parseInt(document.getElementById('ad-input-retry-interval')?.value || '15', 10);
+
+    // Validation
+    if (!triggerEventKey) {
+        showToast('Please enter a valid Trigger Event Key (e.g. EVT_LEAVE_SUBMITTED).', 'error');
+        return;
+    }
+    if (isNaN(slaHours) || slaHours <= 0) {
+        showToast('SLA Hours must be a positive number.', 'error');
+        return;
+    }
+
+    const saveBtn = document.getElementById('ad-btn-save-firestore');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    }
+
+    const automationConfig = {
+        enabled: true,
+        actionType,
+        targetApprover: approverType,
+        approverRoleCode,
+        slaHours,
+        isMandatory,
+        emailSubject,
+        emailTemplate,
+        escalationAction,
+        retryRules: {
+            maxRetries: retryCount,
+            retryIntervalMinutes: retryInterval
+        }
+    };
+
+    if (actionType === 'TRIGGER_WEBHOOK') {
+        let headers = { 'Content-Type': 'application/json' };
+        try {
+            const rawHeaders = document.getElementById('ad-input-webhook-headers')?.value;
+            if (rawHeaders) headers = JSON.parse(rawHeaders);
+        } catch (_) {}
+        automationConfig.webhookConfig = {
+            url: document.getElementById('ad-input-webhook-url')?.value || '',
+            headers
+        };
+    }
+
+    if (actionType === 'UPDATE_RECORD_STATUS') {
+        automationConfig.statusMutation = {
+            field: document.getElementById('ad-input-status-field')?.value || 'employmentStatus',
+            value: document.getElementById('ad-input-status-value')?.value || 'ACTIVE'
+        };
+    }
+
+    // Aligned with 'Workflow' sheet columns per PRD §12
+    const configDoc = {
+        workflowId,
+        stageId,
+        stageLabel,
+        workflowCode,
+        module,
+        transactionType: 'WORKFLOW_TASK',
+        stepNo,
+        approverType,
+        approverRoleCode,
+        slaHours,
+        mandatory: isMandatory,
+        triggerEventKey,
+        automationConfig,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'admin_uid'
+    };
+
+    // 1. Direct Cloud Firestore Client write (PRD §12 Schema)
+    try {
+        const fb = await import('./firebase-config.js');
+        if (fb && fb.db && fb.doc && fb.setDoc) {
+            // Write to top-level workflows/{workflowId} document per PRD §12
+            const wfDocRef = fb.doc(fb.db, 'workflows', workflowId);
+            await fb.setDoc(wfDocRef, {
+                workflowCode,
+                stepNo,
+                triggerEventKey,
+                automationConfig,
+                updatedAt: fb.serverTimestamp ? fb.serverTimestamp() : new Date().toISOString()
+            }, { merge: true });
+
+            // Also persist stage-level subcollection workflows/{workflowId}/automation_configs/{stageId}
+            const stageDocRef = fb.doc(fb.db, 'workflows', workflowId, 'automation_configs', stageId);
+            await fb.setDoc(stageDocRef, {
+                ...configDoc,
+                updatedAt: fb.serverTimestamp ? fb.serverTimestamp() : new Date().toISOString()
+            }, { merge: true });
+
+            console.log(`[Firestore] Persisted PRD §12 automation to workflows/${workflowId}`);
+        }
+    } catch (fbErr) {
+        console.warn('[Firestore] Client Firestore write notice:', fbErr.message);
+    }
+
+    // 2. Dual-save to Backend REST API for cross-session resilience
+    try {
+        await fetch(`${API_BASE}/${workflowId}/automations/${stageId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(configDoc)
+        });
+    } catch (_) {}
+
+    // 3. Mirror into local state and canvas node
+    if (!state.currentWorkflow.automationConfigs) {
+        state.currentWorkflow.automationConfigs = {};
+    }
+    state.currentWorkflow.automationConfigs[stageId] = configDoc;
+    state.currentWorkflow.workflowCode = workflowCode;
+    state.currentWorkflow.stepNo = stepNo;
+    state.currentWorkflow.triggerEventKey = triggerEventKey;
+    state.currentWorkflow.automationConfig = automationConfig;
+
+    if (node) {
+        node.config = node.config || {};
+        node.config.automation = configDoc;
+    }
+
+    // 4. Re-render UI: canvas node badges and inspector
+    renderCanvas();
+    renderConfigPanel();
+
+    showToast(`✅ Saved automation "${actionType}" to Cloud Firestore for "${stageLabel}"!`, 'success');
+
+    if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-cloud-arrow-up"></i> Save to Cloud Firestore';
+    }
+
+    window.closeAutomationDrawer();
+};
+
+

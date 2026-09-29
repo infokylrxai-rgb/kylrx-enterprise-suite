@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMS Cycle Engine | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin-dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        .pms-grid {
+            display: grid;
+            grid-template-columns: 1fr 390px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            transition: 0.2s;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: #93c5fd;
+        }
+        .metric-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .input-group label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-control {
+            padding: 11px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: #f8fafc;
+            outline: none;
+            transition: 0.2s;
+        }
+        .input-control:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .cycle-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-active { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-scheduled { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-completed { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .badge-accepted { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-rejected { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .badge-pending { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+        .btn-rollout {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+        .btn-rollout:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* Top Unified Tab Navigation */
+        .pms-tab-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+            border-bottom: 1.5px solid var(--border);
+            padding-bottom: 12px;
+            overflow-x: auto;
+        }
+        .pms-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: 1.5px solid transparent;
+            background: white;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+        }
+        .pms-tab-btn:hover {
+            color: var(--primary);
+            border-color: #bfdbfe;
+        }
+        .pms-tab-btn.active {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Upload Dropzone Styles */
+        .upload-dropzone {
+            border: 2px dashed #93c5fd;
+            border-radius: 14px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .upload-dropzone:hover, .upload-dropzone.dragover {
+            border-color: var(--primary);
+            background: #eff6ff;
+            transform: scale(0.99);
+        }
+
+        .file-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            margin: 2px;
+        }
+        .file-chip:hover {
+            background: #dbeafe;
+            border-color: #60a5fa;
+            transform: translateY(-1px);
+        }
+
+        .staged-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-container {
+            background: white;
+            width: 100%;
+            max-width: 640px;
+            border-radius: 28px;
+            padding: 2.25rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Toast */
+        .toast-notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: white;
+            border-radius: 16px;
+            padding: 1rem 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 6000;
+            border: 1.5px solid #bbf7d0;
+            animation: slideIn 0.3s ease;
+        }
+        .toast-notification.active { display: flex; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 1024px) {
+            .pms-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="admin-dashboard">
+
+    <!-- Toast Notification -->
+    <div class="toast-notification" id="pmsToast">
+        <i data-lucide="check-circle" style="color: #10b981; width: 22px; height: 22px;"></i>
+        <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem;" id="pmsToastMsg">Action completed successfully!</div>
+    </div>
+
+    <!-- Attachment Inspector / Preview Modal -->
+    <div class="modal-overlay" id="attachmentModal">
+        <div class="modal-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 44px; height: 44px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="file-text" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Attachment Inspector</h2>
+                        <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);" id="attModalSubtext">PMS Document & Deliverable Evidence</p>
+                    </div>
+                </div>
+                <button onclick="closeAttachmentModal()" style="border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 18px; height: 18px; color: #64748b;"></i>
+                </button>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 800; color: #0f172a; font-size: 0.95rem; word-break: break-all;" id="attModalFileName">document.pdf</span>
+                    <span class="cycle-badge badge-scheduled" id="attModalFileSize">0 KB</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);" id="attModalDate">Uploaded: Recent</div>
+            </div>
+
+            <div id="attModalPreviewContainer" style="margin-bottom: 1.5rem; text-align: center; max-height: 380px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 14px; padding: 1rem; border: 1px solid #e2e8f0;">
+                <!-- Dynamic Image or Document Preview -->
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn-secondary" onclick="closeAttachmentModal()">Close</button>
+                <a id="attModalDownloadBtn" download="" href="#" class="btn-rollout" style="text-decoration: none;">
+                    <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                    <span>Download File</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Direct PMS Document Upload Modal -->
+    <div class="modal-overlay" id="uploadDocModal">
+        <div class="modal-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 44px; height: 44px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="upload-cloud" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Upload PMS Document</h2>
+                        <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">Add policy guidelines, appraisal templates, or evaluation frameworks</p>
+                    </div>
+                </div>
+                <button onclick="closeUploadDocModal()" style="border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 18px; height: 18px; color: #64748b;"></i>
+                </button>
+            </div>
+
+            <form id="uploadDocForm" onsubmit="handleDirectDocUpload(event)">
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="directDocTitle">Document Title *</label>
+                    <input type="text" id="directDocTitle" class="input-control" placeholder="e.g. FY2026 Engineering Appraisal Framework & KPI Matrix" required>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="directDocCategory">Category / Classification *</label>
+                    <select id="directDocCategory" class="input-control" required>
+                        <option value="Policy & Guidelines">Policy & Guidelines</option>
+                        <option value="Appraisal Form & Template">Appraisal Form & Template</option>
+                        <option value="Performance Metric Criteria">Performance Metric Criteria</option>
+                        <option value="Executive Review Brief">Executive Review Brief</option>
+                        <option value="Standard Operating Procedure">Standard Operating Procedure</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="directDocDesc">Description / Context</label>
+                    <textarea id="directDocDesc" class="input-control" rows="2" placeholder="Summary of document purpose, target audience, or usage guidelines..."></textarea>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1.5rem;">
+                    <label>Select File (PDF, DOCX, XLSX, Images, ZIP) *</label>
+                    <div class="upload-dropzone" id="directDocDropzone" onclick="document.getElementById('directDocFileInput').click()">
+                        <i data-lucide="file-up" style="width: 28px; height: 28px; color: var(--primary); margin: 0 auto 6px; display: block;"></i>
+                        <div style="font-weight: 700; font-size: 0.85rem; color: #1e3a8a;" id="directDocSelectText">Click to select or drag and drop file</div>
+                        <div style="font-size: 0.72rem; color: #64748b; margin-top: 3px;">Max file size: 15MB</div>
+                        <input type="file" id="directDocFileInput" style="display: none;" onchange="handleDirectFileSelect(event)">
+                    </div>
+                    <div id="directDocFileList" style="margin-top: 8px;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-secondary" onclick="closeUploadDocModal()">Cancel</button>
+                    <button type="submit" class="btn-rollout">
+                        <i data-lucide="upload" style="width: 16px; height: 16px;"></i>
+                        <span>Upload to Repository</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rollout Telemetry Modal -->
+    <div class="modal-overlay" id="rolloutModal">
+        <div class="modal-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 44px; height: 44px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="send" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">PMS Cycle Rollout Status</h2>
+                        <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">Real-time dispatch to enrolled employees</p>
+                    </div>
+                </div>
+                <button onclick="closeRolloutModal()" style="border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 18px; height: 18px; color: #64748b;"></i>
+                </button>
+            </div>
+
+            <div id="rolloutStatusBody" style="padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; color: #2563eb;"></i>
+                    <span style="font-weight: 600;">Dispatching in-app notifications and email alerts...</span>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button class="btn-secondary" onclick="closeRolloutModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manager Review Delegation Modal -->
+    <div class="modal-overlay" id="delegationModal">
+        <div class="modal-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 44px; height: 44px; border-radius: 14px; background: #f5f3ff; color: #7c3aed; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="git-pull-request" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Delegate Review Evaluation</h2>
+                        <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">Reassign evaluation authority with immutable audit trace</p>
+                    </div>
+                </div>
+                <button onclick="closeDelegationModal()" style="border: none; background: #f1f5f9; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="x" style="width: 18px; height: 18px; color: #64748b;"></i>
+                </button>
+            </div>
+
+            <form id="delegationForm" onsubmit="handleDelegationSubmit(event)">
+                <input type="hidden" id="delegateReviewId">
+                <input type="hidden" id="delegateEmpId">
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label>Employee Being Evaluated</label>
+                    <input type="text" id="delegateEmpName" class="input-control" readonly style="background: #f1f5f9; font-weight: 700;">
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1.25rem;">
+                    <label for="delegateToManager">Reassign / Delegate To *</label>
+                    <select id="delegateToManager" class="input-control" required>
+                        <option value="">Select Target Manager / Lead...</option>
+                    </select>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1.5rem;">
+                    <label for="delegateReason">Mandatory Delegation Rationale / Reason *</label>
+                    <textarea id="delegateReason" class="input-control" rows="3" placeholder="e.g. Employee working cross-functionally under Lead during Q3..." required></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-secondary" onclick="closeDelegationModal()">Cancel</button>
+                    <button type="submit" class="btn-rollout" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                        <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                        <span>Confirm Delegation & Log Audit</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation (Isolated Super Admin Suite) -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="shield-check"></i><span>Super Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-pms.html" class="nav-link active"><i data-lucide="target"></i><span>PMS Cycles</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Monitor</span></a></div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-upload.html" class="nav-link"><i data-lucide="upload"></i><span>Finance Payroll Upload</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="admin-statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="operational-dashboard.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Operational Reports</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Workforce Monitor</span></a></div>
+
+                <div class="nav-label">GOVERNANCE & APPROVALS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Governance</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="send"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="repeat"></i><span>Lifecycle Conversion</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="index.html" class="nav-link" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">
+                    <span>Kylrx AI</span>
+                    <span>/</span>
+                    <span>Performance Management</span>
+                    <span>/</span>
+                    <span style="color: var(--primary); font-weight: 700;">PMS Unified Console</span>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; background: linear-gradient(135deg, #eff6ff, #dbeafe); border: 1.5px solid #93c5fd; color: #1d4ed8; font-weight: 800; font-size: 0.72rem; letter-spacing: 0.5px;">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                        <span>SUPER ADMIN PMS ENGINE (PRD §8)</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Title -->
+            <div style="margin-bottom: 1.5rem;">
+                <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 6px 0;">Welcome back, <span id="welcomeUserName">Nandan</span> 🎯</h1>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">Super Admin Cycle Engine, Document Attachments, Manager Deliverable Evaluation, and Employee Real-Time Progress Oversight.</p>
+            </div>
+
+            <!-- Unified PMS In-Page Navigation Bar (Zero External Portal Navigations) -->
+            <div class="pms-tab-nav">
+                <button class="pms-tab-btn active" id="tabBtn-cycles" onclick="switchTab('cycles')">
+                    <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+                    <span>1. PMS Cycle Engine</span>
+                </button>
+                <button class="pms-tab-btn" id="tabBtn-manager" onclick="switchTab('manager')">
+                    <i data-lucide="user-check" style="width: 16px; height: 16px;"></i>
+                    <span>2. Manager Reviews & Approvals</span>
+                </button>
+                <button class="pms-tab-btn" id="tabBtn-employee" onclick="switchTab('employee')">
+                    <i data-lucide="list-todo" style="width: 16px; height: 16px;"></i>
+                    <span>3. Employee Tasks & Progress Tracker</span>
+                </button>
+                <button class="pms-tab-btn" id="tabBtn-audit" onclick="switchTab('audit')">
+                    <i data-lucide="shield" style="width: 16px; height: 16px;"></i>
+                    <span>4. Delegation & Audit Trail</span>
+                </button>
+                <button class="pms-tab-btn" id="tabBtn-files" onclick="switchTab('files')">
+                    <i data-lucide="folder-archive" style="width: 16px; height: 16px;"></i>
+                    <span>5. Uploaded Files Repository</span>
+                </button>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- TAB 1: PMS CYCLE ENGINE (SUPER ADMIN)                           -->
+            <!-- ============================================================== -->
+            <div class="tab-panel active" id="tab-cycles">
+                <!-- Top Metric Cards -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="metric-card">
+                        <div class="metric-icon-box" style="background: #eff6ff; color: #2563eb;">
+                            <i data-lucide="repeat"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.75rem; font-weight: 800; color: #0f172a;" id="statTotalCycles">0</div>
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Cycles</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box" style="background: #ecfdf5; color: #059669;">
+                            <i data-lucide="play-circle"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.75rem; font-weight: 800; color: #059669;" id="statActiveCycle">None</div>
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active Cycle</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box" style="background: #fdf2f8; color: #db2777;">
+                            <i data-lucide="users"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.75rem; font-weight: 800; color: #0f172a;" id="statEnrolledWorkforce">0</div>
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Enrolled Personnel</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box" style="background: #fef3c7; color: #d97706;">
+                            <i data-lucide="percent"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.75rem; font-weight: 800; color: #d97706;" id="statAvgCompletion">0%</div>
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Completion Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Layout Split -->
+                <div class="pms-grid">
+                    <!-- Left: Cycles Schedule & Rollout Management -->
+                    <div>
+                        <div class="section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <div>
+                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Review Cycles Directory</h2>
+                                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0;">Manage scheduled cadences, documents, and trigger full workforce rollouts</p>
+                                </div>
+                                <button class="btn-secondary" onclick="loadCyclesList()">
+                                    <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Refresh
+                                </button>
+                            </div>
+
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid var(--border); text-align: left; color: var(--text-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <th style="padding: 12px 14px;">Cycle Details</th>
+                                            <th style="padding: 12px 14px;">Cadence</th>
+                                            <th style="padding: 12px 14px;">Period</th>
+                                            <th style="padding: 12px 14px;">Attached Files</th>
+                                            <th style="padding: 12px 14px;">Status</th>
+                                            <th style="padding: 12px 14px; text-align: right;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cyclesTableBody">
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 2.5rem 0; color: var(--text-muted);">
+                                                <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; margin: 0 auto 8px; color: var(--primary);"></i>
+                                                <p style="margin: 0; font-size: 0.85rem;">Loading PMS Cycles from Firestore...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Cycle Creation & Scheduling Engine (With File Upload Support) -->
+                    <div>
+                        <div class="section-card" style="border-top: 4px solid var(--primary);">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="calendar-plus" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: #0f172a;">Create & Schedule Cycle</h3>
+                            </div>
+
+                            <form id="cycleCreateForm" onsubmit="handleCreateCycle(event)">
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="cycleName">Cycle Name *</label>
+                                    <input type="text" id="cycleName" class="input-control" placeholder="e.g. Q3 2026 Engineering & Product Review" required>
+                                </div>
+
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="cycleType">Review Cadence / Type *</label>
+                                    <select id="cycleType" class="input-control" onchange="handleCadenceChange(this.value)" required>
+                                        <option value="Quarterly">Quarterly (3 Months)</option>
+                                        <option value="Biannual">Biannual (6 Months)</option>
+                                        <option value="Annual">Annual (12 Months)</option>
+                                        <option value="Custom">Custom Date Range</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="input-group">
+                                        <label for="startDate">Start Date *</label>
+                                        <input type="date" id="startDate" class="input-control" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="endDate">End Date *</label>
+                                        <input type="date" id="endDate" class="input-control" required>
+                                    </div>
+                                </div>
+
+                                <!-- ── UPLOADED FILES / ATTACHMENTS FEATURE ── -->
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>Supporting Documents & Guidelines</span>
+                                        <span style="font-weight: 500; font-size: 0.7rem; color: var(--primary);">PDF, DOCX, XLSX, Images, ZIP</span>
+                                    </label>
+                                    <div class="upload-dropzone" id="cycleDropzone" onclick="document.getElementById('cycleFileInput').click()">
+                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
+                                                <i data-lucide="upload-cloud" style="width: 22px; height: 22px;"></i>
+                                            </div>
+                                            <div style="font-weight: 700; font-size: 0.85rem; color: #1e3a8a;">Click to browse or drag & drop files</div>
+                                            <div style="font-size: 0.72rem; color: #64748b;">Attached files are distributed with cycle guidelines</div>
+                                        </div>
+                                        <input type="file" id="cycleFileInput" multiple style="display: none;" onchange="handleCycleFileSelect(event)">
+                                    </div>
+                                    <div id="cycleFileList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;"></div>
+                                </div>
+
+                                <div style="padding: 12px; background: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 1.5rem; font-size: 0.78rem; color: #1e40af; line-height: 1.4;">
+                                    <div style="font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="bell" style="width: 14px; height: 14px;"></i> Automated Rollout Dispatch:
+                                    </div>
+                                    Upon rollout, in-app notifications and email alerts (<code style="background: white; padding: 2px 4px; border-radius: 4px;">/api/email/send</code>) will automatically dispatch to all enrolled workforce members.
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <button type="submit" class="btn-rollout" style="justify-content: center; width: 100%;">
+                                        <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                                        <span>Create & Rollout Immediately</span>
+                                    </button>
+                                    <button type="button" class="btn-secondary" style="justify-content: center; width: 100%;" onclick="handleCreateCycle(event, 'scheduled')">
+                                        <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+                                        <span>Schedule for Later</span>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Live Attached Documents in Existing Cycles -->
+                            <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <i data-lucide="paperclip" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                                        <span style="font-size: 0.75rem; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Attached Cycle Documents</span>
+                                    </div>
+                                    <span class="cycle-badge badge-scheduled" id="cycleFilesCountBadge">0 Files</span>
+                                </div>
+                                <div id="cycleAttachedFilesQuickList" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto;">
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 0.75rem 0;">No cycle documents attached yet.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- TAB 2: MANAGER REVIEWS & APPROVALS (EMBEDDED CONSOLE)           -->
+            <!-- ============================================================== -->
+            <div class="tab-panel" id="tab-manager">
+                <div class="pms-grid">
+                    <!-- Left: Deliverables List & Binary Actions -->
+                    <div>
+                        <div class="section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <div>
+                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Workforce Deliverables & Approvals</h2>
+                                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0;">Inspect deliverables, download attached evidence, and execute Binary Accept / Reject evaluations</p>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn-secondary" onclick="loadManagerTasks()">
+                                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid var(--border); text-align: left; color: var(--text-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <th style="padding: 12px 14px;">Deliverable / Task</th>
+                                            <th style="padding: 12px 14px;">Assignee</th>
+                                            <th style="padding: 12px 14px;">Status</th>
+                                            <th style="padding: 12px 14px;">Evidence / Files</th>
+                                            <th style="padding: 12px 14px;">Review Decision</th>
+                                            <th style="padding: 12px 14px; text-align: right;">Binary Evaluation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="managerDeliverablesTableBody">
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 2.5rem 0; color: var(--text-muted);">
+                                                <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; margin: 0 auto 8px; color: var(--primary);"></i>
+                                                <p style="margin: 0; font-size: 0.85rem;">Loading deliverables stream...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Assign New Deliverable / Goal With Attachments -->
+                    <div>
+                        <div class="section-card" style="border-top: 4px solid #10b981;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="plus-circle" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: #0f172a;">Assign Team Goal</h3>
+                            </div>
+
+                            <form id="assignDeliverableForm" onsubmit="handleAssignDeliverable(event)">
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="assignCycleSelect">PMS Review Cycle *</label>
+                                    <select id="assignCycleSelect" class="input-control" required></select>
+                                </div>
+
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="assignEmpSelect">Target Personnel / Employee *</label>
+                                    <select id="assignEmpSelect" class="input-control" required></select>
+                                </div>
+
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="assignTitle">Deliverable / Goal Title *</label>
+                                    <input type="text" id="assignTitle" class="input-control" placeholder="e.g. Implement Zero-Trust Micro-segmentation" required>
+                                </div>
+
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="assignDesc">Deliverable Scope & Criteria</label>
+                                    <textarea id="assignDesc" class="input-control" rows="3" placeholder="Define expected milestones, test criteria, and deliverables..."></textarea>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="input-group">
+                                        <label for="assignWeight">Weightage (%)</label>
+                                        <input type="number" id="assignWeight" class="input-control" min="5" max="100" value="25">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="assignDueDate">Target Completion Date</label>
+                                        <input type="date" id="assignDueDate" class="input-control" required>
+                                    </div>
+                                </div>
+
+                                <!-- File Upload for Goal PRD / Specification -->
+                                <div class="input-group" style="margin-bottom: 1.5rem;">
+                                    <label>Goal Reference Documents / Specifications</label>
+                                    <div class="upload-dropzone" id="assignGoalDropzone" onclick="document.getElementById('assignGoalFileInput').click()">
+                                        <i data-lucide="paperclip" style="width: 22px; height: 22px; color: #059669; margin: 0 auto 4px; display: block;"></i>
+                                        <div style="font-weight: 700; font-size: 0.8rem; color: #065f46;">Attach Goal Criteria / PRDs (PDF, Docs)</div>
+                                        <input type="file" id="assignGoalFileInput" multiple style="display: none;" onchange="handleAssignGoalFileSelect(event)">
+                                    </div>
+                                    <div id="assignGoalFileList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;"></div>
+                                </div>
+
+                                <button type="submit" class="btn-rollout" style="justify-content: center; width: 100%; background: linear-gradient(135deg, #10b981, #059669);">
+                                    <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                                    <span>Assign Deliverable</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- TAB 3: EMPLOYEE TASKS & REAL-TIME PROGRESS TRACKER              -->
+            <!-- ============================================================== -->
+            <div class="tab-panel" id="tab-employee">
+                <!-- Employee Selector & Live Tracker Card -->
+                <div class="section-card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border: none; margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <span style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Live Progress Formula: (completedTasks / totalTasks) * 100</span>
+                            <h2 style="font-size: 1.5rem; font-weight: 800; margin: 4px 0 0; color: white;">Workforce Real-Time Progress Tracker</h2>
+                        </div>
+                        <div style="min-width: 280px;">
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block;">Select Personnel to Inspect:</label>
+                            <select id="empProgressSelect" class="input-control" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white;" onchange="loadEmployeeTaskProgress(this.value)">
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Progress Statistics Bar -->
+                    <div style="background: rgba(255,255,255,0.06); padding: 1.5rem; border-radius: 18px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                            <div>
+                                <span style="font-size: 0.8rem; color: #cbd5e1; font-weight: 600;">Cycle Completion Ratio:</span>
+                                <span id="empProgressRatioText" style="font-size: 1.1rem; font-weight: 800; color: #38bdf8; margin-left: 8px;">0 / 0 Tasks Completed</span>
+                            </div>
+                            <div style="font-size: 2rem; font-weight: 800; color: #38bdf8;" id="empProgressPercentBadge">0%</div>
+                        </div>
+
+                        <div style="width: 100%; height: 12px; background: rgba(255,255,255,0.15); border-radius: 20px; overflow: hidden;">
+                            <div id="empProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 20px; transition: width 0.4s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Split: Log Task & Task List -->
+                <div class="pms-grid">
+                    <!-- Left: Employee Task Log -->
+                    <div>
+                        <div class="section-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <div>
+                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Task Work Log & Deliverables</h2>
+                                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0;">Inspect self-assigned goals, verify deliverable files, and toggle status</p>
+                                </div>
+                            </div>
+
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid var(--border); text-align: left; color: var(--text-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <th style="padding: 12px 14px;">Task / Work Item</th>
+                                            <th style="padding: 12px 14px;">Type</th>
+                                            <th style="padding: 12px 14px;">Due Date</th>
+                                            <th style="padding: 12px 14px;">Uploaded Proof</th>
+                                            <th style="padding: 12px 14px;">Review</th>
+                                            <th style="padding: 12px 14px; text-align: right;">Completion</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="empTasksTableBody">
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 2.5rem 0; color: var(--text-muted);">
+                                                Select an employee above to inspect their task deliverables.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Quick Log Task With Evidence Upload -->
+                    <div>
+                        <div class="section-card" style="border-top: 4px solid #38bdf8;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="file-plus-2" style="width: 20px; height: 20px;"></i>
+                                </div>
+                                <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: #0f172a;">Record Task Work Log</h3>
+                            </div>
+
+                            <form id="empLogTaskForm" onsubmit="handleEmpLogTask(event)">
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="logTaskCycleSelect">Review Cycle *</label>
+                                    <select id="logTaskCycleSelect" class="input-control" required></select>
+                                </div>
+
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="logTaskTitle">Task / Work Item Name *</label>
+                                    <input type="text" id="logTaskTitle" class="input-control" placeholder="e.g. Conduct ISO 27001 Access Audit" required>
+                                </div>
+
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="logTaskDesc">Detailed Work Description</label>
+                                    <textarea id="logTaskDesc" class="input-control" rows="3" placeholder="Provide technical notes, deliverables summary, or completion evidence..."></textarea>
+                                </div>
+
+                                <div class="input-group" style="margin-bottom: 1.25rem;">
+                                    <label for="logTaskDueDate">Target Due Date</label>
+                                    <input type="date" id="logTaskDueDate" class="input-control" required>
+                                </div>
+
+                                <!-- Upload Proof / Deliverable File -->
+                                <div class="input-group" style="margin-bottom: 1.5rem;">
+                                    <label>Upload Task Deliverable Evidence (Images, Docs, Code, PDF)</label>
+                                    <div class="upload-dropzone" id="empTaskDropzone" onclick="document.getElementById('empTaskFileInput').click()">
+                                        <i data-lucide="upload" style="width: 22px; height: 22px; color: #0284c7; margin: 0 auto 4px; display: block;"></i>
+                                        <div style="font-weight: 700; font-size: 0.8rem; color: #0369a1;">Click or drag deliverable evidence files here</div>
+                                        <input type="file" id="empTaskFileInput" multiple style="display: none;" onchange="handleEmpTaskFileSelect(event)">
+                                    </div>
+                                    <div id="empTaskFileList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;"></div>
+                                </div>
+
+                                <button type="submit" class="btn-rollout" style="justify-content: center; width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1);">
+                                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                                    <span>Record Work Log</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- TAB 4: DELEGATION & AUDIT TRAIL                                 -->
+            <!-- ============================================================== -->
+            <div class="tab-panel" id="tab-audit">
+                <div class="section-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Traceable Manager Review Delegation Audit Stream</h2>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0;">Immutable, tamper-evident audit records of all evaluation reassignment actions (PRD §8)</p>
+                        </div>
+                        <span class="cycle-badge badge-scheduled" id="auditCountBadge">0 Reassignments</span>
+                    </div>
+
+                    <div id="delegationAuditList" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div style="text-align: center; padding: 2.5rem 0; color: var(--text-muted); font-size: 0.85rem;">
+                            No manager delegations recorded yet. All evaluations currently assigned to primary reporting managers.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- TAB 5: UPLOADED FILES REPOSITORY                                -->
+            <!-- ============================================================== -->
+            <div class="tab-panel" id="tab-files">
+                <!-- Repository Overview Metrics -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="metric-card">
+                        <div class="metric-icon-box" style="background: #eff6ff; color: #2563eb;">
+                            <i data-lucide="files"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.75rem; font-weight: 800; color: #0f172a;" id="repoStatTotalFiles">0</div>
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Uploaded Files</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box" style="background: #ecfdf5; color: #059669;">
+                            <i data-lucide="file-text"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.75rem; font-weight: 800; color: #059669;" id="repoStatCycleFiles">0</div>
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Cycle Guidelines</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box" style="background: #fdf2f8; color: #db2777;">
+                            <i data-lucide="check-square"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.75rem; font-weight: 800; color: #0f172a;" id="repoStatTaskFiles">0</div>
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Work Deliverables</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box" style="background: #fef3c7; color: #d97706;">
+                            <i data-lucide="hard-drive"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.75rem; font-weight: 800; color: #d97706;" id="repoStatStorage">0 KB</div>
+                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Stored Size</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Files Directory Card -->
+                <div class="section-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Uploaded PMS Files & Evidence Directory</h2>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0;">Unified access to all PMS cycle guidelines, manager PRD deliverables, employee work proofs, and policy documents.</p>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button class="btn-secondary" onclick="loadUploadedFilesRepository()">
+                                <i data-lucide="refresh-cw" style="width: 15px; height: 15px;"></i> Refresh
+                            </button>
+                            <button class="btn-rollout" onclick="openUploadDocModal()">
+                                <i data-lucide="upload" style="width: 15px; height: 15px;"></i> Upload PMS Document
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div style="display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 240px; position: relative;">
+                            <input type="text" id="fileSearchInput" class="input-control" placeholder="Search by file name or origin context..." oninput="filterUploadedFiles()" style="width: 100%; padding-left: 36px;">
+                            <i data-lucide="search" style="position: absolute; left: 12px; top: 12px; width: 16px; height: 16px; color: #94a3b8;"></i>
+                        </div>
+                        <div style="min-width: 200px;">
+                            <select id="fileCategoryFilter" class="input-control" onchange="filterUploadedFiles()" style="width: 100%;">
+                                <option value="all">All File Categories</option>
+                                <option value="cycle">Review Cycle Guidelines</option>
+                                <option value="goal">Manager Goal PRDs</option>
+                                <option value="task">Employee Work Logs</option>
+                                <option value="document">General PMS Documents</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Files Table -->
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--border); text-align: left; color: var(--text-muted); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    <th style="padding: 12px 14px;">File Name & Type</th>
+                                    <th style="padding: 12px 14px;">Category</th>
+                                    <th style="padding: 12px 14px;">Origin / Associated Record</th>
+                                    <th style="padding: 12px 14px;">Uploaded By</th>
+                                    <th style="padding: 12px 14px;">Size</th>
+                                    <th style="padding: 12px 14px;">Date</th>
+                                    <th style="padding: 12px 14px; text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="uploadedFilesTableBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 2.5rem 0; color: var(--text-muted);">
+                                        <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; margin: 0 auto 8px; color: var(--primary);"></i>
+                                        <p style="margin: 0; font-size: 0.85rem;">Loading uploaded files repository...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modules Script -->
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { 
+            createPMSCycle, 
+            getPMSCycles, 
+            rolloutPMSCycle, 
+            updatePMSCycleStatus, 
+            getEnrolledEmployees,
+            getPMSTasks,
+            createPMSTask,
+            updateTaskCompletion,
+            calculateCompletionPercentage,
+            assignManagerDeliverable,
+            reviewTaskDeliverable,
+            delegateManagerReview,
+            getPMSReviews,
+            uploadPMSDocument,
+            getPMSDocuments,
+            deletePMSDocument,
+            getAllPMSUploadedFiles
+        } from "./pms-service.js";
+
+        // State Store
+        let state = {
+            cycles: [],
+            activeCycle: null,
+            employees: [],
+            reviews: [],
+            allTasks: [],
+            currentEmpTasks: [],
+            selectedEmpId: null,
+            stagedCycleFiles: [],
+            stagedGoalFiles: [],
+            stagedTaskFiles: [],
+            allUploadedFiles: [],
+            filteredFiles: [],
+            stagedDirectDoc: null
+        };
+
+        // Tab Navigation Controller
+        window.switchTab = function(tabKey) {
+            document.querySelectorAll('.pms-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+            const btn = document.getElementById(`tabBtn-${tabKey}`);
+            const panel = document.getElementById(`tab-${tabKey}`);
+            if (btn) btn.classList.add('active');
+            if (panel) panel.classList.add('active');
+
+            if (tabKey === 'manager') loadManagerTasks();
+            if (tabKey === 'employee' && state.selectedEmpId) loadEmployeeTaskProgress(state.selectedEmpId);
+            if (tabKey === 'audit') renderAuditList();
+            if (tabKey === 'files') loadUploadedFilesRepository();
+
+            renderLucide();
+        };
+
+        function renderLucide() {
+            if (window.lucide && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
+            }
+        }
+
+        // ── FILE HELPER: READ AS BASE64 DATA URL ──
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve({
+                    name: file.name,
+                    size: file.size,
+                    sizeFormatted: (file.size / 1024).toFixed(1) + ' KB',
+                    type: file.type || 'application/octet-stream',
+                    dataUrl: reader.result,
+                    uploadedAt: new Date().toISOString()
+                });
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ── 1. CYCLE FILE HANDLERS ──
+        window.handleCycleFileSelect = async function(e) {
+            const files = Array.from(e.target.files || []);
+            for (const f of files) {
+                if (f.size > 15 * 1024 * 1024) {
+                    alert(`File "${f.name}" exceeds the 15MB limit.`);
+                    continue;
+                }
+                const fileObj = await readFileAsBase64(f);
+                state.stagedCycleFiles.push(fileObj);
+            }
+            renderStagedFileList('cycleFileList', state.stagedCycleFiles, 'cycle');
+        };
+
+        // ── 2. GOAL FILE HANDLERS ──
+        window.handleAssignGoalFileSelect = async function(e) {
+            const files = Array.from(e.target.files || []);
+            for (const f of files) {
+                const fileObj = await readFileAsBase64(f);
+                state.stagedGoalFiles.push(fileObj);
+            }
+            renderStagedFileList('assignGoalFileList', state.stagedGoalFiles, 'goal');
+        };
+
+        // ── 3. TASK EVIDENCE FILE HANDLERS ──
+        window.handleEmpTaskFileSelect = async function(e) {
+            const files = Array.from(e.target.files || []);
+            for (const f of files) {
+                const fileObj = await readFileAsBase64(f);
+                state.stagedTaskFiles.push(fileObj);
+            }
+            renderStagedFileList('empTaskFileList', state.stagedTaskFiles, 'task');
+        };
+
+        function renderStagedFileList(containerId, list, type) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+
+            if (list.length === 0) {
+                el.innerHTML = '';
+                return;
+            }
+
+            el.innerHTML = list.map((f, idx) => `
+                <div class="staged-file-item">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
+                        <i data-lucide="paperclip" style="width: 14px; height: 14px; color: var(--primary); flex-shrink: 0;"></i>
+                        <span style="font-weight: 700; color: #1e293b;">${f.name}</span>
+                        <span style="font-size: 0.72rem; color: #64748b;">(${f.sizeFormatted})</span>
+                    </div>
+                    <button type="button" onclick="removeStagedFile('${type}', ${idx})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 2px;" title="Remove File">
+                        <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            renderLucide();
+        }
+
+        window.removeStagedFile = function(type, idx) {
+            if (type === 'cycle') {
+                state.stagedCycleFiles.splice(idx, 1);
+                renderStagedFileList('cycleFileList', state.stagedCycleFiles, 'cycle');
+            } else if (type === 'goal') {
+                state.stagedGoalFiles.splice(idx, 1);
+                renderStagedFileList('assignGoalFileList', state.stagedGoalFiles, 'goal');
+            } else if (type === 'task') {
+                state.stagedTaskFiles.splice(idx, 1);
+                renderStagedFileList('empTaskFileList', state.stagedTaskFiles, 'task');
+            }
+        };
+
+        // ── ATTACHMENT MODAL INSPECTOR / DOWNLOAD ──
+        window.previewOrDownloadFile = function(sourceId, attachIdx, type) {
+            let target = null;
+            if (type === 'cycle') {
+                const cycle = state.cycles.find(c => (c.cycleId || c.id) === sourceId);
+                target = cycle?.attachments?.[attachIdx];
+            } else if (type === 'task' || type === 'goal') {
+                const task = (state.allTasks || []).concat(state.currentEmpTasks || []).find(t => (t.taskId || t.id) === sourceId);
+                target = task?.attachments?.[attachIdx];
+            } else if (type === 'document' || type === 'repo') {
+                target = (state.allUploadedFiles || []).find(f => (f.fileId === sourceId || f.id === sourceId));
+            }
+
+            if (!target) {
+                showToast("Attachment not found.");
+                return;
+            }
+
+            const modal = document.getElementById('attachmentModal');
+            const nameEl = document.getElementById('attModalFileName');
+            const sizeEl = document.getElementById('attModalFileSize');
+            const dateEl = document.getElementById('attModalDate');
+            const previewEl = document.getElementById('attModalPreviewContainer');
+            const dlBtn = document.getElementById('attModalDownloadBtn');
+
+            if (nameEl) nameEl.textContent = target.name;
+            if (sizeEl) sizeEl.textContent = target.sizeFormatted || ((target.size / 1024).toFixed(1) + ' KB');
+            const displayDate = target.uploadedAt ? new Date(target.uploadedAt).toLocaleString() : 'Recent';
+            if (dateEl) dateEl.textContent = `Uploaded: ${displayDate}`;
+
+            if (dlBtn) {
+                dlBtn.href = target.dataUrl;
+                dlBtn.download = target.name;
+            }
+
+            if (previewEl) {
+                const isImg = target.type?.startsWith('image/') || /\.(png|jpe?g|webp|gif|svg)$/i.test(target.name);
+                if (isImg) {
+                    previewEl.innerHTML = `<img src="${target.dataUrl}" alt="${target.name}" style="max-height: 320px; max-width: 100%; object-fit: contain; border-radius: 8px;">`;
+                } else {
+                    previewEl.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: #475569;">
+                            <i data-lucide="file-check-2" style="width: 48px; height: 48px; color: var(--primary); margin: 0 auto 10px;"></i>
+                            <div style="font-weight: 700; font-size: 1rem; color: #0f172a;">${target.name}</div>
+                            <p style="margin: 4px 0 0; font-size: 0.8rem; color: var(--text-muted);">Standard Document (${target.type || 'Binary'})</p>
+                        </div>
+                    `;
+                }
+            }
+
+            if (modal) modal.classList.add('active');
+            renderLucide();
+        };
+
+        window.closeAttachmentModal = function() {
+            const modal = document.getElementById('attachmentModal');
+            if (modal) modal.classList.remove('active');
+        };
+
+        // Initialize smart default dates based on cadence
+        window.handleCadenceChange = function(val) {
+            const startInput = document.getElementById('startDate');
+            const endInput = document.getElementById('endDate');
+            if (!startInput || !endInput) return;
+
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+
+            startInput.value = `${yyyy}-${mm}-${dd}`;
+
+            let endDate = new Date(today);
+            if (val === 'Quarterly') {
+                endDate.setMonth(endDate.getMonth() + 3);
+            } else if (val === 'Biannual') {
+                endDate.setMonth(endDate.getMonth() + 6);
+            } else if (val === 'Annual') {
+                endDate.setFullYear(endDate.getFullYear() + 1);
+            }
+            
+            const endYyyy = endDate.getFullYear();
+            const endMm = String(endDate.getMonth() + 1).padStart(2, '0');
+            const endDd = String(endDate.getDate()).padStart(2, '0');
+            endInput.value = `${endYyyy}-${endMm}-${endDd}`;
+        };
+
+        // Form Submit for Cycle Creation
+        window.handleCreateCycle = async function(e, forceStatus) {
+            e.preventDefault();
+            const cycleName = document.getElementById('cycleName').value;
+            const cycleType = document.getElementById('cycleType').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            const targetStatus = forceStatus || 'active';
+            const attachedFiles = [...state.stagedCycleFiles];
+
+            try {
+                const res = await createPMSCycle({
+                    cycleName,
+                    cycleType,
+                    startDate,
+                    endDate,
+                    status: targetStatus === 'active' ? 'scheduled' : 'scheduled',
+                    createdBy: 'Nandan',
+                    attachments: attachedFiles
+                });
+
+                state.stagedCycleFiles = [];
+                renderStagedFileList('cycleFileList', [], 'cycle');
+
+                if (targetStatus === 'active') {
+                    await triggerRollout(res.cycleId);
+                } else {
+                    showToast('Cycle scheduled with attached documents!');
+                    loadCyclesList();
+                }
+
+                document.getElementById('cycleCreateForm').reset();
+                handleCadenceChange('Quarterly');
+            } catch (err) {
+                alert('Failed to create cycle: ' + err.message);
+            }
+        };
+
+        window.triggerRollout = async function(cycleId) {
+            openRolloutModal();
+            try {
+                const res = await rolloutPMSCycle(cycleId);
+                document.getElementById('rolloutStatusBody').innerHTML = `
+                    <div style="color: #15803d; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="check-circle" style="color: #10b981; width: 22px; height: 22px;"></i>
+                        <span>Rollout Complete!</span>
+                    </div>
+                    <ul style="margin: 0; padding-left: 20px; line-height: 1.8; color: #334155;">
+                        <li><strong>${res.enrolledCount}</strong> Personnel Enrolled</li>
+                        <li><strong>${res.notificationsDispatched}</strong> In-App Notifications Dispatched</li>
+                        <li><strong>${res.emailsSent}</strong> Automated Email Alerts Triggered (/api/email/send)</li>
+                    </ul>
+                `;
+                renderLucide();
+                showToast(`Cycle ${cycleId} rolled out to all workforce members!`);
+                loadCyclesList();
+            } catch (err) {
+                document.getElementById('rolloutStatusBody').innerHTML = `
+                    <div style="color: #dc2626; font-weight: 700;">Rollout Error: ${err.message}</div>
+                `;
+            }
+        };
+
+        window.closeCycle = async function(cycleId) {
+            if (!confirm('Are you sure you want to mark this review cycle as completed?')) return;
+            try {
+                await updatePMSCycleStatus(cycleId, 'completed');
+                showToast('Cycle marked as completed.');
+                loadCyclesList();
+            } catch (err) {
+                alert('Error updating cycle: ' + err.message);
+            }
+        };
+
+        // Load Cycles & Init
+        async function loadCyclesList() {
+            try {
+                const cycles = await getPMSCycles();
+                state.cycles = cycles;
+                state.activeCycle = cycles.find(c => c.status === 'active') || null;
+
+                const emps = await getEnrolledEmployees();
+                state.employees = emps;
+
+                const reviews = await getPMSReviews();
+                state.reviews = reviews;
+
+                renderStats();
+                renderCyclesTable();
+                renderAuditList();
+                renderCycleAttachedFilesQuickList();
+                populateDropdowns();
+            } catch (err) {
+                console.error('Error loading PMS Cycles:', err);
+            }
+        }
+        window.loadCyclesList = loadCyclesList;
+
+        function renderStats() {
+            document.getElementById('statTotalCycles').textContent = state.cycles.length;
+            document.getElementById('statEnrolledWorkforce').textContent = state.employees.length;
+
+            const active = state.activeCycle;
+            const activeEl = document.getElementById('statActiveCycle');
+            if (active) {
+                activeEl.textContent = active.cycleName.length > 18 ? active.cycleName.substring(0, 18) + '...' : active.cycleName;
+                activeEl.title = active.cycleName;
+            } else {
+                activeEl.textContent = 'None Active';
+            }
+
+            if (state.reviews.length > 0) {
+                const totalScore = state.reviews.reduce((acc, r) => acc + (r.overallScore || r.completionPercentage || 0), 0);
+                const avg = Math.round(totalScore / state.reviews.length);
+                document.getElementById('statAvgCompletion').textContent = `${avg}%`;
+            } else {
+                document.getElementById('statAvgCompletion').textContent = '0%';
+            }
+        }
+
+        function renderCyclesTable() {
+            const tbody = document.getElementById('cyclesTableBody');
+            if (!state.cycles || state.cycles.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
+                            No review cycles configured. Use the form on the right to create your first PMS cycle.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = state.cycles.map(c => {
+                const isAct = c.status === 'active';
+                const isSched = c.status === 'scheduled';
+                const statusBadge = isAct 
+                    ? `<span class="cycle-badge badge-active">Active</span>`
+                    : isSched 
+                        ? `<span class="cycle-badge badge-scheduled">Scheduled</span>`
+                        : `<span class="cycle-badge badge-completed">${c.status || 'Draft'}</span>`;
+
+                const atts = c.attachments || [];
+                const attsHtml = atts.length > 0
+                    ? atts.map((att, aIdx) => `
+                        <button type="button" class="file-chip" onclick="previewOrDownloadFile('${c.cycleId || c.id}', ${aIdx}, 'cycle')" title="${att.name} (${att.sizeFormatted})">
+                            <i data-lucide="paperclip" style="width: 12px; height: 12px;"></i>
+                            <span>${att.name.length > 14 ? att.name.substring(0, 14) + '...' : att.name}</span>
+                        </button>
+                    `).join('')
+                    : `<span style="color: var(--text-muted); font-size: 0.76rem;">—</span>`;
+
+                return `
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 14px;">
+                            <div style="font-weight: 800; color: #0f172a;">${c.cycleName}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">${c.cycleId || c.id}</div>
+                        </td>
+                        <td style="padding: 14px;">
+                            <span style="font-weight: 700; color: #334155;">${c.cycleType || 'Custom'}</span>
+                        </td>
+                        <td style="padding: 14px; font-size: 0.8rem; color: #475569;">
+                            <div>${c.startDate || 'Immediate'}</div>
+                            <div style="color: var(--text-muted);">to ${c.endDate || 'TBD'}</div>
+                        </td>
+                        <td style="padding: 14px;">
+                            ${attsHtml}
+                        </td>
+                        <td style="padding: 14px;">
+                            ${statusBadge}
+                        </td>
+                        <td style="padding: 14px; text-align: right;">
+                            ${isSched ? `
+                                <button class="btn-rollout" style="padding: 6px 12px; font-size: 0.78rem;" onclick="triggerRollout('${c.cycleId || c.id}')">
+                                    <i data-lucide="send" style="width: 14px; height: 14px;"></i> Rollout
+                                </button>
+                            ` : isAct ? `
+                                <button class="btn-secondary" style="padding: 6px 12px; font-size: 0.78rem; color: #dc2626;" onclick="closeCycle('${c.cycleId || c.id}')">
+                                    <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Complete
+                                </button>
+                            ` : `
+                                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Closed</span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderLucide();
+        }
+
+        function populateDropdowns() {
+            const cycleSelects = [
+                document.getElementById('assignCycleSelect'),
+                document.getElementById('logTaskCycleSelect')
+            ];
+
+            const cycleOptions = state.cycles.map(c => 
+                `<option value="${c.cycleId || c.id}">${c.cycleName} (${c.status})</option>`
+            ).join('');
+
+            cycleSelects.forEach(sel => {
+                if (sel) sel.innerHTML = cycleOptions || '<option value="">No cycles available</option>';
+            });
+
+            const empSelects = [
+                document.getElementById('assignEmpSelect'),
+                document.getElementById('empProgressSelect'),
+                document.getElementById('delegateToManager')
+            ];
+
+            const empOptions = state.employees.map(e => 
+                `<option value="${e.employeeId || e.id || e.uid}">${e.name || e.fullName} (${e.employeeId || e.id || 'Staff'})</option>`
+            ).join('');
+
+            empSelects.forEach(sel => {
+                if (sel) sel.innerHTML = (sel.id === 'delegateToManager' ? '<option value="">Select Manager / Lead...</option>' : '') + empOptions;
+            });
+
+            if (state.employees.length > 0 && !state.selectedEmpId) {
+                state.selectedEmpId = state.employees[0].employeeId || state.employees[0].id || state.employees[0].uid;
+                loadEmployeeTaskProgress(state.selectedEmpId);
+            }
+        }
+
+        // ==============================================================
+        // MANAGER REVIEWS CONSOLE (BINARY ACCEPT / REJECT & DELEGATION)
+        // ==============================================================
+        window.loadManagerTasks = async function() {
+            try {
+                const tasks = await getPMSTasks({});
+                state.allTasks = tasks;
+
+                const tbody = document.getElementById('managerDeliverablesTableBody');
+                if (!tasks || tasks.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2.5rem 0; color: var(--text-muted);">
+                                No employee deliverables logged yet. Assign team goals using the panel on the right.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = tasks.map(t => {
+                    const rev = t.reviewStatus || 'pending';
+                    const revBadge = rev === 'accepted'
+                        ? `<span class="cycle-badge badge-accepted"><i data-lucide="check" style="width:12px;height:12px;vertical-align:middle;"></i> Accepted</span>`
+                        : rev === 'rejected'
+                            ? `<span class="cycle-badge badge-rejected"><i data-lucide="x" style="width:12px;height:12px;vertical-align:middle;"></i> Rejected</span>`
+                            : `<span class="cycle-badge badge-pending"><i data-lucide="clock" style="width:12px;height:12px;vertical-align:middle;"></i> Pending Review</span>`;
+
+                    const emp = state.employees.find(e => (e.employeeId || e.id || e.uid) === t.employeeId) || { name: t.employeeName || t.employeeId };
+
+                    const atts = t.attachments || [];
+                    const attsHtml = atts.length > 0
+                        ? atts.map((att, aIdx) => `
+                            <button type="button" class="file-chip" onclick="previewOrDownloadFile('${t.taskId || t.id}', ${aIdx}, 'task')" title="${att.name} (${att.sizeFormatted})">
+                                <i data-lucide="paperclip" style="width: 12px; height: 12px;"></i>
+                                <span>${att.name.length > 12 ? att.name.substring(0, 12) + '...' : att.name}</span>
+                            </button>
+                        `).join('')
+                        : `<span style="color: var(--text-muted); font-size: 0.74rem;">—</span>`;
+
+                    return `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 14px;">
+                                <div style="font-weight: 800; color: #0f172a;">${t.title}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${t.description ? t.description.substring(0, 40) + '...' : 'No description'}</div>
+                            </td>
+                            <td style="padding: 14px;">
+                                <div style="font-weight: 700; color: #334155;">${emp.name}</div>
+                                <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">${t.employeeId}</div>
+                            </td>
+                            <td style="padding: 14px;">
+                                <span class="cycle-badge ${t.status === 'completed' ? 'badge-active' : 'badge-pending'}">${t.status}</span>
+                            </td>
+                            <td style="padding: 14px;">
+                                ${attsHtml}
+                            </td>
+                            <td style="padding: 14px;">
+                                ${revBadge}
+                                ${t.feedback ? `<div style="font-size: 0.72rem; color: #b91c1c; margin-top: 2px;">Note: ${t.feedback}</div>` : ''}
+                            </td>
+                            <td style="padding: 14px; text-align: right;">
+                                <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                    <button onclick="handleBinaryReview('${t.taskId || t.id}', 'accepted')" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Binary Accept Deliverable">
+                                        <i data-lucide="check" style="width: 14px; height: 14px;"></i> Accept
+                                    </button>
+                                    <button onclick="handleBinaryReview('${t.taskId || t.id}', 'rejected')" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Binary Reject Deliverable">
+                                        <i data-lucide="x" style="width: 14px; height: 14px;"></i> Reject
+                                    </button>
+                                    <button onclick="openDelegationModal('${t.employeeId}', '${emp.name}')" style="background: #f1f5f9; color: #475569; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer;" title="Delegate Evaluation Responsibility">
+                                        <i data-lucide="git-pull-request" style="width: 14px; height: 14px;"></i> Delegate
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                renderLucide();
+            } catch (e) {
+                console.error('Error loading manager tasks:', e);
+            }
+        };
+
+        window.handleAssignDeliverable = async function(e) {
+            e.preventDefault();
+            const cycleId = document.getElementById('assignCycleSelect').value;
+            const employeeId = document.getElementById('assignEmpSelect').value;
+            const title = document.getElementById('assignTitle').value;
+            const description = document.getElementById('assignDesc').value;
+            const weightage = Number(document.getElementById('assignWeight').value || 25);
+            const dueDate = document.getElementById('assignDueDate').value;
+            const attachedFiles = [...state.stagedGoalFiles];
+
+            try {
+                await assignManagerDeliverable({
+                    cycleId,
+                    employeeId,
+                    assignedBy: 'Nandan',
+                    title,
+                    description,
+                    weightage,
+                    dueDate,
+                    attachments: attachedFiles
+                });
+
+                state.stagedGoalFiles = [];
+                renderStagedFileList('assignGoalFileList', [], 'goal');
+
+                showToast(`Deliverable assigned with attached files to ${employeeId}!`);
+                document.getElementById('assignDeliverableForm').reset();
+                loadManagerTasks();
+            } catch (err) {
+                alert('Failed to assign deliverable: ' + err.message);
+            }
+        };
+
+        window.handleBinaryReview = async function(taskId, decision) {
+            let feedback = '';
+            if (decision === 'rejected') {
+                feedback = prompt('Enter specific reason / remediation feedback for deliverable rejection:', 'Deliverable does not meet technical criteria.');
+                if (feedback === null) return;
+            }
+
+            try {
+                await reviewTaskDeliverable(taskId, decision, feedback);
+                showToast(`Deliverable ${decision.toUpperCase()}!`);
+                loadManagerTasks();
+            } catch (err) {
+                alert('Review failed: ' + err.message);
+            }
+        };
+
+        // ==============================================================
+        // EMPLOYEE PROGRESS TRACKER & TASK LOGGING
+        // ==============================================================
+        window.loadEmployeeTaskProgress = async function(empId) {
+            state.selectedEmpId = empId;
+            try {
+                const tasks = await getPMSTasks(null, empId);
+                state.currentEmpTasks = tasks;
+                const completed = tasks.filter(t => t.status === 'completed').length;
+                const total = tasks.length;
+                const pct = calculateCompletionPercentage(completed, total);
+
+                // Update Progress UI
+                const ratioText = document.getElementById('empProgressRatioText');
+                const percentBadge = document.getElementById('empProgressPercentBadge');
+                const progressBar = document.getElementById('empProgressBar');
+
+                if (ratioText) ratioText.textContent = `${completed} / ${total} Tasks Completed`;
+                if (percentBadge) percentBadge.textContent = `${pct}%`;
+                if (progressBar) progressBar.style.width = `${pct}%`;
+
+                // Render Table
+                const tbody = document.getElementById('empTasksTableBody');
+                if (tasks.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2.5rem 0; color: var(--text-muted);">
+                                No tasks recorded for this employee yet. Record a task using the form on the right.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = tasks.map(t => {
+                    const isDone = t.status === 'completed';
+                    const atts = t.attachments || [];
+                    const attsHtml = atts.length > 0
+                        ? atts.map((att, aIdx) => `
+                            <button type="button" class="file-chip" onclick="previewOrDownloadFile('${t.taskId || t.id}', ${aIdx}, 'task')" title="${att.name} (${att.sizeFormatted})">
+                                <i data-lucide="paperclip" style="width: 12px; height: 12px;"></i>
+                                <span>${att.name.length > 12 ? att.name.substring(0, 12) + '...' : att.name}</span>
+                            </button>
+                        `).join('')
+                        : `<span style="color: var(--text-muted); font-size: 0.74rem;">—</span>`;
+
+                    return `
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <td style="padding: 14px;">
+                                <div style="font-weight: 800; color: #0f172a; ${isDone ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${t.title}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">${t.description || 'No description'}</div>
+                            </td>
+                            <td style="padding: 14px;">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #475569;">${t.assignedBy === empId ? 'Self-Assigned' : 'Manager-Assigned'}</span>
+                            </td>
+                            <td style="padding: 14px; font-size: 0.8rem; color: #475569;">
+                                ${t.dueDate || 'End of Cycle'}
+                            </td>
+                            <td style="padding: 14px;">
+                                ${attsHtml}
+                            </td>
+                            <td style="padding: 14px;">
+                                <span class="cycle-badge ${t.reviewStatus === 'accepted' ? 'badge-accepted' : t.reviewStatus === 'rejected' ? 'badge-rejected' : 'badge-pending'}">${t.reviewStatus || 'pending'}</span>
+                            </td>
+                            <td style="padding: 14px; text-align: right;">
+                                <button onclick="toggleTaskCompletionState('${t.taskId || t.id}', ${!isDone})" style="border: none; background: ${isDone ? '#dcfce7' : '#f1f5f9'}; color: ${isDone ? '#15803d' : '#334155'}; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i data-lucide="${isDone ? 'check-circle' : 'circle'}" style="width: 14px; height: 14px;"></i>
+                                    <span>${isDone ? 'Completed' : 'Mark Done'}</span>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                renderLucide();
+            } catch (err) {
+                console.error('Error loading employee tasks:', err);
+            }
+        };
+
+        window.handleEmpLogTask = async function(e) {
+            e.preventDefault();
+            if (!state.selectedEmpId) {
+                alert('Please select an employee first.');
+                return;
+            }
+
+            const cycleId = document.getElementById('logTaskCycleSelect').value;
+            const title = document.getElementById('logTaskTitle').value;
+            const description = document.getElementById('logTaskDesc').value;
+            const dueDate = document.getElementById('logTaskDueDate').value;
+            const attachedFiles = [...state.stagedTaskFiles];
+
+            try {
+                await createPMSTask({
+                    cycleId,
+                    employeeId: state.selectedEmpId,
+                    assignedBy: state.selectedEmpId,
+                    title,
+                    description,
+                    dueDate,
+                    attachments: attachedFiles
+                });
+
+                state.stagedTaskFiles = [];
+                renderStagedFileList('empTaskFileList', [], 'task');
+
+                showToast('Task recorded in work log with attached evidence!');
+                document.getElementById('empLogTaskForm').reset();
+                loadEmployeeTaskProgress(state.selectedEmpId);
+            } catch (err) {
+                alert('Failed to log task: ' + err.message);
+            }
+        };
+
+        window.toggleTaskCompletionState = async function(taskId, markCompleted) {
+            try {
+                await updateTaskCompletion(taskId, markCompleted);
+                showToast(markCompleted ? 'Task marked as completed!' : 'Task re-opened.');
+                loadEmployeeTaskProgress(state.selectedEmpId);
+            } catch (err) {
+                alert('Update failed: ' + err.message);
+            }
+        };
+
+        // ==============================================================
+        // AUDIT TRAIL & DELEGATION
+        // ==============================================================
+        function renderAuditList() {
+            const listEl = document.getElementById('delegationAuditList');
+            const auditBadge = document.getElementById('auditCountBadge');
+            
+            const allAudits = [];
+            state.reviews.forEach(r => {
+                if (r.delegationHistory && Array.isArray(r.delegationHistory)) {
+                    r.delegationHistory.forEach(dh => {
+                        allAudits.push({
+                            ...dh,
+                            employeeId: r.employeeId,
+                            employeeName: r.employeeName,
+                            cycleId: r.cycleId
+                        });
+                    });
+                }
+            });
+
+            if (auditBadge) auditBadge.textContent = `${allAudits.length} Reassignments`;
+
+            if (allAudits.length === 0) {
+                listEl.innerHTML = `
+                    <div style="text-align: center; padding: 2.5rem 0; color: var(--text-muted); font-size: 0.85rem;">
+                        No manager review delegations recorded yet. All evaluations are directly assigned to primary reporting managers.
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = allAudits.map(a => `
+                <div style="padding: 14px 18px; background: #f8fafc; border-radius: 14px; border: 1px solid var(--border); font-size: 0.88rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-weight: 800; color: #0f172a;">Personnel: ${a.employeeName || a.employeeId}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">${a.delegatedAt ? new Date(a.delegatedAt).toLocaleString() : 'Recent'}</span>
+                    </div>
+                    <div style="color: #334155; margin-bottom: 4px;">
+                        Delegated from <strong>${a.delegatedByName || a.originalManagerId}</strong> &rarr; to <strong>${a.delegatedToName || a.delegatedToId}</strong>
+                    </div>
+                    <div style="font-size: 0.82rem; color: #64748b; font-style: italic;">
+                        Reason: "${a.reason || 'Peer evaluation reassignment'}"
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.openDelegationModal = function(empId, empName) {
+            document.getElementById('delegateEmpId').value = empId;
+            document.getElementById('delegateEmpName').value = empName || empId;
+
+            const targetReview = state.reviews.find(r => r.employeeId === empId);
+            document.getElementById('delegateReviewId').value = targetReview?.reviewId || `REV-${state.activeCycle?.cycleId || 'DEF'}-${empId}`;
+
+            document.getElementById('delegationModal').classList.add('active');
+            renderLucide();
+        };
+
+        window.closeDelegationModal = function() {
+            document.getElementById('delegationModal').classList.remove('active');
+        };
+
+        window.handleDelegationSubmit = async function(e) {
+            e.preventDefault();
+            const reviewId = document.getElementById('delegateReviewId').value;
+            const delegatedToId = document.getElementById('delegateToManager').value;
+            const reason = document.getElementById('delegateReason').value;
+
+            if (!delegatedToId) {
+                alert('Please select a manager to delegate to.');
+                return;
+            }
+
+            const targetMgr = state.employees.find(e => (e.employeeId || e.id || e.uid) === delegatedToId);
+            const delegatedToName = targetMgr?.name || targetMgr?.fullName || delegatedToId;
+
+            try {
+                await delegateManagerReview({
+                    reviewId,
+                    delegatedById: 'Nandan',
+                    delegatedByName: 'Nandan (Super Admin)',
+                    delegatedToId,
+                    delegatedToName,
+                    reason
+                });
+
+                showToast('Review delegated successfully!');
+                closeDelegationModal();
+                loadCyclesList();
+            } catch (err) {
+                alert('Delegation failed: ' + err.message);
+            }
+        };
+
+        // Toast & Modals
+        function showToast(msg) {
+            const toast = document.getElementById('pmsToast');
+            document.getElementById('pmsToastMsg').textContent = msg;
+            toast.classList.add('active');
+            setTimeout(() => toast.classList.remove('active'), 4000);
+        }
+
+        window.openRolloutModal = function() {
+            document.getElementById('rolloutStatusBody').innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i data-lucide="loader" class="spin" style="width: 20px; height: 20px; color: #2563eb;"></i>
+                    <span style="font-weight: 600;">Dispatching notifications & triggering email alerts...</span>
+                </div>
+            `;
+            document.getElementById('rolloutModal').classList.add('active');
+            renderLucide();
+        };
+
+        window.closeRolloutModal = function() {
+            document.getElementById('rolloutModal').classList.remove('active');
+        };
+
+        // ── 5. UPLOADED FILES REPOSITORY & DOCUMENT HANDLERS ──
+        window.loadUploadedFilesRepository = async function() {
+            const tbody = document.getElementById('uploadedFilesTableBody');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2.5rem 0; color: var(--text-muted);">
+                            <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; margin: 0 auto 8px; color: var(--primary);"></i>
+                            <p style="margin: 0; font-size: 0.85rem;">Gathering uploaded files from all PMS modules...</p>
+                        </td>
+                    </tr>
+                `;
+                renderLucide();
+            }
+
+            try {
+                const files = await getAllPMSUploadedFiles();
+                state.allUploadedFiles = files;
+                state.filteredFiles = [...files];
+
+                // Update Stats
+                const totalFiles = files.length;
+                const cycleFiles = files.filter(f => f.source === 'cycle').length;
+                const taskFiles = files.filter(f => f.source === 'task' || f.source === 'goal').length;
+                const totalBytes = files.reduce((acc, f) => acc + (f.size || 0), 0);
+                const totalStorageFormatted = totalBytes > 1024 * 1024 
+                    ? (totalBytes / (1024 * 1024)).toFixed(2) + ' MB'
+                    : (totalBytes / 1024).toFixed(1) + ' KB';
+
+                if (document.getElementById('repoStatTotalFiles')) document.getElementById('repoStatTotalFiles').textContent = totalFiles;
+                if (document.getElementById('repoStatCycleFiles')) document.getElementById('repoStatCycleFiles').textContent = cycleFiles;
+                if (document.getElementById('repoStatTaskFiles')) document.getElementById('repoStatTaskFiles').textContent = taskFiles;
+                if (document.getElementById('repoStatStorage')) document.getElementById('repoStatStorage').textContent = totalStorageFormatted;
+
+                filterUploadedFiles();
+            } catch (err) {
+                console.error('Error loading uploaded files repository:', err);
+                if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #dc2626;">Error loading files: ${err.message}</td></tr>`;
+            }
+        };
+
+        window.filterUploadedFiles = function() {
+            const query = (document.getElementById('fileSearchInput')?.value || '').toLowerCase().trim();
+            const categoryFilter = document.getElementById('fileCategoryFilter')?.value || 'all';
+
+            let filtered = state.allUploadedFiles || [];
+
+            if (categoryFilter !== 'all') {
+                filtered = filtered.filter(f => f.source === categoryFilter);
+            }
+
+            if (query) {
+                filtered = filtered.filter(f => 
+                    (f.name || '').toLowerCase().includes(query) ||
+                    (f.sourceTitle || '').toLowerCase().includes(query) ||
+                    (f.uploadedBy || '').toLowerCase().includes(query) ||
+                    (f.category || '').toLowerCase().includes(query)
+                );
+            }
+
+            state.filteredFiles = filtered;
+            renderUploadedFilesTable(filtered);
+        };
+
+        window.renderUploadedFilesTable = function(files) {
+            const tbody = document.getElementById('uploadedFilesTableBody');
+            if (!tbody) return;
+
+            if (!files || files.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+                            <i data-lucide="folder-open" style="width: 36px; height: 36px; margin: 0 auto 10px; color: #94a3b8; display: block;"></i>
+                            <div style="font-weight: 700; color: #334155; font-size: 0.95rem;">No Uploaded Files Found</div>
+                            <p style="margin: 4px 0 12px; font-size: 0.8rem;">Upload files using the "Upload PMS Document" button or attach files while creating review cycles.</p>
+                            <button class="btn-rollout" onclick="openUploadDocModal()" style="font-size: 0.8rem; margin: 0 auto;">
+                                <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload First Document
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                renderLucide();
+                return;
+            }
+
+            tbody.innerHTML = files.map(f => {
+                const isImg = f.type?.startsWith('image/') || /\.(png|jpe?g|webp|gif|svg)$/i.test(f.name);
+                const isPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+                const isSheet = /\.(xlsx|xls|csv)$/i.test(f.name);
+                const isDoc = /\.(docx|doc|txt|md)$/i.test(f.name);
+
+                const iconName = isImg ? 'image' : isPdf ? 'file-text' : isSheet ? 'sheet' : isDoc ? 'file' : 'paperclip';
+                const iconColor = isImg ? '#8b5cf6' : isPdf ? '#ef4444' : isSheet ? '#10b981' : '#2563eb';
+                const iconBg = isImg ? '#f5f3ff' : isPdf ? '#fef2f2' : isSheet ? '#ecfdf5' : '#eff6ff';
+
+                const categoryBadge = f.source === 'cycle'
+                    ? `<span class="cycle-badge badge-active" style="font-size: 0.68rem;">Cycle Guideline</span>`
+                    : f.source === 'goal'
+                        ? `<span class="cycle-badge badge-scheduled" style="font-size: 0.68rem;">Manager PRD</span>`
+                        : f.source === 'task'
+                            ? `<span class="cycle-badge badge-completed" style="font-size: 0.68rem; background: #e0f2fe; color: #0284c7;">Work Evidence</span>`
+                            : `<span class="cycle-badge badge-scheduled" style="font-size: 0.68rem; background: #fef3c7; color: #b45309;">PMS Document</span>`;
+
+                const dateStr = f.uploadedAt ? new Date(f.uploadedAt).toLocaleDateString() : 'Recent';
+
+                return `
+                    <tr style="border-bottom: 1px solid var(--border); transition: 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                        <td style="padding: 12px 14px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; border-radius: 10px; background: ${iconBg}; color: ${iconColor}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i data-lucide="${iconName}" style="width: 18px; height: 18px;"></i>
+                                </div>
+                                <div style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <div style="font-weight: 700; color: #0f172a; font-size: 0.88rem;" title="${f.name}">${f.name}</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">${f.type || 'Standard Document'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            ${categoryBadge}
+                        </td>
+                        <td style="padding: 12px 14px;">
+                            <div style="font-weight: 600; color: #334155; font-size: 0.82rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${f.sourceTitle}">
+                                ${f.sourceTitle || '—'}
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">${f.sourceId || ''}</div>
+                        </td>
+                        <td style="padding: 12px 14px; font-size: 0.82rem; color: #475569;">
+                            ${f.uploadedBy || 'Nandan'}
+                        </td>
+                        <td style="padding: 12px 14px; font-weight: 700; color: #0f172a; font-size: 0.82rem;">
+                            ${f.sizeFormatted || '—'}
+                        </td>
+                        <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted);">
+                            ${dateStr}
+                        </td>
+                        <td style="padding: 12px 14px; text-align: right;">
+                            <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                                <button type="button" class="btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="previewOrDownloadFile('${f.fileId || f.id}', 0, 'repo')" title="Preview Document">
+                                    <i data-lucide="eye" style="width: 13px; height: 13px;"></i>
+                                </button>
+                                <a href="${f.dataUrl}" download="${f.name}" class="btn-rollout" style="padding: 5px 10px; font-size: 0.75rem; text-decoration: none;" title="Download Document">
+                                    <i data-lucide="download" style="width: 13px; height: 13px;"></i>
+                                </a>
+                                ${f.isStandaloneDoc ? `
+                                    <button type="button" class="btn-secondary" style="padding: 5px 10px; font-size: 0.75rem; color: #ef4444;" onclick="handleDeleteDoc('${f.id}')" title="Delete Document">
+                                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            renderLucide();
+        };
+
+        // Quick list of attached files in cycles on Tab 1
+        window.renderCycleAttachedFilesQuickList = function() {
+            const listEl = document.getElementById('cycleAttachedFilesQuickList');
+            const badgeEl = document.getElementById('cycleFilesCountBadge');
+            if (!listEl) return;
+
+            const allCycleAtts = [];
+            (state.cycles || []).forEach(c => {
+                (c.attachments || []).forEach((att, idx) => {
+                    allCycleAtts.push({ ...att, cycleName: c.cycleName, cycleId: c.cycleId || c.id, idx });
+                });
+            });
+
+            if (badgeEl) badgeEl.textContent = `${allCycleAtts.length} File${allCycleAtts.length === 1 ? '' : 's'}`;
+
+            if (allCycleAtts.length === 0) {
+                listEl.innerHTML = `<div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 0.75rem 0;">No cycle documents attached yet.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = allCycleAtts.slice(0, 6).map(att => `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; max-width: 70%;">
+                        <i data-lucide="file-text" style="width: 13px; height: 13px; color: var(--primary); flex-shrink: 0;"></i>
+                        <span style="font-size: 0.78rem; font-weight: 700; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${att.name}">${att.name}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <button type="button" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem;" onclick="previewOrDownloadFile('${att.cycleId}', ${att.idx}, 'cycle')" title="Preview">
+                            <i data-lucide="eye" style="width: 11px; height: 11px;"></i>
+                        </button>
+                        <a href="${att.dataUrl}" download="${att.name}" class="btn-secondary" style="padding: 2px 6px; font-size: 0.7rem; text-decoration: none;" title="Download">
+                            <i data-lucide="download" style="width: 11px; height: 11px;"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+
+            renderLucide();
+        };
+
+        // Direct Document Upload Modal Handlers
+        window.openUploadDocModal = function() {
+            state.stagedDirectDoc = null;
+            const form = document.getElementById('uploadDocForm');
+            if (form) form.reset();
+            const list = document.getElementById('directDocFileList');
+            if (list) list.innerHTML = '';
+            const txt = document.getElementById('directDocSelectText');
+            if (txt) txt.textContent = 'Click to select or drag and drop file';
+            document.getElementById('uploadDocModal').classList.add('active');
+            renderLucide();
+        };
+
+        window.closeUploadDocModal = function() {
+            document.getElementById('uploadDocModal').classList.remove('active');
+        };
+
+        window.handleDirectFileSelect = async function(e) {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            const f = files[0];
+            if (f.size > 15 * 1024 * 1024) {
+                alert(`File "${f.name}" exceeds the 15MB limit.`);
+                return;
+            }
+            const fileObj = await readFileAsBase64(f);
+            state.stagedDirectDoc = fileObj;
+
+            const txt = document.getElementById('directDocSelectText');
+            if (txt) txt.textContent = `Selected: ${fileObj.name} (${fileObj.sizeFormatted})`;
+
+            const list = document.getElementById('directDocFileList');
+            if (list) {
+                list.innerHTML = `
+                    <div class="staged-file-item" style="background: #eff6ff; border-color: #bfdbfe;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i>
+                            <span style="font-weight: 700; color: #1e3a8a;">${fileObj.name}</span>
+                            <span style="font-size: 0.72rem; color: #64748b;">(${fileObj.sizeFormatted})</span>
+                        </div>
+                    </div>
+                `;
+            }
+            renderLucide();
+        };
+
+        window.handleDirectDocUpload = async function(e) {
+            e.preventDefault();
+            if (!state.stagedDirectDoc) {
+                alert('Please select a file to upload.');
+                return;
+            }
+
+            const title = document.getElementById('directDocTitle').value;
+            const category = document.getElementById('directDocCategory').value;
+            const description = document.getElementById('directDocDesc').value;
+
+            try {
+                await uploadPMSDocument({
+                    title,
+                    category,
+                    description,
+                    fileObj: state.stagedDirectDoc,
+                    uploadedBy: 'Nandan'
+                });
+
+                showToast(`"${title}" uploaded to PMS Repository!`);
+                closeUploadDocModal();
+                loadUploadedFilesRepository();
+            } catch (err) {
+                alert('Upload failed: ' + err.message);
+            }
+        };
+
+        window.handleDeleteDoc = async function(docId) {
+            if (!confirm('Are you sure you want to delete this document from the PMS repository?')) return;
+            try {
+                await deletePMSDocument(docId);
+                showToast('Document removed successfully.');
+                loadUploadedFilesRepository();
+            } catch (err) {
+                alert('Delete failed: ' + err.message);
+            }
+        };
+
+        // Setup Drag & Drop Handlers on Dropzones
+        function setupDropzoneEvents(zoneId, inputId, handleFn) {
+            const dropzone = document.getElementById(zoneId);
+            if (!dropzone) return;
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                }, false);
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFn({ target: { files } });
+            }, false);
+        }
+
+        setupDropzoneEvents('cycleDropzone', 'cycleFileInput', handleCycleFileSelect);
+        setupDropzoneEvents('assignGoalDropzone', 'assignGoalFileInput', handleAssignGoalFileSelect);
+        setupDropzoneEvents('empTaskDropzone', 'empTaskFileInput', handleEmpTaskFileSelect);
+        setupDropzoneEvents('directDocDropzone', 'directDocFileInput', handleDirectFileSelect);
+
+        // Initialize on load
+        handleCadenceChange('Quarterly');
+        loadCyclesList();
+    </script>
+    <script type="module" src="./admin-sidebar-sync.js"></script>
+</body>
+</html>

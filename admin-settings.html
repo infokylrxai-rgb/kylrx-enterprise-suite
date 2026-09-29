@@ -345,6 +345,7 @@
                     <a href="#" class="snav-item" data-tab="email"><i data-lucide="mail"></i> Email Config</a>
                     <a href="#" class="snav-item" data-tab="onboarding_hr"><i data-lucide="user-plus"></i> Onboarding &amp; Roles</a>
                     <a href="#" class="snav-item" data-tab="integrations"><i data-lucide="puzzle"></i> Integrations &amp; Add-ons</a>
+                    <a href="#" class="snav-item" data-tab="bu_rules"><i data-lucide="layers"></i> BU & Employee Types (PRD §10)</a>
                 </div>
 
                 <div class="settings-content">
@@ -722,14 +723,19 @@
                                 </div>
 
                                 <div class="form-grid" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
-                                    <div class="form-group">
-                                        <label>Default Custom Week-Offs</label>
+                                    <div class="form-group full">
+                                        <label>Default Custom Week-Offs (Company Settings)</label>
                                         <select class="form-control" name="default_weekoff">
                                             <option value="sat-sun">Saturday &amp; Sunday (Standard)</option>
                                             <option value="sun-only">Sunday Only</option>
                                             <option value="fri-sat">Friday &amp; Saturday</option>
                                             <option value="rotational">Rotational (Determined by Roster)</option>
+                                            <option value="none">None (Employees can also work on Sun &amp; Sat / 7-Day Operations)</option>
                                         </select>
+                                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+                                            <i data-lucide="info" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px; color: var(--primary);"></i>
+                                            Selecting <strong>None</strong> configures the company settings so Saturday and Sunday are treated as regular active working days. Employees can work, log attendance, and be rostered across weekends without auto-weekend off restrictions.
+                                        </p>
                                     </div>
                                 </div>
 
@@ -953,8 +959,25 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Business Unit Rules (PRD Section 10) -->
+                    <div id="bu_rules" class="tab-content">
+                        <div class="settings-card">
+                            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Business Unit by Employee Type Rules</h2>
+                                    <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">PRD Section 10: Configure permitted employee types (Full-Time, Contractor, Intern, Consultant, Executive) per Business Unit.</p>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn btn-primary" onclick="if (window.KylrxBuRules) window.KylrxBuRules.saveAllRules();" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; background: var(--primary); color: white;">
+                                        <i data-lucide="save"></i> Save All Rules
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="settingsBuRulesContainer"></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
             </div>
         </main>
     </div>
@@ -987,7 +1010,11 @@
                 tabContents.forEach(c => c.classList.remove('active'));
                 
                 btn.classList.add('active');
-                document.getElementById(targetTab).classList.add('active');
+                document.getElementById(targetTab)?.classList.add('active');
+
+                if (targetTab === 'bu_rules' && window.KylrxBuRules) {
+                    window.KylrxBuRules.renderAdminRulesTable('settingsBuRulesContainer');
+                }
             });
         });
 
@@ -1021,6 +1048,16 @@
                         updatedAt: new Date().toISOString(),
                         updatedBy: auth.currentUser ? auth.currentUser.email : 'Admin'
                     }, { merge: true });
+
+                    // Synchronize default_weekoff with weekly_off system config
+                    if (collectionName === 'onboarding_hr' && data.default_weekoff) {
+                        await setDoc(doc(db, 'system_config', 'weekly_off'), {
+                            value: data.default_weekoff,
+                            updatedAt: new Date().toISOString(),
+                            updatedBy: auth.currentUser ? auth.currentUser.email : 'Admin'
+                        }, { merge: true });
+                        localStorage.setItem('weekly_off_config', data.default_weekoff);
+                    }
 
                     btn.innerHTML = '<i data-lucide="check"></i> Saved!';
                     btn.style.background = '#10b981';
@@ -1274,6 +1311,17 @@
                     console.warn(`Failed to load settings for ${col}:`, err);
                 }
             }
+            // Also cross-check system_config/weekly_off to ensure select stays in sync
+            try {
+                const wOffSnap = await getDoc(doc(db, 'system_config', 'weekly_off'));
+                if (wOffSnap.exists() && wOffSnap.data().value) {
+                    const wOffVal = wOffSnap.data().value;
+                    const wOffSelect = document.querySelector('select[name="default_weekoff"]');
+                    if (wOffSelect && (!wOffSelect.value || wOffSelect.value === 'sat-sun')) {
+                        wOffSelect.value = wOffVal;
+                    }
+                }
+            } catch (_) {}
         }
         loadAllSettings();
 
@@ -1677,6 +1725,7 @@
 
     initAdminApps();
 </script>
+<script src="bu-employee-type-rules.js"></script>
 <script type="module" src="./admin-sidebar-sync.js"></script>
 </body>
 

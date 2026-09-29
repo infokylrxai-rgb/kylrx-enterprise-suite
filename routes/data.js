@@ -38,6 +38,168 @@ router.get('/attendance', async (req, res) => {
   }
 });
 
+// 2b. Attendance Regularizations - List
+router.get('/attendance/regularizations', async (req, res) => {
+  try {
+    const { status } = req.query;
+    let queryRef = db.collection('attendance_regularizations');
+    if (status) {
+      queryRef = queryRef.where('status', '==', status);
+    }
+    const snapshot = await queryRef.get();
+    const regularizations = [];
+    snapshot.forEach(doc => regularizations.push({ id: doc.id, ...doc.data() }));
+    res.status(200).json({ success: true, count: regularizations.length, data: regularizations });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 2c. Attendance Regularization - Submit
+router.post('/attendance/regularizations', async (req, res) => {
+  try {
+    const data = req.body;
+    const requestId = data.id || `REG-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const regRef = db.collection('attendance_regularizations').doc(requestId);
+
+    const logDate = data.date ? new Date(data.date) : new Date();
+    const diffDays = Math.ceil((Date.now() - logDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    const payload = {
+      id: requestId,
+      employeeId: data.employeeId || 'EMP_UNKNOWN',
+      employeeName: data.employeeName || 'Employee',
+      department: data.department || 'General',
+      date: data.date || new Date().toISOString().split('T')[0],
+      type: data.type || 'Missing Punch Regularization',
+      reason: data.reason || 'Punch correction submitted',
+      correctedTime: data.correctedTime || '09:00 AM',
+      correctedPunchOut: data.correctedPunchOut || '06:00 PM',
+      shift: data.shift || 'Shift A (General)',
+      status: 'Pending',
+      isAfterThreshold: diffDays > 2,
+      requestedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await regRef.set(payload, { merge: true });
+
+    res.status(201).json({ success: true, message: 'Regularization request submitted', requestId, data: payload });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 2d. Attendance Regularization - Approve or Reject Action
+router.post('/attendance/regularizations/:id/action', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, actorId, comment } = req.body;
+
+    const docRef = db.collection('attendance_regularizations').doc(id);
+    const snap = await docRef.get();
+
+    if (!snap.exists) {
+      return res.status(404).json({ success: false, message: 'Regularization request not found' });
+    }
+
+    const data = snap.data();
+
+    if (action === 'approve') {
+      // Sync master attendance
+      const dateStr = data.date || new Date().toISOString().split('T')[0];
+      const attRef = db.collection('attendance').doc(`${data.employeeId}_${dateStr}`);
+      await attRef.set({
+        userId: data.employeeId,
+        userName: data.employeeName,
+        department: data.department || 'General',
+        date: dateStr,
+        status: 'On-Time',
+        punchIn: new Date(`${dateStr}T09:00:00`),
+        punchOut: new Date(`${dateStr}T18:00:00`),
+        durationHours: 9.0,
+        regularized: true,
+        regularizedAt: new Date().toISOString(),
+        regularizedBy: actorId || 'admin',
+        lastUpdated: new Date().toISOString()
+      }, { merge: true });
+
+      await docRef.update({
+        status: 'Approved',
+        approverId: actorId || 'admin',
+        approvedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        approvalNote: comment || 'Regularization approved by administrator'
+      });
+    } else {
+      await docRef.update({
+        status: 'Rejected',
+        rejectorId: actorId || 'admin',
+        rejectionComment: comment || 'Correction request rejected',
+        rejectedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    // Create Notification
+    await db.collection('notifications').add({
+      target: data.employeeId,
+      targetUid: data.employeeId,
+      userId: data.employeeId,
+      title: action === 'approve' ? 'Regularization Approved' : 'Regularization Rejected',
+      message: action === 'approve'
+        ? `Your attendance regularization for ${data.date} has been approved.`
+        : `Your attendance regularization for ${data.date} was rejected: "${comment || 'Ineligible'}"`,
+      priority: 'high',
+      read: false,
+      timestamp: new Date().toISOString()
+    });
+
+    res.status(200).json({ success: true, message: `Regularization ${action}ed successfully` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 2e. Shifts Management
+router.get('/attendance/shifts', async (req, res) => {
+  try {
+    const snapshot = await db.collection('shifts').get();
+    const shifts = [];
+    snapshot.forEach(doc => shifts.push({ id: doc.id, ...doc.data() }));
+    res.status(200).json({ success: true, count: shifts.length, data: shifts });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/attendance/shifts', async (req, res) => {
+  try {
+    const { name, time } = req.body;
+    if (!name || !time) {
+      return res.status(400).json({ success: false, message: 'Shift name and time are required' });
+    }
+    const docRef = await db.collection('shifts').add({
+      name,
+      time,
+      createdAt: new Date().toISOString()
+    });
+    res.status(201).json({ success: true, id: docRef.id, message: 'Shift created successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.delete('/attendance/shifts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.collection('shifts').doc(id).delete();
+    res.status(200).json({ success: true, message: 'Shift deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // 3. Fetch Payroll Data
 router.get('/payroll', async (req, res) => {
   try {

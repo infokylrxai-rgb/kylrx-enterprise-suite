@@ -64,6 +64,8 @@ const SUPERADMIN_PERMISSIONS = [
 
 const SUPERADMIN_CUSTOM_CLAIMS = {
   role: 'SUPER_ADMIN',
+  super_admin: true,
+  orgId: 'org_kylrx',
   permissions: SUPERADMIN_PERMISSIONS,
 };
 
@@ -259,6 +261,7 @@ async function seedFirestoreDocuments(db, userRecord, options) {
       displayName: displayName || userRecord.displayName || 'Super Admin',
       role: 'SUPER_ADMIN',
       organization,
+      orgId: 'org_kylrx',
       permissions: SUPERADMIN_PERMISSIONS,
       is_active: true,
       updated_at: admin.firestore.FieldValue.serverTimestamp(),
@@ -280,6 +283,21 @@ async function seedFirestoreDocuments(db, userRecord, options) {
 
     results.push({ collection: collName, docId: uid, existed: isDocExisting });
   }
+
+  // Also seed tenant organization document with orgConfigured: true
+  const orgRef = db.collection('organizations').doc('org_kylrx');
+  const orgSnap = await orgRef.get();
+  await orgRef.set({
+    orgId: 'org_kylrx',
+    name: organization,
+    creatorUid: uid,
+    creatorEmail: email,
+    orgConfigured: true,
+    updated_at: admin.firestore.FieldValue.serverTimestamp(),
+    ...(orgSnap.exists ? {} : { created_at: admin.firestore.FieldValue.serverTimestamp() })
+  }, { merge: true });
+  console.log(`🏢 Seeded/Updated tenant organization: organizations/org_kylrx (orgConfigured: true)`);
+  results.push({ collection: 'organizations', docId: 'org_kylrx', existed: orgSnap.exists });
 
   return results;
 }

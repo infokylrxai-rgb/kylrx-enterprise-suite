@@ -106,7 +106,7 @@ function initBackendTelemetry() {
 
   try {
     // 1. Listen for Live Users (Activity Status)
-    onSnapshot(collection(db, 'activityStatus'), (snapshot) => {
+    const unsubTelemetry = onSnapshot(collection(db, 'activityStatus'), (snapshot) => {
       const count = snapshot.size;
       if (liveUsersEl) {
         liveUsersEl.textContent = count > 0 ? (count + '+') : '12+';
@@ -121,6 +121,12 @@ function initBackendTelemetry() {
       statusDot.className = 'status-dot';
       if (liveUsersEl) liveUsersEl.textContent = '10k+';
       if (activeUnitsEl) activeUnitsEl.textContent = '12';
+    });
+
+    window.addEventListener('pagehide', () => {
+      if (typeof unsubTelemetry === 'function') {
+        try { unsubTelemetry(); } catch (_) {}
+      }
     });
 
     // 2. Fetch Secure Units (Command Centers)

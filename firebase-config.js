@@ -385,13 +385,7 @@ const onSnapshot = (target, ...args) => {
 };
 
 console.log("🔥 Firebase connected to project: " + firebaseConfig.projectId);
-
-// Automatically clear the console to hide the browser's Tracking Prevention warnings
-setTimeout(() => {
-    console.clear();
-    console.log("🔥 Firebase connected to project: " + firebaseConfig.projectId);
-    console.log("✅ System Operational (Browser tracking warnings cleared).");
-}, 1500);
+console.log("✅ System Operational.");
 
 // Global high-fidelity logout hook
 function setupGlobalLogout() {

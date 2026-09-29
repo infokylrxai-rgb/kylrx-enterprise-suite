@@ -744,6 +744,59 @@
             gap: 10px;
             z-index: 2000;
         }
+
+        /* ─── PRD §11 Simplified Alert Monitor & Safe AI Sandbox Styles ─── */
+        .filter-pill {
+            padding: 5px 12px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .filter-pill:hover {
+            border-color: #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .filter-pill.active {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+        }
+
+        .view-tab-btn {
+            padding: 7px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .view-tab-btn.active {
+            background: #ffffff;
+            color: #1e40af;
+            font-weight: 800;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .setup-guide-drawer {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
     </style>
 </head>
 
@@ -859,8 +912,11 @@
                         <i data-lucide="rotate-ccw" style="width:15px; height:15px;"></i>
                         <span>Restore Monitors</span>
                     </button>
-                    <button class="btn-hub" onclick="openSimulationConsole()">
-                        <i data-lucide="play-circle"></i> Simulation Console
+                    <button class="btn-hub" onclick="if (window.KylrxAlertRegistry) window.KylrxAlertRegistry.openSetupGuide();" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0; font-weight:700;" title="Administrator Setup Guide for Triggers, Webhooks & Escalations">
+                        <i data-lucide="book-open"></i> Setup Guide
+                    </button>
+                    <button class="btn-hub" onclick="if (window.KylrxAlertRegistry) window.KylrxAlertRegistry.openAiSimulation();" style="background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; font-weight:700;" title="Safe AI Simulation Testing Sandbox with 0 Side-Effects">
+                        <i data-lucide="sparkles"></i> AI Simulation Sandbox
                     </button>
                     <button class="btn-hub btn-hub-primary" onclick="openNewRuleModal()">
                         <i data-lucide="plus"></i> New Alert Monitor
@@ -913,18 +969,37 @@
 
             <!-- Workspace Section -->
             <div class="builder-workspace">
-                <!-- Section 1: Core Monitoring Rules -->
+                <!-- Section 1: Simplified Alert Monitor (PRD §11) & Threshold Rules -->
                 <div>
-                    <div class="section-header">
-                        <div class="section-title">
-                            <i data-lucide="sliders" size="18" style="color: var(--primary);"></i>
-                            Configured Threshold Monitors
+                    <div class="section-header" style="flex-wrap: wrap; gap: 10px; margin-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <div style="display: inline-flex; background: #e2e8f0; padding: 3px; border-radius: 10px;">
+                                <button id="viewTabRegistry" class="view-tab-btn active" onclick="switchAlertView('registry')">
+                                    <i data-lucide="shield-alert" style="width: 15px; height: 15px;"></i>
+                                    <span>Alert Monitor Registry (PRD §11)</span>
+                                </button>
+                                <button id="viewTabCustom" class="view-tab-btn" onclick="switchAlertView('custom')">
+                                    <i data-lucide="sliders" style="width: 15px; height: 15px;"></i>
+                                    <span>Custom Threshold Rules</span>
+                                </button>
+                            </div>
                         </div>
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">Uses 8-Stage Common Pipeline: Trigger → Condition → Branch → Wait/Escalate → Notification → Audit</span>
+
+                        <!-- Category Filter Bar (Active in Registry View) -->
+                        <div id="registryFilterBar" style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Filter:</span>
+                            <button class="filter-pill active" onclick="filterRegistry('')">All Triggers</button>
+                            <button class="filter-pill" onclick="filterRegistry('Attendance & Leave')">Attendance &amp; Leave</button>
+                            <button class="filter-pill" onclick="filterRegistry('Workforce Lifecycle')">Lifecycle</button>
+                            <button class="filter-pill" onclick="filterRegistry('Talent & Retention')">Talent &amp; Retention</button>
+                            <button class="filter-pill" onclick="filterRegistry('Financial Safety')">Financial Safety</button>
+                            <button class="filter-pill" onclick="filterRegistry('Compliance & Governance')">Compliance</button>
+                            <button class="filter-pill" onclick="filterRegistry('Offboarding & Separation')">Offboarding</button>
+                        </div>
                     </div>
                     
                     <div class="cards-grid" id="alertCardsContainer">
-                        <!-- Alert Cards Dynamically Rendered via admin-alert-builder.js -->
+                        <!-- Alert Cards Dynamically Rendered via admin-alert-builder.js and alert-trigger-registry.js -->
                     </div>
                 </div>
 
@@ -1118,12 +1193,114 @@
         </div>
     </div>
 
+    <!-- ─── PRD §11: ADMINISTRATOR SETUP GUIDE DRAWER ─── -->
+    <div id="alertSetupGuideOverlay" style="display:none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 3100;" onclick="closeSetupGuideDrawer()"></div>
+    <div id="alertSetupGuideDrawer" class="setup-guide-drawer" style="display:none; position: fixed; top: 0; right: 0; width: 620px; max-width: 95vw; height: 100vh; background: #ffffff; box-shadow: -10px 0 30px rgba(15, 23, 42, 0.15); z-index: 3110; flex-direction: column; overflow: hidden;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0f172a;">Administrator Setup Guide</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: #64748b;">Event triggering, condition thresholds, and notification routing pipeline</p>
+                </div>
+            </div>
+            <button onclick="closeSetupGuideDrawer()" style="background: none; border: none; font-size: 1.4rem; color: #64748b; cursor: pointer; padding: 4px 8px; border-radius: 6px;">&times;</button>
+        </div>
+        <div id="setupGuideContent" style="flex: 1; overflow-y: auto; padding: 1.5rem;">
+            <!-- Rendered dynamically by KylrxAlertRegistry.openSetupGuide(eventKey) -->
+        </div>
+    </div>
+
+    <!-- ─── PRD §11: SAFE AI SIMULATION TESTING SANDBOX MODAL ─── -->
+    <div id="aiSimulationSandboxModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 3200; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="modal-box" style="width: 95%; max-width: 980px; max-height: 92vh; background: #ffffff; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); border: 1px solid #e2e8f0; padding: 0;">
+            <!-- Modal Header -->
+            <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #ffffff; padding: 1.25rem 1.75rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="sparkles" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #ffffff;">Safe AI Simulation Testing Sandbox</h3>
+                            <span style="font-size: 0.68rem; font-weight: 800; background: #10b981; color: #ffffff; padding: 2px 8px; border-radius: 12px; letter-spacing: 0.3px;">
+                                🔒 100% DRY-RUN GUARANTEE
+                            </span>
+                        </div>
+                        <p style="margin: 2px 0 0 0; font-size: 0.76rem; color: #dbeafe;">Verify trigger execution logic safely without writing to Firestore, mutating statuses, or executing external webhooks.</p>
+                    </div>
+                </div>
+                <button onclick="closeAiSimulationModal()" style="background: none; border: none; color: #ffffff; font-size: 1.4rem; cursor: pointer; padding: 4px 8px;">&times;</button>
+            </div>
+
+            <!-- Modal Body: Two Columns -->
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.25rem; padding: 1.5rem; overflow-y: auto; flex: 1;">
+                <!-- Left: Controls & Payload Editor -->
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.3px; display: block; margin-bottom: 6px;">Select Technical Trigger Event</label>
+                        <select id="simModalTriggerSelect" onchange="window.KylrxAlertRegistry.onSimTriggerChanged()" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: monospace; font-size: 0.85rem; font-weight: 700; background: #ffffff; color: #1e40af;">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <!-- Trigger Description Pill -->
+                    <div id="simModalTriggerDesc" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;"></div>
+
+                    <!-- Payload Presets & Editor -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.3px;">Mock Event Payload (JSON)</label>
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" onclick="window.KylrxAlertRegistry.loadSimPreset('breach')" style="font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer;">
+                                    Preset: Threshold Breach
+                                </button>
+                                <button type="button" onclick="window.KylrxAlertRegistry.loadSimPreset('denial')" style="font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; cursor: pointer;">
+                                    Preset: Condition Safe
+                                </button>
+                            </div>
+                        </div>
+                        <textarea id="simModalPayloadInput" rows="9" style="width: 100%; font-family: 'Consolas', monospace; font-size: 0.82rem; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; color: #0f172a; resize: vertical; box-sizing: border-box;"></textarea>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button type="button" id="btnRunSim" onclick="window.KylrxAlertRegistry.executeSimulation()" style="width: 100%; padding: 12px; font-weight: 800; font-size: 0.9rem; background: #2563eb; color: #ffffff; border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+                        <i data-lucide="play" style="width: 16px; height: 16px;"></i> Run Sandboxed Simulation
+                    </button>
+                </div>
+
+                <!-- Right: Interactive Console Trace -->
+                <div style="display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.3px;">Stage-By-Stage Diagnostic Trace</span>
+                        <button type="button" onclick="window.KylrxAlertRegistry.clearSimulationTraceTerminal()" style="background: none; border: none; font-size: 0.72rem; color: #64748b; cursor: pointer; text-decoration: underline;">Clear</button>
+                    </div>
+                    <div id="simTraceTerminal" style="flex: 1; min-height: 380px; max-height: 480px; background: #0f172a; border-radius: 12px; padding: 1.25rem; overflow-y: auto; border: 1px solid #1e293b;">
+                        <!-- Diagnostic trace entries rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 0.85rem 1.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: #64748b;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="shield-check" style="width: 15px; height: 15px; color: #10b981;"></i>
+                    <span><strong>Dry-Run Guarantee:</strong> 0 Firestore writes &bull; 0 status mutations &bull; 0 webhooks fired</span>
+                </div>
+                <button type="button" onclick="closeAiSimulationModal()" style="padding: 6px 16px; border-radius: 6px; font-weight: 700; background: #e2e8f0; color: #334155; border: none; cursor: pointer;">Close Sandbox</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div class="toast-popup" id="alertToast">
         <i data-lucide="bell" style="color: #38bdf8;"></i>
         <span id="toastMsg">Simulated alert dispatched!</span>
     </div>
 
+    <script src="alert-trigger-registry.js"></script>
     <script type="module" src="admin-alert-builder.js"></script>
     <script type="module" src="./admin-sidebar-sync.js"></script>
 

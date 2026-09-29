@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Performance Management System (PMS) | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-soft: #bfdbfe;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius: 20px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2.5rem;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .back-link:hover { color: var(--primary); }
+
+        .role-switcher {
+            display: flex;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 4px;
+            gap: 4px;
+            box-shadow: var(--shadow);
+        }
+
+        .role-btn {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+        .role-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .view-panel { display: none; }
+        .view-panel.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hero-banner {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portal-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .metric-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .pill-blue { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .pill-green { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .pill-amber { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .pill-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .btn-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        .btn-outline {
+            background: white;
+            color: #334155;
+            border: 1px solid var(--border);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Top Navigation Bar -->
+        <div class="top-nav">
+            <a href="#" class="back-link" id="pmsBackLink">
+                <i data-lucide="arrow-left" style="width: 18px; height: 18px;"></i>
+                <span id="pmsBackText">Back to Dashboard</span>
+            </a>
+
+            <!-- Universal Role Switcher Tabs -->
+            <div class="role-switcher">
+                <button class="role-btn" id="btnRoleAdmin" onclick="switchPmsPortal('admin')">
+                    <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i> Super Admin Engine
+                </button>
+                <button class="role-btn" id="btnRoleManager" onclick="switchPmsPortal('manager')">
+                    <i data-lucide="users" style="width: 16px; height: 16px;"></i> Manager Review & Delegation
+                </button>
+                <button class="role-btn" id="btnRoleEmployee" onclick="switchPmsPortal('employee')">
+                    <i data-lucide="user-check" style="width: 16px; height: 16px;"></i> Employee Deliverables
+                </button>
+            </div>
+        </div>
+
+        <!-- Hero Header -->
+        <div class="hero-banner">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;">
+                <div>
+                    <div class="metric-pill pill-blue" style="background: rgba(37,99,235,0.2); color: #93c5fd; border-color: rgba(147,197,253,0.3); margin-bottom: 12px;">
+                        PRD Section 8 • Performance Management System
+                    </div>
+                    <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px;">Kylrx Performance Hub</h1>
+                    <p style="font-size: 0.95rem; color: #94a3b8; max-width: 620px; line-height: 1.6;">
+                        Autonomous review cycle engine, real-time goal progress tracker, binary accept/reject evaluation, and traceable peer evaluation delegation.
+                    </p>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="background: rgba(255,255,255,0.08); padding: 1.25rem 1.75rem; border-radius: 18px; border: 1px solid rgba(255,255,255,0.12); text-align: center;">
+                        <div style="font-size: 1.85rem; font-weight: 800; color: #60a5fa;" id="hubActiveCycleName">--</div>
+                        <div style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Active Cycle</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- VIEW 1: SUPER ADMIN CYCLE ENGINE                               -->
+        <!-- ============================================================== -->
+        <div id="pmsAdminView" class="view-panel">
+            <div class="portal-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">Super Admin PMS Cycle Engine</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">Create, schedule, and rollout review cycles with automatic employee email and in-app dispatches.</p>
+                    </div>
+                    <a href="admin-pms.html" class="btn-action">
+                        <span>Open Super Admin Console</span>
+                        <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
+                    </a>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Cycle Cadences</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: var(--text-main);">Quarterly • Biannual • Annual • Custom</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Configure start and end date pickers with automated enrollment.</p>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Workforce Dispatch</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: #10b981;">In-App + Email Trigger</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Automated execution of <code>/api/email/send</code> to all active personnel.</p>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Delegation Audit Trail</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: #2563eb;">Transparent & Immutable</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Tracks originalManagerId, delegatedToId, delegatedAt, and reason.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- VIEW 2: MANAGER REVIEW & DELEGATION                            -->
+        <!-- ============================================================== -->
+        <div id="pmsManagerView" class="view-panel">
+            <div class="portal-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">Manager Review & Evaluation Portal</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">Assign deliverables, inspect work logs, take binary accept/reject actions, and delegate reviews.</p>
+                    </div>
+                    <a href="manager-performance.html" class="btn-action">
+                        <span>Open Manager Performance Suite</span>
+                        <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
+                    </a>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Direct Task Assignment</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: #2563eb;">Assign Team Goals</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Managers assign specific deliverables directly to enrolled reportees.</p>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Binary Evaluation</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: #10b981;">Accept or Reject</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Rejected tasks move back to employee's active queue with reviewer remarks.</p>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Traceable Delegation</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: #8b5cf6;">Peer Evaluation Reassignment</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Immediate reassignments visible on review cards with full historical audit.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- VIEW 3: EMPLOYEE TASK LOGGING & PROGRESS TRACKER                -->
+        <!-- ============================================================== -->
+        <div id="pmsEmployeeView" class="view-panel">
+            <div class="portal-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">Employee Task Logging & Submissions</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">Record work logs, create self-assigned deliverables, and monitor real-time completion percentage.</p>
+                    </div>
+                    <a href="employee-appraisal.html" class="btn-action">
+                        <span>Open Employee PMS Workspace</span>
+                        <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
+                    </a>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Work Log Submissions</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: #2563eb;">Self-Assigned Tasks</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Detailed work logs, milestone records, and instant task completion toggles.</p>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Strict Formula</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: #10b981;">(completed / total) * 100</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Dynamic real-time completion percentage updated upon every task action.</p>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg); border-radius: 16px; border: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Active Rework Queue</div>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin: 6px 0; color: #ef4444;">Feedback Loop</div>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Tasks rejected by reviewers automatically return to queue with remarks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getActivePMSCycle } from "./pms-service.js";
+
+        lucide.createIcons();
+
+        // Detect default portal based on logged-in user role or URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedPortal = urlParams.get('portal') || urlParams.get('role');
+        const userRole = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
+
+        let initialPortal = 'employee';
+        if (requestedPortal) {
+            initialPortal = requestedPortal;
+        } else if (userRole.includes('admin') || userRole.includes('super')) {
+            initialPortal = 'admin';
+        } else if (userRole.includes('manager')) {
+            initialPortal = 'manager';
+        }
+
+        window.switchPmsPortal = function(portalKey) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+
+            if (portalKey === 'admin') {
+                document.getElementById('pmsAdminView').classList.add('active');
+                document.getElementById('btnRoleAdmin').classList.add('active');
+                document.getElementById('pmsBackLink').href = 'admin-dashboard.html';
+                document.getElementById('pmsBackText').textContent = 'Back to Super Admin Console';
+            } else if (portalKey === 'manager') {
+                document.getElementById('pmsManagerView').classList.add('active');
+                document.getElementById('btnRoleManager').classList.add('active');
+                document.getElementById('pmsBackLink').href = 'manager-dashboard.html';
+                document.getElementById('pmsBackText').textContent = 'Back to Manager Dashboard';
+            } else {
+                document.getElementById('pmsEmployeeView').classList.add('active');
+                document.getElementById('btnRoleEmployee').classList.add('active');
+                document.getElementById('pmsBackLink').href = 'employee-dashboard.html';
+                document.getElementById('pmsBackText').textContent = 'Back to Employee Dashboard';
+            }
+        };
+
+        switchPmsPortal(initialPortal);
+
+        // Fetch active cycle details
+        (async () => {
+            try {
+                const active = await getActivePMSCycle();
+                if (active) {
+                    document.getElementById('hubActiveCycleName').textContent = active.cycleName;
+                } else {
+                    document.getElementById('hubActiveCycleName').textContent = 'Q3 2026';
+                }
+            } catch (e) {
+                document.getElementById('hubActiveCycleName').textContent = 'Q3 2026';
+            }
+        })();
+    </script>
+</body>
+</html>

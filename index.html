@@ -21,6 +21,51 @@
       document.head.appendChild(s);
     }
   </script>
+  <script>
+    // BFCache (Back-Forward Cache) & DevServer WebSocket Lifecycle Manager
+    (function () {
+      const activeWebSockets = new Set();
+      const NativeWebSocket = window.WebSocket;
+
+      if (NativeWebSocket) {
+        window.WebSocket = function (...args) {
+          const ws = new NativeWebSocket(...args);
+          activeWebSockets.add(ws);
+
+          const cleanup = () => activeWebSockets.delete(ws);
+          ws.addEventListener('close', cleanup);
+          ws.addEventListener('error', cleanup);
+          return ws;
+        };
+
+        window.WebSocket.prototype = NativeWebSocket.prototype;
+        ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'].forEach((prop) => {
+          if (prop in NativeWebSocket) {
+            window.WebSocket[prop] = NativeWebSocket[prop];
+          }
+        });
+      }
+
+      // Cleanly close active sockets before entering BFCache (prevents browser abort errors)
+      window.addEventListener('pagehide', () => {
+        activeWebSockets.forEach((ws) => {
+          try {
+            if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+              ws.close(1000, 'Page entering Back-Forward Cache');
+            }
+          } catch (_) {}
+        });
+        activeWebSockets.clear();
+      });
+
+      // When restored from BFCache (browser back button), reload cleanly to reconnect services
+      window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+          window.location.reload();
+        }
+      });
+    })();
+  </script>
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
 </head>

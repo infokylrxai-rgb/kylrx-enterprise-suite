@@ -8,6 +8,8 @@ let activeRules = [];
 let breachCount = 0;
 let isZeroed = localStorage.getItem('kylrx_zero_alerts') === 'true';
 let isBackendAvailable = null;
+let currentAlertView = 'registry'; // 'registry' (PRD §11 Simplified Alert Monitor) | 'custom'
+let currentRegistryCategory = '';
 
 const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
 const API_BASE = `${API_HOST}/api/alerts`;
@@ -126,6 +128,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initFirebaseAlertSync();
     await fetchAlertRules();
     renderSimulationConsoleOptions();
+    renderAlertCards();
+    updateKPIs();
     if (window.lucide) {
         window.lucide.createIcons();
     }
@@ -329,11 +333,66 @@ async function fetchAlertRules() {
 }
 
 /**
+ * Switch view between PRD §11 Alert Monitor Registry and Custom Threshold Rules
+ */
+function switchAlertView(view) {
+    currentAlertView = view;
+    const tabReg = document.getElementById('viewTabRegistry');
+    const tabCust = document.getElementById('viewTabCustom');
+    const filterBar = document.getElementById('registryFilterBar');
+
+    if (tabReg) {
+        if (view === 'registry') tabReg.classList.add('active');
+        else tabReg.classList.remove('active');
+    }
+    if (tabCust) {
+        if (view === 'custom') tabCust.classList.add('active');
+        else tabCust.classList.remove('active');
+    }
+    if (filterBar) {
+        filterBar.style.display = view === 'registry' ? 'flex' : 'none';
+    }
+
+    renderAlertCards();
+    updateKPIs();
+}
+
+/**
+ * Filter registry cards by category
+ */
+function filterRegistry(category) {
+    currentRegistryCategory = category;
+    const filterBar = document.getElementById('registryFilterBar');
+    if (filterBar) {
+        const pills = filterBar.querySelectorAll('.filter-pill');
+        pills.forEach(pill => {
+            const text = pill.textContent.trim().toLowerCase();
+            const target = (category || 'all').toLowerCase();
+            if (target === 'all' && (text.includes('all') || text === 'all triggers')) {
+                pill.classList.add('active');
+            } else if (target !== 'all' && text.includes(target.split(' ')[0])) {
+                pill.classList.add('active');
+            } else {
+                pill.classList.remove('active');
+            }
+        });
+    }
+    renderAlertCards();
+}
+
+/**
  * Render all alert monitor cards
  */
 function renderAlertCards() {
     const container = document.getElementById('alertCardsContainer');
     if (!container) return;
+
+    if (currentAlertView === 'registry') {
+        if (window.KylrxAlertRegistry && typeof window.KylrxAlertRegistry.renderAlertMonitorCards === 'function') {
+            window.KylrxAlertRegistry.renderAlertMonitorCards('alertCardsContainer', currentRegistryCategory);
+            return;
+        }
+    }
 
     if (activeRules.length === 0) {
         container.innerHTML = `
@@ -452,6 +511,14 @@ function updateKPIs() {
         if (elActive) elActive.textContent = '0';
         if (elCrit) elCrit.textContent = '0';
         if (elBreach) elBreach.textContent = '0';
+        return;
+    }
+
+    if (currentAlertView === 'registry' && window.KylrxAlertRegistry) {
+        const triggers = window.KylrxAlertRegistry.getAllTriggers();
+        if (elActive) elActive.textContent = triggers.length;
+        if (elCrit) elCrit.textContent = triggers.filter(t => t.severity === 'critical').length;
+        if (elBreach) elBreach.textContent = breachCount;
         return;
     }
 
@@ -914,4 +981,9 @@ window.executeSimulatedAlert = executeSimulatedAlert;
 window.clearSimLogs = clearSimLogs;
 window.zeroAllAlerts = zeroAllAlerts;
 window.restoreAlerts = restoreAlerts;
+window.switchAlertView = switchAlertView;
+window.filterRegistry = filterRegistry;
+window.renderAlertCards = renderAlertCards;
+window.updateKPIs = updateKPIs;
+
 

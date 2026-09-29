@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organization Setup & Structure | Kylrx AI</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="utils/xlsx.full.min.js"></script>
+    <script>
+        (function() {
+            const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
+            const userRole = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
+            const allowed = ['super_admin', 'superadmin', 'admin'];
+            if (!isLoggedIn || !allowed.includes(userRole)) {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius: 20px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .setup-container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .header-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge-pending {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid #fde68a;
+        }
+
+        .badge-verified {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #dcfce7;
+            color: #166534;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid #bbf7d0;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            margin-right: 12px;
+        }
+
+        .download-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-top: 1.25rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg); }
+
+        .drop-zone {
+            border: 2px dashed #93c5fd;
+            background: #f8fafc;
+            border-radius: 18px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1.5rem;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .schema-pill {
+            display: inline-block;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-family: monospace;
+            border: 1px solid #cbd5e1;
+            margin: 2px 4px 2px 0;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .preview-table th, .preview-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .preview-table th {
+            background: #f8fafc;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="setup-container">
+    <!-- Header -->
+    <div class="header-box">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <h1 style="font-size: 1.5rem; font-weight: 800;">Enterprise Organization Setup</h1>
+                <span class="badge-pending" id="statusBadge"><i data-lucide="shield-alert" style="width: 14px;"></i> Setup Required (orgConfigured: false)</span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Administrative routes and payroll collections are locked until your master organization structure is initialized.
+            </p>
+        </div>
+    </div>
+
+    <!-- Step 1: Direct In-App Download -->
+    <div class="card">
+        <h2 style="font-size: 1.15rem; font-weight: 800; display: flex; align-items: center;">
+            <span class="step-num">1</span>
+            Download Official 27-Sheet Organization Template
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px; line-height: 1.6;">
+            Download the official master workbook (<code style="font-weight: 700; color: #1e3a8a;">Templates.xlsx</code>) directly in-app. It contains the standardized 27 sheets required for Indian statutory compliance, organizational hierarchy, and payroll automation.
+        </p>
+
+        <div class="download-box">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: #dcfce7; display: flex; align-items: center; justify-content: center; color: #166534;">
+                    <i data-lucide="file-spreadsheet" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.95rem; font-weight: 800; color: #166534;">Templates.xlsx (27 Sheets Master)</h3>
+                    <p style="font-size: 0.75rem; color: #15803d; margin-top: 2px;">
+                        <i data-lucide="check-circle" style="width: 12px; display: inline-block;"></i> Direct in-app asset download. <strong>NOT distributed via email.</strong>
+                    </p>
+                </div>
+            </div>
+            <a href="assets/Templates.xlsx" download="Templates.xlsx" class="btn btn-primary" id="btnDownloadTemplates" style="background: #16a34a;">
+                <i data-lucide="download"></i> Download Templates.xlsx
+            </a>
+        </div>
+    </div>
+
+    <!-- Step 2: Upload & Parse Multi-Sheet Templates.xlsx -->
+    <div class="card">
+        <h2 style="font-size: 1.15rem; font-weight: 800; display: flex; align-items: center;">
+            <span class="step-num">2</span>
+            Upload & Ingest Master Structure
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">
+            The parser automatically validates and extracts data across all core structural sheets:
+        </p>
+
+        <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+            <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 12px;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">Organization</div>
+                <div style="margin-top: 4px;">
+                    <span class="schema-pill">Legal_Name</span><span class="schema-pill">PAN</span><span class="schema-pill">TAN</span><span class="schema-pill">CIN_or_LLPIN</span><span class="schema-pill">GSTIN</span><span class="schema-pill">Time_Zone</span><span class="schema-pill">Currency</span><span class="schema-pill">Financial_Year_Start</span>
+                </div>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 12px;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">Business Unit</div>
+                <div style="margin-top: 4px;">
+                    <span class="schema-pill">Business_Unit_Code</span><span class="schema-pill">Business_Unit_Name</span><span class="schema-pill">Head_Employee_ID</span>
+                </div>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 12px;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">Cost Centre</div>
+                <div style="margin-top: 4px;">
+                    <span class="schema-pill">Cost_Center_Code</span><span class="schema-pill">Cost_Center_Name</span><span class="schema-pill">Owner Employee ID</span>
+                </div>
+            </div>
+            <div style="background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 12px;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary);">Departments & Sub-Depts</div>
+                <div style="margin-top: 4px;">
+                    <span class="schema-pill">Sub-Department_Code</span><span class="schema-pill">Sub-Department_Name</span><span class="schema-pill">Cost_Center_Code</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="drop-zone" id="uploadZone">
+            <input type="file" id="fileUpload" accept=".xlsx,.xls,.csv" hidden>
+            <i data-lucide="cloud-upload" style="width: 48px; height: 48px; color: var(--primary); margin: 0 auto 12px;"></i>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Drop Templates.xlsx Here or Browse</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 6px;">Supports full 27-sheet Templates.xlsx or individual CSV manifests.</p>
+        </div>
+
+        <!-- Ingestion Results & Validation Preview -->
+        <div id="parseResults" style="display: none; margin-top: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 1rem;">
+                <h3 style="font-size: 1rem; font-weight: 800; color: var(--success); display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="check-circle-2"></i> File Parsed Successfully
+                </h3>
+                <span id="sheetCountBadge" style="font-size: 0.75rem; background: var(--primary-light); color: var(--primary); font-weight: 700; padding: 4px 10px; border-radius: 8px;"></span>
+            </div>
+
+            <div id="parsedSummaryContainer"></div>
+
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="btn btn-outline" onclick="window.location.reload()">Re-upload</button>
+                <button class="btn btn-primary" id="btnFinalizeSetup">
+                    <i data-lucide="lock"></i> Save Structure & Set orgConfigured: true
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { db, auth } from "./firebase-config.js";
+    import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { ingestTemplatesWorkbook } from "./services/template-parser-service.js";
+
+    lucide.createIcons();
+
+    const uploadZone = document.getElementById('uploadZone');
+    const fileUpload = document.getElementById('fileUpload');
+    const parseResults = document.getElementById('parseResults');
+    const parsedSummaryContainer = document.getElementById('parsedSummaryContainer');
+    const sheetCountBadge = document.getElementById('sheetCountBadge');
+    const btnFinalizeSetup = document.getElementById('btnFinalizeSetup');
+    const statusBadge = document.getElementById('statusBadge');
+
+    let currentIngestResult = null;
+    const currentOrgId = localStorage.getItem('orgId') || 'org_kylrx';
+
+    // 1. Check existing org status
+    async function checkOrgStatus() {
+        try {
+            const orgSnap = await getDoc(doc(db, 'organizations', currentOrgId));
+            if (orgSnap.exists() && orgSnap.data().orgConfigured === true) {
+                statusBadge.className = 'badge-verified';
+                statusBadge.innerHTML = '<i data-lucide="check"></i> Organization Configured (orgConfigured: true)';
+                lucide.createIcons();
+            }
+        } catch (e) {
+            console.warn("Org check:", e);
+        }
+    }
+    checkOrgStatus();
+
+    // 2. Upload Zone Events
+    uploadZone.addEventListener('click', () => fileUpload.click());
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.borderColor = '#2563eb'; });
+    uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = '#93c5fd'; });
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileUpload.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    async function handleFile(file) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            currentIngestResult = ingestTemplatesWorkbook(workbook, XLSX.utils);
+            renderPreview(currentIngestResult, workbook.SheetNames.length);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function renderPreview(result, totalSheets) {
+        parseResults.style.display = 'block';
+        sheetCountBadge.textContent = `${totalSheets} Sheets Detected`;
+
+        let html = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+                    <h4 style="font-size: 0.85rem; font-weight: 800; margin-bottom: 6px;">Organization Entity</h4>
+                    <p style="font-size: 0.8rem;"><strong>Legal Name:</strong> ${result.organization?.legalName || 'N/A'}</p>
+                    <p style="font-size: 0.8rem;"><strong>PAN:</strong> ${result.organization?.pan || 'N/A'}</p>
+                    <p style="font-size: 0.8rem;"><strong>TAN:</strong> ${result.organization?.tan || 'N/A'}</p>
+                    <p style="font-size: 0.8rem;"><strong>CIN / LLPIN:</strong> ${result.organization?.cinOrLlpin || 'N/A'}</p>
+                    <p style="font-size: 0.8rem;"><strong>GSTIN:</strong> ${result.organization?.gstin || 'N/A'}</p>
+                    <p style="font-size: 0.8rem;"><strong>Time Zone / FY:</strong> ${result.organization?.timezone || 'Asia/Kolkata'} / ${result.organization?.financialYearStart || '04-01'}</p>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 1rem;">
+                    <h4 style="font-size: 0.85rem; font-weight: 800; margin-bottom: 6px;">Structure Counts</h4>
+                    <p style="font-size: 0.8rem;"><strong>Business Units:</strong> ${result.businessUnits.length} units</p>
+                    <p style="font-size: 0.8rem;"><strong>Cost Centres:</strong> ${result.costCentres.length} centres</p>
+                    <p style="font-size: 0.8rem;"><strong>Departments:</strong> ${result.departments.length} departments</p>
+                    <p style="font-size: 0.8rem;"><strong>Sub-Departments:</strong> ${result.subDepartments.length} sub-departments</p>
+                </div>
+            </div>
+        `;
+
+        if (result.errors && result.errors.length) {
+            html += `<div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 10px; font-size: 0.8rem; margin-bottom: 1rem;">
+                <strong>Validation Warnings:</strong><br>${result.errors.join('<br>')}
+            </div>`;
+        }
+
+        parsedSummaryContainer.innerHTML = html;
+        lucide.createIcons();
+    }
+
+    // 3. Finalize Setup -> Saves data & sets orgConfigured: true
+    btnFinalizeSetup.addEventListener('click', async () => {
+        btnFinalizeSetup.disabled = true;
+        btnFinalizeSetup.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Finalizing Configuration...';
+        lucide.createIcons();
+
+        try {
+            // Write to /organizations/{orgId}
+            const orgPayload = {
+                orgId: currentOrgId,
+                legalName: currentIngestResult?.organization?.legalName || 'Kylrx Technologies Pvt. Ltd.',
+                pan: currentIngestResult?.organization?.pan || '',
+                tan: currentIngestResult?.organization?.tan || '',
+                cinOrLlpin: currentIngestResult?.organization?.cinOrLlpin || '',
+                gstin: currentIngestResult?.organization?.gstin || '',
+                timezone: currentIngestResult?.organization?.timezone || 'Asia/Kolkata',
+                currency: currentIngestResult?.organization?.currency || 'INR',
+                financialYearStart: currentIngestResult?.organization?.financialYearStart || '04-01',
+                businessUnits: currentIngestResult?.businessUnits || [],
+                costCentres: currentIngestResult?.costCentres || [],
+                departments: currentIngestResult?.departments || [],
+                subDepartments: currentIngestResult?.subDepartments || [],
+                orgConfigured: true, // Critical Gate Flipped
+                configuredAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            await setDoc(doc(db, 'organizations', currentOrgId), orgPayload, { merge: true });
+
+            localStorage.setItem('orgConfigured', 'true');
+            localStorage.setItem('orgId', currentOrgId);
+
+            alert("🎉 Organization configured successfully! Unlocking administrative collections.");
+            window.location.href = 'admin-central-dashboard.html';
+        } catch (err) {
+            console.error("Finalize error:", err);
+            alert("Error saving organization structure: " + err.message);
+            btnFinalizeSetup.disabled = false;
+            btnFinalizeSetup.innerHTML = '<i data-lucide="lock"></i> Save Structure & Set orgConfigured: true';
+            lucide.createIcons();
+        }
+    });
+</script>
+</body>
+</html>

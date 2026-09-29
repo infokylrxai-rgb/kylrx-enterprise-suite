@@ -1525,14 +1525,14 @@
             <!-- ── WELCOME TITLE ROW ── -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div class="welcome-text">
-                    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Welcome back, Nandan.B 💳</h1>
+                    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Welcome back, <span id="welcomeUserName">Nandan</span> 💳</h1>
                     <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Live workforce overview, disbursement gate, and administrative controls</p>
                 </div>
-                <div style="display: gap: 12px; align-items: center;">
+                <div style="display: flex; gap: 12px; align-items: center;">
                     <span style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-soft); padding: 8px 14px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="calendar" style="width: 16px; height: 16px;"></i> September 2026
                     </span>
-                    <button class="btn btn-outline" style="padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem;" onclick="window.location.href='hrms-settings.html'">
+                    <button class="btn btn-outline" style="padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem;" onclick="window.location.href='admin-settings.html'">
                         <i data-lucide="sliders" style="width: 16px; height: 16px;"></i> Configure Departments
                     </button>
                 </div>
@@ -2104,6 +2104,9 @@
                     <button class="btn btn-outline" onclick="closeUploadResponseModal()">Cancel</button>
                 </div>
             </div>
+        </div>
+    </div>
+
     <!-- ── SUPER ADMIN IDENTITY & AUTH MODAL ── -->
     <div id="superAdminModal" class="modal-backdrop">
         <div class="modal-window" style="max-width: 580px; width: 95%;">
@@ -2282,6 +2285,14 @@
                 avatar.textContent = 'SA';
                 avatar.style.background = 'linear-gradient(135deg, #6366f1, #9333ea)';
                 avatar.title = (user?.email || 'superadmin@kylrx.ai') + ' [SUPER_ADMIN]';
+            }
+
+            // Welcome Name Update
+            const welcomeUserEl = document.getElementById('welcomeUserName');
+            if (welcomeUserEl) {
+                let name = user?.displayName || localStorage.getItem('userName') || 'Nandan';
+                if (!name || name === 'Username' || name === 'Super Admin' || name.includes('@')) name = 'Nandan';
+                welcomeUserEl.textContent = name.split(' ')[0] || name;
             }
 
             // 2. QA Toolbar Header & Claims Badge
@@ -3796,10 +3807,10 @@
 
         // ── TOP NAVBAR ACTION BUTTONS & ICON INTERACTION ──
         document.getElementById('btnBulkOnboard')?.addEventListener('click', () => {
-            window.location.href = 'hrms-dashboard.html#bulk-onboarding';
+            window.location.href = 'admin-onboarding-upload.html';
         });
         document.getElementById('btnAddEmp')?.addEventListener('click', () => {
-            window.location.href = 'hrms-dashboard.html#bulk-onboarding';
+            window.location.href = 'admin-onboarding-upload.html';
         });
         document.querySelector('.search-icon')?.addEventListener('click', () => {
             document.getElementById('empSearchInput')?.focus();

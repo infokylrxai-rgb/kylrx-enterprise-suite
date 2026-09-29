@@ -1,5 +1,4 @@
-import { db } from './firebase-config.js';
-import { collection, query, getDocs, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, where, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db, collection, query, getDocs, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, where, orderBy, limit, onSnapshot } from './firebase-config.js';
 
 export async function getLeaveStats() {
     console.log('[LEAVE] Calculating workforce availability...');
