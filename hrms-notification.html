@@ -17,16 +17,16 @@
         if (!isLoggedIn || (userRole !== 'admin' && userRole !== 'hrms')) window.location.href = 'index.html';
     </script>
     <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="stylesheet" href="hrms-sidebar-polish.css">
     <style>
-        .sidebar {overflow-y: auto;
-            scrollbar-width: thin;
-            -ms-overflow-style: auto;}
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
+        .sidebar { overflow: hidden; }
+        .nav-menu {
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
-        .sidebar::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
-        .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
+        .nav-menu::-webkit-scrollbar { display: none; }
 
         .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
         .header { margin-bottom: 2.5rem; }
@@ -615,6 +615,7 @@
         }
 </script>
 <script type="module" src="./hrms-sidebar-sync.js"></script>
+    <script src="sidebar-scrollbar.js"></script>
 </body>
 </html>
 

@@ -26,7 +26,7 @@ export function initManagerSidebar() {
         if (deptName && sideDeptName && (!sideDeptName.textContent || sideDeptName.textContent === 'General')) {
             sideDeptName.textContent = deptName;
         }
-        if (deptCode && sideDeptCode && (!sideDeptCode.textContent || sideDeptCode.textContent === 'GEN-UNIT')) {
+        if (deptCode && sideDeptCode && (!sideDeptCode.textContent || sideDeptCode.textContent === 'GEN-UNIT' || sideDeptCode.textContent === 'CYB-UNIT' || sideDeptCode.textContent === 'UNIT-CYB-802')) {
             sideDeptCode.textContent = deptCode;
         }
 
@@ -46,8 +46,8 @@ export function initManagerSidebar() {
     // 1. Immediate synchronous pre-rendering to prevent '--' flashing
     const initialName = (centerId === 'Yksv1DMH9pIeRhNxQ8E3' || !centerId) ? 'John Doe' : (localStorage.getItem('userName') || localStorage.getItem('manager_name') || 'John Doe');
     const initialRole = (centerId === 'Yksv1DMH9pIeRhNxQ8E3' || !centerId) ? 'Cybersecurity Manager' : (localStorage.getItem('userRole') || 'Department Manager');
-    const initialDept = (centerId === 'Yksv1DMH9pIeRhNxQ8E3') ? 'Cybersecurity' : (localStorage.getItem('userDept') || null);
-    const initialCode = (centerId === 'Yksv1DMH9pIeRhNxQ8E3') ? 'CYB-UNIT' : null;
+    const initialDept = (centerId === 'Yksv1DMH9pIeRhNxQ8E3' || !centerId) ? 'Cybersecurity' : (localStorage.getItem('userDept') || null);
+    const initialCode = (centerId === 'Yksv1DMH9pIeRhNxQ8E3' || !centerId) ? 'UNIT-CYB-802' : null;
     updateManagerUI(initialName, initialRole, initialDept, initialCode);
 
     // 2. Fetch Command Center / Department details from Firestore
@@ -136,6 +136,49 @@ export function initManagerSidebar() {
     }
     syncBackendStatus();
     setInterval(syncBackendStatus, 15000);
+
+    // 6. Upcoming Birthdays link & CenterId synchronization across all manager pages
+    const navBirthdaysLink = document.getElementById('navBirthdaysLink');
+    const isDashboard = window.location.pathname.endsWith('manager-dashboard.html') || window.location.pathname.endsWith('/') || !window.location.pathname.includes('.html');
+
+    if (navBirthdaysLink) {
+        if (isDashboard) {
+            navBirthdaysLink.setAttribute('href', '#upcoming-birthdays');
+            navBirthdaysLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                const bdayTarget = document.getElementById('upcoming-birthdays');
+                if (bdayTarget) {
+                    bdayTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                const newUrl = centerId ? `manager-dashboard.html?id=${centerId}#upcoming-birthdays` : 'manager-dashboard.html#upcoming-birthdays';
+                history.pushState(null, '', newUrl);
+            });
+        } else {
+            const targetUrl = centerId ? `manager-dashboard.html?id=${centerId}#upcoming-birthdays` : 'manager-dashboard.html#upcoming-birthdays';
+            navBirthdaysLink.setAttribute('href', targetUrl);
+        }
+    }
+
+    if (centerId) {
+        const overviewLink = document.getElementById('overviewLink');
+        if (overviewLink && (overviewLink.getAttribute('href') === 'manager-dashboard.html' || !overviewLink.getAttribute('href').includes('id='))) {
+            overviewLink.setAttribute('href', `manager-dashboard.html?id=${centerId}`);
+        }
+        const brandLogoLink = document.getElementById('brandLogoLink');
+        if (brandLogoLink && (brandLogoLink.getAttribute('href') === 'manager-dashboard.html' || !brandLogoLink.getAttribute('href').includes('id='))) {
+            brandLogoLink.setAttribute('href', `manager-dashboard.html?id=${centerId}`);
+        }
+    }
+
+    // Smooth scroll if loaded directly with #upcoming-birthdays hash
+    if (window.location.hash === '#upcoming-birthdays') {
+        const bdayTarget = document.getElementById('upcoming-birthdays');
+        if (bdayTarget) {
+            setTimeout(() => {
+                bdayTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 350);
+        }
+    }
 }
 
 // Auto-run if loaded

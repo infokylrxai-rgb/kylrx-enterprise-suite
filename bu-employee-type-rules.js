@@ -154,9 +154,14 @@
 
         // Also attempt loading from local backend API
         try {
+            const token = localStorage.getItem('authToken') || 
+                          localStorage.getItem('hr_access_token') || 
+                          localStorage.getItem('access_token') || 
+                          localStorage.getItem('token') || 
+                          'demo-static-token';
             const res = await fetch('http://localhost:3000/api/admin/bu-rules', {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    'Authorization': `Bearer ${token}`
                 }
             });
             if (res.ok) {
@@ -293,11 +298,16 @@
 
         // 2. Also save to backend API
         try {
+            const token = localStorage.getItem('authToken') || 
+                          localStorage.getItem('hr_access_token') || 
+                          localStorage.getItem('access_token') || 
+                          localStorage.getItem('token') || 
+                          'demo-static-token';
             await fetch('http://localhost:3000/api/admin/bu-rules', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(record)
             });

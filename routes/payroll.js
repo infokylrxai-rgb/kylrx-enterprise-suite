@@ -8,6 +8,28 @@ try {
     console.warn('[PAYROLL] Firebase Admin not available:', e.message);
 }
 
+// Decoupled Payroll Controller (PRD Section 4)
+const payrollController = require('../controllers/payroll-controller');
+
+// ─────────────────────────────────────────────
+// 1. DECOUPLED PAYROLL DOCUMENT ROUTES
+// ─────────────────────────────────────────────
+router.post('/documents/generate-payslip', payrollController.generatePayslip);
+router.post('/documents/generate-batch', payrollController.generateBatch);
+router.post('/documents/export-register-excel', payrollController.exportRegisterExcel);
+router.post('/documents/export-register-pdf', payrollController.exportRegisterPdf);
+router.get('/documents/vault', payrollController.getVaultDocuments);
+
+// ─────────────────────────────────────────────
+// 2. DECOUPLED DECENTRO DISBURSEMENT ROUTES
+// ─────────────────────────────────────────────
+router.post('/disburse/create-batch', payrollController.createDisbursementBatch);
+router.post('/disburse/batch/:batchId/approve', payrollController.approveDisbursementBatch);
+router.post('/disburse/batch/:batchId/execute', payrollController.executeDisbursementBatch);
+router.get('/disburse/batch/:batchId/status', payrollController.getDisbursementBatchStatus);
+router.post('/disburse/webhook/decentro', payrollController.handleDecentroWebhook);
+
+
 /**
  * Signed download URL for payslip PDFs (works with strict Storage rules).
  * GET /api/payroll/documents/:docId/download-url?employeeId=...

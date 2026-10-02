@@ -9,7 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="stylesheet" href="admin-attendance.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="utils/xlsx.full.min.js"></script>
     <style>
         .attendance-grid {
             display: grid; grid-template-columns: 1fr 350px; gap: 2rem;
@@ -114,6 +117,7 @@
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="shield-check"></i><span>Super Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-pms.html" class="nav-link"><i data-lucide="target"></i><span>PMS Cycle Engine</span></a></div>
                 <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
                 <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
                 <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
@@ -226,6 +230,308 @@
                 <div class="tvc-mini-stat">
                     <div><p class="nav-label" style="margin:0">On Field/WFH</p><h3 id="stat-wfh">-</h3></div>
                     <i data-lucide="map-pin" style="color: var(--primary);"></i>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- Super Admin Attendance Controls (PRD §16)  -->
+            <!-- ========================================== -->
+            <div class="att-controls-wrapper">
+                <!-- Master Header & Toolbar -->
+                <div class="att-master-toolbar">
+                    <div class="att-toolbar-left">
+                        <div class="att-toolbar-icon">
+                            <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div class="att-toolbar-info">
+                            <h2>
+                                Super Admin Attendance Controls
+                                <span style="font-size: 0.68rem; font-weight: 800; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 100px;">PRD §16 COMPLIANT</span>
+                                <span style="font-size: 0.68rem; font-weight: 800; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 100px;">Templates.xlsx Certified</span>
+                            </h2>
+                            <p>Real-time Team Attendance Console • Manual Overrides &amp; Regularization • Shift &amp; Overtime Recalculation • SheetJS Excel Export</p>
+                        </div>
+                    </div>
+                    <div class="att-toolbar-actions">
+                        <button class="btn-att btn-att-outline" id="btnExportAttendanceExcel" title="Download Excel .xlsx with current filters">
+                            <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981;"></i>
+                            <span>Download Report (.xlsx)</span>
+                        </button>
+                        <button class="btn-att btn-att-primary" id="btnOpenRecordAttendanceModal" title="Record or override attendance for personnel">
+                            <i data-lucide="plus-circle" style="width: 15px; height: 15px;"></i>
+                            <span>Record Attendance / Override</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Bar -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                    <div style="background: white; border: 1px solid var(--att-border); border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <p style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Present Today</p>
+                            <h3 id="attKpiPresentCount" style="font-size: 1.5rem; font-weight: 800; color: #059669; margin: 2px 0 0 0;">0</h3>
+                        </div>
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; color: #059669;">
+                            <i data-lucide="user-check" style="width: 20px; height: 20px;"></i>
+                        </div>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--att-border); border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <p style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Late Arrivals</p>
+                            <h3 id="attKpiLateCount" style="font-size: 1.5rem; font-weight: 800; color: #d97706; margin: 2px 0 0 0;">0</h3>
+                        </div>
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: #fffbeb; display: flex; align-items: center; justify-content: center; color: #d97706;">
+                            <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
+                        </div>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--att-border); border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <p style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Absences</p>
+                            <h3 id="attKpiAbsentCount" style="font-size: 1.5rem; font-weight: 800; color: #dc2626; margin: 2px 0 0 0;">0</h3>
+                        </div>
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: #fef2f2; display: flex; align-items: center; justify-content: center; color: #dc2626;">
+                            <i data-lucide="user-x" style="width: 20px; height: 20px;"></i>
+                        </div>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--att-border); border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <p style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Regularizations Pending</p>
+                            <h3 id="attKpiRegPendingCount" style="font-size: 1.5rem; font-weight: 800; color: #2563eb; margin: 2px 0 0 0;">0</h3>
+                        </div>
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                            <i data-lucide="git-pull-request" style="width: 20px; height: 20px;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Filters Bar -->
+                <div class="att-filter-bar">
+                    <div class="att-filter-row-top">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 0.75rem; font-weight: 800; color: var(--att-text-main); text-transform: uppercase; letter-spacing: 0.5px;">Preset Intervals:</span>
+                            <div class="att-preset-group">
+                                <button class="att-preset-btn active" data-preset="today">Today</button>
+                                <button class="att-preset-btn" data-preset="week">This Week</button>
+                                <button class="att-preset-btn" data-preset="month">This Month</button>
+                                <button class="att-preset-btn" data-preset="last_month">Last Month</button>
+                                <button class="att-preset-btn" data-preset="custom">Custom Range</button>
+                            </div>
+                        </div>
+                        
+                        <div id="attCustomDateInputs" style="display: none; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <label style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted);">From:</label>
+                                <input type="date" id="attFilterStartDate" style="padding: 6px 10px; border: 1px solid var(--att-border); border-radius: 8px; font-size: 0.78rem;">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <label style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted);">To:</label>
+                                <input type="date" id="attFilterEndDate" style="padding: 6px 10px; border: 1px solid var(--att-border); border-radius: 8px; font-size: 0.78rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="att-filter-row-bottom">
+                        <div class="att-input-group">
+                            <i data-lucide="search" class="att-input-icon"></i>
+                            <input type="text" id="attSearchInput" class="att-input" placeholder="Search by Employee ID, Name, or Department...">
+                        </div>
+                        <div>
+                            <select id="attFilterDepartment" class="att-select">
+                                <option value="ALL">All Departments</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Executive Management">Executive Management</option>
+                                <option value="Finance &amp; Accounts">Finance &amp; Accounts</option>
+                                <option value="Sales &amp; Client Delivery">Sales &amp; Client Delivery</option>
+                                <option value="People Operations &amp; HR">People Operations &amp; HR</option>
+                                <option value="Strategic Operations">Strategic Operations</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="attFilterStatus" class="att-select">
+                                <option value="ALL">All Statuses</option>
+                                <option value="PRESENT">Present</option>
+                                <option value="LATE">Late Arrival</option>
+                                <option value="HALF_DAY">Half Day</option>
+                                <option value="ABSENT">Absent</option>
+                                <option value="ON_DUTY">On Duty</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Status Filter Tabs -->
+                <div class="att-status-tabs">
+                    <button class="att-tab-item active" data-tab="ALL">
+                        <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+                        <span>All Records</span>
+                        <span class="att-tab-count" id="attTabCountAll">0</span>
+                    </button>
+                    <button class="att-tab-item" data-tab="PRESENT">
+                        <i data-lucide="check-circle" style="width: 14px; height: 14px; color: #10b981;"></i>
+                        <span>Present</span>
+                        <span class="att-tab-count" id="attTabCountPresent">0</span>
+                    </button>
+                    <button class="att-tab-item" data-tab="LATE">
+                        <i data-lucide="alert-circle" style="width: 14px; height: 14px; color: #f59e0b;"></i>
+                        <span>Late Arrivals</span>
+                        <span class="att-tab-count" id="attTabCountLate">0</span>
+                    </button>
+                    <button class="att-tab-item" data-tab="ABSENT">
+                        <i data-lucide="x-circle" style="width: 14px; height: 14px; color: #ef4444;"></i>
+                        <span>Absent</span>
+                        <span class="att-tab-count" id="attTabCountAbsent">0</span>
+                    </button>
+                    <button class="att-tab-item" data-tab="REGULARIZATION">
+                        <i data-lucide="file-check" style="width: 14px; height: 14px; color: #8b5cf6;"></i>
+                        <span>Regularization Requests</span>
+                        <span class="att-tab-count" id="attTabCountReg">0</span>
+                    </button>
+                </div>
+
+                <!-- Centralized Team Attendance Console Data Table -->
+                <div class="att-console-card">
+                    <div class="att-console-header">
+                        <div class="att-console-title">
+                            <i data-lucide="table" style="color: var(--att-primary); width: 18px; height: 18px;"></i>
+                            <h3>Organization-Wide Attendance Console</h3>
+                            <span id="attConsoleTotalCount" style="font-size: 0.72rem; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 100px;">0 Records</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #059669; font-weight: 700;">
+                                <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
+                                Live Syncing: attendance_records
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="att-table-container">
+                        <table class="att-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Date</th>
+                                    <th>Shift Code</th>
+                                    <th>Punch In</th>
+                                    <th>Punch Out</th>
+                                    <th>Worked Hours</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attConsoleTableBody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 3rem; color: var(--att-text-muted);">
+                                        Syncing attendance console from Cloud Firestore...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- Super Admin Attendance Override Modal      -->
+            <!-- ========================================== -->
+            <div class="att-modal-overlay" id="attManualModal">
+                <div class="att-modal-card">
+                    <div class="att-modal-header">
+                        <div class="att-modal-title">
+                            <div class="att-modal-icon">
+                                <i data-lucide="user-cog" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div>
+                                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--att-text-main);">Record Attendance / Manual Adjustment</h3>
+                                <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: var(--att-text-muted);">Override punch logs or regularize swipes under PRD §16 rules</p>
+                            </div>
+                        </div>
+                        <button id="btnCloseManualAttModal" style="background: none; border: none; cursor: pointer; color: var(--att-text-muted); padding: 4px;">
+                            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                        </button>
+                    </div>
+
+                    <form id="attManualRecordForm">
+                        <div class="att-modal-body">
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--att-text-main); margin-bottom: 5px;">Select Employee *</label>
+                                <select id="attManualEmployeeSelect" required class="att-select">
+                                    <option value="">-- Choose Personnel --</option>
+                                </select>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--att-text-main); margin-bottom: 5px;">Attendance Date *</label>
+                                    <input type="date" id="attManualDateInput" required class="att-input" style="padding-left: 12px;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--att-text-main); margin-bottom: 5px;">Assigned Shift Code *</label>
+                                    <select id="attManualShiftSelect" required class="att-select">
+                                        <option value="SH_GEN_01">SH_GEN_01: General (09:00 - 18:00)</option>
+                                        <option value="SH_MORN_01">SH_MORN_01: Morning (06:00 - 15:00)</option>
+                                        <option value="SH_EVE_01">SH_EVE_01: Evening (14:00 - 23:00)</option>
+                                        <option value="SH_NIGHT_01">SH_NIGHT_01: Night (22:00 - 07:00)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--att-text-main); margin-bottom: 5px;">Punch In Time * (HH:MM:SS)</label>
+                                    <input type="text" id="attManualPunchIn" value="09:00:00" required class="att-input" style="padding-left: 12px;" placeholder="09:00:00">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--att-text-main); margin-bottom: 5px;">Punch Out Time * (HH:MM:SS)</label>
+                                    <input type="text" id="attManualPunchOut" value="18:00:00" required class="att-input" style="padding-left: 12px;" placeholder="18:00:00">
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Live Calculation Preview Card -->
+                            <div class="att-calc-preview">
+                                <div>
+                                    <div class="att-calc-stat-label">Net Worked Hours</div>
+                                    <div class="att-calc-stat-val" id="attCalcDurationVal">8.0 hrs</div>
+                                    <div class="att-calc-stat-sub">Less 45m break</div>
+                                </div>
+                                <div>
+                                    <div class="att-calc-stat-label">Late Arrival</div>
+                                    <div class="att-calc-stat-val" id="attCalcLateVal" style="color: #059669;">On-Time</div>
+                                    <div class="att-calc-stat-sub">15m grace period</div>
+                                </div>
+                                <div>
+                                    <div class="att-calc-stat-label">Overtime Status</div>
+                                    <div class="att-calc-stat-val" id="attCalcOvertimeVal" style="color: #64748b;">Standard</div>
+                                    <div class="att-calc-stat-sub">&gt;8.5 hrs threshold</div>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--att-text-main); margin-bottom: 5px;">Status Override *</label>
+                                    <select id="attManualStatusSelect" required class="att-select">
+                                        <option value="PRESENT">PRESENT (Full Day Shift Completed)</option>
+                                        <option value="LATE">LATE (Punch-in Beyond Shift Grace Period)</option>
+                                        <option value="HALF_DAY">HALF DAY (4.5 to 7.9 Hours Worked)</option>
+                                        <option value="ABSENT">ABSENT (Zero / Unapproved Punch)</option>
+                                        <option value="ON_DUTY">ON DUTY (Client Site / Official Travel)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--att-text-main); margin-bottom: 5px;">Admin Remark / Reason for Manual Entry *</label>
+                                <textarea id="attManualRemark" required rows="2" class="att-input" style="padding: 10px 12px; height: auto; resize: none;" placeholder="e.g. Manual swipe regularization per manager approval"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="att-modal-footer">
+                            <button type="button" class="btn-att btn-att-outline" id="btnCancelManualAttModal">Cancel</button>
+                            <button type="submit" class="btn-att btn-att-primary" id="btnSubmitManualAtt">
+                                <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+                                <span>Save &amp; Sync to Firebase</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -1769,6 +2075,30 @@
     };
 
     initAdminApps();
+</script>
+<!-- Super Admin Attendance Controls Controller (PRD §16) -->
+<script src="admin-attendance-controller.js"></script>
+<script type="module">
+    import { auth, db } from "./firebase-config.js";
+    import { collection, getDocs, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const fbUtils = { collection, getDocs, onSnapshot, doc, setDoc, serverTimestamp };
+
+    function bootAttendanceController() {
+        if (window.AdminAttendanceController) {
+            window.AdminAttendanceController.init({
+                auth: auth,
+                db: db,
+                firestoreUtils: fbUtils
+            });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootAttendanceController);
+    } else {
+        bootAttendanceController();
+    }
 </script>
 <script type="module" src="./admin-sidebar-sync.js"></script>
 </body>

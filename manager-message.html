@@ -22,6 +22,7 @@
         };
     </script>
     <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="sidebar-lock.css">
     <style>
         .custom-alert-overlay {
             position: fixed;
@@ -67,31 +68,170 @@
         .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
         .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
 
-        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; display: flex; flex-direction: column; }
-        .header { margin-bottom: 2.5rem; }
-        .header h1 { font-size: 2rem; font-weight: 700; }
-        .chat-container { flex: 1; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: grid; grid-template-columns: 320px 1fr; overflow: hidden; }
-        .contacts-list { border-right: 1px solid var(--border); background: #fcfdfe; overflow-y: auto; }
-        .contact-item { padding: 1.25rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; display: flex; gap: 12px; align-items: center; }
-        .contact-item:hover { background: #f1f5f9; }
-        .contact-item.active { background: #eff6ff; border-left: 4px solid var(--primary); }
-        .contact-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
-        .contact-info { flex: 1; overflow: hidden; }
-        .contact-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
-        .contact-last { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .chat-window { display: flex; flex-direction: column; background: white; }
-        .chat-header { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-        .chat-messages { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: #efeae2; }
-        .message { max-width: 70%; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); color: #111b21; position: relative; }
-        .message.received { background: #ffffff; align-self: flex-start; border-top-left-radius: 0; }
-        .message.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
-        .chat-input { padding: 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; position: relative; }
-        .input-box { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; }
-        .ai-btn { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; }
-        .ai-btn:hover { background: #fce7f3; transform: scale(1.05); }
-        .send-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-        .send-btn:hover { background: var(--primary-dark); }
-        .attach-btn { background: #f8fafc; color: var(--text-muted); border: 1px solid var(--border); padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; height: 100%; }
+        .main-content {
+            margin-left: 270px;
+            flex: 1;
+            padding: 2rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .header { margin-bottom: 1.25rem; }
+        .header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; color: #0f172a; margin-bottom: 4px; }
+        .header p { color: var(--text-muted, #64748b); font-size: 0.88rem; font-weight: 500; }
+
+        .chat-container {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid var(--border, #e2e8f0);
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+            display: grid !important;
+            grid-template-columns: 340px 1fr !important;
+            overflow: hidden;
+            min-height: 0;
+            height: calc(100vh - 165px);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .contacts-list {
+            border-right: 1px solid var(--border, #e2e8f0);
+            background: #fcfdfe;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+        #contactsContainer {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .contact-item { padding: 1.1rem 1.25rem; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: 0.15s ease; display: flex; gap: 12px; align-items: center; }
+        .contact-item:hover { background: #f8fafc; }
+        .contact-item.active, .contact-item.selected { background: #eff6ff; border-left: 4px solid var(--primary, #2563eb); }
+        .contact-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--primary, #2563eb); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .contact-info { flex: 1; min-width: 0; overflow: hidden; }
+        .contact-name { font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-last { font-size: 0.78rem; color: var(--text-muted, #64748b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-window {
+            display: flex !important;
+            flex-direction: column !important;
+            background: white;
+            min-width: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            flex: 1;
+        }
+        .chat-header {
+            padding: 1.15rem 1.5rem;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            flex-shrink: 0;
+            min-height: 64px;
+            box-sizing: border-box;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: #f8fafc;
+            min-height: 0;
+            box-sizing: border-box;
+        }
+        .message {
+            max-width: 70%;
+            padding: 0.85rem 1.1rem;
+            border-radius: 14px;
+            font-size: 0.92rem;
+            line-height: 1.45;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: relative;
+            word-wrap: break-word;
+        }
+        .message.received { background: #ffffff; border: 1px solid #e2e8f0; align-self: flex-start; border-bottom-left-radius: 4px; color: #0f172a; }
+        .message.sent { background: #eff6ff; border: 1px solid #bfdbfe; align-self: flex-end; border-bottom-right-radius: 4px; color: #1e3a8a; }
+        .chat-input {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border, #e2e8f0);
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            background: white;
+            position: relative;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+        .input-box {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border, #e2e8f0);
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+        .input-box:focus {
+            background: #ffffff;
+            border-color: var(--primary, #2563eb);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .ai-btn {
+            background: #fdf2f8;
+            color: #db2777;
+            border: 1px solid #fbcfe8;
+            padding: 0 14px;
+            height: 42px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+        .ai-btn:hover { background: #fce7f3; transform: translateY(-1px); }
+        .send-btn {
+            background: var(--primary, #2563eb);
+            color: white;
+            border: none;
+            height: 42px;
+            padding: 0 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .send-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .attach-btn {
+            background: #f8fafc;
+            color: var(--text-muted, #64748b);
+            border: 1px solid var(--border, #e2e8f0);
+            height: 42px;
+            width: 42px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
         .attach-btn:hover { background: #e2e8f0; color: #1e293b; }
 
         .file-pill { background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: #334155; }
@@ -110,25 +250,115 @@
         .mention-avatar { width: 24px; height: 24px; border-radius: 6px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
 
         /* New Filter & Selection Styles */
-        .contacts-header { padding: 1.5rem; border-bottom: 1px solid var(--border); background: white; }
-        .bulk-options { display: flex; gap: 8px; margin-bottom: 1rem; }
-        .bulk-btn { flex: 1; padding: 10px 4px; border-radius: 10px; border: 1px solid var(--border); background: #f8fafc; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.2s; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .bulk-btn i { width: 16px; height: 16px; }
-        .bulk-btn:hover, .bulk-btn.active { background: #eff6ff; color: var(--primary); border-color: var(--primary); }
+        .contacts-header { padding: 1.15rem 1rem; border-bottom: 1px solid var(--border, #e2e8f0); background: white; }
+        .bulk-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 0.85rem; }
+        .bulk-btn {
+            padding: 7px 2px;
+            border-radius: 9px;
+            border: 1px solid var(--border, #e2e8f0);
+            background: #f8fafc;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: var(--text-muted, #64748b);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            min-width: 0;
+        }
+        .bulk-btn i,
+        .bulk-btn svg {
+            width: 15px;
+            height: 15px;
+            stroke-width: 2px;
+        }
+        .bulk-btn span {
+            font-size: 0.68rem;
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .bulk-btn:hover, .bulk-btn.active {
+            background: #eff6ff;
+            color: var(--primary, #2563eb);
+            border-color: var(--primary, #2563eb);
+        }
         
-        .search-filter { position: relative; margin-top: 1rem; }
-        .search-filter input { width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border); font-size: 0.9rem; outline: none; transition: 0.2s; }
-        .search-filter input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
-        .search-filter i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); }
+        .search-filter {
+            position: relative;
+            margin-top: 0.75rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .search-filter input {
+            width: 100%;
+            padding: 9px 36px 9px 36px;
+            border-radius: 12px;
+            border: 1px solid var(--border, #e2e8f0);
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            background: #f8fafc;
+            color: #0f172a;
+            line-height: 1.4;
+        }
+        .search-filter input:focus {
+            background: #ffffff;
+            border-color: var(--primary, #2563eb);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .search-filter i,
+        .search-filter svg.search-icon,
+        .search-filter svg:first-child,
+        .search-filter .search-icon {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #94a3b8;
+            pointer-events: none;
+            z-index: 2;
+        }
         
         .filter-btn { 
-            position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
-            background: white; border: 1px solid var(--border); border-radius: 8px; 
-            padding: 6px; cursor: pointer; color: var(--text-muted); transition: 0.2s;
-            display: flex; align-items: center; justify-content: center;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%); 
+            background: #ffffff;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 8px; 
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            cursor: pointer;
+            color: var(--text-muted, #64748b);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
         }
-        .filter-btn:hover { color: var(--primary); border-color: var(--primary); background: #eff6ff; }
-        .filter-btn i { width: 16px; height: 16px; }
+        .filter-btn:hover {
+            color: var(--primary, #2563eb);
+            border-color: var(--primary, #2563eb);
+            background: #eff6ff;
+        }
+        .filter-btn i,
+        .filter-btn svg {
+            width: 13px;
+            height: 13px;
+            stroke-width: 2px;
+        }
         
         .selection-info { padding: 10px 1.5rem; background: #eff6ff; border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.85rem; animation: slideDown 0.3s ease; }
         .selection-info.active { display: flex; }
@@ -256,63 +486,89 @@
     
 
     <div class="dashboard-container">
-        <aside class="sidebar">
-            <div class="dept-branding">
-                <div class="dept-name" id="sideDeptName">Cybersecurity</div>
-                <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.08);">
-                    Manager: <strong id="sideDeptManager" style="color: var(--text-main);">John Doe</strong>
+                <aside class="sidebar" id="sidebar">
+            <!-- Brand Header matching Admin Console -->
+            <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
+            </a>
+
+            <!-- Top Department Card (Zero-Collision Flex Layout) -->
+            <div class="dept-subcard p-3 my-2">
+                <div class="flex items-start justify-between gap-2">
+                    <h4 class="dept-name font-bold text-slate-800 text-sm truncate" id="sideDeptName">Cybersecurity</h4>
+                    <span class="dept-code text-[10px] font-mono font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0" id="sideDeptCode">UNIT-CYB-802</span>
+                </div>
+                <div class="flex items-center justify-between mt-1">
+                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">John Doe</span></p>
+                    <span class="dept-status-badge">Active</span>
                 </div>
             </div>
             
-            <nav class="nav-menu">
+            <nav class="nav-menu overflow-y-auto pr-1">
                 <div class="nav-label">MY WORKSPACE</div>
-                <div class="nav-item"><a href="#" class="nav-link" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard.html" class="nav-link " id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard.html#upcoming-birthdays" class="nav-link" id="navBirthdaysLink"><i data-lucide="cake"></i><span>Upcoming Birthdays</span></a></div>
+                <div class="nav-item"><a href="manager-calendar.html" class="nav-link " id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="manager-attendance.html" class="nav-link " id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="manager-documents.html" class="nav-link " id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
 
-                <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="manager-console.html" class="nav-link " id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="manager-analysis.html" class="nav-link " id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a href="manager-workforce.html" class="nav-link " id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a href="manager-security.html" class="nav-link " id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a href="manager-performance.html" class="nav-link " id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance (PMS)</span></a></div>
 
-                <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link active" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navTeamLink" onclick="openTeamManager()"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="manager-notification.html" class="nav-link " id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="manager-message.html" class="nav-link active" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navTeamLink" onclick="if(typeof openTeamManager !== 'undefined') openTeamManager();"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
 
-                
-                <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, #2563eb); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
-                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 2rem;"></div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
 
-                <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
-                <div class="nav-item"><a href="manager-policy.html" class="nav-link" id="navPolicyLink"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="manager-assets.html" class="nav-link" id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
-                            </nav>
+                <div class="nav-label">RESOURCES</div>
+                <div class="nav-item"><a href="manager-policy.html" class="nav-link " id="navPolicyLink"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="manager-assets.html" class="nav-link " id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+            </nav>
 
-            <div class="sidebar-footer" style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                <div class="profile-mini">
+            <!-- Bottom Pinned Section with Divider & Utility Links -->
+            <div class="sidebar-bottom mt-auto p-3 border-t border-slate-100">
+                <div class="nav-item">
+                    <a href="manager-dashboard.html" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="manager-security.html" class="nav-link" id="btnSettings">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, #ef4444) !important;">
+                        <i data-lucide="log-out" style="color: var(--danger, #ef4444) !important;"></i>
+                        <span style="color: var(--danger, #ef4444) !important;">Logout</span>
+                    </a>
+                </div>
+                <div class="profile-mini" style="margin-top: 6px;">
                     <div class="avatar" id="userInitial">JD</div>
                     <div class="profile-info">
                         <div class="profile-name" id="userNameDisplay">John Doe</div>
                         <div class="profile-role" id="userRoleDisplay">Cybersecurity Manager</div>
                     </div>
-                    <button onclick="logout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'" title="Sign Out">
-                        <i data-lucide="log-out" size="18"></i>
-                    </button>
                 </div>
             </div>
         </aside>
         <main class="main-content">
-            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
+            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; width: 100%;">
                 <div style="flex: 1;">
                     <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Manager Communications</h1>
                     <p style="color: var(--text-muted); font-weight: 500;">Secure messaging with departments, managers, and personnel</p>
@@ -333,29 +589,29 @@
                 <div class="contacts-list">
                     <div class="contacts-header">
                         <div class="bulk-options">
-                            <button class="bulk-btn" onclick="selectByRole('all')" id="btnAllDept">
+                            <button class="bulk-btn active" onclick="selectByRole('all')" id="btnAllDept" title="All Contacts">
                                 <i data-lucide="layers"></i>
-                                <span>All Depts</span>
+                                <span>All</span>
                             </button>
-                            <button class="bulk-btn" onclick="selectByRole('manager')" id="btnManagers">
+                            <button class="bulk-btn" onclick="selectByRole('manager')" id="btnManagers" title="Managers">
                                 <i data-lucide="shield-check"></i>
                                 <span>Managers</span>
                             </button>
-                            <button class="bulk-btn" onclick="selectByRole('employee')" id="btnEmployees">
+                            <button class="bulk-btn" onclick="selectByRole('employee')" id="btnEmployees" title="Staff / Employees">
                                 <i data-lucide="users"></i>
-                                <span>Employees</span>
+                                <span>Staff</span>
                             </button>
-                            <button class="bulk-btn" onclick="selectByRole('admin')" id="btnAdmins">
+                            <button class="bulk-btn" onclick="selectByRole('admin')" id="btnAdmins" title="Admins">
                                 <i data-lucide="shield"></i>
                                 <span>Admins</span>
                             </button>
-                            <button class="bulk-btn" onclick="selectByRole('team')" id="btnTeams">
+                            <button class="bulk-btn" onclick="selectByRole('team')" id="btnTeams" title="Teams">
                                 <i data-lucide="users-2"></i>
                                 <span>Teams</span>
                             </button>
                         </div>
                         <div class="search-filter">
-                            <i data-lucide="search"></i>
+                            <i data-lucide="search" class="search-icon"></i>
                             <input type="text" id="contactSearch" placeholder="Search people or depts..." oninput="filterContacts()">
                             <button class="filter-btn" id="filterOptionsBtn" title="Filter options" onclick="toggleDeptDropdown(event)">
                                 <i data-lucide="sliders-horizontal"></i>
@@ -376,10 +632,24 @@
                 </div>
                 <div class="chat-window">
                     <div class="chat-header" id="chatWindowHeader">
-                        <p style="color: var(--text-muted)">Select a person to start messaging</p>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: var(--primary, #2563eb);">
+                                <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #0f172a;">Conversations</h4>
+                                <p style="color: var(--text-muted, #64748b); font-size: 0.78rem; margin: 0; font-weight: 500;">Select a contact or team to open messaging</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="chat-messages" id="chatMessages">
-                        <!-- Real-time messages will be streamed here -->
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); text-align: center; padding: 2rem;">
+                            <div style="width: 56px; height: 56px; border-radius: 16px; background: #ffffff; border: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--primary, #2563eb); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                <i data-lucide="messages-square" style="width: 26px; height: 26px;"></i>
+                            </div>
+                            <h3 style="font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">Manager Communications Hub</h3>
+                            <p style="font-size: 0.85rem; max-width: 360px; line-height: 1.5; color: var(--text-muted, #64748b); margin: 0;">Select a team member, employee, or department on the left to start a real-time conversation or broadcast an announcement.</p>
+                        </div>
                     </div>
                     
                     <div id="attachmentPreview" style="padding: 1rem 1.5rem 0; display: none; gap: 8px; flex-wrap: wrap; background: white; border-top: 1px solid var(--border);"></div>
@@ -1249,9 +1519,28 @@
                 }
             } else {
                 selectionInfo.classList.remove('active');
-                chatHeader.innerHTML = `<p style="color: var(--text-muted)">Select a person to start messaging</p>`;
-                chatMessages.innerHTML = '';
+                chatHeader.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: var(--primary, #2563eb);">
+                            <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #0f172a;">Conversations</h4>
+                            <p style="color: var(--text-muted, #64748b); font-size: 0.78rem; margin: 0; font-weight: 500;">Select a contact or team to open messaging</p>
+                        </div>
+                    </div>
+                `;
+                chatMessages.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); text-align: center; padding: 2rem;">
+                        <div style="width: 56px; height: 56px; border-radius: 16px; background: #ffffff; border: 1px solid var(--border, #e2e8f0); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--primary, #2563eb); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <i data-lucide="messages-square" style="width: 26px; height: 26px;"></i>
+                        </div>
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">Manager Communications Hub</h3>
+                        <p style="font-size: 0.85rem; max-width: 360px; line-height: 1.5; color: var(--text-muted, #64748b); margin: 0;">Select a team member, employee, or department on the left to start a real-time conversation or broadcast an announcement.</p>
+                    </div>
+                `;
                 if (unsubscribeMessages) unsubscribeMessages();
+                if (window.lucide) lucide.createIcons();
             }
         }
 
@@ -1444,6 +1733,7 @@
         }
 </script>
 <script type="module" src="./manager-sidebar-sync.js"></script>
+    <script src="sidebar-scrollbar.js"></script>
 </body>
 </html>
 

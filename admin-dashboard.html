@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
+    <link rel="stylesheet" href="sidebar-lock.css">
     <link rel="stylesheet" href="quick-actions.css">
     <script src="lucide.min.js"></script>
     <script>
@@ -362,6 +363,127 @@
         }
         #employeeDataTable tbody tr:hover {
             background-color: var(--bg-soft);
+        }
+
+        /* Custom Directory Filter & Pagination Controls */
+        .filter-control-select {
+            padding: 9px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            background: white;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+        .filter-control-select:focus, .filter-control-select:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .pagination-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-main);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+        }
+        .pagination-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .btn-reset-filters {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px dashed var(--border);
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-reset-filters:hover {
+            background: #fee2e2;
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+        .pill-size-btn {
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid #bfdbfe;
+            background: white;
+            color: var(--text-main);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            line-height: 1.2;
+        }
+        .pill-size-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eff6ff;
+        }
+        .pill-size-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+        }
+        .view-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            line-height: 1.2;
+        }
+        .view-toggle-btn:hover {
+            color: var(--primary);
+            background: #eff6ff;
+        }
+        .view-toggle-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
         }
         
         /* Badges style overrides */
@@ -1008,7 +1130,7 @@
                 <div class="nav-label">MAIN MENU</div>
                 <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
                 <div class="nav-item"><a href="admin-dashboard.html" class="nav-link active"><i data-lucide="shield-check"></i><span>Super Admin Console</span></a></div>
-                <div class="nav-item"><a href="admin-pms.html" class="nav-link"><i data-lucide="target"></i><span>PMS Cycles</span></a></div>
+                <div class="nav-item"><a href="admin-pms.html" class="nav-link"><i data-lucide="target"></i><span>PMS Cycle Engine</span></a></div>
                 <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
                 <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
                 <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
@@ -1274,25 +1396,91 @@
 
             <!-- Personnel Directory Table Section (Visible by default) -->
             <div id="employeeDataTable" style="display: block; margin-top: 2.5rem; background: white; padding: 2.25rem; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                <!-- Search and Filters Bar -->
-                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <div style="position: relative; width: 280px;">
-                        <input type="text" id="empSearch" placeholder="Search employees..." style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.85rem; background: white; transition: 0.2s;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';" />
-                        <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 16px; height: 16px;"></i>
+                <!-- Search, Filters and Member Customization Bar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                        <!-- Filter Option 1: Department Filter (Includes all latest departments dynamically aggregated) -->
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <select id="filterDept" class="filter-control-select" style="min-width: 185px; font-weight: 700;" title="Filter by Department (Latest)">
+                                <option value="">All Departments (Latest)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter Option 2: Role Filter -->
+                        <select id="filterRole" class="filter-control-select" style="min-width: 130px;" title="Filter by Role">
+                            <option value="">All Roles</option>
+                            <option value="employee">Employee</option>
+                            <option value="manager">Manager</option>
+                            <option value="hradmin">HR Admin</option>
+                            <option value="superadmin">Super Admin</option>
+                        </select>
+
+                        <!-- Filter Option 3: Status Filter -->
+                        <select id="filterStatus" class="filter-control-select" style="min-width: 140px;" title="Filter by Status">
+                            <option value="">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Pending Invite">Pending Invite</option>
+                            <option value="Invite Sent">Invite Sent</option>
+                            <option value="Onboarding Started">Onboarding Started</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Suspended">Suspended</option>
+                            <option value="Trash">Trash</option>
+                        </select>
+
+                        <!-- Search Input -->
+                        <div style="position: relative; width: 250px;">
+                            <input type="text" id="empSearch" placeholder="Search employees by name, email, ID..." style="width: 100%; padding: 10px 14px 10px 38px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; font-size: 0.85rem; background: white; transition: 0.2s;" onfocus="this.style.borderColor='var(--primary)';" onblur="this.style.borderColor='var(--border)';" />
+                            <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 16px; height: 16px;"></i>
+                        </div>
+
+                        <!-- Reset Filters Button -->
+                        <button type="button" id="btnResetFilters" class="btn-reset-filters" style="display: none;" title="Clear and reset all filters">
+                            <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+                            <span>Reset</span>
+                        </button>
                     </div>
-                    
-                    <select id="filterDept" style="padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; background: white; min-width: 160px;"></select>
-                    
-                    <select id="filterRole" style="padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none; background: white; min-width: 140px;">
-                        <option value="">All Roles</option>
-                        <option value="employee">Employee</option>
-                        <option value="manager">Manager</option>
-                        <option value="hradmin">HR Admin</option>
-                        <option value="superadmin">Super Admin</option>
-                    </select>
+
+                    <!-- Display Layout & Count Control Bar -->
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; background: #f0f7ff; padding: 6px 12px; border-radius: 14px; border: 1px solid #bfdbfe;" title="Display layout, view mode & pagination batch limit">
+                        <span style="font-size: 0.8rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                            <i data-lucide="layout" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                            How would you like to view employees?
+                        </span>
+                        
+                        <!-- View Mode Toggle (Table vs Cards) -->
+                        <div class="view-mode-toggle" style="display: inline-flex; background: white; padding: 2px; border-radius: 10px; border: 1px solid #bfdbfe; gap: 2px;">
+                            <button type="button" id="btnViewTable" class="view-toggle-btn active" onclick="window.setEmployeeViewMode('table')" title="Table View">
+                                <i data-lucide="list" style="width: 14px; height: 14px;"></i>
+                                <span>Table</span>
+                            </button>
+                            <button type="button" id="btnViewCards" class="view-toggle-btn" onclick="window.setEmployeeViewMode('cards')" title="Card View">
+                                <i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i>
+                                <span>Cards</span>
+                            </button>
+                        </div>
+
+                        <div class="page-size-pills" style="display: flex; gap: 4px; align-items: center;">
+                            <button type="button" class="pill-size-btn" data-size="10" onclick="window.setPageSize('10')" title="Show 10 rows per page">10</button>
+                            <button type="button" class="pill-size-btn" data-size="20" onclick="window.setPageSize('20')" title="Show 20 rows per page">20</button>
+                            <button type="button" class="pill-size-btn" data-size="50" onclick="window.setPageSize('50')" title="Show 50 rows per page">50</button>
+                            <button type="button" class="pill-size-btn" data-size="100" onclick="window.setPageSize('100')" title="Show 100 rows per page">100</button>
+                            <button type="button" class="pill-size-btn" data-size="all" onclick="window.setPageSize('all')" title="Show all rows">All</button>
+                        </div>
+                        <select id="filterPageSize" class="filter-control-select" style="min-width: 135px; font-weight: 700; color: var(--primary); border-color: #93c5fd; background: white;" title="Select rows per page to control pagination">
+                            <option value="10">10 per page</option>
+                            <option value="20">20 per page</option>
+                            <option value="50">50 per page</option>
+                            <option value="100">100 per page</option>
+                            <option value="all">All employees</option>
+                        </select>
+                        <span id="tableCountBadge" style="background: white; color: var(--primary); font-size: 0.75rem; font-weight: 800; padding: 6px 12px; border-radius: 10px; border: 1px solid #bfdbfe; white-space: nowrap;" title="Currently displayed range of total records">
+                            Loading...
+                        </span>
+                    </div>
                 </div>
 
-                <div style="overflow-x: auto;">
+                <!-- Table View Container -->
+                <div id="employeeTableView" style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                         <thead>
                             <tr style="border-bottom: 2px solid var(--border); color: var(--text-muted); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -1319,6 +1507,21 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Card View Container (Visible when viewMode === 'cards') -->
+                <div id="employeeCardGrid" style="display: none; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.25rem;">
+                    <!-- Dynamically populated by admin-app.js -->
+                </div>
+
+                <!-- Pagination Navigation Footer -->
+                <div id="employeePagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 1rem;">
+                    <div id="paginationSummary" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">
+                        Showing <strong style="color: var(--text-main);" id="pageRangeText">0</strong> of <strong style="color: var(--text-main);" id="pageTotalText">0</strong> members
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;" id="paginationControls">
+                        <!-- Dynamic page buttons injected here -->
+                    </div>
                 </div>
             </div>
         </main>
@@ -1754,7 +1957,7 @@
                                     <span id="empDocSelectedFileName" style="font-size: 0.8rem; font-weight: 700; color: #1e40af;"></span>
                                 </div>
                                 <button type="button" id="btnUploadEmpDoc" class="btn btn-primary" onclick="EmployeeProfileController.uploadDocument()" style="padding: 6px 14px; font-size: 0.78rem;" disabled>
-                                    <i data-lucide="cloud-upload"></i> Upload to Firebase Storage
+                                    <i data-lucide="upload-cloud"></i> Upload to Firebase Storage
                                 </button>
                             </div>
 

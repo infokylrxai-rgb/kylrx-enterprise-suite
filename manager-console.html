@@ -133,7 +133,7 @@
             display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.3s; margin-bottom: 6px;
         }
         .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
-        .nav-link.active { background: var(--primary); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25); }
+        
 
         .sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
         .profile-mini { margin-top: auto; background: var(--primary-light, #eff6ff); padding: 0.85rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, #e2e8f0); }
@@ -225,6 +225,7 @@
             height: 24px;
         }
     </style>
+    <link rel="stylesheet" href="sidebar-lock.css">
 </head>
 <body>
     
@@ -357,57 +358,84 @@
     </div>
 
     <div class="layout">
-        <aside class="sidebar">
-            <div class="dept-branding">
-                <div class="dept-name" id="sideDeptName">Cybersecurity</div>
-                <div class="dept-code" id="sideDeptCode">CYB-UNIT</div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.08);">
-                    Manager: <strong id="sideDeptManager" style="color: var(--text-main);">John Doe</strong>
+                <aside class="sidebar" id="sidebar">
+            <!-- Brand Header matching Admin Console -->
+            <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
+            </a>
+
+            <!-- Top Department Card (Zero-Collision Flex Layout) -->
+            <div class="dept-subcard p-3 my-2">
+                <div class="flex items-start justify-between gap-2">
+                    <h4 class="dept-name font-bold text-slate-800 text-sm truncate" id="sideDeptName">Cybersecurity</h4>
+                    <span class="dept-code text-[10px] font-mono font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0" id="sideDeptCode">UNIT-CYB-802</span>
+                </div>
+                <div class="flex items-center justify-between mt-1">
+                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">John Doe</span></p>
+                    <span class="dept-status-badge">Active</span>
                 </div>
             </div>
             
-            <nav class="nav-menu">
+            <nav class="nav-menu overflow-y-auto pr-1">
                 <div class="nav-label">MY WORKSPACE</div>
-                <div class="nav-item"><a href="#" class="nav-link active" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard.html" class="nav-link " id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard.html#upcoming-birthdays" class="nav-link" id="navBirthdaysLink"><i data-lucide="cake"></i><span>Upcoming Birthdays</span></a></div>
+                <div class="nav-item"><a href="manager-calendar.html" class="nav-link " id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="manager-attendance.html" class="nav-link " id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="manager-documents.html" class="nav-link " id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
 
-                <div class="nav-label" style="margin-top: 2rem;">INTELLIGENCE</div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navConsoleLink" class="nav-link active"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
-                <div class="nav-item"><a class="nav-link" href="#" id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance</span></a></div>
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="manager-console.html" class="nav-link active" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="manager-analysis.html" class="nav-link " id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a href="manager-workforce.html" class="nav-link " id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a href="manager-security.html" class="nav-link " id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a href="manager-performance.html" class="nav-link " id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance (PMS)</span></a></div>
 
-                <div class="nav-label" style="margin-top: 2rem;">OPERATIONS</div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="openTeamManager()"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="manager-notification.html" class="nav-link " id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="manager-message.html" class="nav-link " id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" id="navTeamLink" onclick="if(typeof openTeamManager !== 'undefined') openTeamManager();"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
 
-                <div class="nav-label" style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="if(typeof openAppRegistryModal !== 'undefined') { openAppRegistryModal(); } else { window.location.href=new URLSearchParams(window.location.search).get('id') ? `manager-dashboard.html?id=${new URLSearchParams(window.location.search).get('id')}` : 'manager-dashboard.html'; }" style="background: none; border: none; color: var(--primary, #2563eb); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
                 <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
 
-                <div class="nav-label" style="margin-top: 2rem;">RESOURCES</div>
-                <div class="nav-item"><a href="manager-policy.html" class="nav-link" id="navPolicyLink"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="manager-assets.html" class="nav-link" id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
-                            </nav>
+                <div class="nav-label">RESOURCES</div>
+                <div class="nav-item"><a href="manager-policy.html" class="nav-link " id="navPolicyLink"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="manager-assets.html" class="nav-link " id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+            </nav>
 
-            <div class="sidebar-footer" style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                <div class="profile-mini">
+            <!-- Bottom Pinned Section with Divider & Utility Links -->
+            <div class="sidebar-bottom mt-auto p-3 border-t border-slate-100">
+                <div class="nav-item">
+                    <a href="manager-dashboard.html" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="manager-security.html" class="nav-link" id="btnSettings">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" onclick="logout()" style="color: var(--danger, #ef4444) !important;">
+                        <i data-lucide="log-out" style="color: var(--danger, #ef4444) !important;"></i>
+                        <span style="color: var(--danger, #ef4444) !important;">Logout</span>
+                    </a>
+                </div>
+                <div class="profile-mini" style="margin-top: 6px;">
                     <div class="avatar" id="userInitial">JD</div>
                     <div class="profile-info">
                         <div class="profile-name" id="userNameDisplay">John Doe</div>
                         <div class="profile-role" id="userRoleDisplay">Cybersecurity Manager</div>
                     </div>
-                    <button onclick="logout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'" title="Sign Out">
-                        <i data-lucide="log-out" size="18"></i>
-                    </button>
                 </div>
             </div>
         </aside>
@@ -1672,6 +1700,7 @@ window.viewTeam = async (id) => {
         </div>
     </div>
     <script type="module" src="./manager-sidebar-sync.js"></script>
+    <script src="sidebar-scrollbar.js"></script>
 </body>
 </html>
 

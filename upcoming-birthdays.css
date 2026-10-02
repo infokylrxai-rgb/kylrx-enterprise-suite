@@ -1,0 +1,728 @@
+/* ===== UPCOMING BIRTHDAYS WIDGET - KYLRX ENTERPRISE SUITE ===== */
+
+.birthday-panel {
+    background: #ffffff;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.birthday-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%);
+    opacity: 0.9;
+}
+
+/* --- Header Section --- */
+.birthday-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border, #f1f5f9);
+}
+
+.birthday-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.birthday-icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+    color: #db2777;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    box-shadow: 0 4px 12px rgba(219, 39, 119, 0.15);
+    border: 1px solid rgba(219, 39, 119, 0.2);
+}
+
+.birthday-title-text h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-main, #0f172a);
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.birthday-title-text p {
+    font-size: 0.8rem;
+    color: var(--text-muted, #64748b);
+    margin: 2px 0 0;
+    font-weight: 500;
+}
+
+/* --- Month Selector & Controls --- */
+.birthday-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.month-stepper {
+    display: inline-flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 12px;
+    padding: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.month-step-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #64748b);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.month-step-btn:hover {
+    background: #ffffff;
+    color: var(--text-main, #0f172a);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.month-select {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+}
+
+.btn-today-jump {
+    padding: 7px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary, #3b82f6);
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-today-jump:hover {
+    background: var(--primary, #3b82f6);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.btn-view-all-modal {
+    padding: 7px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-view-all-modal:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* --- Summary Cards Grid --- */
+.birthday-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.bday-summary-card {
+    background: #fafafa;
+    border: 1px solid var(--border, #f1f5f9);
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.bday-summary-card:hover {
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+.bday-sum-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.15rem;
+}
+
+.bday-sum-icon.pink { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; }
+.bday-sum-icon.amber { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.bday-sum-icon.blue { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.bday-sum-icon.purple { background: #faf5ff; color: #9333ea; border: 1px solid #e9d5ff; }
+
+.bday-sum-details {
+    min-width: 0;
+    flex: 1;
+}
+
+.bday-sum-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted, #64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.bday-sum-val {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-main, #0f172a);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bday-sum-sub {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Pulsing Badge for Today's Birthday count */
+.today-pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    animation: bdayPulse 1.5s infinite;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+@keyframes bdayPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* --- Grouped Birthday Cards Container --- */
+.birthday-groups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.birthday-date-group {
+    background: #f8fafc;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 16px;
+    padding: 1.25rem;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.birthday-date-group.is-today-group {
+    background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 50%, #fef2f2 100%);
+    border: 2px solid #f59e0b;
+    box-shadow: 0 8px 24px -4px rgba(245, 158, 11, 0.2);
+}
+
+.birthday-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.group-date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-main, #0f172a);
+}
+
+.group-date-badge i {
+    color: #6366f1;
+}
+
+.group-countdown-pill {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.group-countdown-pill.today {
+    background: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    animation: bdayShine 2s infinite;
+}
+
+.group-countdown-pill.upcoming {
+    background: #e0e7ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+}
+
+.group-countdown-pill.passed {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+@keyframes bdayShine {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.15); }
+    100% { filter: brightness(1); }
+}
+
+/* --- Cards Grid inside each Date Group --- */
+.birthday-members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.birthday-member-card {
+    background: #ffffff;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 14px;
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.birthday-member-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+}
+
+.birthday-member-card.is-today-card {
+    border: 2px solid #f59e0b;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.18);
+}
+
+.bday-today-banner {
+    position: absolute;
+    top: -10px;
+    right: 14px;
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.member-top-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.85rem;
+}
+
+.bday-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    border: 2px solid #ffffff;
+}
+
+.bday-member-details {
+    min-width: 0;
+    flex: 1;
+}
+
+.bday-member-name {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--text-main, #0f172a);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.bday-member-role {
+    font-size: 0.74rem;
+    color: var(--text-muted, #64748b);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bday-member-dept {
+    font-size: 0.7rem;
+    color: #6366f1;
+    font-weight: 700;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.member-bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+}
+
+.bday-date-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f8fafc;
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.bday-countdown-tag {
+    font-size: 0.74rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.bday-countdown-tag.tag-today {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    animation: bdayBounce 2s infinite;
+}
+
+.bday-countdown-tag.tag-upcoming {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.bday-countdown-tag.tag-passed {
+    background: #f8fafc;
+    color: #94a3b8;
+    border: 1px solid #e2e8f0;
+}
+
+@keyframes bdayBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+/* Action button for sending birthday wish */
+.btn-wish-action {
+    margin-top: 0.75rem;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #ffffff;
+    background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+    transition: all 0.2s ease;
+}
+
+.btn-wish-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.35);
+    filter: brightness(1.05);
+}
+
+/* --- Empty State --- */
+.birthday-empty-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    background: #f8fafc;
+    border-radius: 16px;
+    border: 1px dashed var(--border, #cbd5e1);
+}
+
+.birthday-empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: #f1f5f9;
+    color: #94a3b8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.birthday-empty-state h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    margin-bottom: 4px;
+}
+
+.birthday-empty-state p {
+    font-size: 0.82rem;
+    color: var(--text-muted, #64748b);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* --- Birthday Wish Modal --- */
+.bday-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 1rem;
+}
+
+.bday-modal-card {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border, #e2e8f0);
+    overflow: hidden;
+    animation: bdayModalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bdayModalPop {
+    from { transform: scale(0.9) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.bday-modal-header {
+    padding: 1.5rem 1.75rem;
+    background: linear-gradient(135deg, #fdf2f8 0%, #fef3c7 100%);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bday-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bday-modal-title h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #831843;
+    margin: 0;
+}
+
+.bday-modal-body {
+    padding: 1.75rem;
+}
+
+.bday-recipient-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.bday-quick-picks {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 1.25rem;
+}
+
+.bday-pick-btn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #334155;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.bday-pick-btn:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+}
+
+.bday-wish-textarea {
+    width: 100%;
+    height: 100px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    color: #0f172a;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.bday-wish-textarea:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.bday-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+/* Confetti particles */
+.confetti-particle {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    z-index: 100000;
+    animation: confettiFall 2.5s ease-out forwards;
+}
+
+@keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1024px) {
+    .birthday-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .birthday-summary-grid {
+        grid-template-columns: 1fr;
+    }
+    .birthday-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .birthday-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .birthday-members-grid {
+        grid-template-columns: 1fr;
+    }
+}

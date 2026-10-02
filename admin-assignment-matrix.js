@@ -851,7 +851,7 @@ async function applySimulatedTransition() {
                 <div class="center-modal-list-item">
                     <span class="item-label">Cloud Firestore</span>
                     <span class="item-val" style="color: #059669; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
-                        <i data-lucide="cloud-check" size="14"></i> Connected &amp; Synchronized
+                        <i data-lucide="cloud" size="14"></i> Connected &amp; Synchronized
                     </span>
                 </div>
             </div>

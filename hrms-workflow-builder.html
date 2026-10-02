@@ -80,195 +80,7 @@
             overflow: hidden;
         }
 
-        /* ─── HRMS SIDEBAR NAVIGATION ─── */
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background: #ffffff;
-            border-right: 1px solid #e2e8f0;
-            padding: 1.5rem 1.1rem 1rem;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 100;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            box-shadow: 2px 0 16px rgba(15, 23, 42, 0.04);
-        }
-
-        .sidebar .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 1.5rem;
-            text-decoration: none;
-            padding-left: 0.4rem;
-        }
-
-        .sidebar .logo img {
-            height: 36px;
-            width: 36px;
-            object-fit: contain;
-            border-radius: 10px;
-        }
-
-        .sidebar .logo-text {
-            font-size: 1.25rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            color: #0f172a;
-        }
-
-        .sidebar .logo-text span {
-            color: #4f46e5;
-        }
-
-        .hrms-badge-tag {
-            font-size: 0.65rem;
-            font-weight: 800;
-            background: #eef2ff;
-            color: #4f46e5;
-            padding: 2px 8px;
-            border-radius: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-left: 4px;
-        }
-
-        .nav-menu {
-            flex: 1;
-            list-style: none;
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-label {
-            font-size: 0.68rem;
-            font-weight: 800;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin: 1.1rem 0 0.4rem 0.6rem;
-        }
-
-        .nav-item {
-            margin-bottom: 4px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            padding: 9px 12px;
-            color: #475569;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            border-radius: 12px;
-            transition: var(--transition);
-        }
-
-        .nav-link:hover {
-            background: #f1f5f9;
-            color: var(--primary);
-            transform: translateX(3px);
-        }
-
-        .nav-link.active {
-            background: #eef2ff !important;
-            color: #4f46e5 !important;
-            font-weight: 700;
-            position: relative;
-        }
-
-        .nav-link.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 20%;
-            bottom: 20%;
-            width: 3.5px;
-            background: #4f46e5;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .nav-link i, .nav-link svg {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-            color: #64748b;
-        }
-
-        .nav-link.active i, .nav-link.active svg {
-            color: #4f46e5 !important;
-        }
-
-        .sidebar-bottom {
-            padding-top: 0.8rem;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .profile-mini {
-            margin-top: auto;
-            background: #eff6ff;
-            padding: 0.75rem 0.85rem;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        }
-
-        .profile-mini .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: var(--primary-blue, #2563eb);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            color: white;
-            font-size: 0.82rem;
-            flex-shrink: 0;
-        }
-
-        .profile-mini .profile-name {
-            font-size: 0.82rem;
-            font-weight: 700;
-            white-space: nowrap;
-            color: #0f172a;
-            line-height: 1.25;
-        }
-
-        .profile-mini .profile-role {
-            font-size: 0.68rem;
-            color: #64748b;
-            font-weight: 600;
-            white-space: nowrap;
-            line-height: 1.2;
-            letter-spacing: -0.2px;
-        }
-
-        .profile-mini .btn-logout-mini {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px;
-            border-radius: 6px;
-            transition: 0.2s;
-        }
-
-        .profile-mini .btn-logout-mini:hover {
-            color: #ef4444;
-            background: #fee2e2;
-        }
+        /* Sidebar layout deferred to sidebar-lock.css + hrms-sidebar-polish.css */
 
         /* ─── MAIN LAYOUT ─── */
         .main-wrapper {
@@ -923,6 +735,8 @@
             to { transform: translateX(0); opacity: 1; }
         }
     </style>
+    <link rel="stylesheet" href="sidebar-lock.css">
+    <link rel="stylesheet" href="hrms-sidebar-polish.css">
 </head>
 <body>
 
@@ -1327,5 +1141,6 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js"></script>
     <script src="hrms-workflow-builder.js"></script>
     <script type="module" src="./hrms-sidebar-sync.js"></script>
+    <script src="sidebar-scrollbar.js"></script>
 </body>
 </html>

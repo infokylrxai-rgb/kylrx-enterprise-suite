@@ -16,6 +16,21 @@ let state = {
     backendAlerted: false
 };
 
+const employeeTableState = {
+    currentPage: 1,
+    pageSize: (() => {
+        const saved = localStorage.getItem('admin_emp_page_size');
+        if (saved === 'all') return 'all';
+        const num = parseInt(saved, 10);
+        return [10, 20, 50, 100].includes(num) ? num : 10;
+    })(),
+    viewMode: (() => {
+        const saved = localStorage.getItem('admin_emp_view_mode');
+        return saved === 'cards' ? 'cards' : 'table';
+    })(),
+    filteredTotal: 0
+};
+
 const AVAILABLE_WIDGETS = [
     { id: 'stats', title: 'System Overview', icon: 'activity', size: 'w-full' },
     { id: 'productivity', title: 'Productivity Analytics', icon: 'trending-up', size: 'w-lg' },
@@ -984,6 +999,7 @@ async function loadEmployees() {
                     return getTime(b.createdAt) - getTime(a.createdAt);
                 });
 
+                updateDeptSelects();
                 renderEmployeeTable(state.employees);
                 updateStats();
                 populateManagerDropdowns();
@@ -1155,32 +1171,100 @@ async function populateManagerDropdowns() {
 window.populateManagerDropdowns = populateManagerDropdowns;
 
 function updateDeptSelects() {
-    const selects = [document.getElementById('deptSelect'), document.getElementById('filterDept')];
-    selects.forEach(select => {
-        if (!select) return;
-        const isFilter = select.id === 'filterDept';
-        select.innerHTML = isFilter ? '<option value="">All Departments</option>' : '<option value="">Select Department</option>';
-        
-        // Add HRMS as a primary department option
+    const deptSelect = document.getElementById('deptSelect');
+    if (deptSelect) {
+        deptSelect.innerHTML = '<option value="">Select Department</option>';
         const hrmsOpt = document.createElement('option');
         hrmsOpt.value = 'hrms';
         hrmsOpt.textContent = 'HRMS Core (SYSTEM)';
-        select.appendChild(hrmsOpt);
+        deptSelect.appendChild(hrmsOpt);
 
         state.departments.forEach(dept => {
-            const opt = document.createElement('option');
             const deptName = dept.name || dept.departmentName || 'Unnamed';
             const deptCode = dept.unitId || dept.departmentCode || 'UNIT';
             const deptId = dept.departmentId || dept.id || dept.unitId;
-            
-            // Skip if it's already hrms to avoid duplicates
             if (deptId === 'hrms') return;
-
+            const opt = document.createElement('option');
             opt.value = deptId;
             opt.textContent = `${deptName} (${deptCode})`;
-            select.appendChild(opt);
+            deptSelect.appendChild(opt);
         });
-    });
+    }
+
+    // Dynamic aggregation of all latest departments for directory filter
+    const filterDept = document.getElementById('filterDept');
+    if (filterDept) {
+        const curVal = filterDept.value;
+        const deptMap = new Map();
+
+        // 1. Add from state.departments
+        state.departments.forEach(dept => {
+            const id = dept.departmentId || dept.id || dept.unitId;
+            const name = dept.name || dept.departmentName || id;
+            const code = dept.unitId || dept.departmentCode || '';
+            if (id) {
+                deptMap.set(id.toLowerCase(), { id, name, code, count: 0 });
+            }
+        });
+
+        // Ensure HRMS Core exists
+        if (!deptMap.has('hrms')) {
+            deptMap.set('hrms', { id: 'hrms', name: 'Human Resources', code: 'GEN', count: 0 });
+        }
+
+        // 2. Add departments present on state.employees (including latest created depts)
+        (state.employees || []).forEach(emp => {
+            const empDeptName = (emp.departmentName || emp.department || '').trim();
+            const empDeptId = (emp.departmentId || '').trim();
+            const empDeptCode = (emp.departmentCode || '').trim();
+            
+            // Check if existing item in deptMap matches by id or name
+            let existing = null;
+            if (empDeptId && deptMap.has(empDeptId.toLowerCase())) {
+                existing = deptMap.get(empDeptId.toLowerCase());
+            } else if (empDeptName) {
+                for (const item of deptMap.values()) {
+                    if (item.name.toLowerCase() === empDeptName.toLowerCase() || 
+                        item.id.toLowerCase() === empDeptName.toLowerCase()) {
+                        existing = item;
+                        break;
+                    }
+                }
+            }
+
+            if (existing) {
+                existing.count++;
+                if (!existing.code && empDeptCode) existing.code = empDeptCode;
+            } else {
+                const effectiveName = empDeptName || empDeptId;
+                if (effectiveName) {
+                    const newDept = {
+                        id: empDeptId || empDeptName,
+                        name: effectiveName,
+                        code: empDeptCode,
+                        count: 1
+                    };
+                    deptMap.set((empDeptId || empDeptName).toLowerCase(), newDept);
+                }
+            }
+        });
+
+        // 3. Render department options with member counts
+        const totalEmps = state.employees ? state.employees.length : 0;
+        let optHtml = `<option value="">All Departments (${totalEmps})</option>`;
+        Array.from(deptMap.values())
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .forEach(d => {
+                const label = d.code ? `${d.name} (${d.code})` : d.name;
+                const countStr = d.count > 0 ? ` [${d.count}]` : '';
+                optHtml += `<option value="${d.id}">${label}${countStr}</option>`;
+            });
+
+        filterDept.innerHTML = optHtml;
+        if (curVal && Array.from(filterDept.options).some(o => o.value.toLowerCase() === curVal.toLowerCase())) {
+            filterDept.value = curVal;
+        }
+    }
 
     updateSubDepartmentsForSelectedDept();
 }
@@ -1206,11 +1290,30 @@ function updateStats() {
 }
 
 function renderEmployeeTable(employees) {
+    if (employees && Array.isArray(employees) && employees !== state.employees) {
+        state.employees = employees;
+    }
+    applyFilters();
+}
+window.renderEmployeeTable = renderEmployeeTable;
+
+function renderEmployeeTableRows(employees) {
     const tableBody = document.getElementById('employee-table-body');
     if (!tableBody) return;
 
-    if (employees.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:3rem; color:var(--text-muted);">No personnel found.</td></tr>';
+    if (!employees || employees.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="11" style="text-align:center; padding:3.5rem 1rem; color:var(--text-muted);">
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <i data-lucide="users" style="width:36px; height:36px; color:#cbd5e1;"></i>
+                        <div style="font-weight:700; font-size:0.95rem; color:var(--text-main);">No matching personnel records</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); max-width:320px;">Try adjusting your search query, department, or role filters to find what you're looking for.</div>
+                    </div>
+                </td>
+            </tr>
+        `;
+        if (window.lucide) lucide.createIcons();
         return;
     }
 
@@ -1333,6 +1436,396 @@ function renderEmployeeTable(employees) {
     if (window.lucide) lucide.createIcons();
 }
 
+function renderEmployeeCards(employees) {
+    const cardGrid = document.getElementById('employeeCardGrid');
+    if (!cardGrid) return;
+
+    if (!employees || employees.length === 0) {
+        cardGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3.5rem 1rem; color: var(--text-muted); background: #f8fafc; border-radius: 18px; border: 1px dashed var(--border);">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <i data-lucide="users" style="width: 36px; height: 36px; color: #cbd5e1;"></i>
+                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);">No matching personnel records</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); max-width: 320px;">Try adjusting your search query, department, or role filters to find what you're looking for.</div>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+    }
+
+    cardGrid.innerHTML = employees.map(emp => {
+        const getStatusColor = (status) => {
+            switch(status) {
+                case 'Suspended': return '#ef4444';
+                case 'Trash': return '#64748b';
+                case 'Pending Invite': return '#f59e0b';
+                case 'Invite Sent': return '#3b82f6';
+                case 'Invitation Sent': return '#f59e0b';
+                case 'Onboarding Started': return '#3b82f6';
+                case 'Completed': return '#10b981';
+                default: return '#10b981';
+            }
+        };
+        const displayStatus = emp.invite_status === 'pending' ? 'Pending Invite' : 
+                              emp.invite_status === 'sent' && (!emp.status || emp.status === 'Completed' || emp.status === 'Active' || emp.status === 'Available (Offline)') ? 'Invite Sent' :
+                              emp.status || 'Active';
+        const statusColor = getStatusColor(displayStatus);
+        const isTrashed = displayStatus === 'Trash';
+        const isManager = (emp.role || '').toLowerCase() === 'manager';
+        const l1Id = emp.reportingManagerId || emp.managers?.l1ManagerId || emp['Reporting_Manager_ID'] || '';
+        const l2Id = emp.secondaryManagerId || emp.managers?.l2ManagerId || emp['Secondary_Manager_ID'] || '';
+
+        const resolveMgrDisplay = (mId) => {
+            if (!mId || mId === 'NONE' || mId === 'Unassigned') return 'Not Assigned';
+            const match = employees.find(e => (e.employeeId === mId || e.id === mId || e.uid === mId));
+            return match ? `${match.fullName || match.name} (${match.employeeId || match.id || mId})` : mId;
+        };
+
+        const l1Display = resolveMgrDisplay(l1Id);
+        const l2Display = resolveMgrDisplay(l2Id);
+
+        const roleBg = isManager ? '#fee2e2' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#e0e7ff' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#fce7f3' : '#dcfce7'));
+        const roleColor = isManager ? '#ef4444' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#4338ca' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#db2777' : '#10b981'));
+        const roleLabel = (emp.role || 'employee').toLowerCase() === 'hradmin' ? 'HR ADMIN' : (emp.role || 'employee').toUpperCase();
+
+        return `
+            <div class="employee-card" style="background: white; border: 1px solid var(--border); border-radius: 18px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease; ${isTrashed ? 'opacity: 0.65; background: rgba(239, 68, 68, 0.02);' : ''}" onmouseenter="this.style.boxShadow='var(--shadow-md)'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.boxShadow='var(--shadow-sm)'; this.style.transform='none';">
+                
+                <!-- Card Header -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                            <div style="width: 40px; height: 40px; flex-shrink: 0; background: ${isManager ? 'var(--primary-light)' : '#f1f5f9'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; color: ${isManager ? 'var(--primary)' : '#64748b'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : '#e2e8f0'};">
+                                ${emp.name ? emp.name.split(' ').map(n => n[0]).join('') : '??'}
+                            </div>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 800; font-size: 0.92rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${emp.name || 'N/A'}">
+                                    ${emp.name || 'N/A'}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${emp.email || 'N/A'}">
+                                    ${emp.email || 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 5px; font-weight: 700; font-size: 0.7rem; color: ${statusColor}; flex-shrink: 0; background: ${statusColor}15; padding: 2px 7px; border-radius: 20px;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusColor};"></span>
+                            ${displayStatus}
+                        </div>
+                    </div>
+
+                    <!-- Role, ID & Department Tags -->
+                    <div style="display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 0.75rem;">
+                        <span class="badge" style="background: ${roleBg}; color: ${roleColor}; font-weight: 800; font-size: 0.65rem;">
+                            ${roleLabel}
+                        </span>
+                        <span style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #475569; background: #f1f5f9; padding: 2px 7px; border-radius: 6px; border: 1px solid #e2e8f0;" title="Employee ID">
+                            ${emp.employeeId || emp.uid?.substring(0,6) || 'N/A'}
+                        </span>
+                        <span style="font-size: 0.74rem; font-weight: 600; color: #3b82f6; background: #eff6ff; padding: 2px 8px; border-radius: 6px; border: 1px solid #dbeafe;" title="Department">
+                            ${emp.departmentName || emp.department || 'N/A'}
+                        </span>
+                    </div>
+
+                    <!-- Details Box -->
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 9px 11px; border: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 5px; font-size: 0.76rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                            <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Reporting L1:</span>
+                            <span style="font-weight: 600; color: #1e293b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l1Display}">${l1Display}</span>
+                        </div>
+                        ${l2Id ? `
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                            <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Reporting L2:</span>
+                            <span style="font-weight: 600; color: #64748b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l2Display}">${l2Display}</span>
+                        </div>
+                        ` : ''}
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                            <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Salary:</span>
+                            <span style="font-weight: 700; color: var(--text-main);">₹${Number(emp.salary || 0).toLocaleString()}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                            <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Contact:</span>
+                            <span style="font-weight: 500; color: var(--text-muted);">${emp.phone || '---'}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                            <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Joined:</span>
+                            <span style="font-weight: 500; color: var(--text-muted);">${emp.joiningDate ? new Date(emp.joiningDate).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : '---'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer / Quick Actions -->
+                <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px;">
+                    <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Actions</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="btn-action" onclick="window.ManagerAssignmentController ? window.ManagerAssignmentController.openAssignmentModal('${emp.id}') : (window.openEditModal && window.openEditModal('${emp.id}'))" title="Assign L1/L2 Managers" style="color: #6366f1;">
+                            <i data-lucide="git-pull-request" size="14"></i>
+                        </button>
+                        ${emp.invite_status === 'pending' ? `
+                            <button class="btn-action" onclick="window.triggerEmailInvite('${emp.id}', '${emp.email}', '${emp.tempPassword || ''}')" title="Trigger Email Invite" style="color: #f59e0b;">
+                                <i data-lucide="mail" size="14"></i>
+                            </button>
+                        ` : ''}
+                        ${isTrashed ? `
+                            <button class="btn-action" onclick="window.restoreEmployee('${emp.id}')" title="Restore Profile">
+                                <i data-lucide="rotate-ccw" size="14"></i>
+                            </button>
+                        ` : `
+                            <button class="btn-action" onclick="window.openEditModal('${emp.id}')" title="Edit Profile">
+                                <i data-lucide="edit-3" size="14"></i>
+                            </button>
+                            <button class="btn-action" onclick="window.location.href='admin-exit-management.html?empId=${emp.id}'" title="Initiate Exit">
+                                <i data-lucide="log-out" size="14"></i>
+                            </button>
+                        `}
+                        <button class="btn-action delete" onclick="window.deleteEmployee('${emp.id}', '${emp.name}')" title="${isTrashed ? 'Permanent Delete' : 'Terminate'}">
+                            <i data-lucide="${isTrashed ? 'user-minus' : 'trash-2'}" size="14"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        `;
+    }).join('');
+
+    if (window.lucide) lucide.createIcons();
+}
+
+function updatePaginationUI(totalCount, startIdx, endIdx, totalPages) {
+    const badge = document.getElementById('tableCountBadge');
+    const rangeText = document.getElementById('pageRangeText');
+    const totalText = document.getElementById('pageTotalText');
+    const controls = document.getElementById('paginationControls');
+
+    const curPage = employeeTableState.currentPage;
+    const isAll = employeeTableState.pageSize === 'all';
+
+    if (badge) {
+        badge.textContent = totalCount === 0 ? '0 of 0' : `${Math.min(startIdx + 1, totalCount)}–${endIdx} of ${totalCount}`;
+    }
+    if (rangeText) {
+        rangeText.textContent = totalCount === 0 ? '0' : (isAll ? `1–${totalCount}` : `${startIdx + 1}–${endIdx}`);
+    }
+    if (totalText) {
+        totalText.textContent = totalCount;
+    }
+
+    if (!controls) return;
+
+    if (totalCount === 0 || isAll || totalPages <= 1) {
+        controls.innerHTML = '';
+        return;
+    }
+
+    let buttonsHtml = '';
+
+    // First & Prev buttons
+    buttonsHtml += `
+        <button class="pagination-btn" onclick="window.setEmployeeTablePage(1)" ${curPage === 1 ? 'disabled' : ''} title="First Page">
+            <i data-lucide="chevrons-left" style="width:14px;height:14px;"></i>
+        </button>
+        <button class="pagination-btn" onclick="window.setEmployeeTablePage(${curPage - 1})" ${curPage === 1 ? 'disabled' : ''} title="Previous Page">
+            <i data-lucide="chevron-left" style="width:14px;height:14px;"></i>
+        </button>
+    `;
+
+    // Page Number Buttons with smart ellipsis
+    const maxButtons = 5;
+    let startPage = Math.max(1, curPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage + 1 < maxButtons) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+
+    if (startPage > 1) {
+        buttonsHtml += `<button class="pagination-btn" onclick="window.setEmployeeTablePage(1)">1</button>`;
+        if (startPage > 2) {
+            buttonsHtml += `<span style="padding: 0 4px; color: var(--text-muted); font-size: 0.8rem;">…</span>`;
+        }
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
+        buttonsHtml += `
+            <button class="pagination-btn ${p === curPage ? 'active' : ''}" onclick="window.setEmployeeTablePage(${p})">
+                ${p}
+            </button>
+        `;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            buttonsHtml += `<span style="padding: 0 4px; color: var(--text-muted); font-size: 0.8rem;">…</span>`;
+        }
+        buttonsHtml += `<button class="pagination-btn" onclick="window.setEmployeeTablePage(${totalPages})">${totalPages}</button>`;
+    }
+
+    // Next & Last buttons
+    buttonsHtml += `
+        <button class="pagination-btn" onclick="window.setEmployeeTablePage(${curPage + 1})" ${curPage === totalPages ? 'disabled' : ''} title="Next Page">
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+        </button>
+        <button class="pagination-btn" onclick="window.setEmployeeTablePage(${totalPages})" ${curPage === totalPages ? 'disabled' : ''} title="Last Page">
+            <i data-lucide="chevrons-right" style="width:14px;height:14px;"></i>
+        </button>
+    `;
+
+    controls.innerHTML = buttonsHtml;
+    if (window.lucide) lucide.createIcons();
+}
+
+window.setEmployeeTablePage = function(page) {
+    employeeTableState.currentPage = page;
+    applyFilters();
+    const tableEl = document.getElementById('employeeDataTable');
+    if (tableEl) {
+        tableEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+};
+
+window.setPageSize = function(size) {
+    employeeTableState.currentPage = 1;
+    employeeTableState.pageSize = size;
+    localStorage.setItem('admin_emp_page_size', size);
+    const select = document.getElementById('filterPageSize');
+    if (select && select.value !== String(size)) select.value = size;
+    updatePillSizeButtons(size);
+    applyFilters();
+};
+
+function updatePillSizeButtons(activeSize) {
+    const sizeStr = String(activeSize);
+    document.querySelectorAll('.pill-size-btn').forEach(btn => {
+        if (btn.getAttribute('data-size') === sizeStr) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+window.updatePillSizeButtons = updatePillSizeButtons;
+
+window.setEmployeeViewMode = function(mode) {
+    employeeTableState.viewMode = mode === 'cards' ? 'cards' : 'table';
+    localStorage.setItem('admin_emp_view_mode', employeeTableState.viewMode);
+    updateViewModeButtons();
+    applyFilters();
+};
+
+function updateViewModeButtons() {
+    const isCards = employeeTableState.viewMode === 'cards';
+    const btnTable = document.getElementById('btnViewTable');
+    const btnCards = document.getElementById('btnViewCards');
+    if (btnTable) btnTable.classList.toggle('active', !isCards);
+    if (btnCards) btnCards.classList.toggle('active', isCards);
+
+    const tableView = document.getElementById('employeeTableView');
+    const cardGrid = document.getElementById('employeeCardGrid');
+    if (tableView) tableView.style.display = isCards ? 'none' : 'block';
+    if (cardGrid) cardGrid.style.display = isCards ? 'grid' : 'none';
+}
+window.updateViewModeButtons = updateViewModeButtons;
+
+window.resetEmployeeFilters = function() {
+    const search = document.getElementById('empSearch');
+    const dept = document.getElementById('filterDept');
+    const role = document.getElementById('filterRole');
+    const status = document.getElementById('filterStatus');
+    if (search) search.value = '';
+    if (dept) dept.value = '';
+    if (role) role.value = '';
+    if (status) status.value = '';
+    employeeTableState.currentPage = 1;
+    applyFilters();
+};
+
+function applyFilters() {
+    const term = (document.getElementById('empSearch')?.value || '').toLowerCase().trim();
+    const dept = (document.getElementById('filterDept')?.value || '').toLowerCase().trim();
+    const role = (document.getElementById('filterRole')?.value || '').toLowerCase().trim();
+    const status = (document.getElementById('filterStatus')?.value || '').toLowerCase().trim();
+    const pageSizeSelect = document.getElementById('filterPageSize');
+    const pageSizeVal = pageSizeSelect ? pageSizeSelect.value : employeeTableState.pageSize;
+
+    // Toggle reset filters button visibility
+    const isFiltered = Boolean(term || dept || role || status);
+    const resetBtn = document.getElementById('btnResetFilters');
+    if (resetBtn) resetBtn.style.display = isFiltered ? 'inline-flex' : 'none';
+
+    const filtered = (state.employees || []).filter(emp => {
+        // Search match
+        const matchesSearch = !term || 
+            (emp.name || '').toLowerCase().includes(term) ||
+            (emp.fullName || '').toLowerCase().includes(term) ||
+            (emp.email || '').toLowerCase().includes(term) ||
+            (emp.personalEmail || '').toLowerCase().includes(term) ||
+            (emp.employeeId || '').toLowerCase().includes(term) ||
+            (emp.uid || '').toLowerCase().includes(term) ||
+            (emp.phone || '').toLowerCase().includes(term) ||
+            (emp.designation || '').toLowerCase().includes(term);
+
+        // Dept match (match against ID, Name, Department, or Code)
+        const empDeptId = (emp.departmentId || '').toLowerCase().trim();
+        const empDeptName = (emp.departmentName || emp.department || '').toLowerCase().trim();
+        const empDeptCode = (emp.departmentCode || '').toLowerCase().trim();
+        const matchesDept = !dept || 
+            empDeptId === dept || 
+            empDeptName === dept ||
+            empDeptCode === dept ||
+            empDeptName.includes(dept) ||
+            dept.includes(empDeptName);
+
+        // Role match
+        const empRole = (emp.role || '').toLowerCase();
+        const matchesRole = !role || empRole === role || 
+            (role === 'hradmin' && (empRole === 'hrms' || empRole === 'hr')) ||
+            (role === 'superadmin' && empRole === 'super_admin');
+
+        // Status match
+        const displayStatus = (
+            emp.invite_status === 'pending' ? 'Pending Invite' : 
+            emp.invite_status === 'sent' && (!emp.status || emp.status === 'Completed' || emp.status === 'Active' || emp.status === 'Available (Offline)') ? 'Invite Sent' :
+            emp.status || 'Active'
+        ).toLowerCase();
+        const matchesStatus = !status || displayStatus === status.toLowerCase() || 
+            (status === 'active' && (displayStatus === 'active' || displayStatus === 'completed'));
+
+        return matchesSearch && matchesDept && matchesRole && matchesStatus;
+    });
+
+    employeeTableState.filteredTotal = filtered.length;
+    employeeTableState.pageSize = pageSizeVal;
+    localStorage.setItem('admin_emp_page_size', pageSizeVal);
+
+    const pageSize = pageSizeVal === 'all' ? Infinity : parseInt(pageSizeVal, 10);
+    const totalPages = pageSize === Infinity ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
+
+    if (employeeTableState.currentPage > totalPages) {
+        employeeTableState.currentPage = totalPages;
+    }
+    if (employeeTableState.currentPage < 1) {
+        employeeTableState.currentPage = 1;
+    }
+
+    const startIdx = pageSize === Infinity ? 0 : (employeeTableState.currentPage - 1) * pageSize;
+    const endIdx = pageSize === Infinity ? filtered.length : Math.min(startIdx + pageSize, filtered.length);
+    const pageItems = filtered.slice(startIdx, endIdx);
+
+    const select = document.getElementById('filterPageSize');
+    if (select && select.value !== String(pageSizeVal)) select.value = pageSizeVal;
+    updatePillSizeButtons(pageSizeVal);
+    updateViewModeButtons();
+
+    if (employeeTableState.viewMode === 'cards') {
+        renderEmployeeCards(pageItems);
+    } else {
+        renderEmployeeTableRows(pageItems);
+    }
+
+    updatePaginationUI(filtered.length, startIdx, endIdx, totalPages);
+}
+window.applyFilters = applyFilters;
+
 window.triggerEmailInvite = (id, email, password) => {
     const modal = document.getElementById('triggerEmailModal');
     if (!modal) return;
@@ -1430,6 +1923,7 @@ function setupEventListeners() {
             if (window.updateSubDepartmentsForSelectedDept) window.updateSubDepartmentsForSelectedDept();
             if (window.updateRolesForDept) window.updateRolesForDept();
             if (window.generatePassword) window.generatePassword();
+        }
         openModal('empModal');
         if (window.EmployeeProfileController && typeof window.EmployeeProfileController.resetProfileModal === 'function') {
             window.EmployeeProfileController.resetProfileModal();
@@ -2240,25 +2734,37 @@ function downloadCredentialsCSV(records) {
     });
 
 
-    // Filters & Search
-    const applyFilters = () => {
-        const term = document.getElementById('empSearch')?.value.toLowerCase() || '';
-        const dept = document.getElementById('filterDept')?.value || '';
-        const role = document.getElementById('filterRole')?.value || '';
+    // Filters, Search & Customization Pagination Event Listeners
 
-        const filtered = state.employees.filter(emp => {
-            const matchesSearch = (emp.name || '').toLowerCase().includes(term) || (emp.email || '').toLowerCase().includes(term) || (emp.employeeId || '').toLowerCase().includes(term);
-            const matchesDept = !dept || (emp.departmentId || '').toLowerCase() === dept.toLowerCase();
-            const matchesRole = !role || (emp.role || '').toLowerCase() === role.toLowerCase();
-            return matchesSearch && matchesDept && matchesRole;
-        });
+    // Event Listeners for Filters
+    document.getElementById('empSearch')?.addEventListener('input', () => {
+        employeeTableState.currentPage = 1;
+        applyFilters();
+    });
+    document.getElementById('filterDept')?.addEventListener('change', () => {
+        employeeTableState.currentPage = 1;
+        applyFilters();
+    });
+    document.getElementById('filterRole')?.addEventListener('change', () => {
+        employeeTableState.currentPage = 1;
+        applyFilters();
+    });
+    document.getElementById('filterStatus')?.addEventListener('change', () => {
+        employeeTableState.currentPage = 1;
+        applyFilters();
+    });
+    document.getElementById('filterPageSize')?.addEventListener('change', (e) => {
+        window.setPageSize(e.target.value);
+    });
+    document.getElementById('btnResetFilters')?.addEventListener('click', window.resetEmployeeFilters);
 
-        renderEmployeeTable(filtered);
-    };
-
-    document.getElementById('empSearch')?.addEventListener('input', applyFilters);
-    document.getElementById('filterDept')?.addEventListener('change', applyFilters);
-    document.getElementById('filterRole')?.addEventListener('change', applyFilters);
+    // Initialize page size select value, pill buttons, and view mode from saved preference
+    const pageSizeSelect = document.getElementById('filterPageSize');
+    if (pageSizeSelect) {
+        pageSizeSelect.value = employeeTableState.pageSize;
+    }
+    updatePillSizeButtons(employeeTableState.pageSize);
+    updateViewModeButtons();
 
     // Logout
     document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {

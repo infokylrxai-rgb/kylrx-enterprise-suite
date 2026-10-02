@@ -507,6 +507,7 @@
 
         @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
+    <link rel="stylesheet" href="sidebar-lock.css">
 </head>
 <body>
 
@@ -528,8 +529,9 @@
             
             <nav class="nav-menu">
                 <div class="nav-label">MY WORKSPACE</div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="employee-dashboard.html" class="nav-link" onclick="event.preventDefault(); navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="employee-appraisal.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-appraisal.html');"><i data-lucide="target"></i><span>Performance (PMS)</span></a></div>
+                <div class="nav-item"><a href="employee-leave.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>

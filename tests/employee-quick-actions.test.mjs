@@ -180,5 +180,103 @@ describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () =>
                 await browser.close();
             }
         });
+
+        test('Attendance, Leave, Tasks, and Job Details Quick Actions open in-page modals without navigating away', async () => {
+            const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+            const page = await browser.newPage();
+
+            try {
+                await page.evaluateOnNewDocument(() => {
+                    localStorage.setItem('hr_logged_in', 'true');
+                    localStorage.setItem('user_role', 'super_admin');
+                    localStorage.setItem('hr_user_role', 'super_admin');
+                });
+
+                const initialUrl = 'http://127.0.0.1:5502/kylrx-enterprise-suite-main/admin-dashboard.html';
+                await page.goto(initialUrl, {
+                    waitUntil: 'domcontentloaded',
+                    timeout: 15000
+                });
+                await new Promise(r => setTimeout(r, 1000));
+
+                // 1. Test Attendance Quick Action - Stays on page and opens modal
+                await page.$eval('.quick-action-item[data-quick-action="attendance"]', el => el.click());
+                await new Promise(r => setTimeout(r, 400));
+                assert.equal(page.url().includes('admin-dashboard.html'), true, 'Must not navigate away from admin-dashboard.html on Attendance click');
+                const isAttendanceActive = await page.$eval('#qaAttendanceModal', el => el.classList.contains('active'));
+                assert.equal(isAttendanceActive, true, 'Attendance modal #qaAttendanceModal must have .active class');
+
+                // Verify clean live clock banner
+                const clockText = await page.$eval('#qaLiveClock', el => el.textContent.trim());
+                assert.ok(clockText.length > 0, 'Live clock time must be rendered');
+                const punchStatusText = await page.$eval('#qaPunchStatusBadge', el => el.textContent.trim());
+                assert.ok(punchStatusText.includes('Punched In'), 'Initial status should be Punched In');
+
+                // Toggle punch out
+                await page.$eval('#qaBtnPunchToggle', el => el.click());
+                await new Promise(r => setTimeout(r, 300));
+                assert.equal(page.url().includes('admin-dashboard.html'), true, 'Must remain on page after punch toggle');
+                const statusAfterPunchOut = await page.$eval('#qaPunchStatusBadge', el => el.textContent.trim());
+                assert.ok(statusAfterPunchOut.includes('Punched Out'), 'Status should transition to Punched Out');
+
+                // Toggle punch back in
+                await page.$eval('#qaBtnPunchToggle', el => el.click());
+                await new Promise(r => setTimeout(r, 300));
+                const statusAfterPunchIn = await page.$eval('#qaPunchStatusBadge', el => el.textContent.trim());
+                assert.ok(statusAfterPunchIn.includes('Punched In'), 'Status should transition back to Punched In');
+
+                // Close Attendance modal
+                await page.$eval('#qaAttendanceModal .qa-drawer-close', el => el.click());
+                await new Promise(r => setTimeout(r, 300));
+                const isAttendanceClosed = await page.$eval('#qaAttendanceModal', el => !el.classList.contains('active'));
+                assert.equal(isAttendanceClosed, true, 'Attendance modal should be closed');
+
+                // 2. Test Apply Leave Quick Action - Stays on page and opens modal
+                await page.$eval('.quick-action-item[data-quick-action="leave"]', el => el.click());
+                await new Promise(r => setTimeout(r, 400));
+                assert.equal(page.url().includes('admin-dashboard.html'), true, 'Must not navigate away from admin-dashboard.html on Apply Leave click');
+                const isLeaveActive = await page.$eval('#qaLeaveModal', el => el.classList.contains('active'));
+                assert.equal(isLeaveActive, true, 'Leave modal #qaLeaveModal must have .active class');
+
+                // Submit Leave Request
+                await page.$eval('#qaLeaveModal .qa-btn-action.primary', el => el.click());
+                await new Promise(r => setTimeout(r, 300));
+                assert.equal(page.url().includes('admin-dashboard.html'), true, 'Must remain on page after submitting leave');
+
+                // Close Leave modal
+                await page.$eval('#qaLeaveModal .qa-drawer-close', el => el.click());
+                await new Promise(r => setTimeout(r, 300));
+                const isLeaveClosed = await page.$eval('#qaLeaveModal', el => !el.classList.contains('active'));
+                assert.equal(isLeaveClosed, true, 'Leave modal should be closed');
+
+                // 3. Test Task Update Quick Action - Stays on page and opens modal
+                await page.$eval('.quick-action-item[data-quick-action="tasks"]', el => el.click());
+                await new Promise(r => setTimeout(r, 400));
+                assert.equal(page.url().includes('admin-dashboard.html'), true, 'Must not navigate away from admin-dashboard.html on Task Update click');
+                const isTasksActive = await page.$eval('#qaTaskModal', el => el.classList.contains('active'));
+                assert.equal(isTasksActive, true, 'Task modal #qaTaskModal must have .active class');
+
+                // Submit Task Update
+                await page.$eval('#qaTaskModal .qa-btn-action.primary', el => el.click());
+                await new Promise(r => setTimeout(r, 300));
+                assert.equal(page.url().includes('admin-dashboard.html'), true, 'Must remain on page after submitting task update');
+
+                // Close Task modal
+                await page.$eval('#qaTaskModal .qa-drawer-close', el => el.click());
+                await new Promise(r => setTimeout(r, 300));
+                const isTasksClosed = await page.$eval('#qaTaskModal', el => !el.classList.contains('active'));
+                assert.equal(isTasksClosed, true, 'Task modal should be closed');
+
+                // 4. Test Job Details Quick Action - Stays on page
+                await page.$eval('.quick-action-item[data-quick-action="job-details"]', el => el.click());
+                await new Promise(r => setTimeout(r, 400));
+                assert.equal(page.url().includes('admin-dashboard.html'), true, 'Must not navigate away from admin-dashboard.html on Job Details click');
+
+            } finally {
+                await page.close();
+                await browser.close();
+            }
+        });
     });
 });
+

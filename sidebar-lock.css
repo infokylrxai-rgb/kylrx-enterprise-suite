@@ -1,0 +1,586 @@
+/**
+ * Kylrx AI Enterprise Suite - Universal Locked Sidebar Navigation System
+ * Guarantees zero layout shift, locked width, consistent typography, and synchronized scrolling across all dashboard pages.
+ */
+
+:root {
+    --sidebar-width: 270px !important;
+}
+
+/* 1. Global Viewport & Flex App Layout Locking */
+html, body {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.dashboard-container,
+.main-layout,
+.app-container,
+.layout {
+    display: flex !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+}
+
+/* 2. Strict Locked Sidebar Container (w-[270px] min-w-[270px] max-w-[270px] flex-shrink-0) */
+.sidebar,
+aside.sidebar,
+#sidebar {
+    width: 270px !important;
+    min-width: 270px !important;
+    max-width: 270px !important;
+    flex: 0 0 270px !important;
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
+    box-sizing: border-box !important;
+    padding: 1.15rem 0.75rem 0.75rem 0.75rem !important;
+    box-shadow: 2px 0 16px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* 3. Independent Main Content Scrolling */
+.main-content,
+.hub-container,
+.main-wrapper,
+#main-content,
+body > main,
+.dashboard-container > main,
+.main-layout > main,
+.layout > main {
+    margin-left: 270px !important;
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: calc(100% - 270px) !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* 4. Pinned Top Brand Header */
+.sidebar .logo,
+.sidebar-header .logo,
+.sidebar-header .logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 0.85rem !important;
+    padding: 0 0.25rem !important;
+    flex-shrink: 0 !important;
+    height: 40px !important;
+    text-decoration: none !important;
+    color: #0f172a !important;
+    box-sizing: border-box !important;
+}
+
+.sidebar .logo img,
+.sidebar-header .logo img {
+    height: 34px !important;
+    width: 34px !important;
+    max-height: 34px !important;
+    max-width: 34px !important;
+    object-fit: contain !important;
+    border-radius: 8px !important;
+    flex-shrink: 0 !important;
+}
+
+.sidebar .logo-text,
+.sidebar-header .logo-text {
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px !important;
+    color: #0f172a !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+}
+
+/* Department Branding / Subcard (Manager Console) */
+.sidebar .dept-subcard,
+.sidebar .dept-branding {
+    flex-shrink: 0 !important;
+    margin: 2px 0 10px 0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+    text-align: left !important;
+}
+
+.sidebar .dept-subcard .dept-header-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+.sidebar .dept-subcard .dept-name,
+.sidebar .dept-branding .dept-name {
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    color: #1e293b !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    line-height: 1.25 !important;
+}
+
+.sidebar .dept-subcard .dept-code,
+.sidebar .dept-branding .dept-code {
+    font-size: 10px !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 2px 6px !important;
+    border-radius: 5px !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+}
+
+.sidebar .dept-subcard .dept-meta-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    margin-top: 6px !important;
+    font-size: 0.72rem !important;
+    color: #64748b !important;
+    line-height: 1.2 !important;
+}
+
+.sidebar .dept-subcard .dept-manager {
+    font-size: 0.72rem !important;
+    color: #64748b !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+.sidebar .dept-subcard .dept-manager strong,
+.sidebar .dept-subcard .dept-manager span {
+    font-weight: 600 !important;
+    color: #2563eb !important;
+}
+
+.sidebar .dept-subcard .dept-status-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    color: #059669 !important;
+    background: #ecfdf5 !important;
+    border: 1px solid #d1fae5 !important;
+    padding: 1.5px 5px !important;
+    border-radius: 4px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+}
+
+.sidebar .dept-subcard .dept-status-badge::before {
+    content: '' !important;
+    display: inline-block !important;
+    width: 5px !important;
+    height: 5px !important;
+    border-radius: 50% !important;
+    background: #10b981 !important;
+}
+
+.sidebar .dept-icon-box {
+    display: none !important;
+}
+
+/* 5. Scrollable Menu Container & Custom Scroll Rail */
+.sidebar .nav-menu,
+.sidebar .sidebar-nav {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-gutter: auto !important;
+    scrollbar-width: none !important; /* Hide native scrollbar in Firefox */
+    -ms-overflow-style: none !important;
+    padding: 0 16px 0 0 !important;   /* Comfortable right gutter for custom scroll rail */
+    margin: 0 !important;
+    list-style: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    box-sizing: border-box !important;
+}
+
+.sidebar .nav-menu::-webkit-scrollbar,
+.sidebar .sidebar-nav::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+    display: none !important;
+}
+
+/* 5b. Dedicated Always-Visible Custom Scroll Rail */
+.sidebar .sidebar-scroll-rail {
+    position: absolute !important;
+    right: 8px !important;
+    width: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    z-index: 1050 !important;
+    pointer-events: auto !important;
+    user-select: none !important;
+    box-sizing: border-box !important;
+    padding: 2px 0 !important;
+}
+
+.sidebar .sidebar-scroll-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #94a3b8 !important;
+    cursor: pointer !important;
+    width: 14px !important;
+    height: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transition: color 0.15s ease, transform 0.15s ease, opacity 0.15s ease !important;
+    flex-shrink: 0 !important;
+    border-radius: 4px !important;
+}
+
+.sidebar .sidebar-scroll-btn:hover {
+    color: #2563eb !important;
+    transform: scale(1.2) !important;
+    background: #f1f5f9 !important;
+}
+
+.sidebar .sidebar-scroll-btn.at-limit {
+    opacity: 0.25 !important;
+    cursor: default !important;
+}
+
+.sidebar .sidebar-scroll-track {
+    position: relative !important;
+    flex: 1 1 0% !important;
+    width: 6px !important;
+    background: #eff6ff !important;
+    border: 1px solid rgba(219, 234, 254, 0.8) !important;
+    border-radius: 9999px !important;
+    margin: 4px 0 !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+}
+
+.sidebar .sidebar-scroll-thumb {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: #93c5fd !important;
+    border-radius: 9999px !important;
+    cursor: grab !important;
+    transition: background 0.15s ease, box-shadow 0.15s ease !important;
+    box-sizing: border-box !important;
+}
+
+.sidebar .sidebar-scroll-thumb:hover,
+.sidebar .sidebar-scroll-thumb.dragging {
+    background: #3b82f6 !important;
+    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.35) !important;
+}
+
+.sidebar .sidebar-scroll-thumb.dragging {
+    cursor: grabbing !important;
+}
+
+/* 6. Section Labels */
+.sidebar .nav-label {
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    color: #94a3b8 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    padding: 1.1rem 0.6rem 0.35rem !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+}
+
+.sidebar .nav-label:first-of-type {
+    padding-top: 0.25rem !important;
+}
+
+/* 7. Standardized Menu Items & Locked Dimensions */
+.sidebar .nav-item {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.sidebar .nav-link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 8px 12px !important; /* Uniform px-3 py-2 */
+    color: #475569 !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 0.84rem !important; /* text-sm font-medium */
+    line-height: 1.25rem !important;
+    border-radius: 9px !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+    position: relative !important;
+    margin: 1px 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border: none !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+.sidebar .nav-link span {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    flex: 1 1 auto !important;
+    font-size: 0.84rem !important;
+    line-height: 1.25rem !important;
+}
+
+/* Fixed 18px icon container */
+.sidebar .nav-link i,
+.sidebar .nav-link svg,
+.sidebar .nav-link [data-lucide] {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    color: #64748b !important;
+    stroke-width: 2 !important;
+    margin: 0 !important;
+}
+
+/* Hover State */
+.sidebar .nav-link:hover {
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    transform: none !important;
+}
+
+.sidebar .nav-link:hover i,
+.sidebar .nav-link:hover svg,
+.sidebar .nav-link:hover [data-lucide] {
+    color: #2563eb !important;
+}
+
+/* Active State - Locked dimensions, Admin-style pill indicator with inset blue left bar */
+.sidebar .nav-link.active {
+    background: rgba(239, 246, 255, 0.9) !important;
+    color: #2563eb !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 1px 0 !important;
+    padding: 8px 12px !important;
+    position: relative !important;
+}
+
+.sidebar .nav-link.active::before {
+    content: '' !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 7px !important;
+    bottom: 7px !important;
+    width: 4px !important;
+    background: #2563eb !important;
+    border-radius: 0 9999px 9999px 0 !important;
+}
+
+.sidebar .nav-link.active i,
+.sidebar .nav-link.active svg,
+.sidebar .nav-link.active [data-lucide] {
+    color: #2563eb !important;
+    stroke: #2563eb !important;
+}
+
+/* 8. Pinned Footer Actions at Bottom */
+.sidebar .sidebar-bottom,
+.sidebar .sidebar-footer {
+    margin-top: auto !important;
+    padding-top: 0.6rem !important;
+    border-top: 1px solid #f1f5f9 !important;
+    flex-shrink: 0 !important;
+    background: #ffffff !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+/* Profile Mini (Manager/Employee Dashboards) */
+.sidebar .profile-mini {
+    margin-top: 6px !important;
+    background: #f8fafc !important;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+.sidebar .profile-mini .avatar {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    border-radius: 9px !important;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    font-size: 0.8rem !important;
+    flex-shrink: 0 !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25) !important;
+}
+
+.sidebar .profile-mini .profile-info {
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
+}
+
+.sidebar .profile-mini .profile-name {
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+}
+
+.sidebar .profile-mini .profile-role {
+    font-size: 0.7rem !important;
+    color: #64748b !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important;
+    margin-top: 2px !important;
+}
+
+/* 9. Layout TV Mode Support */
+body.layout-tv .sidebar {
+    background: #0d1321 !important;
+    border-right-color: #1e293b !important;
+}
+
+body.layout-tv .sidebar .nav-link {
+    color: #94a3b8 !important;
+}
+
+body.layout-tv .sidebar .nav-link:hover {
+    background: #1e293b !important;
+    color: #60a5fa !important;
+}
+
+body.layout-tv .sidebar .nav-link.active {
+    background: #1e293b !important;
+    color: #60a5fa !important;
+}
+
+body.layout-tv .sidebar .logo-text {
+    color: #ffffff !important;
+}
+
+body.layout-tv .sidebar .sidebar-bottom,
+body.layout-tv .sidebar .sidebar-footer {
+    background: #0d1321 !important;
+    border-top-color: #1e293b !important;
+}
+
+/* 10. In-iFrame and Print Handling */
+body.in-iframe {
+    height: auto !important;
+    overflow: auto !important;
+}
+
+body.in-iframe .sidebar {
+    display: none !important;
+}
+
+body.in-iframe .main-content,
+body.in-iframe .hub-container,
+body.in-iframe .main-wrapper,
+body.in-iframe main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+@media print {
+    .sidebar {
+        display: none !important;
+    }
+    .main-content,
+    .hub-container,
+    .main-wrapper,
+    main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+}

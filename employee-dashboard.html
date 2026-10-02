@@ -12,6 +12,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="quick-actions.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        window.navigateTo = (page) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id') || localStorage.getItem('employee_uid') || '';
+            const sep = page.includes('?') ? '&' : '?';
+            if (id) {
+                window.location.href = `${page}${sep}id=${encodeURIComponent(id)}`;
+            } else {
+                window.location.href = page;
+            }
+        };
+
+        window.navigateToDashboard = () => {
+            window.navigateTo('employee-dashboard.html');
+        };
+
+        window.handleTaskClick = (title) => {
+            const empId = new URLSearchParams(window.location.search).get('id') || localStorage.getItem('employee_uid') || 'demo_emp';
+            if (title === 'Bank Verification') {
+                window.navigateTo('employee-bank-task.html');
+            } else if (title === 'IT Security Policy') {
+                window.location.href = `employee-policy.html?id=${encodeURIComponent(empId)}&policy=IT+Security+Policy`;
+            } else if (title === 'Self-Appraisal Q2') {
+                window.location.href = `employee-appraisal.html?id=${encodeURIComponent(empId)}&cycle=Q2-2026`;
+            } else {
+                if (typeof window.showStatusModal === 'function') {
+                    window.showStatusModal(
+                        'Task Module',
+                        `The "${title}" module is currently being synchronized with your profile. Please check back in a moment.`,
+                        'info'
+                    );
+                } else {
+                    alert(`The "${title}" module is currently being synchronized.`);
+                }
+            }
+        };
+    </script>
     <style>
         :root {
             --primary: #ec4899;
@@ -315,6 +352,7 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="sidebar-lock.css">
 </head>
 <body>
     <!-- Onboarding Flow Modal Overlay -->
@@ -479,13 +517,13 @@
             
             <nav class="nav-menu">
                 <div class="nav-label">MY WORKSPACE</div>
-                <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-appraisal.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="target"></i><span>Performance (PMS)</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="employee-dashboard.html" class="nav-link active" onclick="event.preventDefault(); navigateToDashboard();"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
+                <div class="nav-item"><a href="employee-appraisal.html" class="nav-link" id="navPerformanceLink" onclick="event.preventDefault(); navigateTo('employee-appraisal.html');"><i data-lucide="target"></i><span>Performance (PMS)</span></a></div>
+                <div class="nav-item"><a href="employee-leave.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-leave.html');"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
+                <div class="nav-item"><a href="employee-attendance-log.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-attendance-log.html');"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="employee-docs.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-docs.html');"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="employee-message.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-message.html');"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="employee-notifications.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-notifications.html');"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item">
                     <div class="nav-link" style="cursor: pointer; justify-content: space-between;" onclick="toggleAppsMenu()">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -509,8 +547,8 @@
                 </div>
                 
                 <div class="nav-label">RESOURCES</div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="employee-policy.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-policy.html');"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="employee-assets.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-assets.html');"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
                 
             </nav>
 
