@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Secure administrative communication hub for Kylrx AI Enterprise Suite. Enables direct messaging and broadcast notifications to managers and staff.">
@@ -829,8 +830,8 @@
 
     <!-- Firebase Logic & Messaging Engine -->
     <script type="module">
-        import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion } from "./firebase-config.js";
-        import { setDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion, registerListener } from "./firebase-config.js";
+        import { setDoc, arrayRemove } from "./firebase-config.js";
 
         const defaultUsers = [
             { id: 'EMP_1789151730443', type: 'user', name: 'John Doe', role: 'manager', dept: 'Cybersecurity Manager', initials: 'JD', color: '#2563eb' },
@@ -1054,11 +1055,11 @@
                 div.onclick = (e) => window.toggleSelection(item.id, e);
                 
                 div.innerHTML = `
-                    <div class="contact-avatar" style="background: ${item.color}">${item.initials}</div>
+                    <div class="contact-avatar" style="background: ${escapeHtml(item.color)}">${escapeHtml(item.initials)}</div>
                     <div class="contact-info">
-                        <div class="contact-name">${item.name}</div>
-                        <div class="contact-last">${item.dept}</div>
-                        <span class="badge ${item.role}">${item.role.toUpperCase()}</span>
+                        <div class="contact-name">${escapeHtml(item.name)}</div>
+                        <div class="contact-last">${escapeHtml(item.dept)}</div>
+                        <span class="badge ${escapeHtml(item.role)}">${escapeHtml(item.role ? item.role.toUpperCase() : '')}</span>
                     </div>
                 `;
                 contactsContainer.appendChild(div);
@@ -1145,9 +1146,9 @@
 
                     chatHeader.innerHTML = `
                         <div style="display:flex; align-items:center; gap:12px;">
-                            <div class="contact-avatar" style="background: ${entity.color}">${entity.initials}</div>
+                            <div class="contact-avatar" style="background: ${escapeHtml(entity.color)}">${escapeHtml(entity.initials)}</div>
                             <div>
-                                <div class="contact-name" style="font-size:1rem;">${entity.name}</div>
+                                <div class="contact-name" style="font-size:1rem;">${escapeHtml(entity.name)}</div>
                                 <div style="font-size:0.75rem; color:#10b981; font-weight:700;">${entity.type === 'team' ? 'Team Broadcast Stream' : 'Direct Conversation'}</div>
                             </div>
                         </div>
@@ -1180,6 +1181,11 @@
                 if (unsubscribeMessages) unsubscribeMessages();
             }
             renderLucideIcons();
+        }
+
+        function formatEscapedMessageText(text) {
+            const esc = (typeof escapeHtml === 'function') ? escapeHtml(text || '') : (window.escapeHtml ? window.escapeHtml(text || '') : String(text || ''));
+            return esc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>');
         }
 
         // Fetch Messages with Omni-channel Matching
@@ -1221,7 +1227,7 @@
                 // Update text if changed
                 const bodyEl = existing.querySelector('.msg-body-text');
                 if (bodyEl && msg.text) {
-                    bodyEl.innerHTML = (msg.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>');
+                    bodyEl.innerHTML = formatEscapedMessageText(msg.text);
                 }
                 return;
             }
@@ -1235,16 +1241,16 @@
             const senderLabel = isSent ? 'Super Admin' : (msg.senderName || 'Personnel');
             const labelColor = isSent ? '#1d4ed8' : '#059669';
 
-            let html = `<div style="font-size:0.68rem; font-weight:800; color:${labelColor}; margin-bottom:4px; text-transform:uppercase; display:flex; justify-content:space-between; gap:12px;"><span>${senderLabel}</span><span style="font-weight:500; opacity:0.75;">${timeStr}</span></div>`;
-            html += `<div class="msg-body-text">${(msg.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline;">$1</a>')}</div>`;
+            let html = `<div style="font-size:0.68rem; font-weight:800; color:${labelColor}; margin-bottom:4px; text-transform:uppercase; display:flex; justify-content:space-between; gap:12px;"><span>${escapeHtml(senderLabel)}</span><span style="font-weight:500; opacity:0.75;">${escapeHtml(timeStr)}</span></div>`;
+            html += `<div class="msg-body-text">${formatEscapedMessageText(msg.text)}</div>`;
 
             if (msg.attachments && msg.attachments.length > 0) {
                 const attHtml = msg.attachments.map(att => `
                     <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); margin-top:8px; font-size:0.82rem; font-weight:600;">
-                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${att.name}</span>
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${escapeHtml(att.name)}</span>
                         <div style="display:flex; gap:6px;">
-                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${att.dataUrl}" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Open</a>
-                            <a href="${att.dataUrl}" download="${att.name}" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Download</a>
+                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${escapeHtml(att.dataUrl)}" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Open</a>
+                            <a href="${escapeHtml(att.dataUrl)}" download="${escapeHtml(att.name)}" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Download</a>
                         </div>
                     </div>
                 `).join('');
@@ -1322,7 +1328,7 @@
             // 2. Fetch from Backend Messages Store with unified multi-candidate matching
             const candQuery = candidates.join(',');
             const syncFromBackend = () => {
-                fetch(`http://localhost:3000/api/messages/thread/${candQuery}`)
+                fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/messages/thread/${candQuery}`)
                     .then(res => res.ok ? res.json() : null)
                     .then(result => {
                         if (result && result.data && Array.isArray(result.data)) {
@@ -1483,7 +1489,7 @@
                     } catch (_) {}
 
                     // 3. Asynchronously post to backend API
-                    fetch('http://localhost:3000/api/messages/send', {
+                    fetch('${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/messages/send', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(msgObj)
@@ -1727,7 +1733,7 @@
 
             // Post to backend to clear
             for (const c of candidates) {
-                fetch(`http://localhost:3000/api/messages/clear/${c}`, { method: 'POST' }).catch(() => {});
+                fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/messages/clear/${c}`, { method: 'POST' }).catch(() => {});
             }
 
             try {

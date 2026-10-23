@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import { 
     collection, 
     query, 
@@ -10,7 +10,7 @@ import {
     serverTimestamp,
     limit,
     orderBy
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+} from "./firebase-config.js";
 
 /**
  * HRFlow Attendance & Productivity Automation
@@ -24,26 +24,32 @@ class AttendanceAutomation {
     }
 
     async runProductivityCheck() {
-        console.log("🤖 Running Productivity & Attendance Check...");
-        const snapshot = await getDocs(query(this.userColl, where("role", "==", "employee")));
-        
-        for (const userDoc of snapshot.docs) {
-            await this.checkEmployeeCompliance(userDoc.id, userDoc.data());
+        if (!auth.currentUser) return;
+        try {
+            console.log("🤖 Running Productivity & Attendance Check...");
+            const snapshot = await getDocs(query(this.userColl, where("role", "==", "employee")));
+            
+            for (const userDoc of (snapshot?.docs || [])) {
+                await this.checkEmployeeCompliance(userDoc.id, userDoc.data());
+            }
+        } catch (e) {
+            console.warn("Productivity & Attendance check notice:", e?.message || e);
         }
     }
 
     async checkEmployeeCompliance(userId, userData) {
-        // Fetch last 7 attendance records to check for patterns
-        // Simplified query to avoid composite index (Secondary sorting in JS)
-        const q = query(
-            this.attColl,
-            where("userId", "==", userId)
-        );
+        try {
+            // Fetch last 7 attendance records to check for patterns
+            // Simplified query to avoid composite index (Secondary sorting in JS)
+            const q = query(
+                this.attColl,
+                where("userId", "==", userId)
+            );
 
-        const snap = await getDocs(q);
-        const records = snap.docs.map(d => d.data())
-            .sort((a, b) => (b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp)) - (a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp)))
-            .slice(0, 7);
+            const snap = await getDocs(q);
+            const records = (snap?.docs || []).map(d => d.data())
+                .sort((a, b) => (b.timestamp?.toDate ? b.timestamp.toDate() : new Date(b.timestamp)) - (a.timestamp?.toDate ? a.timestamp.toDate() : new Date(a.timestamp)))
+                .slice(0, 7);
         
         let deficitDays = 0;
         records.forEach(rec => {
@@ -69,34 +75,43 @@ class AttendanceAutomation {
                 productivityStatus: "Warning"
             });
         }
+        } catch (err) {
+            console.warn("checkEmployeeCompliance notice:", err?.message || err);
+        }
     }
 
     async notifyManager(userId, userData, deficitDays) {
-        const deptId = userData.departmentId;
-        if (!deptId) return;
+        try {
+            const deptId = userData.departmentId;
+            if (!deptId) return;
 
-        // Find manager for this department
-        // Simplified query to avoid composite index (Secondary filter in JS)
-        const mq = query(
-            this.userColl,
-            where("role", "==", "manager")
-        );
+            // Find manager for this department
+            // Simplified query to avoid composite index (Secondary filter in JS)
+            const mq = query(
+                this.userColl,
+                where("role", "==", "manager")
+            );
 
-        const mSnap = await getDocs(mq);
-        const managers = mSnap.docs.filter(mDoc => mDoc.data().departmentId === deptId);
-        
-        managers.forEach(async (mDoc) => {
-            await addDoc(this.notifColl, {
-                target: mDoc.id,
-                type: "Productivity Alert",
-                priority: "high",
-                message: `Attendance Alert: ${userData.name} has worked less than 8 hours for ${deficitDays} days in the recent period. Please review operational compliance.`,
-                employeeId: userId,
-                departmentId: deptId,
-                timestamp: serverTimestamp(),
-                read: false
-            });
-        });
+            const mSnap = await getDocs(mq);
+            const managers = (mSnap?.docs || []).filter(mDoc => mDoc.data().departmentId === deptId);
+            
+            for (const mDoc of managers) {
+                try {
+                    await addDoc(this.notifColl, {
+                        target: mDoc.id,
+                        type: "Productivity Alert",
+                        priority: "high",
+                        message: `Attendance Alert: ${userData.name} has worked less than 8 hours for ${deficitDays} days in the recent period. Please review operational compliance.`,
+                        employeeId: userId,
+                        departmentId: deptId,
+                        timestamp: serverTimestamp(),
+                        read: false
+                    });
+                } catch (_) {}
+            }
+        } catch (e) {
+            console.warn("notifyManager notice:", e?.message || e);
+        }
     }
 }
 

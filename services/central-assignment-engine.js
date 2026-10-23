@@ -493,7 +493,8 @@ class CentralAssignmentEngine {
      * Apply Assignment Transition with Effective Date & History Preservation
      * Historical payrolls, documents, and acknowledgements remain preserved.
      */
-    async applyAssignmentTransition(employeeId, newAttributes = {}, effectiveDate = new Date().toISOString(), changedBy = 'HR Admin', reason = 'Role / BU Transition') {
+    // options.skipPersist: the caller (routes/assignments.js) writes Firestore itself and waits for confirmation
+    async applyAssignmentTransition(employeeId, newAttributes = {}, effectiveDate = new Date().toISOString(), changedBy = 'HR Admin', reason = 'Role / BU Transition', options = {}) {
         logger.info(`[AssignmentEngine] Applying assignment transition for ${employeeId} with effectiveDate: ${effectiveDate}`);
 
         const prospectiveResolution = this.resolveAssignments(newAttributes);
@@ -545,7 +546,7 @@ class CentralAssignmentEngine {
         this.activeAssignments.set(employeeId, newRecord);
 
         // 3. Persist to Firestore if available
-        if (db) {
+        if (db && !options.skipPersist) {
             try {
                 // Update active assignment document
                 db.collection('employee_assignments').doc(employeeId).set(newRecord, { merge: true }).catch(() => {});
@@ -570,8 +571,8 @@ class CentralAssignmentEngine {
             }
         }
 
-        // 4. Emit event to EventBus for downstream automations
-        eventBus.emit('assignment.transition_applied', {
+        // 4. Emit event to EventBus for downstream automations (with skipPersist the caller emits after saving)
+        if (!options.skipPersist) eventBus.emit('assignment.transition_applied', {
             employeeId,
             transitionId,
             effectiveDate,
@@ -588,7 +589,9 @@ class CentralAssignmentEngine {
             status: newRecord.status,
             matchedRule: prospectiveResolution.matchedRuleName,
             assignments: prospectiveResolution.assignments,
-            preservedHistoricalRecords: newRecord.preservedHistoricalRecords
+            preservedHistoricalRecords: newRecord.preservedHistoricalRecords,
+            record: newRecord,
+            historyEntry
         };
     }
 

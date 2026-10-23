@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Statutory Compliance Command Hub | Kylrx AI HRMS</title>
@@ -2050,28 +2051,10 @@
   <!-- ========================================================================= -->
   <script type="module">
     // ── FIREBASE MODULAR SDK & BACKEND API CONNECTION ──
-    import { 
-      auth, 
-      db, 
-      onAuthStateChanged, 
-      signInWithEmailAndPassword,
-      collection, 
-      doc, 
-      getDoc, 
-      getDocs, 
-      setDoc, 
-      updateDoc, 
-      deleteDoc, 
-      addDoc, 
-      onSnapshot, 
-      query, 
-      where, 
-      orderBy, 
-      serverTimestamp 
-    } from "./firebase-config.js";
+    import { auth, db, onAuthStateChanged, signInWithEmailAndPassword, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, onSnapshot, query, where, orderBy, serverTimestamp, registerListener } from "./firebase-config.js";
 
     // Dynamic backend resolution: Use port 3000 if served via Live Server on 5500/5501
-    const API_BASE = window.location.port === '3000' ? '' : 'http://127.0.0.1:3000';
+    const API_BASE = (window.API_BASE || window.location.origin);
     window.API_BASE = API_BASE;
     window.db = db;
 

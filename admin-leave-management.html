@@ -604,7 +604,7 @@
 
     <script type="module">
         import { getLeaveStats, listenToPendingLeaves, processLeaveAction, getLeavePolicies, getUpcomingHolidays, deleteHoliday, listenToHolidays, saveHoliday, savePolicy, getHeatmapData, listenToWeeklyOff, updateWeeklyOff, listenToLeaveTypes, saveLeaveType, deleteLeaveType, bulkSaveLeaveTypes, listenToDeptWeekOffs, saveDeptWeekOff, bulkSaveHolidays } from "./leave-service.js";
-        import { db, collection, onSnapshot } from "./firebase-config.js";
+        import { db, collection, onSnapshot, registerListener } from "./firebase-config.js";
 
         const todayDate = new Date();
         let currentYear = todayDate.getFullYear();
@@ -956,7 +956,7 @@
                     'Confirm Decommission',
                     'Are you sure you want to decommission this policy? This action is permanent and cannot be undone.',
                     async () => {
-                        const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                        const { doc, deleteDoc } = await import("./firebase-config.js");
                         await deleteDoc(doc(db, 'leave_policies', id));
                         showToast('Policy decommissioned successfully.');
                         initDashboard();
@@ -966,7 +966,7 @@
                 togglePolicyModal(true);
             } else if (action === 'duplicate') {
                 try {
-                    const { doc, getDoc, addDoc, collection } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                    const { doc, getDoc, addDoc, collection } = await import("./firebase-config.js");
                     const policySnap = await getDoc(doc(db, 'leave_policies', id));
                     if (policySnap.exists()) {
                         const data = policySnap.data();
@@ -1863,8 +1863,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

@@ -1,7 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const workflowBuilderService = require('../services/workflow-builder-service');
+const workflowBuilderStore = require('../services/workflow-builder-store');
 const logger = require('../utils/logger');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
+router.use(authorize(ADMIN_HR_ROLES));
+
+// Each organization works on its own Firestore-backed workflows (services/workflow-builder-store.js)
+router.use(workflowBuilderStore.attach);
 
 /**
  * Feature 12, 13 & 14: No-Code Workflow Builder REST API
@@ -13,7 +20,7 @@ const logger = require('../utils/logger');
 // GET /api/workflow-builder/node-types — List all 11 node types
 router.get('/node-types', (req, res) => {
     try {
-        const types = workflowBuilderService.getNodeTypes();
+        const types = req.wfService.getNodeTypes();
         res.status(200).json({ success: true, nodeTypes: types, data: types });
     } catch (err) {
         logger.error('[WorkflowBuilderAPI] Error fetching node types:', err);
@@ -24,7 +31,7 @@ router.get('/node-types', (req, res) => {
 // GET /api/workflow-builder/stats — Summary stats
 router.get('/stats', (req, res) => {
     try {
-        const stats = workflowBuilderService.getStats();
+        const stats = req.wfService.getStats();
         res.status(200).json({ success: true, stats, data: stats });
     } catch (err) {
         logger.error('[WorkflowBuilderAPI] Error fetching stats:', err);
@@ -35,7 +42,7 @@ router.get('/stats', (req, res) => {
 // GET /api/workflow-builder/sample-employees — Pre-seeded test catalog
 router.get('/sample-employees', (req, res) => {
     try {
-        const employees = workflowBuilderService.getSampleEmployees();
+        const employees = req.wfService.getSampleEmployees();
         res.status(200).json({ success: true, employees, data: employees });
     } catch (err) {
         logger.error('[WorkflowBuilderAPI] Error fetching sample employees:', err);
@@ -47,7 +54,7 @@ router.get('/sample-employees', (req, res) => {
 router.post('/validate', (req, res) => {
     try {
         const { canvas, nodes, connections, edges } = req.body || {};
-        const validation = workflowBuilderService.validateCanvas(canvas || { nodes, connections: connections || edges });
+        const validation = req.wfService.validateCanvas(canvas || { nodes, connections: connections || edges });
         res.status(200).json({ success: true, validation });
     } catch (err) {
         logger.error('[WorkflowBuilderAPI] Error validating canvas:', err);
@@ -63,7 +70,7 @@ router.post('/ai-generate', (req, res) => {
             return res.status(400).json({ success: false, error: 'A natural-language prompt is required.' });
         }
 
-        const result = workflowBuilderService.createWorkflowFromPrompt(prompt, options);
+        const result = req.wfService.createWorkflowFromPrompt(prompt, options);
         res.status(200).json({
             success: true,
             workflow: result.workflow,
@@ -83,7 +90,7 @@ router.post('/ai-generate', (req, res) => {
 // GET /api/workflow-builder — List all workflows
 router.get('/', (req, res) => {
     try {
-        const workflows = workflowBuilderService.listWorkflows();
+        const workflows = req.wfService.listWorkflows();
         res.status(200).json({ success: true, workflows, data: workflows, total: workflows.length });
     } catch (err) {
         logger.error('[WorkflowBuilderAPI] Error listing workflows:', err);
@@ -100,7 +107,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Workflow name is required.' });
         }
 
-        const workflow = workflowBuilderService.saveWorkflow(workflowData, null, { actor });
+        const workflow = req.wfService.saveWorkflow(workflowData, null, { actor });
         res.status(201).json({
             success: true,
             workflow,
@@ -117,7 +124,7 @@ router.post('/', async (req, res) => {
 // GET /api/workflow-builder/:id — Get full workflow
 router.get('/:id', (req, res) => {
     try {
-        const workflow = workflowBuilderService.getWorkflow(req.params.id);
+        const workflow = req.wfService.getWorkflow(req.params.id);
         if (!workflow) {
             return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found.` });
         }
@@ -133,7 +140,7 @@ router.put('/:id', async (req, res) => {
     try {
         const workflowData = req.body || {};
         const actor = req.body?.actor || 'HR Administrator';
-        const workflow = workflowBuilderService.saveWorkflow(workflowData, req.params.id, { actor });
+        const workflow = req.wfService.saveWorkflow(workflowData, req.params.id, { actor });
         res.status(200).json({
             success: true,
             workflow,
@@ -150,7 +157,7 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/workflow-builder/:id — Delete workflow
 router.delete('/:id', (req, res) => {
     try {
-        const deleted = workflowBuilderService.deleteWorkflow(req.params.id, { actor: req.body?.actor || 'HR Administrator' });
+        const deleted = req.wfService.deleteWorkflow(req.params.id, { actor: req.body?.actor || 'HR Administrator' });
         if (!deleted) {
             return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found.` });
         }
@@ -165,7 +172,7 @@ router.delete('/:id', (req, res) => {
 router.post(['/:id/activate', '/:id/versions/publish'], async (req, res) => {
     try {
         const { actor, versionNumber } = req.body || {};
-        const workflow = await workflowBuilderService.publishWorkflowVersion(req.params.id, versionNumber, { actor });
+        const workflow = await req.wfService.publishWorkflowVersion(req.params.id, versionNumber, { actor });
         res.status(200).json({
             success: true,
             workflow,
@@ -182,7 +189,7 @@ router.post(['/:id/activate', '/:id/versions/publish'], async (req, res) => {
 router.post('/:id/versions/:versionNumber/rollback', async (req, res) => {
     try {
         const { actor } = req.body || {};
-        const workflow = await workflowBuilderService.rollbackWorkflow(req.params.id, req.params.versionNumber, { actor });
+        const workflow = await req.wfService.rollbackWorkflow(req.params.id, req.params.versionNumber, { actor });
         res.status(200).json({
             success: true,
             workflow,
@@ -198,7 +205,7 @@ router.post('/:id/versions/:versionNumber/rollback', async (req, res) => {
 // GET /api/workflow-builder/:id/versions — List all versions
 router.get('/:id/versions', (req, res) => {
     try {
-        const workflow = workflowBuilderService.getWorkflow(req.params.id);
+        const workflow = req.wfService.getWorkflow(req.params.id);
         if (!workflow) {
             return res.status(404).json({ success: false, error: `Workflow '${req.params.id}' not found.` });
         }
@@ -219,7 +226,7 @@ router.get('/:id/versions', (req, res) => {
 router.post('/:id/test-run', (req, res) => {
     try {
         const { employeeId, mockData, actor } = req.body || {};
-        const simulation = workflowBuilderService.testRunWorkflow(req.params.id, { employeeId, mockData, actor });
+        const simulation = req.wfService.testRunWorkflow(req.params.id, { employeeId, mockData, actor });
         res.status(200).json({ success: true, simulation, data: simulation });
     } catch (err) {
         logger.error(`[WorkflowBuilderAPI] Error simulating workflow '${req.params.id}':`, err);
@@ -231,7 +238,7 @@ router.post('/:id/test-run', (req, res) => {
 router.get('/:id/execution-logs', (req, res) => {
     try {
         const { status, limit } = req.query || {};
-        const logs = workflowBuilderService.listExecutionLogs(req.params.id, { status, limit: parseInt(limit, 10) || 50 });
+        const logs = req.wfService.listExecutionLogs(req.params.id, { status, limit: parseInt(limit, 10) || 50 });
         res.status(200).json({
             success: true,
             workflowId: req.params.id,
@@ -248,7 +255,7 @@ router.get('/:id/execution-logs', (req, res) => {
 // GET /api/workflow-builder/:id/audit-trail — Immutable user change audit logs
 router.get('/:id/audit-trail', (req, res) => {
     try {
-        const logs = workflowBuilderService.listAuditLogs(req.params.id);
+        const logs = req.wfService.listAuditLogs(req.params.id);
         res.status(200).json({
             success: true,
             workflowId: req.params.id,
@@ -268,7 +275,7 @@ router.get('/:id/audit-trail', (req, res) => {
 // GET /api/workflow-builder/:id/question-configs — List all question configs for a workflow
 router.get('/:id/question-configs', (req, res) => {
     try {
-        const configs = workflowBuilderService.listQuestionConfigs(req.params.id);
+        const configs = req.wfService.listQuestionConfigs(req.params.id);
         res.status(200).json({ success: true, questionConfigs: configs });
     } catch (err) {
         logger.error(`[WorkflowBuilderAPI] Error fetching question configs for '${req.params.id}':`, err);
@@ -279,7 +286,7 @@ router.get('/:id/question-configs', (req, res) => {
 // GET /api/workflow-builder/:id/question-configs/:stageId — Get question config for a specific stage
 router.get('/:id/question-configs/:stageId', (req, res) => {
     try {
-        const config = workflowBuilderService.getQuestionConfig(req.params.id, req.params.stageId);
+        const config = req.wfService.getQuestionConfig(req.params.id, req.params.stageId);
         res.status(200).json({ success: true, questionConfig: config });
     } catch (err) {
         logger.error(`[WorkflowBuilderAPI] Error fetching question config for '${req.params.stageId}':`, err);
@@ -295,7 +302,7 @@ router.post(['/:id/question-configs/:stageId', '/:id/question-configs'], (req, r
         if (!stageId) {
             return res.status(400).json({ success: false, error: 'Stage ID is required.' });
         }
-        const record = workflowBuilderService.saveQuestionConfig(req.params.id, stageId, req.body, { actor });
+        const record = req.wfService.saveQuestionConfig(req.params.id, stageId, req.body, { actor });
         res.status(200).json({
             success: true,
             questionConfig: record,
@@ -313,7 +320,7 @@ router.post(['/:id/question-configs/:stageId', '/:id/question-configs'], (req, r
 // GET /api/workflow-builder/:id/automations — List all automation configs for a workflow
 router.get('/:id/automations', (req, res) => {
     try {
-        const configs = workflowBuilderService.listAutomationConfigs(req.params.id);
+        const configs = req.wfService.listAutomationConfigs(req.params.id);
         res.status(200).json({ success: true, automationConfigs: configs });
     } catch (err) {
         logger.error(`[WorkflowBuilderAPI] Error fetching automation configs for '${req.params.id}':`, err);
@@ -324,7 +331,7 @@ router.get('/:id/automations', (req, res) => {
 // GET /api/workflow-builder/:id/automations/:stageId — Get automation config for a specific stage
 router.get('/:id/automations/:stageId', (req, res) => {
     try {
-        const config = workflowBuilderService.getAutomationConfig(req.params.id, req.params.stageId);
+        const config = req.wfService.getAutomationConfig(req.params.id, req.params.stageId);
         res.status(200).json({ success: true, automationConfig: config });
     } catch (err) {
         logger.error(`[WorkflowBuilderAPI] Error fetching automation config for '${req.params.stageId}':`, err);
@@ -340,7 +347,7 @@ router.post(['/:id/automations/:stageId', '/:id/automations'], (req, res) => {
         if (!stageId) {
             return res.status(400).json({ success: false, error: 'Stage ID is required.' });
         }
-        const record = workflowBuilderService.saveAutomationConfig(req.params.id, stageId, req.body, { actor });
+        const record = req.wfService.saveAutomationConfig(req.params.id, stageId, req.body, { actor });
         res.status(200).json({
             success: true,
             automationConfig: record,

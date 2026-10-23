@@ -46,7 +46,13 @@ import firebaseConfig from '../config/firebase.js';
 
 const db = firebaseConfig?.db || firebaseConfig?.default?.db;
 
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware.js');
+
 const router = Router();
+router.use(verifyToken);
+router.use(authorize(ADMIN_HR_ROLES));
 
 // Configure Multer for in-memory upload (up to 15MB)
 const upload = multer({

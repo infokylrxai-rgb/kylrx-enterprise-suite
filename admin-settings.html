@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Settings | Kylrx AI</title>
@@ -346,8 +347,11 @@
                     <a href="#" class="snav-item" data-tab="security"><i data-lucide="shield"></i> Security</a>
                     <a href="#" class="snav-item" data-tab="email"><i data-lucide="mail"></i> Email Config</a>
                     <a href="#" class="snav-item" data-tab="onboarding_hr"><i data-lucide="user-plus"></i> Onboarding &amp; Roles</a>
-                    <a href="#" class="snav-item" data-tab="integrations"><i data-lucide="puzzle"></i> Integrations &amp; Add-ons</a>
                     <a href="#" class="snav-item" data-tab="bu_rules"><i data-lucide="layers"></i> BU & Employee Types (PRD §10)</a>
+                    <a href="#" class="snav-item" data-tab="holiday_calendars"><i data-lucide="calendar"></i> Holiday Calendars (PRD §1 &amp; §16)</a>
+                    <a href="#" class="snav-item" data-tab="statutory_rules"><i data-lucide="scale"></i> Statutory &amp; Compliance Rules (PRD §1 &amp; §4)</a>
+                    <a href="#" class="snav-item" data-tab="rbac_permissions"><i data-lucide="shield-check"></i> Roles &amp; Overrides (PRD §14 &amp; §18)</a>
+                    <a href="#" class="snav-item" data-tab="payroll_components"><i data-lucide="layers"></i> Payroll Components Catalog (PRD §1 &amp; §4)</a>
                 </div>
 
                 <div class="settings-content">
@@ -962,8 +966,14 @@
                         </div>
                     </div>
 
-                    <!-- Business Unit Rules (PRD Section 10) -->
+                    <!-- Business Unit & Employee Category Rules (PRD Sections 1, 10, & 13) -->
                     <div id="bu_rules" class="tab-content">
+                        <!-- Employee Types & Categories Management Console -->
+                        <div class="settings-card" style="margin-bottom: 2rem;">
+                            <div id="settingsEmployeeTypeContainer"></div>
+                        </div>
+
+                        <!-- Business Unit Rules Table -->
                         <div class="settings-card">
                             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
                                 <div>
@@ -979,13 +989,33 @@
                             <div id="settingsBuRulesContainer"></div>
                         </div>
                     </div>
+
+                    <!-- Holiday Calendars (PRD Sections 1, 4, 15, & 16) -->
+                    <div id="holiday_calendars" class="tab-content">
+                        <div id="settingsHolidayCalendarContainer"></div>
+                    </div>
+
+                    <!-- Statutory & Compliance Rules (PRD Sections 1, 4, 11, & 13) -->
+                    <div id="statutory_rules" class="tab-content">
+                        <div id="settingsStatutoryRulesContainer"></div>
+                    </div>
+
+                    <!-- RBAC & Permission Overrides (PRD Sections 1, 14, 17, & 18) -->
+                    <div id="rbac_permissions" class="tab-content">
+                        <div id="settingsRbacContainer"></div>
+                    </div>
+
+                    <!-- Payroll Components Catalog Console (PRD Sections 1 & 4) -->
+                    <div id="payroll_components" class="tab-content">
+                        <div id="settingsPayrollComponentsContainer"></div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
     <script type="module">
-        import { auth } from "./firebase-config.js";
+        import { auth, onSnapshot, registerListener } from "./firebase-config.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
         const currentRole = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
@@ -1014,8 +1044,37 @@
                 btn.classList.add('active');
                 document.getElementById(targetTab)?.classList.add('active');
 
-                if (targetTab === 'bu_rules' && window.KylrxBuRules) {
-                    window.KylrxBuRules.renderAdminRulesTable('settingsBuRulesContainer');
+                if (targetTab === 'bu_rules') {
+                    if (window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.renderAdminConsole === 'function') {
+                        window.KylrxEmployeeTypeService.renderAdminConsole('settingsEmployeeTypeContainer');
+                    }
+                    if (window.KylrxBuRules && typeof window.KylrxBuRules.renderAdminRulesTable === 'function') {
+                        window.KylrxBuRules.renderAdminRulesTable('settingsBuRulesContainer');
+                    }
+                }
+
+                if (targetTab === 'holiday_calendars') {
+                    if (window.KylrxHolidayCalendarService && typeof window.KylrxHolidayCalendarService.renderAdminHolidayConsole === 'function') {
+                        window.KylrxHolidayCalendarService.renderAdminHolidayConsole('settingsHolidayCalendarContainer');
+                    }
+                }
+
+                if (targetTab === 'statutory_rules') {
+                    if (window.KylrxStatutoryComplianceUIController && typeof window.KylrxStatutoryComplianceUIController.renderAdminConsole === 'function') {
+                        window.KylrxStatutoryComplianceUIController.renderAdminConsole('settingsStatutoryRulesContainer');
+                    }
+                }
+
+                if (targetTab === 'rbac_permissions') {
+                    if (window.KylrxRbacUIController && typeof window.KylrxRbacUIController.renderAdminConsole === 'function') {
+                        window.KylrxRbacUIController.renderAdminConsole('settingsRbacContainer');
+                    }
+                }
+
+                if (targetTab === 'payroll_components') {
+                    if (window.KylrxPayrollComponentsUIController && typeof window.KylrxPayrollComponentsUIController.renderAdminConsole === 'function') {
+                        window.KylrxPayrollComponentsUIController.renderAdminConsole('settingsPayrollComponentsContainer');
+                    }
                 }
             });
         });
@@ -1329,7 +1388,7 @@
 
         // System Lock Logic
         import { db } from "./firebase-config.js";
-        import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { doc, getDoc, setDoc } from "./firebase-config.js";
 
         const lockToggle = document.getElementById('systemLockToggle');
         const lockText = document.getElementById('lockStatusText');
@@ -1440,10 +1499,8 @@
             btn.innerHTML = '<i data-lucide="loader"></i> Sending...';
             if (window.lucide) lucide.createIcons();
 
-            // Always target the backend API server (port 3000), not the static file server
-            const apiBase = window.location.port === '3000'
-                ? ''
-                : 'http://127.0.0.1:3000';
+            // Always target the backend API server, defaulting to window.location.origin
+            const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : (window.API_BASE || window.location.origin);
 
             try {
                 const res = await fetch(`${apiBase}/api/email/test`, {
@@ -1627,8 +1684,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
@@ -1727,7 +1784,24 @@
 
     initAdminApps();
 </script>
+<script src="services/employee-type-parser.js"></script>
+<script src="services/employee-type-service.js"></script>
 <script src="bu-employee-type-rules.js"></script>
+<script src="holidayCalendarParser.js"></script>
+<script src="holidayCalendarService.js"></script>
+<script src="statutoryComplianceParser.js"></script>
+<script src="statutoryComplianceService.js"></script>
+<script src="services/statutory-compliance-ui-controller.js"></script>
+<script src="rolePermissionParser.js"></script>
+<script src="rbacService.js"></script>
+<script src="services/rbac-ui-controller.js"></script>
+<script src="workflowRulesParser.js"></script>
+<script src="workflowExecutionEngine.js"></script>
+<script src="workflowFlowDesigner.js"></script>
+<script src="payrollComponentsParser.js"></script>
+<script src="payrollComponentService.js"></script>
+<script src="payrollComponentsUIController.js"></script>
+<script src="payrollCalculationEngine.js"></script>
 <script type="module" src="./admin-sidebar-sync.js"></script>
 </body>
 

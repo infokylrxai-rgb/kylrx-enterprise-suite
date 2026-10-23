@@ -1,9 +1,19 @@
 import { auth, db } from "./firebase-config.js";
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { collection, getDocs, addDoc, query, orderBy, limit, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, getDocs, addDoc, query, orderBy, limit, doc, getDoc, setDoc, where, updateDoc, deleteDoc } from "./firebase-config.js";
 import { sendNotification } from "./notification-app.js";
 
-const API_BASE = 'http://127.0.0.1:3000/api';
+const API_BASE = `${(typeof window !== 'undefined' && window.API_BASE) ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : '')}/api`;
+
+function escapeHtml(str) {
+  if (!str && str !== 0) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     console.error("Global Frontend Error:", msg, url, lineNo, columnNo, error);
     
@@ -110,7 +120,7 @@ onAuthStateChanged(auth, async (user) => {
       
       // Update UI
       const welcomeText = document.querySelector('.page-header h1');
-      if (welcomeText) welcomeText.innerHTML = `Good Day, ${data.name.split(' ')[0]} 👋`;
+      if (welcomeText) welcomeText.innerHTML = `Good Day, ${escapeHtml(data.name.split(' ')[0])} 👋`;
       
       const sidebarNames = document.querySelectorAll('.user-name');
       sidebarNames.forEach(n => n.textContent = data.name);
@@ -391,10 +401,10 @@ function renderTeamList(employees) {
 
   teamList.innerHTML = employees.map(emp => `
     <div class="activity-item">
-      <div class="act-avatar" style="background: var(--primary); color: white;">${emp.name.charAt(0)}</div>
+      <div class="act-avatar" style="background: var(--primary); color: white;">${escapeHtml(emp.name ? emp.name.charAt(0) : '?')}</div>
       <div class="act-body">
-        <div class="act-text"><b>${emp.name}</b></div>
-        <div class="act-time">${emp.role || emp.dept || 'Employee'}</div>
+        <div class="act-text"><b>${escapeHtml(emp.name)}</b></div>
+        <div class="act-time">${escapeHtml(emp.role || emp.dept || 'Employee')}</div>
       </div>
       <span class="act-badge success" style="font-size: 0.7rem;">Active</span>
     </div>
@@ -416,7 +426,7 @@ window.closeCreateTaskModal = () => {
 
 function populateAssigneeDropdown(employees) {
     if (!taskAssigneeDropdown) return;
-    taskAssigneeDropdown.innerHTML = employees.map(emp => `<option value="${emp.id}">${emp.name}</option>`).join('');
+    taskAssigneeDropdown.innerHTML = employees.map(emp => `<option value="${escapeHtml(emp.id)}">${escapeHtml(emp.name)}</option>`).join('');
 }
 
 async function loadTasks() {
@@ -437,14 +447,14 @@ async function loadTasks() {
         managerTaskList.innerHTML = tasks.map(task => `
             <tr>
                 <td>
-                    <div style="font-weight:600;">${task.title}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">${task.description || ''}</div>
+                    <div style="font-weight:600;">${escapeHtml(task.title)}</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(task.description || '')}</div>
                 </td>
-                <td>${task.assigneeName || 'Unassigned'}</td>
-                <td>${task.deadline || 'No Deadline'}</td>
-                <td><span class="status-pill ${getStatusClass(task.status)}">${task.status}</span></td>
+                <td>${escapeHtml(task.assigneeName || 'Unassigned')}</td>
+                <td>${escapeHtml(task.deadline || 'No Deadline')}</td>
+                <td><span class="status-pill ${getStatusClass(task.status)}">${escapeHtml(task.status)}</span></td>
                 <td>
-                    <button class="action-btn" onclick="deleteTask('${task.id}')" title="Delete Task" style="border:none; background:none; cursor:pointer; color:var(--danger);"><i data-lucide="trash-2" size="14"></i></button>
+                    <button class="action-btn" onclick="deleteTask('${escapeHtml(task.id)}')" title="Delete Task" style="border:none; background:none; cursor:pointer; color:var(--danger);"><i data-lucide="trash-2" size="14"></i></button>
                 </td>
             </tr>
         `).join('');
@@ -583,9 +593,9 @@ function renderAttendance(filter = 'all', search = '') {
     const isLate = e.status === 'late';
     return `
       <tr>
-        <td><code style="font-weight:600; color:var(--text-2);">${e.id}</code></td>
-        <td><div class="emp-cell"><div class="emp-avatar" style="background:${e.color}">${e.initials}</div>${e.name}</div></td>
-        <td style="${isLate ? 'color:var(--red); font-weight:700;' : ''}">${e.loginTime}</td>
+        <td><code style="font-weight:600; color:var(--text-2);">${escapeHtml(e.id)}</code></td>
+        <td><div class="emp-cell"><div class="emp-avatar" style="background:${escapeHtml(e.color)}">${escapeHtml(e.initials)}</div>${escapeHtml(e.name)}</div></td>
+        <td style="${isLate ? 'color:var(--red); font-weight:700;' : ''}">${escapeHtml(e.loginTime)}</td>
         <td><span class="status-pill ${statusMap[e.status]}">${statusLabel[e.status]}</span></td>
         <td><button class="action-btn" style="padding:.3rem .75rem;font-size:.78rem;"><i class="fa-solid fa-ellipsis"></i></button></td>
       </tr>`;
@@ -651,10 +661,10 @@ function renderPayroll() {
   if (!tbody) return;
   tbody.innerHTML = payrollData.map(e => `
     <tr>
-      <td><div class="emp-cell"><div class="emp-avatar" style="background:${e.color}">${e.initials}</div>${e.name}</div></td>
-      <td>${e.base}</td>
-      <td style="color:var(--red)">${e.deductions}</td>
-      <td style="font-weight:700">${e.net}</td>
+      <td><div class="emp-cell"><div class="emp-avatar" style="background:${escapeHtml(e.color)}">${escapeHtml(e.initials)}</div>${escapeHtml(e.name)}</div></td>
+      <td>${escapeHtml(e.base)}</td>
+      <td style="color:var(--red)">${escapeHtml(e.deductions)}</td>
+      <td style="font-weight:700">${escapeHtml(e.net)}</td>
       <td><span class="status-pill ${e.status === 'paid' ? 'pill-present' : 'pill-pending'}">${e.status === 'paid' ? 'Paid' : 'Pending'}</span></td>
       <td>
         ${e.status === 'pending' 
@@ -1473,11 +1483,11 @@ const notifications = [
 function renderNotifications() {
   if (!notifList) return;
   notifList.innerHTML = notifications.map(n => `
-    <div class="notif-item ${n.unread ? 'unread' : ''}" data-id="${n.id}">
-      <div class="notif-img">${n.user}</div>
+    <div class="notif-item ${n.unread ? 'unread' : ''}" data-id="${escapeHtml(n.id)}">
+      <div class="notif-img">${escapeHtml(n.user)}</div>
       <div class="notif-body">
-        <div class="notif-text"><b>${n.name}</b> ${n.msg}</div>
-        <div class="notif-time">${n.time}</div>
+        <div class="notif-text"><b>${escapeHtml(n.name)}</b> ${escapeHtml(n.msg).replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/g, '<b>$1</b>')}</div>
+        <div class="notif-time">${escapeHtml(n.time)}</div>
       </div>
     </div>
   `).join('');
@@ -1567,12 +1577,12 @@ const messages = [
 function renderMessages() {
   if (!msgList) return;
   msgList.innerHTML = messages.map(m => `
-    <div class="notif-item ${m.unread ? 'unread' : ''}" data-id="${m.id}">
-      <div class="act-avatar" style="background:${m.color}">${m.user}</div>
+    <div class="notif-item ${m.unread ? 'unread' : ''}" data-id="${escapeHtml(m.id)}">
+      <div class="act-avatar" style="background:${escapeHtml(m.color)}">${escapeHtml(m.user)}</div>
       <div class="notif-body">
-        <div class="notif-title">${m.name}</div>
-        <div class="notif-text">${m.text}</div>
-        <div class="notif-time">${m.time}</div>
+        <div class="notif-title">${escapeHtml(m.name)}</div>
+        <div class="notif-text">${escapeHtml(m.text)}</div>
+        <div class="notif-time">${escapeHtml(m.time)}</div>
       </div>
     </div>
   `).join('');
@@ -1930,10 +1940,10 @@ async function seedDatabase() {
   if (window.showToast) window.showToast('Initializing...', 'Synchronizing Enterprise Cloud via Backend API...', 'info');
 
   try {
-    const API_BASE = 'http://localhost:3000/api';
+    const SYNC_API_BASE = `${(typeof window !== 'undefined' && window.API_BASE) ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : '')}/api`;
     const token = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('hr_access_token');
     
-    const response = await fetch(`${API_BASE}/admin/sync-database`, {
+    const response = await fetch(`${SYNC_API_BASE}/admin/sync-database`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

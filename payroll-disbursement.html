@@ -2159,8 +2159,8 @@
                 <div style="border-top: 1px solid var(--border); padding-top: 0.85rem;">
                     <div style="font-weight: 700; font-size: 0.78rem; color: #334155; margin-bottom: 8px;">Re-authenticate or Switch Super Admin Account:</div>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <input type="email" id="loginEmailInput" value="superadmin@kylrx.ai" placeholder="superadmin@kylrx.ai" style="padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.8rem; outline: none;">
-                        <input type="password" id="loginPasswordInput" value="Kylrx#SuperAdmin2026!Secured" placeholder="Password" style="padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.8rem; outline: none;">
+                        <input type="email" id="loginEmailInput" name="email" value="superadmin@kylrx.ai" placeholder="superadmin@kylrx.ai" autocomplete="username" style="padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.8rem; outline: none;">
+                        <input type="password" id="loginPasswordInput" name="password" value="Kylrx#SuperAdmin2026!Secured" placeholder="Password" autocomplete="current-password" style="padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.8rem; outline: none;">
                         <button class="btn btn-primary" style="justify-content: center; font-size: 0.8rem; padding: 8px;" onclick="window.submitSuperAdminLogin()"><i data-lucide="log-in" size="14"></i> Sign In with Super Admin Credential</button>
                     </div>
                 </div>
@@ -2207,27 +2207,13 @@
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase-config.js";
+        import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
         import { 
             signInWithEmailAndPassword, 
             onAuthStateChanged, 
             signOut 
         } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { 
-            collection, 
-            doc, 
-            setDoc, 
-            getDoc, 
-            getDocs, 
-            addDoc, 
-            updateDoc, 
-            writeBatch,
-            onSnapshot, 
-            query, 
-            where, 
-            orderBy, 
-            serverTimestamp 
-        } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, writeBatch, query, where, orderBy, serverTimestamp } from "./firebase-config.js";
         import { 
             maskAccountNumber, 
             computeSha256, 

@@ -1,5 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
+
+// Administrative payroll routes require Admin/HR roles; employee document reads are gated by req.user.id
+router.use((req, res, next) => {
+    if (req.method === 'GET' && (req.path.includes('/download-url') || req.path.startsWith('/employee/'))) {
+        return next();
+    }
+    return authorize(ADMIN_HR_ROLES)(req, res, next);
+});
 
 let admin, db;
 try {
@@ -10,6 +21,43 @@ try {
 
 // Decoupled Payroll Controller (PRD Section 4)
 const payrollController = require('../controllers/payroll-controller');
+
+// ─────────────────────────────────────────────
+// 0. PAYROLL RUNS & DISBURSEMENT BATCHES (caller's organization, used by the Operational Dashboard)
+// ─────────────────────────────────────────────
+const { orgDocs } = require('../config/tenant');
+const firebaseConfig = require('../config/firebase');
+const orgOf = (req) => (req.user && req.user.orgId) || req.tenantOrgId || null;
+const newestFirst = (field) => (a, b) => String(b[field] || '').localeCompare(String(a[field] || ''));
+
+router.get('/runs', async (req, res) => {
+    try {
+        const orgId = orgOf(req);
+        if (!orgId || !admin || !admin.apps.length) return res.json({ success: true, runs: [] });
+        const runs = (await orgDocs(firebaseConfig.rawCollection, 'payroll_runs', orgId, 200))
+            .map(r => ({ ...r, timestamp: r.timestamp && r.timestamp.toDate ? r.timestamp.toDate().toISOString() : r.timestamp }))
+            .sort(newestFirst('period'));
+        res.json({ success: true, runs });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+router.get('/batches', async (req, res) => {
+    try {
+        const orgId = orgOf(req);
+        if (!orgId || !admin || !admin.apps.length) return res.json({ success: true, batches: [] });
+        // Batches are written by the disbursement service (disbursement_batches) and older flows
+        const [current, legacy] = await Promise.all([
+            orgDocs(firebaseConfig.rawCollection, 'disbursement_batches', orgId, 200),
+            orgDocs(firebaseConfig.rawCollection, 'payroll_disbursement_batches', orgId, 200)
+        ]);
+        const batches = [...current, ...legacy].sort(newestFirst('createdAt'));
+        res.json({ success: true, batches });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
 
 // ─────────────────────────────────────────────
 // 1. DECOUPLED PAYROLL DOCUMENT ROUTES
@@ -44,6 +92,11 @@ router.get('/documents/:docId/download-url', async (req, res) => {
 
         if (!employeeId) {
             return res.status(400).json({ success: false, error: 'employeeId is required' });
+        }
+
+        const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
+        if (userRole === 'employee' && employeeId !== req.user.id) {
+            return res.status(403).json({ success: false, error: 'Unauthorized: Employees may only download their own payslips' });
         }
 
         const docSnap = await db.collection('payroll_documents').doc(docId).get();
@@ -90,6 +143,10 @@ router.get('/documents/:docId/download-url', async (req, res) => {
 router.get('/employee/:employeeId/documents', async (req, res) => {
     try {
         const { employeeId } = req.params;
+        const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
+        if (userRole === 'employee' && employeeId !== req.user.id) {
+            return res.status(403).json({ success: false, error: 'Unauthorized: Employees may only view their own documents' });
+        }
         const snap = await db.collection('payroll_documents')
             .where('employeeId', '==', employeeId)
             .orderBy('createdAt', 'desc')

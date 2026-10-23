@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { doc, setDoc, updateDoc, serverTimestamp, collection, addDoc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, setDoc, updateDoc, serverTimestamp, collection, addDoc, getDoc, query, where, getDocs } from "./firebase-config.js";
 
 /**
  * Bank Verification Workflow Service

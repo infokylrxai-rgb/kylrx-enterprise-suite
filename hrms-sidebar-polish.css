@@ -97,7 +97,7 @@ body > main {
     color: inherit !important;
 }
 
-/* 3. SCROLLABLE NAV CONTAINER */
+/* 3. SCROLLABLE NAV CONTAINER & SLEEK VISIBLE SCROLLBAR */
 .sidebar .nav-menu,
 .sidebar nav.nav-menu,
 .sidebar .sidebar-nav {
@@ -105,10 +105,11 @@ body > main {
     min-height: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    scrollbar-gutter: stable !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    padding: 0 16px 0 0 !important;
+    scrollbar-gutter: auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #94a3b8 #f1f5f9 !important;
+    -ms-overflow-style: auto !important;
+    padding: 0 4px 0 0 !important;
     margin: 0 !important;
     list-style: none !important;
     display: flex !important;
@@ -118,9 +119,40 @@ body > main {
 }
 
 .sidebar .nav-menu::-webkit-scrollbar,
+.sidebar nav.nav-menu::-webkit-scrollbar,
 .sidebar .sidebar-nav::-webkit-scrollbar {
+    display: block !important;
+    width: 6px !important;
+    height: 6px !important;
+}
+
+.sidebar .nav-menu::-webkit-scrollbar-track,
+.sidebar nav.nav-menu::-webkit-scrollbar-track,
+.sidebar .sidebar-nav::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
+    border-radius: 9999px !important;
+}
+
+.sidebar .nav-menu::-webkit-scrollbar-thumb,
+.sidebar nav.nav-menu::-webkit-scrollbar-thumb,
+.sidebar .sidebar-nav::-webkit-scrollbar-thumb {
+    background: #94a3b8 !important;
+    border-radius: 9999px !important;
+}
+
+.sidebar .nav-menu:hover::-webkit-scrollbar-thumb,
+.sidebar nav.nav-menu:hover::-webkit-scrollbar-thumb,
+.sidebar .sidebar-nav:hover::-webkit-scrollbar-thumb,
+.sidebar:hover .nav-menu::-webkit-scrollbar-thumb {
+    background: #64748b !important;
+}
+
+.sidebar .nav-menu::-webkit-scrollbar-button,
+.sidebar nav.nav-menu::-webkit-scrollbar-button,
+.sidebar .sidebar-nav::-webkit-scrollbar-button {
     display: none !important;
     width: 0 !important;
+    height: 0 !important;
 }
 
 /* 4. SECTION LABELS */

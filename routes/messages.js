@@ -1,27 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const messageController = require('../controllers/messageController');
+const { verifyToken } = require('../middleware/authMiddleware');
 
-// Permissive local session identity middleware
-const optionalAuth = (req, res, next) => {
-    if (!req.user) {
-        req.user = {
-            uid: req.headers['x-user-id'] || 'ADMIN_GLOBAL',
-            name: req.headers['x-user-name'] || 'Super Admin',
-            role: 'admin'
-        };
-    }
-    next();
-};
+router.use(verifyToken);
 
 // Thread endpoints
-router.get('/thread/:chatId', optionalAuth, messageController.getThreadMessages);
-router.post('/send', optionalAuth, messageController.sendMessage);
-router.post('/clear/:chatId', optionalAuth, messageController.clearChat);
+router.get('/thread/:chatId', messageController.getThreadMessages);
+router.post('/send', messageController.sendMessage);
+router.post('/clear/:chatId', messageController.clearChat);
 
 // Standard endpoints
-router.get('/:recipientId', optionalAuth, messageController.getMessages);
-router.post('/', optionalAuth, messageController.sendMessage);
-router.post('/broadcast', optionalAuth, messageController.broadcastMessage);
+router.get('/:recipientId', messageController.getMessages);
+router.post('/', messageController.sendMessage);
+router.post('/broadcast', messageController.broadcastMessage);
 
 module.exports = router;

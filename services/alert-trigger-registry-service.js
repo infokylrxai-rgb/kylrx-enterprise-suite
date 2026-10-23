@@ -223,6 +223,43 @@ const CANONICAL_TRIGGER_REGISTRY = [
             webhookEnabled: true,
             webhookEndpointTemplate: 'https://hooks.slack.com/services/T00/B00/exit-clearance-sla'
         }
+    },
+    {
+        eventKey: 'EVT_STATUTORY_DEADLINE_APPROACHING',
+        displayName: 'Statutory Remittance Deadline Alert (5d / 2d / Due Day)',
+        description: 'Monitors statutory due dates (EPF, ESIC, PT by 15th/20th) and fires administrative warnings 5 days and 2 days prior to deadline with direct export download links.',
+        category: 'Statutory Compliance',
+        module: 'statutory',
+        severity: 'critical',
+        parameters: ['complianceCode', 'complianceName', 'dueDay', 'daysRemaining', 'cycleMonth', 'exportUrl'],
+        metric: 'Days Until Due Date',
+        comparator: '<=',
+        thresholdValue: 5,
+        timeWindow: 'Monthly Cycle Remittance Window',
+        sampleMockPayload: {
+            complianceCode: 'COMP_PF',
+            complianceName: 'Employees Provident Fund',
+            dueDay: 15,
+            daysRemaining: 2,
+            cycleMonth: '2026-10',
+            exportUrl: '/api/admin/statutory/export-ecr?cycleMonth=2026-10'
+        },
+        sampleDenialPayload: {
+            complianceCode: 'COMP_PF',
+            complianceName: 'Employees Provident Fund',
+            dueDay: 15,
+            daysRemaining: 10,
+            cycleMonth: '2026-10',
+            exportUrl: '/api/admin/statutory/export-ecr?cycleMonth=2026-10'
+        },
+        routing: {
+            primaryRecipients: ['Payroll Admin', 'Compliance Officer', 'Finance Controller'],
+            channels: ['in_app', 'email', 'sms'],
+            escalationTarget: 'Chief Financial Officer',
+            escalationTimeoutHours: 24,
+            webhookEnabled: true,
+            webhookEndpointTemplate: 'https://hooks.slack.com/services/T00/B00/statutory-remittance'
+        }
     }
 ];
 

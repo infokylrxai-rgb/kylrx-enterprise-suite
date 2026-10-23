@@ -156,7 +156,7 @@ export function downloadPayslipPdf(blob, filename) {
 function getApiBase() {
     const host = window.location.hostname;
     if (host === "localhost" || host === "127.0.0.1") {
-        return "http://127.0.0.1:3000";
+        return typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''));
     }
     return "";
 }

@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const recruitmentIntegrationService = require('../services/recruitment-integration-service');
 const logger = require('../utils/logger');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
 
 /**
  * GET /api/integrations/recruitment

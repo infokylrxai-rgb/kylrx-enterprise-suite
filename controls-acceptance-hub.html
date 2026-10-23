@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Controls, Acceptance & Client Confirmation Hub (PRD §4) | Kylrx Enterprise Suite</title>
+    <meta name="description" content="Kylrx Enterprise Controls, Acceptance Criteria, Client Decisions Registry, Phased Delivery Roadmap, and Digital Scope Sign-Off (PRD Section 4)." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
+    
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- Lucide Icons -->
+    <script src="lucide.min.js"></script>
+    <script>
+        function renderLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { window.lucide.createIcons(); } catch(e) {}
+            }
+        }
+        window.renderLucideIcons = renderLucideIcons;
+        document.addEventListener('DOMContentLoaded', renderLucideIcons);
+    </script>
+
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="admin-dashboard.css" />
+    <link rel="stylesheet" href="sidebar-lock.css" />
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #eff6ff;
+            --bg-deep: #f8fafc;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent-purple: #9333ea;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+        }
+
+        body {
+            font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width, 280px);
+            flex: 1;
+            padding: 2.2rem 2.5rem;
+            background: #f8fafc;
+            width: calc(100% - var(--sidebar-width, 280px));
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* Tabs Bar */
+        .tabs-header-bar {
+            display: flex;
+            gap: 6px;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 5px;
+            margin-bottom: 1.75rem;
+            width: fit-content;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.6);
+        }
+        .tab-btn.active {
+            background: #ffffff;
+            color: #2563eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Cards & Surfaces */
+        .card-surface {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+        .badge-blue { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .badge-green { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .badge-amber { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .badge-purple { background: #faf5ff; color: #7c3aed; border: 1px solid #e9d5ff; }
+        .badge-red { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        /* Decision Cards */
+        .decision-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        .decision-card:hover {
+            border-color: #93c5fd;
+        }
+        .decision-card.confirmed {
+            border-left: 4px solid #10b981;
+        }
+
+        /* Criteria Grid */
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+        }
+        .criteria-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Timeline Roadmap */
+        .timeline-step {
+            display: flex;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .timeline-step::before {
+            content: '';
+            position: absolute;
+            left: 17px;
+            top: 36px;
+            bottom: -20px;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        .timeline-step:last-child::before {
+            display: none;
+        }
+        .timeline-marker {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+        .timeline-marker.done { background: #dcfce7; color: #15803d; }
+        .timeline-marker.active { background: #dbeafe; color: #1d4ed8; box-shadow: 0 0 0 4px #eff6ff; }
+
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="admin-dashboard.html" class="logo">
+                <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
+                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+            </a>
+            
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN MENU</div>
+                <div class="nav-item"><a href="admin-central-dashboard.html" class="nav-link"><i data-lucide="command"></i><span>Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard.html" class="nav-link"><i data-lucide="shield-check"></i><span>Super Admin Console</span></a></div>
+                <div class="nav-item"><a href="admin-pms.html" class="nav-link"><i data-lucide="target"></i><span>PMS Cycle Engine</span></a></div>
+                <div class="nav-item"><a href="admin-notification-center.html" class="nav-link"><i data-lucide="bell"></i><span>Notification & Actions</span></a></div>
+                <div class="nav-item"><a href="admin-automation-builder.html" class="nav-link"><i data-lucide="git-merge"></i><span>Automation Builder</span></a></div>
+                <div class="nav-item"><a href="admin-workflow-builder.html" class="nav-link"><i data-lucide="workflow"></i><span>Workflow Builder</span></a></div>
+                <div class="nav-item"><a href="admin-assignment-matrix.html" class="nav-link"><i data-lucide="layers"></i><span>Assignment Hub</span></a></div>
+                <div class="nav-item"><a href="admin-alert-builder.html" class="nav-link"><i data-lucide="bell-ring"></i><span>Alert Builder</span></a></div>
+                <div class="nav-item"><a href="admin-analytics-builder.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Analytics Builder</span></a></div>
+                <div class="nav-item"><a href="admin-dashboard-builder.html" class="nav-link"><i data-lucide="layout-grid"></i><span>Enterprise Builder</span></a></div>
+                <div class="nav-item"><a href="admin-policy-center.html" class="nav-link"><i data-lucide="shield-check"></i><span>Policy Center</span></a></div>
+                <div class="nav-item"><a href="admin-asset-management.html" class="nav-link"><i data-lucide="monitor"></i><span>Asset Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-exit-management.html" class="nav-link"><i data-lucide="log-out"></i><span>Exit Mgmt</span></a></div>
+
+                <div class="nav-label">OPERATIONS</div>
+                <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Monitor</span></a></div>
+                <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
+                <div class="nav-item"><a href="admin-document-templates.html" class="nav-link"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-upload.html" class="nav-link"><i data-lucide="upload"></i><span>Finance Payroll Upload</span></a></div>
+                <div class="nav-item"><a href="admin-payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
+                <div class="nav-item"><a href="payroll-account-views.html" class="nav-link"><i data-lucide="wallet"></i><span>Payroll & Account Views</span></a></div>
+                <div class="nav-item"><a href="bulk-trigger-dashboard.html" class="nav-link"><i data-lucide="zap"></i><span>Bulk Trigger & OTP Hub</span></a></div>
+                <div class="nav-item"><a href="controls-acceptance-hub.html" class="nav-link active"><i data-lucide="shield-check"></i><span>Controls & Sign-Off (PRD 4)</span></a></div>
+                <div class="nav-item"><a href="admin-statutory-compliance.html" class="nav-link"><i data-lucide="scale"></i><span>Statutory Compliance</span></a></div>
+                <div class="nav-item"><a href="admin-inactivity-monitor.html" class="nav-link"><i data-lucide="radar"></i><span>Inactivity Radar</span></a></div>
+
+                <div class="nav-label">INTELLIGENCE</div>
+                <div class="nav-item"><a href="admin-onboarding-ai.html" class="nav-link"><i data-lucide="brain"></i><span>AI Command Center</span></a></div>
+                <div class="nav-item"><a href="admin-hr-console.html" class="nav-link"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="admin-analysis.html" class="nav-link"><i data-lucide="pie-chart"></i><span>Analytics Center</span></a></div>
+                <div class="nav-item"><a href="operational-dashboard.html" class="nav-link"><i data-lucide="bar-chart-2"></i><span>Operational Reports</span></a></div>
+                <div class="nav-item"><a href="tvc-dashboard.html" class="nav-link"><i data-lucide="monitor"></i><span>TVC Workforce Monitor</span></a></div>
+
+                <div class="nav-label">GOVERNANCE & APPROVALS</div>
+                <div class="nav-item"><a href="admin-manager-change.html" class="nav-link"><i data-lucide="git-pull-request"></i><span>Manager Governance</span></a></div>
+                <div class="nav-item"><a href="admin-bank-approvals.html" class="nav-link"><i data-lucide="check-square"></i><span>Bank Verifications</span></a></div>
+                <div class="nav-item"><a href="admin-bank-transfer.html" class="nav-link"><i data-lucide="send"></i><span>Bank Transfer</span></a></div>
+                <div class="nav-item"><a href="admin-conversion-hub.html" class="nav-link"><i data-lucide="repeat"></i><span>Lifecycle Conversion</span></a></div>
+                <div class="nav-item"><a href="admin-notifications.html" class="nav-link"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="admin-message.html" class="nav-link"><i data-lucide="mail"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-config.html" class="nav-link"><i data-lucide="settings"></i><span>Onboarding Config</span></a></div>
+                <div class="nav-item"><a href="admin-onboarding-upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Bulk Onboarding</span></a></div>
+
+                <div class="nav-label">ACTIVE UNITS</div>
+                <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span>CUSTOM APPS</span>
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                        <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
+                    </button>
+                </div>
+                <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="nav-item">
+                    <a href="admin-dashboard-builder.html" class="nav-link" id="btnCustom">
+                        <i data-lucide="layout"></i>
+                        <span>Customize Layout</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="admin-settings.html" class="nav-link">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" id="logoutBtn" style="color: var(--danger);">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                        <span class="badge-pill badge-purple">PRD Section 4</span>
+                        <h1 style="font-size: 1.7rem; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px;">Controls, Acceptance & Client Confirmation</h1>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #64748b; margin: 0;">Common platform requirements, live 8-feature acceptance verification, 10-point client decision registry, and formal digital sign-off execution.</p>
+                </div>
+
+                <!-- Acceptance Health Badge & Live Trigger -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.68rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Acceptance Health</div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #059669;" id="overallAcceptanceBadge">8 / 8 PASSED (100%)</div>
+                    </div>
+                    <button class="btn-action btn-primary" onclick="runAcceptanceSuite()">
+                        <i data-lucide="play" style="width: 15px; height: 15px;"></i>
+                        <span>Re-Verify Suite</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Bar -->
+            <div class="tabs-header-bar">
+                <button class="tab-btn active" data-tab="controls">
+                    <i data-lucide="cpu" style="width: 16px; height: 16px;"></i>
+                    <span>4.1 Platform Controls</span>
+                </button>
+                <button class="tab-btn" data-tab="acceptance">
+                    <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>
+                    <span>4.2 Acceptance Criteria Matrix</span>
+                </button>
+                <button class="tab-btn" data-tab="decisions">
+                    <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
+                    <span>4.3 Client Decisions Registry (10)</span>
+                </button>
+                <button class="tab-btn" data-tab="signoff">
+                    <i data-lucide="file-check" style="width: 16px; height: 16px;"></i>
+                    <span>4.4 Phasing & Digital Sign-Off</span>
+                </button>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 1: 4.1 COMMON PLATFORM REQUIREMENTS                           -->
+            <!-- ================================================================= -->
+            <div id="pane_controls" class="tab-pane active">
+                <div class="card-surface" style="background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);">
+                    <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">4.1 Common Platform Telemetry & Controls</h3>
+                    <p style="font-size: 0.82rem; color: #64748b; margin: 0; line-height: 1.4;">
+                        Core architectural pillars enforced across all modules: Permissions, Audit, Security, Reliability, Usability, and Operational Reporting.
+                    </p>
+                </div>
+
+                <div class="criteria-grid" id="platformControlsGrid">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 2: 4.2 ACCEPTANCE CRITERIA MATRIX                             -->
+            <!-- ================================================================= -->
+            <div id="pane_acceptance" class="tab-pane">
+                <div class="card-surface" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">4.2 Feature Acceptance Criteria Matrix</h3>
+                        <p style="font-size: 0.82rem; color: #64748b; margin: 0;">
+                            Live verification of all 8 contractual conditions directly against backend services.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <span class="badge-pill badge-green" id="criteriaSummaryPill">8 of 8 Conditions Satisfied</span>
+                    </div>
+                </div>
+
+                <div class="criteria-grid" id="criteriaCardsGrid">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 3: 4.3 CLIENT DECISIONS REGISTRY                              -->
+            <!-- ================================================================= -->
+            <div id="pane_decisions" class="tab-pane">
+                <div class="card-surface" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: #f0fdf4; border-color: #bbf7d0;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <span class="badge-pill badge-green">10 Decision Points</span>
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #166534; margin: 0;">4.3 Client Decisions Required</h3>
+                        </div>
+                        <p style="font-size: 0.82rem; color: #15803d; margin: 0;">
+                            Each question identified from handwritten notes has a recommended default engineered by the project team. Confirm individually or batch-confirm below.
+                        </p>
+                    </div>
+                    <button class="btn-action btn-primary" onclick="batchConfirmRecommendations()" style="background: #16a34a;">
+                        <i data-lucide="check-check" style="width: 15px; height: 15px;"></i>
+                        <span>Confirm All 10 Recommendations</span>
+                    </button>
+                </div>
+
+                <div id="decisionPointsContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- TAB 4: 4.4 DELIVERY PHASING & FORMAL SIGN-OFF                     -->
+            <!-- ================================================================= -->
+            <div id="pane_signoff" class="tab-pane">
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <!-- Phasing Roadmap -->
+                    <div class="card-surface">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0;">Delivery Phasing & Estimates</h3>
+                            <span class="badge-pill badge-blue">215 Story Points Total</span>
+                        </div>
+
+                        <div id="roadmapContainer">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <!-- Scope Note -->
+                        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 12px 16px; margin-top: 1rem;">
+                            <div style="font-size: 0.72rem; font-weight: 800; color: #b45309; text-transform: uppercase; margin-bottom: 4px;">Scope Note</div>
+                            <p style="font-size: 0.8rem; color: #92400e; margin: 0; line-height: 1.4;">
+                                This five-page document is based on the supplied handwritten notes. Unclear figures and phrases remain open for confirmation. Final scope and estimates depend on client approval.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Digital Sign-Off Form & Certificate -->
+                    <div class="card-surface">
+                        <div style="margin-bottom: 1.25rem;">
+                            <span class="badge-pill badge-purple">Formal Acceptance</span>
+                            <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Client Scope Sign-Off</h3>
+                            <p style="font-size: 0.8rem; color: #64748b; margin: 0;">Execute digital approval to finalize scope and authorize Phase 5 deployment.</p>
+                        </div>
+
+                        <form id="signOffForm" onsubmit="submitClientSignOff(event)">
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Client Representative Name *</label>
+                                <input type="text" id="repName" required placeholder="e.g. Marcus Vance" value="Marcus Vance" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; box-sizing: border-box;" />
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                <div>
+                                    <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Title / Role *</label>
+                                    <input type="text" id="repTitle" required placeholder="e.g. VP of Human Capital" value="VP of Human Capital" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; box-sizing: border-box;" />
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Date *</label>
+                                    <input type="date" id="repDate" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; box-sizing: border-box;" />
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Organization</label>
+                                <input type="text" id="repOrg" value="Enterprise Client Organization" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; box-sizing: border-box;" />
+                            </div>
+
+                            <div style="margin-bottom: 14px;">
+                                <label style="font-size: 0.75rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Executive Approval Comments</label>
+                                <textarea id="repComments" rows="3" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; box-sizing: border-box;">PRD Sections 1 - 4 controls, acceptance criteria, and technical estimates reviewed and confirmed for development release.</textarea>
+                            </div>
+
+                            <button type="submit" class="btn-action btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.9rem;">
+                                <i data-lucide="stamp" style="width: 18px; height: 18px;"></i>
+                                <span>Sign & Seal PRD Acceptance Certificate</span>
+                            </button>
+                        </form>
+
+                        <!-- Generated Certificate Display -->
+                        <div id="certificateContainer" style="margin-top: 1.5rem; display: none;">
+                            <!-- Populated after sign-off -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Client-Side Script -->
+    <script>
+        // Tab Switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+                btn.classList.add('active');
+                const target = document.getElementById(`pane_${btn.dataset.tab}`);
+                if (target) target.classList.add('active');
+                renderLucideIcons();
+            });
+        });
+
+        // Set default date in sign-off form
+        document.getElementById('repDate').value = new Date().toISOString().split('T')[0];
+
+        // 1. Fetch & Render Platform Controls (4.1)
+        async function loadPlatformControls() {
+            try {
+                const res = await fetch('/api/controls-acceptance/platform-controls');
+                const json = await res.json();
+                if (!json.success) return;
+
+                const reqs = json.data.requirements;
+                const container = document.getElementById('platformControlsGrid');
+                container.innerHTML = '';
+
+                const items = [
+                    { key: 'permissions', icon: 'shield-check', color: 'blue', data: reqs.permissions },
+                    { key: 'audit', icon: 'history', color: 'purple', data: reqs.audit },
+                    { key: 'security', icon: 'lock', color: 'green', data: reqs.security },
+                    { key: 'reliability', icon: 'zap', color: 'amber', data: reqs.reliability },
+                    { key: 'usability', icon: 'eye', color: 'blue', data: reqs.usability },
+                    { key: 'reporting', icon: 'bar-chart-2', color: 'purple', data: reqs.reporting }
+                ];
+
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'criteria-card';
+                    card.innerHTML = `
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb;">
+                                        <i data-lucide="${item.icon}" style="width: 18px; height: 18px;"></i>
+                                    </div>
+                                    <span style="font-size: 0.9rem; font-weight: 800; color: #0f172a;">${item.data.name}</span>
+                                </div>
+                                <span class="badge-pill badge-green">COMPLIANT</span>
+                            </div>
+                            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 10px 0; line-height: 1.4;">${item.data.description}</p>
+                        </div>
+                        <div style="background: #f8fafc; border-radius: 8px; padding: 8px 12px; font-size: 0.75rem; color: #334155;">
+                            ${item.key === 'permissions' ? `<strong>Roles:</strong> ${item.data.canonicalRoles.join(', ')}` : ''}
+                            ${item.key === 'audit' ? `<strong>Logged Events:</strong> ${item.data.totalLoggedEvents} across all modules` : ''}
+                            ${item.key === 'security' ? `<strong>Masking:</strong> ${item.data.maskedFields.join(', ')} (${item.data.maskingPattern})` : ''}
+                            ${item.key === 'reliability' ? `<strong>Batch Engine:</strong> ${item.data.batchProcessingEngine}` : ''}
+                            ${item.key === 'usability' ? `<strong>Previews:</strong> ${item.data.livePreviewEngines.join(', ')}` : ''}
+                            ${item.key === 'reporting' ? `<strong>Metrics:</strong> Goals: ${item.data.activeGoalsCount} | Templates: ${item.data.usableTemplatesCount} | Jobs: ${item.data.bulkJobsProcessed}` : ''}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                renderLucideIcons();
+            } catch (err) {
+                console.error('Failed to load platform controls', err);
+            }
+        }
+
+        // 2. Fetch & Render Acceptance Criteria (4.2)
+        async function runAcceptanceSuite() {
+            try {
+                const res = await fetch('/api/controls-acceptance/criteria-matrix');
+                const json = await res.json();
+                if (!json.success) return;
+
+                const { criteria, overallStatus, passRate } = json.data;
+                document.getElementById('overallAcceptanceBadge').innerText = `${passRate} ${overallStatus}`;
+
+                const container = document.getElementById('criteriaCardsGrid');
+                container.innerHTML = '';
+
+                criteria.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'criteria-card';
+                    card.innerHTML = `
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">${c.feature}</span>
+                                <span class="badge-pill ${c.passed ? 'badge-green' : 'badge-red'}">
+                                    ${c.passed ? 'VERIFIED PASSED' : 'FAILED'}
+                                </span>
+                            </div>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 8px;">
+                                ${c.condition}
+                            </div>
+                        </div>
+                        <div style="background: #f8fafc; border-left: 3px solid #10b981; border-radius: 4px; padding: 8px 10px; font-size: 0.74rem; color: #475569; font-family: monospace;">
+                            ${c.evidence}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                renderLucideIcons();
+            } catch (err) {
+                console.error('Failed to verify acceptance suite', err);
+            }
+        }
+
+        // 3. Fetch & Render Client Decisions (4.3)
+        async function loadClientDecisions() {
+            try {
+                const res = await fetch('/api/controls-acceptance/decisions');
+                const json = await res.json();
+                if (!json.success) return;
+
+                const container = document.getElementById('decisionPointsContainer');
+                container.innerHTML = '';
+
+                json.data.forEach(d => {
+                    const card = document.createElement('div');
+                    card.className = `decision-card ${d.status === 'confirmed' ? 'confirmed' : ''}`;
+                    card.id = `dec_card_${d.id}`;
+
+                    let optionsHtml = '';
+                    d.options.forEach((opt, idx) => {
+                        const isRecommended = opt === d.recommendedOption;
+                        const isSelected = opt === d.selectedOption;
+                        optionsHtml += `
+                            <label style="display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; background: ${isSelected ? '#eff6ff' : '#f8fafc'}; border: 1px solid ${isSelected ? '#bfdbfe' : 'transparent'}; margin-bottom: 6px; cursor: pointer;">
+                                <input type="radio" name="opt_${d.id}" value="${opt}" ${isSelected ? 'checked' : ''} onchange="updateDecisionOption('${d.id}', this.value)" style="margin-top: 3px;" />
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.82rem; font-weight: 700; color: #0f172a;">
+                                        ${opt}
+                                        ${isRecommended ? '<span class="badge-pill badge-green" style="font-size: 0.65rem; margin-left: 6px;">RECOMMENDED</span>' : ''}
+                                    </div>
+                                </div>
+                            </label>
+                        `;
+                    });
+
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="badge-pill badge-blue">Q${d.questionNumber}</span>
+                                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">${d.question}</span>
+                            </div>
+                            <span class="badge-pill ${d.status === 'confirmed' ? 'badge-green' : 'badge-amber'}" id="status_pill_${d.id}">
+                                ${d.status === 'confirmed' ? 'CONFIRMED' : 'PENDING'}
+                            </span>
+                        </div>
+                        <p style="font-size: 0.78rem; color: #64748b; margin: 0 0 10px 0;">${d.context}</p>
+                        
+                        <div style="margin-bottom: 10px;">
+                            ${optionsHtml}
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <input type="text" id="notes_${d.id}" placeholder="Optional custom client notes / constraints..." value="${d.notes || ''}" style="flex: 1; min-width: 200px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.78rem;" />
+                            <button class="btn-action btn-secondary" onclick="confirmSingleDecision('${d.id}')" style="padding: 6px 12px; font-size: 0.78rem;">
+                                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                <span>Save Decision</span>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                renderLucideIcons();
+            } catch (err) {
+                console.error('Failed to load client decisions', err);
+            }
+        }
+
+        async function updateDecisionOption(id, val) {
+            confirmSingleDecision(id, val);
+        }
+
+        async function confirmSingleDecision(id, overrideVal = null) {
+            const selectedOpt = overrideVal || document.querySelector(`input[name="opt_${id}"]:checked`)?.value;
+            const notes = document.getElementById(`notes_${id}`)?.value;
+
+            try {
+                const res = await fetch(`/api/controls-acceptance/decisions/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        selectedOption: selectedOpt,
+                        notes,
+                        actor: { name: document.getElementById('repName')?.value || 'Client Representative' }
+                    })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    const card = document.getElementById(`dec_card_${id}`);
+                    if (card) card.classList.add('confirmed');
+                    const pill = document.getElementById(`status_pill_${id}`);
+                    if (pill) {
+                        pill.className = 'badge-pill badge-green';
+                        pill.innerText = 'CONFIRMED';
+                    }
+                }
+            } catch (e) {
+                alert(`Error saving decision: ${e.message}`);
+            }
+        }
+
+        async function batchConfirmRecommendations() {
+            try {
+                const res = await fetch('/api/controls-acceptance/decisions/batch-confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        representativeName: document.getElementById('repName')?.value || 'Client Representative'
+                    })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    await loadClientDecisions();
+                    alert('All 10 recommended decisions confirmed and locked!');
+                }
+            } catch (e) {
+                alert(`Error: ${e.message}`);
+            }
+        }
+
+        // 4. Fetch & Render Phasing Roadmap (4.4)
+        async function loadDeliveryRoadmap() {
+            try {
+                const res = await fetch('/api/controls-acceptance/delivery-roadmap');
+                const json = await res.json();
+                if (!json.success) return;
+
+                const { phases } = json.data;
+                const container = document.getElementById('roadmapContainer');
+                container.innerHTML = '';
+
+                phases.forEach(p => {
+                    const isDone = p.status === 'completed';
+                    const step = document.createElement('div');
+                    step.className = 'timeline-step';
+                    step.innerHTML = `
+                        <div class="timeline-marker ${isDone ? 'done' : 'active'}">
+                            ${isDone ? '<i data-lucide="check" style="width: 16px; height: 16px;"></i>' : p.phaseNumber}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
+                                <h4 style="font-size: 0.9rem; font-weight: 800; color: #0f172a; margin: 0;">Phase ${p.phaseNumber}: ${p.name}</h4>
+                                <span class="badge-pill ${isDone ? 'badge-green' : 'badge-blue'}">${p.effortEstimateStoryPoints} Pts</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px;">${p.timeline}</div>
+                            <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.78rem; color: #475569;">
+                                ${p.deliverables.map(d => `<li>${d}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                    container.appendChild(step);
+                });
+                renderLucideIcons();
+            } catch (err) {
+                console.error('Failed to load roadmap', err);
+            }
+        }
+
+        // Check if already signed off
+        async function checkSignOffStatus() {
+            try {
+                const res = await fetch('/api/controls-acceptance/sign-off/status');
+                const json = await res.json();
+                if (json.success && json.data.isSigned) {
+                    renderCertificate(json.data.latestCertificate);
+                }
+            } catch (e) {
+                console.error('Failed to check sign-off status', e);
+            }
+        }
+
+        // Handle Sign-off Submission
+        async function submitClientSignOff(e) {
+            e.preventDefault();
+            const repName = document.getElementById('repName').value;
+            const repTitle = document.getElementById('repTitle').value;
+            const repDate = document.getElementById('repDate').value;
+            const repOrg = document.getElementById('repOrg').value;
+            const repComments = document.getElementById('repComments').value;
+
+            try {
+                const res = await fetch('/api/controls-acceptance/sign-off', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        representativeName: repName,
+                        representativeTitle: repTitle,
+                        organization: repOrg,
+                        signatureDate: repDate,
+                        clientComments: repComments,
+                        signOffScope: 'Full 5-Page PRD Acceptance & Technical Architecture Sign-off'
+                    })
+                });
+
+                const json = await res.json();
+                if (json.success) {
+                    renderCertificate(json.data);
+                    alert('Client Scope Sign-off successfully registered and cryptographically sealed!');
+                } else {
+                    alert(`Error: ${json.error}`);
+                }
+            } catch (err) {
+                alert(`Error executing sign-off: ${err.message}`);
+            }
+        }
+
+        function renderCertificate(cert) {
+            const container = document.getElementById('certificateContainer');
+            container.style.display = 'block';
+            container.innerHTML = `
+                <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 2px solid #86efac; border-radius: 14px; padding: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div>
+                            <span class="badge-pill badge-green" style="margin-bottom: 4px;">CERTIFIED & SEALED</span>
+                            <h4 style="font-size: 1rem; font-weight: 800; color: #166534; margin: 0;">Formal Client Acceptance Certificate</h4>
+                        </div>
+                        <i data-lucide="shield-check" style="width: 28px; height: 28px; color: #16a34a;"></i>
+                    </div>
+
+                    <div style="font-size: 0.8rem; color: #15803d; margin-bottom: 8px;">
+                        <strong>Certificate ID:</strong> ${cert.certificateId}<br>
+                        <strong>Signatory:</strong> ${cert.representativeName} (${cert.representativeTitle})<br>
+                        <strong>Organization:</strong> ${cert.organization}<br>
+                        <strong>Date of Approval:</strong> ${cert.signatureDate}<br>
+                        <strong>Decisions Confirmed:</strong> ${cert.confirmedDecisionsCount} of ${cert.totalDecisionsCount}
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.8); border: 1px dashed #86efac; border-radius: 6px; padding: 6px 10px; font-family: monospace; font-size: 0.68rem; color: #166534; word-break: break-all;">
+                        <strong>SHA-256 Fingerprint:</strong> ${cert.certificateHash}
+                    </div>
+                </div>
+            `;
+            renderLucideIcons();
+        }
+
+        // Initialize All
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPlatformControls();
+            runAcceptanceSuite();
+            loadClientDecisions();
+            loadDeliveryRoadmap();
+            checkSignOffStatus();
+        });
+    </script>
+
+    <!-- Custom Apps Registry Modal -->
+    <div id="customAppsModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center;">
+        <div class="modal" style="background: white; border-radius: 20px; padding: 2rem; max-width: 480px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Custom App Registry</h2>
+                    <p style="font-size: 0.8rem; color: #64748b; margin: 4px 0 0 0;">Custom-map external tools in real time to the sidebar</p>
+                </div>
+                <button onclick="document.getElementById('customAppsModal').style.display='none'" style="border: none; background: #f8fafc; border-radius: 10px; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b;"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Tool/App Name</label>
+                    <input type="text" id="appNameInput" placeholder="e.g. AWS Console" style="padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.85rem; outline: none;">
+                </div>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">External Link (URL)</label>
+                    <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com" style="padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.85rem; outline: none;">
+                </div>
+                <button onclick="window.addCustomApp && window.addCustomApp()" style="background: #2563eb; color: white; border: none; border-radius: 10px; padding: 10px 16px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">Map Tool Link</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                <h3 style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 10px;">Mapped Connections</h3>
+                <div id="registryAppsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Sync -->
+    <script type="module" src="./admin-sidebar-sync.js"></script>
+</body>
+</html>

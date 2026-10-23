@@ -4,9 +4,7 @@
  * Dedicated for HRMS Strategic Operations (No Super Admin dependencies)
  */
 
-const API_HOST = window.location.port === '3000' 
-    ? '' 
-    : 'http://localhost:3000';
+const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin);
 
 const API_BASE = `${API_HOST}/api/workflow-builder`;
 const STORAGE_KEY = 'kylrx_hrms_workflows_data';

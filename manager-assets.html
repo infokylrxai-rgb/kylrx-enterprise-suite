@@ -209,7 +209,137 @@
         .avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.78rem; color: white; flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
         .profile-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
-        .profile-role { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* Dual Tab Navigation */
+        .assets-main-tab {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1.5px solid var(--border);
+            transition: all 0.2s ease;
+            background: white;
+            color: var(--text-muted);
+            outline: none;
+        }
+        .assets-main-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light, #eff6ff);
+        }
+        .assets-main-tab.active {
+            background: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+        .assets-main-tab.active #tabGoalsCountBadge {
+            background: rgba(255, 255, 255, 0.25) !important;
+            color: white !important;
+        }
+
+        /* Goal Stats & Toolbar (PRD 1.1) */
+        .goal-stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .goal-stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .goal-filter-tab {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .goal-filter-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .goal-filter-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .custom-alert-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .custom-alert-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        .alert-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-ghost {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .btn-ghost:hover {
+            background: #f1f5f9;
+            color: var(--text-main);
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+        }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
 </head>
@@ -265,6 +395,7 @@
             <nav class="nav-menu overflow-y-auto pr-1">
                 <div class="nav-label">MY WORKSPACE</div>
                 <div class="nav-item"><a href="manager-dashboard.html" class="nav-link " id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="#goals" class="nav-link" id="navGoalsLink" onclick="switchAssetsTab('goals');"><i data-lucide="target"></i><span>Manager Goals</span></a></div>
                 <div class="nav-item"><a href="manager-dashboard.html#upcoming-birthdays" class="nav-link" id="navBirthdaysLink"><i data-lucide="cake"></i><span>Upcoming Birthdays</span></a></div>
                 <div class="nav-item"><a href="manager-calendar.html" class="nav-link " id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
                 <div class="nav-item"><a href="manager-attendance.html" class="nav-link " id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
@@ -327,41 +458,171 @@
 
         <main class="main-content" style="padding: 2.5rem; overflow-y: auto; height: 100vh;">
             <div class="container">
-        <header class="page-header">
+        <header class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
             <div>
-                <h1 class="page-title">My Assets</h1>
-                <p class="page-subtitle">Company equipment assigned to you</p>
+                <h1 class="page-title" id="pageMainHeading">My Assets & Strategic Goals</h1>
+                <p class="page-subtitle" id="pageSubHeading">Assigned company equipment and departmental strategic goals</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <button id="btnHeaderCreateGoal" onclick="switchAssetsTab('goals'); window.openCreateGoalModal();" style="background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                    <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                    <span>+ Create Manager Goal</span>
+                </button>
             </div>
         </header>
 
-        <!-- Summary -->
-        <div class="summary-grid" id="summaryGrid" style="display:none;">
-            <div class="summary-card">
-                <div class="summary-value" id="totalAssets" style="color:var(--primary);">0</div>
-                <div class="summary-label">Total Assigned</div>
+        <!-- Main Switcher Tabs -->
+        <div style="display: flex; gap: 10px; margin-bottom: 2rem; border-bottom: 1.5px solid var(--border); padding-bottom: 14px; flex-wrap: wrap;">
+            <button id="tabBtnAssets" onclick="switchAssetsTab('assets')" class="assets-main-tab active">
+                <i data-lucide="monitor" style="width: 18px; height: 18px;"></i>
+                <span>Company Assets</span>
+            </button>
+            <button id="tabBtnGoals" onclick="switchAssetsTab('goals')" class="assets-main-tab">
+                <i data-lucide="target" style="width: 18px; height: 18px;"></i>
+                <span>Manager Goal Management (PRD §1.1)</span>
+                <span id="tabGoalsCountBadge" style="background: #eff6ff; color: #2563eb; font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; font-weight: 800;">3</span>
+            </button>
+        </div>
+
+        <!-- Section 1: Company Assets -->
+        <div id="assetsSection">
+            <!-- Summary -->
+            <div class="summary-grid" id="summaryGrid" style="display:none;">
+                <div class="summary-card">
+                    <div class="summary-value" id="totalAssets" style="color:var(--primary);">0</div>
+                    <div class="summary-label">Total Assigned</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="activeAssets" style="color:var(--success);">0</div>
+                    <div class="summary-label">Active</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="pendingDecl" style="color:var(--warning);">0</div>
+                    <div class="summary-label">Pending Declaration</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="inRepair" style="color:var(--danger);">0</div>
+                    <div class="summary-label">In Repair</div>
+                </div>
             </div>
-            <div class="summary-card">
-                <div class="summary-value" id="activeAssets" style="color:var(--success);">0</div>
-                <div class="summary-label">Active</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-value" id="pendingDecl" style="color:var(--warning);">0</div>
-                <div class="summary-label">Pending Declaration</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-value" id="inRepair" style="color:var(--danger);">0</div>
-                <div class="summary-label">In Repair</div>
+
+            <!-- Asset Grid -->
+            <div class="asset-grid" id="assetGrid">
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <i data-lucide="loader"></i>
+                    <p>Loading your assets...</p>
+                </div>
             </div>
         </div>
 
-        <!-- Asset Grid -->
-        <div class="asset-grid" id="assetGrid">
-            <div class="empty-state" style="grid-column:1/-1;">
-                <i data-lucide="loader"></i>
-                <p>Loading your assets...</p>
+        <!-- Section 2: Manager Goal Management (PRD §1.1) -->
+        <div id="goalsSection" style="display: none;">
+            <div class="card" style="border-top: 4px solid var(--primary); margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">Manager Goals & Objectives (PRD §1.1)</h2>
+                            <span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">Manager Workspace</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Create and manage strategic department goals with outcome definitions, quantitative/milestone measurement, scheduling, active progress tracking, lifecycle controls, and complete audit history.</p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="window.openTemplatePickerModal('goals')" style="background: white; color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="layout-template" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                            <span>Browse Goal Templates</span>
+                        </button>
+                        <button onclick="window.openCreateGoalModal()" style="background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                            <span>+ Create Manager Goal</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manager Goal KPI Summary Row -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="goal-stat-card">
+                        <div class="goal-stat-icon" style="background: #eff6ff; color: #2563eb;">
+                            <i data-lucide="target" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div>
+                            <div id="statGoalsTotal" style="font-size: 1.4rem; font-weight: 800; color: #0f172a;">--</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Goals</div>
+                        </div>
+                    </div>
+                    <div class="goal-stat-card">
+                        <div class="goal-stat-icon" style="background: #dcfce7; color: #15803d;">
+                            <i data-lucide="play-circle" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div>
+                            <div id="statGoalsActive" style="font-size: 1.4rem; font-weight: 800; color: #15803d;">--</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Active / In Progress</div>
+                        </div>
+                    </div>
+                    <div class="goal-stat-card">
+                        <div class="goal-stat-icon" style="background: #fef3c7; color: #b45309;">
+                            <i data-lucide="pause-circle" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div>
+                            <div id="statGoalsPaused" style="font-size: 1.4rem; font-weight: 800; color: #b45309;">--</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Paused</div>
+                        </div>
+                    </div>
+                    <div class="goal-stat-card">
+                        <div class="goal-stat-icon" style="background: #f0fdf4; color: #16a34a;">
+                            <i data-lucide="check-circle" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div>
+                            <div id="statGoalsCompleted" style="font-size: 1.4rem; font-weight: 800; color: #16a34a;">--</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Completed</div>
+                        </div>
+                    </div>
+                    <div class="goal-stat-card">
+                        <div class="goal-stat-icon" style="background: #f5f3ff; color: #7c3aed;">
+                            <i data-lucide="trending-up" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div>
+                            <div id="statGoalsAvgProgress" style="font-size: 1.4rem; font-weight: 800; color: #7c3aed;">--%</div>
+                            <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Avg Progress</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter & Search Toolbar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="goal-filter-tab active" data-filter="all">All Goals</button>
+                        <button class="goal-filter-tab" data-filter="active">Active</button>
+                        <button class="goal-filter-tab" data-filter="paused">Paused</button>
+                        <button class="goal-filter-tab" data-filter="completed">Completed</button>
+                        <button class="goal-filter-tab" data-filter="archived">Archived</button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <select id="goalCategoryFilter" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: white; color: #334155;">
+                            <option value="all">All Strategic Categories</option>
+                            <option value="Cybersecurity & Compliance">Cybersecurity & Compliance</option>
+                            <option value="Operational Excellence">Operational Excellence</option>
+                            <option value="Team Development">Team Development</option>
+                            <option value="Innovation">Innovation</option>
+                        </select>
+
+                        <div style="position: relative; min-width: 220px;">
+                            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #94a3b8;"></i>
+                            <input type="text" id="goalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; outline: none; background: white;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manager Goals Grid Container -->
+                <div id="managerGoalsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem;">
+                    <div style="text-align: center; padding: 3rem 0; color: var(--text-muted); grid-column: 1 / -1;">
+                        <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; color: var(--primary); margin: 0 auto 8px;"></i>
+                        <p style="margin: 0; font-size: 0.85rem;">Hydrating manager strategic goals and milestones...</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
             </div>
         </main>
@@ -388,19 +649,206 @@
         </div>
     </div>
 
-    <!-- Success Modal -->
-    <div class="modal-overlay" id="successModal">
-        <div class="modal success-modal">
-            <div class="success-icon"><i data-lucide="check-circle"></i></div>
-            <h3 id="successTitle">Report Submitted</h3>
-            <p id="successDesc">Your issue has been reported to the IT team and will be resolved shortly.</p>
-            <button class="btn-done" onclick="document.getElementById('successModal').classList.remove('active')">Done</button>
+    <!-- ===================================================================== -->
+    <!-- 1.1 MANAGER GOAL MODAL (CREATE / EDIT)                                -->
+    <!-- ===================================================================== -->
+    <div id="managerGoalModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 680px; text-align: left; max-height: 88vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="target" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <h2 id="goalModalTitle" style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Create Strategic Manager Goal</h2>
+                        <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Define outcome, measurement criteria, schedule, and milestones</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeManagerGoalModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <form id="managerGoalForm" onsubmit="handleGoalFormSubmit(event)">
+                <input type="hidden" id="goalFormId">
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 1.5rem;">
+                    <!-- Title & Category -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Goal Title *</label>
+                            <input type="text" id="goalFormTitle" placeholder="e.g. Zero-Trust Architecture & Threat Hardening" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Strategic Category *</label>
+                            <select id="goalFormCategory" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;">
+                                <option value="Cybersecurity & Compliance">Cybersecurity & Compliance</option>
+                                <option value="Operational Excellence">Operational Excellence</option>
+                                <option value="Team Development">Team Development</option>
+                                <option value="Innovation">Innovation</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Desired Outcome Statement (PRD 1.1) -->
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Desired Outcome Statement *</label>
+                        <textarea id="goalFormOutcome" rows="2" placeholder="Describe the concrete, high-impact business or technical outcome achieved upon completion..." required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Operational Description / Scope -->
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Operational Description / Scope</label>
+                        <textarea id="goalFormDesc" rows="2" placeholder="Specify tactical scope, team dependencies, or technical requirements..." style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Measurement Method, Target & Unit (PRD 1.1 Measure) -->
+                    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                        <h4 style="font-size: 0.75rem; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 10px;">Measurement Method & Targets</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Method</label>
+                                <select id="goalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                                    <option value="quantitative">Quantitative Target</option>
+                                    <option value="milestone">Milestones-based</option>
+                                    <option value="unit">Unit Reduction / SLA</option>
+                                    <option value="criteria">Binary Criteria</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Target Value *</label>
+                                <input type="number" step="any" id="goalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Unit (e.g. %, Minutes) *</label>
+                                <input type="text" id="goalFormUnit" value="% Compliance" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Completion Criteria / Acceptance Rules</label>
+                            <input type="text" id="goalFormCriteria" placeholder="e.g. All 802 regional nodes pass automated vulnerability audit." style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                        </div>
+                    </div>
+
+                    <!-- Milestones Checklist Builder (PRD 1.1 Measure) -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Key Milestones</label>
+                            <button type="button" onclick="addMilestoneInputRow()" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 8px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
+                                + Add Milestone
+                            </button>
+                        </div>
+                        <div id="goalFormMilestonesContainer"></div>
+                    </div>
+
+                    <!-- Schedule (PRD 1.1 Schedule) -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Start Date *</label>
+                            <input type="date" id="goalFormStartDate" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem; background: #f8fafc;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Target Completion Date *</label>
+                            <input type="date" id="goalFormTargetDate" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem; background: #f8fafc;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeManagerGoalModal()">Cancel</button>
+                    <button type="submit" id="goalModalSubmitBtn" class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;">Create Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.1 QUICK PROGRESS CHECK-IN MODAL                                     -->
+    <!-- ===================================================================== -->
+    <div id="updateProgressModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 480px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="trending-up" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Progress Check-in</h2>
+                        <p id="progressGoalTitle" style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0; font-weight: 600;">Goal</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeUpdateProgressModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Update Completion Percentage</label>
+                    <span id="progressValueDisplay" style="font-size: 1.2rem; font-weight: 800; color: #2563eb;">50%</span>
+                </div>
+                <input type="range" id="progressSlider" min="0" max="100" value="50" oninput="handleProgressSliderInput(this.value)" style="width: 100%; accent-color: #2563eb; cursor: pointer; height: 8px;">
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Current Metric Value (<span id="progressMetricUnitLabel">%</span>)</label>
+                <input type="number" step="any" id="progressCurrentMetric" placeholder="e.g. 85" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Check-in / Status Log Note</label>
+                <textarea id="progressCheckInNote" rows="2" placeholder="e.g. Sprint 2 deliverables completed; regional posture verified..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc; font-family: inherit;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeUpdateProgressModal()">Cancel</button>
+                <button class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;" onclick="submitGoalProgressUpdate()">Record Progress</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.1 GOAL AUDIT HISTORY MODAL (PRD 1.1 History)                        -->
+    <!-- ===================================================================== -->
+    <div id="goalHistoryModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 620px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #f8fafc; color: #0f172a; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);">
+                        <i data-lucide="history" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 id="goalHistoryTitle" style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Audit History Trail</h2>
+                        <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Immutable record of goal creation and subsequent changes</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeGoalHistoryModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div id="goalHistoryTimeline" style="padding-top: 10px;"></div>
+
+            <button class="alert-btn" style="background: #f1f5f9; color: #475569; width: 100%; margin-top: 1.5rem;" onclick="closeGoalHistoryModal()">Close Audit Trail</button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.2 TEMPLATE PICKER MODAL                                             -->
+    <!-- ===================================================================== -->
+    <div id="templatePickerModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 650px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Choose an Existing Template</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Select a standardized template structure to instantiate your goal</p>
+                </div>
+                <button class="btn-ghost" onclick="closeTemplatePickerModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div id="templatePickerList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;"></div>
+
+            <button class="alert-btn" style="background: #f1f5f9; color: #475569; width: 100%; margin: 0;" onclick="closeTemplatePickerModal()">Cancel</button>
         </div>
     </div>
 
     <script type="module">
         import { db, auth, signOut } from "./firebase-config.js";
-        import { collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, query, where, getDocs, addDoc, serverTimestamp } from "./firebase-config.js";
 
         lucide.createIcons();
         // Global Link Hydration
@@ -449,7 +897,7 @@
 
         const backBtn = document.getElementById('backBtn');
         if (backBtn) {
-            backBtn.href = `employee-dashboard.html?id=${empId}`;
+            backBtn.href = empId ? `manager-dashboard.html?id=${empId}` : 'manager-dashboard.html';
         }
 
         let currentAssetId = null;
@@ -621,7 +1069,67 @@
             if(window.lucide) window.lucide.createIcons();
         }
 </script>
-<script type="module" src="./manager-sidebar-sync.js"></script>
+
+    <!-- Manager Goals Controller (PRD §1.1) -->
+    <script src="manager-goals-controller.js"></script>
+
+    <script>
+        // Tab switching handler for Assets & Goals
+        window.switchAssetsTab = function(tabName) {
+            const assetsSec = document.getElementById('assetsSection');
+            const goalsSec = document.getElementById('goalsSection');
+            const tabAssets = document.getElementById('tabBtnAssets');
+            const tabGoals = document.getElementById('tabBtnGoals');
+            const navGoalsLink = document.getElementById('navGoalsLink');
+            const navAssetsLink = document.getElementById('navAssetsLink');
+            const mainHeading = document.getElementById('pageMainHeading');
+            const subHeading = document.getElementById('pageSubHeading');
+
+            if (tabName === 'goals') {
+                if (assetsSec) assetsSec.style.display = 'none';
+                if (goalsSec) goalsSec.style.display = 'block';
+                if (tabAssets) tabAssets.classList.remove('active');
+                if (tabGoals) tabGoals.classList.add('active');
+                if (navGoalsLink) navGoalsLink.classList.add('active');
+                if (navAssetsLink) navAssetsLink.classList.remove('active');
+                if (mainHeading) mainHeading.textContent = 'Strategic Goal Management';
+                if (subHeading) subHeading.textContent = 'Create, measure, schedule, track and manage departmental strategic goals (PRD §1.1)';
+                if (window.history && window.history.replaceState) {
+                    const url = new URL(window.location);
+                    url.hash = 'goals';
+                    window.history.replaceState(null, '', url);
+                }
+            } else {
+                if (assetsSec) assetsSec.style.display = 'block';
+                if (goalsSec) goalsSec.style.display = 'none';
+                if (tabAssets) tabAssets.classList.add('active');
+                if (tabGoals) tabGoals.classList.remove('active');
+                if (navGoalsLink) navGoalsLink.classList.remove('active');
+                if (navAssetsLink) navAssetsLink.classList.add('active');
+                if (mainHeading) mainHeading.textContent = 'My Assets & Strategic Goals';
+                if (subHeading) subHeading.textContent = 'Company equipment assigned to you & departmental strategic goals';
+                if (window.history && window.history.replaceState) {
+                    const url = new URL(window.location);
+                    url.hash = '';
+                    window.history.replaceState(null, '', url.pathname + url.search);
+                }
+            }
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        };
+
+        // Auto-switch to goals if hash or param requested
+        if (window.location.hash === '#goals' || new URLSearchParams(window.location.search).get('tab') === 'goals') {
+            switchAssetsTab('goals');
+        } else {
+            window.addEventListener('hashchange', () => {
+                if (window.location.hash === '#goals') switchAssetsTab('goals');
+                else if (!window.location.hash) switchAssetsTab('assets');
+            });
+        }
+    </script>
+    <script type="module" src="./manager-sidebar-sync.js"></script>
     <script src="sidebar-scrollbar.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, addDoc, orderBy, limit, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, addDoc, orderBy, limit, getDoc, setDoc } from "./firebase-config.js";
 
 // Configuration (will be fetched dynamically from Firestore)
 let THRESHOLD_SUSPEND_HOURS = 3;

@@ -4,10 +4,8 @@
  * Leap-year logic, Role-based Isolation (HR vs Manager), and Interactive Birthday Wishes.
  */
 
-import { db, auth } from './firebase-config.js';
-import {
-    collection, onSnapshot, addDoc, serverTimestamp, query, where, getDocs, doc, setDoc
-} from 'https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js';
+import { db, auth, onSnapshot, registerListener } from './firebase-config.js';
+import { collection, addDoc, serverTimestamp, query, where, getDocs, doc, setDoc } from './firebase-config.js';
 
 const MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',

@@ -127,7 +127,13 @@ class PayrollDisbursementService {
         Account_Number: accountNumber,
         IFSC: ifsc,
         Account_Type: accountType,
-        Is_Primary: isPrimary
+        Is_Primary: isPrimary,
+        accountHolderName,
+        bankName,
+        accountNumber,
+        ifsc,
+        accountType,
+        isPrimary
       }
     };
   }

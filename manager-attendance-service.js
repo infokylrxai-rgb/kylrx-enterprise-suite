@@ -1,15 +1,5 @@
-import { db, auth } from "./firebase-config.js";
-import { 
-    doc, 
-    setDoc, 
-    getDoc,
-    getDocs,
-    query,
-    where,
-    collection, 
-    serverTimestamp,
-    onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
+import { doc, setDoc, getDoc, getDocs, query, where, collection, serverTimestamp } from "./firebase-config.js";
 
 class ManagerAttendanceService {
     constructor() {

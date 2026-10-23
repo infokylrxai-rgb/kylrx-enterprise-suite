@@ -1,19 +1,4 @@
-import { 
-    db, 
-    collection, 
-    doc, 
-    setDoc, 
-    updateDoc, 
-    serverTimestamp, 
-    getDoc, 
-    query, 
-    where, 
-    getDocs, 
-    addDoc, 
-    deleteDoc, 
-    onSnapshot, 
-    orderBy 
-} from "./firebase-config.js";
+import { db, collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc, deleteDoc, onSnapshot, orderBy, registerListener } from "./firebase-config.js";
 
 /**
  * Attendance Regularization & Workforce Monitoring Service

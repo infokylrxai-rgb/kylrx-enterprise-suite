@@ -364,9 +364,13 @@
     </style>
 
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-        import { getExits, getExitAnalytics, initiateExit } from "./exit-workflow-service.js";
+        import { db, onSnapshot, registerListener } from "./firebase-config.js";
+        import { getExits, getExitAnalytics, getExitEmployees, initiateExit, advanceExit, updateExitChecklist, finalizeExit } from "./exit-workflow-service.js?v=2";
+
+        // Text from Firestore is escaped before it is placed into HTML
+        const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        const fmtDate = (value) => { const d = new Date(value); return Number.isFinite(d.getTime()) ? d.toLocaleDateString() : 'Not set'; };
+        let latestExits = [];
 
         lucide.createIcons();
 
@@ -410,15 +414,15 @@
                     <div style="display: grid; gap: 1.5rem;">
                         <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
                             <p class="nav-label" style="margin:0">Primary Exit Reason</p>
-                            <h4 style="font-weight: 800; color: var(--primary); margin-top: 4px;">${analytics.primaryReason}</h4>
+                            <h4 style="font-weight: 800; color: var(--primary); margin-top: 4px;">${esc(analytics.primaryReason)}</h4>
                         </div>
                         <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
                             <p class="nav-label" style="margin:0">Avg. Retention Period</p>
-                            <h4 style="font-weight: 800; color: var(--secondary); margin-top: 4px;">${analytics.avgRetention}</h4>
+                            <h4 style="font-weight: 800; color: var(--secondary); margin-top: 4px;">${esc(analytics.avgRetention)}</h4>
                         </div>
                         <div style="background: white; padding: 1.25rem; border-radius: 16px; border: 1px solid var(--border);">
                             <p class="nav-label" style="margin:0">Interview Sentiment</p>
-                            <h4 style="font-weight: 800; color: #10b981; margin-top: 4px;">${analytics.sentiment}</h4>
+                            <h4 style="font-weight: 800; color: #10b981; margin-top: 4px;">${esc(analytics.sentiment)}</h4>
                         </div>
                     </div>
                 `;
@@ -431,7 +435,7 @@
                         distList.innerHTML = '<div style="text-align: center; font-size: 0.75rem; color: var(--text-muted);">No exit data available yet.</div>';
                     } else {
                         distList.innerHTML = analytics.distribution.map((item, idx) => `
-                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: ${idx > 0 ? '5px' : '0'};"><span>${item.label}</span><span style="font-weight: 800;">${item.percent}%</span></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: ${idx > 0 ? '5px' : '0'};"><span>${esc(item.label)}</span><span style="font-weight: 800;">${item.percent}%</span></div>
                             <div style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;"><div style="width: ${item.percent}%; height: 100%; background: ${colors[idx % colors.length]};"></div></div>
                         `).join('');
                     }
@@ -442,6 +446,7 @@
         async function renderPipeline() {
             try {
                 const exits = await getExits();
+                latestExits = exits;
                 const cols = {
                     'Exit Initiated': { id: 'colReview', label: 'labelReview', title: 'UNDER REVIEW' },
                     'Notice Period': { id: 'colNotice', label: 'labelNotice', title: 'NOTICE PERIOD' },
@@ -466,10 +471,10 @@
                     card.className = 'exit-card';
                     card.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <h5 style="font-weight: 700; font-size: 0.9rem;">${e.employeeName || 'Unknown'}</h5>
-                            <span class="badge" style="font-size: 0.6rem;">LWD: ${new Date(e.lwd).toLocaleDateString()}</span>
+                            <h5 style="font-weight: 700; font-size: 0.9rem;">${esc(e.employeeName || 'Unknown')}</h5>
+                            <span class="badge" style="font-size: 0.6rem;">LWD: ${fmtDate(e.lwd)}</span>
                         </div>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">${e.type || 'Offboarding'}</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">${esc(e.type || 'Offboarding')}</p>
                         ${e.meetingLink ? `
                             <div class="meeting-box">
                                 <i data-lucide="video" size="14"></i>
@@ -486,19 +491,18 @@
                             if (confirmed) {
                                 card.style.opacity = '0.5';
                                 try {
-                                    await updateDoc(doc(db, 'employee_exits', e.id), { status: stages[idx + 1] });
-                                    renderPipeline();
-                                } catch (err) { alert('Failed to advance: ' + err.message); }
+                                    await advanceExit(e.id);
+                                    initDashboard();
+                                } catch (err) { card.style.opacity = '1'; alert('Failed to advance: ' + err.message); }
                             }
                         } else if (idx === stages.length - 1) {
                             const confirmed = await showConfirm('Finalize Offboarding', `Finalize F&F Settlement for ${e.employeeName || 'Employee'} and mark as Exited?`);
                             if (confirmed) {
                                 card.style.opacity = '0.5';
                                 try {
-                                    await updateDoc(doc(db, 'employee_exits', e.id), { status: 'Closed' });
-                                    await updateDoc(doc(db, 'users', e.employeeId), { onboardingStatus: 'Exited', isActive: false });
-                                    renderPipeline();
-                                } catch (err) { alert('Failed to finalize: ' + err.message); }
+                                    await finalizeExit(e.id);
+                                    initDashboard();
+                                } catch (err) { card.style.opacity = '1'; alert('Failed to finalize: ' + err.message); }
                             }
                         }
                     };
@@ -515,15 +519,22 @@
                 renderChecklist(activeExits[0]);
 
                 if (window.lucide) lucide.createIcons();
-            } catch (err) { console.error("Error rendering pipeline:", err); }
+            } catch (err) {
+                console.error("Error rendering pipeline:", err);
+                alert('Could not load the offboarding pipeline: ' + err.message);
+            }
         }
 
-        window.updateChecklist = async (exitId, field, checked) => {
+        window.updateChecklist = async (exitId, field, checked, input) => {
+            if (input) input.disabled = true;
             try {
-                await updateDoc(doc(db, 'employee_exits', exitId), {
-                    [`checklist.${field}`]: checked
-                });
-            } catch(e) { console.error("Failed to update checklist:", e); }
+                await updateExitChecklist(exitId, field, checked);
+            } catch (e) {
+                if (input) input.checked = !checked;
+                alert('Checklist not saved: ' + e.message);
+            } finally {
+                if (input) input.disabled = false;
+            }
         };
 
         function renderChecklist(exit) {
@@ -537,31 +548,35 @@
             }
 
             targetName.textContent = exit.employeeName || 'Unknown';
+            container.dataset.exitId = exit.id;
             targetName.style.display = 'inline-block';
 
             const c = exit.checklist || {};
             container.innerHTML = `
                 <div class="checklist-item">
-                    <input type="checkbox" onchange="updateChecklist('${exit.id}', 'exitInterview', this.checked)" ${c.exitInterview ? 'checked' : ''}>
-                    <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Exit Interview Scheduled</p><p style="font-size: 0.7rem; color: var(--text-muted);">${exit.meetingLink || 'Pending Schedule'}</p></div>
+                    <input type="checkbox" data-field="exitInterview" ${c.exitInterview ? 'checked' : ''}>
+                    <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Exit Interview Scheduled</p><p style="font-size: 0.7rem; color: var(--text-muted);">${esc(exit.meetingLink || 'Pending Schedule')}</p></div>
                     <i data-lucide="video" size="16" style="color: ${c.exitInterview ? 'var(--primary)' : 'var(--text-muted)'};"></i>
                 </div>
                 <div class="checklist-item">
-                    <input type="checkbox" onchange="updateChecklist('${exit.id}', 'assetReturn', this.checked)" ${c.assetReturn ? 'checked' : ''}>
+                    <input type="checkbox" data-field="assetReturn" ${c.assetReturn ? 'checked' : ''}>
                     <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Asset Return (Laptop/ID)</p><p style="font-size: 0.7rem; color: var(--text-muted);">Verified by IT Asset Manager</p></div>
                     <i data-lucide="monitor" size="16"></i>
                 </div>
                 <div class="checklist-item">
-                    <input type="checkbox" onchange="updateChecklist('${exit.id}', 'ndaSigned', this.checked)" ${c.ndaSigned ? 'checked' : ''}>
+                    <input type="checkbox" data-field="ndaSigned" ${c.ndaSigned ? 'checked' : ''}>
                     <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">NDA Acknowledgement</p><p style="font-size: 0.7rem; color: var(--text-muted);">Awaiting employee signature</p></div>
                     <i data-lucide="lock" size="16"></i>
                 </div>
                 <div class="checklist-item">
-                    <input type="checkbox" onchange="updateChecklist('${exit.id}', 'accessRevoked', this.checked)" ${c.accessRevoked ? 'checked' : ''}>
+                    <input type="checkbox" data-field="accessRevoked" ${c.accessRevoked ? 'checked' : ''}>
                     <div style="flex: 1;"><p style="font-weight: 700; font-size: 0.85rem;">Access Revocation</p><p style="font-size: 0.7rem; color: var(--text-muted);">GitHub, Slack, Email, Jira</p></div>
                     <i data-lucide="shield-off" size="16"></i>
                 </div>
             `;
+            container.querySelectorAll('input[data-field]').forEach(input => {
+                input.addEventListener('change', () => updateChecklist(exit.id, input.dataset.field, input.checked, input));
+            });
             if (window.lucide) lucide.createIcons();
         }
 
@@ -569,29 +584,26 @@
             const urlParams = new URLSearchParams(window.location.search);
             const empId = urlParams.get('empId');
             try {
-                const snap = await getDocs(collection(db, 'users'));
+                const people = await getExitEmployees();
                 const select = document.getElementById('exitEmp');
-                snap.docs.forEach(doc => {
-                    const data = doc.data();
-                    
-                    // Don't show users who have already exited
-                    if (data.onboardingStatus === 'Exited' || data.isActive === false) return;
-
+                [...select.querySelectorAll('option')].forEach(o => { if (o.value) o.remove(); });
+                people.forEach(p => {
                     const opt = document.createElement('option');
-                    opt.value = doc.id;
-                    opt.setAttribute('data-name', data.name);
-                    
-                    // Display the Role appropriately
-                    const roleLabel = data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'Employee';
-                    
-                    opt.textContent = `${data.name || 'User'} (${roleLabel})`;
+                    opt.value = p.id;
+                    opt.setAttribute('data-name', p.name);
+                    const roleLabel = p.role ? p.role.charAt(0).toUpperCase() + p.role.slice(1) : 'Employee';
+                    opt.textContent = `${p.name} (${roleLabel}${p.department ? ' · ' + p.department : ''})${p.exitInProgress ? ' — exit in progress' : ''}`;
+                    opt.disabled = p.exitInProgress;
                     select.appendChild(opt);
                 });
                 if (empId) {
                     select.value = empId;
                     toggleExitModal(true);
                 }
-            } catch (err) { console.error("Error loading employees:", err); }
+            } catch (err) {
+                console.error("Error loading employees:", err);
+                alert('Could not load employees: ' + err.message);
+            }
         }
 
         window.toggleExitModal = (show) => {
@@ -606,31 +618,34 @@
             else modal.classList.remove('active');
         };
 
-        document.getElementById('btnDownloadForecast')?.addEventListener('click', () => {
+        // Exports this organization's exit records (CSV) - built from live data, nothing invented
+        document.getElementById('btnDownloadForecast')?.addEventListener('click', async () => {
             const btn = document.getElementById('btnDownloadForecast');
             const originalText = btn.innerHTML;
-            
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader" class="animate-spin" size="14"></i> Preparing Forecast...';
-            if (window.lucide) lucide.createIcons();
-            
-            setTimeout(() => {
-                btn.innerHTML = '<i data-lucide="check" size="14"></i> Download Started';
-                if (window.lucide) lucide.createIcons();
-                
-                const blob = new Blob(["Kylrx AI Attrition Forecast - 2026\nEngineering: High Risk\nProduct: Medium Risk\nSales: Low Risk"], {type: 'text/plain'});
-                const url = window.URL.createObjectURL(blob);
+            try {
+                const exits = await getExits();
+                if (!exits.length) {
+                    alert('There are no exit records to export yet.');
+                    return;
+                }
+                const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+                const rows = [['Employee', 'Department', 'Type', 'Reason', 'Status', 'Last Working Day', 'Started']]
+                    .concat(exits.map(e => [e.employeeName, e.department, e.type, e.reason, e.status, e.lwd, (e.createdAt || '').slice(0, 10)]));
+                const blob = new Blob([rows.map(r => r.map(cell).join(',')).join('\n')], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'Kylrx_AI_Forecast_Oct_2026.txt';
+                a.download = `Kylrx_Exit_Report_${new Date().toISOString().slice(0, 10)}.csv`;
                 a.click();
-                
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                    if (window.lucide) lucide.createIcons();
-                }, 2000);
-            }, 1500);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (err) {
+                alert('Export failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                if (window.lucide) lucide.createIcons();
+            }
         });
 
         document.getElementById('btnConfirmExit')?.addEventListener('click', async () => {
@@ -661,7 +676,7 @@
                 if (window.lucide) lucide.createIcons();
                 
                 toggleExitModal(false);
-                renderPipeline();
+                initDashboard();
                 
                 setTimeout(() => toast.classList.remove('active'), 3000);
             } catch (err) {
@@ -832,8 +847,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

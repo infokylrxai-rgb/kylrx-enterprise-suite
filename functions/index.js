@@ -373,3 +373,102 @@ exports.completeOrganizationOnboarding = functions.https.onCall(async (data, con
   console.log(`[completeOrganizationOnboarding] Organization ${orgId} is now verified & marked orgConfigured: true`);
   return { success: true, orgId, orgConfigured: true };
 });
+
+/**
+ * ────────────────────────────────────────────────────────────────────────────
+ * 4. FIRESTORE TRIGGER: Department Head Propagation Listener
+ * ────────────────────────────────────────────────────────────────────────────
+ * If a Super Admin updates the Head of a parent Department in the Department registry,
+ * triggers an atomic Firestore batch to update all child Sub-Departments with
+ * `inheritedFromDeptHead: true` or `sameAsDeptHead: true`.
+ */
+exports.onDepartmentHeadUpdated = functions.firestore
+  .document('departments/{departmentId}')
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+
+    const oldHead = before.departmentHeadEmployeeId || before.headEmployeeId;
+    const newHead = after.departmentHeadEmployeeId || after.headEmployeeId;
+
+    if (!newHead || oldHead === newHead) {
+      return null;
+    }
+
+    const deptCode = (after.departmentCode || context.params.departmentId || '').toUpperCase();
+    const newHeadName = after.departmentHeadName || after.headEmployeeName || `${newHead} Lead`;
+    const orgId = after.orgId || 'org_kylrx';
+
+    const subDeptQuery = await db.collection('organizations').doc(orgId).collection('sub_departments').get();
+    const batch = db.batch();
+    let count = 0;
+
+    subDeptQuery.forEach(docSnap => {
+      const data = docSnap.data();
+      const isInherited = data.sameAsDeptHead === true || data.inheritedFromDeptHead === true;
+      const matchesDept = (data.departmentCode && data.departmentCode.toUpperCase() === deptCode) ||
+                          (data.subDepartmentCode && data.subDepartmentCode.toUpperCase().startsWith(deptCode + '-'));
+
+      if (isInherited && matchesDept) {
+        batch.update(docSnap.ref, {
+          subDepartmentHeadEmployeeId: newHead,
+          subDepartmentHeadName: newHeadName,
+          headEmployeeId: newHead,
+          headEmployeeName: newHeadName,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        count++;
+      }
+    });
+
+    if (count > 0) {
+      await batch.commit();
+      console.log(`[onDepartmentHeadUpdated] Propagated new head ${newHead} (${newHeadName}) to ${count} sub-departments for dept ${deptCode}`);
+    }
+    return { success: true, count, deptCode, newHead };
+  });
+
+exports.onOrgDepartmentHeadUpdated = functions.firestore
+  .document('organizations/{orgId}/departments/{departmentCode}')
+  .onUpdate(async (change, context) => {
+    const before = change.before.data();
+    const after = change.after.data();
+    const orgId = context.params.orgId;
+    const deptCode = context.params.departmentCode.toUpperCase();
+
+    const oldHead = before.departmentHeadEmployeeId || before.headEmployeeId;
+    const newHead = after.departmentHeadEmployeeId || after.headEmployeeId;
+
+    if (!newHead || oldHead === newHead) {
+      return null;
+    }
+
+    const newHeadName = after.departmentHeadName || after.headEmployeeName || `${newHead} Lead`;
+    const subDeptQuery = await db.collection('organizations').doc(orgId).collection('sub_departments').get();
+    const batch = db.batch();
+    let count = 0;
+
+    subDeptQuery.forEach(docSnap => {
+      const data = docSnap.data();
+      const isInherited = data.sameAsDeptHead === true || data.inheritedFromDeptHead === true;
+      const matchesDept = (data.departmentCode && data.departmentCode.toUpperCase() === deptCode) ||
+                          (data.subDepartmentCode && data.subDepartmentCode.toUpperCase().startsWith(deptCode + '-'));
+
+      if (isInherited && matchesDept) {
+        batch.update(docSnap.ref, {
+          subDepartmentHeadEmployeeId: newHead,
+          subDepartmentHeadName: newHeadName,
+          headEmployeeId: newHead,
+          headEmployeeName: newHeadName,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        count++;
+      }
+    });
+
+    if (count > 0) {
+      await batch.commit();
+      console.log(`[onOrgDepartmentHeadUpdated] Propagated new head ${newHead} (${newHeadName}) to ${count} sub-departments in ${orgId}`);
+    }
+    return { success: true, count, deptCode, newHead };
+  });

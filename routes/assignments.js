@@ -1,7 +1,34 @@
 const express = require('express');
 const router = express.Router();
+const { confirmedWrite } = require('../config/firestore-write');
 const centralAssignmentEngine = require('../services/central-assignment-engine');
+const assignmentAi = require('../services/assignment-ai-service');
+const eventBus = require('../services/event-bus');
+const { db, rawCollection } = require('../config/firebase');
+const { ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
 const logger = require('../utils/logger');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
+
+
+function orgOf(req) {
+    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+}
+
+
+// The employee's profile documents, only if they belong to the caller's organization
+async function loadOwnedEmployee(req, employeeId) {
+    const orgId = orgOf(req);
+    const [emp, user, assignment] = await Promise.all([
+        rawCollection('employees').doc(employeeId).get(),
+        rawCollection('users').doc(employeeId).get(),
+        rawCollection('employee_assignments').doc(employeeId).get()
+    ]);
+    const foreign = [emp, user, assignment].some(d => d.exists && ownerOrgId(d.data()) !== orgId);
+    if (foreign || (!emp.exists && !user.exists)) return null;
+    return { orgId, emp, user, assignment };
+}
 
 /**
  * 5. Employee Type + Business Unit Assignment Engine REST API
@@ -34,26 +61,81 @@ router.post('/impact', (req, res) => {
     }
 });
 
-// POST /api/assignments/transition - Apply assignment transition with effective date & history preservation
+// POST /api/assignments/transition - Apply assignment transition with effective date & history preservation.
+// Responds only after Firestore confirmed every write; on failure the in-memory engine state is rolled back.
 router.post('/transition', async (req, res) => {
+    const { employeeId, newAttributes, effectiveDate, reason } = req.body || {};
+    if (!employeeId || !newAttributes || typeof newAttributes !== 'object') {
+        return res.status(400).json({ success: false, error: 'Missing employeeId or newAttributes' });
+    }
+    const empId = String(employeeId);
+    let previousActive;
+    let historyBefore;
     try {
-        const { employeeId, newAttributes, effectiveDate, changedBy, reason } = req.body;
-        if (!employeeId || !newAttributes) {
-            return res.status(400).json({ success: false, error: 'Missing employeeId or newAttributes' });
-        }
+        const owned = await loadOwnedEmployee(req, empId);
+        if (!owned) return res.status(404).json({ success: false, error: `Employee '${empId}' not found` });
+
+        previousActive = centralAssignmentEngine.activeAssignments.get(empId);
+        historyBefore = centralAssignmentEngine.getAssignmentHistory(empId).length;
+        const actor = (req.user && (req.user.email || req.user.id)) || 'HR Admin';
 
         const result = await centralAssignmentEngine.applyAssignmentTransition(
-            employeeId,
+            empId,
             newAttributes,
             effectiveDate || new Date().toISOString(),
-            changedBy || 'HR Admin',
-            reason || 'Role / Business Unit Transition'
+            actor,
+            reason || 'Role / Business Unit Transition',
+            { skipPersist: true }
         );
+        const { record, historyEntry } = result;
+        const orgId = owned.orgId;
+        const now = new Date().toISOString();
 
-        res.status(200).json({ success: true, data: result });
+        const batch = db.batch();
+        batch.set(rawCollection('employee_assignments').doc(empId), { ...record, orgId }, { merge: true });
+        if (historyEntry) {
+            batch.set(rawCollection('employee_assignments').doc(empId).collection('history').doc(record.transitionId), { ...historyEntry, orgId });
+        }
+        const profileUpdate = {
+            businessUnit: newAttributes.businessUnit || null,
+            employeeType: newAttributes.employeeType || null,
+            department: newAttributes.department || null,
+            grade: newAttributes.grade || null,
+            assignmentEffectiveDate: record.validFrom,
+            lastAssignmentUpdate: now
+        };
+        // Role is never changed here; only assignment attributes
+        if (owned.emp.exists) batch.set(rawCollection('employees').doc(empId), profileUpdate, { merge: true });
+        if (owned.user.exists) batch.set(rawCollection('users').doc(empId), profileUpdate, { merge: true });
+        batch.set(rawCollection('audit_logs').doc(), {
+            orgId, action: 'ASSIGNMENT_TRANSITION', employeeId: empId, transitionId: record.transitionId,
+            newAttributes, matchedRuleId: record.matchedRuleId, effectiveDate: record.validFrom,
+            performedBy: actor, timestamp: now, sha256Seal: record.preservedHistoricalRecords.auditSealedHash
+        });
+        batch.set(rawCollection('notifications').doc(), {
+            orgId, target: empId, targetUid: empId, title: 'Employment Assignment Updated',
+            message: `Your assignment has been updated (${newAttributes.employeeType || 'profile change'}), effective ${String(record.validFrom).slice(0, 10)}.`,
+            priority: 'normal', read: false, timestamp: now
+        });
+        await confirmedWrite(() => batch.commit());
+
+        eventBus.emit('assignment.transition_applied', {
+            employeeId: empId, transitionId: record.transitionId, effectiveDate: record.validFrom,
+            newAttributes, isActiveNow: record.status === 'ACTIVE', orgId, timestamp: now
+        });
+
+        const { record: _r, historyEntry: _h, ...data } = result;
+        res.status(200).json({ success: true, firebaseSaved: true, data });
     } catch (error) {
+        // Roll back the engine's in-memory state so it matches Firestore
+        if (historyBefore !== undefined) {
+            if (previousActive) centralAssignmentEngine.activeAssignments.set(empId, previousActive);
+            else centralAssignmentEngine.activeAssignments.delete(empId);
+            const history = centralAssignmentEngine.assignmentHistory.get(empId);
+            if (history) history.length = historyBefore;
+        }
         logger.error('[AssignmentsAPI] Error applying transition:', error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(error.status || 500).json({ success: false, firebaseSaved: false, error: error.message });
     }
 });
 
@@ -68,25 +150,44 @@ router.get('/matrix', (req, res) => {
     }
 });
 
-// GET /api/assignments/history/:employeeId - Retrieve assignment timeline history
-router.get('/history/:employeeId', (req, res) => {
+// GET /api/assignments/history/:employeeId - Assignment timeline history (from Firestore)
+router.get('/history/:employeeId', async (req, res) => {
     try {
-        const history = centralAssignmentEngine.getAssignmentHistory(req.params.employeeId);
-        res.status(200).json({ success: true, employeeId: req.params.employeeId, count: history.length, data: history });
+        const empId = String(req.params.employeeId);
+        const owned = await loadOwnedEmployee(req, empId);
+        if (!owned) return res.status(404).json({ success: false, error: `Employee '${empId}' not found` });
+        const snap = await rawCollection('employee_assignments').doc(empId).collection('history').get();
+        const history = snap.docs.map(d => d.data()).sort((a, b) => String(a.validFrom).localeCompare(String(b.validFrom)));
+        res.status(200).json({ success: true, employeeId: empId, count: history.length, data: history });
     } catch (error) {
         logger.error('[AssignmentsAPI] Error fetching history:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// GET /api/assignments/active/:employeeId - Retrieve current active assignment
-router.get('/active/:employeeId', (req, res) => {
+// GET /api/assignments/active/:employeeId - Current active assignment (from Firestore)
+router.get('/active/:employeeId', async (req, res) => {
     try {
-        const active = centralAssignmentEngine.getActiveAssignment(req.params.employeeId);
-        res.status(200).json({ success: true, employeeId: req.params.employeeId, data: active });
+        const empId = String(req.params.employeeId);
+        const owned = await loadOwnedEmployee(req, empId);
+        if (!owned) return res.status(404).json({ success: false, error: `Employee '${empId}' not found` });
+        const active = owned.assignment.exists ? owned.assignment.data() : null;
+        res.status(200).json({ success: true, employeeId: empId, data: active });
     } catch (error) {
         logger.error('[AssignmentsAPI] Error fetching active assignment:', error);
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// POST /api/assignments/ai/scenario - Answer a plain-English "what if" question with a real impact diff
+router.post('/ai/scenario', async (req, res) => {
+    try {
+        const { question, current, options } = req.body || {};
+        const result = await assignmentAi.answerScenario({ question, current, options });
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        logger.warn('[AssignmentsAPI] AI scenario failed: ' + error.message);
+        res.status(error.status || 500).json({ success: false, error: error.status ? error.message : 'AI assistant failed' });
     }
 });
 

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Kylrx AI — Operational Finance Dashboard. Live reconciliation, disbursement summaries, compliance registers, batch reports, exception queues, and full audit log with one-click exports.">
@@ -525,22 +526,10 @@
      JAVASCRIPT — BACKEND FIREBASE & REST API BINDINGS, RENDER, EXPORT
 ══════════════════════════════════════════════════════════════════════════ -->
 <script type="module">
-import { 
-  auth, 
-  db, 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  onSnapshot, 
-  orderBy, 
-  limit, 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword 
-} from "./firebase-config.js";
+import { auth, db, collection, query, where, getDocs, onSnapshot, orderBy, limit, onAuthStateChanged, signInWithEmailAndPassword, registerListener } from "./firebase-config.js";
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const API_BASE = window.location.port === '3000' ? '' : 'http://127.0.0.1:3000';
+const API_BASE = (window.API_BASE || window.location.origin);
 const PAGE_SIZES = { disbursement: 25, batch: 25, exceptions: 25, compliance: 25, reconciliation: 25, audit: 25 };
 
 // ── State ─────────────────────────────────────────────────────────────────────

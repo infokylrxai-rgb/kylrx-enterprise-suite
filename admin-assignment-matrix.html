@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="admin-dashboard.css">
     <link rel="stylesheet" href="sidebar-lock.css">
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="lucide.min.js"></script>
     <script>
         (function() {
             const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
@@ -690,6 +690,9 @@
                         <span id="firebaseStatusText">Firebase: kylrxai (Connected)</span>
                     </div>
 
+                    <button class="btn-hub" onclick="openAssignmentAi()" title="Ask a what-if question in plain English">
+                        <i data-lucide="sparkles"></i> Ask AI
+                    </button>
                     <button class="btn-hub" onclick="openMatrixRulesModal()">
                         <i data-lucide="table"></i> View Matrix Rules
                     </button>
@@ -937,7 +940,8 @@
     </div>
 
     <!-- Core Controller (ES Module) -->
-    <script type="module" src="admin-assignment-matrix.js"></script>
+    <script type="module" src="admin-assignment-matrix.js?v=2"></script>
+    <script src="assignment-hub-ai.js?v=1"></script>
     <script type="module" src="./admin-sidebar-sync.js"></script>
 
     <!-- Custom App Registry Modal -->

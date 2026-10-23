@@ -1,5 +1,5 @@
-import { auth, db } from "./firebase-config.js";
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, limit, updateDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
+import { collection, query, where, addDoc, serverTimestamp, orderBy, limit, updateDoc, doc, getDocs } from "./firebase-config.js";
 
 // --- Notification Logic ---
 export async function sendNotification(targetId, title, message, type = 'info', isDepartment = false) {

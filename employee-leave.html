@@ -174,8 +174,11 @@
                     <span id="backendStatusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                     <span id="backendStatusText">Firebase Backend Online</span>
                 </div>
-                <button class="btn btn-outline" style="width: auto; padding: 6px 14px; font-size: 0.75rem; border-radius: 100px; display: flex; align-items: center; gap: 6px; font-weight: 800; border: 1px solid var(--border); background: white; cursor: pointer; color: var(--text-muted);" onclick="const id=new URLSearchParams(window.location.search).get('id'); window.location.href=id ? 'employee-calander.html?id='+id : 'employee-calander.html';">
+                <button class="btn btn-outline" style="width: auto; padding: 6px 14px; font-size: 0.75rem; border-radius: 100px; display: flex; align-items: center; gap: 6px; font-weight: 800; border: 1px solid var(--border); background: white; cursor: pointer; color: var(--text-muted);" onclick="const id=new URLSearchParams(window.location.search).get('id'); window.location.href=id ? 'employee-calendar.html?id='+id : 'employee-calendar.html';">
                     <i data-lucide="calendar" size="14"></i> Holiday Calendar
+                </button>
+                <button class="btn btn-primary" id="btnOpenOptionalHolidayDrawer" type="button" style="width: auto; padding: 6px 14px; font-size: 0.75rem; border-radius: 100px; display: flex; align-items: center; gap: 6px; font-weight: 800; background: #ec4899; color: white; border: none; cursor: pointer;">
+                    <i data-lucide="sparkles" size="14"></i> Floating Holidays (<span id="optQuotaBadge">2/2</span>)
                 </button>
                 <div style="font-size: 0.8rem; font-weight: 800; color: var(--success); background: #dcfce7; padding: 6px 12px; border-radius: 100px;">ANNUAL QUOTA: 24 DAYS</div>
             </div>
@@ -197,6 +200,10 @@
                         <div class="balance-item">
                             <div class="balance-label">Comp Off</div>
                             <div class="balance-val" id="compBalance">00</div>
+                        </div>
+                        <div class="balance-item" style="border-color: #fbcfe8; background: #fdf2f8;">
+                            <div class="balance-label" style="color: #be185d;">Optional / Floating</div>
+                            <div class="balance-val" id="optBalance" style="color: #ec4899;">02</div>
                         </div>
                     </div>
                 </div>
@@ -257,11 +264,40 @@
         </div>
     </div>
 
+    <!-- ESS Optional / Floating Holiday Drawer Modal (PRD §§ 15 & 16) -->
+    <div class="modal-overlay-status" id="optionalHolidayDrawerOverlay" style="align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 28px; width: 90%; max-width: 540px; padding: 2.25rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15); border: 1px solid var(--border); font-family: inherit;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #fdf2f8; color: #ec4899; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="sparkles" size="20"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: var(--text);">Floating Holiday Drawer</h3>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">Select and claim against your annual optional holiday quota</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeOptionalHolidayDrawer()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.25rem;">✕</button>
+            </div>
+            
+            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 14px; padding: 10px 14px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.78rem; font-weight: 700; color: #9d174d;">Annual Floating Quota</span>
+                <span style="font-size: 0.85rem; font-weight: 800; color: #be185d;" id="optDrawerQuotaText">2 / 2 Days Available</span>
+            </div>
+
+            <div id="optionalHolidayListContainer" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;">
+                <!-- Populated dynamically -->
+            </div>
+
+            <button type="button" class="btn" onclick="closeOptionalHolidayDrawer()" style="background: #f1f5f9; color: #475569;">Close Drawer</button>
+        </div>
+    </div>
+
+    <script src="holidayCalendarParser.js"></script>
+    <script src="holidayCalendarService.js"></script>
+
     <script type="module">
-        import { 
-            db, auth, onAuthStateChanged, checkBackendFirebaseStatus,
-            collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, getDoc 
-        } from './firebase-config.js';
+        import { db, auth, onAuthStateChanged, checkBackendFirebaseStatus, collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, getDoc, registerListener } from './firebase-config.js';
 
         lucide.createIcons();
 
@@ -452,6 +488,82 @@
                 btn.innerHTML = 'Submit for Approval';
             }
         };
+        // Optional Holiday Drawer Logic
+        window.openOptionalHolidayDrawer = async () => {
+            const overlay = document.getElementById('optionalHolidayDrawerOverlay');
+            if (overlay) overlay.classList.add('active');
+            await loadOptionalHolidaysForDrawer();
+        };
+
+        window.closeOptionalHolidayDrawer = () => {
+            const overlay = document.getElementById('optionalHolidayDrawerOverlay');
+            if (overlay) overlay.classList.remove('active');
+        };
+
+        document.getElementById('btnOpenOptionalHolidayDrawer')?.addEventListener('click', window.openOptionalHolidayDrawer);
+
+        async function loadOptionalHolidaysForDrawer() {
+            const container = document.getElementById('optionalHolidayListContainer');
+            if (!container) return;
+
+            if (window.KylrxHolidayCalendarService && typeof window.KylrxHolidayCalendarService.getOptionalHolidaysForEmployee === 'function') {
+                const holidays = await window.KylrxHolidayCalendarService.getOptionalHolidaysForEmployee('default', currentUid, 2026);
+                const claimedCount = holidays.filter(h => h.isClaimed).length;
+                const remaining = Math.max(0, 2 - claimedCount);
+
+                const quotaBadge = document.getElementById('optQuotaBadge');
+                if (quotaBadge) quotaBadge.textContent = `${remaining}/2`;
+
+                const optBalance = document.getElementById('optBalance');
+                if (optBalance) optBalance.textContent = String(remaining).padStart(2, '0');
+
+                const drawerText = document.getElementById('optDrawerQuotaText');
+                if (drawerText) drawerText.textContent = `${remaining} / 2 Days Available`;
+
+                if (holidays.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem; font-size: 0.85rem;">No optional floating holidays scheduled for this location in 2026.</div>';
+                    return;
+                }
+
+                container.innerHTML = holidays.map(h => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); background: ${h.isClaimed ? '#f0fdf4' : 'var(--bg)'};">
+                        <div>
+                            <div style="font-weight: 800; font-size: 0.88rem; color: var(--text);">${h.holidayName}</div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">${h.holidayDate} • ${h.holidayType || 'Restricted'}</div>
+                        </div>
+                        <div>
+                            ${h.isClaimed ? `
+                                <span style="display: inline-block; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 800; background: #dcfce7; color: #166534;">
+                                    CLAIMED
+                                </span>
+                            ` : `
+                                <button type="button" class="btn" style="width: auto; padding: 6px 14px; font-size: 0.75rem; border-radius: 10px; background: #ec4899; color: white;" onclick="claimHoliday('${h.id}', '${h.holidayDate}', '${h.holidayName}')" ${remaining <= 0 ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                                    Claim Day
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `).join('');
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+
+        window.claimHoliday = async (holidayId, holidayDate, holidayName) => {
+            try {
+                if (window.KylrxHolidayCalendarService && typeof window.KylrxHolidayCalendarService.applyOptionalHoliday === 'function') {
+                    await window.KylrxHolidayCalendarService.applyOptionalHoliday('default', currentUid, holidayId, holidayDate, `Claimed floating holiday: ${holidayName}`);
+                    showStatusModal('Floating Holiday Claimed', `You have successfully claimed ${holidayName} (${holidayDate}) against your annual quota!`, 'success');
+                    await loadOptionalHolidaysForDrawer();
+                }
+            } catch (err) {
+                showStatusModal('Claim Failed', err.message, 'info');
+            }
+        };
+
+        // Initial fetch of optional holiday balance
+        setTimeout(() => {
+            loadOptionalHolidaysForDrawer();
+        }, 500);
     </script>
 </body>
 </html>

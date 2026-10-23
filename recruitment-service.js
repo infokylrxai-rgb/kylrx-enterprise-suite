@@ -1,8 +1,5 @@
-import { db, storage } from "./firebase-config.js";
-import {
-    collection, doc, addDoc, updateDoc, getDocs, getDoc, setDoc,
-    serverTimestamp, query, orderBy, onSnapshot
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db, storage, onSnapshot, registerListener } from "./firebase-config.js";
+import { collection, doc, addDoc, updateDoc, getDocs, getDoc, setDoc, serverTimestamp, query, orderBy } from "./firebase-config.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 export const STAGES = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];

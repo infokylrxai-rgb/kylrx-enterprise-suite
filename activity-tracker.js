@@ -1,6 +1,6 @@
 import { auth, db } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { doc, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, setDoc, serverTimestamp, getDoc } from "./firebase-config.js";
 
 let trackingActive = false;
 let status = 'Offline'; // Online, Idle, Away, Break, Offline
@@ -116,9 +116,19 @@ function checkAndSync() {
     updateFirestoreNow();
 }
 
+// Firestore writes are limited to status changes plus a heartbeat every 5 minutes;
+// writing every 30s from every open tab exhausted the project's daily write quota.
+const HEARTBEAT_INTERVAL = 5 * 60 * 1000;
+let lastWrittenStatus = null;
+let lastWriteAt = 0;
+
 async function updateFirestoreNow(isUnloading = false) {
     if (!userId) return;
-    
+    const now = Date.now();
+    if (!isUnloading && status === lastWrittenStatus && now - lastWriteAt < HEARTBEAT_INTERVAL) return;
+    lastWrittenStatus = status;
+    lastWriteAt = now;
+
     const name = localStorage.getItem('userName') || 'User';
     const role = localStorage.getItem('userRole') || 'employee';
     const dept = localStorage.getItem('userDept') || 'General';

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lifecycle Conversion Hub | HRFlow Enterprise</title>
@@ -494,25 +495,7 @@
     </div>
 
     <script type="module">
-        import { 
-            db, 
-            auth, 
-            collection, 
-            query, 
-            where, 
-            getDocs, 
-            getDoc, 
-            updateDoc, 
-            setDoc, 
-            doc, 
-            serverTimestamp, 
-            addDoc, 
-            onSnapshot, 
-            arrayUnion, 
-            orderBy, 
-            limit, 
-            checkBackendFirebaseStatus 
-        } from "./firebase-config.js";
+        import { db, auth, collection, query, where, getDocs, getDoc, updateDoc, setDoc, doc, serverTimestamp, addDoc, onSnapshot, arrayUnion, orderBy, limit, checkBackendFirebaseStatus, registerListener } from "./firebase-config.js";
         import { codeEngine } from "./code-engine-service.js";
 
         if (window.lucide) lucide.createIcons();
@@ -801,7 +784,7 @@
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 3500);
-                    const apiRes = await fetch('http://localhost:3000/api/hr-os/convert-employee', {
+                    const apiRes = await fetch(`${window.API_BASE || window.location.origin}/api/hr-os/convert-employee`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -1000,7 +983,7 @@
 
             // 1. Fetch from Express Backend API
             try {
-                const apiRes = await fetch('http://localhost:3000/api/hr-os/audit-events');
+                const apiRes = await fetch(`${window.API_BASE || window.location.origin}/api/hr-os/audit-events`);
                 if (apiRes.ok) {
                     const data = await apiRes.json();
                     if (data && Array.isArray(data.events)) {
@@ -1225,8 +1208,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

@@ -14,6 +14,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script>
+        (function() {
+            const role = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
+            if (role === 'manager') {
+                const centerId = localStorage.getItem('departmentId') || localStorage.getItem('command_center_id') || 'Yksv1DMH9pIeRhNxQ8E3';
+                window.location.replace(`manager-dashboard.html?id=${centerId}`);
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="admin-dashboard.css">
     <link rel="stylesheet" href="sidebar-lock.css">
     <link rel="stylesheet" href="hrms-sidebar-polish.css">
@@ -2064,9 +2073,9 @@
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase-config.js";
+        import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, onSnapshot, query, orderBy, doc, getDoc, addDoc, deleteDoc, getDocs, updateDoc, setDoc, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, query, orderBy, doc, getDoc, addDoc, deleteDoc, getDocs, updateDoc, setDoc, where, serverTimestamp } from "./firebase-config.js";
         import { upcomingBirthdays } from "./upcoming-birthdays.js";
 
         // Initialize Upcoming Birthdays Widget for HR Dashboard
@@ -2885,7 +2894,7 @@
             modal.style.display = 'flex';
 
             try {
-                const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                const { collection, getDocs, query, where } = await import("./firebase-config.js");
                 const q = query(collection(db, 'users'), where('status', '==', type));
                 const snap = await getDocs(q);
 
@@ -2945,7 +2954,7 @@
             if (!confirmed) return;
 
             try {
-                const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                const { doc, updateDoc } = await import("./firebase-config.js");
                 await updateDoc(doc(db, 'users', userId), { status: targetStatus });
                 
                 closeComplianceModal();
@@ -3825,7 +3834,7 @@
 
     <script type="module">
         import { getPendingReviews, scorePerformance } from "./pms-service.js";
-        import { auth } from "./firebase-config.js";
+        import { auth, onSnapshot, registerListener } from "./firebase-config.js";
 
         async function loadHrmsEodList() {
             const listEl = document.getElementById('hrmsEodList');
@@ -3933,8 +3942,8 @@
 
     <!-- ══ PAY SLIP GENERATOR MODULE ══════════════════════════════════ -->
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, onSnapshot, registerListener } from "./firebase-config.js";
+        import { collection, getDocs, query, where, doc, getDoc } from "./firebase-config.js";
         import { generatePayslipPdfBlob, downloadPayslipPdf, parsePeriod } from "./payslip-pdf-service.js";
         import { generateDocument } from "./payroll-doc-service.js";
         import { enrichEmployeeBankDetails, exportBankTransferCSV as exportBankCSV } from "./bank-export-service.js";
@@ -4105,8 +4114,8 @@
 
     <!-- ══ RECRUITMENT ATS MODULE ══════════════════════════════════════ -->
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, onSnapshot, registerListener } from "./firebase-config.js";
+        import { collection, getDocs, query, where } from "./firebase-config.js";
         import {
             STAGES, subscribeCandidates, addCandidate, updateCandidate, deleteCandidate,
             uploadResume, addInterview, getInterviews, updateOffer, startOnboarding,

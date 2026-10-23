@@ -5,9 +5,9 @@
  *           Activity Tracking, AI Productivity Score, Dynamic Payroll
  */
 
-import { auth, db } from "./firebase-config.js";
+import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { doc, setDoc, getDoc, getDocs, collection, query, where, serverTimestamp, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, getDocs, collection, query, where, serverTimestamp, updateDoc } from "./firebase-config.js";
 
 // ==================== CONFIGURATION ====================
 const CONFIG = {
@@ -299,9 +299,17 @@ function calculatePayroll() {
 // ==================== FIRESTORE SYNC ====================
 let _syncTimeout = null;
 let _pendingSyncData = null;
+// Write on status change or every 5 minutes; per-tick (30s) writes from every open tab
+// exhausted the project's daily Firestore write quota
+const SYNC_HEARTBEAT_MS = 5 * 60 * 1000;
+let _lastSyncedStatus = null;
+let _lastSyncAt = 0;
 
 async function syncToFirestore(force = false) {
     if (!state.userId) return;
+    if (!force && state.status === _lastSyncedStatus && Date.now() - _lastSyncAt < SYNC_HEARTBEAT_MS) return;
+    _lastSyncedStatus = state.status;
+    _lastSyncAt = Date.now();
     const dayKey = new Date().toISOString().split('T')[0];
 
     // Batch data to avoid duplicate serializations

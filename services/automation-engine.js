@@ -86,7 +86,7 @@ class AutomationEngine {
 
         // 1. Check matching in-memory rules first (instantaneous local evaluation)
         for (const rule of this.inMemoryRules.values()) {
-            if (rule.trigger_event === eventName && rule.status === 'active') {
+            if (rule.trigger_event === eventName && String(rule.status || '').toLowerCase() === 'active') {
                 if (!automations.find(a => a.id === rule.id)) {
                     automations.push(rule);
                 }
@@ -97,15 +97,17 @@ class AutomationEngine {
         if (automations.length === 0 && db) {
             try {
                 const snapshot = await Promise.race([
+                    // Builder saves status as 'ACTIVE'; compare case-insensitively below
                     db.collection('automations')
                         .where('trigger_event', '==', eventName)
-                        .where('status', '==', 'active')
                         .get(),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore timeout')), 1000))
                 ]);
 
                 if (!snapshot.empty) {
-                    automations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    automations = snapshot.docs
+                        .map(doc => ({ id: doc.id, ...doc.data() }))
+                        .filter(rule => String(rule.status || '').toLowerCase() === 'active');
                 }
             } catch (error) {
                 logger.warn(`[AutomationEngine] Could not query Firestore automations (${error.message}).`);

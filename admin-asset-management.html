@@ -429,9 +429,8 @@
     </style>
 
     <script type="module">
-        import { db, auth } from "./firebase-config.js";
-        import { getAssets, getAssetStats, getAssetLogs, addAsset, allocateAsset, deleteAsset } from "./asset-service.js";
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
+        import { getAssets, getAssetStats, getAssetLogs, addAsset, allocateAsset, deleteAsset, getAssignableEmployees } from "./asset-service.js?v=2";
 
         // Premium Centered Status Modal
         window.showStatusModal = (title, msg, type = 'warning') => {
@@ -469,6 +468,12 @@
 
         lucide.createIcons();
 
+        // Text from Firestore is escaped before it is placed into HTML
+        const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        // Cards pass only the asset id to their buttons; details are looked up here
+        const assetsById = new Map();
+        const assetName = (id) => (assetsById.get(id) || {}).name || id;
+
         async function initDashboard() {
             loadStats();
             renderAssets();
@@ -484,6 +489,7 @@
                 document.getElementById('statMissing').textContent = stats.missing.toLocaleString();
             } catch (err) {
                 console.error("Error loading stats:", err);
+                ['statTotal', 'statAllocated', 'statRepair', 'statMissing'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
             }
         }
 
@@ -491,8 +497,10 @@
             const grid = document.getElementById('assetGrid');
             try {
                 const assets = await getAssets();
+                assetsById.clear();
+                assets.forEach(a => assetsById.set(a.id, a));
                 if (assets.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 5rem; color: var(--text-muted);">No assets registered in the cloud.</div>';
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 5rem; color: var(--text-muted);">No assets registered yet. Click "New Asset" to add one.</div>';
                     return;
                 }
 
@@ -502,28 +510,28 @@
                     
                     return `
                         <div class="asset-item-card">
-                            <span class="asset-tag" style="background: ${tagBg}; color: ${tagColor};">${a.status}</span>
-                            <div class="asset-type-badge">${a.type}</div>
-                            <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">${a.name}</h4>
-                            <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: ${a.tag}</p>
+                            <span class="asset-tag" style="background: ${tagBg}; color: ${tagColor};">${esc(a.status)}</span>
+                            <div class="asset-type-badge">${esc(a.type)}</div>
+                            <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px;">${esc(a.name)}</h4>
+                            <p style="font-size: 0.75rem; color: var(--text-muted);">Tag: ${esc(a.tag)}</p>
                             
                             <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
                                     <i data-lucide="${a.assignedTo ? 'user' : 'package'}" size="16"></i>
                                 </div>
                                 <div style="flex: 1;">
-                                    <p style="font-size: 0.8rem; font-weight: 700;">${a.assignedToName || 'Unassigned'}</p>
-                                    <p style="font-size: 0.65rem; color: var(--text-muted);">${a.assignedTo ? 'Allocated' : 'In Warehouse'}</p>
+                                    <p style="font-size: 0.8rem; font-weight: 700;">${esc(a.assignedToName || 'Unassigned')}</p>
+                                    <p style="font-size: 0.65rem; color: var(--text-muted);">${a.assignedTo ? (a.declarationStatus === 'Verified' ? 'Allocated · condition confirmed' : 'Allocated · awaiting confirmation') : 'In Warehouse'}</p>
                                 </div>
-                                <div class="qr-placeholder" onclick="viewAssetQR('${a.tag}', '${(a.name || '').replace(/'/g, "\\'")}')" title="View Asset QR Label"><i data-lucide="qr-code" size="20"></i></div>
+                                <div class="qr-placeholder" data-action="qr" data-id="${esc(a.id)}" title="View Asset QR Label"><i data-lucide="qr-code" size="20"></i></div>
                             </div>
                             
                             <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px;">
                                 ${a.status === 'In Stock' ? 
-                                    `<button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;" onclick="showAllocationModal('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Assign to Employee</button>
-                                     <button class="btn btn-outline" style="font-size: 0.7rem; padding: 8px; color: #ef4444; border-color: #fca5a5; display: flex; align-items: center; justify-content: center;" onclick="deleteAssetConfirm('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')" title="Delete Asset"><i data-lucide="trash-2" size="14"></i></button>` :
-                                    `<button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;" onclick="showAllocationModal('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Re-Allocate</button>
-                                     <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;" onclick="deleteAssetConfirm('${a.id}', '${(a.name || '').replace(/'/g, "\\'")}')">Retire</button>`
+                                    `<button class="btn btn-primary" style="flex: 1; font-size: 0.7rem; padding: 8px;" data-action="allocate" data-id="${esc(a.id)}">Assign to Employee</button>
+                                     <button class="btn btn-outline" style="font-size: 0.7rem; padding: 8px; color: #ef4444; border-color: #fca5a5; display: flex; align-items: center; justify-content: center;" data-action="delete" data-id="${esc(a.id)}" title="Delete Asset"><i data-lucide="trash-2" size="14"></i></button>` :
+                                    `<button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px;" data-action="allocate" data-id="${esc(a.id)}">Re-Allocate</button>
+                                     <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem; padding: 8px; color: #ef4444;" data-action="delete" data-id="${esc(a.id)}">Retire</button>`
                                 }
                             </div>
                         </div>
@@ -532,8 +540,20 @@
                 lucide.createIcons();
             } catch (err) {
                 console.error("Error rendering assets:", err);
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 5rem; color: #ef4444;">Could not load assets from Firebase: ${esc(err.message)}</div>`;
             }
         }
+
+        // One click handler for all card buttons (ids only, no data in inline handlers)
+        document.getElementById('assetGrid')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const asset = assetsById.get(btn.dataset.id);
+            if (!asset) return;
+            if (btn.dataset.action === 'qr') viewAssetQR(asset.tag || '', asset.name || '');
+            else if (btn.dataset.action === 'allocate') showAllocationModal(asset.id, asset.name || '');
+            else if (btn.dataset.action === 'delete') deleteAssetConfirm(asset.id, asset.name || '');
+        });
 
         async function loadHistory() {
             const hist = document.getElementById('transactionHistory');
@@ -559,7 +579,7 @@
                     }
                     return `
                     <div class="history-item">
-                        <div><p style="font-weight: 700; font-size: 0.9rem;">${l.action} Recorded</p><p style="font-size: 0.75rem; color: var(--text-muted);">Asset: ${l.assetId}</p></div>
+                        <div><p style="font-weight: 700; font-size: 0.9rem;">${esc(l.action)}</p><p style="font-size: 0.75rem; color: var(--text-muted);">Asset: ${esc(assetName(l.assetId))}</p></div>
                         <div style="text-align: right;">
                             <p style="font-weight: 800; color: #3b82f6;">PROCESSED</p>
                             <p style="font-size: 0.65rem; color: var(--text-muted);">${formattedDate}</p>
@@ -569,6 +589,7 @@
                 }).join('');
             } catch (err) {
                 console.error("Error loading history:", err);
+                hist.innerHTML = `<div style="text-align: center; padding: 2rem; color: #ef4444; font-size: 0.8rem;">Could not load transactions: ${esc(err.message)}</div>`;
             }
         }
 
@@ -603,8 +624,8 @@
                 grid.innerHTML = assets.slice(0, 8).map(a => `
                     <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; background: #f8fafc;">
                         <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
-                        <p style="font-weight: 800; font-size: 0.9rem;">${a.tag || 'NO-TAG'}</p>
-                        <p style="font-size: 0.65rem; color: var(--text-muted);">${a.name || a.type}</p>
+                        <p style="font-weight: 800; font-size: 0.9rem;">${esc(a.tag || 'NO-TAG')}</p>
+                        <p style="font-size: 0.65rem; color: var(--text-muted);">${esc(a.name || a.type)}</p>
                     </div>
                 `).join('');
                 if (window.lucide) lucide.createIcons();
@@ -695,44 +716,28 @@
             select.innerHTML = '<option value="">Loading active personnel...</option>';
             toggleAllocateModal(true);
             
-            const defaultEmployees = [
-                { id: 'usr-001', name: 'Sarah Jenkins', department: 'Engineering' },
-                { id: 'usr-002', name: 'David Chen', department: 'Marketing' },
-                { id: 'usr-003', name: 'Priya Sharma', department: 'Product Design' },
-                { id: 'usr-004', name: 'Marcus Vance', department: 'Product Operations' },
-                { id: 'usr-005', name: 'Liam O\'Connor', department: 'Finance & Accounts' },
-                { id: 'usr-006', name: 'Elena Rostova', department: 'HR Operations' }
-            ];
-
-            const populateSelect = (list) => {
+            const btnConfirm = document.getElementById('btnConfirmAllocate');
+            try {
+                const people = await getAssignableEmployees();
                 select.innerHTML = '';
-                list.forEach(u => {
+                if (people.length === 0) {
+                    select.innerHTML = '<option value="">No active employees in your organization</option>';
+                    if (btnConfirm) btnConfirm.disabled = true;
+                    return;
+                }
+                people.forEach(u => {
                     const opt = document.createElement('option');
                     opt.value = u.id;
-                    opt.dataset.name = u.name || 'Staff';
-                    opt.textContent = `${u.name || 'Unknown'} (${u.department || 'Staff'})`;
+                    opt.dataset.name = u.name;
+                    opt.textContent = `${u.name} (${u.department})`;
                     select.appendChild(opt);
                 });
-            };
-
-            try {
-                const timeoutPromise = new Promise((_, rej) => setTimeout(() => rej(new Error('Directory timeout')), 1500));
-                const usersSnap = await Promise.race([getDocs(collection(db, 'users')), timeoutPromise]);
-                if (usersSnap && !usersSnap.empty) {
-                    const usersList = [];
-                    usersSnap.forEach(doc => {
-                        const u = doc.data();
-                        usersList.push({ id: doc.id, name: u.name || 'Unknown', department: u.department || 'Staff' });
-                    });
-                    if (usersList.length > 0) {
-                        populateSelect(usersList);
-                        return;
-                    }
-                }
+                if (btnConfirm) btnConfirm.disabled = false;
             } catch (err) {
-                console.info("Using enterprise personnel directory fallback:", err.message);
+                select.innerHTML = '<option value="">Could not load employees</option>';
+                if (btnConfirm) btnConfirm.disabled = true;
+                showStatusModal('Employees Unavailable', err.message, 'error');
             }
-            populateSelect(defaultEmployees);
         };
 
         window.toggleAllocateModal = (show) => {
@@ -770,6 +775,7 @@
                 
                 setTimeout(() => toast.classList.remove('active'), 3000);
             } catch (err) {
+                toggleAllocateModal(false);
                 showStatusModal('Allocation Failed', err.message || 'Failed to allocate asset.', 'error');
             } finally {
                 btn.disabled = false;
@@ -811,6 +817,7 @@
                 
                 setTimeout(() => toast.classList.remove('active'), 3000);
             } catch (err) {
+                toggleDeleteModal(false);
                 showStatusModal('Deletion Failed', err.message || 'Failed to remove asset.', 'error');
             } finally {
                 btn.disabled = false;
@@ -978,8 +985,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

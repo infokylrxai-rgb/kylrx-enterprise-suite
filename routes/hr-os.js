@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const kylrxHROS = require('../services/kylrx-hr-os');
 const logger = require('../utils/logger');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
 
 /**
  * GET /api/hr-os/manifest

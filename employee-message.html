@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Message Hub | HRFlow</title>
@@ -32,12 +33,13 @@
                 { name: "JIRA", url: "https://atlassian.com" }
             ];
             
+            const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
             const apps = stored ? JSON.parse(stored) : defaultApps;
             list.innerHTML = apps.map((app) => `
                 <div class="nav-item" style="position: relative; margin-bottom: 2px;">
-                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                    <a href="${esc(app.url)}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                        <span>${app.name}</span>
+                        <span>${esc(app.name)}</span>
                     </a>
                 </div>
             `).join('');
@@ -761,11 +763,7 @@
     </div>
 
     <script type="module">
-        import { 
-            auth, db, onAuthStateChanged, checkBackendFirebaseStatus,
-            collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, 
-            serverTimestamp, doc, setDoc, deleteField, limit, arrayUnion 
-        } from "./firebase-config.js";
+        import { auth, db, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, doc, setDoc, deleteField, limit, arrayUnion, registerListener } from "./firebase-config.js";
 
         if (window.lucide) lucide.createIcons();
 
@@ -1044,14 +1042,14 @@
                     return `
                         <div class="msg-channel" onclick="${clickAction}">
                             <div class="channel-icon" style="width: 32px; height: 32px; background: ${badgeBg}; border: 1px solid var(--border); color: ${badgeColor}; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;">
-                                ${initials}
+                                ${escapeHtml(initials)}
                             </div>
                             <div class="channel-info">
                                 <div class="channel-name" style="font-size:0.8rem; display:flex; align-items:center; gap:4px;">
-                                    ${p.name || 'Teammate'}
+                                    ${escapeHtml(p.name || 'Teammate')}
                                     ${isHr ? '<span style="font-size:0.6rem; background:#dbeafe; color:#1e40af; padding:1px 5px; border-radius:4px; font-weight:700;">HQ</span>' : ''}
                                 </div>
-                                <div class="channel-desc" style="font-size:0.65rem;">${p.role || department}</div>
+                                <div class="channel-desc" style="font-size:0.65rem;">${escapeHtml(p.role || department)}</div>
                             </div>
                         </div>
                     `;
@@ -1270,12 +1268,15 @@
             const welcome = chatArea.querySelector('.secure-welcome-card');
             if (welcome) welcome.remove();
 
+            const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
+            const formatBubbleText = (txt) => esc(txt || '').replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>');
+
             // Deduplicate by msg id
             const existing = chatArea.querySelector(`[data-msg-id="${m.id}"]`);
             if (existing) {
                 const textEl = existing.querySelector('.bubble-text-content');
                 if (textEl && m.text) {
-                    textEl.innerHTML = (m.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>');
+                    textEl.innerHTML = formatBubbleText(m.text);
                 }
                 return;
             }
@@ -1296,23 +1297,23 @@
             let bodyHtml = `
                 <div class="bubble-meta" style="color: ${labelColor}; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 5px;">
                     <span style="font-weight: 800; display: flex; align-items: center; gap: 5px;">
-                        ${labelName}
+                        ${esc(labelName)}
                         ${isSuperAdmin ? '<span style="font-size:0.6rem; background:#dbeafe; color:#1e40af; padding:1px 5px; border-radius:4px; font-weight:800;">VERIFIED</span>' : ''}
                     </span>
-                    <span class="bubble-time" style="font-size: 0.7rem; opacity: 0.75; font-weight: 600;">${timeStr}</span>
+                    <span class="bubble-time" style="font-size: 0.7rem; opacity: 0.75; font-weight: 600;">${esc(timeStr)}</span>
                 </div>
                 <div class="bubble-text-content" style="font-size: 0.92rem; line-height: 1.45; color: #1e293b;">
-                    ${(m.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>')}
+                    ${formatBubbleText(m.text)}
                 </div>
             `;
 
             if (m.attachments && m.attachments.length > 0) {
                 const atts = m.attachments.map(att => `
                     <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:6px; font-size:0.8rem; font-weight:600; color:#1e293b;">
-                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${att.name}</span>
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${esc(att.name || 'Attachment')}</span>
                         <div style="display:flex; gap:6px;">
-                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${att.dataUrl}" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Open</a>
-                            <a href="${att.dataUrl}" download="${att.name}" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Download</a>
+                            <a href="#" onclick="window.openAttachment(this); return false;" data-url="${esc(att.dataUrl || '')}" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Open</a>
+                            <a href="${esc(att.dataUrl || '')}" download="${esc(att.name || 'download')}" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; text-decoration:none;">Download</a>
                         </div>
                     </div>
                 `).join('');
@@ -1320,10 +1321,11 @@
             }
 
             if (isMe) {
+                const safeMsgId = esc(m.id || '');
                 bodyHtml += `
                     <div style="display:flex; gap:12px; margin-top:6px; font-size:0.68rem; opacity:0.8; justify-content:flex-end;">
-                        <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${m.id}', \`${(m.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
-                        <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${m.id}')">Clear</span>
+                        <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${safeMsgId}', \`${(m.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
+                        <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${safeMsgId}')">Clear</span>
                     </div>
                 `;
             }
@@ -1428,7 +1430,7 @@
             let knownMsgIds = new Set(localMsgs.map(m => m.id));
 
             const syncFromBackend = () => {
-                fetch(`http://localhost:3000/api/messages/thread/${candQuery}`)
+                fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/messages/thread/${candQuery}`)
                     .then(res => res.ok ? res.json() : null)
                     .then(result => {
                         if (result && result.data && Array.isArray(result.data)) {
@@ -1499,12 +1501,13 @@
                     return;
                 }
 
+                const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
                 pendingAttachment = file;
                 filePreviewBar.style.display = 'flex';
                 filePreviewBar.innerHTML = `
                     <div class="file-pill">
                         <i data-lucide="file" size="14"></i>
-                        <span>${file.name}</span>
+                        <span>${esc(file.name)}</span>
                         <div class="remove-file" onclick="clearPendingFile()"><i data-lucide="x" size="14"></i></div>
                     </div>
                 `;
@@ -1591,7 +1594,7 @@
                 } catch (_) {}
 
                 // 4. Send to Node backend API
-                fetch('http://localhost:3000/api/messages/send', {
+                fetch('${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/messages/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(msgObj)
@@ -1626,7 +1629,7 @@
             if (e.key === 'fs_col_messages' || e.key?.startsWith('fs_chat_')) {
                 const candidates = getCandidateChatIds();
                 const candQuery = candidates.join(',');
-                fetch(`http://localhost:3000/api/messages/thread/${candQuery}`)
+                fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/messages/thread/${candQuery}`)
                     .then(res => res.ok ? res.json() : null)
                     .then(result => {
                         if (result && result.data && Array.isArray(result.data)) {
@@ -1837,7 +1840,7 @@
                         const textEl = bubble.querySelector('.bubble-text-content');
                         if (textEl) textEl.textContent = newText.trim();
                     }
-                    fetch('http://localhost:3000/api/messages/send', {
+                    fetch('${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/messages/send', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id: msgId, text: newText.trim() })

@@ -2,7 +2,7 @@
  * Alert Builder Frontend Controller
  * Integrates with Kylrx Common Automation Engine (/api/alerts) & Firebase Cloud Firestore
  */
-import { db, auth, onSnapshot, collection, doc, setDoc, updateDoc, addDoc, serverTimestamp, getDocs } from "./firebase-config.js";
+import { db, auth, onSnapshot, collection, doc, setDoc, updateDoc, addDoc, serverTimestamp, getDocs, registerListener } from "./firebase-config.js";
 
 let activeRules = [];
 let breachCount = 0;
@@ -11,7 +11,7 @@ let isBackendAvailable = null;
 let currentAlertView = 'registry'; // 'registry' (PRD §11 Simplified Alert Monitor) | 'custom'
 let currentRegistryCategory = '';
 
-const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin);
 const API_BASE = `${API_HOST}/api/alerts`;
 
 function getCategoryForModule(mod) {
@@ -177,19 +177,13 @@ async function initFirebaseAlertSync() {
                     updateKPIs();
                     return;
                 }
-                if (!snap.empty) {
-                    const cloudRules = [];
-                    snap.forEach(d => {
-                        const r = d.data();
-                        if (r && r.id && r.trigger_event) cloudRules.push(r);
-                    });
-                    if (cloudRules.length > 0) {
-                        activeRules = cloudRules;
+                // Something changed in Firestore: reload this organization's rules (incl. templates) from the server
+                if (!snap.metadata.hasPendingWrites) {
+                    fetchAlertRules().then(() => {
                         renderAlertCards();
                         updateKPIs();
                         renderSimulationConsoleOptions();
-                        console.log(`🔥 [Firebase Firestore] Synced ${cloudRules.length} alert rules live from cloud.`);
-                    }
+                    }).catch(() => {});
                 }
             }, (err) => {
                 console.warn('Firestore alert_rules onSnapshot notice:', err.message);
@@ -201,7 +195,14 @@ async function initFirebaseAlertSync() {
                 if (isZeroed) {
                     breachCount = 0;
                 } else {
-                    breachCount = snap.size;
+                    // "Breaches Caught Today": only incidents recorded since local midnight
+                    const startOfDay = new Date();
+                    startOfDay.setHours(0, 0, 0, 0);
+                    breachCount = snap.docs.filter(d => {
+                        const t = d.data().timestamp;
+                        const ms = t && typeof t.toMillis === 'function' ? t.toMillis() : Date.parse(t);
+                        return ms >= startOfDay.getTime();
+                    }).length;
                 }
                 updateKPIs();
             }, (err) => {
@@ -535,35 +536,20 @@ function updateKPIs() {
  */
 async function toggleAlertRule(ruleId) {
     const rule = activeRules.find(r => r.id === ruleId);
-    const newStatus = (rule && rule.status === 'active') ? 'disabled' : 'active';
-    if (rule) rule.status = newStatus;
-    updateKPIs();
-
-    // 1. Direct Firestore update
-    if (db) {
-        try {
-            await updateDoc(doc(db, 'alert_rules', ruleId), {
-                status: newStatus,
-                updatedAt: serverTimestamp()
-            });
-        } catch (fsErr) {
-            console.warn('Firestore toggle notice:', fsErr?.message || fsErr);
+    try {
+        const res = await fetch(`${API_BASE}/rules/${encodeURIComponent(ruleId)}/toggle`, { method: 'PATCH' });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+        if (rule) {
+            rule.status = json.newStatus;
+            rule.isTemplate = false;
         }
+        updateKPIs();
+        renderAlertCards();
+        showToast(`Rule status updated to ${json.newStatus} (saved to Firebase)`);
+    } catch (err) {
+        showToast(`Rule status NOT changed: ${err.message}`);
     }
-
-    // 2. Notify backend in background if online
-    if (isBackendAvailable !== false) {
-        try {
-            const res = await fetch(`${API_BASE}/rules/${ruleId}/toggle`, {
-                method: 'PATCH'
-            });
-            if (res.ok) isBackendAvailable = true;
-        } catch (_) {
-            isBackendAvailable = false;
-        }
-    }
-
-    showToast(`Rule status updated to ${newStatus}`);
 }
 
 /**
@@ -677,20 +663,12 @@ async function executeSimulatedAlert() {
                     }
 
                     appendSimLog(`[STAGE 8: AUDIT] Immutable execution record logged: Run ID ${data.dispatchedEventId}`, 'pass');
-                    appendSimLog(`[STAGE 9: FIREBASE] Incident logged to Cloud Firestore 'alert_breaches'`, 'pass');
-                    showToast(`Alert fired! Dispatched to: ${data.recipientsNotified.join(', ')}`);
-
-                    if (db) {
-                        await addDoc(collection(db, 'alert_breaches'), {
-                            ruleId,
-                            ruleName: rule.name,
-                            module: rule.module,
-                            severity: rule.severity,
-                            evaluatedValue: val,
-                            timestamp: serverTimestamp(),
-                            source: 'simulation_console'
-                        }).catch(() => {});
+                    if (data.breachSaved) {
+                        appendSimLog(`[STAGE 9: FIREBASE] Incident logged to Cloud Firestore 'alert_breaches'`, 'pass');
+                    } else {
+                        appendSimLog(`[STAGE 9: FIREBASE] Incident NOT stored in Firestore: ${data.breachError || 'save not confirmed'}`, 'warn');
                     }
+                    showToast(`Alert fired! Dispatched to: ${data.recipientsNotified.join(', ')}`);
                 } else {
                     appendSimLog(`[STAGE 2: CONDITIONS] Condition NOT MET (${rule.metric}: ${val} does not breach ${rule.comparator} ${rule.thresholdValue})`, 'warn');
                     appendSimLog(`[STAGE 8: AUDIT] Safe status recorded. No alert dispatched.`, 'info');
@@ -725,20 +703,9 @@ async function executeSimulatedAlert() {
                 appendSimLog(`[STAGE 5: ESCALATION] Multi-tier escalation triggered -> ${rule.escalation.escalateTo}`, 'warn');
             }
             appendSimLog(`[STAGE 8: AUDIT] Immutable execution record logged: Run ID run-${Date.now().toString(36)}`, 'pass');
-            appendSimLog(`[STAGE 9: FIREBASE] Incident logged to Cloud Firestore 'alert_breaches'`, 'pass');
-            showToast(`Alert fired! Dispatched to: ${recipients}`);
-
-            if (db) {
-                addDoc(collection(db, 'alert_breaches'), {
-                    ruleId,
-                    ruleName: rule.name,
-                    module: rule.module,
-                    severity: rule.severity || 'warning',
-                    evaluatedValue: val,
-                    timestamp: serverTimestamp(),
-                    source: 'simulation_console'
-                }).catch(() => {});
-            }
+            // Server unreachable: evaluated in the browser only, nothing is stored
+            appendSimLog(`[STAGE 9: FIREBASE] Server offline: incident evaluated locally and NOT stored in Firestore`, 'warn');
+            showToast(`Alert fired (local evaluation only): ${recipients}`);
         } else {
             appendSimLog(`[STAGE 2: CONDITIONS] Condition NOT MET (${rule.metric}: ${val} does not breach ${rule.comparator} ${rule.thresholdValue})`, 'warn');
             appendSimLog(`[STAGE 8: AUDIT] Safe status recorded. No alert dispatched.`, 'info');
@@ -864,35 +831,20 @@ async function submitNewAlertRule() {
     renderAlertCards();
     updateKPIs();
     renderSimulationConsoleOptions();
-    showToast(`Rule '${name}' registered & synced to Firebase!`);
 
-    // 2. Direct write to Cloud Firestore via Firebase Client SDK
-    if (db) {
-        try {
-            await setDoc(doc(db, 'alert_rules', id), {
-                ...newRule,
-                createdAt: serverTimestamp()
-            }, { merge: true });
-            console.log(`🔥 [Firebase Firestore] Stored rule '${name}' (${id}) live in cloud.`);
-        } catch (fsErr) {
-            console.warn('Direct Firestore write notice:', fsErr?.message || fsErr);
-        }
-    }
-
-    // 3. In background, attempt backend sync if server is online
-    if (isBackendAvailable !== false) {
-        try {
-            const res = await fetch(`${API_BASE}/rules`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newRule)
-            });
-            if (res.ok) {
-                isBackendAvailable = true;
-            }
-        } catch (_) {
-            isBackendAvailable = false;
-        }
+    // Saved by the server for this organization; only report success once Firebase confirmed it
+    try {
+        const res = await fetch(`${API_BASE}/rules`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newRule)
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+        isBackendAvailable = true;
+        showToast(`Rule '${name}' saved to Firebase and active.`);
+    } catch (err) {
+        showToast(`Rule '${name}' NOT saved to Firebase: ${err.message}`);
     }
 }
 

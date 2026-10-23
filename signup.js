@@ -20,9 +20,8 @@
  * @author Senior Frontend & Firebase Developer
  */
 
-import { auth, db, storage } from "./firebase-config.js";
-import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { auth, storage } from "./firebase-config.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
 // Stepper State
@@ -669,114 +668,51 @@ async function executeRegistrationAndOrganizationSetup() {
     const cin = cinInput.value.trim().toUpperCase();
     const gstin = gstinInput.value.trim().toUpperCase();
 
-    // Generate unique tenant organization ID (e.g. org_kylrx)
-    const orgSlug = (displayName || legalName || 'kylrx').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-    const orgId = `org_${orgSlug}`;
-
     try {
         console.log(`🚀 Starting Customer/CEO Signup for ${officialEmail}...`);
 
-        // Step 1: Create user in Firebase Authentication
-        const userCredential = await createUserWithEmailAndPassword(auth, officialEmail, password);
-        const user = userCredential.user;
-        console.log(`✅ Auth user created: ${user.uid} (${officialEmail})`);
+        // Steps 1-4: The server creates the Auth user, Super Admin profile (/users/{uid}),
+        // organization (21 attributes) and EMP0001 counter with the Admin SDK, because
+        // Firestore rules (correctly) forbid clients from granting themselves super_admin.
+        const apiBase = window.API_BASE || window.location.origin;
+        const response = await fetch(`${apiBase}/api/auth/register-organization`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fullName,
+                email: officialEmail,
+                password,
+                organization: {
+                    legalName, displayName, organizationType: orgType, industry, website,
+                    officialPhone: phone, logoUrl, country, state, city, pinCode,
+                    registeredAddress: regAddress, corporateAddress: corpAddress,
+                    timezone: timeZone, currency, financialYearStart: fyStart,
+                    pan, tan, cinOrLlpin: cin, gstin
+                }
+            })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.success) {
+            // Error handlers may return `error` as a string or as { message }
+            const detail = typeof result.error === 'string' ? result.error : (result.error?.message || result.message);
+            const apiError = new Error(response.status === 404
+                ? 'Signup service is unavailable. Please restart the Kylrx server (npm start) and try again.'
+                : (detail || `Registration failed (HTTP ${response.status})`));
+            apiError.code = result.code;
+            throw apiError;
+        }
+        const orgId = result.orgId;
+        console.log(`✅ Organization ${orgId} and Super Admin ${result.uid} provisioned`);
 
-        // Step 2: Write Super Admin master profile in Firestore (/users/{uid})
-        // Triggering functions/index.js onUserDocCreated will also assign custom claim { role: 'super_admin' }
-        await setDoc(doc(db, 'users', user.uid), {
-            uid: user.uid,
-            name: fullName,
-            displayName: fullName,
-            email: officialEmail,
-            company: displayName || legalName,
-            role: 'super_admin',
-            superAdmin: true,
-            orgId: orgId,
-            departmentId: 'executive',
-            department: 'Executive Leadership',
-            designation: 'CEO & Founder',
-            status: 'active',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-        console.log(`✅ Super Admin user document saved in Firestore at users/${user.uid}`);
+        // Sign in so the session carries the new super_admin custom claims
+        await signInWithEmailAndPassword(auth, officialEmail, password);
+        console.log(`✅ Signed in as ${officialEmail}`);
 
-        // Step 3: Write Organization document with all 21 attributes at organizations/{orgId}
-        const organizationRecord = {
-            // Exact 21 attributes matching PRD and Templates.xlsx
-            Legal_Name: legalName,
-            Display_Name: displayName,
-            Organization_Type: orgType,
-            Industry: industry,
-            Website: website,
-            Official_Email: officialEmail,
-            Official_Phone: phone,
-            Country: country,
-            State: state,
-            City: city,
-            PIN_Code: pinCode,
-            Registered_Address: regAddress,
-            Corporate_Address: corpAddress,
-            Time_Zone: timeZone,
-            Currency: currency,
-            Financial_Year_Start: fyStart,
-            PAN: pan,
-            TAN: tan,
-            CIN_or_LLPIN: cin,
-            GSTIN: gstin,
-            Logo_URL: logoUrl,
+        // Step 5: Start a fresh session - drop everything left over from any previous
+        // user/org (tokens, cached widgets, demo data) before writing the new session
+        localStorage.clear();
+        sessionStorage.clear();
 
-            // Normalized camelCase mirrors for client interoperability
-            legalName: legalName,
-            displayName: displayName,
-            organizationType: orgType,
-            industry: industry,
-            website: website,
-            officialEmail: officialEmail,
-            officialPhone: phone,
-            country: country,
-            state: state,
-            city: city,
-            pinCode: pinCode,
-            registeredAddress: regAddress,
-            corporateAddress: corpAddress,
-            timezone: timeZone,
-            currency: currency,
-            financialYearStart: fyStart,
-            pan: pan,
-            tan: tan,
-            cinOrLlpin: cin,
-            gstin: gstin,
-            logoUrl: logoUrl,
-
-            // PRD Governance & Setup State
-            orgId: orgId,
-            orgConfigured: true, // Organization setup completed during registration!
-            initialEmployeeIdProvisioned: true,
-            createdBy: user.uid,
-            creatorEmail: officialEmail,
-            createdAt: serverTimestamp(),
-            configuredAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        };
-
-        await setDoc(doc(db, 'organizations', orgId), organizationRecord, { merge: true });
-        console.log(`🏢 Organization ${orgId} saved with 21 attributes and orgConfigured: true`);
-
-        // Step 4: Initialize continuous sequential Employee ID counter in Firestore (EMP0001)
-        await setDoc(doc(db, 'organizations', orgId, 'counters', 'employees'), {
-            currentSequence: 0,
-            prefix: 'EMP',
-            padLength: 4,
-            nextIdPreview: 'EMP0001',
-            initialProvisioned: true,
-            orgId: orgId,
-            initializedAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        }, { merge: true });
-        console.log(`🔢 Atomic Employee ID sequence initialized at organizations/${orgId}/counters/employees (EMP0001)`);
-
-        // Step 5: Update LocalStorage session tokens for immediate dashboard entry
         localStorage.setItem('hr_logged_in', 'true');
         localStorage.setItem('userRole', 'super_admin');
         localStorage.setItem('user_role', 'super_admin');
@@ -788,8 +724,9 @@ async function executeRegistrationAndOrganizationSetup() {
         localStorage.setItem('companyName', displayName || legalName);
 
         // Step 6: Confirmation dialog & redirect directly to the main Super Admin Central Dashboard
+        // replace() so the Back button can't return to the filled-in signup form
         window.customAlertCallback = () => {
-            window.location.href = 'admin-central-dashboard.html';
+            window.location.replace('admin-central-dashboard.html');
         };
 
         if (window.showAlert) {
@@ -801,7 +738,7 @@ async function executeRegistrationAndOrganizationSetup() {
         }
 
         setTimeout(() => {
-            window.location.href = 'admin-central-dashboard.html';
+            window.location.replace('admin-central-dashboard.html');
         }, 2200);
 
     } catch (err) {

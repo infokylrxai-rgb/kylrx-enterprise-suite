@@ -505,8 +505,8 @@
     </div>
 
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { collection, query, getDocs, where, addDoc, serverTimestamp, orderBy, limit, onSnapshot, writeBatch, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, onSnapshot, registerListener } from "./firebase-config.js";
+        import { collection, query, getDocs, where, addDoc, serverTimestamp, orderBy, limit, writeBatch, doc, deleteDoc, updateDoc } from "./firebase-config.js";
         
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
@@ -1371,8 +1371,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

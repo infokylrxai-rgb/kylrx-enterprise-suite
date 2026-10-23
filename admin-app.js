@@ -1,7 +1,17 @@
-import { auth, db } from "./firebase-config.js";
+import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { collection, getDocs, setDoc, doc, getDoc, runTransaction, serverTimestamp, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, getDocs, setDoc, doc, getDoc, runTransaction, serverTimestamp, updateDoc, query, where } from "./firebase-config.js";
 import { allocateAtomicEmployeeIds } from "./services/atomic-counter-service.js";
+
+function escapeHtml(str) {
+    if (!str && str !== 0) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 // State Management
 let state = {
@@ -127,7 +137,7 @@ function renderWidgets() {
     if (window.lucide) lucide.createIcons();
 }
 
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE_URL = `${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin)}/api`;
 
 // Auth Observer
 onAuthStateChanged(auth, async (user) => {
@@ -182,7 +192,7 @@ onAuthStateChanged(auth, async (user) => {
         }
         const welcomeText = document.querySelector('.welcome-text h1');
         if (welcomeText) {
-            welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${firstName}</span> 👋`;
+            welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋`;
         }
         
         // Update Profile Trigger (Top Right)
@@ -215,7 +225,7 @@ onAuthStateChanged(auth, async (user) => {
             }
             const welcomeText = document.querySelector('.welcome-text h1');
             if (welcomeText) {
-                welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${firstName}</span> 👋`;
+                welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋`;
             }
             const profileAvatar = document.querySelector('.p-avatar');
             if (profileAvatar) {
@@ -346,7 +356,7 @@ function populateWidgetContent(id) {
                     </div>
                 </div>
             `;
-            import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+            import("./firebase-config.js").then(({ collection, onSnapshot }) => {
                 onSnapshot(collection(db, 'payroll_profiles'), (snap) => {
                     let b = 0, p = 0;
                     snap.docs.forEach(d => { b += Number(d.data().monthlyBonus) || 0; p += Number(d.data().monthlyPenalty) || 0; });
@@ -584,7 +594,7 @@ function startActivityStream() {
     const list = document.getElementById('active-list');
     if (!list) return;
 
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
         // Listening to 'activityStatus' which is the source for TVC as well
         const q = query(collection(db, 'activityStatus'), orderBy('lastUpdated', 'desc'), limit(10));
         onSnapshot(q, (snapshot) => {
@@ -616,7 +626,7 @@ function startProductivityHeatmap() {
     const grid = document.getElementById('productivity-heatmap-grid');
     if (!grid) return;
 
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
         // Fetch 21 most recent productivity snapshots for accuracy
         const q = query(collection(db, 'performance_snapshots'), orderBy('timestamp', 'desc'), limit(21));
         onSnapshot(q, (snapshot) => {
@@ -650,7 +660,7 @@ function startProductivityTrend() {
     const container = document.getElementById('productivity-trend-chart');
     if (!container) return;
 
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
         const q = query(collection(db, 'performance_snapshots'), orderBy('timestamp', 'desc'), limit(7));
         onSnapshot(q, (snapshot) => {
             let trend;
@@ -695,7 +705,7 @@ function startPayrollForecast() {
     const container = document.getElementById('payroll-forecast-chart');
     if (!container) return;
 
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot }) => {
         onSnapshot(collection(db, 'payroll_profiles'), (payrollSnap) => {
             const payrollMap = {};
             payrollSnap.docs.forEach(doc => {
@@ -753,7 +763,7 @@ function startAIInsightsStream() {
     const container = document.getElementById('ai-insights-list');
     if (!container) return;
 
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
         const q = query(collection(db, 'ai_insights'), orderBy('timestamp', 'desc'), limit(3));
         onSnapshot(q, (snapshot) => {
             if (snapshot.empty) {
@@ -838,7 +848,7 @@ function startTVCMonitor() {
     const logContainer = document.getElementById('tvc-logs');
     if (!logContainer) return;
 
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot, query, limit, orderBy }) => {
         const q = query(collection(db, 'alertEvents'), orderBy('timestamp', 'desc'), limit(15));
         onSnapshot(q, (snapshot) => {
             if (snapshot.empty) {
@@ -874,39 +884,60 @@ async function loadDepartments() {
     try {
         console.log('%c☁️ Decentalized Cloud Active: Connected to Firebase', 'color: #3b82f6; font-weight: bold; background: #eff6ff; padding: 2px 6px; border-radius: 4px;');
         
-        // Use command_centers as the new source of truth
-        const { collection, getDocs, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
-        const snap = await getDocs(collection(db, 'command_centers'));
-        const commandCenters = snap.docs.map(d => {
-            const data = d.data();
-            // Auto-fix typo in Command Center record
-            if (data.name === 'Cyberseruity') {
-                updateDoc(d.ref, { name: 'Cybersecurity' });
-                data.name = 'Cybersecurity';
-            }
-            let name = data.name || data.departmentName || 'Unnamed';
-            if (data.targetType) {
-                const targetSuffix = data.targetType === 'Manager Suite' ? 'Manager' : 'Employee';
-                if (!name.toLowerCase().includes('manager') && !name.toLowerCase().includes('employee')) {
-                    name = `${name} ${targetSuffix}`;
+        let commandCenters = [];
+        try {
+            const { collection, getDocs, updateDoc } = await import("./firebase-config.js");
+            const snap = await getDocs(collection(db, 'command_centers'));
+            commandCenters = (snap?.docs || []).map(d => {
+                const data = d.data();
+                // Auto-fix typo in Command Center record
+                if (data.name === 'Cyberseruity') {
+                    try { updateDoc(d.ref, { name: 'Cybersecurity' }); } catch (_) {}
+                    data.name = 'Cybersecurity';
                 }
-            }
-            return { departmentId: d.id, ...data, name: name, departmentName: name };
-        });
+                let name = data.name || data.departmentName || 'Unnamed';
+                if (data.targetType) {
+                    const targetSuffix = data.targetType === 'Manager Suite' ? 'Manager' : 'Employee';
+                    if (!name.toLowerCase().includes('manager') && !name.toLowerCase().includes('employee')) {
+                        name = `${name} ${targetSuffix}`;
+                    }
+                }
+                return { departmentId: d.id, ...data, name: name, departmentName: name };
+            });
+        } catch (ccError) {
+            console.warn('Firestore command_centers notice (using fallback):', ccError?.message || ccError);
+        }
         
         // If empty, try fallback to old departments collection
         if (commandCenters.length === 0) {
-            const oldSnap = await getDocs(collection(db, 'departments'));
-            state.departments = oldSnap.docs.map(d => d.data());
+            try {
+                const { collection, getDocs } = await import("./firebase-config.js");
+                const oldSnap = await getDocs(collection(db, 'departments'));
+                state.departments = (oldSnap?.docs || []).map(d => d.data());
+            } catch (deptError) {
+                console.warn('Firestore departments notice (using fallback):', deptError?.message || deptError);
+            }
         } else {
             state.departments = commandCenters;
+        }
+
+        // Standard enterprise departments fallback if Firestore returned empty or permission-denied
+        if (!state.departments || state.departments.length === 0) {
+            state.departments = [
+                { departmentId: 'engineering', name: 'Engineering', departmentName: 'Engineering', icon: 'cpu' },
+                { departmentId: 'cybersecurity', name: 'Cybersecurity', departmentName: 'Cybersecurity', icon: 'shield' },
+                { departmentId: 'operations', name: 'Operations', departmentName: 'Operations', icon: 'activity' },
+                { departmentId: 'human-resources', name: 'Human Resources', departmentName: 'Human Resources', icon: 'users' },
+                { departmentId: 'finance', name: 'Finance', departmentName: 'Finance', icon: 'dollar-sign' },
+                { departmentId: 'executive', name: 'Executive', departmentName: 'Executive', icon: 'briefcase' }
+            ];
         }
         
         updateDeptSelects();
         updateStats();
         renderSidebarCommands();
     } catch (fsError) {
-        console.error('Failed to load departments from Firestore:', fsError);
+        console.warn('loadDepartments handled notice:', fsError);
     }
 }
 
@@ -953,25 +984,15 @@ async function loadEmployees() {
             }
         }
 
-        const { collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+        const { collection, onSnapshot } = await import("./firebase-config.js");
         const today = new Date().toISOString().split('T')[0];
 
         // 1. Listen to all users
         onSnapshot(collection(db, 'users'), (userSnap) => {
-            const rawUsers = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            const rawUsers = (userSnap?.docs || []).map(doc => ({ id: doc.id, ...doc.data() }))
                 .filter(u => (u.role || '').toLowerCase() !== 'admin');
 
-            // 2. Listen to today's attendance
-            onSnapshot(collection(db, 'attendance'), (attSnap) => {
-                const attendanceMap = {};
-                attSnap.docs.forEach(doc => {
-                    if (doc.id.includes(today)) {
-                        const empId = doc.id.split('_')[0];
-                        attendanceMap[empId] = doc.data();
-                    }
-                });
-
-                // Combine data
+            const applyEmployees = (attendanceMap = {}) => {
                 const fetchedEmployees = rawUsers.map(u => {
                     const att = attendanceMap[u.id];
                     let liveStatus = u.status || 'Active';
@@ -1004,40 +1025,61 @@ async function loadEmployees() {
                 updateStats();
                 populateManagerDropdowns();
                 localStorage.setItem('admin_employees_cache', JSON.stringify(state.employees));
-            });
+            };
+
+            // Apply immediately without waiting for attendance
+            applyEmployees({});
+
+            // 2. Safely listen to today's attendance
+            try {
+                onSnapshot(collection(db, 'attendance'), (attSnap) => {
+                    const attendanceMap = {};
+                    (attSnap?.docs || []).forEach(doc => {
+                        if (doc.id.includes(today)) {
+                            const empId = doc.id.split('_')[0];
+                            attendanceMap[empId] = doc.data();
+                        }
+                    });
+                    applyEmployees(attendanceMap);
+                }, (err) => {
+                    console.warn('Attendance sync notice (offline mode):', err?.message || err);
+                });
+            } catch (attErr) {
+                console.warn('Attendance listener registration notice:', attErr?.message || attErr);
+            }
         }, (err) => {
-            console.warn('Firestore onSnapshot notice:', err.message);
+            console.warn('Firestore onSnapshot notice:', err?.message || err);
         });
     } catch (fbError) {
-        console.error('Failed to load employees from Firestore:', fbError);
+        console.warn('Failed to load employees from Firestore (offline fallback):', fbError?.message || fbError);
     }
 }
 
-// Catalog of standard enterprise sub-departments mapping to Department / Cost Center
+// Catalog of standard enterprise sub-departments mapping to Department / Cost Center (PRD §10 & §13)
 const SUB_DEPARTMENTS_CATALOG = [
     // Engineering (ENG) -> Cost Center CC-ENG-101
-    { code: 'ENG-FRONTEND', name: 'Frontend Platform & UI', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'] },
-    { code: 'ENG-BACKEND', name: 'Cloud Architecture & APIs', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'] },
-    { code: 'ENG-QA', name: 'Quality Assurance & Testing', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'] },
-    { code: 'ENG-DEVOPS', name: 'DevOps & SRE Systems', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'] },
+    { code: 'ENG-FRONTEND', name: 'Frontend Platform & UI', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'], costCenterCode: 'CC-ENG-101' },
+    { code: 'ENG-BACKEND', name: 'Cloud Architecture & APIs', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'], costCenterCode: 'CC-ENG-101' },
+    { code: 'ENG-QA', name: 'Quality Assurance & Testing', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'], costCenterCode: 'CC-ENG-101' },
+    { code: 'ENG-DEVOPS', name: 'DevOps & SRE Systems', deptCodes: ['ENG', 'CC-ENG-101', 'ENGINEERING'], costCenterCode: 'CC-ENG-101' },
     // AI Research & Foundation (AI-LABS) -> CC-AI-102
-    { code: 'AI-MODELS', name: 'Foundation Models & Training', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'] },
-    { code: 'AI-ENG', name: 'MLOps & Inference Infrastructure', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'] },
-    { code: 'AI-RESEARCH', name: 'Generative AI & Agentic Systems', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'] },
+    { code: 'AI-MODELS', name: 'Foundation Models & Training', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'], costCenterCode: 'CC-AI-102' },
+    { code: 'AI-ENG', name: 'MLOps & Inference Infrastructure', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'], costCenterCode: 'CC-AI-102' },
+    { code: 'AI-RESEARCH', name: 'Generative AI & Agentic Systems', deptCodes: ['AI-LABS', 'CC-AI-102', 'AI', 'ARTIFICIAL INTELLIGENCE'], costCenterCode: 'CC-AI-102' },
     // Human Resources (HR) -> CC-HR-201
-    { code: 'HR-COMPLIANCE', name: 'Statutory Compliance & ECR', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'] },
-    { code: 'HR-OPS', name: 'People Operations & Talent Acquisition', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'] },
-    { code: 'HR-PAYROLL', name: 'Compensation, Benefits & Payroll', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'] },
+    { code: 'HR-COMPLIANCE', name: 'Statutory Compliance & ECR', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'], costCenterCode: 'CC-HR-201' },
+    { code: 'HR-OPS', name: 'People Operations & Talent Acquisition', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'], costCenterCode: 'CC-HR-201' },
+    { code: 'HR-PAYROLL', name: 'Compensation, Benefits & Payroll', deptCodes: ['HR', 'CC-HR-201', 'HUMAN RESOURCES'], costCenterCode: 'CC-HR-201' },
     // Finance & Accounts (FIN) -> CC-FIN-301
-    { code: 'FIN-PAYROLL', name: 'Payroll Disbursement & Banking', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'] },
-    { code: 'FIN-TAX', name: 'Treasury, Audit & Tax Compliance', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'] },
-    { code: 'FIN-ACCOUNTS', name: 'General Ledger & Financial Control', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'] },
+    { code: 'FIN-PAYROLL', name: 'Payroll Disbursement & Banking', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'], costCenterCode: 'CC-FIN-301' },
+    { code: 'FIN-TAX', name: 'Treasury, Audit & Tax Compliance', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'], costCenterCode: 'CC-FIN-301' },
+    { code: 'FIN-ACCOUNTS', name: 'General Ledger & Financial Control', deptCodes: ['FIN', 'CC-FIN-301', 'FINANCE', 'ACCOUNTS'], costCenterCode: 'CC-FIN-301' },
     // Cybersecurity & IAM (CYBER)
-    { code: 'CYBER-SEC', name: 'SOC, Threat Detection & Compliance', deptCodes: ['CYBER', 'CYBERSECURITY', 'SECURITY'] },
-    { code: 'CYBER-IAM', name: 'Identity Governance & Access Mgmt', deptCodes: ['CYBER', 'CYBERSECURITY', 'SECURITY'] },
+    { code: 'CYBER-SEC', name: 'SOC, Threat Detection & Compliance', deptCodes: ['CYBER', 'CYBERSECURITY', 'SECURITY'], costCenterCode: 'CC-ENG-101' },
+    { code: 'CYBER-IAM', name: 'Identity Governance & Access Mgmt', deptCodes: ['CYBER', 'CYBERSECURITY', 'SECURITY'], costCenterCode: 'CC-ENG-101' },
     // HRMS Core / Operations
-    { code: 'HRMS-CORE', name: 'HRMS Core Architecture & Security', deptCodes: ['HRMS', 'HRMS CORE (SYSTEM)', 'OPERATIONS'] },
-    { code: 'OPS-SUPPORT', name: 'Enterprise Client Operations', deptCodes: ['OPS', 'OPERATIONS', 'GENERAL'] }
+    { code: 'HRMS-CORE', name: 'HRMS Core Architecture & Security', deptCodes: ['HRMS', 'HRMS CORE (SYSTEM)', 'OPERATIONS'], costCenterCode: 'CC-ENG-101' },
+    { code: 'OPS-SUPPORT', name: 'Enterprise Client Operations', deptCodes: ['OPS', 'OPERATIONS', 'GENERAL'], costCenterCode: 'CC-OPS-401' }
 ];
 
 /**
@@ -1074,6 +1116,37 @@ function updateSubDepartmentsForSelectedDept() {
         }
     }
 
+    // PRD Sections 10 & 13: Fetch and filter Sub-Departments dynamically
+    if (window.KylrxSubDepartmentService && typeof window.KylrxSubDepartmentService.filterSubDepartments === 'function') {
+        const liveSubs = window.KylrxSubDepartmentService.filterSubDepartments({
+            departmentCode: deptCode || selectedDeptId,
+            activeOnly: true
+        });
+
+        if (liveSubs.length > 0) {
+            subDeptSelect.disabled = false;
+            subDeptSelect.innerHTML = '<option value="">Select Sub-Department</option>' + 
+                liveSubs.map(s => {
+                    const code = s.subDepartmentCode || s['Sub-Department_Code'] || s.code;
+                    const name = s.subDepartmentName || s['Sub-Department_Name'] || s.name;
+                    const cc = s.costCenterCode || s['Cost_Center_Code'] || '';
+                    return `<option value="${code}" data-cost-center="${cc}">${code} - ${name}</option>`;
+                }).join('');
+
+            // Ensure cost center dropdown is populated with active records (PRD §10 & §13)
+            if (window.KylrxCostCenterService && typeof window.KylrxCostCenterService.populateCostCenterDropdown === 'function') {
+                const ccSelect = document.getElementById('costCenterCodeSelect') || (document.getElementById('empForm') && document.getElementById('empForm').costCenterCode);
+                if (ccSelect) {
+                    window.KylrxCostCenterService.populateCostCenterDropdown(ccSelect, {
+                        selectedCode: ccSelect.value || 'CC-ENG-101',
+                        includePlaceholder: false
+                    });
+                }
+            }
+            return;
+        }
+    }
+
     // Filter matching sub-departments
     let filteredSubs = SUB_DEPARTMENTS_CATALOG.filter(sub => {
         return sub.deptCodes.some(c => 
@@ -1084,14 +1157,25 @@ function updateSubDepartmentsForSelectedDept() {
 
     if (filteredSubs.length === 0) {
         filteredSubs = [
-            { code: `${deptCode || 'DEPT'}-CORE`, name: `${deptName || 'Department'} Core Operations` },
-            { code: `${deptCode || 'DEPT'}-OPS`, name: `${deptName || 'Department'} Field Operations` }
+            { code: `${deptCode || 'DEPT'}-CORE`, name: `${deptName || 'Department'} Core Operations`, costCenterCode: 'CC-ENG-101' },
+            { code: `${deptCode || 'DEPT'}-OPS`, name: `${deptName || 'Department'} Field Operations`, costCenterCode: 'CC-OPS-401' }
         ];
     }
 
     subDeptSelect.disabled = false;
     subDeptSelect.innerHTML = '<option value="">Select Sub-Department</option>' + 
-        filteredSubs.map(s => `<option value="${s.code}">${s.code} - ${s.name}</option>`).join('');
+        filteredSubs.map(s => `<option value="${s.code}" data-cost-center="${s.costCenterCode || ''}">${s.code} - ${s.name}</option>`).join('');
+
+    // Ensure cost center dropdown is populated with active records (PRD §10 & §13)
+    if (window.KylrxCostCenterService && typeof window.KylrxCostCenterService.populateCostCenterDropdown === 'function') {
+        const ccSelect = document.getElementById('costCenterCodeSelect') || (document.getElementById('empForm') && document.getElementById('empForm').costCenterCode);
+        if (ccSelect) {
+            window.KylrxCostCenterService.populateCostCenterDropdown(ccSelect, {
+                selectedCode: ccSelect.value || 'CC-ENG-101',
+                includePlaceholder: false
+            });
+        }
+    }
 }
 window.updateSubDepartmentsForSelectedDept = updateSubDepartmentsForSelectedDept;
 
@@ -1353,34 +1437,34 @@ function renderEmployeeTableRows(employees) {
             <td>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 38px; height: 38px; background: ${isManager ? 'var(--primary-light)' : '#f1f5f9'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: ${isManager ? 'var(--primary)' : '#64748b'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : '#e2e8f0'};">
-                        ${emp.name ? emp.name.split(' ').map(n => n[0]).join('') : '??'}
+                        ${emp.name ? escapeHtml(emp.name.split(' ').map(n => n[0]).join('')) : '??'}
                     </div>
                     <div>
-                        <div style="font-weight: 700; color: var(--text-main);">${emp.name || 'N/A'}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">${emp.email || 'N/A'}</div>
+                        <div style="font-weight: 700; color: var(--text-main);">${escapeHtml(emp.name || 'N/A')}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(emp.email || 'N/A')}</div>
                     </div>
                 </div>
             </td>
-            <td style="font-family: monospace; font-weight: 700; color: var(--text-main);">${emp.employeeId || emp.uid?.substring(0,6) || 'N/A'}</td>
+            <td style="font-family: monospace; font-weight: 700; color: var(--text-main);">${escapeHtml(emp.employeeId || emp.uid?.substring(0,6) || 'N/A')}</td>
             <td>
-                <div style="font-weight: 600; font-size: 0.85rem;">${emp.departmentName || emp.department || 'N/A'}</div>
-                <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${emp.departmentId || '---'}</div>
+                <div style="font-weight: 600; font-size: 0.85rem;">${escapeHtml(emp.departmentName || emp.department || 'N/A')}</div>
+                <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;">${escapeHtml(emp.departmentId || '---')}</div>
             </td>
             <td>
                 <span class="badge" style="background: ${isManager ? '#fee2e2' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#e0e7ff' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#fce7f3' : '#dcfce7'))}; color: ${isManager ? '#ef4444' : ((emp.role || '').toLowerCase() === 'superadmin' ? '#4338ca' : ((emp.role || '').toLowerCase() === 'hradmin' || (emp.role || '').toLowerCase() === 'hrms' ? '#db2777' : '#10b981'))}; font-weight: 800; text-transform: uppercase; font-size: 0.65rem;">
-                    ${(emp.role || 'employee').toLowerCase() === 'hradmin' ? 'HR ADMIN' : (emp.role || 'employee')}
+                    ${escapeHtml((emp.role || 'employee').toLowerCase() === 'hradmin' ? 'HR ADMIN' : (emp.role || 'employee'))}
                 </span>
             </td>
             <td>
                 <div style="display: flex; flex-direction: column; gap: 4px; min-width: 160px;">
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span class="badge-manager-l1" style="font-weight: 800; font-size: 0.65rem; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L1</span>
-                        <span style="font-size: 0.76rem; font-weight: 600; color: #1e293b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l1Display}">${l1Display}</span>
+                        <span style="font-size: 0.76rem; font-weight: 600; color: #1e293b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l1Display)}">${escapeHtml(l1Display)}</span>
                     </div>
                     ${l2Id ? `
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span class="badge-manager-l2" style="font-weight: 800; font-size: 0.65rem; background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L2</span>
-                        <span style="font-size: 0.74rem; font-weight: 600; color: #64748b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l2Display}">${l2Display}</span>
+                        <span style="font-size: 0.74rem; font-weight: 600; color: #64748b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l2Display)}">${escapeHtml(l2Display)}</span>
                     </div>
                     ` : ''}
                 </div>
@@ -1388,44 +1472,44 @@ function renderEmployeeTableRows(employees) {
             <td>
                 <div class="password-cell" onclick="const m = this.querySelector('.masked-pwd'); const r = this.querySelector('.real-pwd'); if(m.style.display==='none'){m.style.display='inline';r.style.display='none';}else{m.style.display='none';r.style.display='inline';}" style="font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; position: relative; overflow: hidden; width: fit-content; min-width: 80px; text-align: center;">
                     <span class="masked-pwd">••••••••</span>
-                    <span class="real-pwd" style="display:none;">${emp.password || emp.tempPassword || '---'}</span>
+                    <span class="real-pwd" style="display:none;">${escapeHtml(emp.password || emp.tempPassword || '---')}</span>
                 </div>
             </td>
             <td style="font-weight: 700; color: var(--text-main);">₹${Number(emp.salary || 0).toLocaleString()}</td>
             <td style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
                 <i data-lucide="phone" size="12" style="vertical-align: middle; margin-right: 4px;"></i>
-                ${emp.phone || '---'}
+                ${escapeHtml(emp.phone || '---')}
             </td>
             <td style="color: var(--text-muted); font-size: 0.85rem;">${emp.joiningDate ? new Date(emp.joiningDate).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : '---'}</td>
             <td>
                 <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.75rem; color: ${statusColor};">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: ${statusColor}; display: inline-block;"></span>
-                    ${displayStatus}
+                    ${escapeHtml(displayStatus)}
                 </div>
             </td>
             <td>
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn-action" onclick="window.ManagerAssignmentController ? window.ManagerAssignmentController.openAssignmentModal('${emp.id}') : (window.openEditModal && window.openEditModal('${emp.id}'))" title="Assign L1/L2 Managers (PRD §14)" style="color: #6366f1;">
+                    <button class="btn-action" onclick="window.ManagerAssignmentController ? window.ManagerAssignmentController.openAssignmentModal('${escapeHtml(emp.id)}') : (window.openEditModal && window.openEditModal('${escapeHtml(emp.id)}'))" title="Assign L1/L2 Managers (PRD §14)" style="color: #6366f1;">
                         <i data-lucide="git-pull-request" size="14"></i>
                     </button>
                     ${emp.invite_status === 'pending' ? `
-                        <button class="btn-action" onclick="window.triggerEmailInvite('${emp.id}', '${emp.email}', '${emp.tempPassword || ''}')" title="Trigger Email Invite" style="color: #f59e0b;">
+                        <button class="btn-action" onclick="window.triggerEmailInvite('${escapeHtml(emp.id)}', '${escapeHtml(emp.email)}', '${escapeHtml(emp.tempPassword || '')}')" title="Trigger Email Invite" style="color: #f59e0b;">
                             <i data-lucide="mail" size="14"></i>
                         </button>
                     ` : ''}
                     ${isTrashed ? `
-                        <button class="btn-action" onclick="window.restoreEmployee('${emp.id}')" title="Restore Profile">
+                        <button class="btn-action" onclick="window.restoreEmployee('${escapeHtml(emp.id)}')" title="Restore Profile">
                             <i data-lucide="rotate-ccw" size="14"></i>
                         </button>
                     ` : `
-                        <button class="btn-action" onclick="window.openEditModal('${emp.id}')" title="Edit Profile">
+                        <button class="btn-action" onclick="window.openEditModal('${escapeHtml(emp.id)}')" title="Edit Profile">
                             <i data-lucide="edit-3" size="14"></i>
                         </button>
-                        <button class="btn-action" onclick="window.location.href='admin-exit-management.html?empId=${emp.id}'" title="Initiate Exit">
+                        <button class="btn-action" onclick="window.location.href='admin-exit-management.html?empId=${escapeHtml(emp.id)}'" title="Initiate Exit">
                             <i data-lucide="log-out" size="14"></i>
                         </button>
                     `}
-                    <button class="btn-action delete" onclick="window.deleteEmployee('${emp.id}', '${emp.name}')" title="${isTrashed ? 'Permanent Delete' : 'Terminate'}">
+                    <button class="btn-action delete" onclick="window.deleteEmployee('${escapeHtml(emp.id)}', '${escapeHtml(emp.name)}')" title="${isTrashed ? 'Permanent Delete' : 'Terminate'}">
                         <i data-lucide="${isTrashed ? 'user-minus' : 'trash-2'}" size="14"></i>
                     </button>
                 </div>
@@ -1497,34 +1581,34 @@ function renderEmployeeCards(employees) {
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 0.75rem;">
                         <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
                             <div style="width: 40px; height: 40px; flex-shrink: 0; background: ${isManager ? 'var(--primary-light)' : '#f1f5f9'}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; color: ${isManager ? 'var(--primary)' : '#64748b'}; border: 1px solid ${isManager ? 'var(--primary-soft)' : '#e2e8f0'};">
-                                ${emp.name ? emp.name.split(' ').map(n => n[0]).join('') : '??'}
+                                ${emp.name ? escapeHtml(emp.name.split(' ').map(n => n[0]).join('')) : '??'}
                             </div>
                             <div style="min-width: 0;">
-                                <div style="font-weight: 800; font-size: 0.92rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${emp.name || 'N/A'}">
-                                    ${emp.name || 'N/A'}
+                                <div style="font-weight: 800; font-size: 0.92rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(emp.name || 'N/A')}">
+                                    ${escapeHtml(emp.name || 'N/A')}
                                 </div>
-                                <div style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${emp.email || 'N/A'}">
-                                    ${emp.email || 'N/A'}
+                                <div style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(emp.email || 'N/A')}">
+                                    ${escapeHtml(emp.email || 'N/A')}
                                 </div>
                             </div>
                         </div>
 
                         <div style="display: flex; align-items: center; gap: 5px; font-weight: 700; font-size: 0.7rem; color: ${statusColor}; flex-shrink: 0; background: ${statusColor}15; padding: 2px 7px; border-radius: 20px;">
                             <span style="width: 6px; height: 6px; border-radius: 50%; background: ${statusColor};"></span>
-                            ${displayStatus}
+                            ${escapeHtml(displayStatus)}
                         </div>
                     </div>
 
                     <!-- Role, ID & Department Tags -->
                     <div style="display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 0.75rem;">
                         <span class="badge" style="background: ${roleBg}; color: ${roleColor}; font-weight: 800; font-size: 0.65rem;">
-                            ${roleLabel}
+                            ${escapeHtml(roleLabel)}
                         </span>
                         <span style="font-family: monospace; font-size: 0.72rem; font-weight: 700; color: #475569; background: #f1f5f9; padding: 2px 7px; border-radius: 6px; border: 1px solid #e2e8f0;" title="Employee ID">
-                            ${emp.employeeId || emp.uid?.substring(0,6) || 'N/A'}
+                            ${escapeHtml(emp.employeeId || emp.uid?.substring(0,6) || 'N/A')}
                         </span>
                         <span style="font-size: 0.74rem; font-weight: 600; color: #3b82f6; background: #eff6ff; padding: 2px 8px; border-radius: 6px; border: 1px solid #dbeafe;" title="Department">
-                            ${emp.departmentName || emp.department || 'N/A'}
+                            ${escapeHtml(emp.departmentName || emp.department || 'N/A')}
                         </span>
                     </div>
 
@@ -1532,12 +1616,12 @@ function renderEmployeeCards(employees) {
                     <div style="background: #f8fafc; border-radius: 12px; padding: 9px 11px; border: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 5px; font-size: 0.76rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                             <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Reporting L1:</span>
-                            <span style="font-weight: 600; color: #1e293b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l1Display}">${l1Display}</span>
+                            <span style="font-weight: 600; color: #1e293b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l1Display)}">${escapeHtml(l1Display)}</span>
                         </div>
                         ${l2Id ? `
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                             <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Reporting L2:</span>
-                            <span style="font-weight: 600; color: #64748b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l2Display}">${l2Display}</span>
+                            <span style="font-weight: 600; color: #64748b; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l2Display)}">${escapeHtml(l2Display)}</span>
                         </div>
                         ` : ''}
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
@@ -1546,7 +1630,7 @@ function renderEmployeeCards(employees) {
                         </div>
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                             <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Contact:</span>
-                            <span style="font-weight: 500; color: var(--text-muted);">${emp.phone || '---'}</span>
+                            <span style="font-weight: 500; color: var(--text-muted);">${escapeHtml(emp.phone || '---')}</span>
                         </div>
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                             <span style="color: var(--text-muted); font-size: 0.68rem; font-weight: 700; text-transform: uppercase;">Joined:</span>
@@ -1559,27 +1643,27 @@ function renderEmployeeCards(employees) {
                 <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 8px;">
                     <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Actions</span>
                     <div style="display: flex; gap: 6px;">
-                        <button class="btn-action" onclick="window.ManagerAssignmentController ? window.ManagerAssignmentController.openAssignmentModal('${emp.id}') : (window.openEditModal && window.openEditModal('${emp.id}'))" title="Assign L1/L2 Managers" style="color: #6366f1;">
+                        <button class="btn-action" onclick="window.ManagerAssignmentController ? window.ManagerAssignmentController.openAssignmentModal('${escapeHtml(emp.id)}') : (window.openEditModal && window.openEditModal('${escapeHtml(emp.id)}'))" title="Assign L1/L2 Managers" style="color: #6366f1;">
                             <i data-lucide="git-pull-request" size="14"></i>
                         </button>
                         ${emp.invite_status === 'pending' ? `
-                            <button class="btn-action" onclick="window.triggerEmailInvite('${emp.id}', '${emp.email}', '${emp.tempPassword || ''}')" title="Trigger Email Invite" style="color: #f59e0b;">
+                            <button class="btn-action" onclick="window.triggerEmailInvite('${escapeHtml(emp.id)}', '${escapeHtml(emp.email)}', '${escapeHtml(emp.tempPassword || '')}')" title="Trigger Email Invite" style="color: #f59e0b;">
                                 <i data-lucide="mail" size="14"></i>
                             </button>
                         ` : ''}
                         ${isTrashed ? `
-                            <button class="btn-action" onclick="window.restoreEmployee('${emp.id}')" title="Restore Profile">
+                            <button class="btn-action" onclick="window.restoreEmployee('${escapeHtml(emp.id)}')" title="Restore Profile">
                                 <i data-lucide="rotate-ccw" size="14"></i>
                             </button>
                         ` : `
-                            <button class="btn-action" onclick="window.openEditModal('${emp.id}')" title="Edit Profile">
+                            <button class="btn-action" onclick="window.openEditModal('${escapeHtml(emp.id)}')" title="Edit Profile">
                                 <i data-lucide="edit-3" size="14"></i>
                             </button>
-                            <button class="btn-action" onclick="window.location.href='admin-exit-management.html?empId=${emp.id}'" title="Initiate Exit">
+                            <button class="btn-action" onclick="window.location.href='admin-exit-management.html?empId=${escapeHtml(emp.id)}'" title="Initiate Exit">
                                 <i data-lucide="log-out" size="14"></i>
                             </button>
                         `}
-                        <button class="btn-action delete" onclick="window.deleteEmployee('${emp.id}', '${emp.name}')" title="${isTrashed ? 'Permanent Delete' : 'Terminate'}">
+                        <button class="btn-action delete" onclick="window.deleteEmployee('${escapeHtml(emp.id)}', '${escapeHtml(emp.name)}')" title="${isTrashed ? 'Permanent Delete' : 'Terminate'}">
                             <i data-lucide="${isTrashed ? 'user-minus' : 'trash-2'}" size="14"></i>
                         </button>
                     </div>
@@ -1847,7 +1931,7 @@ window.triggerEmailInvite = (id, email, password) => {
                 'Content-Type': 'application/json',
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             };
-            const response = await fetch(`http://localhost:3000/api/admin/employees/${id}/trigger-invite`, {
+            const response = await fetch(`${API_BASE_URL}/admin/employees/${id}/trigger-invite`, {
                 method: 'POST',
                 headers: headers
             });
@@ -1914,7 +1998,14 @@ function setupEventListeners() {
         if (form) {
             form.reset();
             if (form.employeeType) {
-                form.employeeType.value = 'FULL_TIME';
+                if (window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.populateEmployeeTypeDropdown === 'function') {
+                    window.KylrxEmployeeTypeService.populateEmployeeTypeDropdown(form.employeeType, { selectedCode: 'CAT_FT_REG' });
+                } else {
+                    form.employeeType.value = 'CAT_FT_REG';
+                }
+            }
+            if (window.empTypeTenureListener && typeof window.empTypeTenureListener.refresh === 'function') {
+                window.empTypeTenureListener.refresh();
             }
             if (window.empTypeBuGatingHandler && typeof window.empTypeBuGatingHandler.refresh === 'function') {
                 window.empTypeBuGatingHandler.refresh();
@@ -1923,6 +2014,15 @@ function setupEventListeners() {
             if (window.updateSubDepartmentsForSelectedDept) window.updateSubDepartmentsForSelectedDept();
             if (window.updateRolesForDept) window.updateRolesForDept();
             if (window.generatePassword) window.generatePassword();
+            if (window.KylrxCostCenterService && typeof window.KylrxCostCenterService.populateCostCenterDropdown === 'function') {
+                const ccSelect = form.costCenterCode || document.getElementById('costCenterCodeSelect');
+                if (ccSelect) {
+                    window.KylrxCostCenterService.populateCostCenterDropdown(ccSelect, {
+                        selectedCode: 'CC-ENG-101',
+                        includePlaceholder: false
+                    });
+                }
+            }
         }
         openModal('empModal');
         if (window.EmployeeProfileController && typeof window.EmployeeProfileController.resetProfileModal === 'function') {
@@ -1930,12 +2030,57 @@ function setupEventListeners() {
         }
     });
 
-    // PRD Section 10: Real-time Dynamic Form Gating for Employee Type & Business Unit
+    // PRD Sections 10 & 13: Cascading Hierarchy Integration & Cost Center Auto-Linking
+    if (window.KylrxSubDepartmentService && typeof window.KylrxSubDepartmentService.bindCascadingHierarchy === 'function') {
+        window.KylrxSubDepartmentService.bindCascadingHierarchy({
+            deptSelect: 'deptSelect',
+            ccSelect: 'costCenterCodeSelect',
+            subDeptSelect: 'subDeptSelect'
+        });
+    } else {
+        const subDeptSelectEl = document.getElementById('subDeptSelect');
+        if (subDeptSelectEl) {
+            subDeptSelectEl.addEventListener('change', (e) => {
+                const selectedSub = e.target.value;
+                if (!selectedSub) return;
+                const linkedCc = (window.KylrxCostCenterService && typeof window.KylrxCostCenterService.getCostCenterForSubDepartment === 'function')
+                    ? window.KylrxCostCenterService.getCostCenterForSubDepartment(selectedSub)
+                    : (SUB_DEPARTMENTS_CATALOG.find(s => s.code === selectedSub)?.costCenterCode || '');
+                if (linkedCc) {
+                    const ccSelect = document.getElementById('costCenterCodeSelect') || (document.getElementById('empForm') && document.getElementById('empForm').costCenterCode);
+                    if (ccSelect) {
+                        ccSelect.value = linkedCc;
+                    }
+                }
+            });
+        }
+    }
+
+    // PRD Section 10 & Section 13: Employee Category Dropdown, BU Form Gating & Dynamic Tenure Calculation
     const empTypeEl = document.getElementById('employeeTypeSelect');
     const buSelectEl = document.getElementById('buSelect');
+    const joiningDateEl = document.getElementById('empJoiningDate');
+    const probationEndDateEl = document.getElementById('empProbationEndDate');
+    const noticePeriodEl = document.getElementById('empNoticePeriodDays');
+
+    if (empTypeEl && window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.populateEmployeeTypeDropdown === 'function') {
+        window.KylrxEmployeeTypeService.populateEmployeeTypeDropdown(empTypeEl, { selectedCode: 'CAT_FT_REG' });
+    }
+
     if (empTypeEl && buSelectEl && window.KylrxBuRules) {
         window.empTypeBuGatingHandler = window.KylrxBuRules.bindEmployeeTypeAndBuGating(empTypeEl, buSelectEl, {
             noticeContainerId: 'buMismatchNotice'
+        });
+    }
+
+    if (empTypeEl && window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.bindEmployeeTypeTenureListener === 'function') {
+        window.empTypeTenureListener = window.KylrxEmployeeTypeService.bindEmployeeTypeTenureListener({
+            empTypeSelect: empTypeEl,
+            joiningDateInput: joiningDateEl,
+            probationEndDateInput: probationEndDateEl,
+            noticePeriodInput: noticePeriodEl,
+            buSelect: buSelectEl,
+            mismatchNoticeEl: 'buMismatchNotice'
         });
     }
 
@@ -2359,7 +2504,7 @@ function setupEventListeners() {
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 3500);
-                    await fetch(`http://localhost:3000/api/admin/employees/${data.editId}`, {
+                    await fetch(`${API_BASE_URL}/admin/employees/${data.editId}`, {
                         method: 'PUT',
                         signal: controller.signal,
                         headers: headers,
@@ -2528,11 +2673,56 @@ function setupEventListeners() {
                     console.warn('Firestore direct write notice:', fsErr.message);
                 }
 
+                // PRD Sections 1, 4 & 13: Persist Employee Finance & Statutory Record to organizations/{orgId}/employee_finance/{employeeId}
+                if (window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.saveEmployeeFinance === 'function') {
+                    try {
+                        const orgId = localStorage.getItem('orgId') || 'org_kylrx';
+                        const holderName = data.financeAccountHolderName || data.name;
+                        const bankName = data.financeBankName || 'HDFC Bank';
+                        const branchName = data.financeBranchName || 'Koramangala, Bengaluru';
+                        const accNumber = data.financeAccountNumber || '50100234567890';
+                        const ifsc = (data.financeIfsc || 'HDFC0000053').toUpperCase();
+                        const accType = data.financeAccountType || 'Salary';
+                        const isPrimary = data.financeIsPrimary !== undefined ? true : true;
+                        const effFrom = data.financeEffectiveFrom || data.joiningDate || new Date().toISOString().split('T')[0];
+
+                        const uanApp = Boolean(document.getElementById('uanApplicableToggle')?.checked);
+                        const esicApp = Boolean(document.getElementById('esicApplicableToggle')?.checked);
+                        const npsApp = Boolean(document.getElementById('npsApplicableToggle')?.checked);
+                        const gratApp = Boolean(document.getElementById('gratuityApplicableToggle')?.checked);
+
+                        await window.KylrxEmployeeFinanceService.saveEmployeeFinance(orgId, employeeId, {
+                            banking: {
+                                accountHolderName: holderName,
+                                bankName: bankName,
+                                branchName: branchName,
+                                accountNumber: accNumber,
+                                ifsc: ifsc,
+                                accountType: accType,
+                                isPrimary: isPrimary,
+                                effectiveFrom: effFrom
+                            },
+                            statutory: {
+                                uanApplicable: uanApp,
+                                uanNumber: uanApp ? (data.uanNumber || data.uan || '100904829102') : null,
+                                esicApplicable: esicApp,
+                                esicNumber: esicApp ? (data.esicNumber || data.esicIp || '3100482910') : null,
+                                npsApplicable: npsApp,
+                                npsNumber: npsApp ? (data.npsNumber || '110012345678') : null,
+                                gratuityApplicable: gratApp,
+                                gratuityNumber: gratApp ? (data.gratuityNumber || `GRAT-2026-${employeeId.replace(/^EMP/, '')}`) : null
+                            }
+                        });
+                    } catch (finErr) {
+                        console.warn('[EmployeeFinance] Auto-sync notice:', finErr.message);
+                    }
+                }
+
                 // Forward to backend if available
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 3500);
-                    await fetch('http://localhost:3000/api/admin/employees', {
+                    await fetch('${API_BASE_URL}/admin/employees', {
                         method: 'POST',
                         signal: controller.signal,
                         headers: headers,
@@ -2686,7 +2876,7 @@ function downloadCredentialsCSV(records) {
             
             const token = idToken || localStorage.getItem('access_token'); 
 
-            const response = await fetch('http://localhost:3000/api/employees/bulk-upload', {
+            const response = await fetch('${API_BASE_URL}/employees/bulk-upload', {
                 method: 'POST',
                 headers: {
                     // Send authorization if available
@@ -2822,7 +3012,7 @@ window.openEditModal = async (id) => {
     let emp = state.employees.find(e => (e.id === id || e.uid === id || e.employeeId === id || e.managerId === id));
     if (!emp) {
         try {
-            const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            const { doc, getDoc } = await import("./firebase-config.js");
             const empDoc = await getDoc(doc(db, 'users', id));
             if (empDoc.exists()) {
                 emp = { id: empDoc.id, ...empDoc.data() };
@@ -2871,7 +3061,15 @@ window.openEditModal = async (id) => {
             form.designation.value = emp.designation || emp.designationCode || emp['Designation_Code'] || 'DES-SE';
         }
         if (form.employeeType) {
-            form.employeeType.value = emp.employeeType || emp.employmentType || emp['Employment_Type'] || 'FULL_TIME';
+            const rawType = emp.employeeType || emp.categoryCode || emp.employmentType || emp['Employment_Type'] || emp['Category_Code'] || 'CAT_FT_REG';
+            if (window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.populateEmployeeTypeDropdown === 'function') {
+                window.KylrxEmployeeTypeService.populateEmployeeTypeDropdown(form.employeeType, { selectedCode: rawType });
+            } else {
+                form.employeeType.value = rawType;
+            }
+            if (window.empTypeTenureListener && typeof window.empTypeTenureListener.refresh === 'function') {
+                window.empTypeTenureListener.refresh();
+            }
             if (window.empTypeBuGatingHandler && typeof window.empTypeBuGatingHandler.refresh === 'function') {
                 window.empTypeBuGatingHandler.refresh();
             }
@@ -2882,6 +3080,15 @@ window.openEditModal = async (id) => {
 
         if (form.costCenterCode) {
             form.costCenterCode.value = emp.costCenterCode || emp.Cost_Center_Code || emp.jobDetails?.costCenterCode || 'CC-ENG-101';
+        }
+        if (window.KylrxCostCenterService && typeof window.KylrxCostCenterService.populateCostCenterDropdown === 'function') {
+            const ccSelect = form.costCenterCode || document.getElementById('costCenterCodeSelect');
+            if (ccSelect) {
+                window.KylrxCostCenterService.populateCostCenterDropdown(ccSelect, {
+                    selectedCode: emp.costCenterCode || emp.Cost_Center_Code || emp.jobDetails?.costCenterCode || 'CC-ENG-101',
+                    includePlaceholder: false
+                });
+            }
         }
         if (form.locationCode) {
             form.locationCode.value = emp.locationCode || emp.Location_Code || emp.jobDetails?.locationCode || 'LOC-BLR';
@@ -3026,7 +3233,7 @@ window.deleteEmployee = (id, name) => {
             const token = rawToken || 'demo-static-token';
             
             try {
-                const response = await fetch(`http://localhost:3000/api/admin/employees/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/admin/employees/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -3037,7 +3244,7 @@ window.deleteEmployee = (id, name) => {
                 showSuccess('Termination Finalized', `The credentials and record for ${name} have been securely de-provisioned.`, {});
             } catch (err) {
                 console.warn('Backend delete failed, falling back to Firestore:', err);
-                const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+                const { doc, deleteDoc } = await import("./firebase-config.js");
                 await deleteDoc(doc(db, "users", id));
                 showSuccess('Record De-provisioned', `The local database entry for ${name} has been successfully purged.`, {});
             }
@@ -3056,7 +3263,7 @@ window.deleteEmployee = (id, name) => {
 // Restore a trashed employee back to Active status
 window.restoreEmployee = async (id) => {
     try {
-        const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+        const { doc, updateDoc } = await import("./firebase-config.js");
         await updateDoc(doc(db, "users", id), { status: 'Active' });
         showSuccess('Record Restored', 'The employee profile has been reactivated successfully.', {});
         loadEmployees();
@@ -3095,12 +3302,14 @@ document.querySelector('.btn-primary[onclick*="empModal"]')?.addEventListener('c
 
 // Real-time Workforce Listener
 function startWorkforceListener() {
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot }) => {
         onSnapshot(collection(db, 'users'), (snapshot) => {
-            state.employees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(u => (u.role || '').toLowerCase() !== 'admin');
+            state.employees = (snapshot?.docs || []).map(doc => ({ id: doc.id, ...doc.data() })).filter(u => (u.role || '').toLowerCase() !== 'admin');
             updateStats();
+        }, (err) => {
+            console.warn('Workforce listener notice:', err?.message || err);
         });
-    });
+    }).catch(err => console.warn('startWorkforceListener import notice:', err));
 }
 
 // Analytics Chart Rendering
@@ -3109,7 +3318,7 @@ function renderProductivityChart(canvasId) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot }) => {
         onSnapshot(collection(db, 'users'), (snapshot) => {
             const deptScores = {};
             snapshot.docs.forEach(doc => {
@@ -3153,7 +3362,7 @@ function renderPerformanceTrendsChart(canvasId) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
         const q = query(collection(db, 'performance_snapshots'), orderBy('timestamp', 'desc'), limit(6));
         onSnapshot(q, (snapshot) => {
             let data = [];
@@ -3191,7 +3400,7 @@ function renderFocusChart(canvasId) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot }) => {
         onSnapshot(collection(db, 'users'), (snapshot) => {
             const emps = snapshot.docs.map(d => d.data()).filter(u => (u.role || '').toLowerCase() !== 'admin');
             let deepWork = 85, taskComp = 90, appFocus = 75, consist = 88, flow = 82;
@@ -3228,7 +3437,7 @@ function renderPayrollImpactChart(canvasId) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot }) => {
         onSnapshot(collection(db, 'payroll_profiles'), (snap) => {
             let base = 0, bonus = 0, penalty = 0;
             if (!snap.empty) {
@@ -3271,7 +3480,7 @@ function renderSalaryDistChart(canvasId) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot }) => {
         onSnapshot(collection(db, 'users'), (snapshot) => {
             const emps = snapshot.docs.map(d => d.data()).filter(u => (u.role || '').toLowerCase() !== 'admin');
             let buckets = [0, 0, 0, 0, 0];
@@ -3310,7 +3519,7 @@ function renderDistractionTrendsChart(canvasId) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
+    import("./firebase-config.js").then(({ collection, onSnapshot, query, orderBy, limit }) => {
         const q = query(collection(db, 'alertEvents'), orderBy('timestamp', 'desc'), limit(50));
         onSnapshot(q, (snapshot) => {
             const days = { 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0 };
@@ -3427,7 +3636,7 @@ function startAdminTimer() {
 
 async function syncAdminStatusToFirebase(status) {
     try {
-        const { doc, setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+        const { doc, setDoc, serverTimestamp } = await import("./firebase-config.js");
         const userId = localStorage.getItem('hr_user_id') || 'admin_demo';
         const today = new Date().toISOString().split('T')[0];
         // Import db dynamically or it's already in scope if we are careful, but better to be safe

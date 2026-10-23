@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js";
+import { db, auth } from "./firebase-config.js";
 import { 
     collection, 
     doc, 
@@ -14,7 +14,7 @@ import {
     orderBy,
     arrayUnion,
     deleteDoc
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+} from "./firebase-config.js";
 
 /**
  * ============================================================================
@@ -121,10 +121,10 @@ export async function updatePMSCycleStatus(cycleId, newStatus) {
 
 /**
  * Rolls out a PMS Cycle:
- * 1. Sets cycle status to 'active'.
- * 2. Enrolls all active employees and initializes their pms_reviews document.
- * 3. Automatically dispatches in-app notifications to each employee.
- * 4. Automatically triggers email alerts to each employee via POST /api/email/send.
+ * 1. Enrolls all active employees and initializes their pms_reviews document.
+ * 2. Automatically dispatches in-app notifications to each employee.
+ * 3. Automatically triggers email alerts to each employee via POST /api/email/send.
+ * 4. Sets cycle status to 'active' once the above succeeded.
  */
 export async function rolloutPMSCycle(cycleId) {
     console.log(`[PMS Engine] Initiating cycle rollout for ${cycleId}...`);
@@ -135,14 +135,7 @@ export async function rolloutPMSCycle(cycleId) {
         }
         const cycleData = cycleDoc.data();
 
-        // 1. Mark cycle as active
-        await updateDoc(doc(db, 'pms_cycles', cycleId), {
-            status: 'active',
-            rolledOutAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-        });
-
-        // 2. Query all enrolled employees from employees and users collections
+        // 1. Query all enrolled employees from employees and users collections
         const enrolledEmployees = await getEnrolledEmployees();
         console.log(`[PMS Engine] Enrolled employee count: ${enrolledEmployees.length}`);
 
@@ -252,6 +245,14 @@ export async function rolloutPMSCycle(cycleId) {
             }
         }
 
+        // 4. Mark the cycle active only after every review record exists, so a failed
+        //    rollout never leaves an 'active' cycle without enrolled reviews
+        await updateDoc(doc(db, 'pms_cycles', cycleId), {
+            status: 'active',
+            rolledOutAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+
         return {
             success: true,
             cycleId,
@@ -270,12 +271,18 @@ export async function rolloutPMSCycle(cycleId) {
  */
 export async function getEnrolledEmployees() {
     const candidateMap = new Map();
+    // Relieved / exited / inactive people are not enrolled in review cycles
+    const hasLeft = (data) => /relieved|exited|terminated|inactive/i.test(data.employmentStatus || data.status || '');
 
     try {
         const empSnap = await getDocs(collection(db, 'employees'));
         empSnap.forEach(d => {
             const data = d.data();
             const id = data.employeeId || d.id;
+            if (hasLeft(data)) {
+                candidateMap.set(id, null);
+                return;
+            }
             candidateMap.set(id, {
                 id: d.id,
                 employeeId: id,
@@ -297,7 +304,7 @@ export async function getEnrolledEmployees() {
         usersSnap.forEach(d => {
             const data = d.data();
             const id = data.employeeId || d.id;
-            if (!candidateMap.has(id)) {
+            if (!candidateMap.has(id) && !hasLeft(data)) {
                 candidateMap.set(id, {
                     id: d.id,
                     employeeId: id,
@@ -315,7 +322,7 @@ export async function getEnrolledEmployees() {
         console.warn('[PMS Engine] Error loading users collection:', e.message);
     }
 
-    return Array.from(candidateMap.values());
+    return Array.from(candidateMap.values()).filter(Boolean);
 }
 
 /* ========================================================================== */
@@ -467,9 +474,22 @@ export function calculateCompletionPercentage(tasksOrCompleted = [], maybeTotal 
  * Super Admin & Manager Console aliases for cross-module compatibility
  */
 export const assignManagerDeliverable = assignGoalToTeamMember;
-export async function reviewTaskDeliverable(taskId, decision, feedback = '') {
-    if (decision === 'accepted') return await acceptPMSTask(taskId, 'Super Admin', feedback);
-    return await rejectPMSTask(taskId, 'Super Admin', feedback);
+/**
+ * The signed-in user performing an action, for audit fields (reviewedBy, delegatedBy...).
+ */
+export function currentActor() {
+    const user = auth && auth.currentUser;
+    let name = '';
+    try { name = localStorage.getItem('userName') || ''; } catch (_) {}
+    return {
+        id: user ? user.uid : 'unknown',
+        name: name || (user && (user.displayName || user.email)) || 'Admin'
+    };
+}
+
+export async function reviewTaskDeliverable(taskId, decision, feedback = '', reviewerId = currentActor().id) {
+    if (decision === 'accepted') return await acceptPMSTask(taskId, reviewerId, feedback);
+    return await rejectPMSTask(taskId, reviewerId, feedback);
 }
 export const delegateManagerReview = delegatePMSReview;
 export async function updateTaskCompletion(taskId, markCompleted) {
@@ -593,7 +613,10 @@ export async function rejectPMSTask(taskId, reviewerId, feedback = '') {
  * `originalManagerId`, `delegatedToId`, `delegatedAt`, and `reason`.
  * Ensures reassignment updates are immediately visible on the review cards.
  */
-export async function delegatePMSReview({ reviewId, cycleId, employeeId, originalManagerId, delegatedToId, delegatedToName = '', delegatedByName = '', reason }) {
+export async function delegatePMSReview({ reviewId, cycleId, employeeId, originalManagerId, delegatedToId, delegatedToName = '', delegatedById = '', delegatedByName = '', reason }) {
+    if (!employeeId || !delegatedToId) {
+        throw new Error('Delegation needs both the employee under review and the manager to delegate to.');
+    }
     console.log(`[PMS Delegation] Delegating review for employee ${employeeId} from ${originalManagerId} to ${delegatedToId}...`);
     try {
         let targetDocId = reviewId;
@@ -609,7 +632,8 @@ export async function delegatePMSReview({ reviewId, cycleId, employeeId, origina
             originalManagerId: originalManagerId || 'MANAGER-ORIG',
             delegatedToId: delegatedToId,
             delegatedToName: delegatedToName || delegatedToId,
-            delegatedByName: delegatedByName || originalManagerId,
+            delegatedById: delegatedById || currentActor().id,
+            delegatedByName: delegatedByName || currentActor().name,
             delegatedAt: nowIso,
             reason: (reason || 'Operational reassignment / peer review delegation').trim()
         };
@@ -1356,5 +1380,236 @@ export async function getAllPMSUploadedFiles() {
         console.error('[PMS Engine] Error aggregating all uploaded files:', err);
         return [];
     }
+}
+
+/* ========================================================================== */
+/* SECTION 8.5: MANAGER GOAL MANAGEMENT (PRD §1.1)                             */
+/* ========================================================================== */
+
+const API_BASE = (typeof window !== 'undefined' && window.location && (window.location.port === '5500' || window.location.port === '5501'))
+    ? `${window.location.origin}/api`
+    : '/api';
+
+export async function getManagerGoals(filters = {}) {
+    try {
+        const queryParams = new URLSearchParams(filters).toString();
+        const res = await fetch(`${API_BASE}/manager-goals?${queryParams}`);
+        if (res.ok) {
+            const json = await res.json();
+            return json.data || [];
+        }
+        return [];
+    } catch (err) {
+        console.warn('[ManagerGoals] Error fetching goals:', err.message);
+        return [];
+    }
+}
+
+export async function getManagerGoalStats(ownerId = null) {
+    try {
+        const url = ownerId ? `${API_BASE}/manager-goals/stats/summary?ownerId=${encodeURIComponent(ownerId)}` : `${API_BASE}/manager-goals/stats/summary`;
+        const res = await fetch(url);
+        if (res.ok) {
+            const json = await res.json();
+            return json.data;
+        }
+        return { total: 0, active: 0, paused: 0, completed: 0, archived: 0, avgProgress: 0 };
+    } catch (err) {
+        console.warn('[ManagerGoals] Error fetching stats:', err.message);
+        return { total: 0, active: 0, paused: 0, completed: 0, archived: 0, avgProgress: 0 };
+    }
+}
+
+export async function createManagerGoal(goalData, actor) {
+    const res = await fetch(`${API_BASE}/manager-goals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...goalData, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to create manager goal');
+    }
+    return json.data;
+}
+
+export async function updateManagerGoal(id, updates, actor) {
+    const res = await fetch(`${API_BASE}/manager-goals/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to update manager goal');
+    }
+    return json.data;
+}
+
+export async function updateManagerGoalProgress(id, progress, note = '', actor, currentValue = null) {
+    const res = await fetch(`${API_BASE}/manager-goals/${encodeURIComponent(id)}/progress`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ progress, note, currentValue, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to update goal progress');
+    }
+    return json.data;
+}
+
+export async function executeManagerGoalAction(id, action, options = {}, actor) {
+    const res = await fetch(`${API_BASE}/manager-goals/${encodeURIComponent(id)}/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...options, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || `Failed to execute action ${action}`);
+    }
+    return json.data;
+}
+
+export async function toggleManagerGoalMilestone(id, milestoneId, actor) {
+    const res = await fetch(`${API_BASE}/manager-goals/${encodeURIComponent(id)}/milestones/${encodeURIComponent(milestoneId)}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to toggle milestone');
+    }
+    return json.data;
+}
+
+export async function getManagerGoalHistory(id) {
+    const res = await fetch(`${API_BASE}/manager-goals/${encodeURIComponent(id)}/history`);
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to fetch goal history');
+    }
+    return json.data || [];
+}
+
+/* ========================================================================== */
+/* SECTION 8.6: CUSTOMISABLE TEMPLATES (PRD §1.2)                              */
+/* ========================================================================== */
+
+export async function getCustomTemplates(filters = {}) {
+    try {
+        const queryParams = new URLSearchParams(filters).toString();
+        const res = await fetch(`${API_BASE}/custom-templates?${queryParams}`);
+        if (res.ok) {
+            const json = await res.json();
+            return json.data || [];
+        }
+        return [];
+    } catch (err) {
+        console.warn('[CustomTemplates] Error fetching templates:', err.message);
+        return [];
+    }
+}
+
+export async function getCustomTemplate(idOrKey) {
+    const res = await fetch(`${API_BASE}/custom-templates/${encodeURIComponent(idOrKey)}`);
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to fetch template');
+    }
+    return json.data;
+}
+
+export async function createCustomTemplate(templateData, actor) {
+    const res = await fetch(`${API_BASE}/custom-templates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...templateData, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to create template');
+    }
+    return json.data;
+}
+
+export async function updateCustomTemplate(idOrKey, updates, actor) {
+    const res = await fetch(`${API_BASE}/custom-templates/${encodeURIComponent(idOrKey)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...updates, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to update template');
+    }
+    return json.data;
+}
+
+export async function previewCustomTemplate(idOrKey, customFieldValues) {
+    const res = await fetch(`${API_BASE}/custom-templates/${encodeURIComponent(idOrKey)}/preview`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customFieldValues })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to preview template');
+    }
+    return json.data;
+}
+
+export async function saveCustomTemplateDraft(idOrKey, updates, actor) {
+    const res = await fetch(`${API_BASE}/custom-templates/${encodeURIComponent(idOrKey)}/save-draft`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to save draft template');
+    }
+    return json.data;
+}
+
+export async function publishCustomTemplate(idOrKey, actor) {
+    const res = await fetch(`${API_BASE}/custom-templates/${encodeURIComponent(idOrKey)}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to publish template');
+    }
+    return json.data;
+}
+
+export async function updateCustomTemplatePermissions(idOrKey, permissions, actor) {
+    const res = await fetch(`${API_BASE}/custom-templates/${encodeURIComponent(idOrKey)}/permissions`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ permissions, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to update template permissions');
+    }
+    return json.data;
+}
+
+export async function instantiateCustomTemplate(idOrKey, userInputs, actor) {
+    const res = await fetch(`${API_BASE}/custom-templates/${encodeURIComponent(idOrKey)}/instantiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userInputs, actor })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed to instantiate template');
+    }
+    return json.data;
 }
 

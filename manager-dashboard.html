@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="quick-actions.css">
     <link rel="stylesheet" href="upcoming-birthdays.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="manager-portal-guard.js"></script>
     <script>
         (function() {
             const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true' || localStorage.getItem('employee_uid');
@@ -423,6 +424,7 @@
             <nav class="nav-menu overflow-y-auto pr-1">
                 <div class="nav-label">MY WORKSPACE</div>
                 <div class="nav-item"><a href="manager-dashboard.html" class="nav-link active" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="manager-assets.html#goals" class="nav-link" id="navGoalsLink"><i data-lucide="target"></i><span>Manager Goals</span></a></div>
                 <div class="nav-item"><a href="#upcoming-birthdays" class="nav-link" id="navBirthdaysLink"><i data-lucide="cake"></i><span>Upcoming Birthdays</span></a></div>
                 <div class="nav-item"><a href="manager-calendar.html" class="nav-link " id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
                 <div class="nav-item"><a href="manager-attendance.html" class="nav-link " id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
@@ -726,7 +728,7 @@
     </div>
 
     <script type="module">
-        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, checkBackendFirebaseStatus } from "./firebase-config.js";
+        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, checkBackendFirebaseStatus, registerListener } from "./firebase-config.js";
         import { getPendingReviews, scorePerformance } from "./pms-service.js";
         import { managerAttendanceService } from "./manager-attendance-service.js";
         import { upcomingBirthdays } from "./upcoming-birthdays.js";
@@ -1383,6 +1385,15 @@
             const url = urlInput.value.trim();
             const customName = nameInput ? nameInput.value.trim() : '';
             if (!url) return;
+
+            if (window.isForbiddenManagerNavigation && window.isForbiddenManagerNavigation(url)) {
+                if (window.showManagerRestrictedToast) {
+                    window.showManagerRestrictedToast(url);
+                } else {
+                    alert("Access Restricted: Custom app links cannot navigate to Admin, HRMS, or Employee portals.");
+                }
+                return;
+            }
 
             try {
                 let cleanUrl = url;

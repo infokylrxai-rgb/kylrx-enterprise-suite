@@ -228,6 +228,92 @@
                 webhookEnabled: true,
                 webhookEndpoint: 'https://hooks.slack.com/services/T00/B00/exit-clearance-sla'
             }
+        },
+
+        // ── POLICY & COMPLIANCE TRIGGERS (PRD Sections 10, 13, 17, 18) ─────────────────
+        {
+            eventKey: 'EVT_POLICY_ACKNOWLEDGEMENT_OVERDUE',
+            displayName: 'Policy Acknowledgement SLA Breached',
+            description: 'Fires when an employee has not digitally signed a mandatory company policy within the configured turnaround SLA window (Acknowledgement_Due_Days). Routes a critical compliance escalation to the reporting manager and HR Compliance Lead with days-overdue context.',
+            category: 'Statutory Compliance',
+            module: 'compliance',
+            severity: 'critical',
+            parameters: ['employeeId', 'employeeName', 'policyCode', 'policyName', 'policyVersion', 'daysOverdue', 'dueDate', 'reportingManagerId', 'department'],
+            metric: 'Days Overdue (Policy Acknowledgement)',
+            comparator: '>=',
+            thresholdValue: 1,
+            timeWindow: 'Post Policy SLA Due Date',
+            sampleMockPayload: {
+                employeeId: 'EMP0301',
+                employeeName: 'Anjali Mehta',
+                policyCode: 'POL_POSH_01',
+                policyName: 'POSH & Anti-Harassment Policy',
+                policyVersion: '2.0',
+                daysOverdue: 9,
+                dueDate: '2026-09-25',
+                reportingManagerId: 'MGR011',
+                department: 'Customer Success'
+            },
+            sampleDenialPayload: {
+                employeeId: 'EMP0301',
+                employeeName: 'Anjali Mehta',
+                policyCode: 'POL_POSH_01',
+                policyName: 'POSH & Anti-Harassment Policy',
+                policyVersion: '2.0',
+                daysOverdue: 0,
+                dueDate: '2026-10-10',
+                reportingManagerId: 'MGR011',
+                department: 'Customer Success'
+            },
+            routing: {
+                primaryRecipients: ['Reporting Manager', 'HR Compliance Lead'],
+                channels: ['In-App', 'Email'],
+                escalationTarget: 'Chief People Officer',
+                escalationTimeoutHours: 48,
+                webhookEnabled: false,
+                webhookEndpoint: ''
+            }
+        },
+        {
+            eventKey: 'EVT_POLICY_NEW_VERSION_ISSUED',
+            displayName: 'New Policy Version Published — Renewal Sign-Off Required',
+            description: 'Triggers when an administrator publishes a new version of an existing mandatory policy. Routes a renewal acknowledgement task to all applicable employees (by category and location scope), resetting their compliance status and starting a fresh SLA countdown.',
+            category: 'Statutory Compliance',
+            module: 'compliance',
+            severity: 'warning',
+            parameters: ['policyCode', 'policyName', 'newVersion', 'previousVersion', 'effectiveFrom', 'acknowledgementDueDays', 'appliesToCategoryCode', 'appliesToLocationCode'],
+            metric: 'Days Since New Version Published',
+            comparator: '>=',
+            thresholdValue: 1,
+            timeWindow: 'Post Version Publication Date',
+            sampleMockPayload: {
+                policyCode: 'POL_IT_SEC_01',
+                policyName: 'Information Security & Acceptable Use Policy',
+                newVersion: '3.0',
+                previousVersion: '2.1',
+                effectiveFrom: '2026-10-01',
+                acknowledgementDueDays: 14,
+                appliesToCategoryCode: 'ALL',
+                appliesToLocationCode: 'ALL'
+            },
+            sampleDenialPayload: {
+                policyCode: 'POL_IT_SEC_01',
+                policyName: 'Information Security & Acceptable Use Policy',
+                newVersion: '2.1',
+                previousVersion: '2.1',
+                effectiveFrom: '2026-10-01',
+                acknowledgementDueDays: 14,
+                appliesToCategoryCode: 'ALL',
+                appliesToLocationCode: 'ALL'
+            },
+            routing: {
+                primaryRecipients: ['All Applicable Employees (by scope)', 'HR Compliance Lead'],
+                channels: ['In-App', 'Email'],
+                escalationTarget: 'Legal & Compliance Head',
+                escalationTimeoutHours: 72,
+                webhookEnabled: false,
+                webhookEndpoint: ''
+            }
         }
     ];
 
@@ -582,7 +668,7 @@ await eventBus.emit('${trigger.eventKey}', {<br/>
             // 1. First try backend dry-run simulation endpoint
             let simResult = null;
             try {
-                const res = await fetch('http://localhost:3000/api/alerts/simulate', {
+                const res = await fetch(`${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api/alerts/simulate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

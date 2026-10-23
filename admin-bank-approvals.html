@@ -319,8 +319,8 @@
     </div>
 
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { collection, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, onSnapshot, registerListener } from "./firebase-config.js";
+        import { collection, query, where, getDocs } from "./firebase-config.js";
         import { processBankApproval } from "./bank-verification-service.js";
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -618,8 +618,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

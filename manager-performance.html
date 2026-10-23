@@ -215,6 +215,54 @@
 
         .btn-ghost { padding: 8px; border-radius: 50%; background: var(--bg); border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; }
         
+        /* Goal & Template Styles */
+        .goal-filter-tab, .template-module-tab {
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .goal-filter-tab:hover, .template-module-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .goal-filter-tab.active, .template-module-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .template-module-tab.active {
+            background: #7c3aed !important;
+            border-color: #7c3aed !important;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2) !important;
+        }
+        .goal-stat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--shadow);
+        }
+        .goal-stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
         /* Icon Sizing */
         i[data-lucide], svg[data-lucide] {
             width: 20px;
@@ -380,6 +428,7 @@
             <nav class="nav-menu overflow-y-auto pr-1">
                 <div class="nav-label">MY WORKSPACE</div>
                 <div class="nav-item"><a href="manager-dashboard.html" class="nav-link " id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="#goals" class="nav-link" id="navGoalsLink"><i data-lucide="target"></i><span>Manager Goals</span></a></div>
                 <div class="nav-item"><a href="manager-dashboard.html#upcoming-birthdays" class="nav-link" id="navBirthdaysLink"><i data-lucide="cake"></i><span>Upcoming Birthdays</span></a></div>
                 <div class="nav-item"><a href="manager-calendar.html" class="nav-link " id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
                 <div class="nav-item"><a href="manager-attendance.html" class="nav-link " id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
@@ -391,6 +440,7 @@
                 <div class="nav-item"><a href="manager-workforce.html" class="nav-link " id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
                 <div class="nav-item"><a href="manager-security.html" class="nav-link " id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
                 <div class="nav-item"><a href="manager-performance.html" class="nav-link active" id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance (PMS)</span></a></div>
+                <div class="nav-item"><a href="bulk-trigger-dashboard.html" class="nav-link" id="navBulkTriggerLink"><i data-lucide="zap"></i><span>Bulk Trigger &amp; Batches</span></a></div>
 
                 <div class="nav-label">OPERATIONS</div>
                 <div class="nav-item"><a href="manager-notification.html" class="nav-link " id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
@@ -479,6 +529,185 @@
         </div>
         <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
             <i data-lucide="activity" class="animate-pulse" size="48" style="opacity: 0.2; margin-bottom: 1rem;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================== -->
+<!-- SECTION 1.1: MANAGER GOAL MANAGEMENT (PRD §1.1)                            -->
+<!-- ========================================================================== -->
+<div id="goals" class="card" style="margin-top: 1.5rem; border-top: 4px solid var(--primary);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">Manager Goals & Objectives (PRD §1.1)</h2>
+                <span style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">Manager Hub</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Create and manage strategic department goals with outcome definitions, quantitative/milestone measurement, scheduling, active progress tracking, lifecycle controls, and complete audit history.</p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button onclick="window.openTemplatePickerModal('goals')" style="background: white; color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="layout-template" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                <span>Browse Goal Templates</span>
+            </button>
+            <button onclick="window.openCreateGoalModal()" style="background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                <span>+ Create Manager Goal</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Manager Goal KPI Summary Row -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="goal-stat-card">
+            <div class="goal-stat-icon" style="background: #eff6ff; color: #2563eb;">
+                <i data-lucide="target" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <div id="statGoalsTotal" style="font-size: 1.4rem; font-weight: 800; color: #0f172a;">--</div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Goals</div>
+            </div>
+        </div>
+        <div class="goal-stat-card">
+            <div class="goal-stat-icon" style="background: #dcfce7; color: #15803d;">
+                <i data-lucide="play-circle" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <div id="statGoalsActive" style="font-size: 1.4rem; font-weight: 800; color: #15803d;">--</div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Active / In Progress</div>
+            </div>
+        </div>
+        <div class="goal-stat-card">
+            <div class="goal-stat-icon" style="background: #fef3c7; color: #b45309;">
+                <i data-lucide="pause-circle" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <div id="statGoalsPaused" style="font-size: 1.4rem; font-weight: 800; color: #b45309;">--</div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Paused</div>
+            </div>
+        </div>
+        <div class="goal-stat-card">
+            <div class="goal-stat-icon" style="background: #f0fdf4; color: #16a34a;">
+                <i data-lucide="check-circle" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <div id="statGoalsCompleted" style="font-size: 1.4rem; font-weight: 800; color: #16a34a;">--</div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Completed</div>
+            </div>
+        </div>
+        <div class="goal-stat-card">
+            <div class="goal-stat-icon" style="background: #f5f3ff; color: #7c3aed;">
+                <i data-lucide="trending-up" style="width: 22px; height: 22px;"></i>
+            </div>
+            <div>
+                <div id="statGoalsAvgProgress" style="font-size: 1.4rem; font-weight: 800; color: #7c3aed;">--%</div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Avg Progress</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="goal-filter-tab active" data-filter="all">All Goals</button>
+            <button class="goal-filter-tab" data-filter="active">Active</button>
+            <button class="goal-filter-tab" data-filter="paused">Paused</button>
+            <button class="goal-filter-tab" data-filter="completed">Completed</button>
+            <button class="goal-filter-tab" data-filter="archived">Archived</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <select id="goalCategoryFilter" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: white; color: #334155;">
+                <option value="all">All Strategic Categories</option>
+                <option value="Cybersecurity & Compliance">Cybersecurity & Compliance</option>
+                <option value="Operational Excellence">Operational Excellence</option>
+                <option value="Team Development">Team Development</option>
+                <option value="Innovation">Innovation</option>
+            </select>
+
+            <div style="position: relative; min-width: 220px;">
+                <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #94a3b8;"></i>
+                <input type="text" id="goalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; outline: none; background: white;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Manager Goals Grid Container -->
+    <div id="managerGoalsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem;">
+        <div style="text-align: center; padding: 3rem 0; color: var(--text-muted); grid-column: 1 / -1;">
+            <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; color: var(--primary); margin: 0 auto 8px;"></i>
+            <p style="margin: 0; font-size: 0.85rem;">Hydrating manager strategic goals and milestones...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================== -->
+<!-- SECTION 1.3: MODULE-LEVEL TEMPLATES (PRD §1.3)                             -->
+<!-- ========================================================================== -->
+<div class="card" style="margin-top: 1.5rem; border-top: 4px solid #7c3aed;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">Module-Level Templates Hub (PRD §1.3)</h2>
+                <span style="background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">PRD §1.3 Compliant</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Each module provides a template relevant to its purpose. Shared templates are provided by administrators, and managers may create personal copies where permissions allow. All template changes are versioned, ensuring existing records never change unexpectedly.
+            </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button onclick="window.openCreateTemplateModal()" style="background: #7c3aed; color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);">
+                <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                <span>+ Create Template</span>
+            </button>
+            <button onclick="window.loadTemplates()" class="btn-ghost" title="Refresh Templates" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; width: 40px; height: 40px;">
+                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Template Module Tabs across all 11 enterprise modules -->
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button class="template-module-tab active" data-module="all">All Modules</button>
+            <button class="template-module-tab" data-module="goals">Goals & OKRs</button>
+            <button class="template-module-tab" data-module="onboarding">Onboarding</button>
+            <button class="template-module-tab" data-module="lifecycle">Lifecycle</button>
+            <button class="template-module-tab" data-module="exit">Exit & Clearance</button>
+            <button class="template-module-tab" data-module="attendance">Attendance</button>
+            <button class="template-module-tab" data-module="leave">Leave & Time Off</button>
+            <button class="template-module-tab" data-module="payroll">Payroll</button>
+            <button class="template-module-tab" data-module="pms">PMS Appraisals</button>
+            <button class="template-module-tab" data-module="recruitment">Recruitment</button>
+            <button class="template-module-tab" data-module="compliance">Compliance</button>
+            <button class="template-module-tab" data-module="policy">Policy</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <!-- Scope Filter: Shared vs Personal -->
+            <select id="templateScopeFilter" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: white; color: #334155;">
+                <option value="all">All Scopes</option>
+                <option value="shared">Shared Admin Templates</option>
+                <option value="personal">My Personal Copies</option>
+            </select>
+
+            <!-- Status Filter: Draft vs Published vs Archived -->
+            <select id="templateStatusFilter" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: white; color: #334155;">
+                <option value="all">All Statuses</option>
+                <option value="published">Published (Available)</option>
+                <option value="draft">Draft (Editable; Not for General Use)</option>
+                <option value="archived">Archived (Retained for History)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Templates Grid Container -->
+    <div id="customTemplatesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
+        <div style="text-align: center; padding: 3rem 0; color: var(--text-muted); grid-column: 1 / -1;">
+            <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; color: #7c3aed; margin: 0 auto 8px;"></i>
+            <p style="margin: 0; font-size: 0.85rem;">Hydrating module template library...</p>
         </div>
     </div>
 </div>
@@ -674,7 +903,7 @@
 
 
     <script type="module">
-        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs } from "./firebase-config.js";
+        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, registerListener } from "./firebase-config.js";
         import { 
             getPendingReviews, 
             scorePerformance,
@@ -2204,6 +2433,572 @@ window.viewTeam = async (id) => {
         loadPmsReviewsData();
     </script>
 
+
+    <!-- ===================================================================== -->
+    <!-- 1.1 MANAGER GOAL MODAL (CREATE / EDIT)                                -->
+    <!-- ===================================================================== -->
+    <div id="managerGoalModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 680px; text-align: left; max-height: 88vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="target" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <div>
+                        <h2 id="goalModalTitle" style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Create Strategic Manager Goal</h2>
+                        <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Define outcome, measurement criteria, schedule, and milestones</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeManagerGoalModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <form id="managerGoalForm" onsubmit="handleGoalFormSubmit(event)">
+                <input type="hidden" id="goalFormId">
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 1.5rem;">
+                    <!-- Title & Category -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Goal Title *</label>
+                            <input type="text" id="goalFormTitle" placeholder="e.g. Zero-Trust Architecture & Threat Hardening" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Strategic Category *</label>
+                            <select id="goalFormCategory" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc;">
+                                <option value="Cybersecurity & Compliance">Cybersecurity & Compliance</option>
+                                <option value="Operational Excellence">Operational Excellence</option>
+                                <option value="Team Development">Team Development</option>
+                                <option value="Innovation">Innovation</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Outcome Statement (PRD 1.1) -->
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Desired Outcome Statement *</label>
+                        <textarea id="goalFormOutcome" rows="2" placeholder="Describe the concrete, high-impact business or technical outcome achieved upon completion..." required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Detailed Description -->
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Operational Description / Scope</label>
+                        <textarea id="goalFormDesc" rows="2" placeholder="Specify tactical scope, team dependencies, or technical requirements..." style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.88rem; background: #f8fafc; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Measurement Method, Target & Unit (PRD 1.1 Measure) -->
+                    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                        <h4 style="font-size: 0.75rem; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 10px;">Measurement Method & Targets</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Method</label>
+                                <select id="goalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                                    <option value="quantitative">Quantitative Target</option>
+                                    <option value="milestone">Milestones-based</option>
+                                    <option value="unit">Unit Reduction / SLA</option>
+                                    <option value="criteria">Binary Criteria</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Target Value *</label>
+                                <input type="number" step="any" id="goalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Unit (e.g. %, Minutes) *</label>
+                                <input type="text" id="goalFormUnit" value="% Compliance" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 0.7rem; font-weight: 700; color: #64748b;">Completion Criteria / Acceptance Rules</label>
+                            <input type="text" id="goalFormCriteria" placeholder="e.g. All 802 regional nodes pass automated vulnerability audit." style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                        </div>
+                    </div>
+
+                    <!-- Milestones Checklist Builder (PRD 1.1 Measure) -->
+                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Key Milestones</label>
+                            <button type="button" onclick="addMilestoneInputRow()" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 8px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
+                                + Add Milestone
+                            </button>
+                        </div>
+                        <div id="goalFormMilestonesContainer"></div>
+                    </div>
+
+                    <!-- Schedule (PRD 1.1 Schedule) -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Start Date *</label>
+                            <input type="date" id="goalFormStartDate" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem; background: #f8fafc;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Target Completion Date *</label>
+                            <input type="date" id="goalFormTargetDate" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.85rem; background: #f8fafc;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeManagerGoalModal()">Cancel</button>
+                    <button type="submit" id="goalModalSubmitBtn" class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;">Create Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.1 QUICK PROGRESS CHECK-IN MODAL                                     -->
+    <!-- ===================================================================== -->
+    <div id="updateProgressModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 480px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="trending-up" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Progress Check-in</h2>
+                        <p id="progressGoalTitle" style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0; font-weight: 600;">Goal</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeUpdateProgressModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Update Completion Percentage</label>
+                    <span id="progressValueDisplay" style="font-size: 1.2rem; font-weight: 800; color: #2563eb;">50%</span>
+                </div>
+                <input type="range" id="progressSlider" min="0" max="100" value="50" oninput="handleProgressSliderInput(this.value)" style="width: 100%; accent-color: #2563eb; cursor: pointer; height: 8px;">
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Current Metric Value (<span id="progressMetricUnitLabel">%</span>)</label>
+                <input type="number" step="any" id="progressCurrentMetric" placeholder="e.g. 85" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Check-in / Status Log Note</label>
+                <textarea id="progressCheckInNote" rows="2" placeholder="e.g. Sprint 2 deliverables completed; mTLS deployed to 4 regional nodes..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc; font-family: inherit;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeUpdateProgressModal()">Cancel</button>
+                <button class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;" onclick="submitGoalProgressUpdate()">Record Progress</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.1 GOAL AUDIT HISTORY MODAL (PRD 1.1 History)                        -->
+    <!-- ===================================================================== -->
+    <div id="goalHistoryModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 620px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #f8fafc; color: #0f172a; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border);">
+                        <i data-lucide="history" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 id="goalHistoryTitle" style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Audit History Trail</h2>
+                        <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Immutable record of goal creation and subsequent changes</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeGoalHistoryModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div id="goalHistoryTimeline" style="padding-top: 10px;"></div>
+
+            <button class="alert-btn" style="background: #f1f5f9; color: #475569; width: 100%; margin-top: 1.5rem;" onclick="closeGoalHistoryModal()">Close Audit Trail</button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.2 TEMPLATE PICKER MODAL (Choose an existing template)               -->
+    <!-- ===================================================================== -->
+    <div id="templatePickerModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 650px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Choose an Existing Template</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Select a standardized template structure to instantiate your goal</p>
+                </div>
+                <button class="btn-ghost" onclick="closeTemplatePickerModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div id="templatePickerList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;"></div>
+
+            <button class="alert-btn" style="background: #f1f5f9; color: #475569; width: 100%; margin: 0;" onclick="closeTemplatePickerModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.2 CREATE NEW TEMPLATE MODAL (Authorised users)                      -->
+    <!-- ===================================================================== -->
+    <div id="createTemplateModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 600px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Create New Module Template</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Define consistent structure, permitted fields, and instructions</p>
+                </div>
+                <button class="btn-ghost" onclick="closeCreateTemplateModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <form onsubmit="submitCreateTemplate(event)">
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Template Name *</label>
+                        <input type="text" id="tplCreateName" placeholder="e.g. Infrastructure Hardening & Cloud Compliance OKR" required style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Target Module *</label>
+                            <select id="tplCreateModule" required style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+                                <option value="goals">Goals & Objectives</option>
+                                <option value="onboarding">Onboarding</option>
+                                <option value="lifecycle">Employee Lifecycle</option>
+                                <option value="exit">Exit & Clearance</option>
+                                <option value="payroll">Payroll & Compensation</option>
+                                <option value="policy">Corporate Policy</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Category</label>
+                            <input type="text" id="tplCreateCategory" value="Operational Excellence" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Overview & Description</label>
+                        <textarea id="tplCreateDesc" rows="2" placeholder="Explain what this template provides as a starting point..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc; font-family: inherit;"></textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Permitted User Instructions *</label>
+                        <textarea id="tplCreateInstructions" rows="2" required placeholder="Guidelines for permitted users customizing this template..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc; font-family: inherit;"></textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Permitted Fields (Comma separated)</label>
+                        <input type="text" id="tplCreatePermittedFields" value="title, outcome, target, unit, targetCompletionDate" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Locked Fields (Comma separated)</label>
+                        <input type="text" id="tplCreateLockedFields" value="departmentCode, corporateEntity" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+                    </div>
+
+                    <!-- Draft vs Published Toggle (PRD 1.2) -->
+                    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 6px;">Initial Publication Status</label>
+                        <div style="display: flex; gap: 20px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer;">
+                                <input type="radio" name="tplStatus" id="tplCreateStatusPublished" checked>
+                                <strong>Publish Immediately</strong>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer;">
+                                <input type="radio" name="tplStatus" id="tplCreateStatusDraft">
+                                <span>Save as Draft</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeCreateTemplateModal()">Cancel</button>
+                    <button type="submit" class="alert-btn" style="background: #7c3aed; color: white; margin: 0; flex: 2;">Save Template</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.2 CUSTOMIZE TEMPLATE PERMITTED FIELDS MODAL                         -->
+    <!-- ===================================================================== -->
+    <div id="customizeTemplateModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 620px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 id="custTplTitle" style="font-weight: 800; font-size: 1.2rem; margin: 0; color: #0f172a;">Customize Template</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Edit permitted fields and instructions. Locked fields are policy-protected.</p>
+                </div>
+                <button class="btn-ghost" onclick="closeCustomizeTemplateModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Instructions to Permitted Users *</label>
+                <textarea id="custTplInstructions" rows="2" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc; font-family: inherit;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Template Status (Draft / Published)</label>
+                <select id="custTplStatusSelect" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+                    <option value="published">Published (Production Ready)</option>
+                    <option value="draft">Draft (Work in Progress)</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: block;">Template Field Configuration</label>
+                <div id="custTplFieldsList"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeCustomizeTemplateModal()">Cancel</button>
+                <button type="button" class="alert-btn" style="background: white; border: 1.5px solid #7c3aed; color: #7c3aed; margin: 0; flex: 1.2;" onclick="previewBeforeSavingCustomization()">
+                    Pre-Save Preview
+                </button>
+                <button type="button" class="alert-btn" style="background: #7c3aed; color: white; margin: 0; flex: 1.5;" onclick="saveCustomizedTemplate()">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.2 PRE-SAVE PREVIEW MODAL (A preview should appear before saving)    -->
+    <!-- ===================================================================== -->
+    <div id="preSavePreviewModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 680px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Pre-Save Preview</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Review populated fields and instructions before committing changes</p>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('preSavePreviewModal').style.display='none'"><i data-lucide="x"></i></button>
+            </div>
+
+            <div id="preSavePreviewContent" style="margin-bottom: 1.5rem;"></div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="document.getElementById('preSavePreviewModal').style.display='none'">Edit Further</button>
+                <button class="alert-btn" style="background: #10b981; color: white; margin: 0; flex: 2;" onclick="saveCustomizedTemplate()">Confirm & Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.2 ADMINISTRATOR TEMPLATE PERMISSIONS MODAL                          -->
+    <!-- ===================================================================== -->
+    <div id="templatePermissionsModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 520px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Template Permissions</h2>
+                        <p id="permTplName" style="font-size: 0.75rem; color: #64748b; margin-top: 2px; font-weight: 600;">Template</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeTemplatePermissionsModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Permitted Roles</label>
+                <div style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="permRoleAdmin" checked disabled>
+                        <span>Super Admin (Full Administrative Control)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="permRoleHR">
+                        <span>HR Administrator (Can Create & Publish)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="permRoleManager">
+                        <span>Department Manager (Can Edit Permitted Fields & Instantiate)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="permRoleEmployee">
+                        <span>Employee / General Staff (Read Only)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Permitted Modules</label>
+                <div style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="permModuleGoals">
+                        <span>Goals & Objectives Module</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="permModuleOnboard">
+                        <span>Onboarding Module</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="permModuleHR">
+                        <span>HR Admin Console</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="permModulePMS">
+                        <span>Performance Reviews (PMS)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeTemplatePermissionsModal()">Cancel</button>
+                <button class="alert-btn" style="background: #dc2626; color: white; margin: 0; flex: 2;" onclick="saveTemplatePermissions()">Save Permissions</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- GENERIC TEMPLATE PREVIEW MODAL                                        -->
+    <!-- ===================================================================== -->
+    <div id="genericTemplatePreviewModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 650px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <h2 id="genericPreviewTitle" style="font-weight: 800; font-size: 1.2rem; margin: 0; color: #0f172a;">Template Preview</h2>
+                <button class="btn-ghost" onclick="closeGenericPreviewModal()"><i data-lucide="x"></i></button>
+            </div>
+            <div id="genericPreviewBody" style="margin-bottom: 1.5rem;"></div>
+            <button class="alert-btn" style="background: #f1f5f9; color: #475569; width: 100%; margin: 0;" onclick="closeGenericPreviewModal()">Close Preview</button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.3 CREATE PERSONAL COPY MODAL (Managers create personal copies)       -->
+    <!-- ===================================================================== -->
+    <div id="personalCopyModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 540px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #fdf4ff; color: #a855f7; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="copy" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Create Personal Copy</h2>
+                        <p style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Clone this shared template for tailored team management</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closePersonalCopyModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Personal Copy Name *</label>
+                <input type="text" id="personalCopyName" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.88rem; background: #f8fafc;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Personal Instructions & Team Guidelines</label>
+                <textarea id="personalCopyInstructions" rows="3" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc; font-family: inherit;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closePersonalCopyModal()">Cancel</button>
+                <button class="alert-btn" style="background: #a855f7; color: white; margin: 0; flex: 2;" onclick="submitPersonalCopy()">Create Personal Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.3 PUBLISH NEW TEMPLATE VERSION MODAL (Versioned Template Changes)   -->
+    <!-- ===================================================================== -->
+    <div id="templateVersionModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 560px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="git-branch" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Publish New Version</h2>
+                        <p id="versionTplName" style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Template</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeTemplateVersionModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px; margin-bottom: 14px; font-size: 0.8rem; color: #1e40af;">
+                <strong>Immutability Guarantee:</strong> Existing records will <em>not</em> change unexpectedly when this template is updated. They will stay linked to their original version snapshot.
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Version Increment</label>
+                    <select id="versionTypeSelect" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc;">
+                        <option value="minor">Minor Revision (e.g. v1.1)</option>
+                        <option value="major">Major Overhaul (e.g. v2.0)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Custom Version String (Optional)</label>
+                    <input type="text" id="versionCustomInput" placeholder="e.g. v2.0-FY27" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Change Notes / Audit Rationale *</label>
+                <input type="text" id="versionChangeNotes" required placeholder="Describe what changes are introduced in this version..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Revised User Instructions</label>
+                <textarea id="versionRevisedInstructions" rows="2" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc; font-family: inherit;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeTemplateVersionModal()">Cancel</button>
+                <button class="alert-btn" style="background: #2563eb; color: white; margin: 0; flex: 2;" onclick="submitTemplateVersion()">Publish New Version</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.3 TEMPLATE VERSION HISTORY SNAPSHOT VIEWER                          -->
+    <!-- ===================================================================== -->
+    <div id="templateVersionHistoryModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 640px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div>
+                    <h2 style="font-weight: 800; font-size: 1.2rem; margin: 0; color: #0f172a;">Version History & Snapshots</h2>
+                    <p id="historyModalTplName" style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Immutable record of template revisions</p>
+                </div>
+                <button class="btn-ghost" onclick="closeTemplateVersionHistoryModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div id="templateVersionHistoryList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;"></div>
+
+            <button class="alert-btn" style="background: #f1f5f9; color: #475569; width: 100%; margin: 0;" onclick="closeTemplateVersionHistoryModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.3 ARCHIVE TEMPLATE MODAL (Retained for history; unavailable for new) -->
+    <!-- ===================================================================== -->
+    <div id="archiveTemplateModal" class="custom-alert-overlay">
+        <div class="custom-alert-card" style="max-width: 500px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #fff1f2; color: #e11d48; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="archive" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Archive Template</h2>
+                        <p id="archiveTplName" style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Retained for history; unavailable for new use</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="closeArchiveTemplateModal()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 12px; padding: 12px; margin-bottom: 14px; font-size: 0.8rem; color: #9f1239;">
+                <strong>Archival Policy:</strong> This template will be retired. It remains preserved for historical audit trails, but cannot be instantiated to create new records or personal copies.
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Reason for Archival *</label>
+                <textarea id="archiveReasonInput" rows="2" required placeholder="e.g. Superseded by FY27 enterprise policy guidelines..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc; font-family: inherit;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="alert-btn" style="background: #f1f5f9; color: #475569; margin: 0; flex: 1;" onclick="closeArchiveTemplateModal()">Cancel</button>
+                <button class="alert-btn" style="background: #e11d48; color: white; margin: 0; flex: 2;" onclick="submitArchiveTemplate()">Confirm Archival</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manager Goals Controller -->
+    <script src="manager-goals-controller.js"></script>
 
     <!-- Manager EOD Audit Modal -->
     <div id="mgrEodAuditModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">

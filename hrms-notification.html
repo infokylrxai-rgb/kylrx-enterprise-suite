@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Manage and view all administrative alerts.">
@@ -23,10 +24,14 @@
         .sidebar { overflow: hidden; }
         .nav-menu {
             overflow-y: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #f1f5f9;
         }
-        .nav-menu::-webkit-scrollbar { display: none; }
+        .nav-menu::-webkit-scrollbar { width: 6px; display: block; }
+        .nav-menu::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 9999px; }
+        .nav-menu::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 9999px; }
+        .nav-menu:hover::-webkit-scrollbar-thumb, .nav-menu::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .nav-menu::-webkit-scrollbar-button { display: none !important; width: 0 !important; height: 0 !important; }
 
         .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
         .header { margin-bottom: 2.5rem; }
@@ -364,7 +369,7 @@
         </aside>
     </div>
     <script type="module">
-        import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, updateDoc, arrayUnion, where } from "./firebase-config.js";
+        import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, updateDoc, arrayUnion, where, registerListener } from "./firebase-config.js";
 
         function syncHeaderBadges(userId) {
             const msgBadge = document.getElementById('headerMsgBadge');
@@ -444,6 +449,7 @@
                 return;
             }
 
+            const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
             notifContainer.innerHTML = hrmsDocs.map(docSnap => {
                 const data = docSnap.data();
                 const docId = docSnap.id;
@@ -463,28 +469,29 @@
                     icon = 'bell'; color = '#10b981'; bg = 'rgba(16,185,129,0.1)';
                 }
 
+                const safeDocId = esc(docId);
                 const resolveBtn = isHelpReq && helpStatus !== 'resolved' ? `
-                    <button onclick="resolveHelpRequest('${docId}')"
+                    <button onclick="resolveHelpRequest('${safeDocId}')"
                         style="margin-top:8px; background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; border-radius:8px; padding:6px 14px; font-size:0.74rem; font-weight:700; cursor:pointer; transition:0.2s;"
                         onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                         ✓ Mark Resolved
                     </button>` : (isHelpReq ? `<div style="margin-top:6px; font-size:0.72rem; font-weight:700; color:#64748b;">✔ Resolved</div>` : '');
 
                 return `
-                    <div class="notif-item" id="hrms-notif-${docId}">
+                    <div class="notif-item" id="hrms-notif-${safeDocId}">
                         <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
                         <div class="notif-content">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">${data.title || (priority.toUpperCase() + ' ALERT')}</div>
-                                <button onclick="deleteNotification('${docId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                                <div class="notif-title">${esc(data.title || (priority.toUpperCase() + ' ALERT'))}</div>
+                                <button onclick="deleteNotification('${safeDocId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
                             </div>
-                            <div class="notif-desc">${data.message || 'No details provided.'}</div>
+                            <div class="notif-desc">${esc(data.message || 'No details provided.')}</div>
                             ${isHelpReq && data.empEmail ? `
                                 <div style="margin-top:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                    <span style="background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; border-radius:6px; padding:3px 10px; font-size:0.73rem; font-weight:700;">📧 ${data.empEmail}</span>
-                                    <button onclick="navigator.clipboard.writeText('${data.empEmail}').then(()=>this.textContent='Copied!')" style="background:none; border:none; color:#2563eb; font-size:0.7rem; cursor:pointer; font-weight:700; text-decoration:underline;">Copy Email</button>
+                                    <span style="background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; border-radius:6px; padding:3px 10px; font-size:0.73rem; font-weight:700;">📧 ${esc(data.empEmail)}</span>
+                                    <button onclick="navigator.clipboard.writeText('${esc(data.empEmail)}').then(()=>this.textContent='Copied!')" style="background:none; border:none; color:#2563eb; font-size:0.7rem; cursor:pointer; font-weight:700; text-decoration:underline;">Copy Email</button>
                                 </div>` : ''}
-                            <div class="notif-time">${date}</div>
+                            <div class="notif-time">${esc(date)}</div>
                             ${resolveBtn}
                         </div>
                     </div>

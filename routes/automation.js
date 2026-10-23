@@ -1,9 +1,39 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../config/firebase');
+const { confirmedWrite } = require('../config/firestore-write');
+const { db, rawCollection } = require('../config/firebase');
+const { orgDocs, ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
 const eventBus = require('../services/event-bus');
 const moduleRegistry = require('../services/automation-module-registry');
+const automationAi = require('../services/automation-ai-service');
 const logger = require('../utils/logger');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
+
+
+function orgOf(req) {
+    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+}
+
+// Firestore keeps retrying a write while the project quota is exhausted; fail with 503 instead of hanging
+
+// Loads an automation only if it belongs to the caller's organization
+async function loadOwnedAutomation(req, id) {
+    const ref = rawCollection('automations').doc(String(id));
+    const snap = await ref.get();
+    if (!snap.exists || ownerOrgId(snap.data()) !== orgOf(req)) return { ref, snap: null };
+    return { ref, snap };
+}
+
+// The event that starts the workflow: an explicit trigger_event, else the trigger step's event.
+// Events are dot-separated everywhere in the backend (e.g. exit.resignation_submitted).
+function resolveTriggerEvent(payload, steps) {
+    const triggerStep = steps.find(s => s && s.type === 'trigger');
+    const raw = payload.trigger_event || (triggerStep && triggerStep.config && triggerStep.config.eventType) || 'custom.trigger';
+    return String(raw).replace(/:/g, '.');
+}
+
 
 // GET /api/automations/modules - Return discovery schema for all registered HR modules
 router.get('/modules', (req, res) => {
@@ -20,16 +50,48 @@ router.get('/modules', (req, res) => {
     }
 });
 
+// POST /api/automations/ai/generate - Build a workflow from a plain-English description
+router.post('/ai/generate', async (req, res) => {
+    try {
+        const result = await automationAi.generateWorkflow(req.body && req.body.prompt);
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        logger.warn('[AutomationRoutes] AI generate failed: ' + error.message);
+        res.status(error.status || 500).json({ success: false, error: error.status ? error.message : 'AI workflow generation failed' });
+    }
+});
+
+// POST /api/automations/ai/suggest-next - Propose the next step for the workflow on the canvas
+router.post('/ai/suggest-next', async (req, res) => {
+    try {
+        const result = await automationAi.suggestNextStep(req.body && req.body.workflow);
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        logger.warn('[AutomationRoutes] AI suggest failed: ' + error.message);
+        res.status(error.status || 500).json({ success: false, error: error.status ? error.message : 'AI suggestion failed' });
+    }
+});
+
 // POST /api/automations - Create or update a workflow definition in Firebase Firestore
 router.post('/', async (req, res) => {
     try {
         const payload = req.body;
         const name = payload.name || 'Untitled Automation';
         const steps = payload.steps || payload.pipeline || [];
-        const triggerEvent = payload.trigger_event || (steps[0] && (steps[0].config?.eventType || steps[0].title)) || 'custom.trigger';
+        const triggerEvent = resolveTriggerEvent(payload, steps);
 
-        const automationRef = db.collection('automations').doc(payload.id || undefined); // let firestore auto-id if missing
-        const finalId = payload.id || automationRef.id;
+        let automationRef;
+        if (payload.id) {
+            // Updating: the workflow must belong to the caller's organization
+            const existing = await rawCollection('automations').doc(String(payload.id)).get();
+            if (existing.exists && ownerOrgId(existing.data()) !== orgOf(req)) {
+                return res.status(404).json({ success: false, error: 'Workflow not found' });
+            }
+            automationRef = rawCollection('automations').doc(String(payload.id));
+        } else {
+            automationRef = rawCollection('automations').doc(); // auto-id
+        }
+        const finalId = automationRef.id;
 
         const data = {
             ...payload,
@@ -39,16 +101,17 @@ router.post('/', async (req, res) => {
             pipeline: steps,
             trigger_event: triggerEvent,
             updated_at: new Date().toISOString(),
-            status: payload.status || 'ACTIVE'
+            status: payload.status || 'ACTIVE',
+            orgId: orgOf(req)
         };
 
-        await automationRef.set(data, { merge: true });
+        await confirmedWrite(() => automationRef.set(data, { merge: true }));
         logger.info(`[AutomationRoutes] Automation "${name}" (${finalId}) saved to Firebase Firestore.`);
 
         res.status(200).json({ success: true, id: finalId, data, message: 'Automation saved successfully to Firebase Firestore' });
     } catch (error) {
         logger.error('Error saving automation to Firebase:', error);
-        res.status(500).json({ success: false, error: 'Failed to save automation' });
+        res.status(error.status || 500).json({ success: false, error: error.status ? error.message : 'Failed to save automation' });
     }
 });
 
@@ -56,12 +119,14 @@ router.post('/', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        await db.collection('automations').doc(id).delete();
+        const { ref, snap } = await loadOwnedAutomation(req, id);
+        if (!snap) return res.status(404).json({ success: false, error: 'Workflow not found' });
+        await confirmedWrite(() => ref.delete());
         logger.info(`[AutomationRoutes] Automation "${id}" deleted from Firebase Firestore.`);
         res.status(200).json({ success: true, message: `Workflow ${id} deleted from Firebase Firestore` });
     } catch (error) {
         logger.error('Error deleting automation from Firebase:', error);
-        res.status(500).json({ success: false, error: 'Failed to delete automation from Firebase' });
+        res.status(error.status || 500).json({ success: false, error: error.status ? error.message : 'Failed to delete automation from Firebase' });
     }
 });
 
@@ -69,9 +134,8 @@ router.delete('/:id', async (req, res) => {
 router.delete('/:id/steps/:stepKey', async (req, res) => {
     try {
         const { id, stepKey } = req.params;
-        const docRef = db.collection('automations').doc(id);
-        const docSnap = await docRef.get();
-        if (!docSnap.exists) {
+        const { ref: docRef, snap: docSnap } = await loadOwnedAutomation(req, id);
+        if (!docSnap) {
             return res.status(404).json({ success: false, error: 'Workflow not found in Firebase Firestore' });
         }
         const workflow = docSnap.data();
@@ -84,25 +148,25 @@ router.delete('/:id/steps/:stepKey', async (req, res) => {
             steps = steps.filter(s => s.id !== stepKey);
         }
 
-        await docRef.update({
+        await confirmedWrite(() => docRef.update({
             steps: steps,
             pipeline: steps,
             updated_at: new Date().toISOString()
-        });
+        }));
 
         logger.info(`[AutomationRoutes] Step ${stepKey} deleted from workflow ${id} in Firebase Firestore.`);
         res.status(200).json({ success: true, message: 'Step deleted from Firebase Firestore', remainingSteps: steps.length });
     } catch (error) {
         logger.error('Error deleting step from Firebase:', error);
-        res.status(500).json({ success: false, error: 'Failed to delete step from Firebase' });
+        res.status(error.status || 500).json({ success: false, error: error.status ? error.message : 'Failed to delete step from Firebase' });
     }
 });
 
 // GET /api/automations - List all workflows
 router.get('/', async (req, res) => {
     try {
-        const snapshot = await db.collection('automations').get();
-        const automations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Only the caller's organization's workflows
+        const automations = await orgDocs(rawCollection, 'automations', orgOf(req));
         res.status(200).json({ success: true, data: automations });
     } catch (error) {
         logger.error('Error fetching automations:', error);

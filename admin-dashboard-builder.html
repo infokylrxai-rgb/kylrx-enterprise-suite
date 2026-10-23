@@ -1867,9 +1867,9 @@
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase-config.js";
+        import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, addDoc, deleteDoc, doc, serverTimestamp, updateDoc, getDoc } from "./firebase-config.js";
 
         // Auth Observer for Profile
         onAuthStateChanged(auth, async (user) => {
@@ -2456,12 +2456,54 @@
             }
         });
 
+        // Preview the unit's dashboard in an overlay so the admin stays on the Dashboard Builder
         window.openBlueprintPreview = (id, targetType) => {
             const page = targetType === 'Employee Portal' ? 'employee-dashboard.html' : 'manager-dashboard.html';
-            window.location.href = `${page}?id=${id}`;
+            let overlay = document.getElementById('blueprintPreviewOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'blueprintPreviewOverlay';
+                overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;padding:16px;';
+                overlay.innerHTML = `
+                    <div style="background:#fff;border-radius:16px;width:100%;max-width:1400px;height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(15,23,42,0.3);">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid #e2e8f0;">
+                            <div style="font-weight:800;color:#0f172a;" id="blueprintPreviewTitle">Dashboard Preview</div>
+                            <button type="button" id="blueprintPreviewClose" style="background:none;border:none;cursor:pointer;font-size:1.4rem;line-height:1;color:#64748b;" aria-label="Close preview">&times;</button>
+                        </div>
+                        <iframe id="blueprintPreviewFrame" title="Dashboard preview" style="flex:1;border:0;width:100%;"></iframe>
+                    </div>`;
+                document.body.appendChild(overlay);
+                const close = () => {
+                    overlay.style.display = 'none';
+                    document.getElementById('blueprintPreviewFrame').src = 'about:blank';
+                };
+                document.getElementById('blueprintPreviewClose').onclick = close;
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.style.display !== 'none') close(); });
+            }
+            const unit = unitDataById.get(id);
+            document.getElementById('blueprintPreviewTitle').textContent = `Preview (read-only): ${(unit && unit.name) || id} (${targetType === 'Employee Portal' ? 'Employee Portal' : 'Manager Suite'})`;
+            const frame = document.getElementById('blueprintPreviewFrame');
+            // Read-only: the previewed dashboard is the real page, so block clicks, typing and
+            // navigation inside it (Punch In, Logout, links...) while still allowing scrolling
+            frame.onload = () => {
+                try {
+                    const fdoc = frame.contentDocument;
+                    if (!fdoc || frame.src === 'about:blank') return;
+                    const style = fdoc.createElement('style');
+                    style.textContent = 'a, button, input, select, textarea, label, [onclick], [role="button"] { pointer-events: none !important; }';
+                    fdoc.head.appendChild(style);
+                    const block = (e) => { e.preventDefault(); e.stopPropagation(); };
+                    ['click', 'submit', 'keydown', 'mousedown'].forEach(evt => fdoc.addEventListener(evt, block, true));
+                    frame.contentWindow.open = () => null;
+                } catch (_) {}
+            };
+            frame.src = `${page}?id=${encodeURIComponent(id)}&preview=1`;
+            overlay.style.display = 'flex';
         };
 
-        window.editCenter = async (id, data) => {
+        window.editCenter = async (id, data = unitDataById.get(id)) => {
+            if (!data) return;
             editingId = id;
             deptNameInput.value = data.name;
             unitIdInput.value = data.unitId;
@@ -2512,7 +2554,7 @@
                 window.showCustomAlert("Unit Deployed", "The Command Center is now active and ready for personnel access.", "success");
             } catch (err) {
                 console.error("Error deploying: ", err);
-                window.showCustomAlert("Deployment Failed", "There was an error connecting to the gateway. Please try again.", "error");
+                window.showCustomAlert("Deployment Failed", `The unit was NOT deployed in Firebase. ${err.message}`, "error");
             }
         };
 
@@ -2698,7 +2740,11 @@
             }
         );
 
+        // Unit data by id, so card buttons pass only the id (no data serialized into onclick)
+        const unitDataById = new Map();
+
         function createCardElement(id, data) {
+            unitDataById.set(id, data);
             const div = document.createElement('div');
             div.className = 'hub-card';
             const statusClass = data.status === 'Live' ? 'status-active' : 'status-pending';
@@ -2773,7 +2819,7 @@
                             <i data-lucide="play"></i> Start & Deploy
                         </button>
                     `}
-                    <button class="action-btn btn-outline" onclick='editCenter("${id}", ${JSON.stringify(data).replace(/'/g, "&apos;")})'>
+                    <button class="action-btn btn-outline" onclick="editCenter('${id}')">
                         <i data-lucide="edit-3"></i> Edit
                     </button>
                 </div>
@@ -2783,8 +2829,12 @@
                 e.stopPropagation();
                 const confirmed = await window.showCustomConfirm("Delete Command Center", `Are you sure you want to permanently delete the ${data.name} unit? This action cannot be undone.`);
                 if (confirmed) {
-                    await deleteDoc(doc(db, 'command_centers', id));
-                    window.showCustomAlert("Unit Terminated", `${data.name} has been removed from the network.`, "success");
+                    try {
+                        await deleteDoc(doc(db, 'command_centers', id));
+                        window.showCustomAlert("Unit Terminated", `${data.name} has been removed from the network.`, "success");
+                    } catch (err) {
+                        window.showCustomAlert("Delete Failed", `${data.name} was NOT deleted from Firebase. ${err.message}`, "error");
+                    }
                 }
             };
 
@@ -2860,7 +2910,7 @@
                 nextStep(1);
             } catch (err) {
                 console.error("Error saving center: ", err);
-                window.showCustomAlert("Save Failed", "Encountered a protocol error during deployment. Please check connectivity.", "error");
+                window.showCustomAlert("Save Failed", `The unit was NOT saved to Firebase. ${err.message}`, "error");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Authorize & Deploy Unit';
@@ -3383,8 +3433,8 @@
 
     <!-- Custom Apps Injection Script -->
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, onSnapshot, registerListener } from "./firebase-config.js";
+        import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
         const DEFAULT_APPS = [
             { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

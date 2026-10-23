@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notifications | HRFlow</title>
@@ -32,12 +33,13 @@
                 { name: "JIRA", url: "https://atlassian.com" }
             ];
             
+            const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
             const apps = stored ? JSON.parse(stored) : defaultApps;
             list.innerHTML = apps.map((app) => `
                 <div class="nav-item" style="position: relative; margin-bottom: 2px;">
-                    <a href="${app.url}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                    <a href="${esc(app.url)}" target="_blank" class="nav-link" style="padding: 8px 12px; font-size: 0.8rem; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-                        <span>${app.name}</span>
+                        <span>${esc(app.name)}</span>
                     </a>
                 </div>
             `).join('');
@@ -456,11 +458,7 @@
     </div>
 
     <script type="module">
-        import { 
-            auth, db, doc, onAuthStateChanged, checkBackendFirebaseStatus,
-            collection, query, where, getDoc, getDocs, onSnapshot, updateDoc, limit, deleteDoc, arrayUnion,
-            addDoc, serverTimestamp
-        } from "./firebase-config.js";
+        import { auth, db, doc, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, getDoc, getDocs, onSnapshot, updateDoc, limit, deleteDoc, arrayUnion, addDoc, serverTimestamp, registerListener } from "./firebase-config.js";
 
         lucide.createIcons();
 
@@ -640,7 +638,7 @@
                 const uid = currentUser?.uid || 'demo_emp';
                 const role = currentUser?.role || 'employee';
                 const dept = currentUser?.department || '';
-                const res = await fetch(`http://localhost:3000/api/notifications?uid=${encodeURIComponent(uid)}&role=${encodeURIComponent(role)}&department=${encodeURIComponent(dept)}`);
+                const res = await fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications?uid=${encodeURIComponent(uid)}&role=${encodeURIComponent(role)}&department=${encodeURIComponent(dept)}`);
                 if (res.ok) {
                     const json = await res.json();
                     if (json && json.success && Array.isArray(json.data)) {
@@ -780,6 +778,7 @@
                 return;
             }
 
+            const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
             feedEl.innerHTML = filtered.map(n => {
                 let dateStr = 'Recent';
                 try {
@@ -821,23 +820,24 @@
                     iconColor = '#2563eb';
                 }
 
+                const safeId = esc(n.id || '');
                 return `
-                    <div class="notif-item ${isRead ? 'read' : ''}" data-id="${n.id}" onclick="toggleMarkAsRead('${n.id}', ${isRead})">
+                    <div class="notif-item ${isRead ? 'read' : ''}" data-id="${safeId}" onclick="toggleMarkAsRead('${safeId}', ${isRead})">
                         <div class="notif-icon" style="background: ${iconBg}; color: ${iconColor};">
                             <i data-lucide="${icon}"></i>
                         </div>
                         <div class="notif-content">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">${n.title || 'Notification'}</div>
-                                <button onclick="event.stopPropagation(); deleteNotification('${n.id}')" title="Clear notification" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                                <div class="notif-title">${esc(n.title || 'Notification')}</div>
+                                <button onclick="event.stopPropagation(); deleteNotification('${safeId}')" title="Clear notification" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
                                     <i data-lucide="x" style="width:16px; height:16px;"></i>
                                 </button>
                             </div>
-                            <div class="notif-desc">${n.text || n.message || 'No details provided.'}</div>
+                            <div class="notif-desc">${esc(n.text || n.message || 'No details provided.')}</div>
                             <div class="notif-time">
                                 <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
-                                <span>${dateStr}</span>
-                                ${priority !== 'normal' ? `<span style="margin-left: 8px; font-size: 0.65rem; background: ${iconBg}; color: ${iconColor}; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; font-weight: 700;">${priority}</span>` : ''}
+                                <span>${esc(dateStr)}</span>
+                                ${priority !== 'normal' ? `<span style="margin-left: 8px; font-size: 0.65rem; background: ${iconBg}; color: ${iconColor}; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; font-weight: 700;">${esc(priority)}</span>` : ''}
                             </div>
                         </div>
                         ${!isRead ? '<div class="unread-dot"></div>' : ''}
@@ -856,7 +856,7 @@
             renderNotificationsUI();
 
             // Asynchronous backend & Firestore sync
-            fetch(`http://localhost:3000/api/notifications/read/${id}`, { method: 'POST' }).catch(() => {});
+            fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications/read/${id}`, { method: 'POST' }).catch(() => {});
             try {
                 const targetRef = doc(db, 'notifications', id);
                 await updateDoc(targetRef, { read: true });
@@ -873,7 +873,7 @@
 
             // Asynchronous backend & Firestore sync
             const candUids = getCandidateUids();
-            fetch('http://localhost:3000/api/notifications/read-all', {
+            fetch('${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications/read-all', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ uid: candUids[0] })
@@ -938,7 +938,7 @@
                 const candUids = getCandidateUids();
                 const currentUid = candUids[0];
 
-                fetch(`http://localhost:3000/api/notifications/clear/${id}`, {
+                fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications/clear/${id}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uid: currentUid })
@@ -966,7 +966,7 @@
                 const candUids = getCandidateUids();
                 const currentUid = candUids[0];
 
-                fetch('http://localhost:3000/api/notifications/clear-all', {
+                fetch('${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications/clear-all', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ uid: currentUid })

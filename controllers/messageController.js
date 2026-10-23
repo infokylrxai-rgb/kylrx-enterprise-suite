@@ -1,43 +1,4 @@
-const fs = require('fs');
-const path = require('path');
 const { db, admin } = require('../config/firebase');
-
-const USER_DIR = process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\user';
-const ROOT_DATA_DIR = path.join(USER_DIR, '.kylrx_enterprise_data');
-if (!fs.existsSync(ROOT_DATA_DIR)) {
-    try { fs.mkdirSync(ROOT_DATA_DIR, { recursive: true }); } catch (_) {}
-}
-const STORE_PATH = path.join(ROOT_DATA_DIR, 'messages_store.json');
-
-// Initialize or migrate existing data if needed
-function loadStore() {
-    try {
-        if (!fs.existsSync(STORE_PATH)) {
-            // Check if legacy file exists to migrate
-            const legacyPath = path.join(__dirname, '..', '..', 'data', 'messages_store.json');
-            if (fs.existsSync(legacyPath)) {
-                try {
-                    const legacyData = fs.readFileSync(legacyPath, 'utf8');
-                    fs.writeFileSync(STORE_PATH, legacyData);
-                    return JSON.parse(legacyData);
-                } catch (_) {}
-            }
-            fs.writeFileSync(STORE_PATH, JSON.stringify({ messages: [] }, null, 2));
-            return { messages: [] };
-        }
-        return JSON.parse(fs.readFileSync(STORE_PATH, 'utf8'));
-    } catch (e) {
-        return { messages: [] };
-    }
-}
-
-function saveStore(data) {
-    try {
-        fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2));
-    } catch (e) {
-        console.error('Failed to write messages store:', e);
-    }
-}
 
 function normalizeTimestamp(ts) {
     if (!ts) return new Date().toISOString();
@@ -50,20 +11,26 @@ function normalizeTimestamp(ts) {
 
 /**
  * GET /api/messages/thread/:chatId
- * Fast retrieval for deterministic chatId
+ * Fast retrieval for deterministic chatId from Firestore 'messages' collection
  */
 exports.getThreadMessages = async (req, res) => {
     try {
         const rawParam = req.params.chatId || '';
         const targetIds = rawParam.split(',').map(s => s.trim()).filter(Boolean);
-        const store = loadStore();
 
         const isMarryAdminQuery = targetIds.some(t => 
             (t.includes('hr_support') || t.includes('ADMIN')) && 
             (t.includes('EMP_1789230184645') || t.toLowerCase().includes('marry'))
         );
 
-        let msgs = store.messages.filter(m => {
+        const snapshot = await db.collection('messages').get();
+        let msgs = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            msgs.push({ id: doc.id, ...data });
+        });
+
+        msgs = msgs.filter(m => {
             if (targetIds.includes(m.chatId)) return true;
             if (isMarryAdminQuery) {
                 const hasAdmin = m.chatId?.includes('hr_support') || m.chatId?.includes('ADMIN') || 
@@ -111,7 +78,7 @@ exports.getThreadMessages = async (req, res) => {
 
 /**
  * GET /api/messages/:recipientId
- * Legacy & omni-channel retrieval
+ * Retrieval from Firestore 'messages' collection
  */
 exports.getMessages = async (req, res) => {
     try {
@@ -120,8 +87,14 @@ exports.getMessages = async (req, res) => {
         const candidate1 = [senderId, recipientId].sort().join('_');
         const candidate2 = ['hr_support', recipientId].sort().join('_');
 
-        const store = loadStore();
-        const msgs = store.messages.filter(m => m.chatId === candidate1 || m.chatId === candidate2 || m.receiverId === recipientId);
+        const snapshot = await db.collection('messages').get();
+        let msgs = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            msgs.push({ id: doc.id, ...data });
+        });
+
+        msgs = msgs.filter(m => m.chatId === candidate1 || m.chatId === candidate2 || m.receiverId === recipientId);
 
         msgs.sort((a, b) => {
             const tA = new Date(normalizeTimestamp(a.timestamp)).getTime();
@@ -137,7 +110,7 @@ exports.getMessages = async (req, res) => {
 
 /**
  * POST /api/messages/send or POST /api/messages
- * Send message with dual local + Firestore persistence
+ * Send message with Firestore persistence
  */
 exports.sendMessage = async (req, res) => {
     try {
@@ -171,27 +144,7 @@ exports.sendMessage = async (req, res) => {
             type: 'direct'
         };
 
-        const store = loadStore();
-        // Replace or push
-        const existingIdx = store.messages.findIndex(m => m.id === msgId);
-        if (existingIdx >= 0) {
-            store.messages[existingIdx] = messageData;
-        } else {
-            store.messages.push(messageData);
-        }
-        saveStore(store);
-
-        // Fire-and-forget background sync to Firestore
-        (async () => {
-            try {
-                if (db && admin && admin.firestore) {
-                    await db.collection('messages').doc(msgId).set({
-                        ...messageData,
-                        timestamp: admin.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-            } catch (_) {}
-        })().catch(() => {});
+        await db.collection('messages').doc(msgId).set(messageData);
 
         res.status(201).json({ success: true, status: 'success', message: 'Message sent', data: messageData });
     } catch (error) {
@@ -212,11 +165,11 @@ exports.broadcastMessage = async (req, res) => {
             return res.status(400).json({ status: 'error', message: 'Recipients array and text are required' });
         }
 
-        const store = loadStore();
         const now = new Date().toISOString();
         const createdMsgs = [];
+        const batch = (typeof db.batch === 'function') ? db.batch() : null;
 
-        recipientIds.forEach(recipientId => {
+        for (const recipientId of recipientIds) {
             const chatId = ['hr_support', recipientId].sort().join('_');
             const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
             const msgObj = {
@@ -235,11 +188,18 @@ exports.broadcastMessage = async (req, res) => {
                 read: false,
                 type: 'broadcast'
             };
-            store.messages.push(msgObj);
             createdMsgs.push(msgObj);
-        });
+            if (batch) {
+                batch.set(db.collection('messages').doc(msgId), msgObj);
+            } else {
+                await db.collection('messages').doc(msgId).set(msgObj);
+            }
+        }
 
-        saveStore(store);
+        if (batch) {
+            await batch.commit();
+        }
+
         res.status(201).json({ success: true, status: 'success', message: `Broadcast sent to ${recipientIds.length} people`, count: createdMsgs.length });
     } catch (error) {
         res.status(500).json({ success: false, status: 'error', error: error.message });
@@ -252,9 +212,20 @@ exports.broadcastMessage = async (req, res) => {
 exports.clearChat = async (req, res) => {
     try {
         const { chatId } = req.params;
-        const store = loadStore();
-        store.messages = store.messages.filter(m => m.chatId !== chatId);
-        saveStore(store);
+        const snapshot = await db.collection('messages').where('chatId', '==', chatId).get();
+        if (snapshot && snapshot.docs && snapshot.docs.length > 0) {
+            const batch = (typeof db.batch === 'function') ? db.batch() : null;
+            for (const doc of snapshot.docs) {
+                if (batch) {
+                    batch.delete(doc.ref || db.collection('messages').doc(doc.id));
+                } else if (doc.ref && typeof doc.ref.delete === 'function') {
+                    await doc.ref.delete();
+                } else {
+                    await db.collection('messages').doc(doc.id).delete();
+                }
+            }
+            if (batch) await batch.commit();
+        }
         res.json({ success: true, message: 'Chat cleared successfully' });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });

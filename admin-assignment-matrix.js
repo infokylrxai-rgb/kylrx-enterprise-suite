@@ -1,6 +1,6 @@
 // Kylrx Enterprise Suite - Employee Type + BU Assignment Engine Controller
 // Handles 7 input dimensions and 10 automatic assignment categories
-import { db, auth, onSnapshot, collection, doc, setDoc, addDoc, serverTimestamp, getDocs } from "./firebase-config.js";
+import { db, auth, onSnapshot, collection, doc, setDoc, addDoc, serverTimestamp, getDocs, registerListener } from "./firebase-config.js";
 
 const CATEGORY_META = {
     payrollStructure: { label: '1. Payroll Structure', icon: 'credit-card', color: '#4f46e5', bg: '#ede9fe' },
@@ -15,7 +15,7 @@ const CATEGORY_META = {
     alertRules: { label: '10. Alert & Escalation Rules', icon: 'bell', color: '#ea580c', bg: '#ffedd5' }
 };
 
-const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin);
 const API_BASE = `${API_HOST}/api/assignments`;
 
 // Dynamic Employee Registry cached from Cloud Firestore
@@ -736,82 +736,30 @@ async function applySimulatedTransition() {
         reason: `${prevType} to ${prospectiveType} Regularization`
     };
 
-    // 1. Direct Commit to Firebase Firestore Backend
-    let fsSuccess = false;
+    // Saved by the server, which checks the employee belongs to this organization and
+    // confirms every Firestore write (assignment, history, profile, audit log, notification)
+    let saveError = '';
     try {
-        if (db) {
-            const sha256 = 'SHA256_' + Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            // a. Write assignment to employee_assignments collection in Firestore
-            await setDoc(doc(db, 'employee_assignments', empId), {
-                employeeId: empId,
-                employeeName: emp.name || empId,
-                previousType: prevType,
-                newType: prospectiveType,
-                attributes: payload.newAttributes,
-                effectiveDate,
-                updatedAt: serverTimestamp(),
-                updatedBy: payload.changedBy,
-                reason: payload.reason,
-                historicalSealedSha256: sha256,
-                status: 'ACTIVE_TRANSITIONED'
-            }, { merge: true });
-
-            // b. If user document exists in users collection, update employeeType in Firestore
-            if (emp.docId) {
-                await setDoc(doc(db, 'users', emp.docId), {
-                    employeeType: prospectiveType,
-                    role: prospectiveType.toLowerCase() === 'contractor' ? 'contractor' : (emp.role || 'employee'),
-                    effectiveDate,
-                    updatedAt: serverTimestamp()
-                }, { merge: true });
-            }
-
-            // c. Append Audit Log in Firestore
-            await addDoc(collection(db, 'audit_logs'), {
-                action: 'EMPLOYEE_TYPE_TRANSITION',
-                employeeId: empId,
-                employeeName: emp.name || empId,
-                fromType: prevType,
-                toType: prospectiveType,
-                effectiveDate,
-                timestamp: serverTimestamp(),
-                performedBy: 'Super Admin',
-                sha256Seal: sha256
-            });
-
-            // d. Send Notification in Firestore
-            await addDoc(collection(db, 'notifications'), {
-                target: empId,
-                targetUid: empId,
-                title: 'Employment Classification Transitioned',
-                message: `Your employment classification has been transitioned to ${prospectiveType}, effective ${effectiveDateVal}.`,
-                priority: 'normal',
-                timestamp: serverTimestamp()
-            });
-
-            // e. Write to Activities stream in Firestore
-            await addDoc(collection(db, 'activities'), {
-                event: 'ASSIGNMENT_TRANSITION_COMMITTED',
-                employeeId: empId,
-                timestamp: serverTimestamp(),
-                details: `Transitioned ${emp.name || empId} (${empId}) from ${prevType} to ${prospectiveType}.`
-            });
-
-            fsSuccess = true;
-        }
-    } catch (fsErr) {
-        console.warn('Firestore direct write notice:', fsErr);
-    }
-
-    // 2. Also attempt backend transition endpoint in background if online
-    try {
-        await fetch(`${API_BASE}/transition`, {
+        const res = await fetch(`${API_BASE}/transition`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-    } catch (_) {}
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.success) saveError = json.error || `Save failed (HTTP ${res.status})`;
+    } catch (err) {
+        saveError = 'Server unreachable: ' + err.message;
+    }
+
+    if (saveError) {
+        closeImpactSimulatorModal();
+        await showCenterAlertModal({
+            title: 'Transition Not Saved',
+            type: 'warning',
+            message: `The transition for ${emp.name || empId} was NOT saved to Firebase.\n${saveError}`
+        });
+        return;
+    }
 
     // 3. Update local employee cache so UI reflects immediately
     emp.employeeType = prospectiveType;
@@ -851,7 +799,7 @@ async function applySimulatedTransition() {
                 <div class="center-modal-list-item">
                     <span class="item-label">Cloud Firestore</span>
                     <span class="item-val" style="color: #059669; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
-                        <i data-lucide="cloud" size="14"></i> Connected &amp; Synchronized
+                        <i data-lucide="cloud" size="14"></i> Saved &amp; Confirmed
                     </span>
                 </div>
             </div>

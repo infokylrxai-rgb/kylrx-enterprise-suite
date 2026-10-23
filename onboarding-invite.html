@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Secure onboarding portal for new team members at Kylrx AI Enterprise. Start your activation process and complete profile verification.">
@@ -316,7 +317,7 @@
 
     <script type="module">
         import { db } from "./firebase-config.js";
-        import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { doc, getDoc, updateDoc, serverTimestamp } from "./firebase-config.js";
 
         lucide.createIcons();
 
@@ -499,9 +500,7 @@
                         `;
 
                         // Environment-aware API URL
-                        const apiBase = (window.location.origin.includes('localhost:55') || window.location.origin.includes('127.0.0.1:55'))
-                            ? 'http://localhost:3000/api'
-                            : '/api';
+                        const apiBase = `${typeof API_BASE !== 'undefined' ? API_BASE : (window.API_BASE || window.location.origin)}/api`;
 
                         // 5. Send email
                         const res = await fetch(`${apiBase}/email/send`, {

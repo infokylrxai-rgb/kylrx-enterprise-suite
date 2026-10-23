@@ -474,7 +474,10 @@
             gap: 12px;
             justify-content: center;
         }
-    </style>
+        /* Keep header button labels on one line; wrap buttons instead */
+    .builder-actions { flex-wrap: wrap; justify-content: flex-end; }
+    .builder-actions .btn-builder { white-space: nowrap; }
+</style>
 </head>
 
 <body>
@@ -582,6 +585,14 @@
                 </div>
 
                 <div class="builder-actions">
+                    <button class="btn-builder" onclick="openAiBuildModal()" title="Describe a workflow in plain English and let AI build it">
+                        <i data-lucide="sparkles" size="16"></i>
+                        <span>AI Build</span>
+                    </button>
+                    <button class="btn-builder" onclick="suggestAiNextStep()" title="Let AI propose the next step">
+                        <i data-lucide="wand-2" size="16"></i>
+                        <span>Suggest Next Step</span>
+                    </button>
                     <button class="btn-builder" onclick="openTemplateModal()">
                         <i data-lucide="library" size="16"></i>
                         <span>Template Library</span>
@@ -808,8 +819,8 @@
 
     <!-- Firebase SDK Integration -->
     <script type="module">
-        import { db, auth } from "./firebase-config.js";
-        import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
+        import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp } from "./firebase-config.js";
         window.db = db;
         window.auth = auth;
         window.firestoreTools = { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, onSnapshot, serverTimestamp };
@@ -818,7 +829,8 @@
     </script>
 
     <!-- Core Builder Controller -->
-    <script src="admin-automation-builder.js"></script>
+    <script src="admin-automation-builder.js?v=2"></script>
+    <script src="automation-builder-ai.js?v=2"></script>
 
     <!-- Custom App Registry Modal -->
     <div id="customAppsModal" class="modal-overlay">

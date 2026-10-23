@@ -5,7 +5,7 @@ import analyticsEngine from '../services/custom-analytics-engine.js';
 
 describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashboard Suite', () => {
 
-    test('1. Data Sources Catalog exposes all 6 prompt HR domains with exact metrics', () => {
+    test('1. Data Sources Catalog exposes all 6 prompt HR domains with exact metrics', async () => {
         const sources = analyticsEngine.DATA_SOURCES;
 
         assert.ok(sources.workforce, 'Workforce data source must exist');
@@ -63,9 +63,10 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(polMetricIds.includes('overdue'));
     });
 
-    test('2. Workforce Aggregation Query: Headcount & Employee Type by BU and Location', () => {
+    test('2. Workforce Aggregation Query: Headcount & Employee Type by BU and Location', async () => {
         // Query Headcount grouped by BU
-        const resBU = analyticsEngine.executeCustomQuery({
+        const resBU = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'workforce',
             metric: 'headcount',
             grouping: 'bu',
@@ -79,7 +80,8 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.strictEqual(resBU.chartData.datasets[0].data.length, resBU.chartData.labels.length);
 
         // Query Employee Type grouped by employeeType
-        const resType = analyticsEngine.executeCustomQuery({
+        const resType = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'workforce',
             metric: 'employee_type',
             grouping: 'employeeType',
@@ -89,8 +91,9 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resType.chartData.labels.includes('Contractor'));
     });
 
-    test('3. Attendance Aggregation Query: Absenteeism, Late Marks, WFH, Overtime & Regularization', () => {
-        const resAtt = analyticsEngine.executeCustomQuery({
+    test('3. Attendance Aggregation Query: Absenteeism, Late Marks, WFH, Overtime & Regularization', async () => {
+        const resAtt = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'attendance',
             metric: 'absenteeism',
             grouping: 'department',
@@ -102,7 +105,8 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resAtt.chartData.labels.includes('Sales'));
         assert.ok(resAtt.summary.total > 0);
 
-        const resWFH = analyticsEngine.executeCustomQuery({
+        const resWFH = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'attendance',
             metric: 'wfh',
             grouping: 'bu',
@@ -112,8 +116,9 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resWFH.chartData.labels.length >= 2);
     });
 
-    test('4. Payroll Aggregation Query: Payroll Cost, Variance, Deductions, Exceptions & Statutory Totals', () => {
-        const resCost = analyticsEngine.executeCustomQuery({
+    test('4. Payroll Aggregation Query: Payroll Cost, Variance, Deductions, Exceptions & Statutory Totals', async () => {
+        const resCost = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'payroll',
             metric: 'payroll_cost',
             grouping: 'bu',
@@ -122,7 +127,8 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.strictEqual(resCost.success, true);
         assert.ok(resCost.summary.total > 100, 'Gross payroll cost should sum across BUs');
 
-        const resStat = analyticsEngine.executeCustomQuery({
+        const resStat = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'payroll',
             metric: 'statutory_totals',
             grouping: 'department',
@@ -132,8 +138,9 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resStat.chartData.labels.includes('Engineering'));
     });
 
-    test('5. PMS Aggregation Query: Review Completion, Goal Completion & Rating Distribution', () => {
-        const resPMS = analyticsEngine.executeCustomQuery({
+    test('5. PMS Aggregation Query: Review Completion, Goal Completion & Rating Distribution', async () => {
+        const resPMS = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'pms',
             metric: 'rating_distribution',
             grouping: 'rating',
@@ -143,7 +150,8 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resPMS.chartData.labels.some(l => l.includes('5 - Outstanding')));
         assert.ok(resPMS.chartData.labels.some(l => l.includes('3 - Meets Expectations')));
 
-        const resGoals = analyticsEngine.executeCustomQuery({
+        const resGoals = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'pms',
             metric: 'goal_completion',
             grouping: 'department',
@@ -153,8 +161,9 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resGoals.summary.average > 50, 'Goal completion % should average positively');
     });
 
-    test('6. Exit Aggregation Query: Exits, Reasons, Tenure, Dept Attrition & Pending F&F', () => {
-        const resExit = analyticsEngine.executeCustomQuery({
+    test('6. Exit Aggregation Query: Exits, Reasons, Tenure, Dept Attrition & Pending F&F', async () => {
+        const resExit = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'exit',
             metric: 'reasons',
             grouping: 'reason',
@@ -164,7 +173,8 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resExit.chartData.labels.includes('Career Growth'));
         assert.ok(resExit.chartData.labels.includes('Compensation'));
 
-        const resTenure = analyticsEngine.executeCustomQuery({
+        const resTenure = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'exit',
             metric: 'tenure',
             grouping: 'department',
@@ -174,8 +184,9 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resTenure.summary.average > 0);
     });
 
-    test('7. Policy Aggregation Query: Assigned, Acknowledged, Pending & Overdue Compliance', () => {
-        const resPol = analyticsEngine.executeCustomQuery({
+    test('7. Policy Aggregation Query: Assigned, Acknowledged, Pending & Overdue Compliance', async () => {
+        const resPol = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'policy',
             metric: 'overdue',
             grouping: 'department',
@@ -185,7 +196,8 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resPol.chartData.labels.includes('Engineering'));
         assert.ok(resPol.chartData.labels.includes('Sales'));
 
-        const resAck = analyticsEngine.executeCustomQuery({
+        const resAck = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'policy',
             metric: 'acknowledged',
             grouping: 'policyDocument',
@@ -195,9 +207,10 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(resAck.chartData.labels.includes('Code of Conduct 2026'));
     });
 
-    test('8. Multi-Dimensional Filters Engine narrows dataset accurately', () => {
+    test('8. Multi-Dimensional Filters Engine narrows dataset accurately', async () => {
         // Query entire workforce
-        const allRes = analyticsEngine.executeCustomQuery({
+        const allRes = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'workforce',
             metric: 'headcount',
             grouping: 'department',
@@ -205,7 +218,8 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         });
 
         // Filter only Technology BU
-        const techRes = analyticsEngine.executeCustomQuery({
+        const techRes = await analyticsEngine.executeCustomQuery({
+            useLiveFirebase: false, // aggregation logic is tested against the fixed baseline dataset, not live data
             dataSource: 'workforce',
             metric: 'headcount',
             grouping: 'department',
@@ -217,7 +231,7 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(!techRes.chartData.labels.includes('Sales'), 'Sales department should be excluded by Technology filter');
     });
 
-    test('9. Dashboard Management: Save, Retrieve, Live Widget Refresh and Delete', () => {
+    test('9. Dashboard Management: Save, Retrieve, Live Widget Refresh and Delete', async () => {
         const initialCount = analyticsEngine.getAllDashboards().length;
         assert.ok(initialCount >= 6, 'Should have at least 6 pre-built enterprise dashboards');
 
@@ -240,7 +254,7 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.ok(newDash.id);
         assert.strictEqual(newDash.title, 'Q3 Talent Retention & Headcount Velocity');
 
-        const fetched = analyticsEngine.getDashboardById(newDash.id);
+        const fetched = await analyticsEngine.getDashboardById(newDash.id);
         assert.ok(fetched);
         assert.strictEqual(fetched.widgets.length, 1);
         assert.ok(fetched.widgets[0].chartData, 'Widget should be enriched with dynamic live query results');
@@ -251,7 +265,7 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         assert.strictEqual(deleted, true);
     });
 
-    test('10. UI & Navigation Verification: Analytics Builder links across all Admin pages', () => {
+    test('10. UI & Navigation Verification: Analytics Builder links across all Admin pages', async () => {
         const html = fs.readFileSync('c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/admin-analytics-builder.html', 'utf-8');
         assert.ok(html.includes('Custom Analytics Builder'));
         assert.ok(html.includes('customAnalyticsCanvas'));

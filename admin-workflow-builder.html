@@ -234,6 +234,9 @@
         /* ─── MAIN LAYOUT ─── */
         .main-wrapper {
             margin-left: 260px;
+            width: calc(100vw - 260px);
+            max-width: calc(100vw - 260px);
+            min-width: 0;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -250,33 +253,46 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
-            gap: 16px;
+            padding: 0 16px;
+            gap: 10px;
             z-index: 50;
             box-shadow: 0 1px 4px rgba(37, 99, 235, 0.04);
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        .top-bar::-webkit-scrollbar {
+            height: 3px;
+        }
+        .top-bar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
         }
         .header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
-            flex: 1;
+            gap: 8px;
+            flex: 0 1 auto;
+            min-width: 0;
         }
         .workflow-meta-inputs {
             display: flex;
             align-items: center;
-            gap: 10px;
-            flex: 1;
-            max-width: 540px;
+            gap: 8px;
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 420px;
         }
         .workflow-title-input {
             background: #f8fbff;
             border: 1px solid #cbd5e1;
             border-radius: var(--radius-sm);
             color: #0f172a;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 600;
-            padding: 7px 12px;
-            width: 260px;
+            padding: 6px 10px;
+            width: 170px;
+            min-width: 110px;
             outline: none;
             transition: var(--transition);
         }
@@ -290,11 +306,16 @@
             border: 1px solid #cbd5e1;
             border-radius: var(--radius-sm);
             color: #475569;
-            font-size: 12px;
-            padding: 7px 12px;
+            font-size: 11.5px;
+            padding: 6px 10px;
             flex: 1;
+            min-width: 70px;
+            max-width: 200px;
             outline: none;
             transition: var(--transition);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
         }
         .workflow-desc-input:focus {
             border-color: #2563eb;
@@ -305,33 +326,72 @@
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
+            gap: 5px;
+            padding: 4px 8px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            flex-shrink: 0;
         }
         .status-badge.active { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
         .status-badge.draft { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
+            flex-shrink: 0;
+            margin-left: auto;
         }
         .btn {
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 7px 14px;
+            gap: 5px;
+            padding: 6px 10px;
             border-radius: var(--radius-sm);
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             border: 1px solid transparent;
             transition: var(--transition);
             white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Responsive Top Bar Breakpoints */
+        @media (max-width: 1550px) {
+            .workflow-desc-input {
+                max-width: 120px;
+            }
+            .btn-text-full {
+                display: none !important;
+            }
+            .btn-text-short {
+                display: inline !important;
+            }
+        }
+        @media (max-width: 1380px) {
+            .workflow-desc-input {
+                display: none !important;
+            }
+            .btn {
+                padding: 5px 8px !important;
+                font-size: 11.5px !important;
+                gap: 4px !important;
+            }
+        }
+        @media (max-width: 1200px) {
+            .workflow-title-input {
+                width: 120px !important;
+            }
+            .header-actions {
+                gap: 3px !important;
+            }
+            .btn {
+                padding: 5px 6px !important;
+                font-size: 11px !important;
+            }
         }
         .btn-outline {
             background: #ffffff;
@@ -662,6 +722,9 @@
         .builder-workspace {
             display: flex;
             flex: 1;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
             height: calc(100vh - 102px);
             overflow: hidden;
             position: relative;
@@ -900,6 +963,7 @@
         /* ─── CANVAS AREA (CENTER) ─── */
         .canvas-container {
             flex: 1;
+            min-width: 0;
             position: relative;
             background: #f8fbff;
             overflow: hidden;
@@ -1098,7 +1162,9 @@
 
         /* ─── RIGHT PANEL (NODE CONFIGURATION) ─── */
         .config-panel {
-            width: 330px;
+            width: 320px;
+            max-width: 320px;
+            flex-shrink: 0;
             background: #ffffff;
             border-left: 1px solid #d1e7ff;
             display: flex;
@@ -2474,14 +2540,14 @@
             </div>
 
             <div class="header-actions">
-                <button id="btn-automation-drawer" class="btn btn-outline" style="border-color: #86efac; color: #15803d; background: #f0fdf4; font-weight: 700;" onclick="window.openAutomationDrawer()" title="Configure Direct Workflow Automations (PRD §12)"><i class="fas fa-bolt"></i> Automation</button>
-                <button id="btn-open-questions-top" class="btn btn-outline" style="border-color: #93c5fd; color: #1d4ed8;" title="Customize Questions for Selected Stage (PRD §9)"><i class="fas fa-clipboard-question"></i> Customize Questions</button>
-                <button id="btn-ai-creator" class="btn btn-ai"><i class="fas fa-wand-magic-sparkles"></i> AI Creator</button>
-                <button id="btn-new-workflow" class="btn btn-outline"><i class="fas fa-plus"></i> New Flow</button>
-                <button id="btn-save" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
-                <button id="btn-validate" class="btn btn-outline"><i class="fas fa-check-circle"></i> Validate</button>
-                <button id="btn-test-run" class="btn btn-warning"><i class="fas fa-play"></i> Test Mode</button>
-                <button id="btn-activate" class="btn btn-success"><i class="fas fa-power-off"></i> Publish / Activate</button>
+                <button id="btn-automation-drawer" class="btn btn-outline" style="border-color: #86efac; color: #15803d; background: #f0fdf4; font-weight: 700;" onclick="window.openAutomationDrawer()" title="Configure Direct Workflow Automations (PRD §12)"><i class="fas fa-bolt"></i> <span class="btn-text-full">Automation</span><span class="btn-text-short" style="display:none;">Auto</span></button>
+                <button id="btn-open-questions-top" class="btn btn-outline" style="border-color: #93c5fd; color: #1d4ed8;" title="Customize Questions for Selected Stage (PRD §9)"><i class="fas fa-clipboard-question"></i> <span class="btn-text-full">Customize Questions</span><span class="btn-text-short" style="display:none;">Questions</span></button>
+                <button id="btn-ai-creator" class="btn btn-ai" title="AI Workflow Creator"><i class="fas fa-wand-magic-sparkles"></i> <span>AI Creator</span></button>
+                <button id="btn-new-workflow" class="btn btn-outline" title="New Workflow"><i class="fas fa-plus"></i> <span class="btn-text-full">New Flow</span><span class="btn-text-short" style="display:none;">New</span></button>
+                <button id="btn-save" class="btn btn-primary" title="Save Workflow"><i class="fas fa-save"></i> <span>Save</span></button>
+                <button id="btn-validate" class="btn btn-outline" title="Validate Workflow"><i class="fas fa-check-circle"></i> <span>Validate</span></button>
+                <button id="btn-test-run" class="btn btn-warning" title="Test Mode Simulation"><i class="fas fa-play"></i> <span class="btn-text-full">Test Mode</span><span class="btn-text-short" style="display:none;">Test</span></button>
+                <button id="btn-activate" class="btn btn-success" title="Publish / Activate"><i class="fas fa-power-off"></i> <span class="btn-text-full">Publish / Activate</span><span class="btn-text-short" style="display:none;">Publish</span></button>
                 <button id="btn-export" class="btn btn-outline" title="Export Workflow JSON"><i class="fas fa-download"></i></button>
             </div>
         </header>
@@ -3239,7 +3305,10 @@
     <!-- Toast Container -->
     <div id="toast-container"></div>
 
-    <script src="admin-workflow-builder.js"></script>
+    <script src="workflowRulesParser.js"></script>
+    <script src="workflowExecutionEngine.js"></script>
+    <script src="workflowFlowDesigner.js"></script>
+    <script src="admin-workflow-builder.js?v=2"></script>
 
     <!-- Custom App Registry Modal -->
     <div id="customAppsModal" class="modal-overlay">

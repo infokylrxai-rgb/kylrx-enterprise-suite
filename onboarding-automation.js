@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 import { 
     collection, 
     query, 
@@ -6,9 +6,9 @@ import {
     getDocs, 
     updateDoc, 
     doc, 
-    addDoc,
+    addDoc, 
     serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+} from "./firebase-config.js";
 
 /**
  * HRFlow Onboarding Automation Engine
@@ -20,24 +20,40 @@ class OnboardingAutomation {
     }
 
     async runAutomationCycle() {
+        if (!auth.currentUser) {
+            console.log("🤖 Onboarding automation: Standby until session is authenticated.");
+            return;
+        }
         console.log("🤖 Running Global Automation Cycle...");
         const now = new Date();
 
         // 1. Rule: No response within 3 hours (Link Expired -> Suspended)
-        await this.handleThreeHourRule(now);
+        try {
+            await this.handleThreeHourRule(now);
+        } catch (e) {
+            console.warn("Automation 3h rule notice:", e?.message || e);
+        }
 
         // 2. Rule: No response within 3 days (Move to Trash)
-        await this.handleThreeDayRule(now);
+        try {
+            await this.handleThreeDayRule(now);
+        } catch (e) {
+            console.warn("Automation 3d rule notice:", e?.message || e);
+        }
 
         // 3. Rule: 3 Days Post-Onboarding Bank Verification
-        await this.handleBankVerificationTask(now);
+        try {
+            await this.handleBankVerificationTask(now);
+        } catch (e) {
+            console.warn("Automation Bank Verification rule notice:", e?.message || e);
+        }
 
         // 4. Rule: 8-Hour Deficit Compliance (Productivity)
         try {
             const { attendanceAutomation } = await import("./attendance-automation.js");
             await attendanceAutomation.runProductivityCheck();
         } catch (e) {
-            console.error("Attendance Automation Error:", e);
+            console.warn("Attendance Automation notice:", e?.message || e);
         }
     }
 

@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "./firebase-config.js";
 import { generatePayslipPdfBlob, uploadPayslipPdf, normalizePayslipEmployee, parsePeriod } from "./payslip-pdf-service.js";
 
 /**

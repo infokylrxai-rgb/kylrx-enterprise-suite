@@ -1,7 +1,8 @@
 const crypto = require('crypto');
 const automationEngine = require('./automation-engine');
 const logger = require('../utils/logger');
-const { db } = require('../config/firebase');
+const { admin, db, rawCollection } = require('../config/firebase');
+const { orgDocs, ownerOrgId, currentTenant } = require('../config/tenant');
 
 /**
  * Enterprise Notification & Action Centre Service
@@ -321,9 +322,11 @@ class NotificationActionCenterService {
     /**
      * Fetch feed with filters across all 11 prompt facets
      */
-    getFeed({ type = 'all', facet = 'all', category = 'all', status = 'all', search = '' }) {
-        let actionable = Array.from(this.actionableItems.values());
-        let informational = Array.from(this.informationalNotices.values());
+    getFeed(filters = {}) {
+        return this.filterFeed(Array.from(this.actionableItems.values()), Array.from(this.informationalNotices.values()), filters);
+    }
+
+    filterFeed(actionable, informational, { type = 'all', facet = 'all', category = 'all', status = 'all', search = '' } = {}) {
 
         // Update dynamic urgency
         actionable = actionable.map(item => ({
@@ -401,11 +404,17 @@ class NotificationActionCenterService {
      * Get KPI counts across all 11 prompt facets
      */
     getSummary() {
-        const actionable = Array.from(this.actionableItems.values()).map(item => ({
-            ...item,
-            urgency: this.computeTimeUrgency(item)
-        }));
-        const informational = Array.from(this.informationalNotices.values());
+        return this.summarize(Array.from(this.actionableItems.values()), Array.from(this.informationalNotices.values()));
+    }
+
+    summarize(actionableItems, informational) {
+        // Completed / rejected work is history, not something critical or due
+        const actionable = actionableItems
+            .filter(item => !['completed', 'rejected'].includes(item.status))
+            .map(item => ({
+                ...item,
+                urgency: this.computeTimeUrgency(item)
+            }));
 
         return {
             totalActionable: actionable.length,
@@ -429,22 +438,108 @@ class NotificationActionCenterService {
         };
     }
 
+    // ───────────────────────────────────────────────────────────────────────
+    // Firestore-backed, per-organization data (used by the REST API).
+    // The in-memory seed above only serves direct service callers (unit tests).
+    // ───────────────────────────────────────────────────────────────────────
+
+    isFirestoreAvailable() {
+        return !!(admin && admin.apps && admin.apps.length);
+    }
+
+    // Records synced by older versions or other modules may miss fields the filters rely on
+    normalizeAction(item) {
+        return {
+            ...item,
+            title: item.title || 'Action item',
+            description: item.description || '',
+            category: String(item.category || 'system').toLowerCase(),
+            severity: item.severity || 'medium',
+            status: item.status || 'pending',
+            dueTime: item.dueTime || item.escalationTime || new Date().toISOString(),
+            reminderTime: item.reminderTime || item.dueTime || new Date().toISOString(),
+            escalationTime: item.escalationTime || item.dueTime || new Date().toISOString(),
+            assignee: item.assignee || { id: 'unassigned', name: 'Unassigned', role: 'hr_admin' },
+            actionOptions: Array.isArray(item.actionOptions) ? item.actionOptions : ['resolve']
+        };
+    }
+
+    normalizeNotice(notice) {
+        return {
+            ...notice,
+            title: notice.title || 'Notice',
+            description: notice.description || notice.message || '',
+            category: String(notice.category || 'system').toLowerCase(),
+            severity: notice.severity || 'info',
+            isRead: !!notice.isRead,
+            timestamp: notice.timestamp || notice.lastSyncAt || new Date().toISOString()
+        };
+    }
+
+    async loadOrgItems(orgId) {
+        const [actionable, informational] = await Promise.all([
+            orgDocs(rawCollection, 'actionable_work', orgId),
+            orgDocs(rawCollection, 'informational_notices', orgId)
+        ]);
+        return {
+            actionable: actionable.map(a => this.normalizeAction(a)),
+            informational: informational
+                .map(n => this.normalizeNotice(n))
+                .sort((a, b) => Date.parse(b.timestamp) - Date.parse(a.timestamp))
+        };
+    }
+
+    async getFeedForOrg(orgId, filters = {}) {
+        const { actionable, informational } = await this.loadOrgItems(orgId);
+        return this.filterFeed(actionable, informational, filters);
+    }
+
+    async getSummaryForOrg(orgId) {
+        const { actionable, informational } = await this.loadOrgItems(orgId);
+        return this.summarize(actionable, informational);
+    }
+
+    // Loads one record, refusing records owned by another organization
+    async loadOwned(collectionName, id, orgId) {
+        const ref = rawCollection(collectionName).doc(id);
+        const snap = await ref.get();
+        if (!snap.exists || ownerOrgId(snap.data()) !== orgId) {
+            throw new Error(`${collectionName === 'actionable_work' ? 'Actionable item' : 'Notice'} '${id}' not found`);
+        }
+        return { ref, item: { id, ...snap.data() } };
+    }
+
+    // Resolves `id` from Firestore for an org, or from the in-memory seed without one
+    async getActionForUpdate(id, orgId) {
+        if (orgId && this.isFirestoreAvailable()) {
+            const { ref, item } = await this.loadOwned('actionable_work', id, orgId);
+            return { ref, item: this.normalizeAction(item) };
+        }
+        const item = this.actionableItems.get(id);
+        if (!item) throw new Error(`Actionable item '${id}' not found`);
+        return { ref: null, item };
+    }
+
+    async saveAction(ref, item) {
+        if (ref) {
+            await ref.set({ ...item, lastSyncAt: new Date().toISOString() }, { merge: true });
+        } else {
+            this.actionableItems.set(item.id, item);
+            this.syncToFirebase('actionable_work', item.id, item);
+        }
+    }
+
     /**
      * Resolve an Actionable Item (Approve, Reject, Complete)
      */
-    async resolveAction(id, { decision = 'approved', remarks = '', actor = 'HR Administrator' }) {
-        const item = this.actionableItems.get(id);
-        if (!item) {
-            throw new Error(`Actionable item '${id}' not found`);
-        }
+    async resolveAction(id, { decision = 'approved', remarks = '', actor = 'HR Administrator' }, orgId = null) {
+        const { ref, item } = await this.getActionForUpdate(id, orgId);
 
         const newStatus = decision === 'rejected' ? 'rejected' : 'completed';
         item.status = newStatus;
         item.resolvedAt = new Date().toISOString();
         item.resolvedBy = actor;
         item.resolutionRemarks = remarks;
-
-        this.actionableItems.set(id, item);
 
         // Record immutable Stage 8 audit log in Automation Engine
         try {
@@ -468,22 +563,18 @@ class NotificationActionCenterService {
         }
 
         logger.info(`[NotificationActionCenter] Action '${id}' resolved with decision '${decision}' by ${actor}.`);
-        this.syncToFirebase('actionable_work', id, item);
+        await this.saveAction(ref, item);
         return item;
     }
 
     /**
      * Trigger Reminder Nudge
      */
-    async triggerReminder(id, { actor = 'System Remind Engine' } = {}) {
-        const item = this.actionableItems.get(id);
-        if (!item) {
-            throw new Error(`Actionable item '${id}' not found`);
-        }
+    async triggerReminder(id, { actor = 'System Remind Engine' } = {}, orgId = null) {
+        const { ref, item } = await this.getActionForUpdate(id, orgId);
 
         item.reminderTime = new Date().toISOString();
         item.reminderCount = (item.reminderCount || 0) + 1;
-        this.actionableItems.set(id, item);
 
         // Dispatch notification
         await automationEngine.sendNotification({
@@ -494,18 +585,15 @@ class NotificationActionCenterService {
         }, { entityId: id });
 
         logger.info(`[NotificationActionCenter] Reminder dispatched for Action '${id}' to ${item.assignee.name}.`);
-        this.syncToFirebase('actionable_work', id, item);
+        await this.saveAction(ref, item);
         return item;
     }
 
     /**
      * Trigger SLA Escalation
      */
-    async triggerEscalation(id, { escalationAssignee, reason = 'SLA Threshold Approaching', actor = 'HR Escalator' }) {
-        const item = this.actionableItems.get(id);
-        if (!item) {
-            throw new Error(`Actionable item '${id}' not found`);
-        }
+    async triggerEscalation(id, { escalationAssignee, reason = 'SLA Threshold Approaching', actor = 'HR Escalator' }, orgId = null) {
+        const { ref, item } = await this.getActionForUpdate(id, orgId);
 
         item.status = 'escalated';
         item.severity = 'critical';
@@ -519,8 +607,6 @@ class NotificationActionCenterService {
                 ? escalationAssignee 
                 : { id: 'USR-ESC-LEAD', name: escalationAssignee, role: 'Senior Leadership' };
         }
-
-        this.actionableItems.set(id, item);
 
         // Record Stage 8 escalation audit entry
         try {
@@ -542,14 +628,18 @@ class NotificationActionCenterService {
         }
 
         logger.info(`[NotificationActionCenter] Action '${id}' escalated to ${item.assignee.name}.`);
-        this.syncToFirebase('actionable_work', id, item);
+        await this.saveAction(ref, item);
         return item;
     }
 
     /**
      * Mark Informational Notification as Read
      */
-    markNoticeAsRead(id) {
+    // Synchronous for the in-memory seed; returns a Promise for an organization's Firestore data
+    markNoticeAsRead(id, orgId = null) {
+        if (orgId && this.isFirestoreAvailable()) {
+            return this.markOrgNoticeAsRead(id, orgId);
+        }
         const notice = this.informationalNotices.get(id);
         if (!notice) {
             throw new Error(`Notice '${id}' not found`);
@@ -563,13 +653,30 @@ class NotificationActionCenterService {
     /**
      * Mark All Informational Notifications as Read
      */
-    markAllNoticesAsRead() {
+    markAllNoticesAsRead(orgId = null) {
+        if (orgId && this.isFirestoreAvailable()) {
+            return this.markAllOrgNoticesAsRead(orgId);
+        }
         for (const notice of this.informationalNotices.values()) {
             notice.isRead = true;
             this.informationalNotices.set(notice.id, notice);
             this.syncToFirebase('informational_notices', notice.id, notice);
         }
         return { success: true, count: this.informationalNotices.size };
+    }
+
+    async markOrgNoticeAsRead(id, orgId) {
+        const { ref, item } = await this.loadOwned('informational_notices', id, orgId);
+        await ref.update({ isRead: true, readAt: new Date().toISOString() });
+        return { ...item, isRead: true };
+    }
+
+    async markAllOrgNoticesAsRead(orgId) {
+        const unread = (await orgDocs(rawCollection, 'informational_notices', orgId)).filter(n => !n.isRead);
+        const batch = db.batch();
+        unread.forEach(n => batch.update(rawCollection('informational_notices').doc(n.id), { isRead: true, readAt: new Date().toISOString() }));
+        if (unread.length) await batch.commit();
+        return { success: true, count: unread.length };
     }
 
     /**
@@ -595,6 +702,8 @@ class NotificationActionCenterService {
             details: data.details || {}
         };
         this.actionableItems.set(id, item);
+        // Inside an API request: persist for the caller's organization (tenant layer stamps orgId)
+        if (currentTenant()) this.syncToFirebase('actionable_work', id, item);
         return item;
     }
 
@@ -614,6 +723,7 @@ class NotificationActionCenterService {
             targetRole: data.targetRole || 'all'
         };
         this.informationalNotices.set(id, notice);
+        if (currentTenant()) this.syncToFirebase('informational_notices', id, notice);
         return notice;
     }
 

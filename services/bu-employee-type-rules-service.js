@@ -24,6 +24,13 @@ const CANONICAL_EMPLOYEE_TYPES = [
         workerType: 'Contingent'
     },
     {
+        code: 'CONTRACT',
+        name: 'Contract (TVC)',
+        categoryCode: 'CAT_CON',
+        employmentType: 'Contract',
+        workerType: 'Contingent'
+    },
+    {
         code: 'INTERN',
         name: 'Intern / Apprentice',
         categoryCode: 'CAT_INT',
@@ -49,6 +56,15 @@ const CANONICAL_EMPLOYEE_TYPES = [
 // Default Business Unit Rules aligned with 'Business Unit' sheet:
 // Business_Unit_Code, Business_Unit_Name, Head_Employee_ID, Active
 const DEFAULT_BU_RULES = [
+    {
+        ruleId: 'rule_bu_corp_01',
+        businessUnitCode: 'BU_CORP_01',
+        businessUnitName: 'Corporate Operations',
+        allowedEmployeeTypes: ['FULL_TIME', 'CONTRACT'],
+        headEmployeeId: 'EMP0003',
+        headEmployeeName: 'Ananya Roy',
+        isActive: true
+    },
     {
         ruleId: 'rule_bu_eng',
         businessUnitCode: 'BU_ENG',
@@ -135,17 +151,64 @@ class BuEmployeeTypeRulesService {
     }
 
     /**
+     * Resolves synonym and category code mappings for Employee Types
+     */
+    resolveEmployeeTypeSynonyms(type) {
+        if (!type) return [];
+        const norm = String(type).trim().toUpperCase().replace(/\s+/g, '_');
+        const set = new Set([norm]);
+        if (norm === 'CONTRACT' || norm === 'CONTRACTOR' || norm === 'CAT_CON_TVC' || norm === 'CAT_CON') {
+            set.add('CONTRACT');
+            set.add('CONTRACTOR');
+            set.add('CAT_CON_TVC');
+            set.add('CAT_CON');
+        }
+        if (norm === 'FULL_TIME' || norm === 'PERMANENT' || norm === 'CAT_FT_REG' || norm === 'CAT_FT') {
+            set.add('FULL_TIME');
+            set.add('PERMANENT');
+            set.add('CAT_FT_REG');
+            set.add('CAT_FT');
+        }
+        if (norm === 'EXECUTIVE' || norm === 'CAT_FT_EXEC' || norm === 'CAT_EXE') {
+            set.add('EXECUTIVE');
+            set.add('CAT_FT_EXEC');
+            set.add('CAT_EXE');
+        }
+        if (norm === 'INTERN' || norm === 'APPRENTICE' || norm === 'CAT_INT_GRAD' || norm === 'CAT_INT') {
+            set.add('INTERN');
+            set.add('APPRENTICE');
+            set.add('CAT_INT_GRAD');
+            set.add('CAT_INT');
+        }
+        if (norm === 'TEMPORARY' || norm === 'CASUAL' || norm === 'CAT_TEMP_OPS' || norm === 'CAT_TEMP') {
+            set.add('TEMPORARY');
+            set.add('CAT_TEMP_OPS');
+            set.add('CAT_TEMP');
+            set.add('CONTRACT');
+        }
+        if (norm === 'BLUE_COLLAR' || norm === 'PLANT' || norm === 'CAT_PLANT_WKR') {
+            set.add('BLUE_COLLAR');
+            set.add('PLANT');
+            set.add('CAT_PLANT_WKR');
+            set.add('FULL_TIME');
+        }
+        return Array.from(set);
+    }
+
+    /**
      * Get list of business units allowed for a specific employee type
      */
     getAllowedBusinessUnits(employeeType) {
         if (!employeeType) {
             return this.getAllRules().filter(r => r.isActive);
         }
-        const normalizedType = employeeType.trim().toUpperCase();
+        const searchTypes = this.resolveEmployeeTypeSynonyms(employeeType);
+
         return this.getAllRules().filter(r => {
             if (!r.isActive) return false;
-            return Array.isArray(r.allowedEmployeeTypes) &&
-                   r.allowedEmployeeTypes.map(t => t.toUpperCase()).includes(normalizedType);
+            const allowed = (r.allowedEmployeeTypes || []).map(t => t.toUpperCase());
+            if (allowed.includes('ALL') || allowed.includes('*')) return true;
+            return searchTypes.some(t => allowed.includes(t));
         });
     }
 
@@ -157,7 +220,7 @@ class BuEmployeeTypeRulesService {
             return { valid: false, error: 'Both Business Unit and Employee Type are required for validation.' };
         }
         const normalizedBU = buCode.trim().toUpperCase();
-        const normalizedType = employeeType.trim().toUpperCase();
+        const candidateTypes = this.resolveEmployeeTypeSynonyms(employeeType);
 
         const rule = this.rules.get(normalizedBU);
         if (!rule) {
@@ -176,7 +239,8 @@ class BuEmployeeTypeRulesService {
         }
 
         const allowed = (rule.allowedEmployeeTypes || []).map(t => t.toUpperCase());
-        if (!allowed.includes(normalizedType)) {
+        const isPermitted = candidateTypes.some(t => allowed.includes(t));
+        if (!isPermitted) {
             const allowedLabels = allowed.map(t => {
                 const found = CANONICAL_EMPLOYEE_TYPES.find(c => c.code === t);
                 return found ? found.name : t;

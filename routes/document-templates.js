@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const documentTemplateEngine = require('../services/document-template-engine');
 const logger = require('../utils/logger');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
 
 /**
  * 11. Document & Template Integration REST API

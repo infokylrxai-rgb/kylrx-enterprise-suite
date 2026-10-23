@@ -29,6 +29,9 @@
  */
 
 import { Router } from 'express';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware.js');
 import multer from 'multer';
 import {
   globalGratuityAutomationEngine,
@@ -56,6 +59,8 @@ async function safeFirestoreSet(collectionName, docId, data) {
 }
 
 const router = Router();
+router.use(verifyToken);
+router.use(authorize(ADMIN_HR_ROLES));
 
 // Multer in-memory storage for bulk uploads
 const upload = multer({

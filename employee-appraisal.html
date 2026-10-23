@@ -288,6 +288,51 @@
         }
         @keyframes modalPop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+        /* Employee Goal Management (PRD §1.1) */
+        .emp-goal-filter-tab {
+            background: white;
+            border: 1.5px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .emp-goal-filter-tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        .emp-goal-filter-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+        }
+        .employee-goal-card {
+            transition: all 0.25s ease;
+        }
+        .employee-goal-card:hover {
+            border-color: var(--primary-mid) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -6px rgba(236, 72, 153, 0.12) !important;
+        }
+        .goal-stat-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(236, 72, 153, 0.03);
+            transition: 0.2s;
+        }
+        .goal-stat-box:hover {
+            border-color: var(--primary-mid);
+            transform: translateY(-1px);
+        }
+
         @media (max-width: 1024px) {
             .layout { grid-template-columns: 1fr !important; }
             .sidebar { display: none !important; }
@@ -370,6 +415,209 @@
             <h3 id="statusModalTitle" style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">Success</h3>
             <p id="statusModalDesc" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.75rem; line-height: 1.5;">Operation completed.</p>
             <button class="btn-action-primary" id="statusModalBtn" style="width: 100%; justify-content: center;" onclick="closeStatusModal()">Dismiss</button>
+    <!-- ===================================================================== -->
+    <!-- 1.1 EMPLOYEE GOAL MODAL (CREATE / EDIT)                               -->
+    <!-- ===================================================================== -->
+    <div class="modal-overlay" id="employeeGoalModal">
+        <div class="modal-card" style="text-align: left; max-width: 660px; max-height: 88vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="target" size="22"></i>
+                    </div>
+                    <div>
+                        <h3 id="empGoalModalTitle" style="font-size: 1.2rem; font-weight: 800; margin: 0; color: var(--text-main);">Create Employee Goal (PRD §1.1)</h3>
+                        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Define outcome, measurement method, schedule, and milestones</p>
+                    </div>
+                </div>
+                <button onclick="closeEmployeeGoalModal()" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">✕</button>
+            </div>
+
+            <form id="employeeGoalForm" onsubmit="handleEmployeeGoalFormSubmit(event)">
+                <input type="hidden" id="empGoalFormId">
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 1.5rem;">
+                    <!-- Title & Category -->
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Goal Title *</label>
+                            <input type="text" id="empGoalFormTitle" placeholder="e.g. High-Throughput API Gateway Optimization" required style="width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.88rem; background: #fffbfe;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Category *</label>
+                            <select id="empGoalFormCategory" required style="width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.88rem; background: #fffbfe;">
+                                <option value="Technical Excellence">Technical Excellence</option>
+                                <option value="Quality & Reliability">Quality & Reliability</option>
+                                <option value="Skill Acquisition & Certifications">Skill Acquisition & Certifications</option>
+                                <option value="Team & Culture">Team & Culture</option>
+                                <option value="Operational Delivery">Operational Delivery</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Outcome Statement (PRD §1.1 Outcome) -->
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Desired Outcome Statement *</label>
+                        <textarea id="empGoalFormOutcome" rows="2" placeholder="Describe the concrete, measurable outcome upon goal completion..." required style="width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.88rem; background: #fffbfe; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Scope / Operational Description -->
+                    <div>
+                        <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Operational Scope & Technical Details</label>
+                        <textarea id="empGoalFormDesc" rows="2" placeholder="Specify technical dependencies, architecture notes, or execution steps..." style="width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.88rem; background: #fffbfe; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Measurement Method, Target & Unit (PRD §1.1 Measure) -->
+                    <div style="background: #fffbfe; border: 1.5px solid var(--border); border-radius: 14px; padding: 14px;">
+                        <h4 style="font-size: 0.75rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; margin-bottom: 10px;">Measurement Method & Targets (PRD §1.1)</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">Method</label>
+                                <select id="empGoalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                                    <option value="quantitative">Quantitative Target</option>
+                                    <option value="milestone">Milestones-based</option>
+                                    <option value="unit">Unit Reduction / SLA</option>
+                                    <option value="criteria">Binary Criteria</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">Target Value *</label>
+                                <input type="number" step="any" id="empGoalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">Unit (e.g. %, ms, Score) *</label>
+                                <input type="text" id="empGoalFormUnit" value="%" required style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">Completion Criteria / Acceptance Standard</label>
+                            <input type="text" id="empGoalFormCriteria" placeholder="e.g. CI pipeline passes with >90% line and branch test coverage." style="width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.82rem; margin-top: 4px;">
+                        </div>
+                    </div>
+
+                    <!-- Milestones Checklist Builder (PRD §1.1 Measure) -->
+                    <div style="background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Key Milestones Checklist</label>
+                            <button type="button" onclick="addEmployeeMilestoneInputRow()" style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-mid); border-radius: 8px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
+                                + Add Milestone
+                            </button>
+                        </div>
+                        <div id="empGoalFormMilestonesContainer"></div>
+                    </div>
+
+                    <!-- Schedule (PRD §1.1 Schedule) -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Start Date *</label>
+                            <input type="date" id="empGoalFormStartDate" required style="width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.85rem; background: #fffbfe;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Target Completion Date *</label>
+                            <input type="date" id="empGoalFormTargetDate" required style="width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-family: inherit; font-size: 0.85rem; background: #fffbfe;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn-action-outline" style="flex: 1;" onclick="closeEmployeeGoalModal()">Cancel</button>
+                    <button type="submit" id="empGoalModalSubmitBtn" class="btn-action-primary" style="flex: 2; justify-content: center;">Create Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.1 EMPLOYEE PROGRESS CHECK-IN MODAL (PRD §1.1 Track)                 -->
+    <!-- ===================================================================== -->
+    <div class="modal-overlay" id="employeeProgressModal">
+        <div class="modal-card" style="text-align: left; max-width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="trending-up" size="22"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main);">Progress Check-in</h3>
+                        <p id="empProgressGoalTitle" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; font-weight: 600;">Goal</p>
+                    </div>
+                </div>
+                <button onclick="closeUpdateEmployeeProgressModal()" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">✕</button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Update Completion Percentage</label>
+                    <span id="empProgressValueDisplay" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">50%</span>
+                </div>
+                <input type="range" id="empProgressSlider" min="0" max="100" value="50" oninput="handleEmployeeProgressSliderInput(this.value)" style="width: 100%; accent-color: var(--primary); cursor: pointer; height: 8px;">
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+                    Current Metric Value (<span id="empProgressMetricUnitLabel">%</span>)
+                </label>
+                <input type="number" step="any" id="empProgressCurrentMetric" placeholder="e.g. 75" style="width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-size: 0.88rem; background: #fffbfe;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+                    Check-in Work Log & Status Notes
+                </label>
+                <textarea id="empProgressCheckInNote" rows="2" placeholder="e.g. Redis caching deployed; API response latency down to 72ms..." style="width: 100%; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border); outline: none; font-size: 0.85rem; background: #fffbfe; font-family: inherit; resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn-action-outline" style="flex: 1;" onclick="closeUpdateEmployeeProgressModal()">Cancel</button>
+                <button type="button" class="btn-action-primary" style="flex: 2; justify-content: center;" onclick="submitEmployeeGoalProgressUpdate()">Record Progress</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.1 EMPLOYEE GOAL AUDIT HISTORY MODAL (PRD §1.1 History)              -->
+    <!-- ===================================================================== -->
+    <div class="modal-overlay" id="employeeGoalHistoryModal">
+        <div class="modal-card" style="text-align: left; max-width: 640px; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="history" size="22"></i>
+                    </div>
+                    <div>
+                        <h3 id="empGoalHistoryTitle" style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main);">Audit History Trail</h3>
+                        <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Immutable record of creation, progress, milestone changes, and edits</p>
+                    </div>
+                </div>
+                <button onclick="closeEmployeeGoalHistoryModal()" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">✕</button>
+            </div>
+
+            <div id="empGoalHistoryTimeline" style="padding-top: 10px;"></div>
+
+            <button type="button" class="btn-action-outline" style="width: 100%; justify-content: center; margin-top: 1.5rem;" onclick="closeEmployeeGoalHistoryModal()">
+                Close Audit Trail
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 1.2 EMPLOYEE TEMPLATE PICKER MODAL                                    -->
+    <!-- ===================================================================== -->
+    <div class="modal-overlay" id="employeeTemplatePickerModal">
+        <div class="modal-card" style="text-align: left; max-width: 650px; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--text-main);">Choose an Engineering Goal Template</h3>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Instantiate pre-configured goals with standard metrics and milestone breakdowns</p>
+                </div>
+                <button onclick="closeEmployeeTemplatePickerModal()" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">✕</button>
+            </div>
+
+            <div id="empTemplatePickerList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem;"></div>
+
+            <button type="button" class="btn-action-outline" style="width: 100%; justify-content: center;" onclick="closeEmployeeTemplatePickerModal()">
+                Cancel
+            </button>
         </div>
     </div>
 
@@ -435,7 +683,94 @@
                 </div>
             </header>
 
-            <!-- SECTION 1: PRD SECTION 8 DELIVERABLES & GOALS -->
+            <!-- ========================================================================== -->
+            <!-- SECTION 1.1: EMPLOYEE GOAL MANAGEMENT (PRD §1.1)                           -->
+            <!-- ========================================================================== -->
+            <div id="employeeGoalsSection" class="card" style="border-top: 4px solid var(--primary); margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-main); margin: 0;">My Strategic Goals & OKRs (PRD §1.1)</h2>
+                            <span style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-mid); font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; text-transform: uppercase;">Employee Hub</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                            Create and manage personal engineering and performance goals with concrete outcomes, quantitative/milestone measurement, scheduling, active progress tracking, lifecycle controls, and complete audit history.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="window.openEmployeeTemplatePickerModal()" style="background: white; color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="layout-template" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                            <span>Browse Templates</span>
+                        </button>
+                        <button onclick="window.openCreateEmployeeGoalModal()" class="btn-action-primary" style="padding: 10px 18px; font-size: 0.85rem;">
+                            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                            <span>+ Create My Goal</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5 KPI Stat Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="goal-stat-box">
+                        <div id="statEmpGoalsTotal" style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">0</div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 2px;">Total Goals</div>
+                    </div>
+                    <div class="goal-stat-box" style="background: #ecfdf5; border-color: #a7f3d0;">
+                        <div id="statEmpGoalsActive" style="font-size: 1.6rem; font-weight: 800; color: #059669;">0</div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: #059669; text-transform: uppercase; margin-top: 2px;">Active / In Progress</div>
+                    </div>
+                    <div class="goal-stat-box" style="background: #fffbeb; border-color: #fde68a;">
+                        <div id="statEmpGoalsPaused" style="font-size: 1.6rem; font-weight: 800; color: #d97706;">0</div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: #d97706; text-transform: uppercase; margin-top: 2px;">Paused</div>
+                    </div>
+                    <div class="goal-stat-box" style="background: var(--primary-light); border-color: var(--primary-mid);">
+                        <div id="statEmpGoalsCompleted" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-dark);">0</div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: var(--primary-dark); text-transform: uppercase; margin-top: 2px;">Completed</div>
+                    </div>
+                    <div class="goal-stat-box" style="background: #fdf4ff; border-color: #f5d0fe;">
+                        <div id="statEmpGoalsAvgProgress" style="font-size: 1.6rem; font-weight: 800; color: #a21caf;">0%</div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: #a21caf; text-transform: uppercase; margin-top: 2px;">Avg Progress</div>
+                    </div>
+                </div>
+
+                <!-- Filter & Search Toolbar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="emp-goal-filter-tab active" data-filter="all">All Goals</button>
+                        <button class="emp-goal-filter-tab" data-filter="active">Active</button>
+                        <button class="emp-goal-filter-tab" data-filter="paused">Paused</button>
+                        <button class="emp-goal-filter-tab" data-filter="completed">Completed</button>
+                        <button class="emp-goal-filter-tab" data-filter="archived">Archived</button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <select id="empGoalCategoryFilter" style="padding: 8px 14px; border-radius: 12px; border: 1.5px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: white; color: var(--text-main);">
+                            <option value="all">All Categories</option>
+                            <option value="Technical Excellence">Technical Excellence</option>
+                            <option value="Quality & Reliability">Quality & Reliability</option>
+                            <option value="Skill Acquisition & Certifications">Skill Acquisition & Certifications</option>
+                            <option value="Team & Culture">Team & Culture</option>
+                            <option value="Operational Delivery">Operational Delivery</option>
+                        </select>
+
+                        <div style="position: relative; min-width: 220px;">
+                            <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted);"></i>
+                            <input type="text" id="empGoalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 34px; border-radius: 12px; border: 1.5px solid var(--border); font-size: 0.8rem; outline: none; background: white; font-family: inherit;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals Grid Container -->
+                <div id="employeeGoalsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.25rem;">
+                    <div style="text-align: center; padding: 2.5rem 0; color: var(--text-muted); grid-column: 1 / -1;">
+                        <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; color: var(--primary); margin: 0 auto 8px;"></i>
+                        <p style="margin: 0; font-size: 0.85rem;">Hydrating employee goals & milestones...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: PRD SECTION 8 DELIVERABLES & WORK LOGS -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
                     <div>
@@ -1021,5 +1356,6 @@
             } catch (_) {}
         }
     </script>
+    <script src="employee-goals-controller.js"></script>
 </body>
 </html>

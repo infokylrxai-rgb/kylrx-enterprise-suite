@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { sendEmail } = require('../utils/email');
 const { runReminderJob } = require('../utils/reminder-scheduler');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
 
 let admin, db;
 try {

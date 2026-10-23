@@ -1,5 +1,5 @@
 import { auth, db, doc, getDoc, collection, query, where, getDocs, setDoc, serverTimestamp } from "./firebase-config.js";
-import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, signInAnonymously, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInAnonymously, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
 async function getRedirectUrl(userData, role) {
     if (!role) {
@@ -10,7 +10,7 @@ async function getRedirectUrl(userData, role) {
     }
     const cleanRole = (role || '').toLowerCase().replace(/[\s_-]+/g, '');
     if (cleanRole === 'superadmin' || cleanRole === 'admin') {
-        const orgId = userData?.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+        const orgId = userData?.orgId || localStorage.getItem('orgId') || 'org_kylrx_ai';
         localStorage.setItem('orgId', orgId);
         localStorage.setItem('orgConfigured', 'true');
         return 'admin-dashboard.html';
@@ -112,7 +112,7 @@ if (selectManager) {
 if (selectEmployee) {
     selectEmployee.addEventListener('click', () => {
         if (emailInput) emailInput.value = 'marry@gmail.com';
-        if (passwordInput) passwordInput.value = 'Kylrx#Employee2026!Secured';
+        if (passwordInput) passwordInput.value = 'UNIT-CYB-799-Employee-Marry@2026!';
         demoModal.style.display = 'none';
         loginBtn?.click();
     });
@@ -277,7 +277,10 @@ loginForm?.addEventListener('submit', async (e) => {
         const validDemoMap = {
           'superadmin@kylrx.ai': 'Kylrx#SuperAdmin2026!Secured',
           'hradmin@kylrx.ai': 'Kylrx#HrAdmin2026!Secured',
-          'employee@kylrx.ai': 'Kylrx#Employee2026!Secured'
+          'savitha.balraju@gmail.com': 'SYSTEM-Hrms-Savitha@2026!',
+          'john.doe@example.com': 'UNIT-CYB-802-Manager-John@2026!',
+          'marry@gmail.com': 'UNIT-CYB-799-Employee-Marry@2026!',
+          'employee@kylrx.ai': 'UNIT-CYB-799-Employee-Marry@2026!'
         };
         if (validDemoMap[cleanEmail] && validDemoMap[cleanEmail] === password.trim()) {
           userCredential = await signInWithEmailAndPassword(auth, cleanEmail, validDemoMap[cleanEmail]);
@@ -287,11 +290,22 @@ loginForm?.addEventListener('submit', async (e) => {
       }
       finalUid = userCredential.user.uid;
       token = userCredential.user.accessToken;
-      
+
+      // Server-assigned custom claims (set via the Admin SDK only) are the authoritative role
+      let claimRole = null;
+      let claimOrgId = null;
+      try {
+        const tokenResult = await userCredential.user.getIdTokenResult();
+        claimRole = tokenResult.claims.role || (tokenResult.claims.super_admin ? 'super_admin' : null);
+        claimOrgId = tokenResult.claims.orgId || null;
+      } catch (_) {}
+
       const userDoc = await getDoc(doc(db, "users", finalUid));
       if (userDoc.exists()) {
         userData = userDoc.data();
         userData.uid = finalUid;
+        if (claimRole) userData.role = claimRole;
+        if (claimOrgId && !userData.orgId) userData.orgId = claimOrgId;
         // Check for EMP doc or query by email in users collection
         try {
           const empDoc = await getDoc(doc(db, "users", "EMP_1789151730443"));
@@ -525,120 +539,198 @@ function showAlert(title, msg, icon = 'info', type = 'info') {
 
 const googleLoginBtn = document.getElementById('googleLoginBtn');
 if (googleLoginBtn) {
-    window.showFallbackPrompt = () => {
-        return new Promise((resolve) => {
-            const overlay = document.getElementById('fallbackModalOverlay');
-            const input = document.getElementById('fallbackEmailInput');
-            const confirmBtn = document.getElementById('fallbackConfirmBtn');
-            const cancelBtn = document.getElementById('fallbackCancelBtn');
+    async function processGoogleLoginUser(userAuth) {
+        const email = userAuth.email || '';
+        const cleanEmail = email.toLowerCase().trim();
+        let userData = null;
 
-            overlay.style.display = 'flex';
-            input.focus();
-            input.select();
-            if (window.lucide) window.lucide.createIcons();
+        // 1. Try direct getDoc from Firestore by Google Auth UID
+        try {
+            const userDoc = await getDoc(doc(db, "users", userAuth.uid));
+            if (userDoc.exists()) {
+                userData = userDoc.data();
+                userData.uid = userAuth.uid;
+            }
+        } catch (err) {
+            console.warn('Direct getDoc failed:', err);
+        }
 
-            const cleanUp = () => {
-                overlay.style.display = 'none';
-                confirmBtn.onclick = null;
-                cancelBtn.onclick = null;
-                input.onkeydown = null;
-            };
-
-            confirmBtn.onclick = () => {
-                const val = input.value.trim();
-                cleanUp();
-                resolve(val);
-            };
-
-            cancelBtn.onclick = () => {
-                cleanUp();
-                resolve(null);
-            };
-
-            input.onkeydown = (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    confirmBtn.click();
-                } else if (e.key === 'Escape') {
-                    cancelBtn.click();
+        // 2. Try query users collection by email (checking cleanEmail, email, upperCase)
+        if (!userData && cleanEmail) {
+            try {
+                const emailVariants = Array.from(new Set([cleanEmail, email, email.toUpperCase()])).filter(Boolean);
+                const q = query(collection(db, 'users'), where('email', 'in', emailVariants));
+                const querySnap = await getDocs(q);
+                if (!querySnap.empty) {
+                    userData = querySnap.docs[0].data();
+                    userData.uid = querySnap.docs[0].id;
                 }
-            };
-        });
-    };
+            } catch (err) {
+                console.warn('Firestore users query failed:', err);
+            }
+        }
+
+        // 3. Try query employees collection by email if not found in users
+        if (!userData && cleanEmail) {
+            try {
+                const emailVariants = Array.from(new Set([cleanEmail, email, email.toUpperCase()])).filter(Boolean);
+                const empQ = query(collection(db, 'employees'), where('email', 'in', emailVariants));
+                const empSnap = await getDocs(empQ);
+                if (!empSnap.empty) {
+                    const empData = empSnap.docs[0].data();
+                    userData = {
+                        uid: empSnap.docs[0].id,
+                        ...empData,
+                        role: empData.role || 'employee'
+                    };
+                }
+            } catch (_) {}
+        }
+
+        // 4. Only people who already have a Kylrx account may sign in with Google. Unknown Google
+        //    accounts used to be auto-provisioned with a role guessed from the email address
+        //    (anything containing "admin" became SUPER_ADMIN), letting anyone into the app.
+        if (!userData) {
+            try { await signOut(auth); } catch (_) {}
+            throw new Error(`No Kylrx account exists for ${email}. Sign in with the email your company registered, or ask your administrator to add you.`);
+        }
+
+        // Server-assigned custom claims (set via the Admin SDK only) are the authoritative role
+        try {
+            const claims = (await userAuth.getIdTokenResult()).claims || {};
+            const claimRole = claims.role || (claims.super_admin || claims.superadmin ? 'super_admin' : null);
+            if (claimRole) userData.role = claimRole;
+            if (claims.orgId && !userData.orgId) userData.orgId = claims.orgId;
+        } catch (_) {}
+
+        const isManagerAccount = /manager/i.test(userData.role || '');
+        const isHrAccount = /^(hrms|hr|hr_admin|hradmin)$/i.test(userData.role || '');
+
+        // Record the Google link without blocking sign-in (a write can take up to 20s to fail
+        // while the Firestore quota is exhausted)
+        setDoc(doc(db, "users", userAuth.uid), {
+            ...userData,
+            uid: userData.uid || userAuth.uid,
+            googleLinked: true,
+            photoURL: userAuth.photoURL || userData.photoURL || '',
+            updatedAt: serverTimestamp()
+        }, { merge: true }).catch(err => console.warn('Google link metadata not saved:', err.message));
+
+        const role = (userData.role || (isManagerAccount ? 'manager' : 'employee')).toLowerCase();
+        const dept = (userData.departmentId || userData.department || userData.departmentName || 'General').toLowerCase();
+        const finalUid = userData.uid || userAuth.uid;
+
+        console.log('✅ Google login successful for:', email, 'Role:', role);
+
+        // Save complete enterprise session credentials to localStorage
+        localStorage.setItem('hr_logged_in', 'true');
+        localStorage.setItem('hr_user_id', finalUid);
+        localStorage.setItem('hr_access_token', userAuth.accessToken || 'demo-static-token');
+        localStorage.setItem('userName', userData.name || userData.displayName || email);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('user_role', role);
+        localStorage.setItem('userDept', dept);
+        localStorage.setItem('employee_uid', finalUid);
+
+        if (userData.departmentId) localStorage.setItem('departmentId', userData.departmentId);
+        if (userData.departmentName) localStorage.setItem('departmentName', userData.departmentName);
+        if (userData.departmentCode) localStorage.setItem('departmentCode', userData.departmentCode);
+
+        const orgId = userData.orgId || localStorage.getItem('orgId') || 'org_kylrx_ai';
+        localStorage.setItem('orgId', orgId);
+        localStorage.setItem('orgConfigured', 'true');
+
+        if (role === 'manager' || isManagerAccount) {
+            localStorage.setItem('manager_name', userData.name || 'John Doe');
+            localStorage.setItem('manager_email', userData.email || email);
+            localStorage.setItem('manager_dept', userData.departmentName || 'Cybersecurity Manager');
+            localStorage.setItem('manager_dept_code', userData.departmentCode || 'UNIT-CYB-802');
+        }
+        if (role === 'hrms' || role === 'hr_admin' || role === 'hr' || isHrAccount) {
+            localStorage.setItem('hrms_manager_name', userData.name || 'Savitha Balraju');
+            localStorage.setItem('hrms_manager_role', 'Strategic Operations');
+            localStorage.setItem('hrms_name', userData.name || 'Savitha Balraju');
+        }
+
+        const redirectUrl = await getRedirectUrl(userData, role);
+        if (googleLoginBtn) {
+            const span = googleLoginBtn.querySelector('span');
+            if (span) span.textContent = 'Redirecting to your workspace...';
+        }
+        window.location.href = redirectUrl;
+    }
+
+    async function handleGoogleAuthError(error) {
+        console.error('Google sign-in error:', error);
+        
+        if (error.code === 'auth/operation-not-allowed') {
+            showAlert('Configuration Error', 'Google Sign-In is not enabled. Please enable the Google provider in your Firebase Authentication Console.', 'info');
+        } else if (error.message && error.message.includes('Access Denied')) {
+            showAlert('Access Restricted', error.message, 'shield-alert');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            showError('Sign-in popup closed.');
+        } else if (error.code === 'auth/cancelled-popup-request') {
+            showError('Sign-in cancelled. Please try again.');
+        } else if (error.code === 'auth/popup-blocked') {
+            showError('Sign-in popup was blocked by your browser. Please allow popups for this site.');
+        } else if (error.code === 'auth/missing-initial-state' || (error.message && error.message.includes('missing initial state'))) {
+            showError('Authentication session expired or blocked by browser storage partitioning. Please use popup sign-in.');
+        } else {
+            showError(error.message || 'Google sign-in failed.');
+        }
+    }
 
     googleLoginBtn.addEventListener('click', async () => {
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         
-        // Show loading state (optional, just visually indicating click)
+        // Show loading state
         const originalHtml = googleLoginBtn.innerHTML;
         googleLoginBtn.innerHTML = `<span>Connecting to Google...</span>`;
         googleLoginBtn.disabled = true;
         
         try {
+            if (window.location.protocol === 'https:') {
+                // HTTPS: full-page redirect through this server's /__/auth proxy (no popup, no
+                // Cross-Origin-Opener-Policy warnings). Handled by getRedirectResult below.
+                await signInWithRedirect(auth, provider);
+                return;
+            }
+            // Plain-http local development: Firebase's redirect handler needs HTTPS, so use the
+            // popup. Chrome logs harmless "Cross-Origin-Opener-Policy would block" warnings.
             const result = await signInWithPopup(auth, provider);
-            const userAuth = result.user;
-            const email = userAuth.email;
-            
-            let userData = null;
-            
-            // Try fetching from Firestore first
-            try {
-                const userDoc = await getDoc(doc(db, "users", userAuth.uid));
-                if (userDoc.exists()) userData = userDoc.data();
-            } catch (err) {
-                console.warn('Direct getDoc failed, attempting query:', err);
+            if (result && result.user) {
+                googleLoginBtn.innerHTML = `<span>Redirecting to your workspace...</span>`;
+                googleLoginBtn.disabled = true;
+                await processGoogleLoginUser(result.user);
             }
-            
-            if (!userData) {
-                try {
-                    const q = query(collection(db, 'users'), where('email', '==', email.toLowerCase()));
-                    const querySnap = await getDocs(q);
-                    if (!querySnap.empty) {
-                        userData = querySnap.docs[0].data();
-                        userData.uid = querySnap.docs[0].id;
-                    }
-                } catch (err) {
-                    console.warn('Firestore query failed:', err);
-                }
-            }
-            
-            if (!userData) {
-                throw new Error('Google account not linked. Please sign up or contact Admin.');
-            }
-            
-            const role = (userData.role || '').toLowerCase();
-            const dept = (userData.departmentId || userData.department || 'General').toLowerCase();
-
-            console.log('✅ Google login successful for:', email);
-
-            localStorage.setItem('hr_logged_in', 'true');
-            localStorage.setItem('hr_user_id', userData.uid || 'unknown');
-            localStorage.setItem('hr_access_token', userAuth.accessToken || 'demo-static-token');
-            localStorage.setItem('userName', userData.name || email);
-            localStorage.setItem('userRole', role);
-            localStorage.setItem('userDept', dept);
-            localStorage.setItem('employee_uid', userData.uid || 'unknown');
-
-            const redirectUrl = await getRedirectUrl(userData, role);
-            if (googleLoginBtn) googleLoginBtn.querySelector('span').textContent = 'Redirecting to your workspace...';
-            window.location.href = redirectUrl;
-            
         } catch (error) {
-            console.error('Google sign-in error:', error);
-            
-            if (error.code === 'auth/operation-not-allowed') {
-                showAlert('Configuration Error', 'Google Sign-In is not enabled. Please enable the Google provider in your Firebase Authentication Console.', 'info');
-            } else if (error.message.includes('Access Denied')) {
-                showAlert('Access Restricted', error.message, 'shield-alert');
-            } else if (error.code === 'auth/popup-closed-by-user') {
-                showError('Sign-in popup closed.');
-            } else {
-                showError(error.message || 'Google sign-in failed.');
-            }
-        } finally {
             googleLoginBtn.innerHTML = originalHtml;
             googleLoginBtn.disabled = false;
+            await handleGoogleAuthError(error);
         }
     });
+
+    // Check if user completed a redirect (with quiet handling for partitioned environments)
+    try {
+        getRedirectResult(auth).then((redirectResult) => {
+            if (redirectResult && redirectResult.user) {
+                console.log('✅ Processing Google redirect sign-in...');
+                if (googleLoginBtn) {
+                    googleLoginBtn.innerHTML = `<span>Redirecting to your workspace...</span>`;
+                    googleLoginBtn.disabled = true;
+                }
+                processGoogleLoginUser(redirectResult.user);
+            }
+        }).catch((redirectErr) => {
+            const isStoragePartitionErr = redirectErr && (
+                redirectErr.code === 'auth/missing-initial-state' || 
+                String(redirectErr.message || '').includes('missing initial state')
+            );
+            if (!isStoragePartitionErr) {
+                console.warn('Redirect result check:', redirectErr);
+                handleGoogleAuthError(redirectErr);
+            }
+        });
+    } catch (_) {}
 }

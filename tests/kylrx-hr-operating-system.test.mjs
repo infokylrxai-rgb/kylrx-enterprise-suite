@@ -10,6 +10,7 @@ import notificationActionCenterService from '../services/notification-action-cen
 import centralAssignmentEngine from '../services/central-assignment-engine.js';
 import customAnalyticsEngine from '../services/custom-analytics-engine.js';
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import hrOsRouter from '../routes/hr-os.js';
 
 describe('20. The One-Sentence Requirement: Kylrx AI Configurable HR Operating System Suite', () => {
@@ -214,16 +215,19 @@ describe('20. The One-Sentence Requirement: Kylrx AI Configurable HR Operating S
         const port = server.address().port;
         const baseUrl = `http://127.0.0.1:${port}`;
 
+        const testToken = jwt.sign({ id: 'emp_admin_test', role: 'Admin' }, process.env.JWT_SECRET || 'test-jwt-secret-key-super-secure');
+        const authHeaders = { 'Authorization': `Bearer ${testToken}` };
+
         try {
             // 1. GET /api/hr-os/manifest
-            const manifestRes = await fetch(`${baseUrl}/api/hr-os/manifest`);
+            const manifestRes = await fetch(`${baseUrl}/api/hr-os/manifest`, { headers: authHeaders });
             assert.equal(manifestRes.status, 200);
             const manifestData = await manifestRes.json();
             assert.equal(manifestData.success, true);
             assert.equal(manifestData.manifest.system, 'Kylrx AI HR Operating System');
 
             // 2. GET /api/hr-os/status
-            const statusRes = await fetch(`${baseUrl}/api/hr-os/status`);
+            const statusRes = await fetch(`${baseUrl}/api/hr-os/status`, { headers: authHeaders });
             assert.equal(statusRes.status, 200);
             const statusData = await statusRes.json();
             assert.equal(statusData.success, true);
@@ -231,7 +235,7 @@ describe('20. The One-Sentence Requirement: Kylrx AI Configurable HR Operating S
             assert.equal(statusData.motto, 'Configure Once → Automate Everything → Track Everything → Preserve History');
 
             // 3. GET /api/hr-os/verify-pillars
-            const verifyRes = await fetch(`${baseUrl}/api/hr-os/verify-pillars`);
+            const verifyRes = await fetch(`${baseUrl}/api/hr-os/verify-pillars`, { headers: authHeaders });
             assert.equal(verifyRes.status, 200);
             const verifyData = await verifyRes.json();
             assert.equal(verifyData.success, true);
@@ -240,7 +244,7 @@ describe('20. The One-Sentence Requirement: Kylrx AI Configurable HR Operating S
             // 4. POST /api/hr-os/event
             const eventRes = await fetch(`${baseUrl}/api/hr-os/event`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({
                     eventName: 'employee.type.changed',
                     payload: { employeeId: 'EMP_TEST_007', newType: 'Executive' },

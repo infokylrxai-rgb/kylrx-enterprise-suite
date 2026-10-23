@@ -1,5 +1,4 @@
-import { db } from "./firebase-config.js";
-import { collection, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db, collection, onSnapshot, getDocs, registerListener } from "./firebase-config.js";
 
 // Sticky Navbar Background on Scroll
 const navbar = document.querySelector('.navbar');

@@ -1009,4 +1009,1808 @@ exports.getOrgChart = async (req, res, next) => {
     }
 };
 
+/**
+ * GET /bu-rules & GET /business-units
+ * PRD Sections 1 & 10: Get Business Units and allowed employee type rules
+ */
+exports.getBuRules = async (req, res, next) => {
+    try {
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        
+        // 1. Try fetching from Firestore organizations/{orgId}/business_units
+        try {
+            const buSnap = await db.collection('organizations').doc(orgId).collection('business_units').get();
+            if (!buSnap.empty) {
+                const buList = buSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                buList.forEach(b => {
+                    buRulesService.saveRule(b, 'Firestore Sync');
+                });
+                return res.json({
+                    status: 'success',
+                    success: true,
+                    rules: buList,
+                    data: buList,
+                    total: buList.length
+                });
+            }
+        } catch (_) {}
 
+        // Fallback to buRulesService
+        const rules = buRulesService.getAllRules();
+        return res.json({
+            status: 'success',
+            success: true,
+            rules,
+            data: rules,
+            total: rules.length
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /bu-rules & POST /business-units
+ * PRD Sections 1 & 10: Ingest / Upsert Business Unit matching 4 strict attributes
+ */
+exports.saveBuRule = async (req, res, next) => {
+    try {
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const actor = req.user?.name || req.user?.email || 'Super Admin';
+
+        const rawCode = req.body.businessUnitCode || req.body.Business_Unit_Code || req.body.code;
+        const rawName = req.body.businessUnitName || req.body.Business_Unit_Name || req.body.name;
+        const rawHead = req.body.headEmployeeId || req.body.Head_Employee_ID || req.body.headId || '';
+        const rawActive = req.body.isActive !== undefined ? req.body.isActive : (req.body.Active !== undefined ? req.body.Active : true);
+
+        if (!rawCode || String(rawCode).trim() === '') {
+            return res.status(400).json({ status: 'error', message: 'Business_Unit_Code is required.' });
+        }
+        if (!rawName || String(rawName).trim() === '') {
+            return res.status(400).json({ status: 'error', message: 'Business_Unit_Name is required.' });
+        }
+
+        const buCode = String(rawCode).trim().toUpperCase().replace(/\s+/g, '_');
+        const buName = String(rawName).trim();
+        const headEmployeeId = String(rawHead || '').trim().toUpperCase();
+        const isActive = typeof rawActive === 'boolean' 
+            ? rawActive 
+            : (String(rawActive).toLowerCase() === 'yes' || String(rawActive).toLowerCase() === 'true');
+
+        const allowedTypes = Array.isArray(req.body.allowedEmployeeTypes) && req.body.allowedEmployeeTypes.length > 0
+            ? req.body.allowedEmployeeTypes.map(t => String(t).trim().toUpperCase())
+            : ['FULL_TIME', 'CONTRACT'];
+
+        // Save in buRulesService
+        const savedRule = buRulesService.saveRule({
+            businessUnitCode: buCode,
+            businessUnitName: buName,
+            headEmployeeId,
+            isActive,
+            allowedEmployeeTypes: allowedTypes
+        }, actor);
+
+        // Save to Firestore: organizations/{orgId}/business_units/{buCode}
+        const record = {
+            businessUnitCode: buCode,
+            businessUnitName: buName,
+            headEmployeeId,
+            headEmployeeName: req.body.headEmployeeName || '',
+            isActive,
+            allowedEmployeeTypes: allowedTypes,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedBy: actor
+        };
+
+        await db.collection('organizations').doc(orgId).collection('business_units').doc(buCode).set(record, { merge: true });
+
+        // Dual-sync to bu_employee_type_rules
+        const ruleId = `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        await db.collection('bu_employee_type_rules').doc(ruleId).set({
+            ...record,
+            ruleId
+        }, { merge: true });
+
+        return res.status(200).json({
+            status: 'success',
+            success: true,
+            message: `Business Unit '${buCode}' saved successfully.`,
+            rule: savedRule,
+            data: record
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PUT /business-units/:code
+ * Update a Business Unit
+ */
+exports.updateBusinessUnit = async (req, res, next) => {
+    try {
+        req.body.businessUnitCode = req.params.code;
+        return exports.saveBuRule(req, res, next);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PATCH /business-units/:code/toggle-status
+ * Toggle Active status
+ */
+exports.toggleBusinessUnitStatus = async (req, res, next) => {
+    try {
+        const buCode = req.params.code.toUpperCase();
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const buRef = db.collection('organizations').doc(orgId).collection('business_units').doc(buCode);
+        const snap = await buRef.get();
+
+        let currentActive = true;
+        if (snap.exists) {
+            currentActive = snap.data().isActive !== false;
+        }
+
+        const newStatus = req.body.isActive !== undefined ? Boolean(req.body.isActive) : !currentActive;
+
+        await buRef.set({
+            isActive: newStatus,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        buRulesService.saveRule({
+            businessUnitCode: buCode,
+            isActive: newStatus
+        }, req.user?.email || 'Super Admin');
+
+        return res.json({
+            status: 'success',
+            success: true,
+            businessUnitCode: buCode,
+            isActive: newStatus
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * DELETE /business-units/:code
+ */
+exports.deleteBusinessUnit = async (req, res, next) => {
+    try {
+        const buCode = req.params.code.toUpperCase();
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        await db.collection('organizations').doc(orgId).collection('business_units').doc(buCode).delete();
+        const ruleId = `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        await db.collection('bu_employee_type_rules').doc(ruleId).delete();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            message: `Business Unit '${buCode}' deleted.`
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * ============================================================================
+ * COST CENTER MANAGEMENT CONTROLLERS (PRD Sections 1, 10, & 13)
+ * Path: organizations/{orgId}/cost_centers/{costCenterCode}
+ * ============================================================================
+ */
+
+/**
+ * GET /cost-centers
+ */
+exports.getCostCenters = async (req, res, next) => {
+    try {
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const activeOnly = req.query.active === 'true';
+
+        let query = db.collection('organizations').doc(orgId).collection('cost_centers');
+        if (activeOnly) {
+            query = query.where('isActive', '==', true);
+        }
+
+        const snapshot = await query.get();
+        const costCenters = [];
+        snapshot.forEach(docSnap => {
+            costCenters.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            total: costCenters.length,
+            data: costCenters
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /cost-centers
+ */
+exports.createCostCenter = async (req, res, next) => {
+    try {
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const rawCode = req.body.costCenterCode || req.body.Cost_Center_Code || req.body.code;
+        const rawName = req.body.costCenterName || req.body.Cost_Center_Name || req.body.name;
+        const rawOwnerId = req.body.ownerEmployeeId || req.body.Owner_Employee_ID || req.body['Owner Employee ID'] || '';
+        const rawOwnerName = req.body.ownerEmployeeName || '';
+        const rawActive = req.body.isActive !== undefined ? req.body.isActive : (req.body.Active !== undefined ? req.body.Active : true);
+
+        if (!rawCode || String(rawCode).trim() === '') {
+            return res.status(400).json({ success: false, message: "Missing required attribute 'Cost_Center_Code'." });
+        }
+        if (!rawName || String(rawName).trim() === '') {
+            return res.status(400).json({ success: false, message: "Missing required attribute 'Cost_Center_Name'." });
+        }
+
+        const costCenterCode = String(rawCode).trim().toUpperCase().replace(/\s+/g, '_');
+        const costCenterName = String(rawName).trim();
+        const ownerEmployeeId = String(rawOwnerId).trim().toUpperCase();
+        const isActive = typeof rawActive === 'boolean'
+            ? rawActive
+            : !['no', 'n', 'false', '0', 'inactive'].includes(String(rawActive).trim().toLowerCase());
+
+        const ccRef = db.collection('organizations').doc(orgId).collection('cost_centers').doc(costCenterCode);
+        const payload = {
+            costCenterCode,
+            costCenterName,
+            ownerEmployeeId,
+            ownerEmployeeName: rawOwnerName,
+            isActive,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        const existing = await ccRef.get();
+        if (!existing.exists) {
+            payload.createdAt = admin.firestore.FieldValue.serverTimestamp();
+        }
+
+        await ccRef.set(payload, { merge: true });
+
+        return res.status(existing.exists ? 200 : 201).json({
+            status: 'success',
+            success: true,
+            data: { costCenterCode, costCenterName, ownerEmployeeId, isActive }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PUT /cost-centers/:code
+ */
+exports.updateCostCenter = async (req, res, next) => {
+    try {
+        const costCenterCode = req.params.code.toUpperCase();
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        const ccRef = db.collection('organizations').doc(orgId).collection('cost_centers').doc(costCenterCode);
+        const updateData = {
+            ...req.body,
+            costCenterCode,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        await ccRef.set(updateData, { merge: true });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            data: updateData
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PATCH /cost-centers/:code/toggle-status
+ */
+exports.toggleCostCenterStatus = async (req, res, next) => {
+    try {
+        const costCenterCode = req.params.code.toUpperCase();
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        const ccRef = db.collection('organizations').doc(orgId).collection('cost_centers').doc(costCenterCode);
+        const snap = await ccRef.get();
+        let currentActive = true;
+        if (snap.exists) {
+            currentActive = snap.data().isActive !== false;
+        }
+
+        const newStatus = req.body.isActive !== undefined ? Boolean(req.body.isActive) : !currentActive;
+
+        await ccRef.set({
+            isActive: newStatus,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            costCenterCode,
+            isActive: newStatus
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * DELETE /cost-centers/:code
+ */
+exports.deleteCostCenter = async (req, res, next) => {
+    try {
+        const costCenterCode = req.params.code.toUpperCase();
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        await db.collection('organizations').doc(orgId).collection('cost_centers').doc(costCenterCode).delete();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            message: `Cost Center '${costCenterCode}' deleted.`
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /cost-centers/bulk
+ */
+exports.bulkImportCostCenters = async (req, res, next) => {
+    try {
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const costCenters = req.body.costCenters || req.body.records || [];
+
+        if (!Array.isArray(costCenters) || costCenters.length === 0) {
+            return res.status(400).json({ success: false, message: 'No cost center records provided.' });
+        }
+
+        const batch = db.batch();
+        const results = [];
+
+        costCenters.forEach(cc => {
+            const code = String(cc.costCenterCode || cc.Cost_Center_Code || cc.code || '').trim().toUpperCase();
+            if (!code) return;
+            const ref = db.collection('organizations').doc(orgId).collection('cost_centers').doc(code);
+            const payload = {
+                costCenterCode: code,
+                costCenterName: String(cc.costCenterName || cc.Cost_Center_Name || cc.name || '').trim(),
+                ownerEmployeeId: String(cc.ownerEmployeeId || cc.Owner_Employee_ID || '').trim().toUpperCase(),
+                isActive: cc.isActive !== false && cc.Active !== 'No',
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+            batch.set(ref, payload, { merge: true });
+            results.push(code);
+        });
+
+        await batch.commit();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            ingestedCount: results.length,
+            costCenterCodes: results
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────────
+ * PRD Sections 1, 10, & 13: Sub-Department Schema, Ingestion & Hierarchy
+ * Path: organizations/{orgId}/sub_departments/{subDepartmentCode}
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/**
+ * GET /sub-departments
+ */
+exports.getSubDepartments = async (req, res, next) => {
+    try {
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const activeOnly = req.query.active === 'true';
+        const departmentCode = req.query.departmentCode ? String(req.query.departmentCode).trim().toUpperCase() : null;
+        const costCenterCode = req.query.costCenterCode ? String(req.query.costCenterCode).trim().toUpperCase() : null;
+
+        let query = db.collection('organizations').doc(orgId).collection('sub_departments');
+        if (activeOnly) {
+            query = query.where('isActive', '==', true);
+        }
+
+        const snapshot = await query.get();
+        let subDepartments = [];
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            subDepartments.push({ id: docSnap.id, ...data });
+        });
+
+        // Optional filtering by departmentCode or costCenterCode
+        if (departmentCode) {
+            subDepartments = subDepartments.filter(s => {
+                const sCode = (s.subDepartmentCode || s.code || '').toUpperCase();
+                const dCode = (s.departmentCode || '').toUpperCase();
+                return dCode === departmentCode || sCode.startsWith(departmentCode) || sCode.includes(departmentCode);
+            });
+        }
+        if (costCenterCode) {
+            subDepartments = subDepartments.filter(s => {
+                const cc = (s.costCenterCode || '').toUpperCase();
+                return cc === costCenterCode;
+            });
+        }
+
+        return res.json({
+            status: 'success',
+            success: true,
+            total: subDepartments.length,
+            data: subDepartments
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /sub-departments
+ */
+exports.createSubDepartment = async (req, res, next) => {
+    try {
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const rawCode = req.body.subDepartmentCode || req.body['Sub-Department_Code'] || req.body.code;
+        const rawName = req.body.subDepartmentName || req.body['Sub-Department_Name'] || req.body.name;
+        const rawHead = req.body.headEmployeeId || req.body['Sub-Department_Head_Employee_ID'] || req.body.headId || '';
+        const rawCc = req.body.costCenterCode || req.body['Cost_Center_Code'] || req.body.ccCode;
+        const rawActive = req.body.isActive !== undefined ? req.body.isActive : req.body.Active;
+
+        if (!rawCode || String(rawCode).trim() === '') {
+            return res.status(400).json({ success: false, message: "Missing required attribute 'Sub-Department_Code'." });
+        }
+        if (!rawName || String(rawName).trim() === '') {
+            return res.status(400).json({ success: false, message: "Missing required attribute 'Sub-Department_Name'." });
+        }
+        if (!rawCc || String(rawCc).trim() === '') {
+            return res.status(400).json({ success: false, message: "Missing required attribute 'Cost_Center_Code'." });
+        }
+
+        const subDepartmentCode = String(rawCode).trim().toUpperCase().replace(/\s+/g, '_');
+        const subDepartmentName = String(rawName).trim();
+        const costCenterCode = String(rawCc).trim().toUpperCase();
+        const isActive = typeof rawActive === 'boolean'
+            ? rawActive
+            : !['no', 'n', 'false', '0', 'inactive'].includes(String(rawActive !== undefined ? rawActive : 'Yes').trim().toLowerCase());
+
+        // Validate Foreign Key: Cost_Center_Code must exist in cost_centers
+        try {
+            const ccSnap = await db.collection('organizations').doc(orgId).collection('cost_centers').doc(costCenterCode).get();
+            const standardCostCenters = ['CC_ENG_01', 'CC_ENG_DEV', 'CC_ENG_QA', 'CC_OPS_SUPP', 'CC_HR_TALENT', 'CC_FIN_CORP', 'CC-ENG-101', 'CC-OPS-401', 'CC-HR-201', 'CC-FIN-301', 'CC-AI-102'];
+            if (!ccSnap.exists && !standardCostCenters.includes(costCenterCode)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Foreign Key Violation: Cost Center '${costCenterCode}' does not exist in organization cost centers.`
+                });
+            }
+        } catch (_) {}
+
+        // Evaluate "Same as Department Head" rule
+        const isExplicitFlag = req.body.sameAsDeptHead !== undefined ? Boolean(req.body.sameAsDeptHead)
+            : (req.body.inheritedFromDeptHead !== undefined ? Boolean(req.body.inheritedFromDeptHead) : null);
+
+        const cleanRawHead = String(rawHead || '').trim().toLowerCase();
+        const isSame = isExplicitFlag !== null
+            ? isExplicitFlag
+            : (!cleanRawHead || cleanRawHead === 'same as department head' || cleanRawHead === 'same as dept head' || cleanRawHead === 'inherit');
+
+        // Resolve parent Department & Head
+        let parentDeptCode = req.body.departmentCode || '';
+        let resolvedHeadId = 'EMP0002';
+        let resolvedHeadName = 'Vikram Malhotra';
+
+        if (costCenterCode === 'CC_ENG_01') {
+            parentDeptCode = parentDeptCode || 'DEPT_ENG';
+            resolvedHeadId = 'EMP0002';
+            resolvedHeadName = 'Vikram Malhotra';
+        } else if (costCenterCode.startsWith('CC-ENG') || costCenterCode === 'CC_ENG_DEV') {
+            parentDeptCode = parentDeptCode || 'ENG';
+            resolvedHeadId = 'EMP0001';
+            resolvedHeadName = 'Devendra Sharma';
+        } else if (costCenterCode.startsWith('CC-AI')) {
+            parentDeptCode = parentDeptCode || 'AI-LABS';
+            resolvedHeadId = 'EMP0007';
+            resolvedHeadName = 'Dr. Kumar Mangalam';
+        } else if (costCenterCode.startsWith('CC-HR')) {
+            parentDeptCode = parentDeptCode || 'HR';
+            resolvedHeadId = 'EMP0003';
+            resolvedHeadName = 'Ananya Roy';
+        } else if (costCenterCode.startsWith('CC-FIN')) {
+            parentDeptCode = parentDeptCode || 'FIN';
+            resolvedHeadId = 'EMP0004';
+            resolvedHeadName = 'Rajesh Raman';
+        } else if (costCenterCode.startsWith('CC-OPS')) {
+            parentDeptCode = parentDeptCode || 'OPS';
+            resolvedHeadId = 'EMP0005';
+            resolvedHeadName = 'Sneha Sen';
+        } else {
+            parentDeptCode = parentDeptCode || 'DEPT_ENG';
+        }
+
+        let finalHeadId = '';
+        let finalHeadName = '';
+
+        if (isSame) {
+            finalHeadId = resolvedHeadId;
+            finalHeadName = resolvedHeadName;
+        } else {
+            finalHeadId = String(rawHead).trim().toUpperCase();
+            finalHeadName = req.body.headEmployeeName || `${finalHeadId} Lead`;
+            if (finalHeadId && !req.body.headEmployeeName) {
+                try {
+                    const userSnap = await db.collection('users').doc(finalHeadId).get();
+                    if (userSnap.exists) {
+                        finalHeadName = userSnap.data().name || userSnap.data().fullName || finalHeadName;
+                    }
+                } catch (_) {}
+            }
+        }
+
+        const subRef = db.collection('organizations').doc(orgId).collection('sub_departments').doc(subDepartmentCode);
+        const payload = {
+            subDepartmentCode,
+            subDepartmentName,
+            costCenterCode,
+            departmentCode: parentDeptCode,
+            sameAsDeptHead: isSame,
+            inheritedFromDeptHead: isSame,
+            subDepartmentHeadEmployeeId: finalHeadId,
+            subDepartmentHeadName: finalHeadName,
+            headEmployeeId: finalHeadId,
+            headEmployeeName: finalHeadName,
+            isActive,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        const existing = await subRef.get();
+        if (!existing.exists) {
+            payload.createdAt = admin.firestore.FieldValue.serverTimestamp();
+        }
+
+        await subRef.set(payload, { merge: true });
+
+        return res.status(existing.exists ? 200 : 201).json({
+            status: 'success',
+            success: true,
+            data: payload
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PUT /sub-departments/:code
+ */
+exports.updateSubDepartment = async (req, res, next) => {
+    try {
+        const subDepartmentCode = req.params.code.toUpperCase();
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        const subRef = db.collection('organizations').doc(orgId).collection('sub_departments').doc(subDepartmentCode);
+        const updateData = {
+            ...req.body,
+            subDepartmentCode,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        await subRef.set(updateData, { merge: true });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            data: updateData
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PATCH /sub-departments/:code/toggle-status
+ */
+exports.toggleSubDepartmentStatus = async (req, res, next) => {
+    try {
+        const subDepartmentCode = req.params.code.toUpperCase();
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        const subRef = db.collection('organizations').doc(orgId).collection('sub_departments').doc(subDepartmentCode);
+        const snap = await subRef.get();
+        let currentActive = true;
+        if (snap.exists) {
+            currentActive = snap.data().isActive !== false;
+        }
+
+        const newStatus = req.body.isActive !== undefined ? Boolean(req.body.isActive) : !currentActive;
+
+        await subRef.set({
+            isActive: newStatus,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            subDepartmentCode,
+            isActive: newStatus
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * DELETE /sub-departments/:code
+ */
+exports.deleteSubDepartment = async (req, res, next) => {
+    try {
+        const subDepartmentCode = req.params.code.toUpperCase();
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        await db.collection('organizations').doc(orgId).collection('sub_departments').doc(subDepartmentCode).delete();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            message: `Sub-Department '${subDepartmentCode}' deleted.`
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /sub-departments/bulk
+ */
+exports.bulkImportSubDepartments = async (req, res, next) => {
+    try {
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const subDepartments = req.body.subDepartments || req.body.records || [];
+
+        if (!Array.isArray(subDepartments) || subDepartments.length === 0) {
+            return res.status(400).json({ success: false, message: 'No sub-department records provided.' });
+        }
+
+        const batch = db.batch();
+        const results = [];
+
+        for (const sub of subDepartments) {
+            const code = String(sub.subDepartmentCode || sub['Sub-Department_Code'] || sub.code || '').trim().toUpperCase();
+            const name = String(sub.subDepartmentName || sub['Sub-Department_Name'] || sub.name || '').trim();
+            const head = String(sub.headEmployeeId || sub['Sub-Department_Head_Employee_ID'] || sub.headId || '').trim().toUpperCase();
+            const cc = String(sub.costCenterCode || sub['Cost_Center_Code'] || sub.ccCode || '').trim().toUpperCase();
+            const activeVal = sub.isActive !== undefined ? sub.isActive : (sub.Active !== undefined ? sub.Active : true);
+
+            if (!code || !name) continue;
+
+            const ref = db.collection('organizations').doc(orgId).collection('sub_departments').doc(code);
+            const payload = {
+                subDepartmentCode: code,
+                subDepartmentName: name,
+                headEmployeeId: head,
+                headEmployeeName: sub.headEmployeeName || '',
+                costCenterCode: cc,
+                isActive: typeof activeVal === 'boolean' ? activeVal : !['no', 'n', 'false', '0', 'inactive'].includes(String(activeVal).toLowerCase()),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+            batch.set(ref, payload, { merge: true });
+            results.push(code);
+        }
+
+        await batch.commit();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            ingestedCount: results.length,
+            subDepartmentCodes: results
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /departments/:code/propagate-sub-departments
+ * Propagates parent Department Head updates to all child Sub-Departments
+ * with sameAsDeptHead: true or inheritedFromDeptHead: true
+ */
+exports.propagateDepartmentHeadUpdate = async (req, res, next) => {
+    try {
+        const departmentCode = req.params.code.toUpperCase();
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const newHeadEmployeeId = String(req.body.newHeadEmployeeId || req.body.headEmployeeId || '').trim().toUpperCase();
+        const newHeadEmployeeName = req.body.newHeadEmployeeName || req.body.headEmployeeName || '';
+
+        if (!newHeadEmployeeId) {
+            return res.status(400).json({ success: false, message: 'newHeadEmployeeId is required.' });
+        }
+
+        const subDeptQuery = await db.collection('organizations').doc(orgId).collection('sub_departments').get();
+        const batch = db.batch();
+        const updatedCodes = [];
+
+        subDeptQuery.forEach(docSnap => {
+            const data = docSnap.data();
+            const isInherited = data.sameAsDeptHead === true || data.inheritedFromDeptHead === true;
+            const matchesDept = (data.departmentCode && data.departmentCode.toUpperCase() === departmentCode) ||
+                                (data.subDepartmentCode && data.subDepartmentCode.toUpperCase().startsWith(departmentCode + '-'));
+
+            if (isInherited && matchesDept) {
+                batch.update(docSnap.ref, {
+                    subDepartmentHeadEmployeeId: newHeadEmployeeId,
+                    subDepartmentHeadName: newHeadEmployeeName || `${newHeadEmployeeId} Lead`,
+                    headEmployeeId: newHeadEmployeeId,
+                    headEmployeeName: newHeadEmployeeName || `${newHeadEmployeeId} Lead`,
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+                updatedCodes.push(docSnap.id);
+            }
+        });
+
+        if (updatedCodes.length > 0) {
+            await batch.commit();
+        }
+
+        return res.json({
+            status: 'success',
+            success: true,
+            departmentCode,
+            newHeadEmployeeId,
+            updatedSubDepartmentsCount: updatedCodes.length,
+            updatedSubDepartments: updatedCodes
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * ============================================================================
+ * PRD SECTIONS 1, 13, & 16: SHIFTS & WEEK-OFFS SCHEMA & ATTENDANCE ENGINE
+ * ============================================================================
+ */
+
+const DEFAULT_ENTERPRISE_SHIFTS = [
+    {
+        shiftCode: 'SH_GEN_01',
+        shiftName: 'General Corporate Shift',
+        startTime: '09:30',
+        endTime: '18:30',
+        breakMinutes: 60,
+        graceInMinutes: 15,
+        graceOutMinutes: 15,
+        halfDayMinutes: 240,
+        fullDayMinutes: 480,
+        isNightShift: false,
+        isOvertimeEligible: true,
+        weeklyOffPattern: 'Sun',
+        isActive: true
+    },
+    {
+        shiftCode: 'SHIFT-GEN',
+        shiftName: 'Standard Day Shift',
+        startTime: '09:00',
+        endTime: '18:00',
+        breakMinutes: 60,
+        graceInMinutes: 15,
+        graceOutMinutes: 15,
+        halfDayMinutes: 240,
+        fullDayMinutes: 480,
+        isNightShift: false,
+        isOvertimeEligible: true,
+        weeklyOffPattern: 'Sat,Sun',
+        isActive: true
+    },
+    {
+        shiftCode: 'SH_MORN_01',
+        shiftName: 'Morning Production Shift',
+        startTime: '06:00',
+        endTime: '14:30',
+        breakMinutes: 30,
+        graceInMinutes: 10,
+        graceOutMinutes: 10,
+        halfDayMinutes: 210,
+        fullDayMinutes: 450,
+        isNightShift: false,
+        isOvertimeEligible: true,
+        weeklyOffPattern: 'Sun',
+        isActive: true
+    },
+    {
+        shiftCode: 'SH_EVE_01',
+        shiftName: 'Evening Technical Shift',
+        startTime: '14:00',
+        endTime: '22:30',
+        breakMinutes: 45,
+        graceInMinutes: 15,
+        graceOutMinutes: 15,
+        halfDayMinutes: 240,
+        fullDayMinutes: 465,
+        isNightShift: false,
+        isOvertimeEligible: true,
+        weeklyOffPattern: 'Sun',
+        isActive: true
+    },
+    {
+        shiftCode: 'SH_NIGHT_01',
+        shiftName: 'Overnight Mission-Critical Shift',
+        startTime: '22:00',
+        endTime: '06:30',
+        breakMinutes: 45,
+        graceInMinutes: 15,
+        graceOutMinutes: 15,
+        halfDayMinutes: 240,
+        fullDayMinutes: 465,
+        isNightShift: true,
+        isOvertimeEligible: true,
+        weeklyOffPattern: 'Sat,Sun',
+        isActive: true
+    }
+];
+
+/**
+ * GET /shifts
+ */
+exports.getShifts = async (req, res, next) => {
+    try {
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const snapshot = await db.collection('organizations').doc(orgId).collection('shifts').get();
+
+        if (snapshot.empty) {
+            return res.json({
+                status: 'success',
+                success: true,
+                count: DEFAULT_ENTERPRISE_SHIFTS.length,
+                data: DEFAULT_ENTERPRISE_SHIFTS,
+                shifts: DEFAULT_ENTERPRISE_SHIFTS
+            });
+        }
+
+        const shifts = [];
+        snapshot.forEach(doc => {
+            shifts.push({ shiftCode: doc.id, ...doc.data() });
+        });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            count: shifts.length,
+            data: shifts,
+            shifts
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /shifts
+ */
+exports.createShift = async (req, res, next) => {
+    try {
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const rawCode = req.body.shiftCode || req.body['Shift_Code'] || req.body.code;
+        const rawName = req.body.shiftName || req.body['Shift_Name'] || req.body.name;
+
+        if (!rawCode || !rawName) {
+            return res.status(400).json({
+                status: 'error',
+                success: false,
+                message: "Both 'Shift_Code' (PK) and 'Shift_Name' are required."
+            });
+        }
+
+        const shiftCode = String(rawCode).trim().toUpperCase().replace(/\s+/g, '_');
+        const shiftName = String(rawName).trim();
+        const startTime = req.body.startTime || req.body['Start_Time'] || '09:30';
+        const endTime = req.body.endTime || req.body['End_Time'] || '18:30';
+        const breakMinutes = Number(req.body.breakMinutes !== undefined ? req.body.breakMinutes : (req.body['Break_Minutes'] !== undefined ? req.body['Break_Minutes'] : 60));
+        const graceInMinutes = Number(req.body.graceInMinutes !== undefined ? req.body.graceInMinutes : (req.body['Grace_In_Minutes'] !== undefined ? req.body['Grace_In_Minutes'] : 15));
+        const graceOutMinutes = Number(req.body.graceOutMinutes !== undefined ? req.body.graceOutMinutes : (req.body['Grace_Out_Minutes'] !== undefined ? req.body['Grace_Out_Minutes'] : 15));
+        const halfDayMinutes = Number(req.body.halfDayMinutes !== undefined ? req.body.halfDayMinutes : (req.body['Half_Day_Minutes'] !== undefined ? req.body['Half_Day_Minutes'] : 240));
+        const fullDayMinutes = Number(req.body.fullDayMinutes !== undefined ? req.body.fullDayMinutes : (req.body['Full_Day_Minutes'] !== undefined ? req.body['Full_Day_Minutes'] : 480));
+
+        const isNightShift = Boolean(req.body.isNightShift !== undefined ? req.body.isNightShift : (req.body['Night_Shift'] === 'Yes' || req.body['Night_Shift'] === true));
+        const isOvertimeEligible = Boolean(req.body.isOvertimeEligible !== undefined ? req.body.isOvertimeEligible : (req.body['Overtime_Eligible'] !== 'No' && req.body['Overtime_Eligible'] !== false));
+        const weeklyOffPattern = String(req.body.weeklyOffPattern || req.body['Weekly_Off_Pattern'] || 'Sun').trim();
+
+        let isActive = true;
+        const rawActive = req.body.isActive !== undefined ? req.body.isActive : req.body['Active'];
+        if (typeof rawActive === 'boolean') {
+            isActive = rawActive;
+        } else if (rawActive !== undefined && rawActive !== null) {
+            const s = String(rawActive).trim().toLowerCase();
+            isActive = !['no', 'n', 'false', '0', 'inactive'].includes(s);
+        }
+
+        const shiftPayload = {
+            shiftCode,
+            shiftName,
+            startTime,
+            endTime,
+            breakMinutes,
+            graceInMinutes,
+            graceOutMinutes,
+            halfDayMinutes,
+            fullDayMinutes,
+            isNightShift,
+            isOvertimeEligible,
+            weeklyOffPattern,
+            isActive,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        const shiftRef = db.collection('organizations').doc(orgId).collection('shifts').doc(shiftCode);
+        await shiftRef.set(shiftPayload, { merge: true });
+
+        return res.status(201).json({
+            status: 'success',
+            success: true,
+            message: `Shift '${shiftCode}' configured successfully.`,
+            data: { shiftCode, ...shiftPayload }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PUT /shifts/:code
+ */
+exports.updateShift = async (req, res, next) => {
+    try {
+        const shiftCode = req.params.code.toUpperCase();
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        const updateData = { ...req.body };
+        delete updateData.shiftCode;
+        delete updateData.orgId;
+        updateData.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+
+        const shiftRef = db.collection('organizations').doc(orgId).collection('shifts').doc(shiftCode);
+        await shiftRef.set(updateData, { merge: true });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            shiftCode,
+            data: updateData
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PATCH /shifts/:code/toggle-status
+ */
+exports.toggleShiftStatus = async (req, res, next) => {
+    try {
+        const shiftCode = req.params.code.toUpperCase();
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        const shiftRef = db.collection('organizations').doc(orgId).collection('shifts').doc(shiftCode);
+        const snap = await shiftRef.get();
+        let currentActive = true;
+        if (snap.exists) {
+            currentActive = snap.data().isActive !== false;
+        }
+
+        const newStatus = req.body.isActive !== undefined ? Boolean(req.body.isActive) : !currentActive;
+
+        await shiftRef.set({
+            isActive: newStatus,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            shiftCode,
+            isActive: newStatus
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * DELETE /shifts/:code
+ */
+exports.deleteShift = async (req, res, next) => {
+    try {
+        const shiftCode = req.params.code.toUpperCase();
+        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+
+        await db.collection('organizations').doc(orgId).collection('shifts').doc(shiftCode).delete();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            message: `Shift '${shiftCode}' deleted.`
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /shifts/bulk
+ */
+exports.bulkImportShifts = async (req, res, next) => {
+    try {
+        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const shifts = req.body.shifts || req.body.records || [];
+
+        if (!Array.isArray(shifts) || shifts.length === 0) {
+            return res.status(400).json({ success: false, message: 'No shift records provided.' });
+        }
+
+        const batch = db.batch();
+        const results = [];
+
+        for (const s of shifts) {
+            const code = String(s.shiftCode || s['Shift_Code'] || s.code || '').trim().toUpperCase().replace(/\s+/g, '_');
+            const name = String(s.shiftName || s['Shift_Name'] || s.name || '').trim();
+            if (!code || !name) continue;
+
+            const shiftRef = db.collection('organizations').doc(orgId).collection('shifts').doc(code);
+            const payload = {
+                shiftCode: code,
+                shiftName: name,
+                startTime: s.startTime || s['Start_Time'] || '09:30',
+                endTime: s.endTime || s['End_Time'] || '18:30',
+                breakMinutes: Number(s.breakMinutes !== undefined ? s.breakMinutes : (s['Break_Minutes'] || 60)),
+                graceInMinutes: Number(s.graceInMinutes !== undefined ? s.graceInMinutes : (s['Grace_In_Minutes'] || 15)),
+                graceOutMinutes: Number(s.graceOutMinutes !== undefined ? s.graceOutMinutes : (s['Grace_Out_Minutes'] || 15)),
+                halfDayMinutes: Number(s.halfDayMinutes !== undefined ? s.halfDayMinutes : (s['Half_Day_Minutes'] || 240)),
+                fullDayMinutes: Number(s.fullDayMinutes !== undefined ? s.fullDayMinutes : (s['Full_Day_Minutes'] || 480)),
+                isNightShift: Boolean(s.isNightShift !== undefined ? s.isNightShift : (s['Night_Shift'] === 'Yes' || s['Night_Shift'] === true)),
+                isOvertimeEligible: Boolean(s.isOvertimeEligible !== undefined ? s.isOvertimeEligible : (s['Overtime_Eligible'] !== 'No' && s['Overtime_Eligible'] !== false)),
+                weeklyOffPattern: String(s.weeklyOffPattern || s['Weekly_Off_Pattern'] || 'Sun').trim(),
+                isActive: s.isActive !== false && s['Active'] !== 'No',
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+
+            batch.set(shiftRef, payload, { merge: true });
+            results.push(code);
+        }
+
+        await batch.commit();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            ingestedCount: results.length,
+            shiftCodes: results
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /shifts/calculate-attendance
+ * Dynamic Attendance Calculation Engine (PRD Section 16)
+ */
+exports.calculatePunchAttendance = async (req, res, next) => {
+    try {
+        const { punchIn, punchOut, shiftCode, shift } = req.body;
+
+        // Resolve shift policy
+        let policy = shift;
+        if (!policy && shiftCode) {
+            const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+            const snap = await db.collection('organizations').doc(orgId).collection('shifts').doc(shiftCode.toUpperCase()).get();
+            if (snap.exists) {
+                policy = snap.data();
+            }
+        }
+        if (!policy) {
+            policy = DEFAULT_ENTERPRISE_SHIFTS.find(s => s.shiftCode === (shiftCode || 'SH_GEN_01')) || DEFAULT_ENTERPRISE_SHIFTS[0];
+        }
+
+        // Attendance evaluation
+        function timeToMinutes(t) {
+            if (!t) return 0;
+            const str = String(t).trim();
+            if (str.includes('T') || str.includes(' ') || str.includes('-')) {
+                const d = new Date(str);
+                if (!isNaN(d.getTime())) return d.getHours() * 60 + d.getMinutes();
+            }
+            const match = str.match(/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])/);
+            return match ? parseInt(match[1], 10) * 60 + parseInt(match[2], 10) : 0;
+        }
+
+        const shiftStartMins = timeToMinutes(policy.startTime || '09:30');
+        let shiftEndMins = timeToMinutes(policy.endTime || '18:30');
+        const breakMins = Number(policy.breakMinutes || 60);
+        const graceIn = Number(policy.graceInMinutes || 15);
+        const graceOut = Number(policy.graceOutMinutes || 15);
+        const halfDay = Number(policy.halfDayMinutes || 240);
+        const fullDay = Number(policy.fullDayMinutes || 480);
+        const isNight = Boolean(policy.isNightShift);
+        const isOt = Boolean(policy.isOvertimeEligible);
+
+        if (isNight && shiftEndMins <= shiftStartMins) {
+            shiftEndMins += 1440;
+        }
+
+        let inMins = timeToMinutes(punchIn);
+        let outMins = timeToMinutes(punchOut);
+
+        if (isNight) {
+            if (outMins < inMins) outMins += 1440;
+            else if (inMins < 720 && outMins < 720) { inMins += 1440; outMins += 1440; }
+        } else if (outMins < inMins) {
+            outMins += 1440;
+        }
+
+        const isLate = inMins > (shiftStartMins + graceIn);
+        const lateMinutes = isLate ? Math.max(0, inMins - shiftStartMins) : 0;
+
+        const isEarlyOut = outMins < (shiftEndMins - graceOut);
+        const earlyMinutes = isEarlyOut ? Math.max(0, shiftEndMins - outMins) : 0;
+
+        const totalDurationMinutes = Math.max(0, outMins - inMins);
+        const netWorkedMinutes = Math.max(0, totalDurationMinutes - breakMins);
+
+        let status = 'ABSENT';
+        if (netWorkedMinutes >= fullDay) status = 'PRESENT';
+        else if (netWorkedMinutes >= halfDay) status = 'HALF_DAY';
+
+        let overtimeMinutes = 0;
+        if (isOt && netWorkedMinutes > fullDay) {
+            overtimeMinutes = netWorkedMinutes - fullDay;
+        }
+
+        return res.json({
+            status: 'success',
+            success: true,
+            data: {
+                shiftCode: policy.shiftCode,
+                shiftName: policy.shiftName,
+                punchIn,
+                punchOut,
+                totalDurationMinutes,
+                netWorkedMinutes,
+                breakMinutes: breakMins,
+                lateMinutes,
+                isLate,
+                earlyMinutes,
+                isEarlyOut,
+                overtimeMinutes,
+                isOvertime: overtimeMinutes > 0,
+                attendanceStatus: status,
+                isNightShift: isNight,
+                isOvertimeEligible: isOt,
+                weeklyOffPattern: policy.weeklyOffPattern || 'Sun'
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ============================================================================
+// PRD Sections 1, 15, & 16: ATTENDANCE RULES & POLICIES CONTROLLER
+// Cloud Firestore Path: organizations/{orgId}/attendance_policies/{attendancePolicyCode}
+// ============================================================================
+
+const DEFAULT_ATTENDANCE_POLICIES = [
+    {
+        attendancePolicyCode: 'POL_STD_CORP',
+        policyName: 'Standard Corporate Policy',
+        lateAfterMinutes: 15,
+        earlyLeavingGraceMinute: 10,
+        absentAfterHours: 4,
+        regularizationAllowed: true,
+        regularizationWindowDays: 7,
+        wfhAllowed: true,
+        otMinimumMinutes: 60,
+        otApprovalRequired: true,
+        geoFenceRequired: false,
+        ipRestricted: false,
+        isActive: true
+    },
+    {
+        attendancePolicyCode: 'POL_FACTORY_OPS',
+        policyName: 'Manufacturing & Plant Operations',
+        lateAfterMinutes: 5,
+        earlyLeavingGraceMinute: 5,
+        absentAfterHours: 2,
+        regularizationAllowed: true,
+        regularizationWindowDays: 3,
+        wfhAllowed: false,
+        otMinimumMinutes: 30,
+        otApprovalRequired: true,
+        geoFenceRequired: true,
+        ipRestricted: true,
+        isActive: true
+    },
+    {
+        attendancePolicyCode: 'POL_TECH_FLEX',
+        policyName: 'Engineering & R&D Flex Policy',
+        lateAfterMinutes: 30,
+        earlyLeavingGraceMinute: 15,
+        absentAfterHours: 5,
+        regularizationAllowed: true,
+        regularizationWindowDays: 14,
+        wfhAllowed: true,
+        otMinimumMinutes: 60,
+        otApprovalRequired: false,
+        geoFenceRequired: false,
+        ipRestricted: false,
+        isActive: true
+    },
+    {
+        attendancePolicyCode: 'POL_SECURE_HQ',
+        policyName: 'Corporate Security & Finance Strict',
+        lateAfterMinutes: 10,
+        earlyLeavingGraceMinute: 5,
+        absentAfterHours: 3,
+        regularizationAllowed: true,
+        regularizationWindowDays: 5,
+        wfhAllowed: false,
+        otMinimumMinutes: 60,
+        otApprovalRequired: true,
+        geoFenceRequired: true,
+        ipRestricted: true,
+        isActive: true
+    }
+];
+
+function getPolicyOrgId(req) {
+    return req.query.orgId || req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+}
+
+function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const toRad = deg => (deg * Math.PI) / 180;
+    const phi1 = toRad(lat1);
+    const phi2 = toRad(lat2);
+    const deltaPhi = toRad(lat2 - lat1);
+    const deltaLambda = toRad(lon2 - lon1);
+
+    const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+              Math.cos(phi1) * Math.cos(phi2) *
+              Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+/**
+ * GET /attendance-policies
+ */
+exports.getAttendancePolicies = async (req, res, next) => {
+    try {
+        const orgId = getPolicyOrgId(req);
+        const snapshot = await db.collection('organizations').doc(orgId).collection('attendance_policies').get();
+        let policies = [];
+
+        if (!snapshot.empty) {
+            snapshot.forEach(doc => policies.push(doc.data()));
+        } else {
+            policies = [...DEFAULT_ATTENDANCE_POLICIES];
+        }
+
+        return res.json({
+            status: 'success',
+            success: true,
+            count: policies.length,
+            data: policies
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * GET /attendance-policies/:code
+ */
+exports.getAttendancePolicyByCode = async (req, res, next) => {
+    try {
+        const orgId = getPolicyOrgId(req);
+        const code = String(req.params.code).trim().toUpperCase();
+        const docRef = db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code);
+        const snap = await docRef.get();
+
+        if (snap.exists) {
+            return res.json({ status: 'success', success: true, data: snap.data() });
+        }
+
+        const defaultPolicy = DEFAULT_ATTENDANCE_POLICIES.find(p => p.attendancePolicyCode === code);
+        if (defaultPolicy) {
+            return res.json({ status: 'success', success: true, data: defaultPolicy });
+        }
+
+        return res.status(404).json({ status: 'error', success: false, message: `Attendance Policy ${code} not found.` });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /attendance-policies
+ */
+exports.createAttendancePolicy = async (req, res, next) => {
+    try {
+        const orgId = getPolicyOrgId(req);
+        const {
+            attendancePolicyCode,
+            policyName,
+            lateAfterMinutes,
+            earlyLeavingGraceMinute,
+            absentAfterHours,
+            regularizationAllowed,
+            regularizationWindowDays,
+            wfhAllowed,
+            otMinimumMinutes,
+            otApprovalRequired,
+            geoFenceRequired,
+            ipRestricted,
+            isActive
+        } = req.body;
+
+        const code = String(attendancePolicyCode || req.body['Attendance_Policy_Code'] || '').trim().toUpperCase();
+        if (!code) {
+            return res.status(400).json({ status: 'error', success: false, message: 'Attendance_Policy_Code is required.' });
+        }
+
+        const record = {
+            attendancePolicyCode: code,
+            policyName: String(policyName || req.body['Policy_Name'] || code).trim(),
+            lateAfterMinutes: Number(lateAfterMinutes !== undefined ? lateAfterMinutes : (req.body['Late_After_Minutes'] || 15)),
+            earlyLeavingGraceMinute: Number(earlyLeavingGraceMinute !== undefined ? earlyLeavingGraceMinute : (req.body['Early_Leaving_Grace_Minute'] || 10)),
+            absentAfterHours: Number(absentAfterHours !== undefined ? absentAfterHours : (req.body['Absent_After_Hours'] || 4)),
+            regularizationAllowed: Boolean(regularizationAllowed !== undefined ? regularizationAllowed : (req.body['Regularization_Allowed'] === 'Yes' || req.body['Regularization_Allowed'] === true)),
+            regularizationWindowDays: Number(regularizationWindowDays !== undefined ? regularizationWindowDays : (req.body['Regularization_Window_Days'] || 7)),
+            wfhAllowed: Boolean(wfhAllowed !== undefined ? wfhAllowed : (req.body['WFH_Allowed'] === 'Yes' || req.body['WFH_Allowed'] === true)),
+            otMinimumMinutes: Number(otMinimumMinutes !== undefined ? otMinimumMinutes : (req.body['OT_Minimum_Minutes'] || 60)),
+            otApprovalRequired: Boolean(otApprovalRequired !== undefined ? otApprovalRequired : (req.body['OT_Approval_Required'] === 'Yes' || req.body['OT_Approval_Required'] === true)),
+            geoFenceRequired: Boolean(geoFenceRequired !== undefined ? geoFenceRequired : (req.body['GeoFence_Required'] === 'Yes' || req.body['GeoFence_Required'] === true)),
+            ipRestricted: Boolean(ipRestricted !== undefined ? ipRestricted : (req.body['IP_Restricted'] === 'Yes' || req.body['IP_Restricted'] === true)),
+            isActive: Boolean(isActive !== undefined ? isActive : (req.body['Active'] !== 'No' && req.body['Active'] !== false)),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code).set(record);
+
+        return res.status(201).json({
+            status: 'success',
+            success: true,
+            message: `Attendance Policy ${code} created successfully`,
+            data: record
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PUT /attendance-policies/:code
+ */
+exports.updateAttendancePolicy = async (req, res, next) => {
+    try {
+        const orgId = getPolicyOrgId(req);
+        const code = String(req.params.code).trim().toUpperCase();
+        const docRef = db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code);
+
+        const updates = {
+            ...req.body,
+            attendancePolicyCode: code,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+        delete updates.createdAt;
+
+        await docRef.set(updates, { merge: true });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            message: `Attendance Policy ${code} updated successfully`,
+            data: updates
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * PATCH /attendance-policies/:code/toggle-status
+ */
+exports.toggleAttendancePolicyStatus = async (req, res, next) => {
+    try {
+        const orgId = getPolicyOrgId(req);
+        const code = String(req.params.code).trim().toUpperCase();
+        const docRef = db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code);
+        const snap = await docRef.get();
+
+        let currentActive = true;
+        if (snap.exists) {
+            currentActive = Boolean(snap.data().isActive);
+        } else {
+            const def = DEFAULT_ATTENDANCE_POLICIES.find(p => p.attendancePolicyCode === code);
+            if (def) currentActive = def.isActive;
+        }
+
+        const newActive = !currentActive;
+        await docRef.set({
+            attendancePolicyCode: code,
+            isActive: newActive,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        return res.json({
+            status: 'success',
+            success: true,
+            message: `Attendance Policy ${code} status toggled to ${newActive ? 'Active' : 'Inactive'}`,
+            isActive: newActive
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * DELETE /attendance-policies/:code
+ */
+exports.deleteAttendancePolicy = async (req, res, next) => {
+    try {
+        const orgId = getPolicyOrgId(req);
+        const code = String(req.params.code).trim().toUpperCase();
+        await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code).delete();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            message: `Attendance Policy ${code} deleted successfully`
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /attendance-policies/bulk
+ */
+exports.bulkImportAttendancePolicies = async (req, res, next) => {
+    try {
+        const orgId = getPolicyOrgId(req);
+        const policies = req.body.policies || req.body;
+        if (!Array.isArray(policies) || policies.length === 0) {
+            return res.status(400).json({ status: 'error', success: false, message: 'Policies array is required.' });
+        }
+
+        const batch = db.batch();
+        const results = [];
+
+        policies.forEach(p => {
+            const code = String(p.attendancePolicyCode || p['Attendance_Policy_Code'] || '').trim().toUpperCase();
+            if (!code) return;
+
+            const docRef = db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code);
+            const record = {
+                attendancePolicyCode: code,
+                policyName: String(p.policyName || p['Policy_Name'] || code).trim(),
+                lateAfterMinutes: Number(p.lateAfterMinutes !== undefined ? p.lateAfterMinutes : (p['Late_After_Minutes'] || 15)),
+                earlyLeavingGraceMinute: Number(p.earlyLeavingGraceMinute !== undefined ? p.earlyLeavingGraceMinute : (p['Early_Leaving_Grace_Minute'] || 10)),
+                absentAfterHours: Number(p.absentAfterHours !== undefined ? p.absentAfterHours : (p['Absent_After_Hours'] || 4)),
+                regularizationAllowed: Boolean(p.regularizationAllowed !== undefined ? p.regularizationAllowed : (p['Regularization_Allowed'] === 'Yes' || p['Regularization_Allowed'] === true)),
+                regularizationWindowDays: Number(p.regularizationWindowDays !== undefined ? p.regularizationWindowDays : (p['Regularization_Window_Days'] || 7)),
+                wfhAllowed: Boolean(p.wfhAllowed !== undefined ? p.wfhAllowed : (p['WFH_Allowed'] === 'Yes' || p['WFH_Allowed'] === true)),
+                otMinimumMinutes: Number(p.otMinimumMinutes !== undefined ? p.otMinimumMinutes : (p['OT_Minimum_Minutes'] || 60)),
+                otApprovalRequired: Boolean(p.otApprovalRequired !== undefined ? p.otApprovalRequired : (p['OT_Approval_Required'] === 'Yes' || p['OT_Approval_Required'] === true)),
+                geoFenceRequired: Boolean(p.geoFenceRequired !== undefined ? p.geoFenceRequired : (p['GeoFence_Required'] === 'Yes' || p['GeoFence_Required'] === true)),
+                ipRestricted: Boolean(p.ipRestricted !== undefined ? p.ipRestricted : (p['IP_Restricted'] === 'Yes' || p['IP_Restricted'] === true)),
+                isActive: Boolean(p.isActive !== undefined ? p.isActive : (p['Active'] !== 'No' && p['Active'] !== false)),
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            };
+
+            batch.set(docRef, record, { merge: true });
+            results.push(code);
+        });
+
+        await batch.commit();
+
+        return res.json({
+            status: 'success',
+            success: true,
+            ingestedCount: results.length,
+            policyCodes: results
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /attendance-policies/evaluate-clock-in
+ * Clock-In / Punch Validation (PRD Section 15 & 16)
+ * Enforces Geofencing, IP restrictions, and Late/Absent determinations.
+ */
+exports.evaluateClockIn = async (req, res, next) => {
+    try {
+        const {
+            policy,
+            policyCode,
+            userLocation,
+            branchLocation,
+            clientIp,
+            allowedIps,
+            isWfh,
+            shiftStartTime,
+            punchInTime,
+            graceInMinutes
+        } = req.body;
+
+        let activePolicy = policy;
+        if (!activePolicy && policyCode) {
+            const orgId = getPolicyOrgId(req);
+            const snap = await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(policyCode.toUpperCase()).get();
+            if (snap.exists) activePolicy = snap.data();
+        }
+        if (!activePolicy) {
+            activePolicy = DEFAULT_ATTENDANCE_POLICIES.find(p => p.attendancePolicyCode === (policyCode || 'POL_STD_CORP')) || DEFAULT_ATTENDANCE_POLICIES[0];
+        }
+
+        // 1. WFH Check
+        if (isWfh && !activePolicy.wfhAllowed) {
+            return res.status(403).json({
+                status: 'error',
+                success: false,
+                allowed: false,
+                reason: 'WFH_NOT_PERMITTED',
+                message: `Work From Home (WFH) is strictly prohibited under ${activePolicy.policyName}.`
+            });
+        }
+
+        // 2. Geofence Check
+        let geoValidation = { verified: true, distanceMeters: 0 };
+        if (activePolicy.geoFenceRequired && !isWfh) {
+            if (!userLocation || userLocation.latitude === undefined || userLocation.longitude === undefined) {
+                return res.status(400).json({
+                    status: 'error',
+                    success: false,
+                    allowed: false,
+                    reason: 'GEOLOCATION_REQUIRED',
+                    message: 'Browser Geolocation coordinates are required for clock-in under this policy.'
+                });
+            }
+            if (branchLocation && branchLocation.latitude !== undefined && branchLocation.longitude !== undefined) {
+                const radius = branchLocation.radiusMeters || 100;
+                const distance = calculateDistanceMeters(userLocation.latitude, userLocation.longitude, branchLocation.latitude, branchLocation.longitude);
+                if (distance > radius) {
+                    return res.status(403).json({
+                        status: 'error',
+                        success: false,
+                        allowed: false,
+                        reason: 'OUTSIDE_GEOFENCE',
+                        distanceMeters: Math.round(distance),
+                        allowedRadiusMeters: radius,
+                        message: `Punch location is outside authorized office branch perimeter (${Math.round(distance)}m > ${radius}m).`
+                    });
+                }
+                geoValidation = { verified: true, distanceMeters: Math.round(distance) };
+            }
+        }
+
+        // 3. IP Restriction Check
+        let ipValidation = { verified: true };
+        if (activePolicy.ipRestricted && !isWfh) {
+            const client = (clientIp || '').trim();
+            const allowed = Array.isArray(allowedIps) ? allowedIps : ['127.0.0.1', '::1', '10.0.0.0/8', '192.168.0.0/16'];
+            const isMatch = allowed.some(pattern => {
+                if (pattern.includes('/')) {
+                    const prefix = pattern.split('/')[0].split('.').slice(0, 2).join('.');
+                    return client.startsWith(prefix);
+                }
+                return client === pattern;
+            });
+            if (!isMatch) {
+                return res.status(403).json({
+                    status: 'error',
+                    success: false,
+                    allowed: false,
+                    reason: 'IP_NOT_AUTHORIZED',
+                    clientIp: client,
+                    message: `Clock-in rejected: Client IP address (${client}) is not within the authorized location network.`
+                });
+            }
+            ipValidation = { verified: true, clientIp: client };
+        }
+
+        // 4. Status & Penalty Determination (Late & Cutoff Absent)
+        function parseTimeToMinutes(t) {
+            if (!t) return 0;
+            const str = String(t).trim();
+            if (str.includes('T') || str.includes(' ') || str.includes('-')) {
+                const d = new Date(str);
+                if (!isNaN(d.getTime())) return d.getHours() * 60 + d.getMinutes();
+            }
+            const match = str.match(/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])/);
+            return match ? parseInt(match[1], 10) * 60 + parseInt(match[2], 10) : 0;
+        }
+
+        const startMins = parseTimeToMinutes(shiftStartTime || '09:30');
+        const punchMins = parseTimeToMinutes(punchInTime || '09:30');
+        const graceMins = Number(graceInMinutes !== undefined ? graceInMinutes : 15);
+        const lateAfterMins = Number(activePolicy.lateAfterMinutes || 15);
+        const absentCutoffMins = startMins + (Number(activePolicy.absentAfterHours || 4) * 60);
+
+        let status = 'ON_TIME';
+        let isLate = false;
+        let isAbsent = false;
+
+        if (punchMins > absentCutoffMins) {
+            status = 'ABSENT';
+            isAbsent = true;
+        } else if (punchMins > (startMins + Math.min(graceMins, lateAfterMins))) {
+            status = 'LATE';
+            isLate = true;
+        }
+
+        return res.json({
+            status: 'success',
+            success: true,
+            allowed: true,
+            policyCode: activePolicy.attendancePolicyCode,
+            policyName: activePolicy.policyName,
+            geoValidation,
+            ipValidation,
+            attendanceStatus: status,
+            isLate,
+            isAbsent,
+            lateMinutes: isLate ? Math.max(0, punchMins - startMins) : 0,
+            regularizationAllowed: activePolicy.regularizationAllowed,
+            regularizationWindowDays: activePolicy.regularizationWindowDays
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /attendance-policies/validate-regularization
+ * Regularization Governance (PRD Section 15 & 16)
+ * Validates regularizationAllowed flag and window expiry: (currentDate - punchDate) <= Regularization_Window_Days
+ */
+exports.validateRegularization = async (req, res, next) => {
+    try {
+        const { punchDate, currentDate, policy, policyCode } = req.body;
+
+        let activePolicy = policy;
+        if (!activePolicy && policyCode) {
+            const orgId = getPolicyOrgId(req);
+            const snap = await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(policyCode.toUpperCase()).get();
+            if (snap.exists) activePolicy = snap.data();
+        }
+        if (!activePolicy) {
+            activePolicy = DEFAULT_ATTENDANCE_POLICIES.find(p => p.attendancePolicyCode === (policyCode || 'POL_STD_CORP')) || DEFAULT_ATTENDANCE_POLICIES[0];
+        }
+
+        if (!activePolicy.regularizationAllowed) {
+            return res.status(403).json({
+                status: 'error',
+                success: false,
+                eligible: false,
+                reason: 'REGULARIZATION_NOT_ALLOWED',
+                message: `Regularization is completely disabled under ${activePolicy.policyName}.`
+            });
+        }
+
+        const punchD = new Date(punchDate);
+        const currD = currentDate ? new Date(currentDate) : new Date();
+
+        if (isNaN(punchD.getTime())) {
+            return res.status(400).json({ status: 'error', success: false, message: 'Invalid punchDate provided.' });
+        }
+
+        const diffMs = currD.getTime() - punchD.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const maxDays = Number(activePolicy.regularizationWindowDays || 7);
+
+        if (diffDays > maxDays) {
+            return res.status(400).json({
+                status: 'error',
+                success: false,
+                eligible: false,
+                reason: 'WINDOW_EXPIRED',
+                daysElapsed: diffDays,
+                allowedWindowDays: maxDays,
+                message: `Regularization window expired. Submissions must be filed within ${maxDays} days of punch date (${diffDays} days elapsed).`
+            });
+        }
+
+        return res.json({
+            status: 'success',
+            success: true,
+            eligible: true,
+            daysElapsed: diffDays,
+            daysRemaining: Math.max(0, maxDays - diffDays),
+            allowedWindowDays: maxDays,
+            message: `Regularization claim is eligible and within the ${maxDays}-day window.`
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /attendance-policies/evaluate-overtime
+ * Overtime Validation & L1 Routing (PRD Section 16)
+ * Gated by OT_Minimum_Minutes; routed to L1 Manager queue if OT_Approval_Required is true.
+ */
+exports.evaluateOvertime = async (req, res, next) => {
+    try {
+        const { excessMinutes, workedMinutes, shiftDurationMinutes, policy, policyCode } = req.body;
+
+        let activePolicy = policy;
+        if (!activePolicy && policyCode) {
+            const orgId = getPolicyOrgId(req);
+            const snap = await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(policyCode.toUpperCase()).get();
+            if (snap.exists) activePolicy = snap.data();
+        }
+        if (!activePolicy) {
+            activePolicy = DEFAULT_ATTENDANCE_POLICIES.find(p => p.attendancePolicyCode === (policyCode || 'POL_STD_CORP')) || DEFAULT_ATTENDANCE_POLICIES[0];
+        }
+
+        let overtimeMinutes = Number(excessMinutes || 0);
+        if (!overtimeMinutes && workedMinutes && shiftDurationMinutes) {
+            overtimeMinutes = Math.max(0, Number(workedMinutes) - Number(shiftDurationMinutes));
+        }
+
+        const minOtMinutes = Number(activePolicy.otMinimumMinutes || 60);
+
+        if (overtimeMinutes < minOtMinutes) {
+            return res.json({
+                status: 'success',
+                success: true,
+                eligible: false,
+                creditedMinutes: 0,
+                reason: 'BELOW_MINIMUM_THRESHOLD',
+                message: `Excess worked duration (${overtimeMinutes}m) is below policy OT minimum threshold (${minOtMinutes}m). No overtime credited.`
+            });
+        }
+
+        const requiresApproval = Boolean(activePolicy.otApprovalRequired);
+        return res.json({
+            status: 'success',
+            success: true,
+            eligible: true,
+            creditedMinutes: overtimeMinutes,
+            requiresApproval,
+            status: requiresApproval ? 'PENDING_APPROVAL' : 'APPROVED',
+            routedTo: requiresApproval ? 'L1_MANAGER_QUEUE' : 'PAYROLL_DIRECT',
+            message: requiresApproval
+                ? `Overtime claim for ${overtimeMinutes} minutes routed to L1 Manager queue with status PENDING_APPROVAL.`
+                : `Overtime claim for ${overtimeMinutes} minutes automatically approved for payroll.`
+        });
+    } catch (error) {
+        next(error);
+    }
+};

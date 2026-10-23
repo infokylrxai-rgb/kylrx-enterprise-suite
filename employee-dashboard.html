@@ -522,6 +522,7 @@
                 <div class="nav-item"><a href="employee-leave.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-leave.html');"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
                 <div class="nav-item"><a href="employee-attendance-log.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-attendance-log.html');"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="employee-docs.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-docs.html');"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="payroll-account-views.html" class="nav-link" onclick="event.preventDefault(); navigateTo('payroll-account-views.html');"><i data-lucide="wallet"></i><span>Account & Payroll View</span></a></div>
                 <div class="nav-item"><a href="employee-message.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-message.html');"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="employee-notifications.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-notifications.html');"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 <div class="nav-item">
@@ -833,11 +834,7 @@
     <script src="quick-actions-controller.js"></script>
     <script type="module">
         import { attendanceEngine } from "./attendance-engine.js";
-        import { 
-            auth, db, onAuthStateChanged, checkBackendFirebaseStatus,
-            collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, 
-            serverTimestamp, orderBy, limit, doc, setDoc, arrayUnion, arrayRemove 
-        } from "./firebase-config.js";
+        import { auth, db, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, orderBy, limit, doc, setDoc, arrayUnion, arrayRemove, registerListener } from "./firebase-config.js";
 
         lucide.createIcons();
         if (window.QuickActionsController) {
@@ -1579,7 +1576,7 @@
         async function setTyping(chatId, isTyping) {
             if (!currentUser) return;
             try {
-                const { setDoc, doc: _doc, deleteField } = await import('https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js');
+                const { setDoc, doc: _doc, deleteField } = await import('./firebase-config.js');
                 await setDoc(_doc(db, 'typing_indicators', chatId), {
                     [currentUser.uid]: isTyping ? new Date().toISOString() : deleteField()
                 }, { merge: true });

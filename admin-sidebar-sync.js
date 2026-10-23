@@ -3,8 +3,8 @@
  * Admin portal is fully isolated — no HRMS links injected per user requirement.
  */
 
-import { db } from './firebase-config.js';
-import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db, onSnapshot, registerListener } from './firebase-config.js';
+import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
 const DEFAULT_APPS = [
     { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
@@ -110,26 +110,27 @@ export function initAdminInterlink() {
 
     // 4. Initialize Custom Apps in sidebar if container exists
     const customList = document.getElementById('customAppsList');
-    if (customList && !customList.dataset.initialized && db) {
+    if (customList && !customList.dataset.initialized) {
         customList.dataset.initialized = 'true';
-        try {
-            const appsRef = doc(db, "system_configs", "admin_custom_apps");
-            onSnapshot(appsRef, async (snapshot) => {
-                let apps = [];
-                if (snapshot.exists()) {
-                    apps = snapshot.data().customApps || [];
-                } else {
-                    try {
-                        await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
-                        apps = DEFAULT_APPS;
-                    } catch(e) {}
-                }
-                renderAppsUI(apps);
-            }, (err) => {
-                console.warn('[CUSTOM APPS] Snapshot notice:', err);
-            });
-        } catch (err) {
-            console.warn('[CUSTOM APPS] Init notice:', err);
+        renderAppsUI(DEFAULT_APPS);
+        if (db) {
+            try {
+                const appsRef = doc(db, "system_configs", "admin_custom_apps");
+                onSnapshot(appsRef, async (snapshot) => {
+                    let apps = [];
+                    if (snapshot.exists()) {
+                        apps = snapshot.data().customApps || [];
+                    } else {
+                        try {
+                            await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
+                            apps = DEFAULT_APPS;
+                        } catch(e) {}
+                    }
+                    if (apps && apps.length > 0) renderAppsUI(apps);
+                }, () => {
+                    renderAppsUI(DEFAULT_APPS);
+                });
+            } catch (err) {}
         }
     }
 
@@ -174,9 +175,108 @@ function renderAppsUI(apps) {
     }
 }
 
+/* Universal Centered Alert Modal */
+export function initUniversalCenteredAlert() {
+    if (window._hasUniversalCenteredAlert) return;
+    window._hasUniversalCenteredAlert = true;
+
+    function ensureAppAlertElement() {
+        let modal = document.getElementById('appAlertModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'appAlertModal';
+            modal.className = 'app-alert-overlay';
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            modal.innerHTML = `
+                <div class="app-alert-card" onclick="event.stopPropagation()">
+                    <div id="appAlertIconBox" class="app-alert-icon-box warning">
+                        <i data-lucide="alert-triangle" id="appAlertIcon" style="width: 28px; height: 28px;"></i>
+                    </div>
+                    <h3 id="appAlertTitle" class="app-alert-title">Notice</h3>
+                    <p id="appAlertMessage" class="app-alert-msg"></p>
+                    <button id="appAlertOkBtn" class="app-alert-btn" type="button">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        return modal;
+    }
+
+    function showAppAlert(message, title = 'Notice', type = 'warning') {
+        return new Promise((resolve) => {
+            const modal = ensureAppAlertElement();
+            const titleEl = document.getElementById('appAlertTitle');
+            const msgEl = document.getElementById('appAlertMessage');
+            const iconBox = document.getElementById('appAlertIconBox');
+            const iconEl = document.getElementById('appAlertIcon');
+            const okBtn = document.getElementById('appAlertOkBtn');
+
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = message;
+
+            if (iconBox) {
+                iconBox.className = 'app-alert-icon-box ' + (type || 'warning');
+                const iconName = type === 'error' ? 'alert-circle' : (type === 'success' ? 'check-circle' : 'alert-triangle');
+                if (iconEl) iconEl.setAttribute('data-lucide', iconName);
+            }
+
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { window.lucide.createIcons(); } catch(e) {}
+            }
+
+            function closeModal() {
+                modal.classList.remove('active');
+                if (okBtn) okBtn.removeEventListener('click', onOk);
+                modal.removeEventListener('click', onBackdrop);
+                document.removeEventListener('keydown', onKeyDown);
+                resolve();
+            }
+
+            function onOk(e) {
+                if (e) e.preventDefault();
+                closeModal();
+            }
+
+            function onBackdrop(e) {
+                if (e.target === modal) closeModal();
+            }
+
+            function onKeyDown(e) {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                    if (e) e.preventDefault();
+                    closeModal();
+                }
+            }
+
+            if (okBtn) okBtn.addEventListener('click', onOk);
+            modal.addEventListener('click', onBackdrop);
+            document.addEventListener('keydown', onKeyDown);
+
+            modal.classList.add('active');
+            setTimeout(() => {
+                try { if (okBtn) okBtn.focus(); } catch(e) {}
+            }, 60);
+        });
+    }
+
+    if (!window._nativeAlert) {
+        window._nativeAlert = window.alert;
+    }
+    window.alert = function (msg) {
+        return showAppAlert(msg);
+    };
+    window.showAppAlert = showAppAlert;
+}
+
 // Auto-run when script loads or DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAdminInterlink);
+    document.addEventListener('DOMContentLoaded', () => {
+        initAdminInterlink();
+        initUniversalCenteredAlert();
+    });
 } else {
     initAdminInterlink();
+    initUniversalCenteredAlert();
 }
+

@@ -15,9 +15,7 @@
  * - Instant offline resilient seeding with seamless live API sync
  */
 
-const API = (typeof window !== 'undefined' && window.location && (window.location.port === '5500' || window.location.port === '5501'))
-    ? `${window.location.origin}/api`
-    : 'http://localhost:3000/api';
+const API = `${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api`;
 
 const CATEGORY_STYLES = {
     'Onboarding':           { lucide: 'user-plus',   icon: 'fa-user-plus',         bg: '#eff6ff', color: '#2563eb', tag: 'tag-blue' },
@@ -974,7 +972,7 @@ function renderGatingRules(templates) {
    TABS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 function switchTab(name, btn) {
-    ['catalog', 'generated', 'audit'].forEach(t => {
+    ['catalog', 'generated', 'audit', 'custom_modules'].forEach(t => {
         const el = document.getElementById(`tab-content-${t}`);
         if (el) el.style.display = 'none';
         const tabBtn = document.getElementById(`tab-${t}`);
@@ -987,6 +985,10 @@ function switchTab(name, btn) {
     if (!btn) {
         const tabBtn = document.getElementById(`tab-${name}`);
         if (tabBtn) tabBtn.classList.add('active');
+    }
+
+    if (name === 'custom_modules') {
+        loadAdminCustomTemplates();
     }
 }
 
@@ -1261,3 +1263,534 @@ function getStandardTemplatesSeed() {
         }
     ];
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CUSTOMISABLE MODULE TEMPLATES CONTROLLER (PRD §1.2)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let adminCustomTemplates = [];
+let currentAdminTemplateId = null;
+
+async function loadAdminCustomTemplates() {
+    try {
+        const res = await fetch(`${API}/custom-templates`);
+        if (res.ok) {
+            const json = await res.json();
+            adminCustomTemplates = json.data || [];
+            renderAdminCustomTemplates(adminCustomTemplates);
+        }
+    } catch (err) {
+        console.warn('Error fetching custom templates:', err.message);
+    }
+}
+
+function filterAdminCustomTemplates() {
+    const searchVal = (document.getElementById('search-custom-tpl-input')?.value || '').toLowerCase().trim();
+    const moduleVal = document.getElementById('custom-module-filter')?.value || 'all';
+    const statusVal = document.getElementById('custom-status-filter')?.value || 'all';
+
+    let list = [...adminCustomTemplates];
+
+    if (moduleVal !== 'all') {
+        list = list.filter(t => t.module.toLowerCase() === moduleVal.toLowerCase());
+    }
+
+    if (statusVal !== 'all') {
+        list = list.filter(t => t.status.toLowerCase() === statusVal.toLowerCase());
+    }
+
+    if (searchVal) {
+        list = list.filter(t => 
+            t.name.toLowerCase().includes(searchVal) || 
+            t.description.toLowerCase().includes(searchVal) || 
+            t.module.toLowerCase().includes(searchVal)
+        );
+    }
+
+    renderAdminCustomTemplates(list);
+}
+
+function renderAdminCustomTemplates(templates) {
+    const grid = document.getElementById('admin-custom-template-grid');
+    if (!grid) return;
+
+    if (!templates.length) {
+        grid.innerHTML = `
+            <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; background: white; border: 1px dashed var(--border); border-radius: var(--radius);">
+                <i data-lucide="layout-template" style="width: 32px; height: 32px; color: var(--text-muted); margin: 0 auto 10px;"></i>
+                <h4 style="margin: 0 0 6px 0; color: var(--text-primary); font-size: 1.1rem; font-weight: 800;">No Module Templates Found</h4>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">No custom templates found for the selected module filter.</p>
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons({ root: grid });
+        return;
+    }
+
+    grid.innerHTML = templates.map(tpl => {
+        const isDraft = tpl.status === 'draft';
+        const permittedCount = (tpl.permittedFields || []).filter(f => f.isPermittedToEdit).length;
+        const lockedCount = (tpl.lockedFields || []).length;
+
+        return `
+            <div class="template-card" style="display: flex; flex-direction: column; justify-content: space-between; border-top: 4px solid ${isDraft ? '#f59e0b' : '#7c3aed'};">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <span class="tag tag-purple" style="text-transform: uppercase; font-size: 0.7rem; font-weight: 800;">
+                            ${tpl.module.toUpperCase()}
+                        </span>
+                        <span class="badge ${isDraft ? 'badge-draft' : 'badge-approved'}" style="font-size: 0.7rem;">
+                            ${tpl.status.toUpperCase()} (${tpl.version})
+                        </span>
+                    </div>
+
+                    <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0 0 8px 0;">
+                        ${escapeHtmlTpl(tpl.name)}
+                    </h3>
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 14px 0;">
+                        ${escapeHtmlTpl(tpl.description || 'Standard module template structure.')}
+                    </p>
+
+                    <div style="background: var(--bg-deep); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
+                            <span>Permitted Fields: <strong style="color: #2563eb;">${permittedCount} Editable</strong></span>
+                            <span>Locked: <strong style="color: #64748b;">${lockedCount}</strong></span>
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">
+                            "${escapeHtmlTpl(tpl.instructions || 'Standard instructions for permitted fields.')}"
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 12px;">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-outline btn-sm" style="flex: 1;" onclick="openAdminCustomizeTemplateModal('${tpl.id}')">
+                            <i data-lucide="sliders" style="width: 14px; height: 14px;"></i> Edit Fields
+                        </button>
+                        <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="previewAdminCustomTemplate('${tpl.id}')">
+                            <i data-lucide="eye" style="width: 14px; height: 14px;"></i> Preview
+                        </button>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        ${isDraft ? `
+                            <button class="btn btn-primary btn-sm" style="flex: 1; background: #2563eb;" onclick="publishAdminTemplate('${tpl.id}')">
+                                <i data-lucide="upload-cloud" style="width: 14px; height: 14px;"></i> Publish
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-outline btn-sm" style="flex: 1; border-color: #dc2626; color: #dc2626;" onclick="openAdminTemplatePermissionsModal('${tpl.id}')">
+                            <i data-lucide="shield" style="width: 14px; height: 14px;"></i> Permissions
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    if (window.lucide) window.lucide.createIcons({ root: grid });
+}
+
+function openCreateModuleTemplateModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.id = 'create-module-template-modal';
+    modal.innerHTML = `
+        <div class="modal-card" style="max-width: 600px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Create New Module Template</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin: 2px 0 0 0;">Define module structure, permitted fields, and locked corporate clauses</p>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('create-module-template-modal').remove()"><i data-lucide="x"></i></button>
+            </div>
+
+            <form onsubmit="submitCreateModuleTemplate(event)">
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Template Name *</label>
+                        <input type="text" id="adminTplName" required placeholder="e.g. Employee Retention & Merit Increment Template" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;" />
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Module *</label>
+                            <select id="adminTplModule" required style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;">
+                                <option value="goals">Goals & Objectives</option>
+                                <option value="onboarding">Onboarding</option>
+                                <option value="lifecycle">Employee Lifecycle</option>
+                                <option value="exit">Exit & Offboarding</option>
+                                <option value="payroll">Payroll & Compensation</option>
+                                <option value="policy">Corporate Policy</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Category</label>
+                            <input type="text" id="adminTplCategory" value="Operational Excellence" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;" />
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Description</label>
+                        <textarea id="adminTplDesc" rows="2" placeholder="Overview of what this template provides..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: #f8fafc; font-family: inherit;"></textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">User Instructions *</label>
+                        <textarea id="adminTplInstructions" rows="2" required placeholder="Guidelines for permitted users editing fields in this template..." style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: #f8fafc; font-family: inherit;">Users can customize permitted fields before saving.</textarea>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Permitted Fields (Comma separated)</label>
+                        <input type="text" id="adminTplPermitted" value="title, outcome, target, unit, targetCompletionDate" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;" />
+                    </div>
+                    <div>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Locked Fields (Comma separated)</label>
+                        <input type="text" id="adminTplLocked" value="corporateEntity, departmentCode" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;" />
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+                        <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 6px;">Initial Publication</label>
+                        <div style="display: flex; gap: 20px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer;">
+                                <input type="radio" name="adminTplStatus" id="adminTplPub" checked />
+                                <strong>Publish Immediately</strong>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer;">
+                                <input type="radio" name="adminTplStatus" id="adminTplDraft" />
+                                <span>Save as Draft</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('create-module-template-modal').remove()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 2;">Save Template</button>
+                </div>
+            </form>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons({ root: modal });
+}
+
+async function submitCreateModuleTemplate(e) {
+    e.preventDefault();
+    const name = document.getElementById('adminTplName').value.trim();
+    const module = document.getElementById('adminTplModule').value;
+    const category = document.getElementById('adminTplCategory').value.trim();
+    const description = document.getElementById('adminTplDesc').value.trim();
+    const instructions = document.getElementById('adminTplInstructions').value.trim();
+    const isDraft = document.getElementById('adminTplDraft').checked;
+    const permittedKeys = document.getElementById('adminTplPermitted').value.split(',').map(s => s.trim()).filter(Boolean);
+    const lockedKeys = document.getElementById('adminTplLocked').value.split(',').map(s => s.trim()).filter(Boolean);
+
+    const permittedFields = permittedKeys.map(key => ({
+        fieldKey: key,
+        label: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+        type: 'text',
+        isPermittedToEdit: true,
+        isRequired: true,
+        defaultValue: ''
+    }));
+
+    try {
+        const res = await fetch(`${API}/custom-templates`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                module,
+                category,
+                description,
+                instructions,
+                permittedFields,
+                lockedFields: lockedKeys,
+                status: isDraft ? 'draft' : 'published',
+                actor: { name: 'Super Admin', role: 'super_admin' }
+            })
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+
+        document.getElementById('create-module-template-modal')?.remove();
+        showToast('success', `Template "${name}" created successfully!`);
+        await loadAdminCustomTemplates();
+    } catch (err) {
+        showToast('error', 'Error creating template: ' + err.message);
+    }
+}
+
+function openAdminCustomizeTemplateModal(id) {
+    const tpl = adminCustomTemplates.find(t => t.id === id || t.key === id);
+    if (!tpl) return;
+    currentAdminTemplateId = id;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.id = 'admin-customize-template-modal';
+    modal.innerHTML = `
+        <div class="modal-card" style="max-width: 620px; text-align: left; max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">Customize Template: ${escapeHtmlTpl(tpl.name)}</h2>
+                    <p style="font-size: 0.78rem; color: #64748b; margin: 2px 0 0 0;">Edit permitted fields &amp; instructions. Locked fields are protected.</p>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('admin-customize-template-modal').remove()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Instructions to Permitted Users *</label>
+                <textarea id="adminCustInstructions" rows="2" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.85rem; outline: none; background: #f8fafc; font-family: inherit;">${escapeHtmlTpl(tpl.instructions || '')}</textarea>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Status (Draft / Published)</label>
+                <select id="adminCustStatus" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.88rem; outline: none; background: #f8fafc;">
+                    <option value="published" ${tpl.status === 'published' ? 'selected' : ''}>Published (Active)</option>
+                    <option value="draft" ${tpl.status === 'draft' ? 'selected' : ''}>Draft</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block;">Permitted Field Values</label>
+                <div id="adminCustFieldsList">
+                    ${(tpl.permittedFields || []).map(f => {
+                        const isLocked = !f.isPermittedToEdit || (tpl.lockedFields || []).includes(f.fieldKey);
+                        return `
+                            <div style="background: ${isLocked ? '#f8fafc' : 'white'}; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <span style="font-size: 0.8rem; font-weight: 700; color: #1e293b;">${escapeHtmlTpl(f.label || f.fieldKey)}</span>
+                                    <span style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${isLocked ? '#fee2e2' : '#dcfce7'}; color: ${isLocked ? '#dc2626' : '#15803d'};">
+                                        ${isLocked ? 'LOCKED' : 'PERMITTED'}
+                                    </span>
+                                </div>
+                                <input type="text" class="admin-cust-val" data-key="${f.fieldKey}" value="${escapeHtmlTpl(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? '#f1f5f9' : 'white'}; outline: none;" />
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('admin-customize-template-modal').remove()">Cancel</button>
+                <button type="button" class="btn btn-outline" style="flex: 1.2; border-color: #7c3aed; color: #7c3aed;" onclick="previewAdminCustomTemplate('${tpl.id}')">Pre-Save Preview</button>
+                <button type="button" class="btn btn-primary" style="flex: 1.5;" onclick="saveAdminCustomizedTemplate('${tpl.id}')">Save Changes</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons({ root: modal });
+}
+
+async function previewAdminCustomTemplate(id) {
+    const tplId = id || currentAdminTemplateId;
+    const customValues = {};
+    document.querySelectorAll('#adminCustFieldsList .admin-cust-val').forEach(inp => {
+        customValues[inp.getAttribute('data-key')] = inp.value;
+    });
+
+    try {
+        const res = await fetch(`${API}/custom-templates/${encodeURIComponent(tplId)}/preview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customFieldValues: customValues })
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+
+        const previewModal = document.createElement('div');
+        previewModal.className = 'modal-backdrop';
+        previewModal.id = 'admin-preview-render-modal';
+        previewModal.innerHTML = `
+            <div class="modal-card" style="max-width: 680px; text-align: left; max-height: 85vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.25rem; margin: 0; color: #0f172a;">Pre-Save Template Preview</h2>
+                        <p style="font-size: 0.78rem; color: #64748b; margin: 2px 0 0 0;">Confirm rendered layout and values before saving</p>
+                    </div>
+                    <button class="btn-ghost" onclick="document.getElementById('admin-preview-render-modal').remove()"><i data-lucide="x"></i></button>
+                </div>
+                <div style="margin-bottom: 1.5rem;">${json.data.previewHtml}</div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('admin-preview-render-modal').remove()">Close Preview</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(previewModal);
+        if (window.lucide) window.lucide.createIcons({ root: previewModal });
+    } catch (err) {
+        showToast('error', 'Preview error: ' + err.message);
+    }
+}
+
+async function saveAdminCustomizedTemplate(id) {
+    const tplId = id || currentAdminTemplateId;
+    const instructions = document.getElementById('adminCustInstructions')?.value.trim();
+    const status = document.getElementById('adminCustStatus')?.value;
+
+    const customValues = {};
+    document.querySelectorAll('#adminCustFieldsList .admin-cust-val').forEach(inp => {
+        customValues[inp.getAttribute('data-key')] = inp.value;
+    });
+
+    const tpl = adminCustomTemplates.find(t => t.id === tplId || t.key === tplId);
+    const updatedPermittedFields = (tpl?.permittedFields || []).map(f => ({
+        ...f,
+        defaultValue: customValues[f.fieldKey] !== undefined ? customValues[f.fieldKey] : f.defaultValue
+    }));
+
+    try {
+        const res = await fetch(`${API}/custom-templates/${encodeURIComponent(tplId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                instructions,
+                permittedFields: updatedPermittedFields,
+                status,
+                actor: { name: 'Super Admin', role: 'super_admin' }
+            })
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+
+        document.getElementById('admin-customize-template-modal')?.remove();
+        document.getElementById('admin-preview-render-modal')?.remove();
+        showToast('success', 'Template customizations saved successfully!');
+        await loadAdminCustomTemplates();
+    } catch (err) {
+        showToast('error', 'Save error: ' + err.message);
+    }
+}
+
+async function publishAdminTemplate(id) {
+    if (!confirm('Publish this draft template for use across permitted modules?')) return;
+    try {
+        const res = await fetch(`${API}/custom-templates/${encodeURIComponent(id)}/publish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ actor: { name: 'Super Admin', role: 'super_admin' } })
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+
+        showToast('success', 'Template published successfully!');
+        await loadAdminCustomTemplates();
+    } catch (err) {
+        showToast('error', 'Publish failed: ' + err.message);
+    }
+}
+
+function openAdminTemplatePermissionsModal(id) {
+    const tpl = adminCustomTemplates.find(t => t.id === id || t.key === id);
+    if (!tpl) return;
+    currentAdminTemplateId = id;
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-backdrop';
+    modal.id = 'admin-permissions-modal';
+    modal.innerHTML = `
+        <div class="modal-card" style="max-width: 520px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-weight: 800; font-size: 1.15rem; margin: 0; color: #0f172a;">Manage Template Permissions</h2>
+                        <p style="font-size: 0.75rem; color: #64748b; margin: 2px 0 0 0;">${escapeHtmlTpl(tpl.name)}</p>
+                    </div>
+                </div>
+                <button class="btn-ghost" onclick="document.getElementById('admin-permissions-modal').remove()"><i data-lucide="x"></i></button>
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Authorized Roles</label>
+                <div style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="admRoleAdmin" checked disabled />
+                        <span>Super Admin</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="admRoleHR" ${(tpl.permissions?.permittedRoles || []).includes('hr_admin') ? 'checked' : ''} />
+                        <span>HR Administrator</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="admRoleManager" ${(tpl.permissions?.permittedRoles || []).includes('manager') ? 'checked' : ''} />
+                        <span>Department Manager</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="admRoleEmployee" ${(tpl.permissions?.permittedRoles || []).includes('employee') ? 'checked' : ''} />
+                        <span>Employee / General Staff</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 8px;">Permitted Caller Modules</label>
+                <div style="display: flex; flex-direction: column; gap: 8px; background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="admModGoals" ${(tpl.permissions?.permittedModules || []).includes('goals') ? 'checked' : ''} />
+                        <span>Goals &amp; Objectives</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="admModOnboarding" ${(tpl.permissions?.permittedModules || []).includes('onboarding') ? 'checked' : ''} />
+                        <span>Onboarding</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="admModHR" ${(tpl.permissions?.permittedModules || []).includes('hr_admin') ? 'checked' : ''} />
+                        <span>HR Admin Console</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer;">
+                        <input type="checkbox" id="admModPMS" ${(tpl.permissions?.permittedModules || []).includes('pms') ? 'checked' : ''} />
+                        <span>PMS &amp; Evaluations</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('admin-permissions-modal').remove()">Cancel</button>
+                <button type="button" class="btn btn-danger" style="flex: 2; background: #dc2626; color: white;" onclick="saveAdminTemplatePermissions('${tpl.id}')">Save Permissions</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons({ root: modal });
+}
+
+async function saveAdminTemplatePermissions(id) {
+    const tplId = id || currentAdminTemplateId;
+    const permittedRoles = ['super_admin'];
+    if (document.getElementById('admRoleHR')?.checked) permittedRoles.push('hr_admin');
+    if (document.getElementById('admRoleManager')?.checked) permittedRoles.push('manager');
+    if (document.getElementById('admRoleEmployee')?.checked) permittedRoles.push('employee');
+
+    const permittedModules = [];
+    if (document.getElementById('admModGoals')?.checked) permittedModules.push('goals');
+    if (document.getElementById('admModOnboarding')?.checked) permittedModules.push('onboarding');
+    if (document.getElementById('admModHR')?.checked) permittedModules.push('hr_admin');
+    if (document.getElementById('admModPMS')?.checked) permittedModules.push('pms');
+
+    try {
+        const res = await fetch(`${API}/custom-templates/${encodeURIComponent(tplId)}/permissions`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                permissions: { permittedRoles, permittedModules },
+                actor: { name: 'Super Admin', role: 'super_admin' }
+            })
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+
+        document.getElementById('admin-permissions-modal')?.remove();
+        showToast('success', 'Template permissions updated successfully!');
+        await loadAdminCustomTemplates();
+    } catch (err) {
+        showToast('error', 'Error updating permissions: ' + err.message);
+    }
+}
+
+function escapeHtmlTpl(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+

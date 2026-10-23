@@ -1,7 +1,7 @@
-﻿
-        import { db, auth } from "./firebase-config.js";
+
+        import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { doc, setDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { doc, setDoc, serverTimestamp, getDoc, arrayUnion, arrayRemove, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
         import { getPendingReviews, scorePerformance } from "./pms-service.js";
         
         let currentDeptConfig = null;
@@ -699,7 +699,7 @@
         };
 
         window.loadTeams = async () => {
-            const { collection, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            const { collection, onSnapshot } = await import("./firebase-config.js");
             
             // STRICT TEAM ISOLATION: Client-side filtering to bypass 400 errors
             onSnapshot(collection(db, 'department_teams'), (snapshot) => {
@@ -843,7 +843,7 @@
         };
 
         window.viewTeam = async (id) => {
-            const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+            const { doc, onSnapshot } = await import("./firebase-config.js");
             
             onSnapshot(doc(db, 'department_teams', id), (snapshot) => {
                 if (!snapshot.exists()) return;

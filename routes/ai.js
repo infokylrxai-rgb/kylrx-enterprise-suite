@@ -5,7 +5,9 @@ const { verifyToken } = require('../middleware/authMiddleware');
 
 const aiWorkflowCreator = require('../services/ai-workflow-creator-service');
 
-router.post('/correct', verifyToken, aiController.correctSentence);
+router.use(verifyToken);
+
+router.post('/correct', aiController.correctSentence);
 
 router.post('/generate-workflow', (req, res) => {
     try {

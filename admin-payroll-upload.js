@@ -9,7 +9,7 @@ import {
     query, 
     where, 
     serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+} from "./firebase-config.js";
 
 // Standard Schema & Synonyms Rules
 const STANDARD_COLUMNS = [

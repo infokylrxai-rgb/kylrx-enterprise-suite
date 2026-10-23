@@ -3,6 +3,9 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { db, admin, messaging } = require('../config/firebase');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
 
 // Persistent storage outside workspace so writes never trigger Live Server reloads
 const USER_DIR = process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\user';
@@ -75,9 +78,11 @@ function normalizeNotification(id, d) {
 // 1. GET /api/notifications - Real-time notification feed for Employee / User
 router.get(['/', '/feed'], async (req, res) => {
     try {
-        const uid = req.query.uid || 'demo_emp';
-        const role = (req.query.role || 'employee').toLowerCase();
-        const dept = (req.query.department || '').toLowerCase();
+        const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
+        // Employee-facing reads must be restricted to req.user.id
+        const uid = userRole === 'employee' ? req.user.id : (req.query.uid || req.user?.id || 'demo_emp');
+        const role = userRole === 'employee' ? 'employee' : (req.query.role || req.user?.role || 'employee').toLowerCase();
+        const dept = (req.query.department || req.user?.department || '').toLowerCase();
         
         // Build candidate user IDs for matching
         const candidateUids = [uid];

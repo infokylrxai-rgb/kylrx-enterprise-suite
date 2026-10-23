@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="utils/Sortable.min.js"></script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -62,6 +62,27 @@
             border-right: 1px solid var(--border);
             padding: 2rem 1.5rem;
             overflow-y: auto;
+        }
+
+        /* Page-specific override of shared sidebar-lock.css:
+           the global sidebar is position:fixed (270px), so the palette must be
+           offset past it, and the canvas must not add a second 270px margin. */
+        body .layout > aside.block-palette {
+            margin-left: 270px !important;
+            flex: 0 0 300px !important;
+            width: 300px !important;
+            height: 100vh !important;
+            overflow-y: auto !important;
+            position: relative !important;
+            z-index: 1;
+        }
+        body .layout > main.canvas {
+            margin-left: 0 !important;
+            width: auto !important;
+            flex: 1 1 0% !important;
+        }
+        @media (max-width: 900px) {
+            body .layout > aside.block-palette { flex-basis: 220px !important; width: 220px !important; }
         }
 
         .section-title { font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; }
@@ -317,8 +338,8 @@
     </div>
 
     <script type="module">
-        import { db } from "./firebase-config.js";
-        import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, onSnapshot, registerListener } from "./firebase-config.js";
+        import { doc, getDoc, setDoc, serverTimestamp } from "./firebase-config.js";
 
         lucide.createIcons();
 
@@ -598,8 +619,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

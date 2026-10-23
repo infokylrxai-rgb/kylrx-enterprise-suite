@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const logger = require('../utils/logger');
-const { db } = require('../config/firebase');
+const { db, rawCollection } = require('../config/firebase');
+const { orgDocs } = require('../config/tenant');
 
 /**
  * Custom Analytics Engine for Kylrx Enterprise Suite
@@ -372,16 +373,30 @@ initializeSavedDashboards();
  * - pms: queries `performance_metrics`
  * - exit: queries `users` and separation records
  */
-async function fetchLiveFirebaseRecords(dataSource) {
+/**
+ * Collection read used by the live queries. With an orgId only that organization's documents
+ * (plus untagged legacy documents for the original organization) are returned.
+ */
+async function snapOf(collectionName, orgId) {
+    if (!orgId) return db.collection(collectionName).get();
+    const docs = await orgDocs(rawCollection, collectionName, orgId, 2000);
+    return {
+        size: docs.length,
+        empty: docs.length === 0,
+        docs: docs.map(({ id, ...data }) => ({ id, data: () => ({ id, ...data }) }))
+    };
+}
+
+async function fetchLiveFirebaseRecords(dataSource, orgId = null) {
     if (!db || typeof db.collection !== 'function') return null;
 
     try {
         if (dataSource === 'policy') {
             const [polSnap, auditSnap, userSnap] = await Promise.race([
                 Promise.all([
-                    db.collection('policies').get(),
-                    db.collection('policy_audit').get(),
-                    db.collection('users').get()
+                    snapOf('policies', orgId),
+                    snapOf('policy_audit', orgId),
+                    snapOf('users', orgId)
                 ]),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase Query Timeout')), 6000))
             ]);
@@ -403,49 +418,31 @@ async function fetchLiveFirebaseRecords(dataSource) {
                 deptMap.get(dept).count += 1;
             });
 
-            if (deptMap.size === 0) {
-                deptMap.set('Cybersecurity Operations', { dept: 'Cybersecurity Operations', bu: 'Technology', count: 4 });
-            }
-
-            // Combine active Firestore policies with organization compliance catalog
-            const policyNames = new Set();
-            policies.forEach(p => {
-                const rawTitle = (p.title || p.name || 'Security Policy').replace(/-/g, ' ');
-                const cleanTitle = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) + 
-                    (rawTitle.toLowerCase().includes('policy') ? '' : ' Policy');
-                policyNames.add(cleanTitle);
-            });
-
-            // Ensure baseline organization policies are present so the multi-policy dimension chart is always complete
-            const standardPolicies = [
-                'Code of Conduct 2026',
-                'InfoSec & Data Protection',
-                'POSH Policy',
-                'Remote Work Guidelines'
-            ];
-            standardPolicies.forEach(sp => policyNames.add(sp));
-
+            // Real figures only: each Firestore policy is assigned to the organization's users
+            // (per department); acknowledgements come from the policy's signedPercentage and
+            // anything still unsigned 3+ days after deployment counts as overdue.
+            const OVERDUE_AFTER_MS = 3 * 86400000;
+            const toMillis = (t) => (t && typeof t.toMillis === 'function') ? t.toMillis() : (t && t._seconds ? t._seconds * 1000 : Date.parse(t));
             const records = [];
-            const policyList = Array.from(policyNames);
-
-            policyList.forEach(cleanTitle => {
+            policies.forEach(p => {
+                const rawTitle = (p.title || p.name || 'Untitled').replace(/-/g, ' ');
+                const cleanTitle = rawTitle.charAt(0).toUpperCase() + rawTitle.slice(1) +
+                    (rawTitle.toLowerCase().includes('policy') ? '' : ' Policy');
+                const signedPct = Math.min(100, Math.max(0, Number(p.signedPercentage) || 0));
+                const deployedAt = toMillis(p.createdAt || p.updatedAt);
+                const pastGrace = deployedAt && (Date.now() - deployedAt) > OVERDUE_AFTER_MS;
                 deptMap.forEach(({ dept, bu, count }) => {
-                    const isCustom = cleanTitle.toLowerCase().includes('security');
-                    const sigRatio = signaturesCount / (signaturesCount + violationsCount || 1);
-                    const baseMultiplier = isCustom ? 10 : (cleanTitle.includes('Conduct') ? 25 : 15);
-                    const assigned = count * baseMultiplier;
-                    const acknowledged = Math.round(assigned * (isCustom ? Math.max(0.85, sigRatio) : 0.9));
+                    const assigned = count;
+                    const acknowledged = Math.round(assigned * signedPct / 100);
                     const pending = Math.max(0, assigned - acknowledged);
-                    const overdue = Math.round(pending * 0.3);
-
                     records.push({
                         policyDocument: cleanTitle,
                         department: dept,
-                        bu: bu,
-                        assigned: assigned,
-                        acknowledged: acknowledged,
-                        pending: pending,
-                        overdue: overdue
+                        bu,
+                        assigned,
+                        acknowledged,
+                        pending,
+                        overdue: pastGrace ? pending : 0
                     });
                 });
             });
@@ -463,8 +460,8 @@ async function fetchLiveFirebaseRecords(dataSource) {
         if (dataSource === 'workforce') {
             const [userSnap, empSnap] = await Promise.race([
                 Promise.all([
-                    db.collection('users').get(),
-                    db.collection('employees').get()
+                    snapOf('users', orgId),
+                    snapOf('employees', orgId)
                 ]),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase Query Timeout')), 6000))
             ]);
@@ -498,7 +495,7 @@ async function fetchLiveFirebaseRecords(dataSource) {
 
         if (dataSource === 'attendance') {
             const attSnap = await Promise.race([
-                db.collection('attendance').get(),
+                snapOf('attendance', orgId),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase Query Timeout')), 6000))
             ]);
 
@@ -528,7 +525,7 @@ async function fetchLiveFirebaseRecords(dataSource) {
 
         if (dataSource === 'payroll') {
             const paySnap = await Promise.race([
-                db.collection('payroll_runs').get(),
+                snapOf('payroll_runs', orgId),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase Query Timeout')), 6000))
             ]);
 
@@ -557,32 +554,94 @@ async function fetchLiveFirebaseRecords(dataSource) {
         }
 
         if (dataSource === 'pms') {
-            const pmsSnap = await Promise.race([
-                db.collection('performance_metrics').get(),
+            // One record per employee with PMS activity: rating band from performance_metrics,
+            // review / goal completion from that employee's pms_tasks
+            const [pmsSnap, taskSnap, userSnap] = await Promise.race([
+                Promise.all([
+                    snapOf('performance_metrics', orgId),
+                    snapOf('pms_tasks', orgId),
+                    snapOf('users', orgId)
+                ]),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase Query Timeout')), 6000))
             ]);
+            const users = new Map(userSnap.docs.map(d => [d.id, d.data()]));
+            const tasksByEmp = new Map();
+            taskSnap.docs.forEach(d => {
+                const t = d.data();
+                if (!tasksByEmp.has(t.employeeId)) tasksByEmp.set(t.employeeId, []);
+                tasksByEmp.get(t.employeeId).push(t);
+            });
+            const scores = new Map(pmsSnap.docs.map(d => [d.data().employeeId || d.id, Number(d.data().overallScore)]));
+            const employeeIds = new Set([...scores.keys(), ...tasksByEmp.keys()]);
 
-            if (pmsSnap && !pmsSnap.empty) {
-                const records = pmsSnap.docs.map(d => {
-                    const data = d.data();
-                    const score = data.overallScore || 0.8;
-                    const ratingBand = score >= 0.8 ? '5' : (score >= 0.6 ? '4' : '3');
-                    return {
-                        rating: ratingBand,
-                        department: 'Cybersecurity',
-                        bu: 'Technology',
-                        grade: 'L2 Senior',
-                        review_completion: 100,
-                        goal_completion: 85,
-                        rating_distribution: 1
-                    };
-                });
+            // overallScore is stored 0-1
+            const band = (score) => !Number.isFinite(score) ? null
+                : score >= 0.9 ? '5 - Outstanding'
+                : score >= 0.75 ? '4 - Exceeds Expectations'
+                : score >= 0.5 ? '3 - Meets Expectations'
+                : score >= 0.25 ? '2 - Needs Improvement'
+                : '1 - Unsatisfactory';
+
+            const records = [...employeeIds].map(empId => {
+                const user = users.get(empId) || {};
+                const tasks = tasksByEmp.get(empId) || [];
+                const reviewed = tasks.filter(t => ['accepted', 'rejected'].includes(t.reviewStatus)).length;
+                const completed = tasks.filter(t => t.status === 'completed' || t.reviewStatus === 'accepted').length;
                 return {
-                    records,
-                    source: 'firebase_live',
-                    collection: 'performance_metrics',
-                    cloudProject: 'kylrxai'
+                    rating: band(scores.get(empId)) || 'Not Rated',
+                    department: user.departmentName || user.department || 'Unassigned',
+                    bu: user.businessUnit || 'Unassigned',
+                    grade: user.grade || 'Unassigned',
+                    review_completion: tasks.length ? Math.round((reviewed / tasks.length) * 100) : 0,
+                    goal_completion: tasks.length ? Math.round((completed / tasks.length) * 100) : 0,
+                    rating_distribution: 1
                 };
+            });
+            if (records.length > 0) {
+                return { records, source: 'firebase_live', collection: 'performance_metrics & pms_tasks', cloudProject: 'kylrxai' };
+            }
+        }
+
+        if (dataSource === 'exit') {
+            // Departed employees (employees/users marked relieved / exited) and F&F settlements
+            const [empSnap, userSnap, settleSnap] = await Promise.race([
+                Promise.all([
+                    snapOf('employees', orgId),
+                    snapOf('users', orgId),
+                    snapOf('gratuity_settlements', orgId)
+                ]),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase Query Timeout')), 6000))
+            ]);
+            const isDeparted = (p) => /relieved|exited|resigned|terminated/i.test(String(p.employmentStatus || p.status || '')) || !!p.relievedAt;
+            const people = new Map();
+            [...userSnap.docs, ...empSnap.docs].forEach(d => {
+                const p = d.data();
+                if (isDeparted(p)) people.set(p.employeeId || d.id, { ...(people.get(p.employeeId || d.id) || {}), ...p });
+            });
+            const headcount = Math.max(1, userSnap.size + empSnap.size - people.size);
+            const toMs = (t) => (t && typeof t.toMillis === 'function') ? t.toMillis() : Date.parse(t);
+            const pendingFnf = settleSnap.docs.filter(d => !/completed|paid|closed/i.test(String(d.data().current_stage || d.data().status || ''))).length;
+
+            const records = [...people.values()].map((p, i) => {
+                const joined = toMs(p.joiningDate || p.dateOfJoining);
+                const left = toMs(p.relievedAt || p.exitDate);
+                const months = Number.isFinite(joined) && Number.isFinite(left) && left > joined ? (left - joined) / (30 * 86400000) : null;
+                const tenureBracket = months === null ? 'Unknown'
+                    : months < 12 ? '< 1 Year' : months < 24 ? '1 - 2 Years' : months < 48 ? '2 - 4 Years' : '4+ Years';
+                return {
+                    reason: p.exitReason || 'Not recorded',
+                    department: p.departmentName || p.department || 'Unassigned',
+                    bu: p.businessUnit || 'Unassigned',
+                    tenureBracket,
+                    exits: 1,
+                    tenure: months === null ? 0 : Number(months.toFixed(1)),
+                    department_attrition: Number((100 / headcount).toFixed(1)),
+                    // Open settlements are not linked to employees in the data; attribute them once
+                    pending_fnf: i === 0 ? pendingFnf : 0
+                };
+            });
+            if (records.length > 0) {
+                return { records, source: 'firebase_live', collection: 'employees, users & gratuity_settlements', cloudProject: 'kylrxai' };
             }
         }
     } catch (e) {
@@ -593,7 +652,8 @@ async function fetchLiveFirebaseRecords(dataSource) {
 }
 
 async function executeCustomQuery(queryConfig = {}) {
-    const { dataSource, metric, filters = {}, grouping, chartType = 'bar', useLiveFirebase = true } = queryConfig;
+    // orgId: limit to that organization's data; without it (internal callers) the platform-wide baseline applies
+    const { dataSource, metric, filters = {}, grouping, chartType = 'bar', useLiveFirebase = true, orgId = null } = queryConfig;
 
     if (!dataSource || !DATA_SOURCES[dataSource]) {
         throw new Error(`Invalid data source: '${dataSource}'`);
@@ -615,7 +675,7 @@ async function executeCustomQuery(queryConfig = {}) {
     // Query live Firebase Cloud Firestore
     if (useLiveFirebase) {
         try {
-            const liveResult = await fetchLiveFirebaseRecords(dataSource);
+            const liveResult = await fetchLiveFirebaseRecords(dataSource, orgId);
             if (liveResult && Array.isArray(liveResult.records) && liveResult.records.length > 0) {
                 rawRecords = liveResult.records;
                 liveMetadata = {
@@ -624,12 +684,19 @@ async function executeCustomQuery(queryConfig = {}) {
                     cloudProject: liveResult.cloudProject || 'kylrxai',
                     status: 'Live Cloud Firestore'
                 };
+            } else if (orgId) {
+                // A real organization with no records yet sees zeros, never sample data
+                rawRecords = [];
+                liveMetadata.status = 'No records yet for this organization';
             } else {
                 rawRecords = ENTERPRISE_RAW_DATA[dataSource] || [];
                 liveMetadata.status = 'Enterprise Baseline Model';
             }
         } catch (e) {
             logger.warn(`[CustomAnalyticsEngine] Live Firebase query notice for ${dataSource}:`, e.message);
+            if (orgId) {
+                throw new Error('Could not read this organization\'s data from Firebase. Please try again.');
+            }
             rawRecords = ENTERPRISE_RAW_DATA[dataSource] || [];
             liveMetadata.status = 'Offline / Fallback Model';
         }
@@ -705,7 +772,11 @@ async function executeCustomQuery(queryConfig = {}) {
 
     // 2. Perform Grouping Aggregations
     const groupedMap = new Map();
-    defaultCategories.forEach(cat => groupedMap.set(cat, { sum: 0, count: 0, values: [] }));
+    // Show zero-value categories only for this grouping's own known values, and only for an
+    // unfiltered query (padding a filtered query would re-add categories the filter excluded)
+    const groupingOptions = sourceSchema.filterFields?.find(f => f.id === targetGrouping)?.options || [];
+    const hasActiveFilter = Object.values(filters).some(v => v && v !== 'ALL' && !(Array.isArray(v) && v.length === 0));
+    if (!hasActiveFilter) groupingOptions.forEach(cat => groupedMap.set(cat, { sum: 0, count: 0, values: [] }));
 
     for (const row of filteredRecords) {
         const groupKey = row[targetGrouping] || 'Other';
@@ -758,7 +829,10 @@ async function executeCustomQuery(queryConfig = {}) {
     const numValues = dataPoints.length ? dataPoints : [0];
     const maxVal = Math.max(...numValues);
     const minVal = Math.min(...numValues);
-    const avgVal = Number((dataPoints.reduce((a, b) => a + b, 0) / (dataPoints.length || 1)).toFixed(1));
+    // Average over groups that actually have records; zero-padded empty categories would drag rates down
+    const populated = labels.map((label, i) => ({ value: dataPoints[i], count: groupedMap.get(label)?.count || 0 })).filter(g => g.count > 0);
+    const avgBase = populated.length ? populated.map(g => g.value) : dataPoints;
+    const avgVal = Number((avgBase.reduce((a, b) => a + b, 0) / (avgBase.length || 1)).toFixed(1));
     const totalVal = isRateOrAverage ? avgVal : Number(dataPoints.reduce((a, b) => a + b, 0).toFixed(1));
 
     return {
@@ -802,6 +876,11 @@ function getAllDashboards() {
 async function getDashboardById(id) {
     const dash = savedDashboardsMap.get(id);
     if (!dash) return null;
+    return runDashboard(dash);
+}
+
+/** Executes every widget of a dashboard, optionally against one organization's data. */
+async function runDashboard(dash, orgId = null) {
 
     // Refresh each widget with real-time executed data
     const executedWidgets = await Promise.all((dash.widgets || []).map(async w => {
@@ -811,7 +890,8 @@ async function getDashboardById(id) {
                 metric: w.metric,
                 grouping: w.grouping,
                 chartType: w.chartType,
-                filters: w.filters || {}
+                filters: w.filters || {},
+                orgId
             });
             return {
                 ...w,
@@ -845,7 +925,9 @@ function deleteDashboard(id) {
 
 module.exports = {
     DATA_SOURCES,
+    SEED_DASHBOARDS,
     executeCustomQuery,
+    runDashboard,
     getAllDashboards,
     getDashboardById,
     saveDashboard,

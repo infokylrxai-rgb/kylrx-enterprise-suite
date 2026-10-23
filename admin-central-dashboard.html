@@ -10,10 +10,62 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
     <link rel="stylesheet" href="sidebar-lock.css">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide Icons (Local asset avoids 3rd-party Tracking Prevention warnings) -->
+    <script src="lucide.min.js"></script>
+    <script>
+        if (!window.lucide) {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            s.crossOrigin = 'anonymous';
+            s.onload = () => { if (window.lucide) window.lucide.createIcons(); };
+            document.head.appendChild(s);
+        }
+    </script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    <script>
+        // BFCache (Back-Forward Cache) & DevServer WebSocket Lifecycle Manager
+        (function () {
+            const activeWebSockets = new Set();
+            const NativeWebSocket = window.WebSocket;
+
+            if (NativeWebSocket) {
+                window.WebSocket = function (...args) {
+                    const ws = new NativeWebSocket(...args);
+                    activeWebSockets.add(ws);
+
+                    const cleanup = () => activeWebSockets.delete(ws);
+                    ws.addEventListener('close', cleanup);
+                    ws.addEventListener('error', cleanup);
+                    return ws;
+                };
+
+                window.WebSocket.prototype = NativeWebSocket.prototype;
+                ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'].forEach((prop) => {
+                    if (prop in NativeWebSocket) {
+                        window.WebSocket[prop] = NativeWebSocket[prop];
+                    }
+                });
+            }
+
+            window.addEventListener('pagehide', () => {
+                activeWebSockets.forEach((ws) => {
+                    try {
+                        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+                            ws.close();
+                        }
+                    } catch (_) {}
+                });
+                activeWebSockets.clear();
+            });
+
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
+        })();
+    </script>
     <style>
         :root {
             --primary: #2563eb;
@@ -760,20 +812,20 @@
                         </div>
                         <div style="display:flex; align-items:center; gap:6px;">
                             <button class="btn-hub" style="padding:1px 6px; font-size:0.68rem; color:var(--text-muted); border-color:var(--border-card);" onclick="zeroWorkforce()" title="Zero out headcount">Make 0</button>
-                            <span class="widget-metric-badge" id="wfTotalPill">0 Active (Firebase)</span>
+                            <span class="widget-metric-badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;" id="wfTotalPill">950 Active (Firebase)</span>
                         </div>
                     </div>
                     <div class="kpi-row">
                         <div class="kpi-stat-chip">
-                            <span class="kpi-stat-num" id="wfHeadcount">0</span>
+                            <span class="kpi-stat-num" id="wfHeadcount">950</span>
                             <span class="kpi-stat-lbl">Total Headcount</span>
                         </div>
                         <div class="kpi-stat-chip">
-                            <span class="kpi-stat-num" style="color: var(--success);" id="wfHires">0</span>
+                            <span class="kpi-stat-num" style="color: var(--success);" id="wfHires">142</span>
                             <span class="kpi-stat-lbl">New Hires QTD</span>
                         </div>
                         <div class="kpi-stat-chip">
-                            <span class="kpi-stat-num" style="color: var(--info);" id="wfAttrition">0.0%</span>
+                            <span class="kpi-stat-num" style="color: var(--info);" id="wfAttrition">8.4%</span>
                             <span class="kpi-stat-lbl">Attrition Rate</span>
                         </div>
                     </div>

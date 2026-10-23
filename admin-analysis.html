@@ -313,9 +313,9 @@
     </div>
 
     <script type="module">
-        import { db, auth } from "./firebase-config.js";
+        import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
         import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, getDocs, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, getDocs, query, orderBy, limit } from "./firebase-config.js";
         import { getDepartmentProductivity, getPerformanceTrends } from "./pms-service.js";
         import { sendBroadcast } from "./messaging-engine.js";
 
@@ -894,8 +894,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

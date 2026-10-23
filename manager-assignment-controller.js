@@ -442,7 +442,7 @@
         // 2. Dual-save to backend API
         try {
             const token = localStorage.getItem('access_token') || 'demo-token';
-            await fetch(`http://localhost:3000/api/admin/employees/${empId}/managers`, {
+            await fetch(`${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api/admin/employees/${empId}/managers`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ l1ManagerId: newL1, l2ManagerId: newL2, changedBy: assignedBy })

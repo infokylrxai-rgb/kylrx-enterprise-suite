@@ -60,7 +60,13 @@ import {
   AUDIT_ACTION_TYPES,
 } from '../services/pf-security-audit-service.mjs';
 
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware.js');
+
 const router = express.Router();
+router.use(verifyToken);
+router.use(authorize(ADMIN_HR_ROLES));
 
 /**
  * POST /calculate

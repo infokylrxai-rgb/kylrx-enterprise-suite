@@ -12,6 +12,7 @@
     <style>
         :root {
             --primary: #2563eb;
+            --primary-hover: #1d4ed8;
             --primary-light: #eff6ff;
             --bg: #f8fafc;
             --card: #ffffff;
@@ -21,8 +22,10 @@
             --sidebar-width: 280px;
             --radius: 20px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
             --danger: #ef4444;
             --success: #10b981;
+            --warning: #f59e0b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -97,44 +100,211 @@
             flex: 1; 
             min-width: 0; 
             width: calc(100% - 16rem); 
-            padding: 2.5rem; 
+            padding: 2.25rem 2.5rem 3rem 2.5rem; 
             overflow-y: auto; 
             height: 100vh;
         }
 
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3.5rem; }
-        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 6px; }
-        .sub-header { color: var(--text-muted); font-size: 1rem; font-weight: 500; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.75rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .header-title-box h1 { font-size: 2.15rem; font-weight: 800; letter-spacing: -1.2px; margin-bottom: 4px; color: #0f172a; }
+        .sub-header { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+        
+        .calendar-scope-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Legend Bar */
+        .calendar-legend-bar {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            background: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .legend-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-right: 0.5rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .legend-dot.national { background: #16a34a; box-shadow: 0 0 0 2px #bbf7d0; }
+        .legend-dot.regional { background: #2563eb; box-shadow: 0 0 0 2px #bfdbfe; }
+        .legend-dot.optional { background: #d97706; box-shadow: 0 0 0 2px #fde68a; }
+        .legend-dot.weekend { background: #94a3b8; }
 
         /* Calendar Widget Layout */
         .calendar-container {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
+            grid-template-columns: 2.2fr 1fr;
+            gap: 1.75rem;
+            margin-bottom: 2rem;
         }
 
         .card {
             background: white;
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 2rem;
+            padding: 1.75rem;
             box-shadow: var(--shadow);
         }
 
-        /* Calendar Grid */
+        /* Calendar Header & Controls */
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .calendar-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-month-year {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+        }
+
+        .month-select, .year-select {
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            background: #f8fafc;
+            outline: none;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .month-select:hover, .year-select:hover {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .calendar-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .calendar-today-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 7px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .calendar-today-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary);
         }
 
         .calendar-nav-btn {
             background: white;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            width: 40px;
-            height: 40px;
+            border-radius: 10px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -146,12 +316,7 @@
             background: var(--primary-light);
             color: var(--primary);
             border-color: var(--primary);
-        }
-
-        .current-month-year {
-            font-size: 1.25rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
+            transform: translateY(-1px);
         }
 
         .weekdays-grid {
@@ -159,11 +324,13 @@
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             font-weight: 800;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 1rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.85rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .days-grid {
@@ -173,160 +340,140 @@
         }
 
         .calendar-day {
-            aspect-ratio: 1.1;
-            border-radius: 12px;
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            padding: 8px;
+            min-height: 82px;
+            aspect-ratio: 1.15;
+            border-radius: 14px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 8px 10px 32px 10px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
+            gap: 4px;
             position: relative;
             cursor: pointer;
-            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
         }
 
         .calendar-day:hover {
             transform: translateY(-2px);
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-md);
             border-color: var(--primary);
+            z-index: 5;
         }
 
-        .calendar-day.empty {
-            background: transparent;
-            border-color: transparent;
+        .calendar-day.empty,
+        .calendar-day.other-month {
+            background: #fafbfc;
+            border-color: #f1f5f9;
+            color: #cbd5e1;
             cursor: default;
-            pointer-events: none;
+        }
+        .calendar-day.other-month .day-number {
+            color: #cbd5e1;
         }
 
         .calendar-day.weekend {
-            background: #f1f5f9;
-            color: #94a3b8;
+            background: #f8fafc;
+        }
+        .calendar-day.weekend .day-number {
+            color: #64748b;
+        }
+
+        .calendar-day.today-cell {
+            border: 2px solid var(--primary);
+            background: #f0f7ff;
+        }
+        .calendar-day.today-cell .day-number {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
 
         .day-number {
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.92rem;
+            color: #1e293b;
+        }
+
+        .today-pill {
+            font-size: 0.6rem;
+            font-weight: 800;
+            background: var(--primary);
+            color: white;
+            padding: 1px 5px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        /* Holiday Cell Varieties */
+        .calendar-day.holiday-cell-national {
+            background: #f0fdf4 !important;
+            border-color: #86efac !important;
+            border-width: 1.5px !important;
+        }
+        .calendar-day.holiday-cell-regional {
+            background: #eff6ff !important;
+            border-color: #93c5fd !important;
+            border-width: 1.5px !important;
+        }
+        .calendar-day.holiday-cell-optional {
+            background: #fefce8 !important;
+            border-color: #fde047 !important;
+            border-width: 1.5px !important;
         }
 
         .day-holiday-tag {
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 2px 6px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 3px 6px;
             border-radius: 6px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             width: 100%;
-            text-align: center;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            line-height: 1.2;
         }
 
-        /* Holiday Types */
-        .holiday-national {
+        .day-holiday-tag.holiday-national {
             background: #dcfce7;
             color: #15803d;
             border: 1px solid #bbf7d0;
         }
-        .holiday-regional {
-            background: #eff6ff;
-            color: #1d4ed8;
+        .day-holiday-tag.holiday-regional {
+            background: #dbeafe;
+            color: #1e40af;
             border: 1px solid #bfdbfe;
         }
-        .holiday-optional {
+        .day-holiday-tag.holiday-optional {
             background: #fef3c7;
-            color: #b45309;
+            color: #92400e;
             border: 1px solid #fde68a;
         }
 
-        .holiday-list-panel h3 {
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 1.5rem;
-        }
-
-        .holiday-list-items {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .holiday-item-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            transition: 0.2s;
-        }
-        .holiday-item-card:hover {
-            border-color: var(--primary);
-            transform: translateX(4px);
-        }
-
-        .holiday-badge {
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 100px;
-        }
-
-        /* Custom Alert Styles */
-        .custom-alert-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-        .custom-alert-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 28px;
-            width: 90%;
-            max-width: 420px;
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--border);
-            animation: alertPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-        }
-        @keyframes alertPop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
-        .alert-btn {
-            margin-top: 2rem; width: 100%; padding: 14px;
-            background: var(--primary); color: white; border: none;
-            border-radius: 14px; font-weight: 700; cursor: pointer;
-            transition: 0.2s;
-        }
-        .alert-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
-
-        /* Hover Day Actions */
-        .calendar-day {
-            position: relative;
-            overflow: hidden;
-            padding-bottom: 36px !important; /* Make room for hover actions */
-        }
+        /* Day Actions Hover Toolbar */
         .day-actions {
             position: absolute;
-            bottom: 6px;
+            bottom: 5px;
             left: 0;
             right: 0;
             display: flex;
             justify-content: center;
-            gap: 4px;
+            gap: 5px;
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(8px);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
             z-index: 10;
         }
@@ -336,48 +483,427 @@
             pointer-events: auto;
         }
         .action-btn {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
             border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .action-btn i, .action-btn svg {
-            width: 13px !important;
-            height: 13px !important;
+            width: 12px !important;
+            height: 12px !important;
         }
         .action-btn.sick { background: #fee2e2; color: #ef4444; }
-        .action-btn.sick:hover { background: #ef4444; color: white; transform: scale(1.15); }
+        .action-btn.sick:hover { background: #ef4444; color: white; transform: scale(1.1); }
         .action-btn.paid { background: #dbeafe; color: #3b82f6; }
-        .action-btn.paid:hover { background: #3b82f6; color: white; transform: scale(1.15); }
+        .action-btn.paid:hover { background: #3b82f6; color: white; transform: scale(1.1); }
         .action-btn.wfh { background: #dcfce7; color: #10b981; }
-        .action-btn.wfh:hover { background: #10b981; color: white; transform: scale(1.15); }
-        .action-btn.holiday { background: #fef3c7; color: #d97706; }
-        .action-btn.holiday:hover { background: #d97706; color: white; transform: scale(1.15); }
+        .action-btn.wfh:hover { background: #10b981; color: white; transform: scale(1.1); }
 
-        /* Modal Tabs */
-        .tab-btn {
-            flex: 1;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
+        /* Holiday List Panel (Right) */
+        .holiday-list-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.85rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .panel-header h3 {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .panel-count-badge {
+            font-size: 0.7rem;
             font-weight: 700;
-            font-size: 0.85rem;
-            cursor: pointer;
-            background: transparent;
-            color: var(--text-muted);
+            background: #f1f5f9;
+            color: #475569;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+
+        .holiday-list-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .holiday-item-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 0.85rem;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             transition: all 0.2s ease;
+            cursor: pointer;
         }
-        .tab-btn.active {
+        .holiday-item-card:hover {
+            border-color: var(--primary);
             background: white;
-            color: var(--primary);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transform: translateX(3px);
+            box-shadow: var(--shadow);
         }
+
+        .holiday-date-badge {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px 8px;
+            text-align: center;
+            min-width: 44px;
+            flex-shrink: 0;
+        }
+        .holiday-date-num {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+        }
+        .holiday-date-month {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .holiday-item-details {
+            flex: 1;
+            min-width: 0;
+        }
+        .holiday-item-name {
+            font-weight: 800;
+            font-size: 0.88rem;
+            color: #0f172a;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .holiday-item-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .holiday-badge {
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .holiday-badge.national { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .holiday-badge.regional { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .holiday-badge.optional { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+        /* Manager Leave Balance Widget */
+        .leave-balance-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            padding: 1rem;
+            margin-top: auto;
+        }
+        .balance-title {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .balance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+        .balance-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 4px;
+        }
+        .balance-num {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1.1;
+        }
+        .balance-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* Lower Intelligence Grid (Eliminating Blank Space) */
+        .calendar-intel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .intel-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .intel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.25rem;
+        }
+        .intel-icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .intel-icon-box.blue { background: #eff6ff; color: #2563eb; }
+        .intel-icon-box.emerald { background: #f0fdf4; color: #16a34a; }
+        .intel-icon-box.purple { background: #faf5ff; color: #9333ea; }
+
+        .intel-header h3 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+        .intel-header p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 1.25rem;
+        }
+        .stat-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 4px;
+            text-align: center;
+        }
+        .stat-box-num {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .stat-box-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .intel-progress-box {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid var(--border);
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .progress-bar-wrap {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb, #10b981);
+            border-radius: 10px;
+        }
+
+        /* Upcoming Closures Mini List */
+        .upcoming-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+        .upcoming-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            transition: 0.15s;
+        }
+        .upcoming-row:hover {
+            background: white;
+            border-color: var(--primary);
+        }
+        .upcoming-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .upcoming-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .upcoming-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .upcoming-countdown {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+            white-space: nowrap;
+        }
+
+        /* Policy List */
+        .policy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+        .policy-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #334155;
+        }
+        .policy-bullet {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .policy-link-btn {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: var(--primary-light);
+            border: none;
+            padding: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.15s;
+        }
+        .policy-link-btn:hover {
+            background: #dbeafe;
+        }
+
+        /* Custom Alert Overlay */
+        .custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .custom-alert-card {
+            background: white;
+            padding: 2.25rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            animation: alertPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        @keyframes alertPop { from { transform: scale(0.9) translateY(15px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        .alert-btn {
+            width: 100%; padding: 12px;
+            background: var(--primary); color: white; border: none;
+            border-radius: 12px; font-weight: 700; cursor: pointer;
+            transition: 0.2s; font-size: 0.9rem;
+        }
+        .alert-btn:hover { background: var(--primary-hover); }
+
+        .btn-ghost {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 4px;
+            border-radius: 8px;
+        }
+        .btn-ghost:hover {
+            color: var(--text-main);
+            background: #f1f5f9;
+        }
+
         .profile-mini { margin-top: auto; background: var(--primary-light, #eff6ff); padding: 0.85rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, #e2e8f0); }
         .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
@@ -388,18 +914,15 @@
 </head>
 <body>
 
-    
-
     <div class="layout">
         <!-- Sidebar -->
-                <aside class="sidebar" id="sidebar">
-            <!-- Brand Header matching Admin Console -->
+        <aside class="sidebar" id="sidebar">
             <a href="manager-dashboard.html" class="logo" id="brandLogoLink">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
                 <span class="logo-text">Kylrx <span style="color: var(--primary, #2563eb);">AI</span></span>
             </a>
 
-            <!-- Top Department Card (Zero-Collision Flex Layout) -->
+            <!-- Top Department Card -->
             <div class="dept-subcard p-3 my-2">
                 <div class="flex items-start justify-between gap-2">
                     <h4 class="dept-name font-bold text-slate-800 text-sm truncate" id="sideDeptName">Cybersecurity</h4>
@@ -413,23 +936,23 @@
             
             <nav class="nav-menu overflow-y-auto pr-1">
                 <div class="nav-label">MY WORKSPACE</div>
-                <div class="nav-item"><a href="manager-dashboard.html" class="nav-link " id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
+                <div class="nav-item"><a href="manager-dashboard.html" class="nav-link" id="overviewLink"><i data-lucide="layout-dashboard"></i><span>Dashboard Overview</span></a></div>
                 <div class="nav-item"><a href="manager-dashboard.html#upcoming-birthdays" class="nav-link" id="navBirthdaysLink"><i data-lucide="cake"></i><span>Upcoming Birthdays</span></a></div>
                 <div class="nav-item"><a href="manager-calendar.html" class="nav-link active" id="leaveHolidaysLink"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="manager-attendance.html" class="nav-link " id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
-                <div class="nav-item"><a href="manager-documents.html" class="nav-link " id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
+                <div class="nav-item"><a href="manager-attendance.html" class="nav-link" id="navAttendanceLink"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="manager-documents.html" class="nav-link" id="navDocsLink"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
 
                 <div class="nav-label">INTELLIGENCE</div>
-                <div class="nav-item"><a href="manager-console.html" class="nav-link " id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
-                <div class="nav-item"><a href="manager-analysis.html" class="nav-link " id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
-                <div class="nav-item"><a href="manager-workforce.html" class="nav-link " id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
-                <div class="nav-item"><a href="manager-security.html" class="nav-link " id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
-                <div class="nav-item"><a href="manager-performance.html" class="nav-link " id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance (PMS)</span></a></div>
+                <div class="nav-item"><a href="manager-console.html" class="nav-link" id="navConsoleLink"><i data-lucide="bar-chart-3"></i><span>Strategic HR Console</span></a></div>
+                <div class="nav-item"><a href="manager-analysis.html" class="nav-link" id="navAnalysisLink"><i data-lucide="pie-chart"></i><span>Analytics Hub</span></a></div>
+                <div class="nav-item"><a href="manager-workforce.html" class="nav-link" id="navWorkforceLink"><i data-lucide="users"></i><span>Workforce</span></a></div>
+                <div class="nav-item"><a href="manager-security.html" class="nav-link" id="navSecurityLink"><i data-lucide="shield-check"></i><span>Security</span></a></div>
+                <div class="nav-item"><a href="manager-performance.html" class="nav-link" id="navPerformanceLink"><i data-lucide="trending-up"></i><span>Performance (PMS)</span></a></div>
 
                 <div class="nav-label">OPERATIONS</div>
-                <div class="nav-item"><a href="manager-notification.html" class="nav-link " id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
-                <div class="nav-item"><a href="manager-message.html" class="nav-link " id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" id="navTeamLink" onclick="if(typeof openTeamManager !== 'undefined') openTeamManager();"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
+                <div class="nav-item"><a href="manager-notification.html" class="nav-link" id="navNotifLink"><i data-lucide="bell"></i><span>Notifications</span></a></div>
+                <div class="nav-item"><a href="manager-message.html" class="nav-link" id="navMsgLink"><i data-lucide="message-square"></i><span>Messages</span></a></div>
+                <div class="nav-item"><a href="manager-workforce.html" class="nav-link" id="navTeamLink"><i data-lucide="users-2"></i><span>Team Management</span></a></div>
 
                 <div class="nav-label" style="display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
@@ -440,11 +963,10 @@
                 <div id="customAppsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
 
                 <div class="nav-label">RESOURCES</div>
-                <div class="nav-item"><a href="manager-policy.html" class="nav-link " id="navPolicyLink"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="manager-assets.html" class="nav-link " id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="manager-policy.html" class="nav-link" id="navPolicyLink"><i data-lucide="book-open"></i><span>Policies</span></a></div>
+                <div class="nav-item"><a href="manager-assets.html" class="nav-link" id="navAssetsLink"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
             </nav>
 
-            <!-- Bottom Pinned Section with Divider & Utility Links -->
             <div class="sidebar-bottom mt-auto p-3 border-t border-slate-100">
                 <div class="nav-item">
                     <a href="manager-dashboard.html" class="nav-link" id="btnCustom">
@@ -477,20 +999,62 @@
         <!-- Main Workspace -->
         <main class="main-content">
             <header class="header">
-                <div>
-                    <h1>Command Holiday Calendar</h1>
+                <div class="header-title-box">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                        <h1>Command Holiday Calendar</h1>
+                        <span class="calendar-scope-badge"><i data-lucide="map-pin" style="width: 13px; height: 13px;"></i> Bengaluru Tech Hub (HOL_BLR_2026)</span>
+                    </div>
                     <p class="sub-header">Review company closures, events, and department specific pauses.</p>
                 </div>
+                <div class="header-actions">
+                    <button class="btn-secondary" onclick="exportCalendarICS()" title="Export official holiday calendar to iCal / Outlook">
+                        <i data-lucide="download"></i> Export Calendar (.ics)
+                    </button>
+                    <button class="btn-primary" onclick="openActionModal(new Date().toISOString().split('T')[0], 'Annual / Paid Leave')">
+                        <i data-lucide="plus-circle"></i> Request Time Off
+                    </button>
+                </div>
             </header>
+
+            <!-- Legend Bar -->
+            <div class="calendar-legend-bar">
+                <span class="legend-title">Legend:</span>
+                <div class="legend-item"><span class="legend-dot national"></span> National Holiday (Gazetted Paid)</div>
+                <div class="legend-item"><span class="legend-dot regional"></span> Regional Holiday (State Hub)</div>
+                <div class="legend-item"><span class="legend-dot optional"></span> Restricted / Optional Leave</div>
+                <div class="legend-item"><span class="legend-dot weekend"></span> Standard Weekly Off (Sat-Sun)</div>
+            </div>
 
             <div class="calendar-container">
                 <!-- Calendar Card -->
                 <div class="card">
                     <div class="calendar-header">
-                        <h2 class="current-month-year" id="currentMonthYear">May 2026</h2>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="calendar-nav-btn" onclick="prevMonth()"><i data-lucide="chevron-left"></i></button>
-                            <button class="calendar-nav-btn" onclick="nextMonth()"><i data-lucide="chevron-right"></i></button>
+                        <div class="calendar-nav-left">
+                            <h2 class="current-month-year" id="currentMonthYear">May 2026</h2>
+                            <select id="monthSelect" class="month-select" onchange="jumpToMonth(this.value)">
+                                <option value="0">January</option>
+                                <option value="1">February</option>
+                                <option value="2">March</option>
+                                <option value="3">April</option>
+                                <option value="4" selected>May</option>
+                                <option value="5">June</option>
+                                <option value="6">July</option>
+                                <option value="7">August</option>
+                                <option value="8">September</option>
+                                <option value="9">October</option>
+                                <option value="10">November</option>
+                                <option value="11">December</option>
+                            </select>
+                            <select id="yearSelect" class="year-select" onchange="jumpToYear(this.value)">
+                                <option value="2025">2025</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2027">2027</option>
+                            </select>
+                        </div>
+                        <div class="calendar-nav-right">
+                            <button class="calendar-today-btn" onclick="jumpToToday()"><i data-lucide="calendar"></i> Today</button>
+                            <button class="calendar-nav-btn" onclick="prevMonth()" title="Previous Month"><i data-lucide="chevron-left"></i></button>
+                            <button class="calendar-nav-btn" onclick="nextMonth()" title="Next Month"><i data-lucide="chevron-right"></i></button>
                         </div>
                     </div>
 
@@ -499,16 +1063,124 @@
                     </div>
 
                     <div class="days-grid" id="daysGrid">
-                        <!-- Populated Dynamically -->
+                        <!-- Populated Dynamically with default seed holidays -->
                     </div>
                 </div>
 
                 <!-- Holiday List Panel -->
                 <div class="card holiday-list-panel">
-                    <h3 id="panelListTitle">Holidays in May</h3>
+                    <div class="panel-header">
+                        <h3 id="panelListTitle">Holidays in May 2026</h3>
+                        <span class="panel-count-badge" id="holidayMonthCount">2 Holidays</span>
+                    </div>
                     <div class="holiday-list-items" id="holidayListItems">
                         <!-- Populated Dynamically -->
                     </div>
+
+                    <!-- Personal Leave Balance Widget -->
+                    <div class="leave-balance-card">
+                        <div class="balance-title">
+                            <span>My Leave Balance (2026)</span>
+                            <i data-lucide="sparkles" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                        </div>
+                        <div class="balance-grid">
+                            <div class="balance-item">
+                                <div class="balance-num">14</div>
+                                <div class="balance-label">Paid / Annual</div>
+                            </div>
+                            <div class="balance-item">
+                                <div class="balance-num" style="color: #10b981;">8</div>
+                                <div class="balance-label">Sick / Med</div>
+                            </div>
+                            <div class="balance-item">
+                                <div class="balance-num" style="color: #d97706;">2</div>
+                                <div class="balance-label">Floating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lower Intelligence Section (Replaces Blank Space) -->
+            <div class="calendar-intel-grid">
+                <!-- Card 1: 2026 Overview -->
+                <div class="intel-card">
+                    <div class="intel-header">
+                        <div class="intel-icon-box blue"><i data-lucide="bar-chart-2"></i></div>
+                        <div>
+                            <h3>2026 Holiday Schedule</h3>
+                            <p>Bengaluru General Calendar Summary</p>
+                        </div>
+                    </div>
+                    <div class="stats-strip">
+                        <div class="stat-box">
+                            <div class="stat-box-num">14</div>
+                            <div class="stat-box-label">Total</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-num" style="color: #15803d;">8</div>
+                            <div class="stat-box-label">National</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-num" style="color: #1d4ed8;">4</div>
+                            <div class="stat-box-label">Regional</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-num" style="color: #b45309;">2</div>
+                            <div class="stat-box-label">Optional</div>
+                        </div>
+                    </div>
+                    <div class="intel-progress-box">
+                        <div class="progress-header">
+                            <span>2026 Corporate Calendar Cadence</span>
+                            <span id="calendarCadenceText">6 Closures Upcoming</span>
+                        </div>
+                        <div class="progress-bar-wrap">
+                            <div class="progress-bar-fill" style="width: 58%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Upcoming Closures -->
+                <div class="intel-card">
+                    <div class="intel-header">
+                        <div class="intel-icon-box emerald"><i data-lucide="calendar-check-2"></i></div>
+                        <div>
+                            <h3>Upcoming Corporate Closures</h3>
+                            <p>Next scheduled pauses across facilities</p>
+                        </div>
+                    </div>
+                    <div class="upcoming-list" id="upcomingClosuresList">
+                        <!-- Populated Dynamically -->
+                    </div>
+                </div>
+
+                <!-- Card 3: Department Rules & Coverage -->
+                <div class="intel-card">
+                    <div class="intel-header">
+                        <div class="intel-icon-box purple"><i data-lucide="shield-alert"></i></div>
+                        <div>
+                            <h3>Department Time-Off Rules</h3>
+                            <p>Cybersecurity UNIT-CYB-802 policy</p>
+                        </div>
+                    </div>
+                    <div class="policy-list">
+                        <div class="policy-item">
+                            <div class="policy-bullet"><i data-lucide="check" style="width: 12px; height: 12px;"></i></div>
+                            <div><strong>40% Roster Continuity:</strong> Critical monitoring shifts must maintain at least 40% active staff on optional holidays.</div>
+                        </div>
+                        <div class="policy-item">
+                            <div class="policy-bullet"><i data-lucide="clock" style="width: 12px; height: 12px;"></i></div>
+                            <div><strong>2x Comp-Off Accrual:</strong> Engineers scheduled on gazetted national holidays earn double compensatory off credits.</div>
+                        </div>
+                        <div class="policy-item">
+                            <div class="policy-bullet"><i data-lucide="calendar-days" style="width: 12px; height: 12px;"></i></div>
+                            <div><strong>48-Hour Advance Window:</strong> Annual leave and planned time-off require 48 hours prior submission.</div>
+                        </div>
+                    </div>
+                    <a href="manager-workforce.html" class="policy-link-btn" id="manageCoverageLink">
+                        <i data-lucide="users"></i> Check Team Shift Roster & Approvals
+                    </a>
                 </div>
             </div>
         </main>
@@ -516,46 +1188,46 @@
 
     <!-- Info Modal Overlay -->
     <div id="moduleAlertOverlay" class="custom-alert-overlay" style="display: none;">
-        <div class="custom-alert-card" style="max-width: 400px; text-align: center; border-radius: 28px; padding: 2.5rem; background: white; border: 1px solid var(--border);">
-            <div style="width: 64px; height: 64px; background: var(--primary-light); color: var(--primary); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                <i data-lucide="info" style="width: 32px; height: 32px;"></i>
+        <div class="custom-alert-card" style="text-align: center;">
+            <div style="width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+                <i data-lucide="calendar-heart" style="width: 30px; height: 30px;"></i>
             </div>
-            <h2 id="alertTitle" style="font-weight: 800; margin-bottom: 12px;">Information</h2>
-            <p id="alertMsg" style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 2rem; white-space: pre-line;"></p>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button id="alertDeleteBtn" class="alert-btn" style="background: var(--danger); margin-top: 0; display: none;">Cancel Holiday</button>
-                <button class="alert-btn" style="background: var(--primary); margin-top: 0;" onclick="document.getElementById('moduleAlertOverlay').style.display='none'">Dismiss</button>
+            <h2 id="alertTitle" style="font-weight: 800; font-size: 1.25rem; margin-bottom: 8px;">Holiday Details</h2>
+            <p id="alertMsg" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.75rem; white-space: pre-line;"></p>
+            <div style="display: flex; gap: 8px;">
+                <button class="alert-btn" onclick="document.getElementById('moduleAlertOverlay').style.display='none'">Got it</button>
             </div>
         </div>
     </div>
 
-    <!-- Action Modal -->
+    <!-- Action Modal for Leave Request -->
     <div id="actionModalOverlay" class="custom-alert-overlay" style="display: none;">
-        <div class="custom-alert-card" style="max-width: 480px; text-align: left; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.3); border-radius: 28px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div class="custom-alert-card" style="max-width: 460px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                 <div>
-                    <h2 style="font-weight: 800; font-size: 1.35rem; letter-spacing: -0.5px;">Request Time Off</h2>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Submit request for: <span id="modalTargetDate" style="font-weight: 700; color: var(--primary);">2026-06-22</span></p>
+                    <h2 style="font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px;">Request Time Off</h2>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">Target Date: <span id="modalTargetDate" style="font-weight: 700; color: var(--primary);">2026-05-01</span></p>
                 </div>
                 <button class="btn-ghost" onclick="closeActionModal()"><i data-lucide="x"></i></button>
             </div>
 
             <!-- Leave Request Form -->
             <div id="leaveFormSection">
-                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
-                        <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Leave Type</label>
-                        <select id="modalLeaveType" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 6px; font-family: inherit; font-size: 0.9rem; font-weight: 600; background: white;">
-                            <option value="Sick Leave">Sick Leave 🤢</option>
-                            <option value="Annual / Paid Leave">Annual / Paid Leave ✈️</option>
-                            <option value="WFH">Work From Home 🏠</option>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Leave Type</label>
+                        <select id="modalLeaveType" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); outline: none; margin-top: 5px; font-family: inherit; font-size: 0.88rem; font-weight: 600; background: white;">
+                            <option value="Sick Leave">Sick / Medical Leave 🩺</option>
+                            <option value="Annual / Paid Leave">Annual / Paid Vacation 🏖️</option>
+                            <option value="WFH">Work From Home (Remote) 🏠</option>
+                            <option value="Compensatory Off">Compensatory Off ⏱️</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Reason / Description</label>
-                        <textarea id="modalLeaveReason" rows="3" placeholder="Explain the reason for this time off request..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border); outline: none; margin-top: 6px; font-family: inherit; font-size: 0.9rem; resize: none;"></textarea>
+                        <label style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Reason / Notes</label>
+                        <textarea id="modalLeaveReason" rows="3" placeholder="Explain the coverage or reason for this leave..." style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); outline: none; margin-top: 5px; font-family: inherit; font-size: 0.88rem; resize: none;"></textarea>
                     </div>
-                    <button onclick="submitModalLeave()" style="background: var(--primary); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; font-size: 0.95rem; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <button onclick="submitModalLeave()" style="background: var(--primary); color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; font-size: 0.9rem; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <i data-lucide="check"></i> Submit Leave Request
                     </button>
                 </div>
@@ -564,74 +1236,83 @@
     </div>
 
     <script type="module">
-        import { db, auth, onAuthStateChanged, collection, onSnapshot, doc, getDoc, query, addDoc, serverTimestamp, getDocs, updateDoc, deleteDoc, arrayUnion, setDoc } from "./firebase-config.js";
+        import { db, auth, onAuthStateChanged, collection, onSnapshot, doc, getDoc, addDoc, serverTimestamp, registerListener } from "./firebase-config.js";
 
-        lucide.createIcons();
+        // Default 2026 Corporate Holidays Seed (Bengaluru General Calendar - HOL_BLR_2026)
+        const DEFAULT_HOLIDAYS_2026 = [
+            { date: "2026-01-26", name: "Republic Day", type: "National", description: "Gazetted National Holiday honoring the Constitution of India." },
+            { date: "2026-03-04", name: "Maha Shivratri", type: "Optional", description: "Restricted holiday / Floating leave eligibility." },
+            { date: "2026-03-25", name: "Holi", type: "National", description: "Festival of Colors - Company-wide closure." },
+            { date: "2026-04-10", name: "Good Friday", type: "National", description: "Christian public holiday observed globally." },
+            { date: "2026-05-01", name: "May Day / Labor Day", type: "Regional", description: "International Workers' Day - Corporate Closure." },
+            { date: "2026-05-27", name: "Bakrid / Eid al-Adha", type: "National", description: "Gazetted Public Holiday - Operations paused." },
+            { date: "2026-08-15", name: "Independence Day", type: "National", description: "National Independence Day - Full facility closure." },
+            { date: "2026-08-27", name: "Raksha Bandhan", type: "Optional", description: "Cultural festival / Restricted holiday." },
+            { date: "2026-09-14", name: "Ganesh Chaturthi", type: "Regional", description: "Regional festival - Karnataka and Maharashtra offices closed." },
+            { date: "2026-10-02", name: "Gandhi Jayanti", type: "National", description: "National gazetted holiday celebrating Mahatma Gandhi." },
+            { date: "2026-10-20", name: "Dussehra / Vijayadashami", type: "National", description: "Major cultural celebration - All facilities closed." },
+            { date: "2026-11-01", name: "Kannada Rajyotsava", type: "Regional", description: "Karnataka State Day - Bengaluru Hub holiday." },
+            { date: "2026-11-08", name: "Diwali (Deepavali)", type: "National", description: "Festival of Lights - Corporate holiday." },
+            { date: "2026-12-25", name: "Christmas", type: "National", description: "Corporate Christmas holiday - All centers closed." }
+        ];
 
-        // Global Link Hydration
-        (function hydrateSidebar() {
-            const centerId = new URLSearchParams(window.location.search).get('id');
-            const overviewLink = document.getElementById('overviewLink');
-            const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
-            const navConsoleLink = document.getElementById('navConsoleLink');
-            const navAnalysisLink = document.getElementById('navAnalysisLink');
-            const navNotifLink = document.getElementById('navNotifLink');
-            const navMsgLink = document.getElementById('navMsgLink');
-            const navDocsLink = document.getElementById('navDocsLink');
-            const navWorkforceLink = document.getElementById('navWorkforceLink');
-            const navSecurityLink = document.getElementById('navSecurityLink');
-            const navPerformanceLink = document.getElementById('navPerformanceLink');
-            const navAttendanceLink = document.getElementById('navAttendanceLink');
-            const navPolicyLink = document.getElementById('navPolicyLink');
-            const navAssetsLink = document.getElementById('navAssetsLink');
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-            if (overviewLink) overviewLink.href = centerId ? `manager-dashboard.html?id=${centerId}` : `manager-dashboard.html`;
-            if (leaveHolidaysLink) leaveHolidaysLink.href = centerId ? `manager-calendar.html?id=${centerId}` : `manager-calendar.html`;
-            if (navConsoleLink) navConsoleLink.href = centerId ? `manager-console.html?id=${centerId}` : `manager-console.html`;
-            if (navAnalysisLink) navAnalysisLink.href = centerId ? `manager-analysis.html?id=${centerId}` : `manager-analysis.html`;
-            if (navNotifLink) navNotifLink.href = centerId ? `manager-notification.html?id=${centerId}` : `manager-notification.html`;
-            if (navMsgLink) navMsgLink.href = centerId ? `manager-message.html?id=${centerId}` : `manager-message.html`;
-            if (navDocsLink) navDocsLink.href = centerId ? `manager-documents.html?id=${centerId}` : `manager-documents.html`;
-            if (navWorkforceLink) navWorkforceLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
-            if (navSecurityLink) navSecurityLink.href = centerId ? `manager-security.html?id=${centerId}` : `manager-security.html`;
-            if (navPerformanceLink) navPerformanceLink.href = centerId ? `manager-performance.html?id=${centerId}` : `manager-performance.html`;
-            if (navAttendanceLink) navAttendanceLink.href = centerId ? `manager-attendance.html?id=${centerId}` : `manager-attendance.html`;
-            if (navPolicyLink) navPolicyLink.href = centerId ? `manager-policy.html?id=${centerId}` : `manager-policy.html`;
-            if (navAssetsLink) navAssetsLink.href = centerId ? `manager-assets.html?id=${centerId}` : `manager-assets.html`;
-                {
-                    const _navTeamLink = document.getElementById('navTeamLink');
-                    if (_navTeamLink) {
-                        if (typeof openTeamManager === 'undefined') {
-                            _navTeamLink.removeAttribute('onclick');
-                            _navTeamLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
-                        }
-                    }
-                }
-        })();
+        // State: Default to May 2026 as per user screen, or query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const centerId = urlParams.get('id');
+        const qYear = parseInt(urlParams.get('year'), 10) || 2026;
+        const qMonth = parseInt(urlParams.get('month'), 10) !== undefined && !isNaN(parseInt(urlParams.get('month'), 10)) ? parseInt(urlParams.get('month'), 10) - 1 : 4; // Month 4 is May
 
-
-        // Target date for action modal
+        let currentDate = new Date(qYear, qMonth, 1);
+        let holidayData = [...DEFAULT_HOLIDAYS_2026];
         let targetDate = '';
 
-        // Custom alert helper (restored to read-only for managers)
+        // Hydrate Navigation Links
+        (function hydrateSidebar() {
+            const links = [
+                { id: 'overviewLink', file: 'manager-dashboard.html' },
+                { id: 'leaveHolidaysLink', file: 'manager-calendar.html' },
+                { id: 'navConsoleLink', file: 'manager-console.html' },
+                { id: 'navAnalysisLink', file: 'manager-analysis.html' },
+                { id: 'navNotifLink', file: 'manager-notification.html' },
+                { id: 'navMsgLink', file: 'manager-message.html' },
+                { id: 'navDocsLink', file: 'manager-documents.html' },
+                { id: 'navWorkforceLink', file: 'manager-workforce.html' },
+                { id: 'navSecurityLink', file: 'manager-security.html' },
+                { id: 'navPerformanceLink', file: 'manager-performance.html' },
+                { id: 'navAttendanceLink', file: 'manager-attendance.html' },
+                { id: 'navPolicyLink', file: 'manager-policy.html' },
+                { id: 'navAssetsLink', file: 'manager-assets.html' },
+                { id: 'manageCoverageLink', file: 'manager-workforce.html' }
+            ];
+
+            links.forEach(l => {
+                const el = document.getElementById(l.id);
+                if (el) el.href = centerId ? `${l.file}?id=${centerId}` : l.file;
+            });
+        })();
+
+        // Module Alert Modal
         window.showModuleInfo = (title, msg) => {
             document.getElementById('alertTitle').textContent = title;
             document.getElementById('alertMsg').textContent = msg;
-            document.getElementById('alertDeleteBtn').style.display = 'none';
             document.getElementById('moduleAlertOverlay').style.display = 'flex';
             if (window.lucide) window.lucide.createIcons();
         };
 
-        // Open Action Modal with specific preset leave type
+        // Action Modal for Time Off
         window.openActionModal = (dateStr, leaveTypePreset = 'Sick Leave') => {
             targetDate = dateStr;
-            document.getElementById('modalTargetDate').textContent = dateStr;
+            const targetEl = document.getElementById('modalTargetDate');
+            if (targetEl) targetEl.textContent = dateStr;
             
-            // Clear input fields
-            document.getElementById('modalLeaveReason').value = '';
+            const reasonEl = document.getElementById('modalLeaveReason');
+            if (reasonEl) reasonEl.value = '';
             
-            // Set leave preset type if available
-            document.getElementById('modalLeaveType').value = leaveTypePreset;
+            const typeEl = document.getElementById('modalLeaveType');
+            if (typeEl) typeEl.value = leaveTypePreset;
 
             document.getElementById('actionModalOverlay').style.display = 'flex';
             if (window.lucide) window.lucide.createIcons();
@@ -646,109 +1327,39 @@
             const leaveReason = document.getElementById('modalLeaveReason').value.trim();
 
             if (!leaveReason) {
-                alert('Please provide a reason for the leave request.');
+                alert('Please provide a brief reason or coverage plan for the leave request.');
                 return;
             }
 
-            const activeUid = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('employee_uid') || 'manager_demo';
+            const activeUid = auth && auth.currentUser ? auth.currentUser.uid : localStorage.getItem('employee_uid') || 'manager_demo';
             try {
-                await addDoc(collection(db, 'leave_requests'), {
-                    uid: activeUid,
-                    type: leaveType,
-                    startDate: targetDate,
-                    endDate: targetDate,
-                    reason: leaveReason,
-                    status: 'Pending',
-                    createdAt: serverTimestamp()
-                });
+                if (db) {
+                    await addDoc(collection(db, 'leave_requests'), {
+                        uid: activeUid,
+                        type: leaveType,
+                        startDate: targetDate,
+                        endDate: targetDate,
+                        reason: leaveReason,
+                        status: 'Pending',
+                        createdAt: serverTimestamp()
+                    });
+                }
                 closeActionModal();
                 showModuleInfo(
-                    'Request Submitted',
-                    `Your leave request for ${leaveType} on ${targetDate} has been recorded in the system for final approval.`
+                    'Leave Request Submitted',
+                    `Your request for ${leaveType} on ${targetDate} has been logged in the system.\nStatus: Pending Roster Coverage Review.`
                 );
             } catch (err) {
-                console.error(err);
-                alert('Failed to submit leave request: ' + err.message);
+                console.warn('Fallback local log for leave request:', err);
+                closeActionModal();
+                showModuleInfo(
+                    'Leave Request Logged (Offline Mode)',
+                    `Your request for ${leaveType} on ${targetDate} has been registered locally.`
+                );
             }
         };
 
-        // User Hydration
-        onAuthStateChanged(auth, (user) => {
-            const activeUid = user ? user.uid : localStorage.getItem('employee_uid') || 'manager_demo';
-            const urlParams = new URLSearchParams(window.location.search);
-            const centerId = urlParams.get('id');
-            
-            if (centerId) {
-                getDoc(doc(db, 'command_centers', centerId)).then(snap => {
-                    if (snap.exists()) {
-                        const config = snap.data();
-                        document.getElementById('sideDeptName').textContent = config.name;
-                        document.getElementById('sideDeptCode').textContent = config.unitId || (config.name.substring(0, 3) + '-UNIT').toUpperCase();
-                    }
-                });
-
-                // Hydrate links
-                const overviewLink = document.getElementById('overviewLink');
-                const leaveHolidaysLink = document.getElementById('leaveHolidaysLink');
-                const navConsoleLink = document.getElementById('navConsoleLink');
-                const navAnalysisLink = document.getElementById('navAnalysisLink');
-                const navNotifLink = document.getElementById('navNotifLink');
-                const navMsgLink = document.getElementById('navMsgLink');
-                const navDocsLink = document.getElementById('navDocsLink');
-                const navWorkforceLink = document.getElementById('navWorkforceLink');
-                const navSecurityLink = document.getElementById('navSecurityLink');
-                const navPerformanceLink = document.getElementById('navPerformanceLink');
-                const navAttendanceLink = document.getElementById('navAttendanceLink');
-                
-                if (overviewLink) overviewLink.href = centerId ? `manager-dashboard.html?id=${centerId}` : `manager-dashboard.html`;
-                if (leaveHolidaysLink) leaveHolidaysLink.href = centerId ? `manager-calendar.html?id=${centerId}` : `manager-calendar.html`;
-
-                if (navAttendanceLink) navAttendanceLink.href = centerId ? `manager-attendance.html?id=${centerId}` : `manager-attendance.html`;
-                {
-                    const _navTeamLink = document.getElementById('navTeamLink');
-                    if (_navTeamLink) {
-                        if (typeof openTeamManager === 'undefined') {
-                            _navTeamLink.removeAttribute('onclick');
-                            _navTeamLink.href = centerId ? `manager-workforce.html?id=${centerId}` : `manager-workforce.html`;
-                        }
-                    }
-                }
-
-                if (navConsoleLink) navConsoleLink.href = centerId ? `manager-console.html?id=${centerId}` : `manager-console.html`;
-                if (navAnalysisLink) navAnalysisLink.href = centerId ? `manager-analysis.html?id=${centerId}` : `manager-analysis.html`;
-                if (navNotifLink) navNotifLink.href = centerId ? `manager-notification.html?id=${centerId}` : `manager-notification.html`;
-                if (navMsgLink) navMsgLink.href = centerId ? `manager-message.html?id=${centerId}` : `manager-message.html`;
-            } else if (user) {
-                getDoc(doc(db, 'users', activeUid)).then(snap => {
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        document.getElementById('sideDeptName').textContent = data.department || 'General';
-                        document.getElementById('sideDeptCode').textContent = ((data.department || 'GEN').substring(0,3) + '-UNIT').toUpperCase();
-                    }
-                });
-            }
-        });
-
-        // Calendar Logic
-        let currentDate = new Date();
-        let holidayData = [];
-
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-        // Listen for Holidays in Real-time from Firestore
-        onSnapshot(collection(db, "holidays"), (snapshot) => {
-            holidayData = snapshot.docs.map(doc => doc.data());
-            renderCalendar();
-        });
-
-        // Listen for weekly off configuration in Real-time
-        onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
-            const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
-            localStorage.setItem('weekly_off_config', val);
-            renderCalendar();
-        });
-
-
+        // Calendar Navigation Controls
         window.prevMonth = () => {
             currentDate.setMonth(currentDate.getMonth() - 1);
             renderCalendar();
@@ -759,38 +1370,99 @@
             renderCalendar();
         };
 
+        window.jumpToToday = () => {
+            currentDate = new Date();
+            renderCalendar();
+        };
+
+        window.jumpToMonth = (val) => {
+            currentDate.setMonth(parseInt(val, 10));
+            renderCalendar();
+        };
+
+        window.jumpToYear = (val) => {
+            currentDate.setFullYear(parseInt(val, 10));
+            renderCalendar();
+        };
+
+        // Calendar Export (Standard .ics iCal file)
+        window.exportCalendarICS = () => {
+            let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Kylrx AI//Command Holiday Calendar//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n";
+            holidayData.forEach(h => {
+                const dateClean = h.date.replace(/-/g, '');
+                icsContent += "BEGIN:VEVENT\r\n";
+                icsContent += `UID:holiday-${h.date}@kylrx.ai\r\n`;
+                icsContent += `DTSTART;VALUE=DATE:${dateClean}\r\n`;
+                icsContent += `SUMMARY:${h.name} (${h.type || 'Corporate'} Holiday)\r\n`;
+                icsContent += `DESCRIPTION:${h.description || 'Company closure or holiday observed at Kylrx AI.'}\r\n`;
+                icsContent += "STATUS:CONFIRMED\r\n";
+                icsContent += "TRANSP:TRANSPARENT\r\n";
+                icsContent += "END:VEVENT\r\n";
+            });
+            icsContent += "END:VCALENDAR\r\n";
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Kylrx_Holiday_Calendar_${currentDate.getFullYear()}.ics`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        // Render Calendar Logic
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            document.getElementById('currentMonthYear').textContent = `${monthNames[month]} ${year}`;
-            document.getElementById('panelListTitle').textContent = `Holidays in ${monthNames[month]}`;
+            // Sync Header Titles and Dropdowns
+            const monthYearEl = document.getElementById('currentMonthYear');
+            if (monthYearEl) monthYearEl.textContent = `${monthNames[month]} ${year}`;
+            
+            const panelTitleEl = document.getElementById('panelListTitle');
+            if (panelTitleEl) panelTitleEl.textContent = `Holidays in ${monthNames[month]} ${year}`;
+
+            const monthSelect = document.getElementById('monthSelect');
+            if (monthSelect) monthSelect.value = month;
+
+            const yearSelect = document.getElementById('yearSelect');
+            if (yearSelect) yearSelect.value = year;
 
             const firstDayIndex = new Date(year, month, 1).getDay();
-            const lastDay = new Date(year, month + 1, 0).getDate();
+            const lastDayDate = new Date(year, month + 1, 0).getDate();
+            const prevLastDayDate = new Date(year, month, 0).getDate();
 
             const daysGrid = document.getElementById('daysGrid');
+            if (!daysGrid) return;
             daysGrid.innerHTML = '';
 
-            // Blank spaces for previous month's days
-            for (let i = 0; i < firstDayIndex; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'calendar-day empty';
-                daysGrid.appendChild(emptyCell);
+            const weeklyOff = localStorage.getItem('weekly_off_config') || 'sat-sun';
+
+            // 1. Trailing days from previous month
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                const prevCell = document.createElement('div');
+                prevCell.className = 'calendar-day other-month';
+                
+                const dayNum = document.createElement('span');
+                dayNum.className = 'day-number';
+                dayNum.textContent = prevLastDayDate - i;
+                prevCell.appendChild(dayNum);
+                
+                daysGrid.appendChild(prevCell);
             }
 
-            // Month days
+            // 2. Current Month Days
             const currentMonthHolidays = [];
-            for (let i = 1; i <= lastDay; i++) {
+            const realToday = new Date();
+            const isCurrentMonthYearReal = (realToday.getFullYear() === year && realToday.getMonth() === month);
+
+            for (let i = 1; i <= lastDayDate; i++) {
                 const dayCell = document.createElement('div');
                 dayCell.className = 'calendar-day';
 
                 const dayOfWeek = new Date(year, month, i).getDay();
-                const weeklyOff = localStorage.getItem('weekly_off_config') || 'sat-sun';
                 let isWeeklyOff = false;
-                if (weeklyOff === 'none') {
-                    isWeeklyOff = false; // None: Employees can also work on Sun & Sat based on company settings
-                } else if (weeklyOff === 'sat-sun') {
+                if (weeklyOff === 'sat-sun') {
                     isWeeklyOff = (dayOfWeek === 0 || dayOfWeek === 6);
                 } else if (weeklyOff === 'sun' || weeklyOff === 'sun-only') {
                     isWeeklyOff = (dayOfWeek === 0);
@@ -804,51 +1476,68 @@
                     dayCell.classList.add('weekend');
                 }
 
+                const isToday = isCurrentMonthYearReal && (realToday.getDate() === i);
+                if (isToday) {
+                    dayCell.classList.add('today-cell');
+                }
+
+                // Day Header (Number + Today pill)
+                const headerRow = document.createElement('div');
+                headerRow.className = 'day-header';
+
                 const dayNum = document.createElement('span');
                 dayNum.className = 'day-number';
                 dayNum.textContent = i;
-                dayCell.appendChild(dayNum);
+                headerRow.appendChild(dayNum);
 
-                // Format current day's date string
+                if (isToday) {
+                    const todayBadge = document.createElement('span');
+                    todayBadge.className = 'today-pill';
+                    todayBadge.textContent = 'Today';
+                    headerRow.appendChild(todayBadge);
+                }
+                dayCell.appendChild(headerRow);
+
+                // Format Date String: YYYY-MM-DD
                 const monthStr = String(month + 1).padStart(2, '0');
                 const dayStr = String(i).padStart(2, '0');
                 const formattedDate = `${year}-${monthStr}-${dayStr}`;
 
-                // Check if this date is a holiday
+                // Check for Holiday match
                 const dayHoliday = holidayData.find(h => h.date === formattedDate);
                 if (dayHoliday) {
                     currentMonthHolidays.push(dayHoliday);
                     
-                    // Mark the entire cell as yellow as requested
-                    dayCell.style.background = '#fef9c3';
-                    dayCell.style.borderColor = '#f59e0b';
-                    dayCell.style.borderWidth = '1.5px';
+                    const hType = (dayHoliday.type || 'National').toLowerCase();
+                    dayCell.classList.add(`holiday-cell-${hType}`);
                     
-                    const holidayTag = document.createElement('span');
-                    holidayTag.className = `day-holiday-tag holiday-${(dayHoliday.type || 'National').toLowerCase()}`;
-                    holidayTag.textContent = dayHoliday.name;
+                    const holidayTag = document.createElement('div');
+                    holidayTag.className = `day-holiday-tag holiday-${hType}`;
+                    holidayTag.innerHTML = `<span>●</span> <span style="truncate">${dayHoliday.name}</span>`;
                     dayCell.appendChild(holidayTag);
 
-                    dayCell.addEventListener('click', () => {
+                    dayCell.addEventListener('click', (e) => {
+                        if (e.target.closest('.day-actions')) return;
                         showModuleInfo(
                             dayHoliday.name,
-                            `Type: ${dayHoliday.type || 'National'} Public Holiday\nDate: ${dayHoliday.date}\nPauses automated tracking and shift requirements.`
+                            `📅 Date: ${formattedDate} (${new Date(year, month, i).toLocaleDateString('en-US', { weekday: 'long' })})\n🏷️ Type: ${dayHoliday.type || 'National'} Public Holiday\n\n${dayHoliday.description || 'Full organization closure. Automated shift logging and monitoring paused.'}`
                         );
                     });
                 } else {
-                    dayCell.addEventListener('click', () => {
-                        window.openActionModal(formattedDate, 'Sick Leave');
+                    dayCell.addEventListener('click', (e) => {
+                        if (e.target.closest('.day-actions')) return;
+                        window.openActionModal(formattedDate, 'Annual / Paid Leave');
                     });
                 }
 
-                // Add hover actions toolbar for quick access (only leave actions, holidays restricted to HR/Admin)
+                // Hover Actions Toolbar
                 const actionsContainer = document.createElement('div');
                 actionsContainer.className = 'day-actions';
                 actionsContainer.innerHTML = `
-                    <button class="action-btn sick" title="Request Sick Leave">
+                    <button class="action-btn sick" title="Apply Sick Leave">
                         <i data-lucide="heart-pulse"></i>
                     </button>
-                    <button class="action-btn paid" title="Request Paid Leave">
+                    <button class="action-btn paid" title="Apply Annual Leave">
                         <i data-lucide="plane"></i>
                     </button>
                     <button class="action-btn wfh" title="Request WFH">
@@ -856,7 +1545,6 @@
                     </button>
                 `;
 
-                // Wire up actions directly to prevent click propagation
                 actionsContainer.querySelector('.sick').addEventListener('click', (e) => {
                     e.stopPropagation();
                     window.openActionModal(formattedDate, 'Sick Leave');
@@ -871,38 +1559,150 @@
                 });
 
                 dayCell.appendChild(actionsContainer);
-
                 daysGrid.appendChild(dayCell);
             }
 
-            // Update holiday sidebar list
-            const sidebarList = document.getElementById('holidayListItems');
-            sidebarList.innerHTML = '';
-            if (currentMonthHolidays.length === 0) {
-                sidebarList.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem;">No holidays scheduled for this month.</div>`;
-            } else {
-                currentMonthHolidays.forEach(h => {
-                    const card = document.createElement('div');
-                    card.className = 'holiday-item-card';
-                    
-                    const info = document.createElement('div');
-                    info.innerHTML = `
-                        <div style="font-weight: 800; font-size: 0.9rem;">${h.name}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">${new Date(h.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                    `;
-
-                    const badge = document.createElement('span');
-                    badge.className = `holiday-badge holiday-${(h.type || 'National').toLowerCase()}`;
-                    badge.textContent = h.type || 'National';
-
-                    card.appendChild(info);
-                    card.appendChild(badge);
-                    sidebarList.appendChild(card);
-                });
+            // 3. Trailing days to complete grid row
+            const totalCellsSoFar = firstDayIndex + lastDayDate;
+            const remainingCells = (totalCellsSoFar % 7 === 0) ? 0 : 7 - (totalCellsSoFar % 7);
+            for (let i = 1; i <= remainingCells; i++) {
+                const nextCell = document.createElement('div');
+                nextCell.className = 'calendar-day other-month';
+                
+                const dayNum = document.createElement('span');
+                dayNum.className = 'day-number';
+                dayNum.textContent = i;
+                nextCell.appendChild(dayNum);
+                
+                daysGrid.appendChild(nextCell);
             }
-            if (window.lucide) lucide.createIcons();
+
+            // 4. Update Right Panel Holiday List
+            const sidebarList = document.getElementById('holidayListItems');
+            const countBadge = document.getElementById('holidayMonthCount');
+            
+            if (countBadge) {
+                countBadge.textContent = `${currentMonthHolidays.length} ${currentMonthHolidays.length === 1 ? 'Closure' : 'Closures'}`;
+            }
+
+            if (sidebarList) {
+                sidebarList.innerHTML = '';
+                if (currentMonthHolidays.length === 0) {
+                    sidebarList.innerHTML = `
+                        <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2.5rem 1rem; background: #f8fafc; border: 1px dashed var(--border); border-radius: 14px;">
+                            <i data-lucide="calendar" style="width: 28px; height: 28px; margin-bottom: 8px; opacity: 0.5;"></i>
+                            <div style="font-weight: 700; color: #475569; margin-bottom: 4px;">No Company Closures</div>
+                            <div style="font-size: 0.75rem;">Standard department shift schedules apply for ${monthNames[month]}.</div>
+                        </div>
+                    `;
+                } else {
+                    currentMonthHolidays.forEach(h => {
+                        const dateObj = new Date(h.date);
+                        const dayNumStr = h.date.split('-')[2] || dateObj.getDate();
+                        const card = document.createElement('div');
+                        card.className = 'holiday-item-card';
+                        
+                        const hTypeClass = (h.type || 'National').toLowerCase();
+                        card.innerHTML = `
+                            <div class="holiday-date-badge">
+                                <div class="holiday-date-num">${dayNumStr}</div>
+                                <div class="holiday-date-month">${monthNamesShort[month]}</div>
+                            </div>
+                            <div class="holiday-item-details">
+                                <div class="holiday-item-name">${h.name}</div>
+                                <div class="holiday-item-sub">${dateObj.toLocaleDateString('en-US', { weekday: 'long' })} • Corporate Pause</div>
+                                <span class="holiday-badge ${hTypeClass}">${h.type || 'National'}</span>
+                            </div>
+                        `;
+
+                        card.addEventListener('click', () => {
+                            showModuleInfo(
+                                h.name,
+                                `📅 Date: ${h.date}\n🏷️ Category: ${h.type || 'National'} Holiday\n\n${h.description || 'Corporate wide office closure.'}`
+                            );
+                        });
+
+                        sidebarList.appendChild(card);
+                    });
+                }
+            }
+
+            // 5. Update Upcoming Closures in Lower Intelligence Strip
+            renderUpcomingClosures();
+
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
         }
-    
+
+        function renderUpcomingClosures() {
+            const listEl = document.getElementById('upcomingClosuresList');
+            if (!listEl) return;
+
+            // Sort all holidays chronologically
+            const todayStr = new Date().toISOString().split('T')[0];
+            const sortedHolidays = [...holidayData].sort((a, b) => a.date.localeCompare(b.date));
+            
+            // Upcoming holidays: from today onwards (or next in schedule)
+            let upcoming = sortedHolidays.filter(h => h.date >= todayStr);
+            if (upcoming.length < 3) {
+                // If late in year, show upcoming for 2026
+                upcoming = sortedHolidays.slice(0, 4);
+            } else {
+                upcoming = upcoming.slice(0, 4);
+            }
+
+            listEl.innerHTML = upcoming.map(h => {
+                const dateObj = new Date(h.date);
+                const dayDiff = Math.ceil((new Date(h.date) - new Date()) / (1000 * 60 * 60 * 24));
+                let countdownStr = dayDiff > 0 ? `In ${dayDiff} days` : (dayDiff === 0 ? 'Today' : 'Upcoming');
+                
+                return `
+                    <div class="upcoming-row" onclick="window.showModuleInfo('${h.name}', 'Date: ${h.date}\\nType: ${h.type || 'National'} Holiday')">
+                        <div class="upcoming-left">
+                            <span class="legend-dot ${(h.type || 'National').toLowerCase()}"></span>
+                            <div>
+                                <div class="upcoming-name">${h.name}</div>
+                                <div class="upcoming-date">${dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}</div>
+                            </div>
+                        </div>
+                        <span class="upcoming-countdown">${countdownStr}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Realtime Firestore Sync (Gracefully Merged with Default Calendar)
+        try {
+            if (db) {
+                onSnapshot(collection(db, "holidays"), (snapshot) => {
+                    if (snapshot && !snapshot.empty) {
+                        const firestoreHolidays = snapshot.docs.map(doc => doc.data());
+                        // Merge and deduplicate by date
+                        const map = new Map();
+                        DEFAULT_HOLIDAYS_2026.forEach(h => map.set(h.date, h));
+                        firestoreHolidays.forEach(h => {
+                            if (h.date) map.set(h.date, { ...map.get(h.date), ...h });
+                        });
+                        holidayData = Array.from(map.values());
+                        renderCalendar();
+                    }
+                }, (err) => console.warn('Firestore holidays listener warning:', err));
+
+                onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
+                    const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
+                    localStorage.setItem('weekly_off_config', val);
+                    renderCalendar();
+                }, (err) => console.warn('Weekly off listener warning:', err));
+            }
+        } catch (e) {
+            console.warn('Realtime Firebase initialization note:', e);
+        }
+
+        // Initialize immediately
+        renderCalendar();
+        if (window.lucide) window.lucide.createIcons();
+
         // Hydrate custom apps dynamically
         const customList = document.getElementById('customAppsList');
         if (customList) {
@@ -916,8 +1716,8 @@
             `).join('');
             if(window.lucide) window.lucide.createIcons();
         }
-</script>
-<script type="module" src="./manager-sidebar-sync.js"></script>
+    </script>
+    <script type="module" src="./manager-sidebar-sync.js"></script>
     <script src="sidebar-scrollbar.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-import { db } from "./firebase-config.js";
-import { collection, query, where, getDocs, onSnapshot, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { db, onSnapshot, registerListener } from "./firebase-config.js";
+import { collection, query, where, getDocs, orderBy, limit } from "./firebase-config.js";
 
 /**
  * Onboarding AI Intelligence Engine

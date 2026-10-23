@@ -862,6 +862,7 @@
                 <div class="nav-item"><a href="admin-attendance-monitor.html" class="nav-link"><i data-lucide="clock"></i><span>Attendance Monitor</span></a></div>
                 <div class="nav-item"><a href="admin-leave-management.html" class="nav-link"><i data-lucide="calendar"></i><span>Leave Mgmt</span></a></div>
                 <div class="nav-item"><a href="admin-document-templates.html" class="nav-link active"><i data-lucide="file-text"></i><span>Document Templates</span></a></div>
+                <div class="nav-item"><a href="bulk-trigger-dashboard.html" class="nav-link"><i data-lucide="zap"></i><span>Bulk Trigger & OTP Hub</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-documents.html" class="nav-link"><i data-lucide="file-text"></i><span>Payroll Docs</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-upload.html" class="nav-link"><i data-lucide="upload"></i><span>Finance Payroll Upload</span></a></div>
                 <div class="nav-item"><a href="admin-payroll-disbursement.html" class="nav-link"><i data-lucide="credit-card"></i><span>Payroll Disbursement</span></a></div>
@@ -945,6 +946,10 @@
                         <i data-lucide="file-plus" style="width: 15px; height: 15px;"></i>
                         Generate Document
                     </button>
+                    <button class="btn btn-sm" style="background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%); color: white; border: none;" onclick="window.location.href='bulk-trigger-dashboard.html'">
+                        <i data-lucide="zap" style="width: 15px; height: 15px;"></i>
+                        Bulk Trigger &amp; Batch Dispatch (PRD §2)
+                    </button>
                     <div style="width: 1px; height: 26px; background: var(--border); margin: 0 4px;"></div>
                     <button class="action-icon" title="Messages" onclick="window.location.href='admin-message.html'">
                         <i data-lucide="message-square"></i>
@@ -1013,6 +1018,10 @@
                 <button class="tab-btn" onclick="switchTab('generated', this)" id="tab-generated">
                     <i data-lucide="archive" style="width: 15px; height: 15px;"></i>
                     Generated Archive
+                </button>
+                <button class="tab-btn" onclick="switchTab('custom_modules', this)" id="tab-custom_modules">
+                    <i data-lucide="layout-template" style="width: 15px; height: 15px;"></i>
+                    Customisable Module Templates (PRD §1.2)
                 </button>
                 <button class="tab-btn" onclick="switchTab('audit', this)" id="tab-audit">
                     <i data-lucide="shield-alert" style="width: 15px; height: 15px;"></i>
@@ -1173,6 +1182,42 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: CUSTOMISABLE MODULE TEMPLATES (PRD §1.2) -->
+            <div id="tab-content-custom_modules" style="display: none;">
+                <div class="toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 280px;">
+                        <div class="search-box" style="flex: 1;">
+                            <i data-lucide="search" style="width: 16px; height: 16px;"></i>
+                            <input type="text" id="search-custom-tpl-input" placeholder="Search module templates by name, keyword, or module…" oninput="filterAdminCustomTemplates()" />
+                        </div>
+                        <select class="filter-select" id="custom-module-filter" onchange="filterAdminCustomTemplates()">
+                            <option value="all">All Applicable Modules</option>
+                            <option value="goals">Goals & Objectives</option>
+                            <option value="onboarding">Onboarding</option>
+                            <option value="lifecycle">Employee Lifecycle</option>
+                            <option value="exit">Exit & Offboarding</option>
+                            <option value="payroll">Payroll & Compensation</option>
+                            <option value="policy">Corporate Policy</option>
+                        </select>
+                        <select class="filter-select" id="custom-status-filter" onchange="filterAdminCustomTemplates()">
+                            <option value="all">All Statuses</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Drafts Only</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-sm" onclick="openCreateModuleTemplateModal()">
+                            <i data-lucide="plus-circle" style="width: 15px; height: 15px;"></i>
+                            + Create New Template
+                        </button>
+                    </div>
+                </div>
+
+                <div id="admin-custom-template-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+                    <!-- Populated dynamically -->
                 </div>
             </div>
         </main>

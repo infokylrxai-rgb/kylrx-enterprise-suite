@@ -9,7 +9,7 @@ import {
     doc,
     setDoc,
     getDoc
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+} from "./firebase-config.js";
 import { calculateAttendanceProductivity } from "./pms-service.js";
 
 class AttendanceEngine {
@@ -146,7 +146,7 @@ class AttendanceEngine {
                     try {
                         const inTimeStr = new Date(punchInMs).toISOString();
                         const outTimeStr = new Date(punchOutMs).toISOString();
-                        await fetch('http://localhost:3000/api/data/log-attendance-excel', {
+                        await fetch(`${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api/data/log-attendance-excel`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({

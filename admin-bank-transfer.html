@@ -528,8 +528,8 @@
   </div><!-- /.dashboard-container -->
 
   <script type="module">
-    import { db, auth } from "./firebase-config.js";
-    import { collection, getDocs, setDoc, doc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
+    import { collection, getDocs, setDoc, doc, serverTimestamp, addDoc } from "./firebase-config.js";
     import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
     // ─────────────────────────────────────────────
@@ -1082,8 +1082,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

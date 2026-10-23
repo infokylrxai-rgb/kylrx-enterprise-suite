@@ -5,13 +5,8 @@
  * Role-Based Access Control (Employee | Manager | HRMS | Admin)
  */
 
-import { db, auth } from './firebase-config.js';
-import {
-    collection, doc, addDoc, setDoc, getDoc, getDocs,
-    onSnapshot, query, where, orderBy, limit,
-    serverTimestamp, updateDoc, arrayUnion, arrayRemove,
-    deleteField, writeBatch
-} from 'https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js';
+import { db, auth, onSnapshot, registerListener } from './firebase-config.js';
+import { collection, doc, addDoc, setDoc, getDoc, getDocs, query, where, orderBy, limit, serverTimestamp, updateDoc, arrayUnion, arrayRemove, deleteField, writeBatch } from './firebase-config.js';
 
 // ─────────────────────────────────────────────
 // ROLE PERMISSION MAP

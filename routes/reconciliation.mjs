@@ -62,7 +62,13 @@ const upload = multer({
   },
 });
 
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware.js');
+
 const router = Router();
+router.use(verifyToken);
+router.use(authorize(ADMIN_HR_ROLES));
 
 // ─── Helper: detect format from filename/mimetype ─────────────────────────────
 function detectFormat(fileName = '', mimetype = '') {

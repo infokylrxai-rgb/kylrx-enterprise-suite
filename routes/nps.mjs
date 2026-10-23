@@ -46,7 +46,13 @@ import {
   NPS_80CCD1B_ANNUAL_CAP,
 } from '../services/corporate-nps-automation-engine.mjs';
 
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware.js');
+
 const router = Router();
+router.use(verifyToken);
+router.use(authorize(ADMIN_HR_ROLES));
 
 // Multer in-memory storage for bulk uploads (up to 15MB)
 const upload = multer({

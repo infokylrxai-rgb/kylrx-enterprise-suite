@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
+const { confirmedWrite } = require('../config/firestore-write');
 const crypto = require('crypto');
 const automationEngine = require('../services/automation-engine');
 const eventBus = require('../services/event-bus');
 const logger = require('../utils/logger');
-const { db } = require('../config/firebase');
+const { db, rawCollection } = require('../config/firebase');
+const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
 const triggerRegistryService = require('../services/alert-trigger-registry-service');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
 
 /**
  * Enterprise Alert Builder Route Handler
@@ -258,6 +263,60 @@ function initializeAlertRules() {
 initializeAlertRules();
 syncAlertRulesWithFirestore().catch(() => {});
 
+/* ── Per-organization rules ────────────────────────────────────────────────
+ * Each organization's rules live in Firestore 'alert_rules' with its orgId. Standard rules
+ * an organization has not saved yet are listed as templates (isTemplate: true); toggling or
+ * editing one saves the organization's own copy. Document ids are namespaced per
+ * organization (the original Kylrx AI organization keeps the plain rule id).
+ */
+
+function orgOf(req) {
+    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+}
+
+function ruleDocId(orgId, ruleId) {
+    return orgId === LEGACY_ORG_ID ? String(ruleId) : `${orgId}__${ruleId}`;
+}
+
+
+async function orgRules(orgId) {
+    const docs = await orgDocs(rawCollection, 'alert_rules', orgId);
+    const rules = new Map();
+    docs.filter(r => r && r.id && r.trigger_event).forEach(r => rules.set(r.id, { ...r, isTemplate: false }));
+    for (const template of DEFAULT_ALERT_RULES) {
+        if (!rules.has(template.id)) rules.set(template.id, { ...template, isTemplate: true });
+    }
+    return [...rules.values()];
+}
+
+async function findOrgRule(orgId, ruleId) {
+    return (await orgRules(orgId)).find(r => r.id === ruleId) || null;
+}
+
+// Engine rule ids are namespaced too, so organizations never overwrite each other's rules
+function registerWithEngine(orgId, rule) {
+    automationEngine.registerRule({
+        id: ruleDocId(orgId, rule.id),
+        name: rule.name,
+        trigger_event: rule.trigger_event,
+        conditions: rule.conditions,
+        pipeline: rule.pipeline,
+        status: rule.status
+    });
+}
+
+async function saveOrgRule(orgId, rule) {
+    const { isTemplate, ...data } = rule;
+    await confirmedWrite(() => rawCollection('alert_rules').doc(ruleDocId(orgId, rule.id)).set({
+        ...data,
+        orgId,
+        syncedWithFirebase: true,
+        updatedAt: new Date().toISOString()
+    }, { merge: true }));
+    registerWithEngine(orgId, rule);
+    if (orgId === LEGACY_ORG_ID) alertRulesMap.set(rule.id, data);
+}
+
 // Sync alert rules with Cloud Firestore
 async function syncAlertRulesWithFirestore() {
     if (!db || typeof db.collection !== 'function') return;
@@ -392,7 +451,7 @@ router.post('/sync-firebase', async (req, res) => {
  */
 router.get('/rules', async (req, res) => {
     try {
-        const rules = Array.from(alertRulesMap.values());
+        const rules = await orgRules(orgOf(req));
         res.status(200).json({
             success: true,
             count: rules.length,
@@ -482,27 +541,9 @@ router.post('/rules', async (req, res) => {
             pipeline
         };
 
-        alertRulesMap.set(id, newRule);
-
-        // Register directly into Common Automation Engine
-        automationEngine.registerRule({
-            id: newRule.id,
-            name: newRule.name,
-            trigger_event: newRule.trigger_event,
-            conditions: newRule.conditions,
-            pipeline: newRule.pipeline,
-            status: 'active'
-        });
-
-        logger.info(`[AlertBuilder] Registered new alert rule '${id}' into Automation Engine`);
-
-        if (db && typeof db.collection === 'function') {
-            db.collection('alert_rules').doc(id).set({
-                ...newRule,
-                createdAt: new Date().toISOString(),
-                syncedWithFirebase: true
-            }, { merge: true }).catch(() => {});
-        }
+        // Saved for the caller's organization first; registered with the engine only once Firestore confirmed
+        await saveOrgRule(orgOf(req), { ...newRule, createdAt: new Date().toISOString() });
+        logger.info(`[AlertBuilder] Saved alert rule '${id}' for ${orgOf(req)} and registered it with the Automation Engine`);
 
         res.status(201).json({
             success: true,
@@ -511,7 +552,7 @@ router.post('/rules', async (req, res) => {
         });
     } catch (error) {
         logger.error('[AlertBuilder] Error creating alert rule:', error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(error.status || 500).json({ success: false, firebaseSaved: false, error: error.message });
     }
 });
 
@@ -519,46 +560,29 @@ router.post('/rules', async (req, res) => {
  * PATCH /api/alerts/rules/:id/toggle
  * Toggle active/inactive state of an alert rule
  */
-router.patch('/rules/:id/toggle', (req, res) => {
+router.patch('/rules/:id/toggle', async (req, res) => {
     try {
         const { id } = req.params;
-        const rule = alertRulesMap.get(id);
-
+        const orgId = orgOf(req);
+        const rule = await findOrgRule(orgId, id);
         if (!rule) {
             return res.status(404).json({ success: false, error: `Alert rule '${id}' not found` });
         }
 
         rule.status = rule.status === 'active' ? 'disabled' : 'active';
-        alertRulesMap.set(id, rule);
-
-        // Update in Automation Engine
-        automationEngine.registerRule({
-            id: rule.id,
-            name: rule.name,
-            trigger_event: rule.trigger_event,
-            conditions: rule.conditions,
-            pipeline: rule.pipeline,
-            status: rule.status
-        });
-
-        logger.info(`[AlertBuilder] Toggled status for rule '${id}' to: ${rule.status}`);
-
-        if (db && typeof db.collection === 'function') {
-            db.collection('alert_rules').doc(id).update({
-                status: rule.status,
-                updatedAt: new Date().toISOString()
-            }).catch(() => {});
-        }
+        await saveOrgRule(orgId, rule);
+        logger.info(`[AlertBuilder] Toggled rule '${id}' for ${orgId} to: ${rule.status}`);
 
         res.status(200).json({
             success: true,
+            firebaseSaved: true,
             ruleId: id,
             newStatus: rule.status,
             message: `Alert rule status updated to ${rule.status}`
         });
     } catch (error) {
         logger.error('[AlertBuilder] Error toggling rule:', error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(error.status || 500).json({ success: false, firebaseSaved: false, error: error.message });
     }
 });
 
@@ -569,7 +593,8 @@ router.patch('/rules/:id/toggle', (req, res) => {
 router.post('/test-fire', async (req, res) => {
     try {
         const { ruleId, customPayload } = req.body;
-        const rule = alertRulesMap.get(ruleId);
+        const orgId = orgOf(req);
+        const rule = await findOrgRule(orgId, ruleId);
 
         if (!rule) {
             return res.status(404).json({ success: false, error: `Rule '${ruleId}' not found` });
@@ -663,8 +688,12 @@ router.post('/test-fire', async (req, res) => {
         const generatedAuditLogs = automationEngine.auditLogs.slice(initialLogCount);
         const conditionMet = !generatedAuditLogs.some(l => l.status === 'conditions_unmet');
 
+        let breachSaved = false;
+        let breachError = null;
         if (conditionMet && db && typeof db.collection === 'function') {
-            db.collection('alert_breaches').add({
+            await confirmedWrite(() => rawCollection('alert_breaches').add({
+                orgId,
+                source: 'simulation_console',
                 ruleId,
                 ruleName: rule.name,
                 module: rule.module,
@@ -674,7 +703,7 @@ router.post('/test-fire', async (req, res) => {
                 recipientsNotified: rule.recipients ? rule.recipients.map(r => r.role) : [],
                 escalationTriggered: rule.escalation ? (rule.escalation.escalateTo || rule.escalation) : null,
                 timestamp: new Date().toISOString()
-            }).catch(() => {});
+            })).then(() => { breachSaved = true; }).catch(err => { breachError = err.message; });
         }
 
         res.status(200).json({
@@ -688,7 +717,9 @@ router.post('/test-fire', async (req, res) => {
             recipientsNotified: conditionMet ? rule.recipients.map(r => r.role) : [],
             escalationTriggered: conditionMet && rule.escalation ? rule.escalation.escalateTo : null,
             executionAuditTrail: generatedAuditLogs,
-            engineStatus: 'Processed by Kylrx Unified Automation Engine'
+            engineStatus: 'Processed by Kylrx Unified Automation Engine',
+            breachSaved,
+            breachError
         });
     } catch (error) {
         logger.error('[AlertBuilder] Error test-firing alert:', error);
@@ -700,9 +731,9 @@ router.post('/test-fire', async (req, res) => {
  * GET /api/alerts/stats
  * Overview dashboard metrics for Alert Builder
  */
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
     try {
-        const rules = Array.from(alertRulesMap.values());
+        const rules = await orgRules(orgOf(req));
         const activeCount = rules.filter(r => r.status === 'active').length;
         const totalMonitors = rules.length;
         

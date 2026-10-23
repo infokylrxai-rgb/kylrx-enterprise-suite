@@ -297,6 +297,50 @@
         <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem;" id="pmsToastMsg">Action completed successfully!</div>
     </div>
 
+    <!-- Centered Message Modal (Dialog in Screen Center) -->
+    <div class="modal-overlay" id="centerMessageModal" style="z-index: 9999;">
+        <div class="modal-container" style="max-width: 440px; text-align: center; padding: 2.25rem 2rem; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div id="centerMessageIconContainer" style="width: 60px; height: 60px; border-radius: 20px; margin: 0 auto 1.25rem; display: flex; align-items: center; justify-content: center; background: #eff6ff; color: #2563eb;">
+                <i id="centerMessageIcon" data-lucide="info" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h3 id="centerMessageTitle" style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem;">Notification</h3>
+            <p id="centerMessageText" style="font-size: 0.9rem; color: #475569; margin: 0 0 1.5rem; line-height: 1.5; word-break: break-word;"></p>
+            <button type="button" class="btn-primary" onclick="closeCenterMessage()" style="width: 100%; justify-content: center; padding: 0.85rem 1.5rem; border-radius: 14px; font-weight: 700; font-size: 0.95rem; cursor: pointer; border: none; background: #2563eb; color: white;">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <!-- Centered Input / Prompt Modal (Replaces Browser Prompt in Center) -->
+    <div class="modal-overlay" id="centerPromptModal" style="z-index: 10000;">
+        <div class="modal-container" style="max-width: 500px; padding: 2rem 2.25rem; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 1.25rem;">
+                <div id="centerPromptIconContainer" style="width: 48px; height: 48px; border-radius: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #fee2e2; color: #dc2626;">
+                    <i id="centerPromptIcon" data-lucide="alert-circle" style="width: 26px; height: 26px;"></i>
+                </div>
+                <div>
+                    <h3 id="centerPromptTitle" style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin: 0 0 0.35rem;">Reject Deliverable</h3>
+                    <p id="centerPromptMessage" style="font-size: 0.88rem; color: #64748b; margin: 0; line-height: 1.45;">Enter specific reason / remediation feedback for deliverable rejection:</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Remediation Feedback / Reason *</label>
+                <textarea id="centerPromptInput" rows="3" style="width: 100%; box-sizing: border-box; padding: 0.85rem 1rem; border-radius: 14px; border: 1.5px solid #cbd5e1; font-size: 0.925rem; font-family: inherit; resize: vertical; outline: none; transition: border-color 0.2s, box-shadow 0.2s; color: #0f172a; line-height: 1.45; background: #f8fafc;" placeholder="Enter specific reason / remediation feedback..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" id="centerPromptCancelBtn" class="btn-secondary" style="padding: 0.75rem 1.4rem; border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; border: 1px solid #e2e8f0; background: #f1f5f9; color: #475569;">
+                    Cancel
+                </button>
+                <button type="button" id="centerPromptOkBtn" style="padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; border: none; background: #dc2626; color: white; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);">
+                    <i data-lucide="x-circle" style="width: 16px; height: 16px;"></i>
+                    <span id="centerPromptOkText">Reject Deliverable</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Attachment Inspector / Preview Modal -->
     <div class="modal-overlay" id="attachmentModal">
         <div class="modal-container">
@@ -715,24 +759,6 @@
                                     </div>
                                 </div>
 
-                                <!-- ── UPLOADED FILES / ATTACHMENTS FEATURE ── -->
-                                <div class="input-group" style="margin-bottom: 1.25rem;">
-                                    <label style="display: flex; justify-content: space-between; align-items: center;">
-                                        <span>Supporting Documents & Guidelines</span>
-                                        <span style="font-weight: 500; font-size: 0.7rem; color: var(--primary);">PDF, DOCX, XLSX, Images, ZIP</span>
-                                    </label>
-                                    <div class="upload-dropzone" id="cycleDropzone" onclick="document.getElementById('cycleFileInput').click()">
-                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                                            <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 4px;">
-                                                <i data-lucide="upload-cloud" style="width: 22px; height: 22px;"></i>
-                                            </div>
-                                            <div style="font-weight: 700; font-size: 0.85rem; color: #1e3a8a;">Click to browse or drag & drop files</div>
-                                            <div style="font-size: 0.72rem; color: #64748b;">Attached files are distributed with cycle guidelines</div>
-                                        </div>
-                                        <input type="file" id="cycleFileInput" multiple style="display: none;" onchange="handleCycleFileSelect(event)">
-                                    </div>
-                                    <div id="cycleFileList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;"></div>
-                                </div>
 
                                 <div style="padding: 12px; background: #eff6ff; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 1.5rem; font-size: 0.78rem; color: #1e40af; line-height: 1.4;">
                                     <div style="font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
@@ -1152,7 +1178,8 @@
             uploadPMSDocument,
             getPMSDocuments,
             deletePMSDocument,
-            getAllPMSUploadedFiles
+            getAllPMSUploadedFiles,
+            currentActor
         } from "./pms-service.js";
 
         // State Store
@@ -1400,14 +1427,14 @@
                 if (targetStatus === 'active') {
                     await triggerRollout(res.cycleId);
                 } else {
-                    showToast('Cycle scheduled with attached documents!');
+                    showCenterMessage('Success', 'Cycle scheduled successfully!', 'success');
                     loadCyclesList();
                 }
 
                 document.getElementById('cycleCreateForm').reset();
                 handleCadenceChange('Quarterly');
             } catch (err) {
-                alert('Failed to create cycle: ' + err.message);
+                showCenterMessage('Cycle Creation Notice', err.message, 'error');
             }
         };
 
@@ -1427,12 +1454,13 @@
                     </ul>
                 `;
                 renderLucide();
-                showToast(`Cycle ${cycleId} rolled out to all workforce members!`);
+                showCenterMessage('Rollout Complete', `Cycle ${cycleId} rolled out to all workforce members!`, 'success');
                 loadCyclesList();
             } catch (err) {
                 document.getElementById('rolloutStatusBody').innerHTML = `
                     <div style="color: #dc2626; font-weight: 700;">Rollout Error: ${err.message}</div>
                 `;
+                showCenterMessage('Rollout Notice', err.message, 'error');
             }
         };
 
@@ -1603,7 +1631,8 @@
         // ==============================================================
         window.loadManagerTasks = async function() {
             try {
-                const tasks = await getPMSTasks({});
+                // No filters: all deliverables ({} was treated as a cycleId and matched nothing)
+                const tasks = await getPMSTasks();
                 state.allTasks = tasks;
 
                 const tbody = document.getElementById('managerDeliverablesTableBody');
@@ -1666,7 +1695,7 @@
                                     <button onclick="handleBinaryReview('${t.taskId || t.id}', 'rejected')" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Binary Reject Deliverable">
                                         <i data-lucide="x" style="width: 14px; height: 14px;"></i> Reject
                                     </button>
-                                    <button onclick="openDelegationModal('${t.employeeId}', '${emp.name}')" style="background: #f1f5f9; color: #475569; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer;" title="Delegate Evaluation Responsibility">
+                                    <button onclick="openDelegationModal('${t.employeeId}', '${emp.name}', '${t.cycleId || ''}')" style="background: #f1f5f9; color: #475569; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-weight: 700; font-size: 0.75rem; cursor: pointer;" title="Delegate Evaluation Responsibility">
                                         <i data-lucide="git-pull-request" style="width: 14px; height: 14px;"></i> Delegate
                                     </button>
                                 </div>
@@ -1717,7 +1746,15 @@
         window.handleBinaryReview = async function(taskId, decision) {
             let feedback = '';
             if (decision === 'rejected') {
-                feedback = prompt('Enter specific reason / remediation feedback for deliverable rejection:', 'Deliverable does not meet technical criteria.');
+                feedback = await window.showCenterPrompt(
+                    'Enter specific reason / remediation feedback for deliverable rejection:',
+                    'Deliverable does not meet technical criteria.',
+                    {
+                        title: 'Reject Deliverable',
+                        okText: 'Reject Deliverable',
+                        danger: true
+                    }
+                );
                 if (feedback === null) return;
             }
 
@@ -1903,12 +1940,21 @@
             `).join('');
         }
 
-        window.openDelegationModal = function(empId, empName) {
+        window.openDelegationModal = function(empId, empName, cycleId) {
             document.getElementById('delegateEmpId').value = empId;
             document.getElementById('delegateEmpName').value = empName || empId;
 
-            const targetReview = state.reviews.find(r => r.employeeId === empId);
-            document.getElementById('delegateReviewId').value = targetReview?.reviewId || `REV-${state.activeCycle?.cycleId || 'DEF'}-${empId}`;
+            // The review belongs to the task's cycle (fall back to the active cycle)
+            const reviewCycleId = cycleId || state.activeCycle?.cycleId || 'DEF';
+            const targetReview = state.reviews.find(r => r.employeeId === empId && (!r.cycleId || r.cycleId === reviewCycleId))
+                || state.reviews.find(r => r.employeeId === empId);
+            const employee = state.employees.find(e => (e.employeeId || e.id || e.uid) === empId);
+            const modal = document.getElementById('delegationModal');
+            modal.dataset.cycleId = reviewCycleId;
+            // Current reviewer: an earlier delegate, the review's reviewer, the manager who assigned the deliverable, or the reporting manager
+            const task = (state.allTasks || []).find(t => t.employeeId === empId && t.cycleId === reviewCycleId);
+            modal.dataset.originalManagerId = targetReview?.delegatedTo || targetReview?.reviewerId || task?.assignedBy || employee?.reportingManager || '';
+            document.getElementById('delegateReviewId').value = targetReview?.reviewId || `REV-${reviewCycleId}-${empId}`;
 
             document.getElementById('delegationModal').classList.add('active');
             renderLucide();
@@ -1921,6 +1967,8 @@
         window.handleDelegationSubmit = async function(e) {
             e.preventDefault();
             const reviewId = document.getElementById('delegateReviewId').value;
+            const employeeId = document.getElementById('delegateEmpId').value;
+            const modal = document.getElementById('delegationModal');
             const delegatedToId = document.getElementById('delegateToManager').value;
             const reason = document.getElementById('delegateReason').value;
 
@@ -1929,14 +1977,27 @@
                 return;
             }
 
+            if (delegatedToId === employeeId) {
+                alert('An employee cannot review their own performance. Choose a different manager.');
+                return;
+            }
+            if (delegatedToId === modal.dataset.originalManagerId) {
+                alert('This review is already assigned to that manager.');
+                return;
+            }
+
             const targetMgr = state.employees.find(e => (e.employeeId || e.id || e.uid) === delegatedToId);
             const delegatedToName = targetMgr?.name || targetMgr?.fullName || delegatedToId;
 
             try {
+                const actor = currentActor();
                 await delegateManagerReview({
                     reviewId,
-                    delegatedById: 'Nandan',
-                    delegatedByName: 'Nandan (Super Admin)',
+                    cycleId: modal.dataset.cycleId,
+                    employeeId,
+                    originalManagerId: modal.dataset.originalManagerId,
+                    delegatedById: actor.id,
+                    delegatedByName: actor.name,
                     delegatedToId,
                     delegatedToName,
                     reason
@@ -1950,12 +2011,182 @@
             }
         };
 
+        // ── CENTERED MESSAGE MODAL (REPLACES BROWSER ALERT) ──
+        window.showCenterMessage = function(titleOrMsg, maybeMsg, type = 'info') {
+            let title = 'Notification';
+            let message = '';
+            let msgType = type;
+
+            if (arguments.length === 1) {
+                message = String(titleOrMsg || '');
+                const lower = message.toLowerCase();
+                if (lower.includes('failed') || lower.includes('error') || lower.includes('exceeds')) {
+                    msgType = 'error';
+                    title = 'Error';
+                } else if (lower.includes('success') || lower.includes('complete') || lower.includes('saved')) {
+                    msgType = 'success';
+                    title = 'Success';
+                } else if (lower.includes('warning') || lower.includes('please') || lower.includes('required')) {
+                    msgType = 'warning';
+                    title = 'Attention';
+                }
+            } else {
+                title = titleOrMsg || 'Notification';
+                message = String(maybeMsg || '');
+                msgType = type;
+            }
+
+            const modal = document.getElementById('centerMessageModal');
+            const titleEl = document.getElementById('centerMessageTitle');
+            const textEl = document.getElementById('centerMessageText');
+            const iconContainer = document.getElementById('centerMessageIconContainer');
+            const icon = document.getElementById('centerMessageIcon');
+
+            if (titleEl) titleEl.textContent = title;
+            if (textEl) textEl.textContent = message;
+
+            if (iconContainer && icon) {
+                if (msgType === 'error') {
+                    iconContainer.style.background = '#fef2f2';
+                    iconContainer.style.color = '#ef4444';
+                    icon.setAttribute('data-lucide', 'alert-circle');
+                } else if (msgType === 'success') {
+                    iconContainer.style.background = '#ecfdf5';
+                    iconContainer.style.color = '#10b981';
+                    icon.setAttribute('data-lucide', 'check-circle-2');
+                } else if (msgType === 'warning') {
+                    iconContainer.style.background = '#fffbeb';
+                    iconContainer.style.color = '#f59e0b';
+                    icon.setAttribute('data-lucide', 'alert-triangle');
+                } else {
+                    iconContainer.style.background = '#eff6ff';
+                    iconContainer.style.color = '#2563eb';
+                    icon.setAttribute('data-lucide', 'info');
+                }
+            }
+
+            if (modal) modal.classList.add('active');
+            renderLucide();
+        };
+
+        window.closeCenterMessage = function() {
+            const modal = document.getElementById('centerMessageModal');
+            if (modal) modal.classList.remove('active');
+        };
+
+        // ── CENTERED PROMPT MODAL (REPLACES BROWSER PROMPT IN SCREEN CENTER) ──
+        window.showCenterPrompt = function(message, defaultValue = '', options = {}) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('centerPromptModal');
+                const titleEl = document.getElementById('centerPromptTitle');
+                const messageEl = document.getElementById('centerPromptMessage');
+                const inputEl = document.getElementById('centerPromptInput');
+                const okBtn = document.getElementById('centerPromptOkBtn');
+                const okTextEl = document.getElementById('centerPromptOkText');
+                const cancelBtn = document.getElementById('centerPromptCancelBtn');
+                const iconContainer = document.getElementById('centerPromptIconContainer');
+                const icon = document.getElementById('centerPromptIcon');
+
+                const title = options.title || 'Feedback & Remediation';
+                const okText = options.okText || 'Submit';
+                const isDanger = options.danger !== false;
+
+                if (titleEl) titleEl.textContent = title;
+                if (messageEl) messageEl.textContent = message;
+                if (inputEl) {
+                    inputEl.value = defaultValue || '';
+                }
+                if (okTextEl) okTextEl.textContent = okText;
+
+                if (iconContainer && icon) {
+                    if (isDanger) {
+                        iconContainer.style.background = '#fee2e2';
+                        iconContainer.style.color = '#dc2626';
+                        icon.setAttribute('data-lucide', 'alert-circle');
+                        if (okBtn) {
+                            okBtn.style.background = '#dc2626';
+                            okBtn.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.25)';
+                        }
+                    } else {
+                        iconContainer.style.background = '#eff6ff';
+                        iconContainer.style.color = '#2563eb';
+                        icon.setAttribute('data-lucide', 'message-square');
+                        if (okBtn) {
+                            okBtn.style.background = '#2563eb';
+                            okBtn.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.25)';
+                        }
+                    }
+                }
+
+                let isHandled = false;
+                function cleanup() {
+                    if (isHandled) return;
+                    isHandled = true;
+                    modal.classList.remove('active');
+                    okBtn.removeEventListener('click', handleOk);
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    document.removeEventListener('keydown', handleKey);
+                    modal.removeEventListener('click', handleOverlayClick);
+                }
+
+                function handleOk() {
+                    const val = inputEl ? inputEl.value.trim() : '';
+                    cleanup();
+                    resolve(val);
+                }
+
+                function handleCancel() {
+                    cleanup();
+                    resolve(null);
+                }
+
+                function handleOverlayClick(e) {
+                    if (e.target === modal) {
+                        handleCancel();
+                    }
+                }
+
+                function handleKey(e) {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        handleCancel();
+                    } else if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleOk();
+                    }
+                }
+
+                okBtn.addEventListener('click', handleOk);
+                cancelBtn.addEventListener('click', handleCancel);
+                document.addEventListener('keydown', handleKey);
+                modal.addEventListener('click', handleOverlayClick);
+
+                modal.classList.add('active');
+                renderLucide();
+
+                setTimeout(() => {
+                    if (inputEl) {
+                        inputEl.focus();
+                        inputEl.select();
+                    }
+                }, 50);
+            });
+        };
+
+        // Automatic interception of native alert to display in center modal
+        window.alert = function(msg) {
+            window.showCenterMessage(msg);
+        };
+
         // Toast & Modals
         function showToast(msg) {
             const toast = document.getElementById('pmsToast');
-            document.getElementById('pmsToastMsg').textContent = msg;
-            toast.classList.add('active');
-            setTimeout(() => toast.classList.remove('active'), 4000);
+            if (toast) {
+                const msgEl = document.getElementById('pmsToastMsg');
+                if (msgEl) msgEl.textContent = msg;
+                toast.classList.add('active');
+                setTimeout(() => toast.classList.remove('active'), 4000);
+            }
         }
 
         window.openRolloutModal = function() {

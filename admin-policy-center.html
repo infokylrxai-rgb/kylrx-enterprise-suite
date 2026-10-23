@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Policy Center | Kylrx AI</title>
@@ -200,8 +201,8 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                             <h3 style="font-weight: 800;">Active Rollouts</h3>
                             <div class="btn-group">
-                                <button class="btn btn-outline" style="font-size: 0.75rem;">All Types</button>
-                                <button class="btn btn-outline" style="font-size: 0.75rem;">In Progress</button>
+                                <button class="btn btn-outline policy-filter-btn" data-filter="all" style="font-size: 0.75rem;">All Types</button>
+                                <button class="btn btn-outline policy-filter-btn" data-filter="in_progress" style="font-size: 0.75rem;">In Progress</button>
                             </div>
                         </div>
 
@@ -442,14 +443,14 @@
     </div>
 
     <script type="module">
-        import { auth, db } from "./firebase-config.js";
+        import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { collection, query, getDocs, orderBy, limit, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { collection, query, getDocs, orderBy, limit, doc, setDoc } from "./firebase-config.js";
         import { 
             getActivePolicies, getPolicyAuditLogs, createPolicy, updateSelectiveRouting, 
             createCustomCompliancePlan, listenToAuditLogs, listenToPolicies, getCompliancePulse, 
             updateAutoAssignConfig, getAutoAssignConfig, deletePolicy, getVersionHistory 
-        } from "./policy-service.js";
+        } from "./policy-service.js?v=2";
         import { getDepartments } from "./pms-service.js";
 
         // Global Modals
@@ -508,10 +509,11 @@
                 if (window.lucide) lucide.createIcons();
             }
             try {
-                const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+                const API_HOST = typeof API_BASE !== 'undefined' ? API_BASE : (window.API_BASE || window.location.origin);
                 const res = await fetch(`${API_HOST}/api/policies/compliance-pulse`);
-                const data = await res.json();
-                alert(`✅ Firebase Connected!\n• Project: kylrxai\n• Backend Status: Active\n• Compliance Pulse: ${data.data?.overallRate || 85}%\n• Direct Firestore: Online`);
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) throw new Error(data.message || data.error || `HTTP ${res.status}`);
+                alert(`✅ Firebase Connected!\n• Project: kylrxai\n• Backend Status: Active\n• Compliance Pulse: ${data.data.overallRate}% across ${data.data.totalPolicies} policies and ${data.data.totalEmployees} employees`);
             } catch (e) {
                 alert(`Firebase Direct Check:\n• Project: kylrxai\n• Client Firestore SDK: Online\n• Notice: ${e.message}`);
             } finally {
@@ -630,7 +632,7 @@
                     setTimeout(() => toast.classList.remove('active'), 3000);
                 } catch (err) {
                     console.error("Error updating auto assign:", err);
-                    alert("Failed to update setting");
+                    alert("Failed to update setting: " + err.message);
                     const reverted = this.classList.toggle('active');
                     this.style.background = reverted ? '#eff6ff' : '#f8fafc';
                     this.style.borderColor = reverted ? 'var(--primary-soft)' : 'transparent';
@@ -797,18 +799,52 @@
 
                 if (rateEl) rateEl.textContent = `${pulse.overallRate}%`;
                 if (overdueEl) overdueEl.textContent = `${pulse.overdueCount} Emp`;
-                if (blockedEl) blockedEl.innerHTML = `<strong>Critical Block:</strong> ${pulse.blockedCount} employees have blocked system access due to unacknowledged Security Policies.`;
+                if (blockedEl) {
+                    const box = blockedEl.closest('[style*="fef2f2"], [style*="fee2e2"]') || blockedEl.parentElement;
+                    if (pulse.blockedCount > 0) {
+                        blockedEl.innerHTML = `<strong>Critical Block:</strong> ${pulse.blockedCount} employee${pulse.blockedCount === 1 ? ' has' : 's have'} blocked system access due to unacknowledged Security Policies.`;
+                        if (box) box.style.display = '';
+                    } else if (box) {
+                        box.style.display = 'none';
+                    }
+                }
             } catch (err) {
                 console.error("Error loading compliance pulse:", err);
             }
         }
 
-        function renderPoliciesUI(policies) {
+        // Text from Firestore is escaped before it is placed into HTML
+        const escapeText = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+        // "All Types" shows every policy; "In Progress" only policies not yet fully signed
+        let policyFilter = 'all';
+        let lastPolicies = [];
+
+        function applyPolicyFilter(filter) {
+            policyFilter = filter;
+            document.querySelectorAll('.policy-filter-btn').forEach(btn => {
+                const active = btn.dataset.filter === filter;
+                btn.style.background = active ? 'var(--primary)' : '';
+                btn.style.color = active ? '#fff' : '';
+                btn.style.borderColor = active ? 'var(--primary)' : '';
+            });
+            renderPoliciesUI(lastPolicies);
+        }
+
+        document.querySelectorAll('.policy-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => applyPolicyFilter(btn.dataset.filter));
+        });
+
+        function renderPoliciesUI(allPolicies) {
             const list = document.querySelector('.policy-list');
             if (!list) return;
+            lastPolicies = allPolicies || [];
+            const policies = policyFilter === 'in_progress'
+                ? lastPolicies.filter(p => (Number(p.signedPercentage) || 0) < 100)
+                : lastPolicies;
 
             if (!policies || policies.length === 0) {
-                list.innerHTML = '<p style="text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.85rem;">No active policy rollouts detected.</p>';
+                list.innerHTML = `<p style="text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.85rem;">${policyFilter === 'in_progress' && lastPolicies.length ? 'All policies are fully signed.' : 'No active policy rollouts detected.'}</p>`;
                 return;
             }
 
@@ -823,16 +859,17 @@
                 item.innerHTML = `
                     <div class="type-icon"><i data-lucide="${icon}" size="16"></i></div>
                     <div style="flex: 1; min-width: 0; padding-right: 12px;">
-                        <h4 style="font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${policy.title}</h4>
-                        <p style="font-size: 0.7rem; color: var(--text-muted);">v${policy.version || '1.0'} • ${policy.category || 'General'}</p>
+                        <h4 style="font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeText(policy.title)}</h4>
+                        <p style="font-size: 0.7rem; color: var(--text-muted);">v${escapeText(policy.version || '1.0')} • ${escapeText(policy.category || 'General')}</p>
                     </div>
                     <div class="rollout-stat" style="min-width: 110px;">
                         <p style="font-size: 0.7rem; font-weight: 800; color: ${color};">${pct}% ${pct === 100 ? 'Final' : 'Signed'}</p>
                         <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${color};"></div></div>
                     </div>
-                    <span class="assignment-badge">${policy.scope || 'Global'}</span>
-                    <button class="action-icon" style="color: #ef4444; border: 1px solid #fca5a5; background: #fff5f5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;" onclick="deletePolicyConfirm('${policy.id}', '${(policy.title || '').replace(/'/g, "\\'")}')" title="Delete Policy"><i data-lucide="trash-2" size="14"></i></button>
+                    <span class="assignment-badge">${escapeText(policy.scope || 'Global')}</span>
+                    <button class="action-icon" style="color: #ef4444; border: 1px solid #fca5a5; background: #fff5f5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;" data-policy-id="${escapeText(policy.id)}" title="Delete Policy"><i data-lucide="trash-2" size="14"></i></button>
                 `;
+                item.querySelector('[data-policy-id]').addEventListener('click', () => deletePolicyConfirm(policy.id, policy.title || ''));
                 list.appendChild(item);
             });
             if (window.lucide) lucide.createIcons();
@@ -847,6 +884,13 @@
             }
         }
 
+        // Icon and colour per audit entry type (only real violations are red)
+        function auditStyle(type) {
+            if (type === 'violation') return { icon: 'alert-circle', color: '#ef4444', bg: '#fef2f2' };
+            if (type === 'retirement') return { icon: 'archive', color: '#64748b', bg: '#f1f5f9' };
+            return { icon: 'check-circle', color: '#10b981', bg: '#f0fdf4' };
+        }
+
         function updateAuditListUI(logs) {
             const list = document.querySelector('.audit-list');
             if (!list) return;
@@ -856,9 +900,9 @@
                     const item = document.createElement('div');
                     item.className = 'audit-item';
                     item.innerHTML = `
-                        <i data-lucide="${log.type === 'violation' ? 'alert-circle' : 'check-circle'}" size="14" style="color: ${log.type === 'violation' ? '#ef4444' : '#10b981'};"></i>
-                        <div style="flex: 1;"><strong>${log.employeeName || 'Staff'}</strong> ${log.action}</div>
-                        <span style="color: var(--text-muted); font-size: 0.6rem;">${log.timeAgo || 'Recent'}</span>
+                        <i data-lucide="${auditStyle(log.type).icon}" size="14" style="color: ${auditStyle(log.type).color};"></i>
+                        <div style="flex: 1;"><strong>${escapeText(log.employeeName || 'Staff')}</strong> ${escapeText(log.action)}</div>
+                        <span style="color: var(--text-muted); font-size: 0.6rem;">${escapeText(log.timeAgo || 'Recent')}</span>
                     `;
                     list.appendChild(item);
                 });
@@ -892,16 +936,16 @@
                 const item = document.createElement('div');
                 item.style = "padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px;";
                 item.innerHTML = `
-                    <div style="width: 32px; height: 32px; background: ${log.type === 'violation' ? '#fef2f2' : '#f0fdf4'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                        <i data-lucide="${log.type === 'violation' ? 'alert-circle' : 'check-circle'}" size="16" style="color: ${log.type === 'violation' ? '#ef4444' : '#10b981'};"></i>
+                    <div style="width: 32px; height: 32px; background: ${auditStyle(log.type).bg}; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <i data-lucide="${auditStyle(log.type).icon}" size="16" style="color: ${auditStyle(log.type).color};"></i>
                     </div>
                     <div style="flex: 1;">
-                        <h4 style="font-size: 0.9rem; font-weight: 700;">${log.employeeName || 'Staff'}</h4>
-                        <p style="font-size: 0.75rem; color: var(--text-muted);">${log.action}</p>
+                        <h4 style="font-size: 0.9rem; font-weight: 700;">${escapeText(log.employeeName || 'Staff')}</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted);">${escapeText(log.action)}</p>
                     </div>
                     <div style="text-align: right;">
-                        <p style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">${log.timeAgo || 'Recently'}</p>
-                        <span style="font-size: 0.6rem; color: var(--text-muted); opacity: 0.5;">ID: ${(log.id || '').slice(0,8)}</span>
+                        <p style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">${escapeText(log.timeAgo || 'Recently')}</p>
+                        <span style="font-size: 0.6rem; color: var(--text-muted); opacity: 0.5;">ID: ${escapeText((log.id || '').slice(0,8))}</span>
                     </div>
                 `;
                 list.appendChild(item);
@@ -987,6 +1031,7 @@
                 
                 setTimeout(() => toast.classList.remove('active'), 3000);
             } catch (err) {
+                togglePolicyDeleteModal(false);
                 alert('Deletion failed: ' + err.message);
             } finally {
                 btn.disabled = false;
@@ -1212,8 +1257,8 @@
 
 <!-- Custom Apps Injection Script -->
 <script type="module">
-    import { db } from "./firebase-config.js";
-    import { doc, setDoc, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { db, onSnapshot, registerListener } from "./firebase-config.js";
+    import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     const DEFAULT_APPS = [
         { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },

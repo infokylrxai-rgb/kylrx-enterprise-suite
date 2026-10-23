@@ -25,12 +25,17 @@
  */
 
 import { Router } from 'express';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware.js');
 import {
   globalUnifiedStatutoryOrchestrator,
   STATUTORY_RULE_VERSIONS,
 } from '../services/unified-statutory-orchestration-service.mjs';
 
 const router = Router();
+router.use(verifyToken);
+router.use(authorize(ADMIN_HR_ROLES));
 
 const sanitizeId = (id) => (id || '').replace(/[^a-zA-Z0-9_-]/g, '');
 

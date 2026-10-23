@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebase');
+const { verifyToken } = require('../middleware/authMiddleware');
+
+router.use(verifyToken);
 
 // 1. Add Employee Data
 router.post('/employees', async (req, res) => {
@@ -25,12 +28,21 @@ router.post('/employees', async (req, res) => {
   }
 });
 
-// 2. Fetch Attendance Data
+// 2. Fetch Attendance Data (Restricted to req.user.id for employees)
 router.get('/attendance', async (req, res) => {
   try {
-    const snapshot = await db.collection('attendance').orderBy('date', 'desc').get();
+    const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
+    let queryRef = db.collection('attendance');
+    if (userRole === 'employee') {
+      queryRef = queryRef.where('userId', '==', req.user.id);
+    }
+    const snapshot = await queryRef.orderBy('date', 'desc').get();
     const attendance = [];
-    snapshot.forEach(doc => attendance.push({ id: doc.id, ...doc.data() }));
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      if (userRole === 'employee' && d.userId && d.userId !== req.user.id) return;
+      attendance.push({ id: doc.id, ...d });
+    });
     
     res.status(200).json({ success: true, count: attendance.length, data: attendance });
   } catch (error) {
@@ -38,17 +50,25 @@ router.get('/attendance', async (req, res) => {
   }
 });
 
-// 2b. Attendance Regularizations - List
+// 2b. Attendance Regularizations - List (Restricted to req.user.id for employees)
 router.get('/attendance/regularizations', async (req, res) => {
   try {
+    const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
     const { status } = req.query;
     let queryRef = db.collection('attendance_regularizations');
+    if (userRole === 'employee') {
+      queryRef = queryRef.where('employeeId', '==', req.user.id);
+    }
     if (status) {
       queryRef = queryRef.where('status', '==', status);
     }
     const snapshot = await queryRef.get();
     const regularizations = [];
-    snapshot.forEach(doc => regularizations.push({ id: doc.id, ...doc.data() }));
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      if (userRole === 'employee' && d.employeeId && d.employeeId !== req.user.id) return;
+      regularizations.push({ id: doc.id, ...d });
+    });
     res.status(200).json({ success: true, count: regularizations.length, data: regularizations });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -200,12 +220,21 @@ router.delete('/attendance/shifts/:id', async (req, res) => {
   }
 });
 
-// 3. Fetch Payroll Data
+// 3. Fetch Payroll Data (Restricted to req.user.id for employees)
 router.get('/payroll', async (req, res) => {
   try {
-    const snapshot = await db.collection('payroll').get();
+    const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
+    let queryRef = db.collection('payroll');
+    if (userRole === 'employee') {
+      queryRef = queryRef.where('employeeId', '==', req.user.id);
+    }
+    const snapshot = await queryRef.get();
     const payroll = [];
-    snapshot.forEach(doc => payroll.push({ id: doc.id, ...doc.data() }));
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      if (userRole === 'employee' && (d.employeeId || d.userId) && (d.employeeId !== req.user.id && d.userId !== req.user.id)) return;
+      payroll.push({ id: doc.id, ...d });
+    });
     
     res.status(200).json({ success: true, count: payroll.length, data: payroll });
   } catch (error) {
@@ -213,15 +242,23 @@ router.get('/payroll', async (req, res) => {
   }
 });
 
-// 4. Generic Fetch
+// 4. Generic Fetch (Restricted to req.user.id for employees)
 router.get('/fetch', async (req, res) => {
   try {
     const { collection } = req.query;
     if (!collection) return res.status(400).json({ success: false, message: 'Collection name required' });
     
     const snapshot = await db.collection(collection).get();
+    const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
     const data = [];
-    snapshot.forEach(doc => data.push({ id: doc.id, ...doc.data() }));
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      if (userRole === 'employee' && collection !== 'system_intelligence') {
+        const docOwner = d.employeeId || d.userId || d.targetUid || d.id;
+        if (docOwner && docOwner !== req.user.id) return;
+      }
+      data.push({ id: doc.id, ...d });
+    });
     res.status(200).json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

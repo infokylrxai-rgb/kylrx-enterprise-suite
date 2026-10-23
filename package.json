@@ -5,8 +5,9 @@
   "main": "app.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test --test-force-exit tests/non-negotiable-product-rules.test.mjs tests/kylrx-hr-operating-system.test.mjs services/gratuity-automation-engine.test.mjs tests/payroll-decentro-integration.test.mjs",
+    "test": "node --test --test-force-exit tests/non-negotiable-product-rules.test.mjs tests/kylrx-hr-operating-system.test.mjs services/gratuity-automation-engine.test.mjs tests/payroll-decentro-integration.test.mjs tests/business-unit-schema-and-rules.test.mjs tests/employee-type-schema-and-rules.test.mjs tests/employee-finance-schema-and-rules.test.mjs tests/manager-goals-and-custom-templates.test.mjs tests/employee-goals.test.mjs",
     "provision:superadmin": "node scripts/provision-superadmin.js",
+    "migrate:passwords": "node scripts/migrate-plaintext-passwords.js",
     "deploy:firebase": "firebase deploy --only firestore:rules,firestore:indexes,storage"
   },
   "repository": {
@@ -42,6 +43,6 @@
     "resend": "^6.21.0",
     "winston": "^3.19.0",
     "xlsx": "^0.18.5",
-    "xss-clean": "^0.1.4"
+    "xss": "^1.0.16"
   }
 }

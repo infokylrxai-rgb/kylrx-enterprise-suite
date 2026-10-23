@@ -140,7 +140,8 @@ test('5. Employee Type + Business Unit Assignment Engine', async (t) => {
 
     await t.test('4. Effective-Date Temporal Versioning & Historical Record Preservation', async () => {
         const employeeId = 'EMP_ALEX_042';
-        const futureEffectiveDate = '2026-10-01T00:00:00.000Z';
+        // Always in the future, so the transition is SCHEDULED regardless of when the test runs
+        const futureEffectiveDate = new Date(Date.now() + 30 * 86400000).toISOString();
 
         let transitionEventFired = false;
         const listener = (evt) => {

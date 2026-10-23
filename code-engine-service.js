@@ -36,7 +36,7 @@ class CodeEngineService {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 2000);
-            const res = await fetch('http://localhost:3000/api/hr-os/generate-code', {
+            const res = await fetch(`${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api/hr-os/generate-code`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ employeeId, type: normalizedType, department: cleanDept }),

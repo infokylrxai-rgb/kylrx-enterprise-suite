@@ -2,10 +2,10 @@
  * Custom Analytics Builder Controller
  * Connects to /api/analytics & Google Cloud Firestore (kylrxai)
  */
-import { db, auth, onSnapshot, collection, doc, setDoc, addDoc, deleteDoc, getDocs, serverTimestamp } from "./firebase-config.js";
+import { db, auth, onSnapshot, collection, doc, setDoc, addDoc, deleteDoc, getDocs, serverTimestamp, registerListener } from "./firebase-config.js";
 
 // ─── API Host (dynamic: Live Server + direct Node) ────────────────────────────
-const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin);
 const API_BASE = API_HOST + '/api/analytics';
 
 
@@ -676,15 +676,17 @@ async function submitSaveDashboard() {
             body: JSON.stringify(payload)
         });
 
-        if (res.ok) {
-            const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
             closeSaveModal();
-            showToast(`Dashboard '${title}' saved successfully!`);
+            showToast(`Dashboard '${title}' saved to Firebase!`);
             await fetchSavedDashboards();
             switchView('saved');
+        } else {
+            showToast(`Dashboard NOT saved: ${data.error || 'HTTP ' + res.status}`);
         }
     } catch (e) {
-        console.error('Error saving dashboard:', e);
+        showToast('Dashboard NOT saved: server unreachable');
     }
 }
 
@@ -740,7 +742,12 @@ async function deleteDashboard(dashId) {
     if (!confirm('Delete this dashboard?')) return;
     try {
         const res = await fetch(API_BASE + '/dashboards/' + dashId, { method: 'DELETE' });
-        if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+            showToast(`Dashboard NOT deleted: ${data.error || 'HTTP ' + res.status}`);
+            return;
+        }
+        {
             savedDashboards = savedDashboards.filter(d => d.id !== dashId);
             const badge = document.getElementById('savedCountBadge');
             if (badge) badge.textContent = savedDashboards.length;

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="config.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Secure administrative messages and communications.">
@@ -23,10 +24,14 @@
         .sidebar { overflow: hidden; }
         .nav-menu {
             overflow-y: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            scrollbar-width: thin;
+            scrollbar-color: #94a3b8 #f1f5f9;
         }
-        .nav-menu::-webkit-scrollbar { display: none; }
+        .nav-menu::-webkit-scrollbar { width: 6px; display: block; }
+        .nav-menu::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 9999px; }
+        .nav-menu::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 9999px; }
+        .nav-menu:hover::-webkit-scrollbar-thumb, .nav-menu::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .nav-menu::-webkit-scrollbar-button { display: none !important; width: 0 !important; height: 0 !important; }
 
         .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; display: flex; flex-direction: column; }
         .header { margin-bottom: 2.5rem; }
@@ -503,7 +508,7 @@
         </aside>
     </div>
     <script type="module">
-        import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion } from "./firebase-config.js";
+        import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion, registerListener } from "./firebase-config.js";
 
         // UI State
         let currentContactId = null;
@@ -579,7 +584,7 @@
         const selectionCount = document.getElementById('selectionCount');
         const contactSearch = document.getElementById('contactSearch');
 
-        const API_BASE = 'http://localhost:3000/api';
+        const API_BASE = `${(window.API_BASE || window.location.origin)}/api`;
         let rawToken = localStorage.getItem('hr_access_token');
         if (rawToken === 'null' || rawToken === 'undefined' || !rawToken) {
             rawToken = 'demo-static-token';
@@ -780,6 +785,9 @@
                     const isSent = msg.senderId === currentUserId || msg.senderId === 'hr_support';
                     msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
 
+                    const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
+                    const formatMsgText = (txt) => esc(txt || '').replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>');
+
                     // Timestamp label
                     const ts = msg.timestamp?.toDate
                         ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -787,20 +795,20 @@
                     const senderLabel = isSent ? 'Admin' : (msg.senderName || 'Employee');
                     const labelColor = isSent ? '#475569' : 'var(--primary)';
 
-                    let htmlContent = `<div style="font-size:0.65rem;font-weight:800;color:${labelColor};margin-bottom:4px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>${senderLabel}</span><span style="font-weight:400;opacity:0.8">${ts}</span></div>`;
-                    htmlContent += (msg.text || '').replace(/(https?:\/\/\S+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>');
+                    let htmlContent = `<div style="font-size:0.65rem;font-weight:800;color:${labelColor};margin-bottom:4px;text-transform:uppercase;display:flex;justify-content:space-between;"><span>${esc(senderLabel)}</span><span style="font-weight:400;opacity:0.8">${esc(ts)}</span></div>`;
+                    htmlContent += formatMsgText(msg.text);
 
                     if (msg.attachments && msg.attachments.length > 0) {
                         const attHtml = msg.attachments.map(att => `
                             <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.85); padding:10px 14px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:8px; font-size:0.83rem; font-weight:600; color:#1e293b; flex-wrap:wrap;">
                                 <span style="display:flex; align-items:center; gap:6px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                    📎 <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${att.name}</span>
+                                    📎 <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(att.name || 'Attachment')}</span>
                                 </span>
                                 <div style="display:flex; gap:6px; flex-shrink:0;">
-                                    <a href="#" onclick="window.openAttachment(this); return false;" data-url="${att.dataUrl}" data-name="${att.name}" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:5px 11px; border-radius:6px; font-size:0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+                                    <a href="#" onclick="window.openAttachment(this); return false;" data-url="${esc(att.dataUrl || '')}" data-name="${esc(att.name || 'attachment')}" style="display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:5px 11px; border-radius:6px; font-size:0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                                         <i data-lucide="eye" style="width:14px; height:14px;"></i> Open
                                     </a>
-                                    <a href="${att.dataUrl}" download="${att.name}" style="display:inline-flex; align-items:center; gap:4px; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:5px 11px; border-radius:6px; font-size:0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
+                                    <a href="${esc(att.dataUrl || '')}" download="${esc(att.name || 'download')}" style="display:inline-flex; align-items:center; gap:4px; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:5px 11px; border-radius:6px; font-size:0.75rem; font-weight:700; text-decoration:none; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#dcfce7'" onmouseout="this.style.background='#f0fdf4'">
                                         <i data-lucide="download" style="width:14px; height:14px;"></i> Download
                                     </a>
                                 </div>
@@ -811,9 +819,10 @@
 
 
                     if (isSent) {
+                        const safeMsgId = esc(msg.id || '');
                         htmlContent += `<div style="display:flex; gap:12px; margin-top:8px; font-size:0.7rem; opacity:0.8; justify-content:center;">
-                            <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${msg.id}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
-                            <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${msg.id}')">Clear</span>
+                            <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${safeMsgId}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
+                            <span style="cursor:pointer; color: #ef4444; text-decoration: underline;" onclick="window.clearMessage('${safeMsgId}')">Clear</span>
                         </div>`;
                     }
                     msgDiv.innerHTML = htmlContent;
@@ -990,10 +999,11 @@
             if (match) {
                 const searchStr = match[1].toLowerCase();
                 const filtered = users.filter(u => u.name.toLowerCase().includes(searchStr)).slice(0, 5);
+                const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
                 mentions.innerHTML = filtered.map(u => `
-                    <div class="mention-item" onclick="insertMention('${u.name}')">
-                        <div class="mention-avatar" style="background:${u.color}">${u.initials}</div>
-                        <span>${u.name} (${u.role})</span>
+                    <div class="mention-item" onclick="insertMention('${esc(u.name)}')">
+                        <div class="mention-avatar" style="background:${esc(u.color)}">${esc(u.initials)}</div>
+                        <span>${esc(u.name)} (${esc(u.role)})</span>
                     </div>
                 `).join('');
                 mentions.classList.add('active');
@@ -1047,12 +1057,13 @@
                 div.className = `contact-item ${isSelected ? 'selected' : ''}`;
                 div.onclick = () => window.toggleSelection(item.id);
                 
+                const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
                 div.innerHTML = `
-                    <div class="contact-avatar" style="background: ${item.color}">${item.initials}</div>
+                    <div class="contact-avatar" style="background: ${esc(item.color)}">${esc(item.initials)}</div>
                     <div class="contact-info">
-                        <div class="contact-name">${item.name}</div>
-                        <div class="contact-last">${item.dept}</div>
-                        <span class="badge ${item.role}">${item.role}</span>
+                        <div class="contact-name">${esc(item.name)}</div>
+                        <div class="contact-last">${esc(item.dept)}</div>
+                        <span class="badge ${esc(item.role)}">${esc(item.role)}</span>
                     </div>
                 `;
                 contactsContainer.appendChild(div);
@@ -1119,10 +1130,11 @@
             
             preview.style.display = 'flex';
             chatInputArea.style.borderTop = 'none';
+            const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
             preview.innerHTML = pendingFiles.map((f, i) => `
                 <div class="file-pill">
                     <i data-lucide="file-text" style="width:14px; height:14px;"></i>
-                    <span>${f.name}</span>
+                    <span>${esc(f.name)}</span>
                     <i data-lucide="x" class="remove" onclick="removeAttachment(${i})"></i>
                 </div>
             `).join('');
@@ -1155,9 +1167,10 @@
                     const entity = users.find(u => u.id === selId) || teams.find(t => t.id === selId);
                     if (!entity) return;
 
+                    const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
                     chatHeader.innerHTML = `
-                        <div class="contact-avatar" style="background: ${entity.color}">${entity.initials}</div>
-                        <div><div class="contact-name">${entity.name}</div><div style="font-size:0.75rem; color:#10b981; font-weight:600;">${entity.type === 'team' ? 'Team Broadcast' : 'Direct Message'}</div></div>
+                        <div class="contact-avatar" style="background: ${esc(entity.color)}">${esc(entity.initials)}</div>
+                        <div><div class="contact-name">${esc(entity.name)}</div><div style="font-size:0.75rem; color:#10b981; font-weight:600;">${entity.type === 'team' ? 'Team Broadcast' : 'Direct Message'}</div></div>
                     `;
                     fetchMessages(entity.id);
                 } else {

@@ -1,4 +1,5 @@
 import { db, auth, onAuthStateChanged, doc, getDoc, collection, query, where, getDocs, onSnapshot, checkBackendFirebaseStatus } from "./firebase-config.js";
+import "./manager-portal-guard.js";
 
 export function initManagerSidebar() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -159,14 +160,41 @@ export function initManagerSidebar() {
         }
     }
 
+    // 7. Synchronize centerId query parameter across all manager sidebar navigation links
     if (centerId) {
-        const overviewLink = document.getElementById('overviewLink');
-        if (overviewLink && (overviewLink.getAttribute('href') === 'manager-dashboard.html' || !overviewLink.getAttribute('href').includes('id='))) {
-            overviewLink.setAttribute('href', `manager-dashboard.html?id=${centerId}`);
-        }
+        document.querySelectorAll('a.nav-link[href*=".html"]').forEach(a => {
+            const href = a.getAttribute('href');
+            if (href && !href.startsWith('http') && !href.startsWith('#') && !href.includes('id=')) {
+                if (href.includes('#')) {
+                    const [page, hash] = href.split('#');
+                    a.setAttribute('href', `${page}?id=${centerId}#${hash}`);
+                } else {
+                    a.setAttribute('href', `${href}?id=${centerId}`);
+                }
+            }
+        });
+
         const brandLogoLink = document.getElementById('brandLogoLink');
         if (brandLogoLink && (brandLogoLink.getAttribute('href') === 'manager-dashboard.html' || !brandLogoLink.getAttribute('href').includes('id='))) {
             brandLogoLink.setAttribute('href', `manager-dashboard.html?id=${centerId}`);
+        }
+    }
+
+    // 8. navGoalsLink handler
+    const navGoalsLink = document.getElementById('navGoalsLink');
+    if (navGoalsLink) {
+        const isAssetsPage = window.location.pathname.endsWith('manager-assets.html');
+        if (isAssetsPage) {
+            navGoalsLink.setAttribute('href', '#goals');
+            navGoalsLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (typeof window.switchAssetsTab === 'function') {
+                    window.switchAssetsTab('goals');
+                }
+            });
+        } else {
+            const goalsUrl = centerId ? `manager-assets.html?id=${centerId}#goals` : 'manager-assets.html#goals';
+            navGoalsLink.setAttribute('href', goalsUrl);
         }
     }
 

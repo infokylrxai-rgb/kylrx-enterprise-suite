@@ -424,8 +424,8 @@
     </div>
 
     <script type="module">
-        import { db, auth } from './firebase-config.js';
-        import { collection, onSnapshot, query, doc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+        import { db, auth, onSnapshot, registerListener } from './firebase-config.js';
+        import { collection, query, doc } from "./firebase-config.js";
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
         lucide.createIcons();
@@ -469,7 +469,7 @@
                 document.getElementById('userNameDisplay').textContent = 'John Doe';
                 document.getElementById('userRoleDisplay').textContent = 'Cybersecurity Specialist';
             } else {
-                import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js").then(mod => {
+                import("./firebase-config.js").then(mod => {
                     const { doc, getDoc } = mod;
                     getDoc(doc(db, 'users', activeUid)).then(snap => {
                         if (snap.exists()) {

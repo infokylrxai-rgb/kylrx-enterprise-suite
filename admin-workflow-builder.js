@@ -4,9 +4,7 @@
  * Zero Code Required for HR Automation
  */
 
-const API_HOST = window.location.port === '3000' 
-    ? '' 
-    : 'http://localhost:3000';
+const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin);
 
 const API_BASE = `${API_HOST}/api/workflow-builder`;
 
@@ -1627,7 +1625,7 @@ function setupToolbarEvents() {
             }
             renderWorkflowList();
             fetchStats();
-            showToast(`Saved workflow "${state.currentWorkflow.name}" in local session`, 'info');
+            showToast(`Server unreachable: "${state.currentWorkflow.name}" is kept on this page only and NOT saved to Firebase.`, 'error');
         }
     });
 

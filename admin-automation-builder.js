@@ -21,7 +21,7 @@ const ELEMENT_SPECS = {
         defaultDesc: 'When an employee submits resignation through portal',
         defaultModule: 'exit',
         defaultConfig: {
-            eventType: 'exit:resignation_submitted',
+            eventType: 'exit.resignation_submitted',
             sourceModule: 'exit',
             scope: 'all_departments'
         }
@@ -278,7 +278,7 @@ let currentWorkflow = {
     ]
 };
 
-const API_BASE = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+const API_BASE = (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin);
 
 const FALLBACK_MODULES = [
     { id: 'exit', moduleName: 'Exit & Offboarding' },
@@ -347,6 +347,15 @@ async function loadWorkflowFromBackendOrFirebase() {
 }
 
 // Central Module Discovery
+// Steps may store a short module name (e.g. 'exit') while the registry key is 'exit_offboarding'
+function resolveModuleId(moduleName) {
+    if (!moduleName) return '';
+    const exact = registeredModules.find(m => m.id === moduleName);
+    if (exact) return exact.id;
+    const prefixed = registeredModules.find(m => m.id.startsWith(moduleName + '_') || moduleName.startsWith(m.id + '_'));
+    return prefixed ? prefixed.id : moduleName;
+}
+
 async function fetchRegisteredModules() {
     try {
         const controller = new AbortController();
@@ -539,7 +548,7 @@ function renderInspectorFields(step, spec) {
             <label class="form-label">Module Owner</label>
             <select class="form-select" id="fieldNodeModule" onchange="updateNodeModule(this.value)">
                 ${registeredModules.map(m => `
-                    <option value="${m.id}" ${step.module === m.id ? 'selected' : ''}>${escapeHtml(m.moduleName)}</option>
+                    <option value="${m.id}" ${resolveModuleId(step.module) === m.id ? 'selected' : ''}>${escapeHtml(m.moduleName)}</option>
                 `).join('')}
             </select>
         </div>
@@ -552,11 +561,11 @@ function renderInspectorFields(step, spec) {
                 <div class="form-group">
                     <label class="form-label">Triggering Event</label>
                     <select class="form-select" onchange="setStepConfig('eventType', this.value)">
-                        <option value="exit:resignation_submitted" ${step.config?.eventType === 'exit:resignation_submitted' ? 'selected' : ''}>exit:resignation_submitted (Resignation Filed)</option>
-                        <option value="onboarding:candidate_invited" ${step.config?.eventType === 'onboarding:candidate_invited' ? 'selected' : ''}>onboarding:candidate_invited (New Hire Created)</option>
-                        <option value="leave:applied" ${step.config?.eventType === 'leave:applied' ? 'selected' : ''}>leave:applied (Leave Application Submitted)</option>
-                        <option value="payroll:run_initiated" ${step.config?.eventType === 'payroll:run_initiated' ? 'selected' : ''}>payroll:run_initiated (Monthly Run Started)</option>
-                        <option value="statutory:filing_required" ${step.config?.eventType === 'statutory:filing_required' ? 'selected' : ''}>statutory:filing_required (Quarterly Tax Window)</option>
+                        <option value="exit.resignation_submitted" ${step.config?.eventType === 'exit.resignation_submitted' ? 'selected' : ''}>exit:resignation_submitted (Resignation Filed)</option>
+                        <option value="onboarding.candidate_invited" ${step.config?.eventType === 'onboarding.candidate_invited' ? 'selected' : ''}>onboarding:candidate_invited (New Hire Created)</option>
+                        <option value="leave.applied" ${step.config?.eventType === 'leave.applied' ? 'selected' : ''}>leave:applied (Leave Application Submitted)</option>
+                        <option value="payroll.run_initiated" ${step.config?.eventType === 'payroll.run_initiated' ? 'selected' : ''}>payroll:run_initiated (Monthly Run Started)</option>
+                        <option value="statutory.filing_required" ${step.config?.eventType === 'statutory.filing_required' ? 'selected' : ''}>statutory:filing_required (Quarterly Tax Window)</option>
                     </select>
                 </div>
             `;
@@ -649,10 +658,10 @@ function renderInspectorFields(step, spec) {
                 <div class="form-group">
                     <label class="form-label">Automated Action Execution</label>
                     <select class="form-select" onchange="setStepConfig('actionName', this.value)">
-                        <option value="exit:calculate_fnf" ${step.config?.actionName === 'exit:calculate_fnf' ? 'selected' : ''}>exit:calculate_fnf (Full & Final Calculation)</option>
-                        <option value="onboarding:provision_accounts" ${step.config?.actionName === 'onboarding:provision_accounts' ? 'selected' : ''}>onboarding:provision_accounts (Google Workspace & Slack)</option>
-                        <option value="leave:deduct_balance" ${step.config?.actionName === 'leave:deduct_balance' ? 'selected' : ''}>leave:deduct_balance (Ledger Debit)</option>
-                        <option value="payroll:generate_payslips" ${step.config?.actionName === 'payroll:generate_payslips' ? 'selected' : ''}>payroll:generate_payslips (PDF Generator)</option>
+                        <option value="exit.calculate_fnf" ${step.config?.actionName === 'exit.calculate_fnf' ? 'selected' : ''}>exit:calculate_fnf (Full & Final Calculation)</option>
+                        <option value="onboarding.provision_accounts" ${step.config?.actionName === 'onboarding.provision_accounts' ? 'selected' : ''}>onboarding:provision_accounts (Google Workspace & Slack)</option>
+                        <option value="leave.deduct_balance" ${step.config?.actionName === 'leave.deduct_balance' ? 'selected' : ''}>leave:deduct_balance (Ledger Debit)</option>
+                        <option value="payroll.generate_payslips" ${step.config?.actionName === 'payroll.generate_payslips' ? 'selected' : ''}>payroll:generate_payslips (PDF Generator)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -963,63 +972,51 @@ function showToast(message, type = 'success') {
 }
 window.showToast = showToast;
 
-// Sync Workflow State to Backend and Firebase Firestore
+// Sync Workflow State to Backend and Firebase Firestore.
+// The server (/api/automations) is the only writer: it checks the workflow belongs to the caller's
+// organization, stamps orgId and derives trigger_event from the trigger step.
 async function syncWorkflowToBackendAndFirebase(workflow = currentWorkflow) {
     workflow.updatedAt = new Date().toISOString();
-    const payload = {
-        ...workflow,
-        trigger_event: (workflow.steps && workflow.steps[0] && (workflow.steps[0].config?.eventType || workflow.steps[0].title)) || 'exit.resignation_submitted',
-        pipeline: workflow.steps || []
-    };
+    const payload = { ...workflow, pipeline: workflow.steps || [] };
 
     let backendSynced = false;
-    let firestoreSynced = false;
-
-    // 1. Sync to Express Backend API (/api/automations) -> saves to Firebase Firestore
+    let error = '';
     try {
         const res = await fetch(`${API_BASE}/api/automations`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        if (res.ok) backendSynced = true;
-    } catch (e) {
-        console.warn('[Sync] Express backend sync notice:', e.message);
-    }
-
-    // 2. Direct Sync to Firebase Firestore Client SDK (if loaded)
-    if (window.db && window.firestoreTools) {
-        try {
-            const { doc, setDoc } = window.firestoreTools;
-            const docRef = doc(window.db, 'automations', workflow.id);
-            await setDoc(docRef, {
-                ...payload,
-                updatedAt: new Date().toISOString(),
-                syncedAt: new Date().toISOString()
-            }, { merge: true });
-            firestoreSynced = true;
-        } catch (fsErr) {
-            console.warn('[Sync] Firestore direct sync notice:', fsErr.message);
+        const json = await res.json().catch(() => ({}));
+        if (res.ok) {
+            backendSynced = true;
+            // A brand-new workflow gets its Firestore id from the server
+            if (json.id && workflow.id !== json.id) workflow.id = json.id;
+        } else {
+            error = json.error || `Save failed (HTTP ${res.status})`;
         }
+    } catch (e) {
+        error = 'Server unreachable: ' + e.message;
     }
 
-    // 3. LocalStorage persistence cache
+    // Local draft copy so unsaved edits survive a reload; never reported as saved
     try {
         localStorage.setItem(`kylrx_flow_${workflow.id}`, JSON.stringify(workflow));
         localStorage.setItem('kylrx_active_flow', JSON.stringify(workflow));
     } catch (e) {}
 
-    // Update Firebase Status Pill in topbar
     const pill = document.getElementById('firebaseStatusPill');
     if (pill) {
-        pill.innerHTML = `<i data-lucide="database" size="12"></i> Firebase: Connected (Synced)`;
-        pill.style.background = '#ecfdf5';
-        pill.style.color = '#059669';
-        pill.style.borderColor = '#a7f3d0';
+        pill.innerHTML = backendSynced
+            ? '<i data-lucide="database" size="12"></i> Firebase: Connected (Saved)'
+            : '<i data-lucide="database" size="12"></i> Firebase: Not saved';
+        pill.style.background = backendSynced ? '#ecfdf5' : '#fef2f2';
+        pill.style.color = backendSynced ? '#059669' : '#b91c1c';
+        pill.style.borderColor = backendSynced ? '#a7f3d0' : '#fecaca';
         if (window.lucide) lucide.createIcons();
     }
 
-    return { backendSynced, firestoreSynced };
+    return { backendSynced, firestoreSynced: backendSynced, error };
 }
 window.syncWorkflowToBackendAndFirebase = syncWorkflowToBackendAndFirebase;
 
@@ -1061,7 +1058,7 @@ async function deleteNode(e, index) {
         if (syncResult.backendSynced || syncResult.firestoreSynced) {
             showToast(`✓ Step removed & connected to Backend Firebase.`, 'success');
         } else {
-            showToast(`Step removed (Offline cache updated).`, 'info');
+            showToast(`Step removed here but NOT saved to Firebase: ${escapeHtml(syncResult.error)}`, 'warning');
         }
     }
 }
@@ -1152,7 +1149,7 @@ function loadTemplate(templateType) {
             module: 'onboarding',
             status: 'ACTIVE',
             steps: [
-                { type: 'trigger', title: 'Offer Letter Signed', description: 'When candidate completes digital onboarding acceptance', module: 'onboarding', config: { eventType: 'onboarding:candidate_invited' } },
+                { type: 'trigger', title: 'Offer Letter Signed', description: 'When candidate completes digital onboarding acceptance', module: 'onboarding', config: { eventType: 'onboarding.candidate_invited' } },
                 { type: 'condition', title: 'Mandatory KYC & Identity Verified', description: 'Aadhaar, PAN, and academic degrees verified with green status', module: 'core', config: ELEMENT_SPECS.condition.defaultConfig },
                 { type: 'approval', title: 'HR Operations Sign-off', description: 'Onboarding partner verifies background check and confirms start date', module: 'core', config: ELEMENT_SPECS.approval.defaultConfig },
                 { type: 'action', title: 'Provision Corporate Accounts & Hardware', description: 'Auto-create Google Workspace, Slack, and dispatch company laptop', module: 'onboarding', config: { actionName: 'onboarding:provision_accounts' } },
@@ -1168,7 +1165,7 @@ function loadTemplate(templateType) {
             module: 'leave',
             status: 'ACTIVE',
             steps: [
-                { type: 'trigger', title: 'Leave Application Filed', description: 'Employee files annual/casual leave in mobile app or portal', module: 'leave', config: { eventType: 'leave:applied' } },
+                { type: 'trigger', title: 'Leave Application Filed', description: 'Employee files annual/casual leave in mobile app or portal', module: 'leave', config: { eventType: 'leave.applied' } },
                 { type: 'condition', title: 'Leave Balance Check', description: 'Validate balance >= requested days and zero blacklisted blackout dates', module: 'core', config: ELEMENT_SPECS.condition.defaultConfig },
                 { type: 'branch', title: 'Leave Duration Fork (> 3 Days)', description: 'Has assets? Yes / No condition fork for skip-level requirement', module: 'core', config: ELEMENT_SPECS.branch.defaultConfig },
                 { type: 'approval', title: 'Direct Manager Sign-off', description: 'Review and approve in portal', module: 'core', config: ELEMENT_SPECS.approval.defaultConfig },
@@ -1186,7 +1183,7 @@ function loadTemplate(templateType) {
             module: 'payroll',
             status: 'ACTIVE',
             steps: [
-                { type: 'trigger', title: 'Monthly Payroll Cycle Triggered', description: 'Initiated on 28th of each calendar month or manual trigger', module: 'payroll', config: { eventType: 'payroll:run_initiated' } },
+                { type: 'trigger', title: 'Monthly Payroll Cycle Triggered', description: 'Initiated on 28th of each calendar month or manual trigger', module: 'payroll', config: { eventType: 'payroll.run_initiated' } },
                 { type: 'condition', title: 'Zero Unresolved Timesheet Penalties', description: 'Ensure all attendance exceptions and approvals are closed', module: 'core', config: ELEMENT_SPECS.condition.defaultConfig },
                 { type: 'approval', title: 'Maker-Checker Finance Sign-off', description: 'Payroll Specialist prepares -> Finance VP authorizes disbursement', module: 'core', config: ELEMENT_SPECS.approval.defaultConfig },
                 { type: 'action', title: 'Generate Bank CMS Disbursement File', description: 'Generate encrypted HDFC/ICICI bulk payment instruction file with hash', module: 'payroll', config: { actionName: 'payroll:generate_payslips' } },
@@ -1304,6 +1301,16 @@ async function deployWorkflow() {
     
     // Connect and sync workflow to Backend Express & Firebase Firestore
     const syncRes = await syncWorkflowToBackendAndFirebase(currentWorkflow);
+
+    if (!syncRes.backendSynced) {
+        await showAlertModal({
+            title: 'Workflow Not Saved',
+            message: `Workflow <strong>${escapeHtml(currentWorkflow.name)}</strong> was not saved to Firebase.<br><br>${escapeHtml(syncRes.error)}<br><br>Your edits are kept in this browser; deploy again later.`,
+            type: 'warning',
+            okText: 'OK'
+        });
+        return;
+    }
 
     await showAlertModal({
         title: 'Automation Deployed Successfully',

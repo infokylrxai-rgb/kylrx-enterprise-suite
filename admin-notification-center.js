@@ -10,7 +10,7 @@
  * Supports real-time zero synchronization and telemetry monitoring.
  */
 
-const API_HOST = (window.location.port === '3000') ? '' : 'http://localhost:3000';
+const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin);
 const API_BASE = `${API_HOST}/api/notification-center`;
 
 // Default to live active feed connected to Firebase
@@ -347,53 +347,9 @@ async function initFirebaseConnection() {
             fbBadge.title = 'Directly connected to Google Cloud Firebase Firestore (kylrxai)';
         }
 
-        // Firestore real-time doc for notification center metrics
-        const metricsDocRef = doc(db, 'enterprise_metrics', 'notification_center');
-
-        // Synchronize state if zeroed
-        if (isZeroed) {
-            try {
-                await setDoc(metricsDocRef, {
-                    totalActionable: 0,
-                    totalInformational: 0,
-                    unreadInformational: 0,
-                    critical: 0,
-                    dueToday: 0,
-                    upcoming: 0,
-                    approvals: 0,
-                    attendance: 0,
-                    payroll: 0,
-                    pms: 0,
-                    policy: 0,
-                    exit: 0,
-                    documents: 0,
-                    system: 0,
-                    connectedToFirebase: true,
-                    firebaseProject: 'kylrxai',
-                    status: 'all_zeroed',
-                    syncedAt: new Date().toISOString()
-                }, { merge: true });
-            } catch (err) {
-                console.warn('[Firebase] Metrics sync note:', err.message);
-            }
-        }
-
-        // Real-time listener for enterprise metrics
-        onSnapshot(metricsDocRef, (snap) => {
-            if (snap.exists()) {
-                const data = snap.data();
-                if (data.status === 'all_zeroed') {
-                    isZeroed = true;
-                    updateSummaryUI(getZeroSummary());
-                    renderFeed();
-                } else if (!isZeroed) {
-                    state.summary = data;
-                    updateSummaryUI(data);
-                }
-            }
-        }, (err) => {
-            console.warn('[Firebase] Metrics listener note:', err.message);
-        });
+        // KPI counts and the feed come from /api/notification-center (the caller's organization
+        // in Firestore). The shared enterprise_metrics/notification_center doc is no longer
+        // read: its 'all_zeroed' status hid every organization's data.
 
         // Real-time listener for Header Notification Badge
         const notifBadge = document.getElementById('headerNotifBadge');
@@ -521,10 +477,11 @@ async function fetchSummary() {
         console.warn('[NotificationCenter] Server offline or unreachable, using client state:', err);
     }
 
+    // Without the server there is no organization data to show; never substitute demo numbers
     if (!loadedFromServer) {
-        const fallback = computeFallbackSummary();
-        state.summary = fallback;
-        updateSummaryUI(fallback);
+        state.summary = getZeroSummary();
+        updateSummaryUI(state.summary);
+        showToast('Could not load notifications from Firebase. Check the server and try Refresh.');
     }
 }
 
@@ -657,9 +614,8 @@ async function fetchFeed() {
     }
 
     if (!loadedFromServer) {
-        const filtered = getFilteredLocalItems();
-        state.actionableItems = filtered.actionable;
-        state.informationalNotices = filtered.informational;
+        state.actionableItems = [];
+        state.informationalNotices = [];
         renderFeed();
     }
 }
@@ -1145,7 +1101,8 @@ function escapeHtml(str) {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function escapeJs(str) {
@@ -1164,44 +1121,10 @@ async function zeroAllNotices() {
     updateSummaryUI(getZeroSummary());
     renderFeed();
 
-    // 2. Direct client-side Google Cloud Firebase Firestore sync
-    try {
-        const { db, doc, setDoc } = await import('./firebase-config.js');
-        if (db) {
-            await setDoc(doc(db, 'enterprise_metrics', 'notification_center'), {
-                totalActionable: 0,
-                totalInformational: 0,
-                unreadInformational: 0,
-                critical: 0,
-                dueToday: 0,
-                upcoming: 0,
-                approvals: 0,
-                attendance: 0,
-                payroll: 0,
-                pms: 0,
-                policy: 0,
-                exit: 0,
-                documents: 0,
-                system: 0,
-                connectedToFirebase: true,
-                firebaseProject: 'kylrxai',
-                status: 'all_zeroed',
-                syncedAt: new Date().toISOString()
-            }, { merge: true });
-            console.log('⚡ [Firebase] Metrics document updated in Firestore (kylrxai)');
-        }
-    } catch (err) {
-        console.warn('[NotificationCenter] Firebase client zero note:', err.message);
-    }
+    // "Make 0" is a view preference for this browser only. It no longer writes the shared
+    // enterprise_metrics doc, which zeroed the page for every user of every organization.
 
-    // 3. Backend REST zero call (updates in-memory service & Firebase Admin SDK)
-    try {
-        await fetch(`${API_BASE}/zero`, { method: 'POST' });
-    } catch (e) {
-        console.warn('[NotificationCenter] Backend REST zero fallback note:', e.message);
-    }
-
-    // 4. Update Header Status Badge
+    // 2. Update Header Status Badge
     const fbBadge = document.getElementById('firebase-status-badge');
     if (fbBadge) {
         fbBadge.innerHTML = `
@@ -1210,7 +1133,7 @@ async function zeroAllNotices() {
         `;
     }
 
-    showToast('🎉 All operational work & notices cleared to 0 and synced to Firebase (kylrxai)!');
+    showToast('View cleared to 0 in this browser. Use "Restore" to show live Firebase data again.');
 }
 
 /**
@@ -1222,19 +1145,6 @@ async function restoreDefaultFeed() {
     localStorage.removeItem('kylrx_notif_local_store');
     localStore = getSeedData();
     saveLocalStore();
-
-    // Direct client-side Google Cloud Firebase Firestore sync
-    try {
-        const { db, doc, setDoc } = await import('./firebase-config.js');
-        if (db) {
-            const seedSummary = computeFallbackSummary();
-            await setDoc(doc(db, 'enterprise_metrics', 'notification_center'), {
-                ...seedSummary,
-                status: 'active',
-                syncedAt: new Date().toISOString()
-            }, { merge: true });
-        }
-    } catch (err) {}
 
     await fetchSummary();
     await fetchFeed();
