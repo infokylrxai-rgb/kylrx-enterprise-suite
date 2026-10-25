@@ -5,10 +5,11 @@ const TenantEngineStore = require('../services/tenant-engine-store');
 const documentAi = require('../services/document-ai-service');
 const logger = require('../utils/logger');
 const { rawCollection } = require('../config/firebase');
-const { orgDocs, ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { orgDocs, ownerOrgId } = require('../config/tenant');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 router.use(authorize(ADMIN_HR_ROLES));
 
 /**
@@ -45,7 +46,7 @@ const store = new TenantEngineStore({
 const VERSION_RE = /^v?\d+(\.\d+){0,2}$/;
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 function actorName(req) {
