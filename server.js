@@ -391,6 +391,10 @@ async function registerDynamicRoutes(targetApp = app) {
 const dynamicRoutesLoaded = registerDynamicRoutes(app);
 
 async function startServer() {
+  // The compliance routes load through try/catch above, so a missing signing key would only drop them silently
+  if (process.env.NODE_ENV === 'production' && !process.env.KYLRX_EXPORT_SIGNING_KEY) {
+    throw new Error('Missing required environment variable in production: KYLRX_EXPORT_SIGNING_KEY');
+  }
   await dynamicRoutesLoaded;
 
   try {
@@ -481,7 +485,10 @@ process.on('unhandledRejection', (err) => {
 });
 
 if (require.main === module) {
-    startServer();
+    startServer().catch((err) => {
+        logger.error(`Startup failed: ${err.message}`);
+        process.exit(1);
+    });
 }
 
 module.exports = { app, startServer, registerDynamicRoutes, dynamicRoutesLoaded };
