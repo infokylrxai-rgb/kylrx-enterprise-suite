@@ -247,7 +247,9 @@ service cloud.firestore {
       }
 
       // Any other org-owned configuration (business_units, cost_centers, shifts,
-      // employee_types, employee_finance, sub_departments, ...): same org only
+      // employee_types, employee_finance, sub_departments, ...): readable by the org,
+      // writable only by super admins and HR/admin roles. Managers and employees are
+      // read-only here, so they cannot plant arbitrary data in the org tree.
       // (Explicitly matched subcollections above are excluded so this never loosens them.)
       function isExplicitSubCollection(name) {
         return name in [
@@ -260,7 +262,7 @@ service cloud.firestore {
 
       match /{subCollection}/{docId} {
         allow read: if signedIn() && isSameTenant(orgId) && !isExplicitSubCollection(subCollection);
-        allow write: if isStaff() && isSameTenant(orgId) && !isExplicitSubCollection(subCollection);
+        allow write: if (isSuperAdmin() || isHrRole()) && isSameTenant(orgId) && !isExplicitSubCollection(subCollection);
       }
     }
 
