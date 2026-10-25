@@ -298,7 +298,8 @@
     function bindEvents(container, employeeId, options = {}) {
         if (!container) return;
 
-        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null);
+        if (!orgId) return;
 
         // Auto-fill rates when State Jurisdiction changes
         const selectState = container.querySelector('#selectLwfState');
@@ -499,7 +500,8 @@
 
         if (!container) return;
 
-        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null);
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let lwfDetails = null;
 
         let service = (typeof window !== 'undefined' && window.KylrxLwfDetailsService) ? window.KylrxLwfDetailsService : null;

@@ -346,7 +346,8 @@
     function bindEvents(container, employeeId, options = {}) {
         if (!container) return;
 
-        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null);
+        if (!orgId) return;
 
         // Toggle checkbox change
         const inputApplicable = container.querySelector('#inputNpsApplicable');
@@ -515,7 +516,8 @@
 
         if (!container) return;
 
-        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null);
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let npsDetails = null;
 
         let service = (typeof window !== 'undefined' && window.KylrxNpsDetailsService) ? window.KylrxNpsDetailsService : null;

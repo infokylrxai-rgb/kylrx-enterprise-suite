@@ -429,6 +429,7 @@ test('PRD Sections 1, 4, 11 & 13: Professional Tax (PT) Statutory Master Module'
 
             try {
                 await ptUi.mountPtCard('ptTestContainer', 'EMP0001', {
+                    orgId: 'ORG_KYLRX_01',
                     state: 'Karnataka',
                     ptRegistrationNo: 'PTRC1234567K',
                     ptSlab: 'KA_TIER_1',

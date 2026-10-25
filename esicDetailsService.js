@@ -118,6 +118,11 @@
     /**
      * Seeds in-memory ledger with default records.
      */
+    // No org for the caller: fail instead of reading another org's data
+    function missingOrg() {
+        throw new Error("No organization found for the signed-in user. Sign in again.");
+    }
+
     function seedDefaultRecords(orgId = 'ORG_KYLRX_01') {
         DEFAULT_ESIC_PROFILES.forEach(profile => {
             const key = `${orgId}_${profile.employeeId}`;
@@ -308,7 +313,7 @@
      * @param {string} employeeId 
      * @returns {Promise<Object|null>}
      */
-    async function getEmployeeEsicDetails(orgId = 'ORG_KYLRX_01', employeeId) {
+    async function getEmployeeEsicDetails(orgId = missingOrg(), employeeId) {
         if (!employeeId) return null;
 
         // 1. Try Cloud Firestore if SDK available
@@ -349,7 +354,7 @@
      * @param {Object} esicData 
      * @returns {Promise<{ success: boolean, docId: string, data: Object }>}
      */
-    async function saveEmployeeEsicDetails(orgId = 'ORG_KYLRX_01', employeeId, esicData = {}) {
+    async function saveEmployeeEsicDetails(orgId = missingOrg(), employeeId, esicData = {}) {
         if (!employeeId) {
             throw new Error("Employee ID is required to persist ESIC Statutory details.");
         }
@@ -417,7 +422,7 @@
      * @param {string} orgId 
      * @returns {Promise<Array<Object>>}
      */
-    async function listAllEsicDetails(orgId = 'ORG_KYLRX_01') {
+    async function listAllEsicDetails(orgId = missingOrg()) {
         const results = [];
 
         // 1. Try Cloud Firestore
@@ -462,12 +467,12 @@
      * @param {Object} payload Optional overrides { ipNumber, officialSource }
      * @returns {Promise<Object>}
      */
-    async function verifyIpNumberViaDecentro(orgId = 'ORG_KYLRX_01', employeeId, payload = {}) {
+    async function verifyIpNumberViaDecentro(orgId = missingOrg(), employeeId, payload = {}) {
         if (!employeeId) {
             throw new Error("Employee ID is required for ESIC verification handshake.");
         }
 
-        const effectiveOrgId = orgId || 'ORG_KYLRX_01';
+        const effectiveOrgId = orgId || missingOrg();
         let currentProfile = await getEmployeeEsicDetails(effectiveOrgId, employeeId);
 
         if (!currentProfile) {
@@ -720,7 +725,7 @@
      * @param {Array<Object>} firestoreDocs Documents from parser
      * @returns {Promise<{ committedCount: number, errors: Array }>}
      */
-    async function commitBatchEsicDetails(orgId = 'ORG_KYLRX_01', firestoreDocs = []) {
+    async function commitBatchEsicDetails(orgId = missingOrg(), firestoreDocs = []) {
         let committedCount = 0;
         const errors = [];
 

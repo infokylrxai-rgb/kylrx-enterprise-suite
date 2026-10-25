@@ -584,7 +584,7 @@
                     uan: form.uan ? form.uan.value : (statutory.uan || emp.uan),
                     pfMemberId: form.pfMemberId ? form.pfMemberId.value : (statutory.pfMemberId || emp.pfMemberId),
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: localStorage.getItem('orgId')
                 });
             }
 
@@ -593,7 +593,7 @@
                 window.KylrxEsicProfileUIController.mountEsicCard('esicStatutoryDrawerContainer', id, {
                     esiNumber: form.esicIp ? form.esicIp.value : (statutory.esicIpNumber || emp.esicIp),
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: localStorage.getItem('orgId')
                 });
             }
 
@@ -602,7 +602,7 @@
                 window.KylrxPtProfileUIController.mountPtCard('ptStatutoryDrawerContainer', id, {
                     state: form.workState ? form.workState.value : (statutory.ptState || emp.state || 'Karnataka'),
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: localStorage.getItem('orgId')
                 });
             }
 
@@ -611,7 +611,7 @@
                 window.KylrxLwfProfileUIController.mountLwfCard('lwfStatutoryDrawerContainer', id, {
                     state: form.workState ? form.workState.value : (statutory.lwfState || emp.state || 'Karnataka'),
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: localStorage.getItem('orgId')
                 });
             }
 
@@ -621,7 +621,7 @@
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
                     basicPay: Number(form.basicSalary ? form.basicSalary.value : (emp.basicSalary || emp.basicPay || 50000)),
                     daPay: Number(form.daSalary ? form.daSalary.value : (emp.daSalary || 0)),
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: localStorage.getItem('orgId')
                 });
             }
 
@@ -633,15 +633,15 @@
                     basicPay: Number(form.basicSalary ? form.basicSalary.value : (emp.basicSalary || emp.basicPay || 60000)),
                     daPay: Number(form.daSalary ? form.daSalary.value : (emp.daSalary || 0)),
                     name: emp.name || emp.fullName || '',
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: localStorage.getItem('orgId')
                 });
             }
 
             // PRD Sections 1, 4 & 13: Core Banking & Decentro Fabric Integration
             let finRec = null;
-            if (id && window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.getEmployeeFinance === 'function') {
+            if (id && localStorage.getItem('orgId') && window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.getEmployeeFinance === 'function') {
                 try {
-                    finRec = await window.KylrxEmployeeFinanceService.getEmployeeFinance(localStorage.getItem('orgId') || 'org_kylrx', id);
+                    finRec = await window.KylrxEmployeeFinanceService.getEmployeeFinance(localStorage.getItem('orgId'), id);
                 } catch (_) {}
             }
             const banking = finRec?.banking || emp.banking || {};
@@ -818,11 +818,11 @@
      * PRD Sections 1 & 4: Populate Salary Structure & Revision Timeline
      */
     async function populateSalaryStructureView(empId, emp) {
-        const orgId = localStorage.getItem('orgId') || 'org_kylrx';
+        const orgId = localStorage.getItem('orgId');
         let structure = null;
         let timeline = [];
 
-        if (empId && window.KylrxSalaryStructureService) {
+        if (empId && orgId && window.KylrxSalaryStructureService) {
             try {
                 structure = await window.KylrxSalaryStructureService.getSalaryStructure(orgId, empId);
                 timeline = await window.KylrxSalaryStructureService.getRevisionTimeline(orgId, empId);

@@ -220,7 +220,8 @@
         if (recalcBtn) {
             recalcBtn.onclick = async function (e) {
                 e.preventDefault();
-                const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+                const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null);
+                if (!orgId) { window.showCustomAlert ? window.showCustomAlert('Organization Missing', 'No organization found for the signed-in user. Sign in again.', 'error') : alert('No organization found for the signed-in user. Sign in again.'); return; }
                 const btnText = container.querySelector('#ptRecalcBtnText');
                 const btnIcon = container.querySelector('#ptRecalcIcon');
 
@@ -301,7 +302,8 @@
 
         if (!container) return;
 
-        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null);
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let ptDetails = null;
 
         let service = (typeof window !== 'undefined' && window.KylrxPtDetailsService) ? window.KylrxPtDetailsService : null;

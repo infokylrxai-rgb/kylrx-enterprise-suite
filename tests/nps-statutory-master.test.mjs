@@ -483,6 +483,7 @@ test('PRD Sections 1, 4, 11 & 13: National Pension System (NPS) Statutory Master
             };
 
             await npsUi.mountNpsCard('testContainer', 'EMP0001', {
+                orgId: 'ORG_KYLRX_01',
                 basicPay: 50000,
                 daPay: 10000
             });

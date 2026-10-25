@@ -93,6 +93,11 @@
     /**
      * Seeds in-memory ledger with default records.
      */
+    // No org for the caller: fail instead of reading another org's data
+    function missingOrg() {
+        throw new Error("No organization found for the signed-in user. Sign in again.");
+    }
+
     function seedDefaultRecords(orgId = 'ORG_KYLRX_01') {
         DEFAULT_PT_PROFILES.forEach(profile => {
             const key = `${orgId}_${profile.employeeId}`;
@@ -156,7 +161,7 @@
      * Retrieves an Employee Professional Tax Profile.
      * First queries Firestore; falls back to in-memory ledger.
      */
-    async function getEmployeePtDetails(orgId = 'ORG_KYLRX_01', employeeId) {
+    async function getEmployeePtDetails(orgId = missingOrg(), employeeId) {
         if (!employeeId) return null;
 
         // 1. Try Cloud Firestore if SDK available
@@ -192,7 +197,7 @@
      * Persists or updates an Employee Professional Tax Profile in Firestore.
      * Document Path: organizations/{orgId}/employee_pt_details/{employeeId}
      */
-    async function saveEmployeePtDetails(orgId = 'ORG_KYLRX_01', employeeId, ptData = {}) {
+    async function saveEmployeePtDetails(orgId = missingOrg(), employeeId, ptData = {}) {
         if (!employeeId) {
             throw new Error("Employee ID is required to persist PT details.");
         }
@@ -254,7 +259,7 @@
     /**
      * Lists all PT profiles for an organization.
      */
-    async function listAllPtDetails(orgId = 'ORG_KYLRX_01') {
+    async function listAllPtDetails(orgId = missingOrg()) {
         const results = [];
 
         // 1. Try Cloud Firestore
@@ -700,7 +705,7 @@
     /**
      * Converts a list of parsed sheet rows to Firestore batch documents and executes commit.
      */
-    async function commitBatchPtDetails(orgId = 'ORG_KYLRX_01', firestoreDocs = []) {
+    async function commitBatchPtDetails(orgId = missingOrg(), firestoreDocs = []) {
         let committedCount = 0;
         const errors = [];
 

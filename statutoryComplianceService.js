@@ -152,7 +152,12 @@
     /**
      * Initializes the in-memory ledger with default seed data
      */
-    function _initializeLedger(orgId = 'org_default') {
+    // No org for the caller: fail instead of using a shared default org
+    function missingOrg() {
+        throw new Error("No organization found for the signed-in user. Sign in again.");
+    }
+
+    function _initializeLedger(orgId = missingOrg()) {
         if (!_localLedger.has(orgId)) {
             const orgMap = new Map();
             DEFAULT_STATUTORY_POLICIES.forEach(p => {
@@ -166,7 +171,7 @@
     /**
      * Retrieves all compliance rules for an organization
      */
-    function getAllComplianceRules(orgId = 'org_default') {
+    function getAllComplianceRules(orgId = missingOrg()) {
         const orgMap = _initializeLedger(orgId);
         return Array.from(orgMap.values());
     }
@@ -174,7 +179,7 @@
     /**
      * Retrieves a single compliance rule by code
      */
-    function getComplianceRuleByCode(complianceCode, orgId = 'org_default') {
+    function getComplianceRuleByCode(complianceCode, orgId = missingOrg()) {
         const orgMap = _initializeLedger(orgId);
         return orgMap.get(complianceCode) || null;
     }
@@ -182,7 +187,7 @@
     /**
      * Creates a new statutory compliance rule
      */
-    function createComplianceRule(ruleData, orgId = 'org_default') {
+    function createComplianceRule(ruleData, orgId = missingOrg()) {
         if (!ruleData || !ruleData.complianceCode) {
             throw new Error("Missing required 'complianceCode'.");
         }
@@ -226,7 +231,7 @@
     /**
      * Updates an existing compliance rule
      */
-    function updateComplianceRule(complianceCode, updateData, orgId = 'org_default') {
+    function updateComplianceRule(complianceCode, updateData, orgId = missingOrg()) {
         const orgMap = _initializeLedger(orgId);
         const existing = orgMap.get(complianceCode);
         if (!existing) {
@@ -256,7 +261,7 @@
     /**
      * Deletes a compliance rule
      */
-    function deleteComplianceRule(complianceCode, orgId = 'org_default') {
+    function deleteComplianceRule(complianceCode, orgId = missingOrg()) {
         const orgMap = _initializeLedger(orgId);
         if (!orgMap.has(complianceCode)) {
             return { success: false, message: "Rule not found." };
@@ -268,21 +273,21 @@
     /**
      * Toggles applicable status of a compliance rule
      */
-    function toggleComplianceApplicable(complianceCode, isApplicable, orgId = 'org_default') {
+    function toggleComplianceApplicable(complianceCode, isApplicable, orgId = missingOrg()) {
         return updateComplianceRule(complianceCode, { isApplicable }, orgId);
     }
 
     /**
      * Toggles active status of a compliance rule
      */
-    function toggleComplianceActive(complianceCode, isActive, orgId = 'org_default') {
+    function toggleComplianceActive(complianceCode, isActive, orgId = missingOrg()) {
         return updateComplianceRule(complianceCode, { isActive }, orgId);
     }
 
     /**
      * Batch upserts statutory compliance records (e.g. from SheetJS ingestion)
      */
-    function batchUpsertRules(rulesList, orgId = 'org_default') {
+    function batchUpsertRules(rulesList, orgId = missingOrg()) {
         if (!Array.isArray(rulesList)) {
             throw new Error("batchUpsertRules requires an array of rule objects.");
         }
@@ -430,7 +435,7 @@
      * - PT (State specific slab matrices)
      * - LWF & Gratuity liabilities
      */
-    function calculateStatutoryDeductions(employee, compensation, payrollCycle = {}, orgId = 'org_default') {
+    function calculateStatutoryDeductions(employee, compensation, payrollCycle = {}, orgId = missingOrg()) {
         const rules = getAllComplianceRules(orgId);
         const cycleMonth = payrollCycle.month || (new Date().getMonth() + 1);
         const cycleYear = payrollCycle.year || new Date().getFullYear();
@@ -585,7 +590,7 @@
      * - Due today reminder (on 15th)
      * - Overdue alert (> 15th)
      */
-    function evaluateComplianceDeadlines(currentDate = new Date(), orgId = 'org_default') {
+    function evaluateComplianceDeadlines(currentDate = new Date(), orgId = missingOrg()) {
         const rules = getAllComplianceRules(orgId);
         const refDate = currentDate instanceof Date ? currentDate : new Date(currentDate);
         const currentDay = refDate.getDate();

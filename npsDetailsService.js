@@ -129,6 +129,11 @@
     /**
      * Seeds in-memory ledger with default records.
      */
+    // No org for the caller: fail instead of reading another org's data
+    function missingOrg() {
+        throw new Error("No organization found for the signed-in user. Sign in again.");
+    }
+
     function seedDefaultRecords(orgId = 'ORG_KYLRX_01') {
         DEFAULT_NPS_PROFILES.forEach(profile => {
             const key = `${orgId}_${profile.employeeId}`;
@@ -234,9 +239,9 @@
      * Retrieves an Employee NPS Statutory Profile.
      * First queries Cloud Firestore; falls back to in-memory ledger.
      */
-    async function getEmployeeNpsDetails(orgId = 'ORG_KYLRX_01', employeeId) {
+    async function getEmployeeNpsDetails(orgId = missingOrg(), employeeId) {
         if (!employeeId) return null;
-        const tenant = orgId || 'ORG_KYLRX_01';
+        const tenant = orgId || missingOrg();
         const key = `${tenant}_${employeeId}`;
 
         // 1. Try Cloud Firestore if runtime db is available
@@ -273,9 +278,9 @@
      * Persists an Employee NPS Statutory Profile into Cloud Firestore & local cache.
      * Path: organizations/{orgId}/employee_nps_details/{employeeId}
      */
-    async function saveEmployeeNpsDetails(orgId = 'ORG_KYLRX_01', employeeId, npsData = {}) {
+    async function saveEmployeeNpsDetails(orgId = missingOrg(), employeeId, npsData = {}) {
         if (!employeeId) throw new Error("Employee ID is required to save NPS details.");
-        const tenant = orgId || 'ORG_KYLRX_01';
+        const tenant = orgId || missingOrg();
         const key = `${tenant}_${employeeId}`;
 
         const existing = _localLedger.get(key) || {};
@@ -339,8 +344,8 @@
     /**
      * Lists all NPS profiles for a tenant.
      */
-    async function listAllNpsDetails(orgId = 'ORG_KYLRX_01') {
-        const tenant = orgId || 'ORG_KYLRX_01';
+    async function listAllNpsDetails(orgId = missingOrg()) {
+        const tenant = orgId || missingOrg();
         const results = [];
 
         if (typeof window !== 'undefined' && window.db && typeof window.collection === 'function' && typeof window.getDocs === 'function') {
@@ -478,7 +483,7 @@
         if (options.isFinalizePayroll && profile.employeeId) {
             profile.contributions = profile.contributions || {};
             profile.contributions.totalContributionYtd = updatedYtd;
-            const orgId = profile.organizationId || options.orgId || 'ORG_KYLRX_01';
+            const orgId = profile.organizationId || options.orgId || missingOrg();
             const key = `${orgId}_${profile.employeeId}`;
             if (_localLedger.has(key)) {
                 _localLedger.get(key).contributions.totalContributionYtd = updatedYtd;
@@ -681,7 +686,7 @@
     /**
      * Converts a list of parsed sheet rows to Firestore batch documents and executes commit.
      */
-    async function commitBatchNpsDetails(orgId = 'ORG_KYLRX_01', firestoreDocs = []) {
+    async function commitBatchNpsDetails(orgId = missingOrg(), firestoreDocs = []) {
         let committedCount = 0;
         const errors = [];
 
