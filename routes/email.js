@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { sendEmail } = require('../utils/email');
 const { runReminderJob } = require('../utils/reminder-scheduler');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -17,7 +17,7 @@ try {
  * Trigger manual scheduler check.
  * POST /api/email/run-reminder-check
  */
-router.post('/run-reminder-check', async (req, res) => {
+router.post('/run-reminder-check', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const result = await runReminderJob();
         return res.json(result);
@@ -50,7 +50,7 @@ router.post('/send', async (req, res) => {
  * Trigger bulk reminder emails for Hold Candidates.
  * POST /api/email/trigger-bulk-reminders
  */
-router.post('/trigger-bulk-reminders', async (req, res) => {
+router.post('/trigger-bulk-reminders', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { candidateIds, reminderMessage } = req.body;
         if (!candidateIds || !Array.isArray(candidateIds) || candidateIds.length === 0) {
@@ -130,7 +130,7 @@ router.post('/trigger-bulk-reminders', async (req, res) => {
  * POST /api/email/test
  * Body: { to: "user@example.com" }
  */
-router.post('/test', async (req, res) => {
+router.post('/test', authorize('Super Admin'), async (req, res) => {
     try {
         const { to } = req.body;
         if (!to) {

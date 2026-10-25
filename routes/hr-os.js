@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const kylrxHROS = require('../services/kylrx-hr-os');
 const logger = require('../utils/logger');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -10,7 +10,7 @@ router.use(verifyToken);
  * GET /api/hr-os/manifest
  * Returns complete OS architecture manifest, 4 pillars, and 6 capabilities
  */
-router.get('/manifest', (req, res) => {
+router.get('/manifest', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const manifest = kylrxHROS.getOperatingSystemManifest();
         res.json({
@@ -27,7 +27,7 @@ router.get('/manifest', (req, res) => {
  * GET /api/hr-os/status
  * Real-time operational health check and metrics
  */
-router.get('/status', (req, res) => {
+router.get('/status', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const manifest = kylrxHROS.getOperatingSystemManifest();
         res.json({
@@ -51,7 +51,7 @@ router.get('/status', (req, res) => {
  * GET /api/hr-os/verify-pillars
  * Verifies compliance with Configure Once → Automate Everything → Track Everything → Preserve History
  */
-router.get('/verify-pillars', (req, res) => {
+router.get('/verify-pillars', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const verification = kylrxHROS.verifyPillars();
         res.json({
@@ -90,7 +90,7 @@ router.post('/event', async (req, res) => {
  * POST /api/hr-os/lifecycle-demo
  * Executes unified HR lifecycle demonstrating all 6 subsystems operating in tandem
  */
-router.post('/lifecycle-demo', async (req, res) => {
+router.post('/lifecycle-demo', authorize('Super Admin'), async (req, res) => {
     try {
         const employeeProfile = req.body || {};
         const result = await kylrxHROS.executeUnifiedHRLifecycle(employeeProfile);
@@ -153,7 +153,7 @@ function withTimeout(promise, ms = 1200) {
  * GET /api/hr-os/audit-events
  * Returns recent conversion audit trail
  */
-router.get('/audit-events', async (req, res) => {
+router.get('/audit-events', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const store = readStore();
         res.json({
@@ -169,7 +169,7 @@ router.get('/audit-events', async (req, res) => {
  * POST /api/hr-os/generate-code
  * Generates an employee code via resilient sequence engine (immune to 429 quota limits)
  */
-router.post('/generate-code', async (req, res) => {
+router.post('/generate-code', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { type, department } = req.body;
         const normalizedType = String(type || 'full-time').toLowerCase().trim();
@@ -223,7 +223,7 @@ router.post('/generate-code', async (req, res) => {
  * POST /api/hr-os/convert-employee
  * Converts employee role & employment type with instant response and resilient persistence
  */
-router.post('/convert-employee', async (req, res) => {
+router.post('/convert-employee', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { employeeId, targetType, targetRole, targetDept, targetSalary, effectiveDate, targetManager } = req.body;
 

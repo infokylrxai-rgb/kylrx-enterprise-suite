@@ -3,12 +3,12 @@ const router = express.Router();
 const { db } = require('../config/firebase');
 const automationEngine = require('../services/automation-engine');
 const logger = require('../utils/logger');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
 // POST /api/tasks/:id/action - Resolve a pending task (approve/reject)
-router.post('/:id/action', async (req, res) => {
+router.post('/:id/action', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     try {
         const taskId = req.params.id;
         const { action, notes } = req.body;

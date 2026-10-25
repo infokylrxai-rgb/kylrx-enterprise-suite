@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const notificationActionCenterService = require('../services/notification-action-center-service');
 const logger = require('../utils/logger');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -37,7 +37,7 @@ function isZeroRequested(req) {
 }
 
 // GET /api/notification-center/feed
-router.get('/feed', async (req, res) => {
+router.get('/feed', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         if (isZeroRequested(req)) {
             return res.status(200).json({
@@ -75,7 +75,7 @@ router.get('/feed', async (req, res) => {
 });
 
 // GET /api/notification-center/summary
-router.get('/summary', async (req, res) => {
+router.get('/summary', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         if (isZeroRequested(req)) {
             return res.status(200).json({
@@ -114,7 +114,7 @@ router.get('/summary', async (req, res) => {
 });
 
 // POST /api/notification-center/zero
-router.post('/zero', async (req, res) => {
+router.post('/zero', authorize('Super Admin'), async (req, res) => {
     try {
         // Zeroing is a per-browser view preference; it must not write the shared
         // enterprise_metrics doc (that hid every organization's data)
@@ -190,7 +190,7 @@ router.post('/notifications/:id/read', async (req, res) => {
 });
 
 // POST /api/notification-center/notifications/mark-all-read
-router.post('/notifications/mark-all-read', async (req, res) => {
+router.post('/notifications/mark-all-read', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const result = await notificationActionCenterService.markAllNoticesAsRead(useFirestore(req) ? orgOf(req) : null);
         res.status(200).json({ success: true, data: result });

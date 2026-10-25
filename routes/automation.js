@@ -7,7 +7,7 @@ const eventBus = require('../services/event-bus');
 const moduleRegistry = require('../services/automation-module-registry');
 const automationAi = require('../services/automation-ai-service');
 const logger = require('../utils/logger');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -36,7 +36,7 @@ function resolveTriggerEvent(payload, steps) {
 
 
 // GET /api/automations/modules - Return discovery schema for all registered HR modules
-router.get('/modules', (req, res) => {
+router.get('/modules', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const catalog = moduleRegistry.getSchemaCatalog();
         res.status(200).json({
@@ -51,7 +51,7 @@ router.get('/modules', (req, res) => {
 });
 
 // POST /api/automations/ai/generate - Build a workflow from a plain-English description
-router.post('/ai/generate', async (req, res) => {
+router.post('/ai/generate', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const result = await automationAi.generateWorkflow(req.body && req.body.prompt);
         res.status(200).json({ success: true, ...result });
@@ -62,7 +62,7 @@ router.post('/ai/generate', async (req, res) => {
 });
 
 // POST /api/automations/ai/suggest-next - Propose the next step for the workflow on the canvas
-router.post('/ai/suggest-next', async (req, res) => {
+router.post('/ai/suggest-next', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const result = await automationAi.suggestNextStep(req.body && req.body.workflow);
         res.status(200).json({ success: true, ...result });
@@ -73,7 +73,7 @@ router.post('/ai/suggest-next', async (req, res) => {
 });
 
 // POST /api/automations - Create or update a workflow definition in Firebase Firestore
-router.post('/', async (req, res) => {
+router.post('/', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const payload = req.body;
         const name = payload.name || 'Untitled Automation';
@@ -116,7 +116,7 @@ router.post('/', async (req, res) => {
 });
 
 // DELETE /api/automations/:id - Delete an entire workflow from Firebase Firestore
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { id } = req.params;
         const { ref, snap } = await loadOwnedAutomation(req, id);
@@ -131,7 +131,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // DELETE /api/automations/:id/steps/:stepKey - Delete a specific step from a workflow in Firebase Firestore
-router.delete('/:id/steps/:stepKey', async (req, res) => {
+router.delete('/:id/steps/:stepKey', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { id, stepKey } = req.params;
         const { ref: docRef, snap: docSnap } = await loadOwnedAutomation(req, id);
@@ -163,7 +163,7 @@ router.delete('/:id/steps/:stepKey', async (req, res) => {
 });
 
 // GET /api/automations - List all workflows
-router.get('/', async (req, res) => {
+router.get('/', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         // Only the caller's organization's workflows
         const automations = await orgDocs(rawCollection, 'automations', orgOf(req));
@@ -175,7 +175,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/automations/test-trigger - Manually fire a test event through the unified pipeline
-router.post('/test-trigger', (req, res) => {
+router.post('/test-trigger', authorize('Super Admin'), (req, res) => {
     try {
         const { eventName, entityId, entityType, payload } = req.body;
         
@@ -197,7 +197,7 @@ router.post('/test-trigger', (req, res) => {
 });
 
 // GET /api/automations/runs/:id - Fetch real-time run logs and execution status
-router.get('/runs/:id', async (req, res) => {
+router.get('/runs/:id', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const runId = req.params.id;
         const runDoc = await db.collection('automation_runs').doc(runId).get();
@@ -214,7 +214,7 @@ router.get('/runs/:id', async (req, res) => {
 });
 
 // GET /api/automations/audit-logs - Query stage 8 immutable audit logs
-router.get('/audit-logs', async (req, res) => {
+router.get('/audit-logs', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const limit = parseInt(req.query.limit, 10) || 50;
         let query = db.collection('automation_audit_logs');

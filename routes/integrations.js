@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const recruitmentIntegrationService = require('../services/recruitment-integration-service');
 const logger = require('../utils/logger');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -10,7 +10,7 @@ router.use(verifyToken);
  * GET /api/integrations/recruitment
  * Returns integration status, pricing (₹10,000/yr), and unbundled notice
  */
-router.get('/recruitment', (req, res) => {
+router.get('/recruitment', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const config = recruitmentIntegrationService.getIntegrationConfig();
         res.json({
@@ -27,7 +27,7 @@ router.get('/recruitment', (req, res) => {
  * POST /api/integrations/recruitment/toggle
  * Enables or disables the ₹10k/yr recruitment integration
  */
-router.post('/recruitment/toggle', async (req, res) => {
+router.post('/recruitment/toggle', authorize('Super Admin'), async (req, res) => {
     try {
         const { enabled, actor = 'Super Admin', notes = '' } = req.body;
         if (typeof enabled !== 'boolean') {
@@ -49,7 +49,7 @@ router.post('/recruitment/toggle', async (req, res) => {
  * GET /api/integrations/plans
  * Returns subscription catalog showing General HRMS base plans vs. separate Add-on integrations
  */
-router.get('/plans', (req, res) => {
+router.get('/plans', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const catalog = recruitmentIntegrationService.getPlansCatalog();
         res.json({

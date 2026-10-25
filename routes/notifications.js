@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { db, admin, messaging } = require('../config/firebase');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -262,7 +262,7 @@ router.post('/clear-all', async (req, res) => {
 });
 
 // 6. POST /api/notifications/send - Send new notification
-router.post('/send', async (req, res) => {
+router.post('/send', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     try {
         const notifData = req.body;
         const id = notifData.id || ('notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6));
@@ -287,7 +287,7 @@ router.post('/send', async (req, res) => {
 });
 
 // 7. Legacy notify & push endpoints (Preserved)
-router.post('/notify', async (req, res) => {
+router.post('/notify', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     let { title, message } = req.body;
     title = title?.trim();
     message = message?.trim();
@@ -309,7 +309,7 @@ router.post('/notify', async (req, res) => {
     }
 });
 
-router.post('/send-notification', async (req, res) => {
+router.post('/send-notification', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     const { title, body, topic } = req.body;
     try {
         if (messaging && typeof messaging.send === 'function') {

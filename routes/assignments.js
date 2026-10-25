@@ -7,7 +7,7 @@ const eventBus = require('../services/event-bus');
 const { db, rawCollection } = require('../config/firebase');
 const { ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
 const logger = require('../utils/logger');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -35,7 +35,7 @@ async function loadOwnedEmployee(req, employeeId) {
  */
 
 // POST /api/assignments/resolve - Resolve assignments across all 10 modules
-router.post('/resolve', (req, res) => {
+router.post('/resolve', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const attributes = req.body || {};
         const resolution = centralAssignmentEngine.resolveAssignments(attributes);
@@ -47,7 +47,7 @@ router.post('/resolve', (req, res) => {
 });
 
 // POST /api/assignments/impact - Calculate configuration impact diff (Before vs After)
-router.post('/impact', (req, res) => {
+router.post('/impact', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const { current, prospective } = req.body;
         if (!current || !prospective) {
@@ -63,7 +63,7 @@ router.post('/impact', (req, res) => {
 
 // POST /api/assignments/transition - Apply assignment transition with effective date & history preservation.
 // Responds only after Firestore confirmed every write; on failure the in-memory engine state is rolled back.
-router.post('/transition', async (req, res) => {
+router.post('/transition', authorize(ADMIN_HR_ROLES), async (req, res) => {
     const { employeeId, newAttributes, effectiveDate, reason } = req.body || {};
     if (!employeeId || !newAttributes || typeof newAttributes !== 'object') {
         return res.status(400).json({ success: false, error: 'Missing employeeId or newAttributes' });
@@ -140,7 +140,7 @@ router.post('/transition', async (req, res) => {
 });
 
 // GET /api/assignments/matrix - Retrieve configured assignment matrix rules
-router.get('/matrix', (req, res) => {
+router.get('/matrix', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const rules = centralAssignmentEngine.getMatrixRules();
         res.status(200).json({ success: true, count: rules.length, data: rules });
@@ -151,7 +151,7 @@ router.get('/matrix', (req, res) => {
 });
 
 // GET /api/assignments/history/:employeeId - Assignment timeline history (from Firestore)
-router.get('/history/:employeeId', async (req, res) => {
+router.get('/history/:employeeId', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const empId = String(req.params.employeeId);
         const owned = await loadOwnedEmployee(req, empId);
@@ -166,7 +166,7 @@ router.get('/history/:employeeId', async (req, res) => {
 });
 
 // GET /api/assignments/active/:employeeId - Current active assignment (from Firestore)
-router.get('/active/:employeeId', async (req, res) => {
+router.get('/active/:employeeId', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const empId = String(req.params.employeeId);
         const owned = await loadOwnedEmployee(req, empId);
@@ -180,7 +180,7 @@ router.get('/active/:employeeId', async (req, res) => {
 });
 
 // POST /api/assignments/ai/scenario - Answer a plain-English "what if" question with a real impact diff
-router.post('/ai/scenario', async (req, res) => {
+router.post('/ai/scenario', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { question, current, options } = req.body || {};
         const result = await assignmentAi.answerScenario({ question, current, options });
@@ -192,7 +192,7 @@ router.post('/ai/scenario', async (req, res) => {
 });
 
 // GET /api/assignments/firebase-status - Live Firebase backend connectivity & stats
-router.get('/firebase-status', async (req, res) => {
+router.get('/firebase-status', authorize('Super Admin'), async (req, res) => {
     try {
         const { db } = require('../config/firebase');
         let assignmentsCount = 0;
@@ -235,7 +235,7 @@ router.get('/firebase-status', async (req, res) => {
 });
 
 // POST /api/assignments/sync-firebase - Trigger manual sync ping to Firebase Firestore
-router.post('/sync-firebase', async (req, res) => {
+router.post('/sync-firebase', authorize('Super Admin'), async (req, res) => {
     try {
         const { db } = require('../config/firebase');
         if (!db) {

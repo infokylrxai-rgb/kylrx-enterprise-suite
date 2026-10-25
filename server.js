@@ -12,7 +12,7 @@ require('dotenv').config();
 // Utils & Middleware
 const logger = require("./utils/logger");
 const errorHandler = require("./middleware/errorHandler");
-const { verifyToken } = require("./middleware/authMiddleware");
+const { verifyToken, authorize } = require("./middleware/authMiddleware");
 
 // Route Imports
 const authRoutes = require("./routes/auth");
@@ -201,7 +201,7 @@ app.get("/", (req, res) => {
 });
 
 // Firebase Backend Health & Status
-app.get("/api/firebase/status", verifyToken, async (req, res) => {
+app.get("/api/firebase/status", verifyToken, authorize('Super Admin'), async (req, res) => {
     try {
         const { db } = require('./config/firebase');
         const collections = ['users', 'employees', 'attendance', 'activities', 'system_intelligence'];

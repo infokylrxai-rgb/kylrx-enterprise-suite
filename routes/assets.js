@@ -78,7 +78,7 @@ function sendError(res, error, context) {
 }
 
 // GET /api/assets - This organization's inventory
-router.get('/', async (req, res) => {
+router.get('/', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const data = await orgAssets(orgOf(req));
         res.status(200).json({ success: true, count: data.length, data, source: 'firebase-admin', projectId: 'kylrxai' });
@@ -89,7 +89,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/assets/stats - Counts for this organization
-router.get('/stats', async (req, res) => {
+router.get('/stats', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const assets = await orgAssets(orgOf(req));
         res.status(200).json({
@@ -129,7 +129,7 @@ router.get('/employees', ADMIN_ONLY, async (req, res) => {
 });
 
 // GET /api/assets/logs - Latest audit entries for this organization
-router.get('/logs', async (req, res) => {
+router.get('/logs', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const data = (await orgDocs(rawCollection, 'asset_audit_logs', orgOf(req)))
             .map(l => ({ ...l, timestamp: toIso(l.timestamp) }))

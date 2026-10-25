@@ -10,7 +10,7 @@ const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
 const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
-router.use(authorize(ADMIN_HR_ROLES));
+router.use(authorize(ADMIN_HR_ROLES, 'client_executive'));
 
 /**
  * PRD Section 4: Controls, Acceptance & Client Sign-Off.

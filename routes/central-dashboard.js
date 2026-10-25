@@ -5,7 +5,7 @@ const automationEngine = require('../services/automation-engine');
 const analyticsEngine = require('../services/custom-analytics-engine');
 const logger = require('../utils/logger');
 const { admin, db, rawCollection } = require('../config/firebase');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -539,7 +539,7 @@ async function buildTenantOverview(user) {
     return data;
 }
 
-router.get('/overview', async (req, res) => {
+router.get('/overview', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     try {
         // Widget set follows the verified role; unknown roles get the narrowest view, never super_admin
         const userRole = String(req.user.role || '').toLowerCase().replace(/[s-]+/g, '_');
@@ -840,7 +840,7 @@ router.get('/overview', async (req, res) => {
  * GET /api/central-dashboard/org-structure
  * Direct endpoint to fetch zoomable organization tree
  */
-router.get('/org-structure', (req, res) => {
+router.get('/org-structure', authorize(ADMIN_HR_ROLES, 'Manager'), (req, res) => {
     try {
         const tree = generateOrgStructureTree();
         res.status(200).json({ success: true, tree });
@@ -853,7 +853,7 @@ router.get('/org-structure', (req, res) => {
  * POST /api/central-dashboard/approvals/:id/action
  * Resolve pending approval gate directly through Automation Engine
  */
-router.post('/approvals/:id/action', async (req, res) => {
+router.post('/approvals/:id/action', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     try {
         const { id } = req.params;
         const { decision, remarks } = req.body; // 'approved' | 'rejected'
@@ -930,7 +930,7 @@ router.post('/approvals/:id/action', async (req, res) => {
  * POST /api/central-dashboard/approvals/approve-all
  * Approve all pending approvals, reducing count to 0
  */
-router.post('/approvals/approve-all', async (req, res) => {
+router.post('/approvals/approve-all', authorize('Super Admin'), async (req, res) => {
     try {
         const approvedCount = pendingApprovals.length;
         for (const app of pendingApprovals) {
@@ -957,7 +957,7 @@ router.post('/approvals/approve-all', async (req, res) => {
  * POST /api/central-dashboard/zero-all
  * Zero out all top tickers (approvals, alerts, actions)
  */
-router.post('/zero-all', async (req, res) => {
+router.post('/zero-all', authorize('Super Admin'), async (req, res) => {
     try {
         pendingApprovals = [];
         criticalAlerts = [];
@@ -976,7 +976,7 @@ router.post('/zero-all', async (req, res) => {
  * GET /api/central-dashboard/firebase-status
  * Live diagnostic check for backend Firebase connection
  */
-router.get('/firebase-status', async (req, res) => {
+router.get('/firebase-status', authorize('Super Admin'), async (req, res) => {
     try {
         let isConnected = false;
         let collectionsFound = {};
@@ -1012,7 +1012,7 @@ router.get('/firebase-status', async (req, res) => {
  * POST /api/central-dashboard/sync-firebase
  * Ingest or sync test alert / telemetry into Firestore
  */
-router.post('/sync-firebase', async (req, res) => {
+router.post('/sync-firebase', authorize('Super Admin'), async (req, res) => {
     try {
         const { eventType, payload } = req.body;
         const syncId = `sync_${Date.now()}`;
@@ -1039,7 +1039,7 @@ router.post('/sync-firebase', async (req, res) => {
 /**
  * GET /api/central-dashboard/permissions
  */
-router.get('/permissions', (req, res) => {
+router.get('/permissions', authorize(ADMIN_HR_ROLES, 'Manager'), (req, res) => {
     res.status(200).json({
         success: true,
         roles: ROLE_PERMISSIONS
