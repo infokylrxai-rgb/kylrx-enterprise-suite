@@ -125,7 +125,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
     });
 
     test('8. HTML & UI Verification: admin-central-dashboard.html has all 11 widget IDs and customization drawer', () => {
-        const html = fs.readFileSync('c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/admin-central-dashboard.html', 'utf-8');
+        const html = fs.readFileSync(new URL('../admin-central-dashboard.html', import.meta.url), 'utf-8');
 
         // Verify all 11 widget elements
         assert.ok(html.includes('id="widget-attendance"'));
@@ -156,7 +156,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
         ];
 
         for (const p of pages) {
-            const content = fs.readFileSync(`c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/${p}`, 'utf-8');
+            const content = fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf-8');
             assert.ok(
                 content.includes('admin-central-dashboard.html'),
                 `Page ${p} must contain a navigation link to admin-central-dashboard.html`

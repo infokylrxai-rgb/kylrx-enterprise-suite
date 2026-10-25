@@ -5,7 +5,7 @@ import fs from 'fs';
 describe('Alert Builder - HTML & UI Structure Verification', () => {
 
     test('1. admin-alert-builder.html exists and contains core prompt rules and UI components', () => {
-        const html = fs.readFileSync('c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/admin-alert-builder.html', 'utf-8');
+        const html = fs.readFileSync(new URL('../admin-alert-builder.html', import.meta.url), 'utf-8');
         
         assert.ok(html.includes('Alert Builder'), 'Should have Alert Builder in page title');
         assert.ok(html.includes('kpiActiveMonitors'), 'Should have Active Monitors KPI');
@@ -26,7 +26,7 @@ describe('Alert Builder - HTML & UI Structure Verification', () => {
         ];
 
         for (const f of filesToCheck) {
-            const content = fs.readFileSync(`c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/${f}`, 'utf-8');
+            const content = fs.readFileSync(new URL(`../${f}`, import.meta.url), 'utf-8');
             assert.ok(
                 content.includes('admin-alert-builder.html'),
                 `File ${f} must include a navigation link to admin-alert-builder.html`
@@ -35,7 +35,7 @@ describe('Alert Builder - HTML & UI Structure Verification', () => {
     });
 
     test('3. admin-alert-builder.js contains all 5 prompt specifications', () => {
-        const js = fs.readFileSync('c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/admin-alert-builder.js', 'utf-8');
+        const js = fs.readFileSync(new URL('../admin-alert-builder.js', import.meta.url), 'utf-8');
         
         // 1. Attendance: 3 consecutive absences -> Manager + HR
         assert.ok(js.includes('alert-attendance-consecutive-absent'));

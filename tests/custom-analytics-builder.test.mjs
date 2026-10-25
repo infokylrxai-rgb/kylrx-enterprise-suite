@@ -266,7 +266,7 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
     });
 
     test('10. UI & Navigation Verification: Analytics Builder links across all Admin pages', async () => {
-        const html = fs.readFileSync('c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/admin-analytics-builder.html', 'utf-8');
+        const html = fs.readFileSync(new URL('../admin-analytics-builder.html', import.meta.url), 'utf-8');
         assert.ok(html.includes('Custom Analytics Builder'));
         assert.ok(html.includes('customAnalyticsCanvas'));
         assert.ok(html.includes('stepperBar'));
@@ -282,7 +282,7 @@ describe('Custom Analytics Builder - Domain Schemas, Aggregation Engine & Dashbo
         ];
 
         for (const page of pages) {
-            const content = fs.readFileSync(`c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/${page}`, 'utf-8');
+            const content = fs.readFileSync(new URL(`../${page}`, import.meta.url), 'utf-8');
             assert.ok(content.includes('admin-analytics-builder.html'), `Page ${page} must link to admin-analytics-builder.html in sidebar navigation`);
         }
     });
