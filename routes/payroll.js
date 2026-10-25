@@ -84,9 +84,6 @@ router.post('/disburse/webhook/decentro', payrollController.handleDecentroWebhoo
  */
 router.get('/documents/:docId/download-url', async (req, res) => {
     try {
-        if (!admin || !admin.apps || admin.apps.length === 0) {
-            return res.status(503).json({ success: false, error: 'Firebase Admin not configured' });
-        }
         const { docId } = req.params;
         const { employeeId } = req.query;
 
@@ -97,6 +94,10 @@ router.get('/documents/:docId/download-url', async (req, res) => {
         const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
         if (userRole === 'employee' && employeeId !== req.user.id) {
             return res.status(403).json({ success: false, error: 'Unauthorized: Employees may only download their own payslips' });
+        }
+
+        if (!admin || !admin.apps || admin.apps.length === 0) {
+            return res.status(503).json({ success: false, error: 'Firebase Admin not configured' });
         }
 
         const docSnap = await db.collection('payroll_documents').doc(docId).get();
