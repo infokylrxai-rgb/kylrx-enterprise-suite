@@ -38,12 +38,20 @@ const hrOsRoutes = require("./routes/hr-os");
 const policiesRoutes = require("./routes/policies");
 const assetsRoutes = require("./routes/assets");
 const exitsRoutes = require("./routes/exits");
+const attendanceAdminRoutes = require("./routes/attendance-admin");
+const leaveAdminRoutes = require("./routes/leave-admin");
 const managerGoalsRoutes = require("./routes/manager-goals");
 const employeeGoalsRoutes = require("./routes/employee-goals");
 const customTemplatesRoutes = require("./routes/custom-templates");
 const bulkTriggerRoutes = require("./routes/bulk-trigger");
 const payrollSettingsRoutes = require("./routes/payroll-settings");
 const controlsAcceptanceRoutes = require("./routes/controls-acceptance");
+const payrollComplianceRoutes = require("./routes/payroll-compliance");
+const inactivityRoutes = require("./routes/inactivity");
+const onboardingAiRoutes = require("./routes/onboarding-ai");
+const hrConsoleRoutes = require("./routes/hr-console");
+const analysisRoutes = require("./routes/analysis");
+const operationsRoutes = require("./routes/operations");
 
 const automationEngine = require("./services/automation-engine");
 
@@ -270,12 +278,20 @@ app.use("/api/hr-os", hrOsRoutes);
 app.use("/api/policies", policiesRoutes);
 app.use("/api/assets", assetsRoutes);
 app.use("/api/exits", exitsRoutes);
+app.use("/api/attendance-admin", attendanceAdminRoutes);
+app.use("/api/leave-admin", leaveAdminRoutes);
 app.use("/api/manager-goals", managerGoalsRoutes);
 app.use("/api/employee-goals", employeeGoalsRoutes);
 app.use("/api/custom-templates", customTemplatesRoutes);
 app.use("/api/bulk-trigger", bulkTriggerRoutes);
 app.use("/api/payroll-settings", payrollSettingsRoutes);
 app.use("/api/controls-acceptance", controlsAcceptanceRoutes);
+app.use("/api/payroll-compliance", payrollComplianceRoutes);
+app.use("/api/inactivity", inactivityRoutes);
+app.use("/api/onboarding-ai", onboardingAiRoutes);
+app.use("/api/hr-console", hrConsoleRoutes);
+app.use("/api/analysis", analysisRoutes);
+app.use("/api/operations", operationsRoutes);
 
 // ─────────────────────────────────────────────
 // Dynamic ESM Route Registration (Reconciliation, ESIC, Gratuity, NPS, Compliance, PF)

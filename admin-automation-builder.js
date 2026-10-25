@@ -312,8 +312,8 @@ window.addEventListener('firebase-ready', async () => {
         pill.innerHTML = `<i data-lucide="database" size="12"></i> Firebase: Connected`;
         if (window.lucide) lucide.createIcons();
     }
-    // Automatically ensure active workflow is synced to Firebase
-    await syncWorkflowToBackendAndFirebase(currentWorkflow);
+    // Nothing is saved on page load: opening the builder must not write to Firestore.
+    // Workflows are saved only by Deploy / step changes.
 });
 
 async function loadWorkflowFromBackendOrFirebase() {

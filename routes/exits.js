@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { confirmedWrite } = require('../config/firestore-write');
 const logger = require('../utils/logger');
-const { db, rawCollection } = require('../config/firebase');
+const { admin, db, rawCollection } = require('../config/firebase');
 const { orgDocs, ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
 const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
@@ -32,6 +32,42 @@ function actorOf(req) {
 
 const toIso = (t) => (t && typeof t.toDate === 'function') ? t.toDate().toISOString()
     : (t && t._seconds ? new Date(t._seconds * 1000).toISOString() : t);
+
+const selfId = (req) => req.user && (req.user.uid || req.user.id);
+
+// "SUPER_ADMIN", "super_admin", "manager Lead", "hrms" -> "Super Admin", "Manager Lead", "HR"
+const ROLE_LABELS = { hrms: 'HR', hr: 'HR', hr_admin: 'HR Admin', ceo: 'CEO', cto: 'CTO', cfo: 'CFO' };
+function roleLabel(role) {
+    const key = String(role || 'employee').trim().toLowerCase().replace(/[\s-]+/g, '_');
+    return ROLE_LABELS[key] || key.split('_').filter(Boolean).map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
+
+// Only staff with the Employee role are offboarded here (not admins, HR or managers)
+const isEmployeeRole = (p) => String(p.role || 'employee').trim().toLowerCase() === 'employee';
+
+/**
+ * Role from each account's Firebase Auth claims, keyed by uid. The sign-in role wins over the
+ * users/{uid}.role field, which can be out of date (e.g. a super admin still stored as "Employee").
+ * People without a login account are simply absent.
+ */
+async function loginRoles(ids) {
+    const roles = new Map();
+    for (let i = 0; i < ids.length; i += 100) {
+        try {
+            const { users } = await admin.auth().getUsers(ids.slice(i, i + 100).map(uid => ({ uid })));
+            users.forEach(u => {
+                const c = u.customClaims || {};
+                const role = c.role || ((c.super_admin || c.superadmin) && 'super_admin') || (c.admin && 'admin');
+                if (role) roles.set(u.uid, role);
+            });
+        } catch (err) {
+            logger.warn(`[EXIT] Could not read login roles: ${err.message}`);
+        }
+    }
+    return roles;
+}
+
+const withLoginRole = (user, roles) => (roles.has(user.id) ? { ...user, role: roles.get(user.id) } : user);
 
 const isDepartedPerson = (p) => p.onboardingStatus === 'Exited' || p.isActive === false || INACTIVE.test(String(p.employmentStatus || p.status || ''));
 
@@ -73,12 +109,17 @@ router.get('/employees', async (req, res) => {
         const orgId = orgOf(req);
         const [users, exits] = await Promise.all([orgDocs(rawCollection, 'users', orgId), orgExits(orgId)]);
         const inProgress = new Set(exits.filter(e => e.status !== 'Closed' && e.status !== 'Rejected').map(e => e.employeeId));
-        const data = users
-            .filter(u => !isDepartedPerson(u) && (u.name || u.displayName || u.email))
+        const roles = await loginRoles(users.map(u => u.id));
+        const data = users.map(u => withLoginRole(u, roles))
+            // The signed-in admin cannot offboard themselves
+            .filter(u => u.id !== selfId(req) && isEmployeeRole(u) && !isDepartedPerson(u) && (u.name || u.displayName || u.email))
             .map(u => ({
                 id: u.id,
                 name: u.name || u.displayName || u.email,
                 role: u.role || 'employee',
+                roleLabel: roleLabel(u.role),
+                email: String(u.email || '').toLowerCase(),
+                employeeCode: u.employeeId || u.employeeCode || '',
                 department: u.departmentName || u.department || '',
                 exitInProgress: inProgress.has(u.id)
             }))
@@ -140,12 +181,14 @@ router.post('/', async (req, res) => {
         if (!employeeId) return res.status(400).json({ success: false, message: 'Select an employee.' });
         if (!lwd || !Number.isFinite(Date.parse(lwd))) return res.status(400).json({ success: false, message: 'Enter a valid last working day.' });
 
+        if (String(employeeId) === selfId(req)) return res.status(400).json({ success: false, message: 'You cannot start an exit for your own account.' });
         const orgId = orgOf(req);
         const userSnap = await rawCollection('users').doc(String(employeeId)).get();
         if (!userSnap.exists || ownerOrgId(userSnap.data()) !== orgId) {
             return res.status(404).json({ success: false, message: 'Employee not found in your organization.' });
         }
-        const user = userSnap.data();
+        const user = withLoginRole({ id: userSnap.id, ...userSnap.data() }, await loginRoles([userSnap.id]));
+        if (!isEmployeeRole(user)) return res.status(400).json({ success: false, message: 'Exits can only be started for employees.' });
         if (isDepartedPerson(user)) return res.status(409).json({ success: false, message: 'This employee has already exited.' });
         const open = (await orgExits(orgId)).find(e => e.employeeId === String(employeeId) && e.status !== 'Closed' && e.status !== 'Rejected');
         if (open) return res.status(409).json({ success: false, message: `An exit is already in progress for ${open.employeeName || 'this employee'} (${open.status}).` });

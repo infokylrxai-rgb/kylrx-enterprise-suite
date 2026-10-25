@@ -42,7 +42,13 @@ function safeFirestoreWrite(writePromise, timeoutMs = 600) {
  * - Complete audit trail of issuance and verification events
  */
 class OtpVerificationService {
-    constructor() {
+    /**
+     * @param {Object} [options]
+     * @param {boolean} [options.persist=true] - Save OTP records and audit entries to Firestore.
+     *   Self-tests (controls acceptance) use a separate instance with persist: false.
+     */
+    constructor(options = {}) {
+        this.persist = options.persist !== false;
         // In-memory store for OTP records: otpId -> record
         this.otps = new Map();
         // Lookup by identifier + purpose -> latest active otpId
@@ -126,7 +132,7 @@ class OtpVerificationService {
         this.activeLookups.set(lookupKey, otpId);
 
         // Persist to Firebase Firestore
-        if (db && typeof db.collection === 'function') {
+        if (this.persist && db && typeof db.collection === 'function') {
             safeFirestoreWrite(
                 db.collection('otp_verifications').doc(otpId).set({
                     id: otpId,
@@ -260,7 +266,7 @@ class OtpVerificationService {
             });
 
             // Update Firebase Firestore on failure/lock
-            if (db && typeof db.collection === 'function') {
+            if (this.persist && db && typeof db.collection === 'function') {
                 safeFirestoreWrite(
                     db.collection('otp_verifications').doc(record.id).set({
                         status: record.status,
@@ -290,7 +296,7 @@ class OtpVerificationService {
         record.attemptsCount += 1;
 
         // Update Firebase Firestore on success
-        if (db && typeof db.collection === 'function') {
+        if (this.persist && db && typeof db.collection === 'function') {
             safeFirestoreWrite(
                 db.collection('otp_verifications').doc(record.id).set({
                     status: record.status,
@@ -371,7 +377,7 @@ class OtpVerificationService {
         if (this.auditLogs.length > 500) this.auditLogs.length = 500;
 
         // Persist audit record to Firebase Firestore
-        if (db && typeof db.collection === 'function') {
+        if (this.persist && db && typeof db.collection === 'function') {
             safeFirestoreWrite(
                 db.collection('otp_audit_logs').doc(auditEntry.logId).set(auditEntry),
                 600

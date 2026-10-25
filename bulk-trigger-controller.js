@@ -12,19 +12,68 @@
     const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : window.location.origin);
     const API_BASE = `${API_HOST}/api`;
 
-    let fbModule = null;
-    async function getFirebaseClient() {
-        if (fbModule) return fbModule;
-        if (typeof window !== 'undefined' && window.firebaseClient) {
-            fbModule = window.firebaseClient;
-            return fbModule;
+    /**
+     * Backend call: the server's message on failure, 30 s timeout. Saves are not sent while
+     * Firebase refuses writes (the server would only answer 503).
+     */
+    async function api(path, { method = 'GET', body, query = '' } = {}) {
+        if (method !== 'GET' && !(await getWriteStatus()).accepting) {
+            throw new Error('Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Nothing was sent. Please try again after the quota resets.');
         }
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 120000);
         try {
-            fbModule = await import('./firebase-config.js');
-            return fbModule;
-        } catch (e) {
-            console.warn('[BulkTrigger] Frontend Firebase module load notice:', e.message);
-            return null;
+            const res = await fetch(`${API_BASE}/bulk-trigger${path}${query}`, {
+                method,
+                headers: body ? { 'Content-Type': 'application/json' } : { Accept: 'application/json' },
+                body: body ? JSON.stringify(body) : undefined,
+                signal: controller.signal
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || json.success === false) {
+                const err = new Error(json.message || json.error || `Request failed (HTTP ${res.status})`);
+                err.body = json;
+                throw err;
+            }
+            return json;
+        } catch (err) {
+            if (err.name === 'AbortError') throw new Error('The server did not respond in time. Please try again.');
+            throw err;
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    let writeStatusCache = { at: 0, value: null };
+    async function getWriteStatus() {
+        if (writeStatusCache.value && Date.now() - writeStatusCache.at < 60000) return writeStatusCache.value;
+        try {
+            const json = await (await fetch(`${API_BASE}/firestore/write-status`)).json();
+            writeStatusCache = { at: Date.now(), value: { accepting: json.accepting !== false, localTestDatabase: json.localTestDatabase === true } };
+        } catch (_) {
+            writeStatusCache = { at: Date.now(), value: { accepting: true, localTestDatabase: false } };
+        }
+        return writeStatusCache.value;
+    }
+
+    // Banner when saves go to the local test database, or when Firebase is refusing saves
+    async function showSaveNotice() {
+        const status = await getWriteStatus();
+        let notice = document.getElementById('bulkSaveNotice');
+        if (status.accepting && !status.localTestDatabase) { notice?.remove(); return; }
+        if (!notice) {
+            notice = document.createElement('div');
+            notice.id = 'bulkSaveNotice';
+            notice.style.cssText = 'margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;';
+            const header = document.querySelector('.main-content > header, .main-content > div');
+            if (header) header.after(notice); else document.querySelector('.main-content')?.prepend(notice);
+        }
+        if (status.localTestDatabase) {
+            notice.style.background = '#eff6ff'; notice.style.color = '#1e40af'; notice.style.border = '1px solid #bfdbfe';
+            notice.textContent = 'Local test database: jobs and notifications on this page go to the local copy of your Firebase data, not the live project. No real emails are sent.';
+        } else {
+            notice.style.background = '#fffbeb'; notice.style.color = '#92400e'; notice.style.border = '1px solid #fde68a';
+            notice.textContent = 'Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Bulk jobs cannot run until the quota resets.';
         }
     }
 
@@ -156,9 +205,9 @@
         activeTab: 'trigger', // 'trigger' | 'batch_monitor' | 'otp_studio' | 'ai_builder' | 'audit_trail'
         currentAiDraft: null,
         user: {
-            id: localStorage.getItem('userId') || 'ADM-SARAH-CONNOR',
-            name: localStorage.getItem('userName') || 'Sarah Connor',
-            role: localStorage.getItem('userRole') || 'super_admin'
+            id: localStorage.getItem('userId') || '',
+            name: localStorage.getItem('userName') || '',
+            role: localStorage.getItem('userRole') || ''
         }
     };
 
@@ -169,13 +218,17 @@
     async function initBulkTriggerApp() {
         console.log('[BulkTrigger] Initializing Bulk Triggering & Batch Processing Hub...');
         updateFirebaseStatusBadge();
+        showSaveNotice();
+        showAiMode();
         loadConfig();
         bindEventListeners();
         loadAuditLogs();
-        initRealtimeFirestoreSync();
         loadAiConfigurations('all');
-        await loadRecipientsFromFirebase('auto'); // Connect and auto-load real Firebase Firestore workforce documents
+        await loadRecipientsFromFirebase(); // This organization's people
         setInterval(updateFirebaseStatusBadge, 30000);
+        setInterval(showSaveNotice, 120000);
+        // Audit trail refresh (replaces direct Firestore listeners, which saw every organization)
+        setInterval(() => { if (!document.hidden) loadAuditLogs(); }, 20000);
 
         // Handle URL query parameters (e.g. navigating directly from Section 1.3 Template Setup or Alert Builder)
         const params = new URLSearchParams(window.location.search);
@@ -206,9 +259,8 @@
 
     async function loadConfig() {
         try {
-            const res = await fetch(`${API_BASE}/bulk-trigger/config`);
-            if (res.ok) {
-                const json = await res.json();
+            const json = await api('/config');
+            {
                 state.batchSize = json.data.batchSize || 20;
                 const batchInput = document.getElementById('cfgBatchSizeInput');
                 if (batchInput) batchInput.value = state.batchSize;
@@ -229,22 +281,13 @@
         }
 
         try {
-            const res = await fetch(`${API_BASE}/bulk-trigger/config`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    batchSize: newSize,
-                    actor: state.user
-                })
-            });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error);
+            await api('/config', { method: 'PUT', body: { batchSize: newSize } });
 
             state.batchSize = newSize;
             const batchDisplay = document.getElementById('cfgBatchSizeDisplay');
             if (batchDisplay) batchDisplay.textContent = newSize;
 
-            showToast(`Batch size updated to ${newSize} items per batch!`);
+            showToast(`Batch size ${newSize} saved to Firebase.`);
             validateSelection();
         } catch (err) {
             alert('Failed to update config: ' + err.message);
@@ -255,132 +298,25 @@
        2. RECIPIENT SELECTION & PRE-POPULATION
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-    window.populateSampleRecipients = function (count = 100) {
-        return window.loadRecipientsFromFirebase('100');
-    };
-
-    window.loadRecipientsFromFirebase = async function (cohortType = 'auto') {
+    /** Loads this organization's people (exited staff are marked opted out and excluded) */
+    window.loadRecipientsFromFirebase = async function () {
         const btn = document.getElementById('btnLoadFirestoreRecipients');
         const origHtml = btn ? btn.innerHTML : '';
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = `<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span><span>Syncing Firebase...</span>`;
+            btn.innerHTML = `<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span><span>Loading…</span>`;
         }
-
         try {
-            let loadedRecipients = [];
-
-            // 1. Fetch from Node.js Express Firestore Backend
-            try {
-                const res = await fetch(`${API_BASE}/bulk-trigger/recipients/from-firestore?cohort=${cohortType}&limit=100`);
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.data && json.data.length > 0) {
-                        loadedRecipients = json.data;
-                    }
-                }
-            } catch (netErr) {
-                console.warn('[BulkTrigger] Backend Firestore endpoint fetch notice:', netErr.message);
-            }
-
-            // 2. Client-Side Firestore Web SDK fallback if backend is unreachable
-            if (loadedRecipients.length === 0 && cohortType !== '100') {
-                const fb = await getFirebaseClient();
-                if (fb && fb.db && typeof fb.getDocs === 'function' && typeof fb.collection === 'function') {
-                    try {
-                        const [uSnap, eSnap] = await Promise.all([
-                            fb.getDocs(fb.collection(fb.db, 'users')).catch(() => null),
-                            fb.getDocs(fb.collection(fb.db, 'employees')).catch(() => null)
-                        ]);
-                        const seenIds = new Set();
-                        if (uSnap && !uSnap.empty) {
-                            uSnap.forEach((d, idx) => {
-                                const data = d.data() || {};
-                                const id = data.employeeId || data.id || data.uid || d.id;
-                                if (seenIds.has(id)) return;
-                                seenIds.add(id);
-                                loadedRecipients.push({
-                                    id,
-                                    name: data.name || data.displayName || data.fullName || `Staff ${idx + 1}`,
-                                    email: (data.email || data.companyEmail || '').trim(),
-                                    phone: data.phone || data.mobile || `+9198765${String(idx + 1).padStart(5, '0')}`,
-                                    department: data.department || data.departmentName || 'Corporate',
-                                    role: data.role || data.designation || 'Staff',
-                                    consentStatus: data.consentStatus || (data.unsubscribed ? 'opted_out' : 'granted'),
-                                    source: 'firestore:users'
-                                });
-                            });
-                        }
-                        if (eSnap && !eSnap.empty) {
-                            eSnap.forEach((d, idx) => {
-                                const data = d.data() || {};
-                                const id = data.employeeId || data.id || d.id;
-                                if (seenIds.has(id)) return;
-                                seenIds.add(id);
-                                const isRelieved = data.employmentStatus === 'Relieved';
-                                loadedRecipients.push({
-                                    id,
-                                    name: data.name || `Employee (${id})`,
-                                    email: (data.email || data.companyEmail || `${id.toLowerCase()}@kylrxai.com`).trim(),
-                                    phone: data.phone || `+9198765${String(idx + 1).padStart(5, '0')}`,
-                                    department: data.department || data.businessUnit || 'Engineering',
-                                    role: data.role || data.grade || data.employeeType || 'Staff',
-                                    consentStatus: isRelieved ? 'opted_out' : (data.consentStatus || 'granted'),
-                                    source: 'firestore:employees'
-                                });
-                            });
-                        }
-                    } catch (fsErr) {
-                        console.warn('[BulkTrigger] Client Firestore direct query notice:', fsErr.message);
-                    }
-                }
-            }
-
-            // 3. Fallback to 100-batch cohort if 0 records retrieved
-            if (loadedRecipients.length === 0) {
-                const sampleDepts = ['Engineering', 'Cybersecurity', 'Human Resources', 'Operations', 'Finance', 'Product'];
-                for (let i = 1; i <= 100; i++) {
-                    const isBadEmail = (i === 42);
-                    const isOptedOut = (i === 87);
-                    loadedRecipients.push({
-                        id: `EMP-${String(i).padStart(3, '0')}`,
-                        name: `Enterprise User ${i}`,
-                        email: isBadEmail ? `invalid-email-format-${i}` : `staff.${i}@kylrxai.com`,
-                        phone: `+9198765${String(i).padStart(5, '0')}`,
-                        department: sampleDepts[i % sampleDepts.length],
-                        role: i % 10 === 0 ? 'Lead' : 'Member',
-                        consentStatus: isOptedOut ? 'opted_out' : 'granted',
-                        source: 'firestore:test_cohort'
-                    });
-                }
-            }
-
-            // 4. Update state, render table, and validate selection
-            state.recipientsList = loadedRecipients;
+            const json = await api('/recipients/from-firestore', { query: '?limit=2000' });
+            state.recipientsList = json.data || [];
             renderRecipientsTable();
             await validateSelection();
-
-            // 5. Update UI badge
             const datasetBadge = document.getElementById('firebaseDatasetBadge');
-            if (datasetBadge) {
-                if (cohortType === '100' || loadedRecipients.length >= 100) {
-                    datasetBadge.textContent = `⚡ 100 Enterprise Test Batch (5 × 20)`;
-                    datasetBadge.style.background = '#eff6ff';
-                    datasetBadge.style.color = '#2563eb';
-                    datasetBadge.style.borderColor = '#bfdbfe';
-                } else {
-                    datasetBadge.textContent = `🏢 Live Registered Staff (${loadedRecipients.length} Docs)`;
-                    datasetBadge.style.background = '#f0fdf4';
-                    datasetBadge.style.color = '#15803d';
-                    datasetBadge.style.borderColor = '#86efac';
-                }
-            }
-
-            const toastLabel = cohortType === '100' ? '100 Enterprise Test Cohort (5 Batches of 20)' : `${loadedRecipients.length} live workforce members from Firebase Firestore`;
-            showToast(`Connected to Firebase: Loaded ${toastLabel}!`);
+            if (datasetBadge) datasetBadge.textContent = `🏢 Your organization's people (${state.recipientsList.length})`;
+            showToast(state.recipientsList.length ? `Loaded ${state.recipientsList.length} people from Firebase.` : 'No people found in your organization.');
         } catch (err) {
-            console.error('[BulkTrigger] Error loading recipients from Firebase:', err);
-            showAppAlert('Failed to load from Firebase: ' + err.message, 'Database Notice', 'error');
+            console.error('[BulkTrigger] Error loading recipients:', err);
+            showAppAlert('Could not load your people from Firebase: ' + err.message, 'Database Notice', 'error');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -398,7 +334,7 @@
         if (!tbody) return;
 
         if (state.recipientsList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #64748b;">No recipients selected. Load sample batch or import records.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #64748b;">No recipients selected. Click "Load Your People".</td></tr>`;
             return;
         }
 
@@ -406,7 +342,7 @@
         const displayItems = state.recipientsList.slice(0, 50);
         tbody.innerHTML = displayItems.map((r, idx) => {
             const isOptedOut = r.consentStatus === 'opted_out';
-            const isBadEmail = !r.email.includes('@');
+            const isBadEmail = !String(r.email || '').includes('@');
 
             return `
                 <tr style="border-bottom: 1px solid var(--border); transition: background 0.15s;">
@@ -422,7 +358,7 @@
                             : '<span style="background: #dcfce7; color: #15803d; font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 4px;">Consent Granted</span>'}
                     </td>
                     <td style="padding: 10px 14px; text-align: right;">
-                        <button onclick="window.removeRecipient('${r.id}')" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Remove">✕</button>
+                        <button data-remove-recipient="${escapeHtml(r.id)}" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Remove">✕</button>
                     </td>
                 </tr>
             `;
@@ -438,6 +374,12 @@
         renderRecipientsTable();
         validateSelection();
     };
+
+    // Remove buttons carry the id as data (not inside inline code)
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-remove-recipient]');
+        if (btn) window.removeRecipient(btn.dataset.removeRecipient);
+    });
 
     window.clearAllRecipients = function () {
         state.recipientsList = [];
@@ -465,17 +407,16 @@
             const res = await fetch(`${API_BASE}/bulk-trigger/validate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: state.activeAction,
-                    recipients: state.recipientsList,
-                    actor: state.user
-                })
+                body: JSON.stringify({ action: state.activeAction, recipients: state.recipientsList })
             });
-
-            const json = await res.json();
+            const json = await res.json().catch(() => ({}));
             if (res.ok && json.data) {
                 state.validationSummary = json.data;
                 updateValidationUI(json.data);
+            } else {
+                state.validationSummary = null;
+                updateValidationUI({ totalSelected: state.recipientsList.length, validCount: 0, invalidCount: 0, estimatedBatches: 0, batchSize: state.batchSize });
+                showToast('Validation failed: ' + (json.message || json.error || res.status));
             }
         } catch (err) {
             console.warn('[BulkTrigger] Validation check failed:', err.message);
@@ -526,11 +467,116 @@
        4. EXECUTE BATCH TRIGGERING (PRD §2.1 & §2.2)
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+    /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+       AI ASSIST: compose, audience, pre-send check
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+    async function showAiMode() {
+        try {
+            const { data } = await api('/ai/status');
+            const el = document.getElementById('aiAssistMode');
+            if (el) el.textContent = data.aiConfigured ? 'AI model connected' : 'Smart templates (no AI key configured)';
+        } catch (_) {}
+    }
+
+    window.aiComposeMessage = async function () {
+        const intent = document.getElementById('aiComposeIntent')?.value.trim();
+        const out = document.getElementById('aiComposeResult');
+        if (!intent) return showToast('Describe the message first.');
+        const btn = document.getElementById('btnAiCompose');
+        btn.disabled = true;
+        out.textContent = 'Writing…';
+        try {
+            const { data } = await api('/ai/compose', { method: 'POST', body: { intent, tone: document.getElementById('aiComposeTone')?.value, action: state.activeAction } });
+            document.getElementById('triggerSubjectInput').value = data.subject;
+            document.getElementById('triggerMessageInput').value = data.body;
+            out.textContent = 'Subject and message written below — edit anything before sending.';
+            document.getElementById('aiReviewResult').innerHTML = '';
+        } catch (err) {
+            out.textContent = 'AI Compose failed: ' + err.message;
+        } finally {
+            btn.disabled = false;
+        }
+    };
+
+    window.aiSelectAudience = async function () {
+        const description = document.getElementById('aiAudienceInput')?.value.trim();
+        const out = document.getElementById('aiAudienceResult');
+        if (!description) return showToast('Describe who should receive it first.');
+        const btn = document.getElementById('btnAiAudience');
+        btn.disabled = true;
+        out.textContent = 'Selecting…';
+        try {
+            const { data } = await api('/ai/audience', { method: 'POST', body: { description } });
+            state.recipientsList = data.recipients;
+            renderRecipientsTable();
+            await validateSelection();
+            out.innerHTML = `Selected <strong>${data.matched}</strong> of ${data.of} people. ${escapeHtml(data.explanation)}`;
+            document.getElementById('aiReviewResult').innerHTML = '';
+        } catch (err) {
+            out.textContent = 'AI Audience failed: ' + err.message;
+        } finally {
+            btn.disabled = false;
+        }
+    };
+
+    function renderAiReview(review) {
+        const box = document.getElementById('aiReviewResult');
+        if (!box) return;
+        const color = review.verdict === 'ready' ? '#059669' : review.verdict === 'review' ? '#d97706' : '#dc2626';
+        const label = review.verdict === 'ready' ? 'Ready to send' : review.verdict === 'review' ? 'Review the suggestions' : 'Fix before sending';
+        const sev = { critical: ['#fef2f2', '#b91c1c'], high: ['#fff7ed', '#c2410c'], medium: ['#fffbeb', '#a16207'] };
+        box.innerHTML = `
+            <div class="ai-review-card">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <strong style="font-size: 1.25rem; color: ${color};">${review.score}<span style="font-size: 0.7rem; color: #94a3b8;">/100</span></strong>
+                    <span style="font-size: 0.78rem; font-weight: 800; color: ${color};">${label}</span>
+                </div>
+                ${review.issues.map(i => `<div class="ai-review-item" style="background: ${sev[i.severity][0]}; color: ${sev[i.severity][1]};"><strong>${escapeHtml(i.severity.toUpperCase())}</strong> · ${escapeHtml(i.message)}</div>`).join('')}
+                ${review.suggestions.map(s => `<div style="font-size: 0.76rem; color: #334155;">• ${escapeHtml(s)}</div>`).join('')}
+            </div>`;
+    }
+
+    async function runAiReview() {
+        const { data } = await api('/ai/review', {
+            method: 'POST',
+            body: {
+                subject: document.getElementById('triggerSubjectInput')?.value || '',
+                body: document.getElementById('triggerMessageInput')?.value || '',
+                action: state.activeAction,
+                recipients: state.recipientsList
+            }
+        });
+        renderAiReview(data);
+        return data;
+    }
+
+    window.aiReviewMessage = async function () {
+        const btn = document.getElementById('btnAiReview');
+        btn.disabled = true;
+        try {
+            await runAiReview();
+        } catch (err) {
+            document.getElementById('aiReviewResult').textContent = 'Check failed: ' + err.message;
+        } finally {
+            btn.disabled = false;
+        }
+    };
+
     window.startBulkTriggerExecution = async function () {
         if (!state.validationSummary || state.validationSummary.validCount === 0) {
             alert('Cannot trigger: No valid recipients found.');
             return;
         }
+
+        // Pre-send check: critical problems (e.g. asking for passwords or bank details) need confirmation
+        try {
+            const review = await runAiReview();
+            const critical = review.issues.filter(i => i.severity === 'critical');
+            if (critical.length && !window.confirm(`The pre-send check found a critical problem:\n\n${critical.map(i => '• ' + i.message).join('\n')}\n\nSend anyway?`)) {
+                return;
+            }
+        } catch (_) { /* the check is advisory; sending still validates on the server */ }
 
         const subjectInput = document.getElementById('triggerSubjectInput');
         const messageInput = document.getElementById('triggerMessageInput');
@@ -547,27 +593,16 @@
         }
 
         try {
-            const res = await fetch(`${API_BASE}/bulk-trigger/execute`, {
+            const json = await api('/execute', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: state.activeAction,
-                    recipients: state.recipientsList,
-                    payload,
-                    actor: state.user,
-                    options: {
-                        batchSize: state.batchSize
-                    }
-                })
+                body: { action: state.activeAction, recipients: state.recipientsList, payload }
             });
-
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error || 'Execution failed');
 
             const job = json.data;
             state.currentJobId = job.jobId;
 
-            showToast(`Batch execution initiated for ${job.totalItems} items!`);
+            if (json.firebaseSaved === false) showAppAlert(json.message, 'Job ran, result not saved', 'warning');
+            else showToast(`Job ${job.jobId}: ${job.successCount} succeeded, ${job.failureCount} failed of ${job.totalItems}. Saved to Firebase.`);
             switchToTab('batch_monitor');
             renderJobExecutionProgress(job);
             loadAuditLogs();
@@ -622,14 +657,11 @@
                     <div style="font-size: 2rem; margin-bottom: 6px;">📋</div>
                     <h4 style="font-size: 1rem; font-weight: 800; color: #0f172a; margin: 0 0 6px 0;">No Batch Job Currently Executing</h4>
                     <p style="font-size: 0.82rem; color: #64748b; max-width: 520px; margin: 0 auto 16px auto; line-height: 1.5;">
-                        Configure actions and recipients in <strong>Tab 1 (Trigger Configuration)</strong>, or launch a quick 100-recipient batch test across 5 groups of 20 to observe live throttling and audit verification.
+                        Choose an action and recipients in <strong>Tab 1 (Trigger Configuration)</strong>, then start the job to follow its batches here.
                     </p>
                     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                         <button onclick="switchToTab('trigger')" style="background: white; border: 1.5px solid #cbd5e1; color: #0f172a; padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
                             👈 Go to Trigger Configuration
-                        </button>
-                        <button onclick="triggerQuickTestBatch()" style="background: #2563eb; border: none; color: white; padding: 9px 18px; border-radius: 10px; font-weight: 800; font-size: 0.82rem; cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
-                            ⚡ Run 100-Item Test Batch (5 × 20)
                         </button>
                     </div>
                 </div>
@@ -830,10 +862,9 @@
         if (monitorPollTimer) clearTimeout(monitorPollTimer);
         monitorPollTimer = setTimeout(async () => {
             try {
-                const res = await fetch(`${API_BASE}/bulk-trigger/jobs/${encodeURIComponent(jobId)}`);
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.success && json.data) {
+                const json = await api(`/jobs/${encodeURIComponent(jobId)}`);
+                {
+                    if (json.data) {
                         renderJobExecutionProgress(json.data);
                         if (json.data.status !== 'queued' && json.data.status !== 'processing') {
                             loadAuditLogs();
@@ -882,18 +913,6 @@
     }
     window.refreshBatchMonitorView = refreshBatchMonitorView;
 
-    window.triggerQuickTestBatch = async function () {
-        try {
-            showToast('Loading 100-recipient batch for instant test...');
-            if (!state.recipientsList || state.recipientsList.length !== 100) {
-                await window.loadRecipientsFromFirebase('100');
-            }
-            showToast('Triggering 5 batches of 20 items...');
-            await window.startBulkTriggerExecution();
-        } catch (err) {
-            alert('Failed to trigger quick test: ' + err.message);
-        }
-    };
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        6. SAFE RETRY (PRD §2.1: Retries should avoid duplicate actions)
@@ -912,16 +931,8 @@
         }
 
         try {
-            const res = await fetch(`${API_BASE}/bulk-trigger/jobs/${encodeURIComponent(state.currentJobId)}/retry`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ actor: state.user })
-            });
-
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error);
-
-            showToast('Safe Retry pass completed! Successful items were skipped without duplicates.');
+            const json = await api(`/jobs/${encodeURIComponent(state.currentJobId)}/retry`, { method: 'POST', body: {} });
+            showToast('Safe retry completed and saved. Items that already succeeded were not sent again.');
             renderJobExecutionProgress(json.data);
             loadAuditLogs();
         } catch (err) {
@@ -952,13 +963,7 @@
             const res = await fetch(`${API_BASE}/bulk-trigger/otp/generate?devMode=true`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    identifier,
-                    purpose: 'user_verification',
-                    ttlSeconds: ttl,
-                    maxAttempts,
-                    metadata: { actor: state.user }
-                })
+                body: JSON.stringify({ identifier, purpose: 'user_verification', ttlSeconds: ttl, maxAttempts })
             });
 
             const json = await res.json();
@@ -990,11 +995,7 @@
             const res = await fetch(`${API_BASE}/bulk-trigger/otp/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    otpId,
-                    code,
-                    actor: state.user
-                })
+                body: JSON.stringify({ otpId, code })
             });
 
             const json = await res.json();
@@ -1045,8 +1046,8 @@
                 <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <span style="font-size: 0.75rem; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 6px;">${l.action}</span>
-                            <strong style="font-size: 0.85rem; color: #0f172a;">Job: ${l.jobId}</strong>
+                            <span style="font-size: 0.75rem; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 2px 6px; border-radius: 6px;">${escapeHtml(l.action)}</span>
+                            <strong style="font-size: 0.85rem; color: #0f172a;">Job: ${escapeHtml(l.jobId)}</strong>
                         </div>
                         <span style="font-size: 0.72rem; color: #64748b;">${dateStr}</span>
                     </div>
@@ -1067,67 +1068,13 @@
 
     async function loadAuditLogs() {
         try {
-            const res = await fetch(`${API_BASE}/bulk-trigger/audit-logs?limit=25`);
-            if (!res.ok) return;
-
-            const json = await res.json();
-            const logs = json.data || [];
-            renderAuditLogsHtml(logs);
+            const json = await api('/audit-logs', { query: '?limit=25' });
+            renderAuditLogsHtml(json.data || []);
         } catch (err) {
             console.warn('[BulkTrigger] Failed to load audit logs:', err);
         }
     }
     window.loadAuditLogs = loadAuditLogs;
-
-    async function initRealtimeFirestoreSync() {
-        try {
-            const fb = await getFirebaseClient();
-            if (fb && fb.db && typeof fb.onSnapshot === 'function' && typeof fb.collection === 'function') {
-                const auditColl = fb.collection(fb.db, 'bulk_trigger_audit_logs');
-                const auditQ = (typeof fb.query === 'function' && typeof fb.orderBy === 'function' && typeof fb.limit === 'function')
-                    ? fb.query(auditColl, fb.orderBy('timestamp', 'desc'), fb.limit(25))
-                    : auditColl;
-
-                fb.onSnapshot(auditQ, (snapshot) => {
-                    if (snapshot && !snapshot.empty) {
-                        const liveLogs = [];
-                        snapshot.forEach(docSnap => {
-                            const data = docSnap.data();
-                            if (data) liveLogs.push(data);
-                        });
-                        if (liveLogs.length > 0) {
-                            renderAuditLogsHtml(liveLogs);
-                        }
-                    }
-                }, (err) => {
-                    console.warn('[BulkTrigger] Real-time Firestore audit sync notice:', err.message);
-                });
-
-                // Real-time listener for bulk_trigger_jobs (PRD §2.2)
-                const jobsColl = fb.collection(fb.db, 'bulk_trigger_jobs');
-                const jobsQ = (typeof fb.query === 'function' && typeof fb.orderBy === 'function' && typeof fb.limit === 'function')
-                    ? fb.query(jobsColl, fb.orderBy('createdAt', 'desc'), fb.limit(5))
-                    : jobsColl;
-
-                fb.onSnapshot(jobsQ, (snapshot) => {
-                    if (snapshot && !snapshot.empty) {
-                        const latestDoc = snapshot.docs[0];
-                        if (latestDoc && latestDoc.data()) {
-                            const liveJob = latestDoc.data();
-                            if (!state.currentJobId || state.currentJobId === liveJob.jobId) {
-                                state.currentJobId = liveJob.jobId;
-                                renderJobExecutionProgress(liveJob);
-                            }
-                        }
-                    }
-                }, (err) => {
-                    console.warn('[BulkTrigger] Real-time Firestore jobs sync notice:', err.message);
-                });
-            }
-        } catch (e) {
-            console.warn('[BulkTrigger] Could not initialize real-time Firestore sync:', e.message);
-        }
-    }
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
        8.5 AI-ASSISTED BUILDER CONTROLLER (PRD §2.4)

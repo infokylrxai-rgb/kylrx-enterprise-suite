@@ -574,7 +574,7 @@
             <!-- ══════════════════════════════════════════════════════ -->
             <div id="tabContentCompliance" style="display: none;">
                 <!-- Statutory Regulatory KPI Banner -->
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
@@ -582,10 +582,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PF &amp; ECR Challan</div>
-                                <div id="kpiPF" style="font-size: 1.35rem; font-weight: 800; color: #2563eb;">₹0.00</div>
+                                <div id="kpiPF" style="font-size: 1.35rem; font-weight: 800; color: #2563eb;">—</div>
                             </div>
                         </div>
-                        <div id="kpiPFSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
+                        <div id="kpiPFSub" style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -593,11 +593,11 @@
                                 <i data-lucide="shield-check" size="22"></i>
                             </div>
                             <div>
-                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">ESIC Remittance</div>
-                                <div id="kpiESIC" style="font-size: 1.35rem; font-weight: 800; color: #059669;">₹0.00</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">ESIC Contribution</div>
+                                <div id="kpiESIC" style="font-size: 1.35rem; font-weight: 800; color: #059669;">—</div>
                             </div>
                         </div>
-                        <div id="kpiESICSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
+                        <div id="kpiESICSub" style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -605,11 +605,11 @@
                                 <i data-lucide="file-check" size="22"></i>
                             </div>
                             <div>
-                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Professional Tax (PT)</div>
-                                <div id="kpiPT" style="font-size: 1.35rem; font-weight: 800; color: #d97706;">₹0.00</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PT &amp; TDS (24Q)</div>
+                                <div id="kpiPT" style="font-size: 1.35rem; font-weight: 800; color: #d97706;">—</div>
                             </div>
                         </div>
-                        <div id="kpiPTSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
+                        <div id="kpiPTSub" style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -617,44 +617,58 @@
                                 <i data-lucide="scale" size="22"></i>
                             </div>
                             <div>
-                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Gratuity &amp; TDS 24Q</div>
-                                <div id="kpiGratuity" style="font-size: 1.35rem; font-weight: 800; color: #9333ea;">₹0.00</div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Gratuity &amp; NPS</div>
+                                <div id="kpiGratuity" style="font-size: 1.35rem; font-weight: 800; color: #9333ea;">—</div>
                             </div>
                         </div>
-                        <div id="kpiGratuitySub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
+                        <div id="kpiGratuitySub" style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
                 </div>
 
                 <!-- Compliance Tracker Matrix -->
                 <div class="doc-card" style="margin-bottom: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; gap: 12px; flex-wrap: wrap;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 1.1rem;">Statutory Authority Remittance &amp; Filing Hub</h3>
-                            <p style="font-size: 0.8rem; color: var(--text-muted);">Regulatory Standard: Central &amp; State Compliance Engine 2026.4</p>
+                            <h3 style="font-weight: 800; font-size: 1.1rem;">Statutory Remittance &amp; Filing Hub</h3>
+                            <p id="complianceRunInfo" style="font-size: 0.8rem; color: var(--text-muted);">From your statutory engine batches and finalized payroll runs.</p>
                         </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-outline" style="padding: 8px 12px; font-size: 0.8rem;" onclick="showToast('Re-scanning all regulatory identifiers...')"><i data-lucide="rotate-cw" size="14"></i> Re-scan Identifiers</button>
-                            <button class="btn btn-primary" style="padding: 8px 14px; font-size: 0.8rem; background: #2563eb;" onclick="showToast('Generating consolidated statutory compliance pack...')"><i data-lucide="file-archive" size="14"></i> Export Filing Pack</button>
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Month
+                                <select id="compliancePeriod" onchange="loadComplianceStats(this.value)" style="margin-left: 6px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.8rem; font-family: inherit;"></select>
+                            </label>
+                            <button class="btn btn-outline" id="btnRescanIdentifiers" style="padding: 8px 12px; font-size: 0.8rem;" onclick="rescanStatutoryIdentifiers()"><i data-lucide="rotate-cw" size="14"></i> Re-scan Identifiers</button>
+                            <button class="btn btn-primary" id="btnExportFilingPack" style="padding: 8px 14px; font-size: 0.8rem; background: #2563eb;" onclick="exportFilingPack()"><i data-lucide="file-archive" size="14"></i> Export Filing Pack</button>
                         </div>
                     </div>
-                    <table class="doc-table">
-                        <thead>
-                            <tr>
-                                <th>STATUTORY ACT / HEAD</th>
-                                <th>REGULATORY BODY</th>
-                                <th>COVERED MEMBERS</th>
-                                <th>EMPLOYER SHARE</th>
-                                <th>EMPLOYEE SHARE</th>
-                                <th>TOTAL REMITTED</th>
-                                <th>CHALLAN / TRRN</th>
-                                <th>STATUS</th>
-                                <th>ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody id="complianceTableBody">
-                            <tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading statutory data from Firebase...</td></tr>
-                        </tbody>
-                    </table>
+                    <div style="overflow-x: auto;">
+                        <table class="doc-table">
+                            <thead>
+                                <tr>
+                                    <th>STATUTORY ACT / HEAD</th>
+                                    <th>REGULATORY BODY</th>
+                                    <th>COVERED MEMBERS</th>
+                                    <th>EMPLOYER SHARE</th>
+                                    <th>EMPLOYEE SHARE</th>
+                                    <th>TOTAL</th>
+                                    <th>FILE / REFERENCE</th>
+                                    <th>STATUS</th>
+                                    <th>RECONCILIATION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="complianceTableBody">
+                                <tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading statutory data from Firebase...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Statutory identifiers check -->
+                <div class="doc-card" id="identifierCheckCard" style="margin-bottom: 2rem; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-weight: 800; font-size: 1.05rem;">Statutory Identifiers on Record</h3>
+                        <span id="identifierCheckedAt" style="font-size: 0.75rem; color: var(--text-muted);"></span>
+                    </div>
+                    <div id="identifierCheckBody"></div>
                 </div>
             </div> <!-- /tabContentCompliance -->
         </main>
@@ -763,7 +777,8 @@
                     // window.location.href = 'login.html';
                     // Set all disbursement KPIs to zero when not authenticated
                     setDisbursementKPIsZero();
-                    setComplianceKPIsZero();
+                    const ctb = document.getElementById('complianceTableBody');
+                    if (ctb) ctb.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">Sign in to view statutory compliance.</td></tr>';
                 }
             });
             if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons();
@@ -1137,163 +1152,179 @@
         // COMPLIANCE TAB – FIREBASE BACKEND SYNC
         // ─────────────────────────────────────────────
 
-        function setComplianceKPIsZero() {
-            const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-            setEl('kpiPF', '₹0.00');
-            setEl('kpiPFSub', 'No PF Data — 0 Members Covered');
-            setEl('kpiESIC', '₹0.00');
-            setEl('kpiESICSub', 'No ESIC Data — 0 Eligible Members');
-            setEl('kpiPT', '₹0.00');
-            setEl('kpiPTSub', 'No PT Data — 0 Personnel');
-            setEl('kpiGratuity', '₹0.00');
-            setEl('kpiGratuitySub', 'No Gratuity Data — 0 Headcount');
-            const tbody = document.getElementById('complianceTableBody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">No statutory records found.</td></tr>';
+        /* ━━━━━━━━━━━━ STATUTORY COMPLIANCE (backend: /api/payroll-compliance) ━━━━━━━━━━━━ */
+
+        // Text from Firestore is escaped before it is placed into HTML
+        const escC = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        const inrExact = (n) => `₹${Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+        let complianceData = null;
+
+        async function complianceApi(path) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 30000);
+            try {
+                const res = await fetch(`/api/payroll-compliance${path}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || json.success === false) throw new Error(json.message || json.error || `Request failed (HTTP ${res.status})`);
+                return json.data;
+            } catch (err) {
+                if (err.name === 'AbortError') throw new Error('The server did not respond in time.');
+                throw err;
+            } finally {
+                clearTimeout(timer);
+            }
         }
 
-        window.loadComplianceStats = async function() {
+        const monthLabel = (p) => { const [y, m] = String(p).split('-'); return new Date(Number(y), Number(m) - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' }); };
+
+        function statusBadge(h) {
+            const s = h.status;
+            const good = /PROCESSED|COMPLETED|VALIDATED|DEDUCTED|APPROVED|FILED/.test(s);
+            const bad = h.blocking > 0 || /BLOCK|FAIL|REJECT/.test(s);
+            const style = bad ? 'background:#fef2f2;color:#b91c1c' : good ? 'background:#ecfdf5;color:#059669' : 'background:#fef3c7;color:#b45309';
+            return `<span class="badge" style="${style};">${escC(s)}</span>${h.blocking ? `<div style="font-size:0.68rem;color:#b91c1c;margin-top:3px;">${h.blocking} blocking exception(s)</div>` : ''}`;
+        }
+
+        function reconciliationCell(h) {
+            if (!h.reconciliation) return '<span style="font-size:0.75rem;color:var(--text-muted);">—</span>';
+            const r = h.reconciliation;
+            return r.matches
+                ? `<span style="font-size:0.75rem;color:#059669;font-weight:700;">✓ Matches payroll run</span>`
+                : `<span style="font-size:0.75rem;color:#b91c1c;font-weight:700;" title="Payroll run total ${inrExact(r.payrollRunTotal)}">Differs by ${inrExact(Math.abs(r.difference))}</span>`;
+        }
+
+        window.loadComplianceStats = async function (period) {
             const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
             const tbody = document.getElementById('complianceTableBody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">Syncing statutory data with Firebase...</td></tr>';
-
+            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading statutory data from Firebase...</td></tr>';
             try {
-                const snap = await getDocs(collection(db, 'payroll_documents'));
+                const data = await complianceApi(`/overview${period ? `?period=${encodeURIComponent(period)}` : ''}`);
+                complianceData = data;
 
-                let pfTotal = 0, pfCount = 0;
-                let esicTotal = 0, esicCount = 0;
-                let ptTotal = 0, ptCount = 0;
-                let gratuityTotal = 0, tdsTotal = 0;
-                let totalPersonnel = 0;
-                const tableRows = [];
-
-                snap.forEach(d => {
-                    const data = d.data();
-                    const pf = Number(data.pfAmount || 0);
-                    const esic = Number(data.esicAmount || 0);
-                    const pt = Number(data.ptAmount || 0);
-                    const gratuity = Number(data.gratuityAmount || 0);
-                    const tds = Number(data.tdsAmount || data.deductions || 0);
-
-                    if (pf > 0) { pfTotal += pf * 2; pfCount++; }   // employer + employee share
-                    if (esic > 0) { esicTotal += esic; esicCount++; }
-                    if (pt > 0) { ptTotal += pt; ptCount++; }
-                    gratuityTotal += gratuity;
-                    tdsTotal += tds;
-                    totalPersonnel++;
-
-                    if (pf > 0 || esic > 0 || pt > 0 || gratuity > 0) {
-                        tableRows.push({
-                            name: data.employeeName || 'Unknown',
-                            period: data.period || '—',
-                            pf, esic, pt, gratuity, tds,
-                            status: data.status || 'Pending'
-                        });
-                    }
-                });
-
-                const month = new Date().toLocaleString('default', { month: 'long' });
-                const year = new Date().getFullYear();
-
-                // Update KPI cards
-                setEl('kpiPF', fmtRs(pfTotal));
-                setEl('kpiPFSub', pfTotal > 0 ? `TRRN Validated • ${pfCount} Covered Members` : 'No PF data — 0 Members');
-                setEl('kpiESIC', fmtRs(esicTotal));
-                setEl('kpiESICSub', esicTotal > 0 ? `Monthly Return Filed • ${esicCount} Eligible` : 'No ESIC data — 0 Members');
-                setEl('kpiPT', fmtRs(ptTotal));
-                setEl('kpiPTSub', ptTotal > 0 ? `State PT Portal Form 5 • ${ptCount} Personnel` : 'No PT data — 0 Personnel');
-                const gratuityAndTDS = gratuityTotal + tdsTotal;
-                setEl('kpiGratuity', fmtRs(gratuityAndTDS));
-                setEl('kpiGratuitySub', gratuityAndTDS > 0 ? 'Nominee Trust & TDS 24Q Reconciled' : 'No Gratuity/TDS data found');
-
-                // Populate table
-                if (!tbody) return;
-                if (tableRows.length === 0) {
-                    // Show zero-state summary rows using aggregated data from payroll_documents
-                    tbody.innerHTML = `
-                        <tr>
-                            <td>
-                                <div style="font-weight: 700; color: var(--text-main);">Provident Fund (EPF &amp; EPS)</div>
-                                <div style="font-size: 0.7rem; color: var(--text-muted);">Act 1952 • ECR Monthly</div>
-                            </td>
-                            <td>EPFO Govt of India</td>
-                            <td>${pfCount} Members</td>
-                            <td style="font-weight: 600;">${fmtRs(pfTotal / 2)}</td>
-                            <td style="font-weight: 600;">${fmtRs(pfTotal / 2)}</td>
-                            <td style="font-weight: 800; color: #2563eb;">${fmtRs(pfTotal)}</td>
-                            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Auto-Generated</code></td>
-                            <td><span class="badge" style="background: ${pfTotal > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${pfTotal > 0 ? 'Computed' : 'No Data'}</span></td>
-                            <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No ECR challan available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> View</button></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div style="font-weight: 700; color: var(--text-main);">Employee State Insurance (ESI)</div>
-                                <div style="font-size: 0.7rem; color: var(--text-muted);">ESI Act 1948 • Monthly</div>
-                            </td>
-                            <td>ESIC Corporation</td>
-                            <td>${esicCount} Eligible</td>
-                            <td style="font-weight: 600;">${fmtRs(esicTotal * 0.72)}</td>
-                            <td style="font-weight: 600;">${fmtRs(esicTotal * 0.28)}</td>
-                            <td style="font-weight: 800; color: #059669;">${fmtRs(esicTotal)}</td>
-                            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Auto-Generated</code></td>
-                            <td><span class="badge" style="background: ${esicTotal > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${esicTotal > 0 ? 'Computed' : 'No Data'}</span></td>
-                            <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No ESIC challan available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> View</button></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div style="font-weight: 700; color: var(--text-main);">Professional Tax (PT)</div>
-                                <div style="font-size: 0.7rem; color: var(--text-muted);">State Tax Authority • Form 5</div>
-                            </td>
-                            <td>Commercial Taxes Dept</td>
-                            <td>${ptCount} Personnel</td>
-                            <td style="font-weight: 600;">₹0</td>
-                            <td style="font-weight: 600;">${fmtRs(ptTotal)}</td>
-                            <td style="font-weight: 800; color: #d97706;">${fmtRs(ptTotal)}</td>
-                            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Auto-Generated</code></td>
-                            <td><span class="badge" style="background: ${ptTotal > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${ptTotal > 0 ? 'Computed' : 'No Data'}</span></td>
-                            <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No PT challan available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> View</button></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div style="font-weight: 700; color: var(--text-main);">Gratuity &amp; TDS 24Q</div>
-                                <div style="font-size: 0.7rem; color: var(--text-muted);">Gratuity Act 1972 • Accruals + TDS</div>
-                            </td>
-                            <td>Internal Statutory Reserve</td>
-                            <td>${totalPersonnel} Headcount</td>
-                            <td style="font-weight: 600;">${fmtRs(gratuityTotal)}</td>
-                            <td style="font-weight: 600;">${fmtRs(tdsTotal)}</td>
-                            <td style="font-weight: 800; color: #9333ea;">${fmtRs(gratuityAndTDS)}</td>
-                            <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">Auto-Generated</code></td>
-                            <td><span class="badge" style="background: ${gratuityAndTDS > 0 ? '#ecfdf5; color: #059669' : '#fef3c7; color: #d97706'};"> ${gratuityAndTDS > 0 ? 'Reconciled' : 'No Data'}</span></td>
-                            <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('No Gratuity certificate available. Run payroll batch first.')"><i data-lucide="file-text" size="12"></i> Audit</button></td>
-                        </tr>`;
-                    if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(tbody);
-                    else if (window.lucide) lucide.createIcons();
+                const select = document.getElementById('compliancePeriod');
+                if (select) {
+                    select.innerHTML = data.periods.length
+                        ? data.periods.map(p => `<option value="${escC(p)}" ${p === data.period ? 'selected' : ''}>${escC(monthLabel(p))}</option>`).join('')
+                        : '<option value="">No months yet</option>';
+                }
+                if (!data.period) {
+                    ['kpiPF', 'kpiESIC', 'kpiPT', 'kpiGratuity'].forEach(id => setEl(id, '₹0'));
+                    ['kpiPFSub', 'kpiESICSub', 'kpiPTSub', 'kpiGratuitySub'].forEach(id => setEl(id, 'No statutory batches or finalized payroll yet'));
+                    setEl('complianceRunInfo', 'Finalize a payroll run to generate PF, ESIC, NPS and gratuity batches.');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-muted);">No statutory records yet. Finalize a payroll run to generate them.</td></tr>';
                     return;
                 }
 
-                // If per-employee rows exist, render them grouped by type
-                tbody.innerHTML = tableRows.map(r => `
+                const h = Object.fromEntries(data.heads.map(x => [x.key, x]));
+                const sub = (x) => x.processed || /DEDUCTED/.test(x.status) ? `${x.members} member(s) • ${x.status.toLowerCase()}` : x.status.toLowerCase();
+                setEl('kpiPF', inrExact(h.pf.total));
+                setEl('kpiPFSub', sub(h.pf));
+                setEl('kpiESIC', inrExact(h.esic.total));
+                setEl('kpiESICSub', sub(h.esic));
+                setEl('kpiPT', inrExact(h.pt.total + h.tds.total));
+                setEl('kpiPTSub', data.payrollRun ? `PT ${inrExact(h.pt.total)} • TDS ${inrExact(h.tds.total)}` : 'No finalized payroll run');
+                setEl('kpiGratuity', inrExact(h.gratuity.total + h.nps.total));
+                setEl('kpiGratuitySub', `Gratuity ${inrExact(h.gratuity.total)} • NPS ${inrExact(h.nps.total)}`);
+                setEl('complianceRunInfo', data.payrollRun
+                    ? `${monthLabel(data.period)} · payroll run ${data.payrollRun.id} (${data.payrollRun.status}, ${data.payrollRun.employees} employee line(s)) · amounts from your statutory batches`
+                    : `${monthLabel(data.period)} · no finalized payroll run for this month; amounts from statutory batches only`);
+
+                if (!tbody) return;
+                tbody.innerHTML = data.heads.map(x => `
                     <tr>
                         <td>
-                            <div style="font-weight: 700; color: var(--text-main);">${r.name}</div>
-                            <div style="font-size: 0.7rem; color: var(--text-muted);">${r.period}</div>
+                            <div style="font-weight: 700; color: var(--text-main);">${escC(x.name)}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">${escC(x.act)}</div>
+                            ${x.notes.length ? `<div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">${x.notes.map(escC).join(' ')}</div>` : ''}
                         </td>
-                        <td>EPFO / ESIC / State</td>
-                        <td>—</td>
-                        <td style="font-weight: 600;">${fmtRs(r.pf)}</td>
-                        <td style="font-weight: 600;">${fmtRs(r.esic + r.pt)}</td>
-                        <td style="font-weight: 800; color: #2563eb;">${fmtRs(r.pf + r.esic + r.pt + r.gratuity)}</td>
-                        <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">System Record</code></td>
-                        <td><span class="badge" style="background: #ecfdf5; color: #059669;">${r.status}</span></td>
-                        <td><button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="showToast('Viewing statutory record for ${r.name}...')"><i data-lucide="file-text" size="12"></i> View</button></td>
+                        <td>${escC(x.body)}</td>
+                        <td>${escC(x.members)}</td>
+                        <td style="font-weight: 600;">${inrExact(x.employerShare)}</td>
+                        <td style="font-weight: 600;">${inrExact(x.employeeShare)}</td>
+                        <td style="font-weight: 800; color: #2563eb;">${inrExact(x.total)}</td>
+                        <td>${x.file || x.reference
+                            ? `<code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">${escC(x.reference || x.file)}</code>${x.batchId ? `<div style="font-size:0.66rem;color:var(--text-muted);margin-top:2px;">${escC(x.batchId)}</div>` : ''}`
+                            : `<span style="font-size:0.75rem;color:var(--text-muted);">${x.batchId ? escC(x.batchId) : 'Not generated'}</span>`}</td>
+                        <td>${statusBadge(x)}</td>
+                        <td>${reconciliationCell(x)}</td>
                     </tr>`).join('');
                 if (typeof window.renderLucideIcons === 'function') window.renderLucideIcons(tbody);
                 else if (window.lucide) lucide.createIcons();
-
             } catch (err) {
                 console.error('loadComplianceStats error:', err);
-                setComplianceKPIsZero();
+                if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: #b91c1c;">Could not load statutory data: ${escC(err.message)}</td></tr>`;
                 showToast('Failed to load compliance data: ' + err.message, true);
+            }
+        };
+
+        // Re-scan: statutory identifiers of the company and employees, from Firebase
+        window.rescanStatutoryIdentifiers = async function () {
+            const btn = document.getElementById('btnRescanIdentifiers');
+            const card = document.getElementById('identifierCheckCard');
+            const body = document.getElementById('identifierCheckBody');
+            btn.disabled = true;
+            card.style.display = 'block';
+            body.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Checking identifiers…</p>';
+            try {
+                const d = await complianceApi('/identifiers');
+                const color = { ok: '#059669', missing: '#b91c1c', 'invalid format': '#b91c1c', 'not set': '#b45309' };
+                document.getElementById('identifierCheckedAt').textContent = `Checked ${new Date(d.checkedAt).toLocaleString()}`;
+                body.innerHTML = `
+                    <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Company (${d.summary.companyOk}/${d.summary.companyChecked} in order)</div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 1rem;">
+                        ${d.company.map(c => `<div style="border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">${escC(c.label)}</div>
+                            <div style="font-size: 0.82rem; font-weight: 800; color: ${color[c.status]};">${c.status === 'ok' ? '✓ ' + escC(c.value) : escC(c.status)}</div>
+                        </div>`).join('')}
+                    </div>
+                    <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Employees (${d.summary.employeesChecked - d.summary.employeesWithIssues}/${d.summary.employeesChecked} complete)</div>
+                    <table class="doc-table"><thead><tr><th>EMPLOYEE</th><th>DEPARTMENT</th><th>IDENTIFIERS</th></tr></thead><tbody>
+                        ${d.employees.map(e => `<tr><td style="font-weight: 700;">${escC(e.name)}</td><td>${escC(e.department || '—')}</td><td>${e.issues.length
+                            ? e.issues.map(i => `<span class="badge" style="background:#fef2f2;color:#b91c1c;margin:0 4px 4px 0;display:inline-block;">${escC(i)}</span>`).join('')
+                            : '<span class="badge" style="background:#ecfdf5;color:#059669;">✓ PAN & UAN on record</span>'}</td></tr>`).join('')}
+                    </tbody></table>
+                    <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 8px;">PF ECR needs each member's UAN; TDS (24Q) needs PAN. Add missing values in the employee records before filing.</p>`;
+                showToast(`Identifiers checked: ${d.summary.employeesWithIssues} employee(s) need attention.`);
+            } catch (err) {
+                body.innerHTML = `<p style="color: #b91c1c; font-size: 0.85rem;">Re-scan failed: ${escC(err.message)}</p>`;
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        // Export: the month's statutory summary and employee lines as a CSV pack
+        window.exportFilingPack = async function () {
+            const period = document.getElementById('compliancePeriod')?.value;
+            if (!period) return showToast('No month with statutory data to export yet.', true);
+            const btn = document.getElementById('btnExportFilingPack');
+            btn.disabled = true;
+            try {
+                const d = await complianceApi(`/filing-pack?period=${encodeURIComponent(period)}`);
+                const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+                const lines = [
+                    ['Statutory filing pack', monthLabel(d.period)].map(cell).join(','),
+                    ['Generated', new Date(d.generatedAt).toLocaleString('en-IN')].map(cell).join(','),
+                    ['Payroll run', d.payrollRun ? `${d.payrollRun.id} (${d.payrollRun.status})` : 'none finalized'].map(cell).join(','),
+                    '',
+                    ['Head', 'Act', 'Authority', 'Members', 'Employer share', 'Employee share', 'Total', 'Batch', 'File / reference', 'Status', 'Blocking exceptions', 'Payroll run total', 'Difference'].map(cell).join(','),
+                    ...d.heads.map(h => [h.name, h.act, h.body, h.members, h.employerShare, h.employeeShare, h.total, h.batchId || '', h.reference || h.file || '', h.status, h.blocking, h.reconciliation ? h.reconciliation.payrollRunTotal : '', h.reconciliation ? h.reconciliation.difference : ''].map(cell).join(',')),
+                    ['Total', '', '', '', d.totals.employer, d.totals.employee, d.totals.total].map(cell).join(','),
+                    '',
+                    ['Employee ID', 'Name', 'PF employee', 'PF employer', 'ESIC employee', 'ESIC employer', 'NPS employee', 'NPS employer', 'PT', 'TDS', 'Gratuity provision'].map(cell).join(','),
+                    ...d.employeeLines.map(e => [e.id, e.name, e.pfEe, e.pfEr, e.esicEe, e.esicEr, e.npsEe, e.npsEr, e.pt, e.tds, e.gratuity].map(cell).join(','))
+                ];
+                const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `Statutory_Filing_Pack_${d.period}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 200);
+                showToast(`Filing pack for ${monthLabel(d.period)} downloaded. Upload the ECR/ESIC files from the statutory engine on the government portals.`);
+            } catch (err) {
+                showToast('Export failed: ' + err.message, true);
+            } finally {
+                btn.disabled = false;
             }
         };
 

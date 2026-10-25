@@ -13,12 +13,13 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
     <style>
         .exit-pipeline {
-            display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1.5rem;
+            /* Four equal stage columns that always fit the screen; they wrap on narrow screens */
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; padding-bottom: 1.5rem;
             scrollbar-width: thin; 
         }
 
         .pipeline-column {
-            min-width: 300px; background: #f8fafc; border-radius: 20px; padding: 1.25rem;
+            min-width: 0; background: #f8fafc; border-radius: 20px; padding: 1.25rem;
             border: 1px solid var(--border);
         }
 
@@ -365,7 +366,7 @@
 
     <script type="module">
         import { db, onSnapshot, registerListener } from "./firebase-config.js";
-        import { getExits, getExitAnalytics, getExitEmployees, initiateExit, advanceExit, updateExitChecklist, finalizeExit } from "./exit-workflow-service.js?v=2";
+        import { getExits, getExitAnalytics, getExitEmployees, initiateExit, advanceExit, updateExitChecklist, finalizeExit, getWriteStatus } from "./exit-workflow-service.js?v=3";
 
         // Text from Firestore is escaped before it is placed into HTML
         const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -401,7 +402,33 @@
             loadEmployees();
             renderPipeline();
             renderAnalytics();
+            showSaveNotice();
         }
+
+        // Explains when saves go to the local test database, or are paused because Firebase
+        // refuses writes (saves are then not sent at all - see exit-workflow-service.js)
+        async function showSaveNotice() {
+            const status = await getWriteStatus();
+            document.getElementById('exitSaveNotice')?.remove();
+            let text = '', bg = '', border = '', color = '';
+            if (status.localTestDatabase) {
+                text = 'Local test database: changes are saved on this computer only (Firestore emulator) and do not reach the live Firebase project.';
+                bg = '#eff6ff'; border = '#93c5fd'; color = '#1e40af';
+            } else if (!status.accepting) {
+                text = 'Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Viewing works normally; starting, advancing and closing exits will work again once the quota resets.';
+                bg = '#fffbeb'; border = '#fcd34d'; color = '#92400e';
+            } else {
+                return;
+            }
+            const notice = document.createElement('div');
+            notice.id = 'exitSaveNotice';
+            notice.setAttribute('role', 'status');
+            notice.style.cssText = `margin: 0 0 1.5rem; padding: 0.9rem 1.2rem; border-radius: 12px; background: ${bg}; border: 1px solid ${border}; color: ${color}; font-size: 0.85rem; font-weight: 600;`;
+            notice.textContent = text;
+            const header = document.querySelector('.main-content > header');
+            header ? header.after(notice) : document.querySelector('.main-content').prepend(notice);
+        }
+        setInterval(showSaveNotice, 2 * 60 * 1000);
 
         async function renderAnalytics() {
             try {
@@ -587,12 +614,20 @@
                 const people = await getExitEmployees();
                 const select = document.getElementById('exitEmp');
                 [...select.querySelectorAll('option')].forEach(o => { if (o.value) o.remove(); });
+                select.options[0].textContent = people.length ? 'Select Employee' : 'No active employees to offboard';
+                // Nothing to launch until someone with the Employee role is active
+                const launchBtn = document.getElementById('btnConfirmExit');
+                launchBtn.disabled = !people.length;
+                launchBtn.style.opacity = people.length ? '' : '0.5';
+                launchBtn.title = people.length ? '' : 'Add employees through onboarding first';
                 people.forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p.id;
                     opt.setAttribute('data-name', p.name);
-                    const roleLabel = p.role ? p.role.charAt(0).toUpperCase() + p.role.slice(1) : 'Employee';
-                    opt.textContent = `${p.name} (${roleLabel}${p.department ? ' · ' + p.department : ''})${p.exitInProgress ? ' — exit in progress' : ''}`;
+                    // Role · department, plus email so people with the same name can be told apart
+                    const details = [p.roleLabel || 'Employee', p.department, p.email || p.employeeCode].filter(Boolean).join(' · ');
+                    opt.textContent = `${p.name} (${details})${p.exitInProgress ? ' — exit in progress' : ''}`;
+                    opt.title = [p.email, p.employeeCode].filter(Boolean).join(' · ');
                     opt.disabled = p.exitInProgress;
                     select.appendChild(opt);
                 });

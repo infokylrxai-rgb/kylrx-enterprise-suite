@@ -50,6 +50,7 @@
             --secondary: #0ea5e9;
             --accent: #06b6d4;
             --danger: #ef4444;
+            --success: #10b981;
             --bg: #ffffff;
             --bg-soft: #f8fafc;
             --sidebar: #ffffff;
@@ -286,7 +287,9 @@
             justify-content: space-between;
             align-items: center;
             position: sticky;
-            top: 0;
+            /* .main-content is the scroll container (sidebar-lock.css) and sticky offsets start inside
+               its 2.5rem padding, so -2.5rem pins the bar to the very top instead of 40px down */
+            top: -2.5rem;
             z-index: 100;
             margin: -2.5rem -2.5rem 2rem -2.5rem;
         }
@@ -1879,6 +1882,11 @@
                     const userDoc = await getDoc(doc(db, 'users', user.uid));
                     if (userDoc.exists()) data = userDoc.data();
                 } catch (e) { console.warn("Profile fetch error", e); }
+                // The role on the login (custom claims, set only by the server) is authoritative
+                try {
+                    const claims = (await user.getIdTokenResult()).claims || {};
+                    if (claims.role) data = { ...(data || {}), role: String(claims.role).replace(/_/g, ' ') };
+                } catch (_) {}
 
                 if (!data) {
                     data = {

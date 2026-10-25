@@ -816,24 +816,23 @@
     </div>
 
     <script type="module">
-        import { auth, db, doc, getDoc, collection, getDocs, onSnapshot, onAuthStateChanged, checkBackendFirebaseStatus, registerListener } from "./firebase-config.js";
-        
-        import { 
-            getAllAttendanceLogs, 
-            listenToAttendanceLogs, 
-            listenToPendingRegularizations, 
-            listenToAllRegularizations, 
-            processRegularization, 
-            submitRegularization, 
-            listenToAttendanceStats, 
-            listenToShifts, 
-            getShifts, 
-            addShift, 
-            deleteShift, 
-            seedSampleRegularizationsIfEmpty, 
-            seedDefaultShiftsIfEmpty, 
-            seedSampleAttendanceIfEmpty 
-        } from "./attendance-service.js";
+        import { auth, db, doc, getDoc, onAuthStateChanged, checkBackendFirebaseStatus } from "./firebase-config.js";
+
+        // Attendance data comes from the backend (/api/attendance-admin), limited to this organization
+        import {
+            subscribeOverview,
+            getOverview,
+            computeStats,
+            localDateStr,
+            decideRegularization,
+            raiseRegularization,
+            addShift,
+            deleteShift,
+            getWriteStatus
+        } from "./attendance-admin-service.js?v=2";
+
+        // Text from Firestore is escaped before it is placed into HTML
+        const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
         // Global State
         let currentLogs = [];
@@ -844,17 +843,22 @@
         let currentFilters = { status: 'All', type: 'All', period: 'today', startDate: '', endDate: '' };
         let activeRegModalTab = 'All';
         let rejectingRequestId = null;
-        let currentActorId = 'admin';
+        let holidays = [];
+        let weeklyOff = 'sat-sun';
 
         // Toast Helper
+        // A new message restarts the timer, so it is not hidden early by the previous one's
+        const toastTimers = {};
         window.showToast = (msg, isError = false) => {
             const id = isError ? 'errorToast' : 'successToast';
             const toast = document.getElementById(id);
             if (!toast) return;
+            document.getElementById(isError ? 'successToast' : 'errorToast')?.classList.remove('active');
             toast.querySelector('span').textContent = msg;
             toast.classList.add('active');
             if (window.lucide) lucide.createIcons();
-            setTimeout(() => toast.classList.remove('active'), 3200);
+            clearTimeout(toastTimers[id]);
+            toastTimers[id] = setTimeout(() => toast.classList.remove('active'), isError ? 6000 : 3200);
         };
 
         // Filter Logic for Timeline Logs
@@ -874,8 +878,7 @@
                     const today = new Date();
                     
                     if (filters.period === 'today') {
-                        const todayStr = today.toISOString().split('T')[0];
-                        if (log.date !== todayStr) match = false;
+                        if (log.date !== localDateStr(today)) match = false;
                     } else if (filters.period === 'custom') {
                         if (filters.startDate && log.date < filters.startDate) match = false;
                         if (filters.endDate && log.date > filters.endDate) match = false;
@@ -903,7 +906,7 @@
                     <div style="text-align:center; padding:3rem 1.5rem; color:var(--text-muted);">
                         <i data-lucide="clock" style="width:36px; height:36px; margin:0 auto 12px; opacity:0.4;"></i>
                         <p style="font-weight:700; font-size:0.95rem; margin-bottom:4px;">No Attendance Punches Found</p>
-                        <p style="font-size:0.8rem;">No punches recorded for the selected filter (${currentFilters.period}). Change filters or select 'All-Time'.</p>
+                        <p style="font-size:0.8rem;">No punches recorded for the selected filter (${esc(currentFilters.period)}). Change filters or select 'All-Time'.</p>
                     </div>
                 `;
                 if (window.lucide) lucide.createIcons();
@@ -930,12 +933,13 @@
                     <span class="time-badge" style="color: var(--text-muted);">${outStr}</span>
                     <div>
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 700; margin:0;">${log.userName || log.name || 'Employee'}</h4>
+                            <h4 style="font-size: 0.9rem; font-weight: 700; margin:0;">${esc(log.userName || log.name || 'Employee')}</h4>
                             ${log.regularized ? '<span style="font-size:0.62rem; font-weight:800; background:#ecfdf5; color:#059669; padding:2px 6px; border-radius:6px; border:1px solid #a7f3d0;">REGULARIZED</span>' : ''}
+                            ${log.isManualOverride ? '<span style="font-size:0.62rem; font-weight:800; background:#eff6ff; color:#2563eb; padding:2px 6px; border-radius:6px; border:1px solid #bfdbfe;">ADJUSTED</span>' : ''}
                         </div>
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top:2px;">${log.department || 'General'} • ${log.type || 'Office'} • ${log.date || ''}</p>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top:2px;">${esc(log.department || 'General')} • ${esc(log.type || 'Office')} • ${esc(log.date || '')}</p>
                     </div>
-                    <span class="status-badge ${statusClass}">${log.status || 'Present'}</span>
+                    <span class="status-badge ${statusClass}">${esc(log.status || 'Present')}</span>
                     <i data-lucide="${log.status === 'Missing' ? 'alert-triangle' : 'map-pin'}" size="16" style="color: ${log.status === 'Missing' ? '#ef4444' : 'var(--text-muted)'}; justify-self: end;"></i>
                 `;
                 timelineContainer.appendChild(row);
@@ -976,17 +980,17 @@
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
-                            <h4 style="font-size: 0.85rem; font-weight: 700; margin:0;">${req.employeeName || 'Employee'}</h4>
-                            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top:2px;">${req.date} • ${req.type}</p>
+                            <h4 style="font-size: 0.85rem; font-weight: 700; margin:0;">${esc(req.employeeName || 'Employee')}</h4>
+                            <p style="font-size: 0.7rem; color: var(--text-muted); margin-top:2px;">${esc(req.date)} • ${esc(req.type)}</p>
                         </div>
                         <span class="badge" style="background: ${isBreach ? '#fef2f2' : 'var(--bg-soft)'}; color: ${isBreach ? '#ef4444' : 'var(--text-muted)'}; font-size: 0.6rem; font-weight:800; padding:3px 6px; border-radius:6px; border:1px solid ${isBreach ? '#fecaca' : 'var(--border)'};">
                             ${isBreach ? 'SLA BREACH (>48h)' : 'Pending'}
                         </span>
                     </div>
-                    <div class="reason-box">"${req.reason || 'No reason provided'}"</div>
+                    <div class="reason-box">"${esc(req.reason || 'No reason provided')}"</div>
                     <div style="display: flex; gap: 8px; margin-top: 1rem;">
-                        <button class="btn btn-outline btn-reject-queue" data-id="${req.id}" style="flex:1; padding: 7px; font-size: 0.75rem; justify-content:center; color:#ef4444; border-color:#fecaca;">Reject</button>
-                        <button class="btn btn-primary btn-approve-queue" data-id="${req.id}" style="flex:1; padding: 7px; font-size: 0.75rem; justify-content:center;">Approve</button>
+                        <button class="btn btn-outline btn-reject-queue" data-id="${esc(req.id)}" style="flex:1; padding: 7px; font-size: 0.75rem; justify-content:center; color:#ef4444; border-color:#fecaca;">Reject</button>
+                        <button class="btn btn-primary btn-approve-queue" data-id="${esc(req.id)}" style="flex:1; padding: 7px; font-size: 0.75rem; justify-content:center;">Approve</button>
                     </div>
                 `;
                 queueContainer.appendChild(card);
@@ -1001,8 +1005,8 @@
                     try {
                         btn.disabled = true;
                         btn.innerHTML = `<i data-lucide="loader" class="animate-spin" style="width:12px; height:12px;"></i> Approving...`;
-                        await processRegularization(id, currentActorId, 'approve');
-                        showToast("Regularization approved and attendance updated!");
+                        await decideRegularization(id, 'approve');
+                        showToast("Regularization approved and attendance updated in Firebase!");
                     } catch (err) {
                         showToast("Approval failed: " + err.message, true);
                         btn.disabled = false;
@@ -1044,7 +1048,7 @@
                     <div style="text-align:center; padding:3rem; color:var(--text-muted);">
                         <i data-lucide="search" style="width:32px; height:32px; margin:0 auto 8px; opacity:0.4;"></i>
                         <p style="font-weight:700;">No records found</p>
-                        <p style="font-size:0.75rem;">No regularizations matching "${activeRegModalTab}" criteria.</p>
+                        <p style="font-size:0.75rem;">No regularizations matching "${esc(activeRegModalTab)}" criteria.</p>
                     </div>
                 `;
                 if (window.lucide) lucide.createIcons();
@@ -1065,30 +1069,30 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
                         <div>
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <h4 style="font-size:0.9rem; font-weight:700; margin:0;">${req.employeeName || 'Employee'}</h4>
-                                <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">${req.department || 'General'}</span>
+                                <h4 style="font-size:0.9rem; font-weight:700; margin:0;">${esc(req.employeeName || 'Employee')}</h4>
+                                <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">${esc(req.department || 'General')}</span>
                             </div>
                             <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
-                                <strong>Date:</strong> ${req.date} • <strong>Type:</strong> ${req.type}
+                                <strong>Date:</strong> ${esc(req.date)} • <strong>Type:</strong> ${esc(req.type)}
                             </p>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px;">
                             ${req.isAfterThreshold && req.status === 'Pending' ? '<span style="font-size:0.62rem; font-weight:800; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; padding:2px 6px; border-radius:6px;">SLA BREACH</span>' : ''}
-                            <span style="font-size:0.7rem; font-weight:800; background:${statusBg}; color:${statusColor}; padding:3px 8px; border-radius:6px;">${req.status || 'Pending'}</span>
+                            <span style="font-size:0.7rem; font-weight:800; background:${statusBg}; color:${statusColor}; padding:3px 8px; border-radius:6px;">${esc(req.status || 'Pending')}</span>
                         </div>
                     </div>
                     <div style="font-size:0.78rem; background:white; padding:8px 12px; border-radius:8px; border:1px solid var(--border); color:var(--text-main);">
-                        "${req.reason || 'No explanation'}"
+                        "${esc(req.reason || 'No explanation')}"
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; color:var(--text-muted);">
-                        <span>Requested Time: <strong>${req.correctedTime || '09:00 AM'}</strong> to <strong>${req.correctedPunchOut || '06:00 PM'}</strong></span>
+                        <span>Requested Time: <strong>${esc(req.correctedTime || '--:--')}</strong> to <strong>${esc(req.correctedPunchOut || '--:--')}</strong></span>
                         ${req.status === 'Pending' ? `
                             <div style="display:flex; gap:6px;">
-                                <button class="btn btn-outline btn-reject-modal" data-id="${req.id}" style="padding:4px 10px; font-size:0.7rem; color:#ef4444;">Reject</button>
-                                <button class="btn btn-primary btn-approve-modal" data-id="${req.id}" style="padding:4px 10px; font-size:0.7rem;">Approve</button>
+                                <button class="btn btn-outline btn-reject-modal" data-id="${esc(req.id)}" style="padding:4px 10px; font-size:0.7rem; color:#ef4444;">Reject</button>
+                                <button class="btn btn-primary btn-approve-modal" data-id="${esc(req.id)}" style="padding:4px 10px; font-size:0.7rem;">Approve</button>
                             </div>
                         ` : `
-                            <span>${req.status === 'Approved' ? 'Approved by ' + (req.approverId || 'Admin') : 'Rejection: ' + (req.rejectionComment || 'Rejected')}</span>
+                            <span>${req.status === 'Approved' ? 'Approved by ' + esc(employeeName(req.approverId) || 'Admin') : 'Rejection: ' + esc(req.rejectionComment || 'Rejected')}</span>
                         `}
                     </div>
                 `;
@@ -1103,10 +1107,12 @@
                     try {
                         btn.disabled = true;
                         btn.textContent = '...';
-                        await processRegularization(id, currentActorId, 'approve');
-                        showToast("Regularization approved!");
+                        await decideRegularization(id, 'approve');
+                        showToast("Regularization approved and saved to Firebase!");
                     } catch (err) {
                         showToast("Failed: " + err.message, true);
+                        btn.disabled = false;
+                        btn.textContent = 'Approve';
                     }
                 });
             });
@@ -1131,19 +1137,20 @@
             shifts.forEach(shift => {
                 mainHtml += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border);">
-                        <span style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${shift.name}</span>
-                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; font-family: monospace;">${shift.time}</span>
+                        <span style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${esc(shift.name)}</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; font-family: monospace;">${esc(shift.time)}</span>
                     </div>
                 `;
                 modalHtml += `
                     <div style="display: flex; justify-content: space-between; align-items: center; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid var(--border);">
                         <div>
-                            <div style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${shift.name}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">${shift.time}</div>
+                            <div style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${esc(shift.name)}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${esc(shift.time)}${shift.isDefault ? ' · built-in' : ''}</div>
                         </div>
-                        <button class="btn-delete-shift" data-id="${shift.id}" style="background:rgba(239, 68, 68, 0.1); border:none; border-radius:8px; padding:6px; color:#ef4444; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'" title="Delete Shift">
+                        ${shift.isDefault ? '' : `
+                        <button class="btn-delete-shift" data-id="${esc(shift.id)}" style="background:rgba(239, 68, 68, 0.1); border:none; border-radius:8px; padding:6px; color:#ef4444; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'" title="Delete Shift">
                             <i data-lucide="trash-2" style="width:16px; height:16px;"></i>
-                        </button>
+                        </button>`}
                     </div>
                 `;
             });
@@ -1154,8 +1161,8 @@
             }
             if (window.lucide) lucide.createIcons();
 
-            // Wire delete handlers
-            document.querySelectorAll('.btn-delete-shift').forEach(btn => {
+            // Wire delete handlers (the list is re-rendered on every refresh)
+            modalContainer?.querySelectorAll('.btn-delete-shift').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
                     if (confirm('Delete this shift definition from Firebase?')) {
@@ -1192,47 +1199,27 @@
         }
 
         // Populate Employee dropdown in New Regularization modal
-        async function loadWorkforceForSelect() {
-            const select = document.getElementById('regEmployeeSelect');
-            const deptSelect = document.getElementById('sheetDept');
+        const employeeName = (id) => (registeredUsers.find(u => u.id === id) || {}).name || id;
+
+        // Fill a <select> with options, keeping the current choice when it still exists
+        function fillSelect(select, first, items) {
             if (!select) return;
+            const previous = select.value;
+            select.innerHTML = '';
+            if (first) select.appendChild(new Option(first[1], first[0]));
+            items.forEach(([value, label]) => select.appendChild(new Option(label, value)));
+            if ([...select.options].some(o => o.value === previous)) select.value = previous;
+        }
 
-            try {
-                const userSnap = await getDocs(collection(db, 'users'));
-                registeredUsers = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                
-                select.innerHTML = '<option value="">-- Choose Employee --</option>';
-                const depts = new Set();
+        // Employee and department dropdowns, from this organization's active people
+        function loadWorkforceForSelect() {
+            const people = registeredUsers.filter(u => u.active);
+            const label = (u) => `${u.name} (${[u.department, u.email || u.employeeCode].filter(Boolean).join(' · ')})`;
+            fillSelect(document.getElementById('regEmployeeSelect'), ['', people.length ? '-- Choose Employee --' : 'No employees found'], people.map(u => [u.id, label(u)]));
 
-                registeredUsers.forEach(u => {
-                    const opt = document.createElement('option');
-                    opt.value = u.uid || u.id;
-                    opt.textContent = `${u.name || 'User'} (${u.department || u.departmentName || 'General'})`;
-                    opt.dataset.name = u.name || 'User';
-                    opt.dataset.dept = u.department || u.departmentName || 'General';
-                    select.appendChild(opt);
-
-                    const dName = u.department || u.departmentName;
-                    if (dName) depts.add(dName);
-                });
-
-                if (deptSelect && depts.size > 0) {
-                    deptSelect.innerHTML = '<option value="All">All Departments</option>';
-                    depts.forEach(d => {
-                        const opt = document.createElement('option');
-                        opt.value = d;
-                        opt.textContent = d;
-                        deptSelect.appendChild(opt);
-                    });
-                }
-            } catch (err) {
-                console.warn("[ATTENDANCE] Could not load workforce select:", err);
-                select.innerHTML = `
-                    <option value="EMP_1789230184645" data-name="Marry Doe" data-dept="Cybersecurity Employee">Marry Doe (Cybersecurity)</option>
-                    <option value="EMP_1789151730443" data-name="John Doe" data-dept="Cybersecurity Manager">John Doe (Cybersecurity)</option>
-                    <option value="w2XWBkvIgkS9xonTqVM5wPNckav2" data-name="jame" data-dept="Cybersecurity">jame (Cybersecurity)</option>
-                `;
-            }
+            const depts = [...new Set(people.map(u => u.department).filter(Boolean))].sort();
+            fillSelect(document.getElementById('sheetDept'), ['All', 'All Departments'], depts.map(d => [d, d]));
+            if (window.AdminAttendanceController) window.AdminAttendanceController.setDepartments(depts);
         }
 
         // Attendance Sheet Generator
@@ -1249,29 +1236,16 @@
             if (window.lucide) lucide.createIcons();
 
             try {
-                // 1. Fetch Users
-                let employees = registeredUsers;
-                if (!employees || employees.length === 0) {
-                    const userSnap = await getDocs(collection(db, 'users'));
-                    employees = userSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    registeredUsers = employees;
-                }
-                employees = employees.filter(u => (u.role || '').toLowerCase() !== 'admin');
-                
+                // 1. This organization's active people, logs, holidays and weekly off (from the backend)
+                await getOverview();
+                let employees = registeredUsers.filter(u => u.active);
+
                 const selectedDept = document.getElementById('sheetDept')?.value || 'All';
                 if (selectedDept !== 'All') {
-                    employees = employees.filter(e => (e.department || e.departmentName || '').toLowerCase() === selectedDept.toLowerCase());
+                    employees = employees.filter(e => (e.department || '').toLowerCase() === selectedDept.toLowerCase());
                 }
 
-                // 2. Fetch logs & holidays
-                const logs = currentLogs.length > 0 ? currentLogs : await getAllAttendanceLogs();
-                let holidays = [];
-                try {
-                    const holidaySnap = await getDocs(collection(db, 'holidays'));
-                    holidays = holidaySnap.docs.map(doc => doc.data());
-                } catch (_) {}
-
-                const weeklyOff = localStorage.getItem('weekly_off_config') || 'sat-sun';
+                const logs = currentLogs;
                 const scale = document.getElementById('sheetScale')?.value || 'monthly';
                 
                 // 3. Dates range
@@ -1330,8 +1304,8 @@
                         const empUid = emp.uid || emp.id;
                         html += `<tr style="border-bottom: 1px solid #f1f5f9;">`;
                         html += `<td style="padding: 12px 16px; font-weight: 700; color: var(--text-main); position: sticky; left: 0; background: white; z-index: 9; border-right: 1px solid var(--border); box-shadow: 4px 0 8px -4px rgba(0,0,0,0.05);">
-                            <div>${emp.name || 'Employee'}</div>
-                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-top: 2px;">${emp.department || emp.departmentName || 'General'}</div>
+                            <div>${esc(emp.name || 'Employee')}</div>
+                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-top: 2px;">${esc(emp.department || 'General')}</div>
                         </td>`;
 
                         if (scale === 'yearly') {
@@ -1339,7 +1313,7 @@
                                 const m = d.getMonth();
                                 const y = d.getFullYear();
                                 const monthLogs = logs.filter(l => (l.userId === empUid || l.employeeId === empUid) && new Date(l.date).getMonth() === m && new Date(l.date).getFullYear() === y);
-                                const presentCount = monthLogs.filter(l => l.status === 'Present' || l.status === 'On-Time').length;
+                                const presentCount = monthLogs.filter(l => ['Present', 'On-Time', 'Late'].includes(l.status)).length;
                                 const displayPct = Math.min(100, Math.round((presentCount / 22) * 100));
 
                                 let pctColor = 'var(--text-muted)';
@@ -1356,7 +1330,7 @@
                             });
                         } else {
                             dates.forEach(d => {
-                                const dStr = d.toISOString().split('T')[0];
+                                const dStr = localDateStr(d);
                                 const log = logs.find(l => (l.userId === empUid || l.employeeId === empUid) && l.date === dStr);
                                 const isHol = holidays.some(h => h.date === dStr);
                                 const dayOfWeek = d.getDay();
@@ -1381,8 +1355,12 @@
                                         cellHtml = `<div class="sheet-cell-badge" style="background: #fff7ed; color: #ea580c; border: 1.5px solid #ea580c;" title="Late Login">L</div>`;
                                     } else if (log.status === 'Missing') {
                                         cellHtml = `<div class="sheet-cell-badge" style="background: #fef2f2; color: #dc2626; border: 1.5px solid #dc2626;" title="Missing Punch">M</div>`;
+                                    } else if (log.status === 'Absent') {
+                                        cellHtml = `<div class="sheet-cell-badge" style="background: #fef2f2; color: #ef4444; border: 1.5px solid #fecaca;" title="Absent">A</div>`;
+                                    } else if (log.status === 'Half Day') {
+                                        cellHtml = `<div class="sheet-cell-badge" style="background: #fff7ed; color: #ea580c; border: 1.5px solid #ea580c;" title="Half Day">HD</div>`;
                                     } else {
-                                        cellHtml = `<div class="sheet-cell-badge" style="background: #eff6ff; color: var(--primary); border: 1.5px solid var(--primary);" title="${log.status}">P</div>`;
+                                        cellHtml = `<div class="sheet-cell-badge" style="background: #eff6ff; color: var(--primary); border: 1.5px solid var(--primary);" title="${esc(log.status)}">P</div>`;
                                     }
                                 } else if (isHol) {
                                     cellHtml = `<div class="sheet-cell-badge" style="background: #fef9c3; color: #ca8a04; border: 1.5px solid #eab308;" title="Public Holiday">H</div>`;
@@ -1403,7 +1381,7 @@
                 container.innerHTML = html;
             } catch (err) {
                 console.error("[ATTENDANCE] Sheet generator error:", err);
-                container.innerHTML = `<div style="padding:3rem; text-align:center; color:var(--danger);">Error generating sheet: ${err.message}</div>`;
+                container.innerHTML = `<div style="padding:3rem; text-align:center; color:var(--danger);">Error generating sheet: ${esc(err.message)}</div>`;
             }
         }
 
@@ -1413,7 +1391,7 @@
 
             // Set default date for New Regularization modal
             const regDateInput = document.getElementById('regDate');
-            if (regDateInput) regDateInput.value = new Date().toISOString().split('T')[0];
+            if (regDateInput) regDateInput.value = localDateStr(new Date());
 
             // 1. Check backend Firebase connectivity
             checkBackendFirebaseStatus().then(res => {
@@ -1423,66 +1401,54 @@
                 }
             });
 
-            // 2. Auto-seed sample Firebase records if empty
-            await seedDefaultShiftsIfEmpty();
-            await seedSampleRegularizationsIfEmpty();
-            await seedSampleAttendanceIfEmpty();
-
-            // 3. Load workforce into dropdowns
-            await loadWorkforceForSelect();
-
-            // 4. Bind action buttons & modals
+            // 2. Bind action buttons & modals
             setupActionButtons();
+            showSaveNotice();
+            setInterval(showSaveNotice, 120000);
 
-            // 5. Connect Real-Time Firebase Listeners
-            // Top Stats
-            listenToAttendanceStats((stats) => {
+            // 3. This organization's attendance from the backend, refreshed every 30 s and after each save
+            subscribeOverview((data) => {
+                registeredUsers = data.employees || [];
+                holidays = data.holidays || [];
+                weeklyOff = data.weeklyOff || 'sat-sun';
+                loadWorkforceForSelect();
+
+                // Top Stats (today)
+                const stats = computeStats(data.logs);
                 document.getElementById('stat-active-login').textContent = stats.activeLogin;
                 document.getElementById('stat-late-login').textContent = stats.lateLogin;
                 document.getElementById('stat-missing-punch').textContent = stats.missingPunch;
                 document.getElementById('stat-wfh').textContent = stats.onFieldWfh;
-            });
 
-            // Attendance Timeline
-            listenToAttendanceLogs((logs) => {
-                currentLogs = logs;
-                const filtered = applyLogFilters(logs, currentFilters);
-                renderTimeline(filtered);
-            });
+                // Attendance Timeline
+                currentLogs = data.logs || [];
+                renderTimeline(applyLogFilters(currentLogs, currentFilters));
 
-            // Regularization Queue
-            listenToPendingRegularizations((requests) => {
-                pendingRequests = requests;
-                renderPendingQueue(requests);
-            });
+                // Regularization Queue (SLA breaches first) and View All list
+                allRequests = data.regularizations || [];
+                pendingRequests = allRequests
+                    .filter(r => (r.status || 'Pending') === 'Pending')
+                    .sort((a, b) => (b.isAfterThreshold - a.isAfterThreshold) || String(b.date || '').localeCompare(String(a.date || '')));
+                renderPendingQueue(pendingRequests);
+                renderAllRegularizationsModalList(allRequests);
 
-            // View All Requests stream
-            listenToAllRegularizations((requests) => {
-                allRequests = requests;
-                renderAllRegularizationsModalList(requests);
-            });
+                // Shifts
+                currentShifts = data.shifts || [];
+                renderShiftsUI(currentShifts);
 
-            // Shifts
-            listenToShifts((shifts) => {
-                currentShifts = shifts;
-                renderShiftsUI(shifts);
-            });
+                // Console (manual records)
+                if (window.AdminAttendanceController) window.AdminAttendanceController.setData(data);
 
-            // Weekly off config listener
-            onSnapshot(doc(db, 'system_config', 'weekly_off'), (docSnap) => {
-                const val = docSnap.exists() ? (docSnap.data().value || 'sat-sun') : 'sat-sun';
-                localStorage.setItem('weekly_off_config', val);
                 const sheetContainer = document.getElementById('attendanceSheetContainer');
-                if (sheetContainer && sheetContainer.style.display !== 'none') {
-                    loadAttendanceSheet();
-                }
+                if (sheetContainer && sheetContainer.style.display !== 'none') loadAttendanceSheet();
+            }, (err) => {
+                console.error('[ATTENDANCE] Could not load attendance:', err);
+                showToast('Could not load attendance from Firebase: ' + err.message, true);
             });
 
-            // 6. User Auth Listener (Updates actor ID & custom role sidebar)
+            // 4. User Auth Listener (custom role sidebar)
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    currentActorId = user.uid;
-                    console.log("🔥 Authenticated Firebase Admin:", user.uid);
                     try {
                         const userDoc = await getDoc(doc(db, "users", user.uid));
                         if (userDoc.exists()) {
@@ -1509,6 +1475,27 @@
                 }
             });
         });
+
+        // Banner when saves go to the local test database, or when Firebase is refusing saves
+        async function showSaveNotice() {
+            const status = await getWriteStatus();
+            let notice = document.getElementById('attSaveNotice');
+            if (status.accepting && !status.localTestDatabase) { notice?.remove(); return; }
+            if (!notice) {
+                notice = document.createElement('div');
+                notice.id = 'attSaveNotice';
+                notice.style.cssText = 'margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;';
+                const header = document.querySelector('.main-content > header');
+                if (header) header.after(notice); else document.querySelector('.main-content')?.prepend(notice);
+            }
+            if (status.localTestDatabase) {
+                notice.style.background = '#eff6ff'; notice.style.color = '#1e40af'; notice.style.border = '1px solid #bfdbfe';
+                notice.textContent = 'Local test database: saves on this page go to the local copy of your Firebase data, not the live project.';
+            } else {
+                notice.style.background = '#fffbeb'; notice.style.color = '#92400e'; notice.style.border = '1px solid #fde68a';
+                notice.textContent = 'Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). You can still view attendance; saves will work again after the quota resets.';
+            }
+        }
 
         // Setup All UI Handlers & Modals
         function setupActionButtons() {
@@ -1569,13 +1556,17 @@
                     showToast("Please provide both name and time for the shift.", true);
                     return;
                 }
+                const saveBtn = document.getElementById('btnSaveNewShift');
+                saveBtn.disabled = true;
                 try {
                     await addShift({ name: nameInput.value.trim(), time: timeInput.value.trim() });
-                    showToast("Shift added successfully to Firebase.");
+                    showToast("Shift saved to Firebase.");
                     nameInput.value = '';
                     timeInput.value = '';
                 } catch(e) {
                     showToast("Failed to add shift: " + e.message, true);
+                } finally {
+                    saveBtn.disabled = false;
                 }
             });
 
@@ -1629,24 +1620,18 @@
                     showToast("Please choose an employee.", true);
                     return;
                 }
-                const selectedOpt = sel.options[sel.selectedIndex];
-                const empName = selectedOpt.dataset.name || selectedOpt.textContent.split(' (')[0];
-                const empDept = selectedOpt.dataset.dept || 'General';
                 const date = document.getElementById('regDate').value;
                 const type = document.getElementById('regType').value;
                 const inTime = document.getElementById('regInTime').value;
                 const outTime = document.getElementById('regOutTime').value;
                 const reason = document.getElementById('regReason').value;
 
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
                 try {
-                    const submitBtn = e.target.querySelector('button[type="submit"]');
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Submitting...';
-
-                    await submitRegularization(empId, {
+                    await raiseRegularization({
                         employeeId: empId,
-                        employeeName: empName,
-                        department: empDept,
                         date,
                         type,
                         correctedTime: inTime,
@@ -1654,15 +1639,16 @@
                         reason
                     });
 
-                    showToast("Regularization request submitted to Firebase!");
+                    showToast("Regularization request saved to Firebase!");
                     document.getElementById('regReason').value = '';
                     raiseRegModal.style.opacity = '0';
                     setTimeout(() => raiseRegModal.style.display = 'none', 200);
+                } catch (err) {
+                    showToast("Submission failed: " + err.message, true);
+                } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i data-lucide="send"></i> Submit to Firebase';
                     if (window.lucide) lucide.createIcons();
-                } catch (err) {
-                    showToast("Submission failed: " + err.message, true);
                 }
             });
 
@@ -1671,12 +1657,16 @@
             document.getElementById('btnConfirmReject')?.addEventListener('click', async () => {
                 if (!rejectingRequestId) return;
                 const reason = document.getElementById('rejectReasonInput')?.value.trim() || 'Correction request rejected';
+                const confirmBtn = document.getElementById('btnConfirmReject');
+                confirmBtn.disabled = true;
                 try {
-                    await processRegularization(rejectingRequestId, currentActorId, 'reject', reason);
-                    showToast("Regularization request rejected.");
+                    await decideRegularization(rejectingRequestId, 'reject', reason);
+                    showToast("Regularization request rejected and saved to Firebase.");
                     closeRejectModal();
                 } catch (err) {
                     showToast("Rejection failed: " + err.message, true);
+                } finally {
+                    confirmBtn.disabled = false;
                 }
             });
 
@@ -1754,9 +1744,9 @@
                 try {
                     const scale = document.getElementById('sheetScale')?.value || 'monthly';
                     const selectedDept = document.getElementById('sheetDept')?.value || 'All';
-                    let employees = registeredUsers.filter(u => (u.role || '').toLowerCase() !== 'admin');
+                    let employees = registeredUsers.filter(u => u.active);
                     if (selectedDept !== 'All') {
-                        employees = employees.filter(e => (e.department || e.departmentName || '').toLowerCase() === selectedDept.toLowerCase());
+                        employees = employees.filter(e => (e.department || '').toLowerCase() === selectedDept.toLowerCase());
                     }
                     const logs = currentLogs;
                     const now = new Date();
@@ -1779,15 +1769,16 @@
                         }
                     }
 
+                    const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
                     let csv = 'Employee,Department,Role';
-                    dates.forEach(d => { csv += `,${d.toISOString().split('T')[0]}`; });
+                    dates.forEach(d => { csv += `,${localDateStr(d)}`; });
                     csv += '\n';
 
                     employees.forEach(emp => {
-                        const empUid = emp.uid || emp.id;
-                        csv += `"${emp.name || 'Employee'}","${emp.department || emp.departmentName || 'General'}","${emp.role || 'Employee'}"`;
+                        const empUid = emp.id;
+                        csv += `${cell(emp.name || 'Employee')},${cell(emp.department || 'General')},${cell(emp.role || 'Employee')}`;
                         dates.forEach(d => {
-                            const dStr = d.toISOString().split('T')[0];
+                            const dStr = localDateStr(d);
                             const log = logs.find(l => (l.userId === empUid || l.employeeId === empUid) && l.date === dStr);
                             csv += `,${log ? log.status : 'Absent'}`;
                         });
@@ -2067,20 +2058,14 @@
     initAdminApps();
 </script>
 <!-- Super Admin Attendance Controls Controller (PRD §16) -->
-<script src="admin-attendance-controller.js"></script>
+<script src="admin-attendance-controller.js?v=2"></script>
 <script type="module">
-    import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
-    import { collection, getDocs, doc, setDoc, serverTimestamp } from "./firebase-config.js";
-
-    const fbUtils = { collection, getDocs, onSnapshot, doc, setDoc, serverTimestamp };
+    // The console saves through the backend; its data arrives with the page's overview refresh (setData)
+    import { recordAttendance, localDateStr } from "./attendance-admin-service.js?v=2";
 
     function bootAttendanceController() {
         if (window.AdminAttendanceController) {
-            window.AdminAttendanceController.init({
-                auth: auth,
-                db: db,
-                firestoreUtils: fbUtils
-            });
+            window.AdminAttendanceController.init({ api: { recordAttendance, localDateStr } });
         }
     }
 

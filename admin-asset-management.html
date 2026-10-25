@@ -478,6 +478,51 @@
             loadStats();
             renderAssets();
             loadHistory();
+            refreshSaveAvailability();
+        }
+
+        // While Firebase refuses writes (daily quota used up) saves are not sent at all: the
+        // server would only answer 503. A notice explains why and saving re-enables itself.
+        let savesAccepted = true;
+        async function refreshSaveAvailability() {
+            let localTestDatabase = false;
+            try {
+                const res = await fetch(`${window.API_BASE || window.location.origin}/api/firestore/write-status`);
+                const json = await res.json();
+                savesAccepted = json.accepting !== false;
+                localTestDatabase = json.localTestDatabase === true;
+            } catch (_) {
+                savesAccepted = true; // let the save itself report any problem
+            }
+            // Server started with "npm run start:local": saves go to the local Firestore emulator only
+            if (localTestDatabase && !document.getElementById('localDbNotice')) {
+                const local = document.createElement('div');
+                local.id = 'localDbNotice';
+                local.setAttribute('role', 'status');
+                local.style.cssText = 'margin: 0 0 1.5rem; padding: 0.9rem 1.2rem; border-radius: 12px; background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; font-size: 0.85rem; font-weight: 600;';
+                local.textContent = 'Local test database: changes are saved on this computer only (Firestore emulator) and do not reach the live Firebase project.';
+                const header = document.querySelector('.main-content > header');
+                header ? header.after(local) : document.querySelector('.main-content').prepend(local);
+            }
+            let notice = document.getElementById('savesUnavailableNotice');
+            if (!savesAccepted && !notice) {
+                notice = document.createElement('div');
+                notice.id = 'savesUnavailableNotice';
+                notice.setAttribute('role', 'status');
+                notice.style.cssText = 'margin: 0 0 1.5rem; padding: 0.9rem 1.2rem; border-radius: 12px; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; font-size: 0.85rem; font-weight: 600;';
+                notice.textContent = 'Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Viewing works normally; adding, assigning and deleting assets will work again once the quota resets.';
+                const header = document.querySelector('.main-content > header');
+                header ? header.after(notice) : document.querySelector('.main-content').prepend(notice);
+            } else if (savesAccepted && notice) {
+                notice.remove();
+            }
+        }
+        setInterval(refreshSaveAvailability, 2 * 60 * 1000);
+
+        function savesBlocked() {
+            if (savesAccepted) return false;
+            showStatusModal('Saving Paused', 'Firebase is not accepting changes right now (the daily Firestore write quota is used up). Nothing was sent or saved. Please try again after the quota resets.', 'warning');
+            return true;
         }
 
         async function loadStats() {
@@ -647,6 +692,7 @@
         });
 
         document.getElementById('btnSaveAsset')?.addEventListener('click', async () => {
+            if (savesBlocked()) return;
             const btn = document.getElementById('btnSaveAsset');
             const data = {
                 name: document.getElementById('assetName').value.trim(),
@@ -747,6 +793,7 @@
         };
 
         document.getElementById('btnConfirmAllocate')?.addEventListener('click', async () => {
+            if (savesBlocked()) { toggleAllocateModal(false); return; }
             const select = document.getElementById('allocateEmployeeSelect');
             const employeeId = select.value;
             const employeeName = select.options[select.selectedIndex]?.dataset?.name || 'Staff Member';
@@ -800,6 +847,7 @@
 
         document.getElementById('btnConfirmDeleteAsset')?.addEventListener('click', async () => {
             if (!activeAssetIdForDeletion) return;
+            if (savesBlocked()) { toggleDeleteModal(false); return; }
             const btn = document.getElementById('btnConfirmDeleteAsset');
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Deleting...';

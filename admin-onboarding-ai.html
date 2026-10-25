@@ -393,24 +393,25 @@
 
             <div class="tvc-stat-row">
                 <div class="ai-glass-card">
-                    <p class="nav-label" style="margin:0 0 8px 0">Completion Rate</p>
+                    <p class="nav-label" style="margin:0 0 8px 0">Activation Rate</p>
                     <h2 id="overallCompletion" style="font-size: 2rem; font-weight: 800;">0.0%</h2>
-                    <p id="completionTrend" style="font-size: 0.75rem; color: #10b981; font-weight: 700;">Live Pulse</p>
+                    <p id="completionTrend" style="font-size: 0.75rem; color: #10b981; font-weight: 700;">Loading…</p>
                 </div>
                 <div class="ai-glass-card">
-                    <p class="nav-label" style="margin:0 0 8px 0">AI Prediction</p>
-                    <h2 id="aiPrediction" style="font-size: 2rem; font-weight: 800;">48h</h2>
-                    <span class="prediction-badge">Avg. Est. Completion</span>
+                    <p class="nav-label" style="margin:0 0 8px 0">Awaiting Activation</p>
+                    <h2 id="aiPrediction" style="font-size: 2rem; font-weight: 800;">–</h2>
+                    <span class="prediction-badge">Invited, not signed in</span>
                 </div>
                 <div class="ai-glass-card">
                     <p class="nav-label" style="margin:0 0 8px 0">Sentiment Score</p>
-                    <h2 id="sentimentScore" style="font-size: 2rem; font-weight: 800;">4.8/5</h2>
-                    <div class="sentiment-meter"><div id="sentimentFill" class="sentiment-fill" style="width: 85%;"></div></div>
+                    <h2 id="sentimentScore" style="font-size: 2rem; font-weight: 800;">–</h2>
+                    <div class="sentiment-meter"><div id="sentimentFill" class="sentiment-fill" style="width: 0%;"></div></div>
+                    <p id="sentimentSub" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">From reviewed EODs</p>
                 </div>
                 <div class="ai-glass-card">
-                    <p class="nav-label" style="margin:0 0 8px 0">Bot Automation</p>
-                    <h2 id="botAutomation" style="font-size: 2rem; font-weight: 800;">88%</h2>
-                    <p style="font-size: 0.75rem; color: var(--text-muted);">FAQs resolved by AI</p>
+                    <p class="nav-label" style="margin:0 0 8px 0">Profile Completeness</p>
+                    <h2 id="botAutomation" style="font-size: 2rem; font-weight: 800;">–</h2>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Dept, designation, joining, phone, PAN, UAN, bank</p>
                 </div>
             </div>
 
@@ -422,8 +423,8 @@
                             <div class="insight-item">
                                 <div class="insight-icon"><i data-lucide="zap"></i></div>
                                 <div>
-                                    <h4 style="font-size: 0.9rem; font-weight: 800;">Smart Suggestion</h4>
-                                    <p style="font-size: 0.8rem; color: var(--text-muted);">Synchronizing insights from cloud...</p>
+                                    <h4 style="font-size: 0.9rem; font-weight: 800;">Loading insights</h4>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);">Analysing your onboarding data…</p>
                                 </div>
                             </div>
                         </div>
@@ -432,48 +433,20 @@
                     <!-- AI Checklist Widget -->
                     <div class="checklist-widget" id="diagnosticsChecklist">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <div class="checklist-title" style="margin-bottom: 0;">Diagnostic Action Plan</div>
+                            <div class="checklist-title" style="margin-bottom: 0;">AI Action Plan</div>
                             <div id="checklistPercentage" style="font-size: 0.95rem; font-weight: 800; color: #ef4444;">0%</div>
                         </div>
                         <div style="height: 6px; background: #3f3f46; border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden;">
                             <div id="checklistProgressBar" style="height: 100%; width: 0%; background: #ef4444; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);"></div>
                         </div>
-
-                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
-                            <div class="checklist-circle"></div>
-                            <div class="checklist-text">Open manager-dashboard page</div>
-                        </div>
-                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
-                            <div class="checklist-circle"></div>
-                            <div class="checklist-text">Wait for page to load</div>
-                        </div>
-                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
-                            <div class="checklist-circle"></div>
-                            <div class="checklist-text">Capture initial console logs</div>
-                        </div>
-                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
-                            <div class="checklist-circle"></div>
-                            <div class="checklist-text">Click 'Team Management' link in sidebar</div>
-                        </div>
-                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
-                            <div class="checklist-circle"></div>
-                            <div class="checklist-text">Wait 2 seconds</div>
-                        </div>
-                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
-                            <div class="checklist-circle"></div>
-                            <div class="checklist-text">Capture console logs again</div>
-                        </div>
-                        <div class="checklist-item" onclick="this.classList.toggle('checked'); updateChecklistProgress();">
-                            <div class="checklist-circle"></div>
-                            <div class="checklist-text">Report final logs</div>
-                        </div>
+                        <div id="actionPlanItems"><div class="checklist-text" style="opacity:0.8;">Building your action plan…</div></div>
                     </div>
 
                     <div class="ai-glass-card" style="position: relative; min-height: 280px;">
-                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Weekly Performance</h3>
+                        <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Sign-ins (Last 7 Days)</h3>
                         <div id="chartLoading" class="chart-placeholder">
                             <i data-lucide="trending-up"></i>
-                            <p>Aggregating Productivity Metrics...</p>
+                            <p>Loading sign-ins…</p>
                         </div>
                         <canvas id="deptChart" height="200"></canvas>
                     </div>
@@ -487,15 +460,15 @@
                                 <button class="action-icon" id="clearChatBtn" title="Clear Chat History" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: 0.2s;">
                                     <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                                 </button>
-                                <span class="badge" style="background: var(--primary-light); color: var(--primary);">Live</span>
+                                <span class="badge" style="background: var(--primary-light); color: var(--primary);">Your data</span>
                             </div>
                         </div>
                         <div class="chat-display" id="chatDisplay">
-                            <div class="chat-bubble bubble-ai">Hello Admin! I'm your onboarding intelligence agent. How can I assist you with today's batch?</div>
+                            <div class="chat-bubble bubble-ai">Loading…</div>
                         </div>
                         <div class="chat-input-area">
                             <input type="text" id="chatInput" class="input-box" placeholder="Ask Kylrx AI about onboarding..." style="flex:1">
-                            <button class="btn" id="spellCheckBtn" title="AI Spell Check" style="padding: 10px; background: var(--bg-soft); color: var(--primary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s;"><i data-lucide="wand-2"></i></button>
+                            <button class="btn" id="spellCheckBtn" title="Fix common spelling (whole words)" style="padding: 10px; background: var(--bg-soft); color: var(--primary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s;"><i data-lucide="wand-2"></i></button>
                             <button class="btn btn-primary" id="sendChat" style="padding: 10px;"><i data-lucide="send"></i></button>
                         </div>
                     </div>
@@ -504,643 +477,352 @@
         </main>
     </div>
 
+    <!-- Sign-in session (adds the login token to the page's /api calls) -->
+    <script type="module" src="./firebase-config.js"></script>
     <script type="module">
-        import { db, onSnapshot, registerListener } from "./firebase-config.js";
-        import { collection, query, getDocs, where, addDoc, serverTimestamp, orderBy, limit, writeBatch, doc, deleteDoc, updateDoc } from "./firebase-config.js";
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            if (window.lucide) lucide.createIcons();
-            loadAIIntelligence();
-            setupChat();
+        /**
+         * AI Command Center: everything comes from /api/onboarding-ai (this organization's
+         * users, sign-ins and reviewed EODs). Saves respond after Firebase confirmed them.
+         */
+        const API = '/api/onboarding-ai';
+        let overview = null;
 
-            document.getElementById('insightModalCloseBtn')?.addEventListener('click', () => {
-                document.getElementById('insightDetailModal')?.classList.remove('active');
-            });
-            
-            // Expose the global checklist progress function
-            window.updateChecklistProgress = function() {
-                const items = document.querySelectorAll('#diagnosticsChecklist .checklist-item');
-                const checkedItems = document.querySelectorAll('#diagnosticsChecklist .checklist-item.checked');
-                
-                if (items.length === 0) return;
-                
-                const percentage = Math.round((checkedItems.length / items.length) * 100);
-                
-                const progressBar = document.getElementById('checklistProgressBar');
-                const percentText = document.getElementById('checklistPercentage');
-                
-                if (progressBar && percentText) {
-                    progressBar.style.width = percentage + '%';
-                    percentText.textContent = percentage + '%';
-                    
-                    // Dynamic color grading: Red (<40%), Yellow (40-79%), Green (80-100%)
-                    let color = '#ef4444'; // Red
-                    if (percentage >= 80) {
-                        color = '#10b981'; // Green
-                    } else if (percentage >= 40) {
-                        color = '#f59e0b'; // Yellow
-                    }
-                    
-                    progressBar.style.background = color;
-                    percentText.style.color = color;
-                }
-            };
-            
-            // Initialize progress on load
-            window.updateChecklistProgress();
-        });
+        const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        // Assistant text: escaped, then **bold** and line breaks
+        const richText = (text) => esc(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        const icons = () => { if (window.lucide) lucide.createIcons(); };
 
-        function setupChat() {
-
-            // Global state for modals
-            window.currentEditDocId = null;
-            window.currentDeleteDocId = null;
-
-            // Edit Modal Listeners
-            document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
-                document.getElementById('editMessageModal')?.classList.remove('active');
-            });
-            document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
-                const input = document.getElementById('editMessageInput');
-                if (window.currentEditDocId && input.value.trim() !== '') {
-                    try {
-                        await updateDoc(doc(db, 'ai_chat_logs', window.currentEditDocId), { message: input.value.trim() });
-                    } catch(e) { console.error(e); }
-                }
-                document.getElementById('editMessageModal')?.classList.remove('active');
-            });
-
-            // Delete Modal Listeners
-            document.getElementById('cancelDeleteMsgBtn')?.addEventListener('click', () => {
-                document.getElementById('deleteMessageModal')?.classList.remove('active');
-            });
-            document.getElementById('confirmDeleteMsgBtn')?.addEventListener('click', async () => {
-                if (window.currentDeleteDocId) {
-                    try {
-                        await deleteDoc(doc(db, 'ai_chat_logs', window.currentDeleteDocId));
-                    } catch(e) { console.error(e); }
-                }
-                document.getElementById('deleteMessageModal')?.classList.remove('active');
-            });
-
-            const btn = document.getElementById('sendChat');
-            const input = document.getElementById('chatInput');
-            const display = document.getElementById('chatDisplay');
-            const clearBtn = document.getElementById('clearChatBtn');
-
-            const spellCheckBtn = document.getElementById('spellCheckBtn');
-            spellCheckBtn?.addEventListener('click', () => {
-                const text = input.value;
-                if (!text.trim()) return;
-                
-                const originalHtml = spellCheckBtn.innerHTML;
-                spellCheckBtn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span>';
-                
-                setTimeout(() => {
-                    // Simulated AI Grammar & Spelling Correction
-                    let corrected = text
-                        .replace(/adhar/gi, 'Aadhaar')
-                        .replace(/teh/g, 'the')
-                        .replace(/reprot/gi, 'report')
-                        .replace(/panding/gi, 'pending')
-                        .replace(/pls/gi, 'please')
-                        .replace(/emp/gi, 'employee')
-                        .replace(/plz/gi, 'please');
-                    
-                    // Capitalize first letter if needed
-                    corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
-                    
-                    input.value = corrected;
-                    spellCheckBtn.innerHTML = originalHtml;
-                    if (window.lucide) lucide.createIcons();
-                }, 800); // simulate network delay
-            });
-
-
-            btn?.addEventListener('click', async () => {
-                const text = input.value.trim();
-                if (!text) return;
-
-                input.value = '';
-
-                try {
-                    await addDoc(collection(db, 'ai_chat_logs'), {
-                        role: 'user',
-                        message: text,
-                        timestamp: serverTimestamp()
-                    });
-
-                    // Simulated AI Response logic based on Kylrx AI Onboarding Intelligence Agent Prompt
-                    setTimeout(async () => {
-                        let response = "";
-                        const lowerText = text.toLowerCase();
-                        
-                        if (lowerText.includes("status") || lowerText.includes("percentage") || lowerText.includes("pending")) {
-                            response = `**Onboarding Status Update**<br><br>
-                            • **Total Employees:** 14<br>
-                            • **Completed:** 8 (57%)<br>
-                            • **In Progress:** 4<br>
-                            • **Pending:** 2 (Documents missing)<br>
-                            • **Critical Delays:** 1 (IT Asset Allocation)`;
-                        } else if (lowerText.includes("report") || lowerText.includes("insights") || lowerText.includes("bottleneck")) {
-                            response = `**Daily Onboarding Report**<br><br>
-                            • **Summary:** Batch #42 processing is on track, but IT provisioning is lagging.<br>
-                            • **Key Metrics:** 8/14 completed, 85% document verification rate.<br>
-                            • **Risks:** Delay in laptop allocation for Engineering hires.<br>
-                            • **Recommendations:** Auto-escalate IT tickets pending > 24 hrs.<br>
-                            • **Next Actions:** Send automated reminders to 2 employees with pending KYC.`;
-                        } else {
-                            response = "Analyzing data... I have processed your request according to the Kylrx AI Onboarding Intelligence rules. How else can I assist you with today's batch?";
-                        }
-
-                        await addDoc(collection(db, 'ai_chat_logs'), {
-                            role: 'ai',
-                            message: response,
-                            timestamp: serverTimestamp()
-                        });
-                    }, 1000);
-                } catch (err) {
-                    console.error("Chat sync failed:", err);
-                }
-            });
-
-            clearBtn?.addEventListener('click', () => {
-                const modal = document.getElementById('customConfirmModal');
-                if (modal) {
-                    modal.classList.add('active');
-                    // Force lucide to render icon if needed
-                    if (window.lucide) lucide.createIcons();
-                }
-            });
-
-            document.getElementById('cancelConfirmBtn')?.addEventListener('click', () => {
-                document.getElementById('customConfirmModal')?.classList.remove('active');
-            });
-
-            document.getElementById('okConfirmBtn')?.addEventListener('click', async () => {
-                document.getElementById('customConfirmModal')?.classList.remove('active');
-                
-                const originalHtml = clearBtn.innerHTML;
-                clearBtn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span>';
-                
-                try {
-                    const snap = await getDocs(collection(db, 'ai_chat_logs'));
-                    const batch = writeBatch(db);
-                    snap.forEach(d => {
-                        batch.delete(d.ref);
-                    });
-                    await batch.commit();
-                } catch (err) {
-                    console.error("Clear chat failed:", err);
-                } finally {
-                    clearBtn.innerHTML = originalHtml;
-                }
-            });
-
-            // Load recent history
-            const q = query(collection(db, 'ai_chat_logs'), orderBy('timestamp', 'asc'), limit(10));
-            onSnapshot(q, (snap) => {
-                display.innerHTML = '<div class="chat-bubble bubble-ai">Hello Admin! I\'m your onboarding intelligence agent. How can I assist you with today\'s batch?</div>';
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    appendMessage(data.message, data.role, doc.id);
-                });
-            });
-        }
-
-                function appendMessage(text, role, docId = null) {
-            const display = document.getElementById('chatDisplay');
-            if (!display) return;
-            
-            const bubbleWrap = document.createElement('div');
-            bubbleWrap.style.display = 'flex';
-            bubbleWrap.style.flexDirection = 'column';
-            bubbleWrap.style.gap = '4px';
-            bubbleWrap.style.alignSelf = role === 'ai' ? 'flex-start' : 'flex-end';
-            bubbleWrap.style.maxWidth = '85%';
-
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble bubble-${role}`;
-            bubble.style.maxWidth = '100%';
-            bubble.innerHTML = text;
-            bubbleWrap.appendChild(bubble);
-
-            if (role === 'user' && docId) {
-                const actions = document.createElement('div');
-                actions.style.display = 'flex';
-                actions.style.gap = '12px';
-                actions.style.justifyContent = 'flex-end';
-                actions.style.fontSize = '0.75rem';
-                actions.style.marginTop = '2px';
-
-                const editBtn = document.createElement('span');
-                editBtn.innerHTML = '<i data-lucide="edit-2" style="width:12px;height:12px;margin-bottom:-2px;"></i> Edit';
-                editBtn.style.cursor = 'pointer';
-                editBtn.style.color = 'var(--text-muted)';
-                editBtn.onclick = () => {
-                    window.currentEditDocId = docId;
-                    document.getElementById('editMessageInput').value = text;
-                    document.getElementById('editMessageModal').classList.add('active');
-                    if (window.lucide) lucide.createIcons();
-                };
-
-                const delBtn = document.createElement('span');
-                delBtn.innerHTML = '<i data-lucide="trash-2" style="width:12px;height:12px;margin-bottom:-2px;"></i> Delete';
-                delBtn.style.cursor = 'pointer';
-                delBtn.style.color = 'var(--danger)';
-                delBtn.onclick = () => {
-                    window.currentDeleteDocId = docId;
-                    document.getElementById('deleteMessageModal').classList.add('active');
-                    if (window.lucide) lucide.createIcons();
-                };
-
-                actions.appendChild(editBtn);
-                actions.appendChild(delBtn);
-                bubbleWrap.appendChild(actions);
-            }
-
-            display.appendChild(bubbleWrap);
-            display.scrollTop = display.scrollHeight;
-            if (window.lucide) lucide.createIcons();
-        }
-
-        async function loadAIIntelligence() {
-            onSnapshot(collection(db, 'users'), async (snap) => {
-                const total = snap.size;
-                if (total === 0) {
-                    initCharts(['No Data'], [0]);
-                    return;
-                }
-
-                let active = 0;
-                const deptStats = {};
-                let totalDuration = 0;
-                let completedCount = 0;
-
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    if (data.onboardingStatus === 'Active') active++;
-                    
-                    if (data.onboardingCompletedAt && data.onboardingStartedAt) {
-                        const start = data.onboardingStartedAt.toDate ? data.onboardingStartedAt.toDate() : new Date(data.onboardingStartedAt);
-                        const end = data.onboardingCompletedAt.toDate ? data.onboardingCompletedAt.toDate() : new Date(data.onboardingCompletedAt);
-                        totalDuration += (end - start);
-                        completedCount++;
-                    }
-
-                    const dept = data.department || 'General';
-                    if (!deptStats[dept]) deptStats[dept] = { total: 0, active: 0 };
-                    deptStats[dept].total++;
-                    if (data.onboardingStatus === 'Active') deptStats[dept].active++;
-                });
-
-                const completionRate = (active / total) * 100;
-                document.getElementById('overallCompletion').textContent = `${completionRate.toFixed(1)}%`;
-                
-                const avgHours = completedCount > 0 ? (totalDuration / (completedCount * 3600000)).toFixed(0) : '48';
-                document.getElementById('aiPrediction').textContent = `${avgHours}h`;
-
-                // Calculate Authoritative Sentiment Score from EODs
-                const eodSnap = await getDocs(query(collection(db, 'employee_eods'), where('status', '==', 'Reviewed')));
-                let totalSentiment = 0;
-                let eodCount = 0;
-                eodSnap.forEach(e => {
-                    totalSentiment += (e.data().managerScore || 0);
-                    eodCount++;
-                });
-                const calculatedSentiment = eodCount > 0 ? (totalSentiment / eodCount).toFixed(1) : null;
-                
-                // Fetch dynamic intelligence stats (Live Sync)
-                onSnapshot(collection(db, 'system_intelligence'), (intelSnap) => {
-                    if (!intelSnap.empty) {
-                        const intelData = intelSnap.docs[0].data();
-                        document.getElementById('aiPrediction').textContent = intelData.prediction || '48h';
-                        const finalSentiment = calculatedSentiment || intelData.sentiment || '0.0';
-                        document.getElementById('sentimentScore').textContent = `${finalSentiment}/5`;
-                        document.getElementById('sentimentFill').style.width = `${Number(finalSentiment) * 20}%`;
-                        document.getElementById('botAutomation').textContent = `${intelData.automation || '88'}%`;
-                    }
-                });
-
-                const weeklyStats = { 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0 };
-                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    if (data.onboardingCompletedAt) {
-                        const date = data.onboardingCompletedAt.toDate ? data.onboardingCompletedAt.toDate() : new Date(data.onboardingCompletedAt);
-                        const dayName = days[date.getDay()];
-                        if (weeklyStats[dayName] !== undefined) weeklyStats[dayName]++;
-                    }
-                });
-
-                const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                const activityData = labels.map(l => weeklyStats[l]);
-
-                initCharts(labels, activityData);
-                loadInsights();
-            });
-        }
-
-        async function loadInsights() {
-            const container = document.getElementById('insightsContainer');
+        let writeStatusCache = { at: 0, value: null };
+        async function getWriteStatus() {
+            if (writeStatusCache.value && Date.now() - writeStatusCache.at < 60000) return writeStatusCache.value;
             try {
-                const snap = await getDocs(collection(db, 'intelligence_insights'));
-                if (!snap.empty) {
-                    container.innerHTML = '';
-                    snap.forEach(doc => {
-                        const data = doc.data();
-                        const item = document.createElement('div');
-                        item.className = `insight-item ${data.type === 'bottleneck' ? 'bottleneck-card' : ''}`;
-                        const icon = data.type === 'bottleneck' ? 'alert-triangle' : (data.type === 'reminder' ? 'trending-up' : 'zap');
-                        const color = data.type === 'bottleneck' ? '#ef4444' : (data.type === 'reminder' ? '#f59e0b' : 'var(--primary)');
-                        
-                        item.innerHTML = `
-                            <div class="insight-icon" style="color: ${color};"><i data-lucide="${icon}"></i></div>
-                            <div>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">${data.title}</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-muted);">${data.description}</p>
-                            </div>
-                        `;
-                        item.onclick = () => {
-                            openInsightDetail(data);
-                        };
-                        container.appendChild(item);
-                    });
-                    if (window.lucide) lucide.createIcons();
-                }
+                const json = await (await fetch('/api/firestore/write-status')).json();
+                writeStatusCache = { at: Date.now(), value: { accepting: json.accepting !== false, localTestDatabase: json.localTestDatabase === true } };
+            } catch (_) {
+                writeStatusCache = { at: Date.now(), value: { accepting: true, localTestDatabase: false } };
+            }
+            return writeStatusCache.value;
+        }
+
+        async function api(path, { method = 'GET', body } = {}) {
+            if (method !== 'GET' && !(await getWriteStatus()).accepting) {
+                throw new Error('Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up).');
+            }
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 45000);
+            try {
+                const res = await fetch(`${API}${path}`, {
+                    method,
+                    headers: body ? { 'Content-Type': 'application/json' } : { Accept: 'application/json' },
+                    body: body ? JSON.stringify(body) : undefined,
+                    signal: controller.signal
+                });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || json.success === false) throw new Error(json.message || json.error || `Request failed (HTTP ${res.status})`);
+                return json.data;
             } catch (err) {
-                console.error("Insights load fault:", err);
+                if (err.name === 'AbortError') throw new Error('The server did not respond in time.');
+                throw err;
+            } finally {
+                clearTimeout(timer);
             }
         }
 
-        function showToast(message) {
+        function showToast(message, isError = false) {
             const toast = document.getElementById('successToast');
             if (!toast) return;
             toast.querySelector('span').textContent = message;
+            toast.style.borderColor = isError ? '#fecaca' : '';
             toast.classList.add('active');
-            setTimeout(() => {
-                toast.classList.remove('active');
-            }, 4000);
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(() => toast.classList.remove('active'), isError ? 6000 : 4000);
         }
 
-        async function openInsightDetail(insight) {
+        document.addEventListener('DOMContentLoaded', () => {
+            icons();
+            loadOverview();
+            setupChat();
+            showSaveNotice();
+            document.getElementById('insightModalCloseBtn')?.addEventListener('click', () => {
+                document.getElementById('insightDetailModal')?.classList.remove('active');
+            });
+            setInterval(() => { if (!document.hidden) loadOverview(); }, 120000);
+        });
+
+        async function showSaveNotice() {
+            const status = await getWriteStatus();
+            if (status.accepting && !status.localTestDatabase) return;
+            const header = document.querySelector('.main-content > header');
+            if (!header) return;
+            const notice = document.createElement('div');
+            notice.style.cssText = 'margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;'
+                + (status.localTestDatabase ? 'background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;' : 'background:#fffbeb;color:#92400e;border:1px solid #fde68a;');
+            notice.textContent = status.localTestDatabase
+                ? 'Local test database: saves on this page go to the local copy of your Firebase data, not the live project.'
+                : 'Saving is paused: Firebase is not accepting changes right now. Figures still load; chat and plan updates resume after the quota resets.';
+            header.after(notice);
+        }
+
+        /* ━━━━━━━━━━ Figures, insights, plan, chart ━━━━━━━━━━ */
+
+        async function loadOverview() {
+            try {
+                overview = await api('/overview');
+                renderStats(overview.stats);
+                renderInsights(overview.insights);
+                renderPlan(overview.plan);
+                initCharts(Object.keys(overview.weekly), Object.values(overview.weekly));
+            } catch (err) {
+                document.getElementById('insightsContainer').innerHTML = `<p style="color:#b91c1c;font-size:0.85rem;">Could not load onboarding data: ${esc(err.message)}</p>`;
+            }
+        }
+
+        function renderStats(s) {
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set('overallCompletion', `${s.activationRate}%`);
+            set('completionTrend', `${s.activated} of ${s.total} signed in`);
+            set('aiPrediction', String(s.awaiting));
+            set('sentimentScore', s.sentiment !== null ? `${s.sentiment}/5` : '—');
+            set('sentimentSub', s.sentiment !== null ? `${s.sentimentCount} reviewed EOD(s)` : 'No reviewed EODs yet');
+            const fill = document.getElementById('sentimentFill');
+            if (fill) fill.style.width = `${s.sentiment !== null ? s.sentiment * 20 : 0}%`;
+            set('botAutomation', `${s.avgCompleteness}%`);
+        }
+
+        function renderInsights(insights) {
+            const container = document.getElementById('insightsContainer');
+            if (!insights.length) {
+                container.innerHTML = '<div class="insight-item"><div class="insight-icon" style="color:#10b981;"><i data-lucide="check-circle"></i></div><div><h4 style="font-size: 0.9rem; font-weight: 800;">No onboarding issues</h4><p style="font-size: 0.8rem; color: var(--text-muted);">Everyone has signed in and profiles are complete.</p></div></div>';
+                icons();
+                return;
+            }
+            const style = { bottleneck: ['alert-triangle', '#ef4444'], reminder: ['trending-up', '#f59e0b'], suggestion: ['zap', 'var(--primary)'] };
+            container.innerHTML = insights.map(i => `
+                <div class="insight-item ${i.type === 'bottleneck' ? 'bottleneck-card' : ''}" data-insight="${esc(i.id)}" style="cursor:pointer;">
+                    <div class="insight-icon" style="color: ${style[i.type][1]};"><i data-lucide="${style[i.type][0]}"></i></div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; font-weight: 800;">${esc(i.title)}</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">${esc(i.description)}</p>
+                    </div>
+                </div>`).join('');
+            icons();
+        }
+
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest('[data-insight]');
+            if (item && overview) {
+                const insight = overview.insights.find(i => i.id === item.dataset.insight);
+                if (insight) openInsightDetail(insight);
+            }
+        });
+
+        function openInsightDetail(insight) {
             const modal = document.getElementById('insightDetailModal');
             const iconEl = document.getElementById('insightModalIcon');
-            const titleEl = document.getElementById('insightModalTitle');
-            const subtitleEl = document.getElementById('insightModalSubtitle');
-            const contentEl = document.getElementById('insightModalContent');
             const actionBtn = document.getElementById('insightModalActionBtn');
-
-            if (!modal || !contentEl || !actionBtn) return;
-
-            titleEl.textContent = insight.title;
-            subtitleEl.textContent = insight.description;
-            
+            const colors = { bottleneck: ['#fee2e2', '#ef4444', 'alert-triangle'], reminder: ['#fef3c7', '#f59e0b', 'trending-up'], suggestion: ['#eff6ff', 'var(--primary)', 'zap'] }[insight.type];
+            iconEl.style.background = colors[0];
+            iconEl.style.color = colors[1];
+            iconEl.innerHTML = `<i data-lucide="${colors[2]}" style="width: 28px; height: 28px;"></i>`;
+            document.getElementById('insightModalTitle').textContent = insight.title;
+            document.getElementById('insightModalSubtitle').textContent = insight.description;
+            document.getElementById('insightModalContent').innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 8px;">Affected (${insight.people.length}):</div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    ${insight.people.map((p, idx) => `
+                        <div style="display: flex; justify-content: space-between; gap: 10px; ${idx < insight.people.length - 1 ? 'border-bottom: 1px dashed var(--border); padding-bottom: 4px;' : ''}">
+                            <span><strong>${esc(p.name)}</strong>${p.department ? ` (${esc(p.department)})` : ''}</span>
+                            <span style="color: ${colors[1]}; font-weight: 700; text-align: right;">${esc(p.detail || '')}</span>
+                        </div>`).join('')}
+                </div>`;
             actionBtn.disabled = false;
-            actionBtn.style.display = 'block';
-            actionBtn.style.background = 'var(--primary)';
-            actionBtn.textContent = 'Execute Action';
-
-            if (insight.type === 'bottleneck') {
-                iconEl.style.background = '#fee2e2';
-                iconEl.style.color = '#ef4444';
-                iconEl.innerHTML = '<i data-lucide="alert-triangle" style="width: 28px; height: 28px;"></i>';
-                
-                actionBtn.style.background = '#ef4444';
-                actionBtn.textContent = 'Escalate Bottleneck';
+            actionBtn.style.background = insight.type === 'bottleneck' ? '#ef4444' : 'var(--primary)';
+            actionBtn.textContent = insight.action.label;
+            actionBtn.onclick = async () => {
+                if (insight.action.kind === 'link') { window.location.href = insight.action.href; return; }
                 actionBtn.disabled = true;
-
-                contentEl.innerHTML = `<div style="text-align: center; padding: 1rem; color: var(--text-muted);">🔄 Loading affected recruits from Firebase...</div>`;
-
-                const q = query(
-                    collection(db, 'users'),
-                    where('role', '==', 'employee'),
-                    where('department', '==', 'Cybersecurity')
-                );
-
+                actionBtn.textContent = 'Notifying…';
                 try {
-                    const snap = await getDocs(q);
+                    const d = await api(`/insights/${encodeURIComponent(insight.id)}/notify`, { method: 'POST', body: {} });
+                    showToast(`Notified ${d.notified.join(', ')} in-app.`);
+                    modal.classList.remove('active');
+                } catch (err) {
+                    showToast(err.message, true);
                     actionBtn.disabled = false;
-                    if (snap.empty) {
-                        contentEl.innerHTML = `<div style="text-align: center; padding: 1rem; color: var(--text-muted);">No active bottlenecked recruits found.</div>`;
-                        actionBtn.disabled = true;
-                        actionBtn.textContent = 'Nothing to Escalate';
-                    } else {
-                        const list = [];
-                        snap.forEach(d => {
-                            const user = d.data();
-                            const started = user.onboardingStartedAt ? (user.onboardingStartedAt.toDate ? user.onboardingStartedAt.toDate() : new Date(user.onboardingStartedAt)) : new Date(user.createdAt || Date.now());
-                            const delayMs = Date.now() - started;
-                            const delayHours = Math.max(0, Math.round(delayMs / 3600000)) || 48;
-                            
-                            list.push({
-                                id: d.id,
-                                name: user.fullName || user.name || 'Candidate',
-                                designation: user.designation || 'Specialist',
-                                delay: delayHours,
-                                email: user.personalEmail || user.email || ''
-                            });
-                        });
-
-                        contentEl.innerHTML = `
-                            <div style="font-weight: 700; margin-bottom: 8px;">Affected Candidates:</div>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                ${list.map((c, idx) => `
-                                    <div style="display: flex; justify-content: space-between; ${idx < list.length - 1 ? 'border-bottom: 1px dashed var(--border); padding-bottom: 4px;' : ''}">
-                                        <span><strong>${c.name}</strong> (${c.designation})</span>
-                                        <span style="color: #ef4444; font-weight: 700;">${c.delay}h delay</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
-                                Clicking <strong>Escalate Bottleneck</strong> will dispatch an urgent clearance reminder email to the Finance and Audit Verification team.
-                            </div>
-                        `;
-                    }
-                    if (window.lucide) lucide.createIcons();
-                } catch (e) {
-                    console.error("Failed to load recruits:", e);
-                    contentEl.innerHTML = `<div style="text-align: center; padding: 1rem; color: var(--danger);">Error loading data.</div>`;
+                    actionBtn.textContent = insight.action.label;
                 }
-
-                actionBtn.onclick = async () => {
-                    actionBtn.disabled = true;
-                    actionBtn.textContent = 'Sending Escalation...';
-                    try {
-                        const res = await fetch('/api/email/send', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                to: 'payroll@kylrxai.com',
-                                subject: 'URGENT: Finance Verification Bottleneck',
-                                html: `
-                                    <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                                        <h2>Finance Verification Bottleneck Alert</h2>
-                                        <p>This is an automated escalation warning. The verification stage for Cybersecurity department recruits is currently experiencing critical delays.</p>
-                                        <h3>Affected Recruits:</h3>
-                                        <ul>
-                                            <li>Jane Doe (Cybersecurity Engineer) - 48h delay</li>
-                                            <li>John Smith (IT Sec Analyst) - 52h delay</li>
-                                        </ul>
-                                        <p>Please resolve these pending clearances as soon as possible.</p>
-                                    </div>
-                                `
-                            })
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            showToast('Escalation emails dispatched to Finance Team.');
-                            modal.classList.remove('active');
-                        } else {
-                            alert('Failed to send escalation email: ' + data.error);
-                            actionBtn.disabled = false;
-                            actionBtn.textContent = 'Escalate Bottleneck';
-                        }
-                    } catch (err) {
-                        console.error('Escalation error:', err);
-                        actionBtn.disabled = false;
-                        actionBtn.textContent = 'Escalate Bottleneck';
-                    }
-                };
-
-            } else if (insight.type === 'reminder') {
-                iconEl.style.background = '#fef3c7';
-                iconEl.style.color = '#f59e0b';
-                iconEl.innerHTML = '<i data-lucide="trending-up" style="width: 28px; height: 28px;"></i>';
-
-                actionBtn.textContent = 'Send Test Greeting';
-
-                contentEl.innerHTML = `
-                    <div style="font-weight: 700; margin-bottom: 8px;">Email Sequence Metrics:</div>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Open Rate</span>
-                            <span style="font-weight: 700; color: var(--primary);">98%</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Click-Through Rate</span>
-                            <span style="font-weight: 700; color: var(--primary);">84%</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Bounce Rate</span>
-                            <span style="font-weight: 700; color: #ef4444;">1.2%</span>
-                        </div>
-                    </div>
-                    <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
-                        Clicking <strong>Send Test Greeting</strong> will send a test onboarding email to verify deliverability.
-                    </div>
-                `;
-
-                actionBtn.onclick = async () => {
-                    actionBtn.disabled = true;
-                    actionBtn.textContent = 'Sending Greeting...';
-                    try {
-                        const res = await fetch('/api/email/send', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                to: 'onboarding@resend.dev',
-                                subject: 'Welcome to Kylrx AI - Test Greeting',
-                                html: `
-                                    <div style="font-family: sans-serif; padding: 20px;">
-                                        <h2>Welcome aboard!</h2>
-                                        <p>This is a test greeting email sent from the Onboarding Sequence Alert panel.</p>
-                                    </div>
-                                `
-                            })
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            showToast('Test greeting email sent successfully to onboarding@resend.dev');
-                            modal.classList.remove('active');
-                        } else {
-                            alert('Failed to send greeting email: ' + data.error);
-                            actionBtn.disabled = false;
-                            actionBtn.textContent = 'Send Test Greeting';
-                        }
-                    } catch (err) {
-                        console.error('Greeting error:', err);
-                        actionBtn.disabled = false;
-                        actionBtn.textContent = 'Send Test Greeting';
-                    }
-                };
-
-            } else {
-                iconEl.style.background = '#eff6ff';
-                iconEl.style.color = 'var(--primary)';
-                iconEl.innerHTML = '<i data-lucide="zap" style="width: 28px; height: 28px;"></i>';
-
-                actionBtn.textContent = 'Run Provisioning Audit';
-
-                contentEl.innerHTML = `
-                    <div style="font-weight: 700; margin-bottom: 8px;">Auto-Provisioning Mechanics:</div>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Hardware Asset Tagging</span>
-                            <span style="font-weight: 700; color: #10b981;">Automated</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>License Autoclaim (SaaS)</span>
-                            <span style="font-weight: 700; color: #10b981;">Active</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>Avg. Provisioning Latency</span>
-                            <span style="font-weight: 700; color: var(--primary);">-15% drop</span>
-                        </div>
-                    </div>
-                    <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-muted);">
-                        Clicking <strong>Run Provisioning Audit</strong> will scan all active workspaces to verify license and hardware allocation compliance.
-                    </div>
-                `;
-
-                actionBtn.onclick = async () => {
-                    actionBtn.disabled = true;
-                    actionBtn.textContent = 'Running Audit...';
-                    setTimeout(() => {
-                        showToast('Provisioning audit run complete. 100% asset allocation verified.');
-                        modal.classList.remove('active');
-                    }, 1000);
-                };
-            }
-
+            };
             modal.classList.add('active');
-            if (window.lucide) lucide.createIcons();
+            icons();
         }
+
+        function renderPlan(plan) {
+            const box = document.getElementById('diagnosticsChecklist');
+            const listEl = document.getElementById('actionPlanItems');
+            if (!box || !listEl) return;
+            listEl.innerHTML = plan.length
+                ? plan.map(t => `<div class="checklist-item ${t.done ? 'checked' : ''}" data-plan="${esc(t.id)}"><div class="checklist-circle"></div><div class="checklist-text">${esc(t.text)}</div></div>`).join('')
+                : '<div class="checklist-text" style="opacity:0.8;">Nothing to do — no open onboarding issues.</div>';
+            updateChecklistProgress();
+        }
+
+        function updateChecklistProgress() {
+            const items = document.querySelectorAll('#actionPlanItems .checklist-item');
+            const checked = document.querySelectorAll('#actionPlanItems .checklist-item.checked');
+            const percentage = items.length ? Math.round((checked.length / items.length) * 100) : 100;
+            const color = percentage >= 80 ? '#10b981' : percentage >= 40 ? '#f59e0b' : '#ef4444';
+            const bar = document.getElementById('checklistProgressBar');
+            const text = document.getElementById('checklistPercentage');
+            if (bar) { bar.style.width = percentage + '%'; bar.style.background = color; }
+            if (text) { text.textContent = percentage + '%'; text.style.color = color; }
+        }
+
+        document.addEventListener('click', async (e) => {
+            const item = e.target.closest('[data-plan]');
+            if (!item) return;
+            const done = !item.classList.contains('checked');
+            item.classList.toggle('checked', done);
+            updateChecklistProgress();
+            try {
+                await api(`/plan/${encodeURIComponent(item.dataset.plan)}`, { method: 'PUT', body: { done } });
+            } catch (err) {
+                item.classList.toggle('checked', !done);
+                updateChecklistProgress();
+                showToast('Not saved: ' + err.message, true);
+            }
+        });
 
         function initCharts(labels, data) {
             const canvas = document.getElementById('deptChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            
+            if (!canvas || !window.Chart) return;
             const placeholder = document.getElementById('chartLoading');
             const hasData = data.some(v => v > 0);
             if (placeholder) {
+                placeholder.innerHTML = hasData ? '' : '<i data-lucide="trending-up"></i><p>No sign-ins in the last 7 days</p>';
                 placeholder.style.opacity = hasData ? '0' : '1';
                 placeholder.style.pointerEvents = hasData ? 'none' : 'all';
             }
-            
             if (window.myDeptChart) window.myDeptChart.destroy();
-
-            window.myDeptChart = new Chart(ctx, {
+            window.myDeptChart = new Chart(canvas.getContext('2d'), {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Completion Rate %',
-                        data: data,
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 10,
-                    }]
-                },
+                data: { labels, datasets: [{ label: 'People signed in', data, backgroundColor: '#3b82f6', borderRadius: 10 }] },
                 options: {
                     responsive: true,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, max: Math.max(...data) * 1.2 || 100, grid: { display: false } },
-                        x: { grid: { display: false } }
-                    }
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } }, x: { grid: { display: false } } }
                 }
+            });
+            icons();
+        }
+
+        /* ━━━━━━━━━━ Assistant chat ━━━━━━━━━━ */
+
+        const GREETING = 'Hello! I answer from your live onboarding data. Ask about **status**, **who has not signed in**, **missing documents**, **by department**, **sentiment** or the **daily report**.';
+        let editingId = null;
+        let deletingId = null;
+
+        function appendMessage(text, role, id = null) {
+            const display = document.getElementById('chatDisplay');
+            const wrap = document.createElement('div');
+            wrap.style.cssText = `display:flex; flex-direction:column; gap:4px; align-self:${role === 'ai' ? 'flex-start' : 'flex-end'}; max-width:85%;`;
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble bubble-${role}`;
+            bubble.style.maxWidth = '100%';
+            bubble.innerHTML = role === 'ai' ? richText(text) : esc(text);
+            wrap.appendChild(bubble);
+            if (role === 'user' && id) {
+                const actions = document.createElement('div');
+                actions.style.cssText = 'display:flex; gap:12px; justify-content:flex-end; font-size:0.75rem; margin-top:2px;';
+                actions.innerHTML = `<span data-chat-edit="${esc(id)}" style="cursor:pointer;color:var(--text-muted);">Edit</span><span data-chat-delete="${esc(id)}" style="cursor:pointer;color:var(--danger);">Delete</span>`;
+                actions.querySelector('[data-chat-edit]').dataset.text = text;
+                wrap.appendChild(actions);
+            }
+            display.appendChild(wrap);
+            display.scrollTop = display.scrollHeight;
+        }
+
+        async function loadChat() {
+            const display = document.getElementById('chatDisplay');
+            display.innerHTML = '';
+            appendMessage(GREETING, 'ai');
+            try {
+                (await api('/chat')).forEach(m => appendMessage(m.message, m.role, m.id));
+            } catch (err) {
+                appendMessage(`Could not load chat history: ${err.message}`, 'ai');
+            }
+        }
+
+        // Spelling: whole words only (so "employee" is never turned into "employeeloyee")
+        const FIXES = { adhar: 'Aadhaar', aadhar: 'Aadhaar', teh: 'the', reprot: 'report', panding: 'pending', pls: 'please', plz: 'please', emp: 'employee', emps: 'employees', docs: 'documents', dept: 'department', recieve: 'receive', seperate: 'separate', onbaording: 'onboarding', onborading: 'onboarding' };
+        function quickFix(text) {
+            const fixed = text.replace(/\b[a-z]+\b/gi, w => FIXES[w.toLowerCase()] || w);
+            return fixed.charAt(0).toUpperCase() + fixed.slice(1);
+        }
+
+        function setupChat() {
+            const btn = document.getElementById('sendChat');
+            const input = document.getElementById('chatInput');
+            loadChat();
+
+            document.getElementById('spellCheckBtn')?.addEventListener('click', () => {
+                if (input.value.trim()) input.value = quickFix(input.value);
+            });
+
+            const send = async () => {
+                const text = input.value.trim();
+                if (!text) return;
+                input.value = '';
+                btn.disabled = true;
+                appendMessage(text, 'user');
+                try {
+                    const d = await api('/chat', { method: 'POST', body: { message: text } });
+                    // Re-render the last user bubble with its saved id (edit/delete)
+                    await loadChat();
+                    if (d.answer.source === 'openai') showToast('Answered by the AI model from your data summary.');
+                } catch (err) {
+                    appendMessage(`Sorry — ${err.message}`, 'ai');
+                } finally {
+                    btn.disabled = false;
+                }
+            };
+            btn?.addEventListener('click', send);
+            input?.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+
+            document.addEventListener('click', (e) => {
+                const edit = e.target.closest('[data-chat-edit]');
+                if (edit) {
+                    editingId = edit.dataset.chatEdit;
+                    document.getElementById('editMessageInput').value = edit.dataset.text || '';
+                    document.getElementById('editMessageModal').classList.add('active');
+                    return;
+                }
+                const del = e.target.closest('[data-chat-delete]');
+                if (del) {
+                    deletingId = del.dataset.chatDelete;
+                    document.getElementById('deleteMessageModal').classList.add('active');
+                }
+            });
+            document.getElementById('cancelEditBtn')?.addEventListener('click', () => document.getElementById('editMessageModal').classList.remove('active'));
+            document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
+                const value = document.getElementById('editMessageInput').value.trim();
+                document.getElementById('editMessageModal').classList.remove('active');
+                if (!editingId || !value) return;
+                try { await api(`/chat/${encodeURIComponent(editingId)}`, { method: 'PUT', body: { message: value } }); await loadChat(); }
+                catch (err) { showToast(err.message, true); }
+            });
+            document.getElementById('cancelDeleteMsgBtn')?.addEventListener('click', () => document.getElementById('deleteMessageModal').classList.remove('active'));
+            document.getElementById('confirmDeleteMsgBtn')?.addEventListener('click', async () => {
+                document.getElementById('deleteMessageModal').classList.remove('active');
+                if (!deletingId) return;
+                try { await api(`/chat/${encodeURIComponent(deletingId)}`, { method: 'DELETE' }); await loadChat(); }
+                catch (err) { showToast(err.message, true); }
+            });
+            document.getElementById('clearChatBtn')?.addEventListener('click', () => document.getElementById('customConfirmModal').classList.add('active'));
+            document.getElementById('cancelConfirmBtn')?.addEventListener('click', () => document.getElementById('customConfirmModal').classList.remove('active'));
+            document.getElementById('okConfirmBtn')?.addEventListener('click', async () => {
+                document.getElementById('customConfirmModal').classList.remove('active');
+                try { const d = await api('/chat', { method: 'DELETE' }); await loadChat(); showToast(`Cleared ${d.deleted} message(s).`); }
+                catch (err) { showToast(err.message, true); }
             });
         }
     </script>

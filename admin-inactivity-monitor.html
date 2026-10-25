@@ -268,32 +268,38 @@
             <div class="tvc-monitor-grid">
                 <div class="tvc-card warning">
                     <p class="tvc-label">Pending Response</p>
-                    <h3 class="tvc-value" id="countPending">30</h3>
+                    <h3 class="tvc-value" id="countPending">–</h3>
                     <p class="tvc-trend" style="color: var(--warning);"><i data-lucide="alert-circle"></i> Requires Attention</p>
                 </div>
                 <div class="tvc-card danger">
-                    <p class="tvc-label">Suspended Today</p>
-                    <h3 class="tvc-value" id="countSuspended">12</h3>
+                    <p class="tvc-label">Suspended</p>
+                    <h3 class="tvc-value" id="countSuspended">–</h3>
                     <p class="tvc-trend" style="color: var(--danger);"><i data-lucide="clock"></i> 3hr Threshold Hit</p>
                 </div>
                 <div class="tvc-card">
-                    <p class="tvc-label">In Trash (3-Day Limit)</p>
-                    <h3 class="tvc-value" id="countTrash">5</h3>
-                    <p class="tvc-trend" style="color: var(--text-muted);"><i data-lucide="trash-2"></i> Auto-Purge active</p>
+                    <p class="tvc-label" id="labelTrash">In Trash</p>
+                    <h3 class="tvc-value" id="countTrash">–</h3>
+                    <p class="tvc-trend" style="color: var(--text-muted);" id="trendTrash"><i data-lucide="trash-2"></i> Purged after retention</p>
                 </div>
                 <div class="tvc-card">
-                    <p class="tvc-label">System Uptime</p>
-                    <h3 class="tvc-value">99.9%</h3>
-                    <p class="tvc-trend" style="color: var(--primary);"><i data-lucide="shield" class="heartbeat"></i> Cron Engine Active</p>
+                    <p class="tvc-label">Invites Not Delivered</p>
+                    <h3 class="tvc-value" id="countUndelivered">–</h3>
+                    <p class="tvc-trend" style="color: var(--primary);" id="trendSync"><i data-lucide="mail-x"></i> Need a resend</p>
                 </div>
             </div>
 
             <h3 style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase;">Automation Engine Live Logs</h3>
             <div class="automation-log-panel" id="automationLogs">
-                <div class="log-entry"><span class="log-timestamp">[23:05:01]</span> <span class="log-action">SCAN_START</span>: Analyzing 100 pending onboarding profiles...</div>
-                <div class="log-entry"><span class="log-timestamp">[23:05:05]</span> <span class="log-action">SUSPENDED</span>: <span class="log-entity">user_8829</span> - 3 hour threshold exceeded. Link expired.</div>
-                <div class="log-entry"><span class="log-timestamp">[23:05:06]</span> <span class="log-action">NOTIFICATION</span>: Reminder sent to personal email for <span class="log-entity">user_8829</span>.</div>
-                <div class="log-entry"><span class="log-timestamp">[23:05:10]</span> <span class="log-action">TRASHED</span>: <span class="log-entity">user_7701</span> - 3 day threshold exceeded. Profile archived.</div>
+                <div class="log-entry" style="color: var(--text-muted);">Loading automation log from Firebase…</div>
+            </div>
+            <div id="aiInsightsPanel" style="background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid #ddd6fe; border-radius: 16px; padding: 14px 18px; margin: 2rem 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 800; color: #5b21b6;"><i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> AI Inactivity Insights <span id="aiModeLabel" style="font-size: 0.68rem; font-weight: 700; color: #7c3aed;"></span></div>
+                        <p style="font-size: 0.78rem; color: #6d28d9; margin: 2px 0 0 0;">Each person below is ranked by AI non-response risk with the next best action. Use ✨ Nudge for a personal reminder.</p>
+                    </div>
+                    <div id="aiInsightsSummary" style="font-size: 0.8rem; font-weight: 700; color: #4c1d95;"></div>
+                </div>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -305,70 +311,20 @@
             </div>
 
             <div class="inactivity-list" id="inactivityList">
-                <!-- Example Card 1 -->
-                <div class="profile-card">
-                    <div class="profile-header">
-                        <div class="profile-avatar">AS</div>
-                        <span class="timer-badge"><i data-lucide="clock"></i> 4h 20m Overdue</span>
-                    </div>
-                    <h4 style="font-weight: 800; margin-bottom: 4px;">Alice Stevens</h4>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">alice.s@company.com • Engineering</p>
-                    
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 12px; font-size: 0.75rem;">
-                        <p><strong>Status:</strong> <span style="color: var(--danger); font-weight: 700;">Suspended</span></p>
-                        <p><strong>Last Action:</strong> Invitation Sent (Oct 12, 10:00)</p>
-                    </div>
-
-                    <div class="action-btns">
-                        <button class="btn btn-outline" style="font-size: 0.75rem;">Resend Link</button>
-                        <button class="btn btn-primary" style="font-size: 0.75rem;">Force Active</button>
-                    </div>
-                </div>
-
-                <!-- Example Card 2 -->
-                <div class="profile-card">
-                    <div class="profile-header">
-                        <div class="profile-avatar">TM</div>
-                        <span class="timer-badge" style="background: #fff7ed; color: #f97316;"><i data-lucide="alert-triangle"></i> 2h 45m Overdue</span>
-                    </div>
-                    <h4 style="font-weight: 800; margin-bottom: 4px;">Tom Miller</h4>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">t.miller@company.com • Sales</p>
-                    
-                    <div style="background: var(--bg-soft); padding: 10px; border-radius: 12px; font-size: 0.75rem;">
-                        <p><strong>Status:</strong> <span style="color: var(--warning); font-weight: 700;">Pending Approval</span></p>
-                        <p><strong>Auto-Suspend in:</strong> 15 minutes</p>
-                    </div>
-
-                    <div class="action-btns">
-                        <button class="btn btn-outline" style="font-size: 0.75rem;">Contact Emp</button>
-                        <button class="btn btn-primary" style="font-size: 0.75rem;">Extend Time</button>
-                    </div>
-                </div>
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">Loading from Firebase…</div>
             </div>
-
             <div class="trash-section">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h3 style="font-weight: 800;"><i data-lucide="trash-2" style="vertical-align: middle;"></i> Candidate Trash Bin</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);">Profiles in this bin will be permanently deleted after 30 days.</p>
+                        <p style="font-size: 0.85rem; color: var(--text-muted);" id="trashRetentionNote">Profiles in this bin are purged after the retention period.</p>
                     </div>
                     <button class="btn btn-outline" onclick="window.emptyTrashHandler()" style="border-color: var(--danger); color: var(--danger);">Empty Trash</button>
                 </div>
                 
                 <div style="margin-top: 1.5rem;">
                     <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="text-align: left; font-size: 0.75rem; color: var(--text-muted);">
-                            <th style="padding: 1rem 0;">NAME</th>
-                            <th style="padding: 1rem 0;">REASON</th>
-                            <th style="padding: 1rem 0;">REMAINING</th>
-                            <th style="padding: 1rem 0; text-align: right;">ACTION</th>
-                        </tr>
-                        <tr style="font-size: 0.85rem; border-top: 1px solid var(--border);">
-                            <td style="padding: 1rem 0; font-weight: 700;">Robert Downy</td>
-                            <td style="padding: 1rem 0;">3-Day Inactivity</td>
-                            <td style="padding: 1rem 0; color: var(--danger);">28 Days</td>
-                            <td style="padding: 1rem 0; text-align: right;"><span class="recover-btn">Restore Profile</span></td>
-                        </tr>
+                        <tbody id="trashTableBody"><tr><td style="padding: 1rem 0; color: var(--text-muted);">Loading…</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -401,6 +357,15 @@
                     <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Non-Responsive Threshold (Days)</label>
                     <input type="number" id="ruleTrashDays" min="1" max="30" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;" placeholder="3">
                     <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">Suspension time before moving to candidate trash.</span>
+                </div>
+                <div>
+                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Trash Retention (Days)</label>
+                    <input type="number" id="ruleRetentionDays" min="1" max="365" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;">
+                    <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">How long trashed profiles are kept before they are purged.</span>
+                </div>
+                <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 10px 12px;">
+                    <button type="button" id="btnAiRulesAdvice" class="btn btn-outline" style="font-size: 0.75rem; color: #6d28d9; border-color: #c4b5fd;"><i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> AI: suggest thresholds from our response history</button>
+                    <div id="aiRulesAdviceResult" style="font-size: 0.75rem; color: #4c1d95; margin-top: 6px;"></div>
                 </div>
 
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: 8px;">
@@ -445,7 +410,7 @@
             setTimeout(() => toast.classList.remove('active'), 3000);
         };
     </script>
-    <script type="module" src="admin-inactivity-monitor.js"></script>
+    <script type="module" src="admin-inactivity-monitor.js?v=2"></script>
 
     
 

@@ -18,18 +18,15 @@ export function initAdminInterlink() {
     // 1. Ensure current page is highlighted active in sidebar
     try {
         const currentPage = window.location.pathname.split('/').pop() || 'admin-dashboard.html';
-        const navLinks = document.querySelectorAll('.sidebar .nav-link');
-        let matched = false;
-        navLinks.forEach(link => {
+        const navLinks = [...document.querySelectorAll('.sidebar .nav-link')];
+        const matches = navLinks.filter(link => {
             const href = link.getAttribute('href');
-            if (href) {
-                const baseHref = href.split('#')[0].split('?')[0];
-                if (baseHref === currentPage) {
-                    link.classList.add('active');
-                    matched = true;
-                }
-            }
+            return href && href.split('#')[0].split('?')[0] === currentPage;
         });
+        // Several menu entries can point to the same page (e.g. Customize Layout); highlight only one,
+        // preferring the one the page itself marked active
+        const keep = matches.find(link => link.classList.contains('active')) || matches[0];
+        matches.forEach(link => link.classList.toggle('active', link === keep));
     } catch (e) {
         console.warn('[SIDEBAR] Nav highlight notice:', e);
     }

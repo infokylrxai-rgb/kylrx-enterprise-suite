@@ -295,9 +295,17 @@ class ControlsAcceptanceService {
     async verifyAcceptanceCriteria() {
         const criteriaResults = [];
 
+        // Each check runs on its own throwaway, offline copy of the engine: running the matrix
+        // creates no real goals, jobs, notifications, OTPs, drafts or payroll rules
+        const goals = new managerGoalsEngine.constructor();
+        const bulk = new bulkTriggerEngine.constructor({ offline: true });
+        const otp = new otpVerificationService.constructor({ persist: false });
+        const aiBuilder = new aiAssistedBuilderService.constructor({ sync: false });
+        const payroll = new payrollEmailAccountService.constructor();
+
         // 1. Goals: Manager can create, update and track goals
         try {
-            const testGoal = managerGoalsEngine.createGoal({
+            const testGoal = goals.createGoal({
                 title: 'Acceptance Verification Goal',
                 description: 'Verify manager goal tracking capability',
                 outcome: '100% acceptance compliance',
@@ -306,7 +314,7 @@ class ControlsAcceptanceService {
                 schedule: { startDate: '2026-10-01', targetDate: '2026-11-01' }
             }, { id: 'MGR-ACCEPTANCE', name: 'Acceptance Manager', role: 'manager' });
 
-            const updatedGoal = managerGoalsEngine.updateGoal(testGoal.id, {
+            const updatedGoal = goals.updateGoal(testGoal.id, {
                 measurement: { current: 100 }
             }, { id: 'MGR-ACCEPTANCE', name: 'Acceptance Manager', role: 'manager' });
 
@@ -356,7 +364,7 @@ class ControlsAcceptanceService {
                 { id: 'acc-1', email: 'acc1@kylrx.com', name: 'Acc One', consentStatus: 'granted' },
                 { id: 'acc-2', email: 'acc2@kylrx.com', name: 'Acc Two', consentStatus: 'granted' }
             ];
-            const job = await bulkTriggerEngine.executeBulkTrigger({
+            const job = await bulk.executeBulkTrigger({
                 action: 'EMAIL_NOTIFICATION',
                 recipients: testItems,
                 payload: { subject: 'Acceptance Verification Bulk Action', message: 'Hello {{name}}' },
@@ -383,7 +391,7 @@ class ControlsAcceptanceService {
 
         // 4. OTP: Expiry, single-use and attempt limits work
         try {
-            const otpRecord = otpVerificationService.generateOtp({
+            const otpRecord = otp.generateOtp({
                 identifier: 'acceptance-test@kylrx.com',
                 purpose: 'acceptance_verification',
                 ttlSeconds: 300,
@@ -391,14 +399,14 @@ class ControlsAcceptanceService {
             });
 
             // Verify single use
-            const verifySuccess = otpVerificationService.verifyOtp({
+            const verifySuccess = otp.verifyOtp({
                 otpId: otpRecord.otpId,
                 identifier: 'acceptance-test@kylrx.com',
                 code: otpRecord.code,
                 purpose: 'acceptance_verification'
             });
 
-            const secondAttempt = otpVerificationService.verifyOtp({
+            const secondAttempt = otp.verifyOtp({
                 otpId: otpRecord.otpId,
                 identifier: 'acceptance-test@kylrx.com',
                 code: otpRecord.code,
@@ -426,7 +434,7 @@ class ControlsAcceptanceService {
 
         // 5. AI builder: Suggestions are editable and require user approval
         try {
-            const draft = aiAssistedBuilderService.generateAlertDraft(
+            const draft = aiBuilder.generateAlertDraft(
                 'Acceptance: alert HR if overtime exceeds 10 hours',
                 { category: 'compliance' },
                 { id: 'usr-admin', name: 'Admin', role: 'super_admin' }
@@ -435,7 +443,7 @@ class ControlsAcceptanceService {
             const isDraft = draft.status === 'draft' && draft.canAutoActivate === false;
             
             // Verify edit
-            const edited = aiAssistedBuilderService.updateDraft(draft.id, {
+            const edited = aiBuilder.updateDraft(draft.id, {
                 name: 'Edited Acceptance Overtime Alert'
             }, { id: 'usr-admin', name: 'Admin', role: 'super_admin' });
 
@@ -458,7 +466,7 @@ class ControlsAcceptanceService {
 
         // 6. Payroll: Approved settings and notification rules work as agreed
         try {
-            const rule = payrollEmailAccountService.createPayrollRule({
+            const rule = payroll.createPayrollRule({
                 name: 'Acceptance Payroll Reminder',
                 event: 'payroll.deduction_scheduled',
                 timing: {
@@ -475,7 +483,7 @@ class ControlsAcceptanceService {
             const initialStatusWasPending = rule.status === 'pending_approval';
 
             // Approved by a second user (Maker-Checker)
-            const approved = payrollEmailAccountService.approveAndActivateRule(
+            const approved = payroll.approveAndActivateRule(
                 rule.id,
                 { role: 'super_admin', name: 'HR Checker', id: 'usr-hr-checker' },
                 { reason: 'Acceptance suite approval' }
@@ -501,7 +509,7 @@ class ControlsAcceptanceService {
         // 7. Account view: Users cannot access unauthorised information
         try {
             // Employee accessing self -> Allowed & masked
-            const ownView = payrollEmailAccountService.getAccountView('EMP-1001', {
+            const ownView = payroll.getAccountView('EMP-1001', {
                 id: 'EMP-1001',
                 role: 'employee',
                 name: 'Alex Rivera'
@@ -510,7 +518,7 @@ class ControlsAcceptanceService {
             // Employee accessing another employee -> Blocked with 403
             let probeBlocked = false;
             try {
-                payrollEmailAccountService.getAccountView('EMP-1002', {
+                payroll.getAccountView('EMP-1002', {
                     id: 'EMP-1001',
                     role: 'employee',
                     name: 'Alex Rivera'
@@ -540,7 +548,7 @@ class ControlsAcceptanceService {
 
         // 8. Audit: Important actions show who acted and when
         try {
-            const history = payrollEmailAccountService.getChangeHistory();
+            const history = payroll.getChangeHistory();
             const latestAction = history[0];
             const actorObj = latestAction?.modifiedBy || latestAction?.actor;
 

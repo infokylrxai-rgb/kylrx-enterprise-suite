@@ -17,7 +17,13 @@ const { db } = require('../config/firebase');
  */
 
 class AiAssistedBuilderService {
-    constructor() {
+    /**
+     * @param {Object} [options]
+     * @param {boolean} [options.sync=true] - Load the shared bulk_ai_configurations collection.
+     *   Per-organization copies (routes/bulk-trigger.js) pass false and are loaded/saved by
+     *   TenantEngineStore instead.
+     */
+    constructor(options = {}) {
         // In-Memory store for draft and active configurations
         // Key: configId -> Config Record
         this.configurations = new Map();
@@ -32,7 +38,8 @@ class AiAssistedBuilderService {
         this._seedCanonicalExamples();
 
         // Synchronize with Firebase Firestore
-        this.initFirestoreSync().catch(() => {});
+        this.sync = options.sync !== false;
+        if (this.sync) this.initFirestoreSync().catch(() => {});
     }
 
     /**
@@ -60,7 +67,8 @@ class AiAssistedBuilderService {
      * Persist configuration to Firebase Firestore
      */
     async syncConfigToFirestore(config) {
-        if (!db || typeof db.collection !== 'function' || !config || !config.id) return;
+        // Copies made with sync: false are saved by their owner (TenantEngineStore) or not at all
+        if (!this.sync || !db || typeof db.collection !== 'function' || !config || !config.id) return;
         try {
             await db.collection('bulk_ai_configurations').doc(config.id).set({
                 ...config,

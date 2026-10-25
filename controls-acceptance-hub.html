@@ -229,6 +229,17 @@
         .tab-pane.active {
             display: block;
         }
+
+        /* AI assist */
+        .ai-panel { background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid #ddd6fe; border-radius: 16px; padding: 14px 18px; margin-bottom: 1.5rem; }
+        .ai-panel-title { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 800; color: #5b21b6; }
+        .ai-mode { font-size: 0.68rem; font-weight: 700; color: #7c3aed; margin-left: 6px; }
+        .ai-risk { font-size: 0.78rem; padding: 6px 10px; border-radius: 8px; margin-top: 6px; }
+        .ai-advice { margin-top: 10px; background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 10px; padding: 10px 12px; font-size: 0.78rem; color: #4c1d95; }
+        .ai-advice:empty { display: none; }
+        .ai-btn { background: #fff; color: #6d28d9; border: 1px solid #c4b5fd; }
+        .toast-msg { position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; z-index: 100000; box-shadow: 0 10px 25px rgba(0,0,0,0.25); max-width: 460px; }
+        .toast-msg.error { background: #7f1d1d; }
     </style>
 </head>
 <body>
@@ -335,13 +346,30 @@
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="text-align: right;">
                         <div style="font-size: 0.68rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Acceptance Health</div>
-                        <div style="font-size: 0.95rem; font-weight: 800; color: #059669;" id="overallAcceptanceBadge">8 / 8 PASSED (100%)</div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #64748b;" id="overallAcceptanceBadge">Checking…</div>
                     </div>
                     <button class="btn-action btn-primary" onclick="runAcceptanceSuite()">
                         <i data-lucide="play" style="width: 15px; height: 15px;"></i>
                         <span>Re-Verify Suite</span>
                     </button>
                 </div>
+            </div>
+
+            <div id="acceptanceSaveNotice"></div>
+
+            <!-- AI Readiness -->
+            <div class="ai-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div>
+                        <div class="ai-panel-title"><i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> AI Go-Live Readiness <span id="aiModeLabel" class="ai-mode"></span></div>
+                        <p style="font-size: 0.78rem; color: #6d28d9; margin: 2px 0 0 0;">Combines the acceptance checks, open client decisions, sign-off and your actual setup (providers, approvers) into one readiness view.</p>
+                    </div>
+                    <button class="btn-action" id="btnAiReadiness" onclick="runAiReadiness()" style="background: #7c3aed; color: #fff; border: none;">
+                        <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i>
+                        <span>Assess Readiness</span>
+                    </button>
+                </div>
+                <div id="aiReadinessResult"></div>
             </div>
 
             <!-- Tab Navigation Bar -->
@@ -503,7 +531,70 @@
     </div>
 
     <!-- Client-Side Script -->
+    <!-- Sign-in session (adds the login token to the page's /api calls) -->
+    <script type="module" src="./firebase-config.js"></script>
     <script>
+        // Text from the server is escaped before it is placed into HTML
+        const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        let decisionsById = {};
+
+        function toast(message, isError = false) {
+            document.querySelector('.toast-msg')?.remove();
+            const el = document.createElement('div');
+            el.className = `toast-msg${isError ? ' error' : ''}`;
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), isError ? 6000 : 3500);
+        }
+
+        // Whether Firebase currently accepts saves (cached for a minute)
+        let writeStatusCache = { at: 0, value: null };
+        async function getWriteStatus() {
+            if (writeStatusCache.value && Date.now() - writeStatusCache.at < 60000) return writeStatusCache.value;
+            try {
+                const json = await (await fetch('/api/firestore/write-status')).json();
+                writeStatusCache = { at: Date.now(), value: { accepting: json.accepting !== false, localTestDatabase: json.localTestDatabase === true } };
+            } catch (_) {
+                writeStatusCache = { at: Date.now(), value: { accepting: true, localTestDatabase: false } };
+            }
+            return writeStatusCache.value;
+        }
+
+        /** Backend call: the server's message on failure; saves are not sent while Firebase refuses writes */
+        async function api(path, { method = 'GET', body } = {}) {
+            if (method !== 'GET' && !(await getWriteStatus()).accepting) {
+                throw new Error('Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Nothing was saved.');
+            }
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 30000);
+            try {
+                const res = await fetch(`/api/controls-acceptance${path}`, {
+                    method,
+                    headers: body ? { 'Content-Type': 'application/json' } : { Accept: 'application/json' },
+                    body: body ? JSON.stringify(body) : undefined,
+                    signal: controller.signal
+                });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || json.success === false) throw new Error(json.message || json.error || `Request failed (HTTP ${res.status})`);
+                return json;
+            } catch (err) {
+                if (err.name === 'AbortError') throw new Error('The server did not respond in time. Please try again.');
+                throw err;
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function showSaveNotice() {
+            const status = await getWriteStatus();
+            const box = document.getElementById('acceptanceSaveNotice');
+            if (!box) return;
+            if (status.accepting && !status.localTestDatabase) { box.innerHTML = ''; return; }
+            box.innerHTML = status.localTestDatabase
+                ? '<div style="margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;">Local test database: decisions and sign-offs on this page are saved to the local copy of your Firebase data, not the live project.</div>'
+                : '<div style="margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; background: #fffbeb; color: #92400e; border: 1px solid #fde68a;">Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). You can review everything; decisions and sign-off can be saved after the quota resets.</div>';
+        }
+
         // Tab Switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -522,25 +613,31 @@
 
         // 1. Fetch & Render Platform Controls (4.1)
         async function loadPlatformControls() {
+            const container = document.getElementById('platformControlsGrid');
             try {
-                const res = await fetch('/api/controls-acceptance/platform-controls');
-                const json = await res.json();
-                if (!json.success) return;
-
+                const json = await api('/platform-controls');
                 const reqs = json.data.requirements;
-                const container = document.getElementById('platformControlsGrid');
                 container.innerHTML = '';
 
                 const items = [
-                    { key: 'permissions', icon: 'shield-check', color: 'blue', data: reqs.permissions },
-                    { key: 'audit', icon: 'history', color: 'purple', data: reqs.audit },
-                    { key: 'security', icon: 'lock', color: 'green', data: reqs.security },
-                    { key: 'reliability', icon: 'zap', color: 'amber', data: reqs.reliability },
-                    { key: 'usability', icon: 'eye', color: 'blue', data: reqs.usability },
-                    { key: 'reporting', icon: 'bar-chart-2', color: 'purple', data: reqs.reporting }
+                    { key: 'permissions', icon: 'shield-check', data: reqs.permissions },
+                    { key: 'audit', icon: 'history', data: reqs.audit },
+                    { key: 'security', icon: 'lock', data: reqs.security },
+                    { key: 'reliability', icon: 'zap', data: reqs.reliability },
+                    { key: 'usability', icon: 'eye', data: reqs.usability },
+                    { key: 'reporting', icon: 'bar-chart-2', data: reqs.reporting }
                 ];
 
                 items.forEach(item => {
+                    const d = item.data || {};
+                    const detail = {
+                        permissions: `<strong>Roles:</strong> ${esc((d.canonicalRoles || []).join(', '))}`,
+                        audit: `<strong>Logged Events:</strong> ${esc(d.totalLoggedEvents)} across all modules`,
+                        security: `<strong>Masking:</strong> ${esc((d.maskedFields || []).join(', '))} (${esc(d.maskingPattern)})`,
+                        reliability: `<strong>Batch Engine:</strong> ${esc(d.batchProcessingEngine)}`,
+                        usability: `<strong>Previews:</strong> ${esc((d.livePreviewEngines || []).join(', '))}`,
+                        reporting: `<strong>Metrics:</strong> Goals: ${esc(d.activeGoalsCount)} | Templates: ${esc(d.usableTemplatesCount)} | Jobs: ${esc(d.bulkJobsProcessed)}`
+                    }[item.key];
                     const card = document.createElement('div');
                     card.className = 'criteria-card';
                     card.innerHTML = `
@@ -550,77 +647,66 @@
                                     <div style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb;">
                                         <i data-lucide="${item.icon}" style="width: 18px; height: 18px;"></i>
                                     </div>
-                                    <span style="font-size: 0.9rem; font-weight: 800; color: #0f172a;">${item.data.name}</span>
+                                    <span style="font-size: 0.9rem; font-weight: 800; color: #0f172a;">${esc(d.name)}</span>
                                 </div>
-                                <span class="badge-pill badge-green">COMPLIANT</span>
+                                <span class="badge-pill badge-blue">IN PLACE</span>
                             </div>
-                            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 10px 0; line-height: 1.4;">${item.data.description}</p>
+                            <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 10px 0; line-height: 1.4;">${esc(d.description)}</p>
                         </div>
-                        <div style="background: #f8fafc; border-radius: 8px; padding: 8px 12px; font-size: 0.75rem; color: #334155;">
-                            ${item.key === 'permissions' ? `<strong>Roles:</strong> ${item.data.canonicalRoles.join(', ')}` : ''}
-                            ${item.key === 'audit' ? `<strong>Logged Events:</strong> ${item.data.totalLoggedEvents} across all modules` : ''}
-                            ${item.key === 'security' ? `<strong>Masking:</strong> ${item.data.maskedFields.join(', ')} (${item.data.maskingPattern})` : ''}
-                            ${item.key === 'reliability' ? `<strong>Batch Engine:</strong> ${item.data.batchProcessingEngine}` : ''}
-                            ${item.key === 'usability' ? `<strong>Previews:</strong> ${item.data.livePreviewEngines.join(', ')}` : ''}
-                            ${item.key === 'reporting' ? `<strong>Metrics:</strong> Goals: ${item.data.activeGoalsCount} | Templates: ${item.data.usableTemplatesCount} | Jobs: ${item.data.bulkJobsProcessed}` : ''}
-                        </div>
+                        <div style="background: #f8fafc; border-radius: 8px; padding: 8px 12px; font-size: 0.75rem; color: #334155;">${detail}</div>
                     `;
                     container.appendChild(card);
                 });
                 renderLucideIcons();
             } catch (err) {
-                console.error('Failed to load platform controls', err);
+                container.innerHTML = `<p style="color: #b91c1c; font-size: 0.85rem;">Could not load platform controls: ${esc(err.message)}</p>`;
             }
         }
 
-        // 2. Fetch & Render Acceptance Criteria (4.2)
+        // 2. Fetch & Render Acceptance Criteria (4.2) — a self-test that creates no data
         async function runAcceptanceSuite() {
+            const badge = document.getElementById('overallAcceptanceBadge');
+            const container = document.getElementById('criteriaCardsGrid');
+            badge.innerText = 'Checking…';
+            badge.style.color = '#64748b';
             try {
-                const res = await fetch('/api/controls-acceptance/criteria-matrix');
-                const json = await res.json();
-                if (!json.success) return;
-
+                const json = await api('/criteria-matrix');
                 const { criteria, overallStatus, passRate } = json.data;
-                document.getElementById('overallAcceptanceBadge').innerText = `${passRate} ${overallStatus}`;
+                badge.innerText = `${passRate} ${overallStatus}`;
+                badge.style.color = overallStatus === 'PASSED' ? '#059669' : '#d97706';
 
-                const container = document.getElementById('criteriaCardsGrid');
                 container.innerHTML = '';
-
                 criteria.forEach(c => {
                     const card = document.createElement('div');
                     card.className = 'criteria-card';
                     card.innerHTML = `
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">${c.feature}</span>
+                                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">${esc(c.feature)}</span>
                                 <span class="badge-pill ${c.passed ? 'badge-green' : 'badge-red'}">
                                     ${c.passed ? 'VERIFIED PASSED' : 'FAILED'}
                                 </span>
                             </div>
-                            <div style="font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 8px;">
-                                ${c.condition}
-                            </div>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 8px;">${esc(c.condition)}</div>
                         </div>
-                        <div style="background: #f8fafc; border-left: 3px solid #10b981; border-radius: 4px; padding: 8px 10px; font-size: 0.74rem; color: #475569; font-family: monospace;">
-                            ${c.evidence}
-                        </div>
+                        <div style="background: #f8fafc; border-left: 3px solid ${c.passed ? '#10b981' : '#ef4444'}; border-radius: 4px; padding: 8px 10px; font-size: 0.74rem; color: #475569; font-family: monospace;">${esc(c.evidence)}</div>
                     `;
                     container.appendChild(card);
                 });
                 renderLucideIcons();
             } catch (err) {
-                console.error('Failed to verify acceptance suite', err);
+                badge.innerText = 'Check failed';
+                badge.style.color = '#dc2626';
+                container.innerHTML = `<p style="color: #b91c1c; font-size: 0.85rem;">Could not run the acceptance checks: ${esc(err.message)}</p>`;
             }
         }
 
         // 3. Fetch & Render Client Decisions (4.3)
         async function loadClientDecisions() {
+            const container = document.getElementById('decisionPointsContainer');
             try {
-                const res = await fetch('/api/controls-acceptance/decisions');
-                const json = await res.json();
-                if (!json.success) return;
-
-                const container = document.getElementById('decisionPointsContainer');
+                const json = await api('/decisions');
+                decisionsById = Object.fromEntries(json.data.map(d => [d.id, d]));
                 container.innerHTML = '';
 
                 json.data.forEach(d => {
@@ -628,134 +714,170 @@
                     card.className = `decision-card ${d.status === 'confirmed' ? 'confirmed' : ''}`;
                     card.id = `dec_card_${d.id}`;
 
-                    let optionsHtml = '';
-                    d.options.forEach((opt, idx) => {
+                    const optionsHtml = d.options.map((opt, idx) => {
                         const isRecommended = opt === d.recommendedOption;
                         const isSelected = opt === d.selectedOption;
-                        optionsHtml += `
+                        return `
                             <label style="display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 8px; background: ${isSelected ? '#eff6ff' : '#f8fafc'}; border: 1px solid ${isSelected ? '#bfdbfe' : 'transparent'}; margin-bottom: 6px; cursor: pointer;">
-                                <input type="radio" name="opt_${d.id}" value="${opt}" ${isSelected ? 'checked' : ''} onchange="updateDecisionOption('${d.id}', this.value)" style="margin-top: 3px;" />
+                                <input type="radio" name="opt_${esc(d.id)}" value="${idx}" ${isSelected ? 'checked' : ''} style="margin-top: 3px;" />
                                 <div style="flex: 1;">
                                     <div style="font-size: 0.82rem; font-weight: 700; color: #0f172a;">
-                                        ${opt}
+                                        ${esc(opt)}
                                         ${isRecommended ? '<span class="badge-pill badge-green" style="font-size: 0.65rem; margin-left: 6px;">RECOMMENDED</span>' : ''}
                                     </div>
                                 </div>
-                            </label>
-                        `;
-                    });
+                            </label>`;
+                    }).join('');
 
                     card.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 8px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span class="badge-pill badge-blue">Q${d.questionNumber}</span>
-                                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">${d.question}</span>
+                                <span class="badge-pill badge-blue">Q${esc(d.questionNumber)}</span>
+                                <span style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">${esc(d.question)}</span>
                             </div>
-                            <span class="badge-pill ${d.status === 'confirmed' ? 'badge-green' : 'badge-amber'}" id="status_pill_${d.id}">
+                            <span class="badge-pill ${d.status === 'confirmed' ? 'badge-green' : 'badge-amber'}" id="status_pill_${esc(d.id)}">
                                 ${d.status === 'confirmed' ? 'CONFIRMED' : 'PENDING'}
                             </span>
                         </div>
-                        <p style="font-size: 0.78rem; color: #64748b; margin: 0 0 10px 0;">${d.context}</p>
-                        
-                        <div style="margin-bottom: 10px;">
-                            ${optionsHtml}
-                        </div>
-
+                        <p style="font-size: 0.78rem; color: #64748b; margin: 0 0 10px 0;">${esc(d.context)}</p>
+                        <div style="margin-bottom: 10px;">${optionsHtml}</div>
+                        ${d.confirmedBy ? `<div style="font-size: 0.72rem; color: #64748b; margin-bottom: 8px;">Confirmed by ${esc(d.confirmedBy.name)} on ${esc(new Date(d.confirmedAt).toLocaleString())}</div>` : ''}
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            <input type="text" id="notes_${d.id}" placeholder="Optional custom client notes / constraints..." value="${d.notes || ''}" style="flex: 1; min-width: 200px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.78rem;" />
-                            <button class="btn-action btn-secondary" onclick="confirmSingleDecision('${d.id}')" style="padding: 6px 12px; font-size: 0.78rem;">
+                            <input type="text" id="notes_${esc(d.id)}" placeholder="Optional custom client notes / constraints..." value="${esc(d.notes || '')}" style="flex: 1; min-width: 200px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.78rem;" />
+                            <button class="btn-action ai-btn" data-ai-advise="${esc(d.id)}" style="padding: 6px 12px; font-size: 0.78rem;">
+                                <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+                                <span>AI Advise</span>
+                            </button>
+                            <button class="btn-action btn-secondary" data-save-decision="${esc(d.id)}" style="padding: 6px 12px; font-size: 0.78rem;">
                                 <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                                 <span>Save Decision</span>
                             </button>
                         </div>
+                        <div class="ai-advice" id="advice_${esc(d.id)}"></div>
                     `;
                     container.appendChild(card);
                 });
                 renderLucideIcons();
             } catch (err) {
-                console.error('Failed to load client decisions', err);
+                container.innerHTML = `<p style="color: #b91c1c; font-size: 0.85rem;">Could not load client decisions: ${esc(err.message)}</p>`;
             }
         }
 
-        async function updateDecisionOption(id, val) {
-            confirmSingleDecision(id, val);
+        function selectedOptionOf(id) {
+            const checked = document.querySelector(`input[name="opt_${CSS.escape(id)}"]:checked`);
+            return checked ? decisionsById[id].options[Number(checked.value)] : undefined;
         }
 
-        async function confirmSingleDecision(id, overrideVal = null) {
-            const selectedOpt = overrideVal || document.querySelector(`input[name="opt_${id}"]:checked`)?.value;
+        async function confirmSingleDecision(id, button) {
             const notes = document.getElementById(`notes_${id}`)?.value;
-
+            if (button) button.disabled = true;
             try {
-                const res = await fetch(`/api/controls-acceptance/decisions/${id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        selectedOption: selectedOpt,
-                        notes,
-                        actor: { name: document.getElementById('repName')?.value || 'Client Representative' }
-                    })
-                });
-                const json = await res.json();
-                if (json.success) {
-                    const card = document.getElementById(`dec_card_${id}`);
-                    if (card) card.classList.add('confirmed');
-                    const pill = document.getElementById(`status_pill_${id}`);
-                    if (pill) {
-                        pill.className = 'badge-pill badge-green';
-                        pill.innerText = 'CONFIRMED';
-                    }
-                }
+                await api(`/decisions/${encodeURIComponent(id)}`, { method: 'POST', body: { selectedOption: selectedOptionOf(id), notes } });
+                toast(`Q${decisionsById[id].questionNumber} saved to Firebase.`);
+                await loadClientDecisions();
             } catch (e) {
-                alert(`Error saving decision: ${e.message}`);
+                toast(`Could not save the decision: ${e.message}`, true);
+                if (button) button.disabled = false;
             }
         }
 
         async function batchConfirmRecommendations() {
+            if (!confirm('Confirm the recommended option for all 10 decisions? Choices you changed will be replaced by the recommendation.')) return;
             try {
-                const res = await fetch('/api/controls-acceptance/decisions/batch-confirm', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        representativeName: document.getElementById('repName')?.value || 'Client Representative'
-                    })
-                });
-                const json = await res.json();
-                if (json.success) {
-                    await loadClientDecisions();
-                    alert('All 10 recommended decisions confirmed and locked!');
-                }
+                const json = await api('/decisions/batch-confirm', { method: 'POST', body: {} });
+                await loadClientDecisions();
+                toast(json.message);
             } catch (e) {
-                alert(`Error: ${e.message}`);
+                toast(`Could not confirm: ${e.message}`, true);
+            }
+        }
+
+        // AI Advise for one decision
+        async function adviseDecision(id, button) {
+            const box = document.getElementById(`advice_${id}`);
+            button.disabled = true;
+            box.textContent = 'Thinking…';
+            try {
+                const { data } = await api(`/ai/advise/${encodeURIComponent(id)}`, { method: 'POST', body: {} });
+                const idx = decisionsById[id].options.indexOf(data.recommendedOption);
+                box.innerHTML = `
+                    <div style="font-weight: 800; margin-bottom: 4px;">✨ Recommended for your company: ${esc(data.recommendedOption)}</div>
+                    ${data.matchesStandardRecommendation ? '' : '<div style="font-size: 0.72rem; font-weight: 700; color: #b45309; margin-bottom: 4px;">Differs from the standard recommendation, based on your setup.</div>'}
+                    <ul style="margin: 4px 0; padding-left: 18px;">${data.rationale.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+                    ${data.considerations.length ? `<div style="font-size: 0.74rem; color: #6b21a8;"><strong>Check:</strong> ${data.considerations.map(esc).join(' ')}</div>` : ''}
+                    ${data.differsFromCurrentSelection && idx > -1 ? `<button class="btn-action btn-secondary" data-use-advice="${esc(id)}" data-option="${idx}" style="margin-top: 8px; padding: 5px 10px; font-size: 0.75rem;">Use this option</button>` : '<div style="font-size: 0.72rem; margin-top: 6px;">This matches the option currently selected.</div>'}
+                    <div style="font-size: 0.68rem; color: #7c3aed; margin-top: 4px;">${data.source === 'openai' ? 'AI model' : 'Rule-based advice'} · not saved until you press Save Decision</div>`;
+            } catch (err) {
+                box.textContent = 'AI Advise failed: ' + err.message;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const save = e.target.closest('[data-save-decision]');
+            if (save) return confirmSingleDecision(save.dataset.saveDecision, save);
+            const advise = e.target.closest('[data-ai-advise]');
+            if (advise) return adviseDecision(advise.dataset.aiAdvise, advise);
+            const use = e.target.closest('[data-use-advice]');
+            if (use) {
+                const radio = document.querySelector(`input[name="opt_${CSS.escape(use.dataset.useAdvice)}"][value="${use.dataset.option}"]`);
+                if (radio) radio.checked = true;
+                toast('Option selected — press Save Decision to confirm it.');
+            }
+        });
+
+        // AI Go-Live Readiness
+        async function runAiReadiness() {
+            const box = document.getElementById('aiReadinessResult');
+            const btn = document.getElementById('btnAiReadiness');
+            btn.disabled = true;
+            box.innerHTML = '<p style="font-size: 0.8rem; color: #6d28d9; margin: 10px 0 0;">Assessing…</p>';
+            try {
+                const { data } = await api('/ai/readiness', { method: 'POST', body: {} });
+                const color = data.score >= 90 ? '#059669' : data.score >= 60 ? '#d97706' : '#dc2626';
+                const sev = { high: ['#fef2f2', '#b91c1c'], medium: ['#fffbeb', '#a16207'], low: ['#f8fafc', '#475569'] };
+                box.innerHTML = `
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; margin-top: 12px; align-items: start;">
+                        <div style="text-align: center; background: #fff; border: 1px solid #e9d5ff; border-radius: 12px; padding: 10px 16px;">
+                            <div style="font-size: 1.8rem; font-weight: 800; color: ${color};">${data.score}</div>
+                            <div style="font-size: 0.68rem; font-weight: 800; color: #64748b;">/ 100</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9rem; font-weight: 800; color: ${color};">${esc(data.headline)}</div>
+                            ${data.risks.map(r => `<div class="ai-risk" style="background: ${sev[r.severity][0]}; color: ${sev[r.severity][1]};"><strong>${esc(r.severity.toUpperCase())}</strong> · ${esc(r.message)}</div>`).join('')}
+                            ${data.nextActions.length ? `<div style="font-size: 0.75rem; font-weight: 800; color: #5b21b6; margin-top: 10px;">NEXT ACTIONS</div><ol style="margin: 4px 0 0; padding-left: 18px; font-size: 0.8rem; color: #334155;">${data.nextActions.map(a => `<li>${esc(a)}</li>`).join('')}</ol>` : ''}
+                        </div>
+                    </div>`;
+            } catch (err) {
+                box.innerHTML = `<p style="font-size: 0.8rem; color: #b91c1c; margin: 10px 0 0;">Assessment failed: ${esc(err.message)}</p>`;
+            } finally {
+                btn.disabled = false;
             }
         }
 
         // 4. Fetch & Render Phasing Roadmap (4.4)
         async function loadDeliveryRoadmap() {
+            const container = document.getElementById('roadmapContainer');
             try {
-                const res = await fetch('/api/controls-acceptance/delivery-roadmap');
-                const json = await res.json();
-                if (!json.success) return;
-
-                const { phases } = json.data;
-                const container = document.getElementById('roadmapContainer');
+                const { phases } = (await api('/delivery-roadmap')).data;
                 container.innerHTML = '';
-
                 phases.forEach(p => {
                     const isDone = p.status === 'completed';
                     const step = document.createElement('div');
                     step.className = 'timeline-step';
                     step.innerHTML = `
                         <div class="timeline-marker ${isDone ? 'done' : 'active'}">
-                            ${isDone ? '<i data-lucide="check" style="width: 16px; height: 16px;"></i>' : p.phaseNumber}
+                            ${isDone ? '<i data-lucide="check" style="width: 16px; height: 16px;"></i>' : esc(p.phaseNumber)}
                         </div>
                         <div style="flex: 1;">
                             <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px;">
-                                <h4 style="font-size: 0.9rem; font-weight: 800; color: #0f172a; margin: 0;">Phase ${p.phaseNumber}: ${p.name}</h4>
-                                <span class="badge-pill ${isDone ? 'badge-green' : 'badge-blue'}">${p.effortEstimateStoryPoints} Pts</span>
+                                <h4 style="font-size: 0.9rem; font-weight: 800; color: #0f172a; margin: 0;">Phase ${esc(p.phaseNumber)}: ${esc(p.name)}</h4>
+                                <span class="badge-pill ${isDone ? 'badge-green' : 'badge-blue'}">${esc(p.effortEstimateStoryPoints)} Pts</span>
                             </div>
-                            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px;">${p.timeline}</div>
+                            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px;">${esc(p.timeline)}</div>
                             <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.78rem; color: #475569;">
-                                ${p.deliverables.map(d => `<li>${d}</li>`).join('')}
+                                ${p.deliverables.map(d => `<li>${esc(d)}</li>`).join('')}
                             </ul>
                         </div>
                     `;
@@ -763,55 +885,50 @@
                 });
                 renderLucideIcons();
             } catch (err) {
-                console.error('Failed to load roadmap', err);
+                container.innerHTML = `<p style="color: #b91c1c; font-size: 0.85rem;">Could not load the roadmap: ${esc(err.message)}</p>`;
             }
         }
 
-        // Check if already signed off
+        // Check if already signed off; prefill the organization's name
         async function checkSignOffStatus() {
             try {
-                const res = await fetch('/api/controls-acceptance/sign-off/status');
-                const json = await res.json();
-                if (json.success && json.data.isSigned) {
-                    renderCertificate(json.data.latestCertificate);
-                }
+                const json = await api('/sign-off/status');
+                if (json.data.isSigned) renderCertificate(json.data.latestCertificate);
             } catch (e) {
                 console.error('Failed to check sign-off status', e);
             }
+            try {
+                const { data } = await api('/ai/facts');
+                const org = document.getElementById('repOrg');
+                if (org && data.organization && (!org.value || org.value === 'Enterprise Client Organization')) org.value = data.organization;
+            } catch (_) {}
         }
 
         // Handle Sign-off Submission
         async function submitClientSignOff(e) {
             e.preventDefault();
-            const repName = document.getElementById('repName').value;
-            const repTitle = document.getElementById('repTitle').value;
-            const repDate = document.getElementById('repDate').value;
-            const repOrg = document.getElementById('repOrg').value;
-            const repComments = document.getElementById('repComments').value;
-
+            const pending = Object.values(decisionsById).filter(d => d.status !== 'confirmed').length;
+            if (pending && !confirm(`${pending} client decision(s) are still pending. Sign off anyway?`)) return;
+            const submit = e.target.querySelector('button[type="submit"]');
+            if (submit) submit.disabled = true;
             try {
-                const res = await fetch('/api/controls-acceptance/sign-off', {
+                const json = await api('/sign-off', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        representativeName: repName,
-                        representativeTitle: repTitle,
-                        organization: repOrg,
-                        signatureDate: repDate,
-                        clientComments: repComments,
+                    body: {
+                        representativeName: document.getElementById('repName').value,
+                        representativeTitle: document.getElementById('repTitle').value,
+                        organization: document.getElementById('repOrg').value,
+                        signatureDate: document.getElementById('repDate').value,
+                        clientComments: document.getElementById('repComments').value,
                         signOffScope: 'Full 5-Page PRD Acceptance & Technical Architecture Sign-off'
-                    })
+                    }
                 });
-
-                const json = await res.json();
-                if (json.success) {
-                    renderCertificate(json.data);
-                    alert('Client Scope Sign-off successfully registered and cryptographically sealed!');
-                } else {
-                    alert(`Error: ${json.error}`);
-                }
+                renderCertificate(json.data);
+                toast('Client sign-off sealed and saved to Firebase.');
             } catch (err) {
-                alert(`Error executing sign-off: ${err.message}`);
+                toast(`Sign-off not saved: ${err.message}`, true);
+            } finally {
+                if (submit) submit.disabled = false;
             }
         }
 
@@ -829,15 +946,16 @@
                     </div>
 
                     <div style="font-size: 0.8rem; color: #15803d; margin-bottom: 8px;">
-                        <strong>Certificate ID:</strong> ${cert.certificateId}<br>
-                        <strong>Signatory:</strong> ${cert.representativeName} (${cert.representativeTitle})<br>
-                        <strong>Organization:</strong> ${cert.organization}<br>
-                        <strong>Date of Approval:</strong> ${cert.signatureDate}<br>
-                        <strong>Decisions Confirmed:</strong> ${cert.confirmedDecisionsCount} of ${cert.totalDecisionsCount}
+                        <strong>Certificate ID:</strong> ${esc(cert.certificateId)}<br>
+                        <strong>Signatory:</strong> ${esc(cert.representativeName)} (${esc(cert.representativeTitle)})<br>
+                        <strong>Organization:</strong> ${esc(cert.organization)}<br>
+                        <strong>Date of Approval:</strong> ${esc(cert.signatureDate)}<br>
+                        <strong>Decisions Confirmed:</strong> ${esc(cert.confirmedDecisionsCount)} of ${esc(cert.totalDecisionsCount)}
+                        ${cert.recordedBy ? `<br><strong>Recorded by:</strong> ${esc(cert.recordedBy.name)}${cert.recordedBy.email ? ` (${esc(cert.recordedBy.email)})` : ''}` : ''}
                     </div>
 
                     <div style="background: rgba(255,255,255,0.8); border: 1px dashed #86efac; border-radius: 6px; padding: 6px 10px; font-family: monospace; font-size: 0.68rem; color: #166534; word-break: break-all;">
-                        <strong>SHA-256 Fingerprint:</strong> ${cert.certificateHash}
+                        <strong>SHA-256 Fingerprint:</strong> ${esc(cert.certificateHash)}
                     </div>
                 </div>
             `;
@@ -846,11 +964,15 @@
 
         // Initialize All
         document.addEventListener('DOMContentLoaded', () => {
+            showSaveNotice();
             loadPlatformControls();
             runAcceptanceSuite();
             loadClientDecisions();
             loadDeliveryRoadmap();
             checkSignOffStatus();
+            api('/ai/status').then(({ data }) => {
+                document.getElementById('aiModeLabel').textContent = data.aiConfigured ? 'AI model connected' : 'rule-based (no AI key configured)';
+            }).catch(() => {});
         });
     </script>
 

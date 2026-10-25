@@ -176,7 +176,7 @@
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <div class="ai-status">
                         <span class="ai-pulse"></span>
-                        <span>AI RETENTION ENGINE ON</span>
+                        <span id="aiEngineLabel">AI RETENTION ENGINE · LOADING</span>
                     </div>
                 </div>
             </header>
@@ -184,18 +184,18 @@
             <div class="stat-grid">
                 <div class="ai-glass-card">
                     <div class="card-header"><h2 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Turnover Rate</h2></div>
-                    <div style="font-size: 2.5rem; font-weight: 800; color: #10b981;">1.2%</div>
-                    <div style="font-size: 0.8rem; color: #10b981; font-weight: 700; margin-top: 5px;">Below industry average (1.5%)</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #10b981;" id="turnoverRate">–</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-top: 5px;" id="turnoverSub">Last 12 months</div>
                 </div>
                 <div class="ai-glass-card">
-                    <div class="card-header"><h2 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Open Positions</h2></div>
-                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);" id="openPositionsCount">14</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-top: 5px;">Across 5 active departments</div>
+                    <div class="card-header"><h2 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Active Candidates</h2></div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);" id="openPositionsCount">–</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-top: 5px;" id="openPositionsSub">Loading…</div>
                 </div>
                 <div class="ai-glass-card">
                     <div class="card-header"><h2 style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">Talent AI Score</h2></div>
-                    <div style="font-size: 2.5rem; font-weight: 800; color: #8b5cf6;">High</div>
-                    <div style="font-size: 0.8rem; color: #8b5cf6; font-weight: 700; margin-top: 5px;">Excellent overall retention indicators</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #8b5cf6;" id="talentScore">–</div>
+                    <div style="font-size: 0.78rem; color: #6d28d9; font-weight: 600; margin-top: 5px; line-height: 1.45;" id="talentReasons">Loading…</div>
                 </div>
             </div>
 
@@ -206,17 +206,12 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                             <div>
                                 <h3 style="font-weight: 800;">Kylrx AI - Recruitment Copilot</h3>
-                                <p style="font-size: 0.8rem; color: var(--text-muted);">Real-time applicant database and profiles sync</p>
+                                <p style="font-size: 0.8rem; color: var(--text-muted);">Candidates ranked by AI priority, with the next step for each</p>
                             </div>
                             
                             <div style="display: flex; gap: 12px; align-items: center;">
                                 <select id="adminDeptFilter" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit; font-size: 0.8rem; font-weight: 600; outline: none; background: white; cursor: pointer;">
                                     <option value="all">All Departments</option>
-                                    <option value="cybersecurity">Cybersecurity</option>
-                                    <option value="engineering">Engineering</option>
-                                    <option value="marketing">Marketing</option>
-                                    <option value="sales">Sales</option>
-                                    <option value="hr">HR</option>
                                 </select>
                                 <div id="recruitmentConnectionStatus" style="display: flex; align-items: center; gap: 6px;">
                                     <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Syncing...</span>
@@ -242,11 +237,14 @@
                         </div>
                     </div>
 
-                    <div class="ai-glass-card" style="background: #eff6ff; border: 1px solid #dbeafe; padding: 1.25rem; margin-top: 2rem; display: flex; gap: 12px; align-items: flex-start;">
-                        <i data-lucide="info" style="color: var(--primary); flex-shrink: 0; margin-top: 2px;"></i>
-                        <p style="font-size: 0.75rem; color: var(--primary-dark); line-height: 1.5;">
-                            <strong>AI Copilot Intel:</strong> Candidates are evaluated using natural language modeling against standard job requirements. Recommended profiles are flagged for Manager Review.
-                        </p>
+                    <div class="ai-glass-card" style="background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid #ddd6fe; padding: 1.25rem; margin-top: 2rem;">
+                        <h3 style="font-weight: 800; font-size: 0.95rem; color: #5b21b6; display: flex; align-items: center; gap: 6px; margin-bottom: 0.75rem;"><i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> AI Pipeline Insights</h3>
+                        <div id="pipelineInsights" style="font-size: 0.8rem; color: #4c1d95; line-height: 1.5;">Loading…</div>
+                    </div>
+                    <div class="ai-glass-card" style="margin-top: 2rem;">
+                        <h3 style="font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; margin-bottom: 0.25rem;"><i data-lucide="shield-alert" style="width: 16px; height: 16px; color: #ef4444;"></i> AI Retention Engine</h3>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">Employees with flight-risk signals from exits, EOD scores, manager coverage, sign-ins and tenure.</p>
+                        <div id="retentionRisks" style="display: flex; flex-direction: column; gap: 8px;">Loading…</div>
                     </div>
                 </div>
             </div>
@@ -401,15 +399,17 @@
     </div>
 
     <script type="module">
-        import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
+        import { db, auth, onSnapshot } from "./firebase-config.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
         import { collection, doc, getDoc, arrayUnion, arrayRemove, setDoc } from "./firebase-config.js";
 
         lucide.createIcons();
 
-        let allCandidates = [];
+        // Strategic HR Console data: /api/hr-console (this organization only, read-only)
+        let consoleData = null;
         let filterDept = 'all';
         let stageChart = null;
+        const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
         // Logout logic
         const logoutBtn = document.getElementById('logoutBtn');
@@ -418,164 +418,152 @@
                 e.preventDefault();
                 try {
                     await signOut(auth);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error("Logout Error:", error);
+                } finally {
                     window.location.href = 'index.html';
                 }
             });
         }
 
-        // Department Filter change
         document.getElementById('adminDeptFilter').addEventListener('change', (e) => {
             filterDept = e.target.value;
             renderCandidates();
         });
 
-        // Sync Candidates
-        onSnapshot(collection(db, 'candidates'), (snapshot) => {
-            allCandidates = snapshot.docs
-                .map(d => ({ id: d.id, ...d.data() }))
-                .filter(c => c.status !== 'archived');
-            
-            document.getElementById('recruitmentConnectionStatus').innerHTML = `
-                <span style="font-size: 0.7rem; font-weight: 800; color: var(--success); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
-                    <span style="width: 6px; height: 6px; background: var(--success); border-radius: 50%; display: inline-block; animation: pulse 2s infinite;"></span>
-                    LIVE SYNC
-                </span>
-                <i data-lucide="database" style="color: var(--success); width: 14px; height: 14px;"></i>
-            `;
+        async function loadConsole() {
+            const status = document.getElementById('recruitmentConnectionStatus');
+            try {
+                const res = await fetch('/api/hr-console/overview', { headers: { Accept: 'application/json' } });
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok || json.success === false) throw new Error(json.message || json.error || `HTTP ${res.status}`);
+                consoleData = json.data;
+                status.innerHTML = `<span style="font-size: 0.7rem; font-weight: 800; color: var(--success); text-transform: uppercase; display: flex; align-items: center; gap: 6px;"><span style="width: 6px; height: 6px; background: var(--success); border-radius: 50%; display: inline-block;"></span>Firebase · ${new Date().toLocaleTimeString()}</span>`;
+                renderMetrics();
+                renderDeptFilter();
+                renderCandidates();
+                renderPipeline();
+                renderRetention();
+                updateChart();
+            } catch (err) {
+                status.innerHTML = `<span style="font-size: 0.7rem; font-weight: 800; color: var(--danger);">NOT CONNECTED</span>`;
+                document.getElementById('recruitmentCopilotBody').innerHTML = `<div style="text-align:center;padding:2rem;color:#b91c1c;">Could not load HR data: ${esc(err.message)}</div>`;
+            }
             lucide.createIcons();
+        }
 
-            renderCandidates();
-            updateChart();
-        }, (error) => {
-            console.error("Candidates sync failed:", error);
-        });
+        function renderMetrics() {
+            const { metrics, activeCandidates, departmentsWithOpenings } = consoleData;
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set('turnoverRate', `${metrics.turnover}%`);
+            const t = document.getElementById('turnoverRate');
+            if (t) t.style.color = metrics.turnover > 15 ? '#ef4444' : metrics.turnover > 8 ? '#f59e0b' : '#10b981';
+            set('turnoverSub', `${metrics.leavers} leaver(s) in 12 months · ${metrics.headcount} active · ${metrics.hires90} hire(s) in 90 days`);
+            set('openPositionsCount', activeCandidates);
+            set('openPositionsSub', activeCandidates ? `In pipeline across ${departmentsWithOpenings} department(s)` : 'No active candidates');
+            set('talentScore', `${metrics.talentScore.label} · ${metrics.talentScore.score}`);
+            const reasons = document.getElementById('talentReasons');
+            if (reasons) reasons.innerHTML = metrics.talentScore.reasons.slice(0, 3).map(r => `• ${esc(r)}`).join('<br>');
+            set('aiEngineLabel', `AI RETENTION ENGINE · ${consoleData.retention.length} AT RISK`);
+        }
+
+        function renderDeptFilter() {
+            const select = document.getElementById('adminDeptFilter');
+            const current = select.value;
+            select.innerHTML = '<option value="all">All Departments</option>' + consoleData.departments.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+            select.value = consoleData.departments.includes(current) ? current : 'all';
+            filterDept = select.value;
+        }
+
+        const STAGE_STYLE = {
+            Applied: ['var(--primary)', 'var(--primary-light)'], Screening: ['#0ea5e9', '#e0f2fe'], Interview: ['#f59e0b', '#f59e0b15'],
+            Offer: ['var(--success)', '#dcfce7'], Hired: ['#8b5cf6', '#ede9fe'], Rejected: ['var(--danger)', '#fff1f2']
+        };
+        const PRIORITY_STYLE = { high: 'background:#fef2f2;color:#b91c1c', medium: 'background:#fff7ed;color:#c2410c', low: 'background:#f1f5f9;color:#475569', done: 'background:#f1f5f9;color:#64748b' };
 
         function renderCandidates() {
             const body = document.getElementById('recruitmentCopilotBody');
-            if (!body) return;
-
-            const filtered = allCandidates.filter(c => {
-                if (filterDept === 'all') return true;
-                const candDept = (c.department || '').toLowerCase();
-                return candDept.includes(filterDept) || filterDept.includes(candDept);
-            });
-
-            // Update Open Positions Count badge dynamically
-            document.getElementById('openPositionsCount').textContent = filtered.length || 0;
-
-            if (filtered.length === 0) {
+            if (!body || !consoleData) return;
+            const filtered = consoleData.candidates.filter(c => filterDept === 'all' || c.department === filterDept);
+            if (!filtered.length) {
                 body.innerHTML = `
                     <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
-                        <i data-lucide="user-plus" class="animate-pulse" style="opacity: 0.2; margin-bottom: 1rem; width: 48px; height: 48px;"></i>
+                        <i data-lucide="user-plus" style="opacity: 0.2; margin-bottom: 1rem; width: 48px; height: 48px;"></i>
                         <p style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">No Candidates Found</p>
-                        <p style="font-size: 0.8rem;">No active candidate profiles mapped under the selected department filters.</p>
-                    </div>
-                `;
+                        <p style="font-size: 0.8rem;">${consoleData.candidates.length ? 'No candidates in this department.' : 'Add candidates from the Manager Console recruitment tab; the Copilot ranks them here.'}</p>
+                    </div>`;
                 lucide.createIcons();
                 return;
             }
-
             body.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; padding-right: 6px;">
+                <div style="display: flex; flex-direction: column; gap: 12px; max-height: 520px; overflow-y: auto; padding-right: 6px;">
                     ${filtered.map(c => {
-                        let stageColor = 'var(--primary)';
-                        let stageBg = 'var(--primary-light)';
-                        const stage = c.stage || 'Applied';
-                        
-                        if (stage === 'Interview') {
-                            stageColor = '#f59e0b';
-                            stageBg = '#f59e0b15';
-                        } else if (stage === 'Offer' || stage === 'Hired') {
-                            stageColor = 'var(--success)';
-                            stageBg = '#dcfce7';
-                        } else if (stage === 'Rejected') {
-                            stageColor = 'var(--danger)';
-                            stageBg = '#fff1f2';
-                        }
-
-                        const dateStr = c.createdAt?.toDate ? c.createdAt.toDate().toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) : (c.createdAt ? new Date(c.createdAt).toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) : 'Just now');
-
+                        const [color, bg] = STAGE_STYLE[c.stage] || STAGE_STYLE.Applied;
+                        const a = c.copilot;
                         return `
-                            <div class="candidate-row">
+                        <div class="candidate-row" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                                 <div style="display: flex; gap: 14px; align-items: center;">
-                                    <div style="width: 40px; height: 40px; background: ${stageBg}; color: ${stageColor}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">
-                                        ${(c.name || 'C').substring(0, 1).toUpperCase()}
-                                    </div>
+                                    <div style="width: 40px; height: 40px; background: ${bg}; color: ${color}; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem;">${esc(String(c.name).charAt(0).toUpperCase())}</div>
                                     <div>
-                                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">${c.name}</div>
+                                        <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-main);">${esc(c.name)}</div>
                                         <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 2px;">
-                                            <span style="font-weight: 700; color: var(--primary); text-transform: uppercase;">${c.department || 'General'}</span>
-                                            <span>•</span>
-                                            <span>${c.role}</span>
+                                            <span style="font-weight: 700; color: var(--primary); text-transform: uppercase;">${esc(c.department || 'General')}</span><span>•</span><span>${esc(c.role || 'Role not set')}</span>${c.source ? `<span>•</span><span>${esc(c.source)}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <span class="stage-badge" style="background: ${stageBg}; color: ${stageColor};">
-                                        ${stage}
-                                    </span>
-                                    <span style="font-size: 0.75rem; color: var(--text-muted);">${dateStr}</span>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="stage-badge" style="background: ${bg}; color: ${color};">${esc(c.stage)}${a.days !== null ? ` · ${esc(a.days)}d` : ''}</span>
+                                    ${a.level !== 'done' ? `<span class="stage-badge" style="${PRIORITY_STYLE[a.level]};" title="AI priority">✨ ${esc(a.priority)}</span>` : ''}
                                 </div>
                             </div>
-                        `;
+                            <div style="font-size: 0.75rem; color: #4c1d95; background: #faf5ff; border: 1px solid #ede9fe; border-radius: 10px; padding: 6px 10px;">
+                                <strong>Next:</strong> ${esc(a.next)}${a.avgRating !== null ? ` · rating ${esc(a.avgRating)}/5 (${esc(c.interviewCount)} round(s))` : ''}${a.reasons.length ? ` — <span style="color:#6b21a8;">${a.reasons.map(esc).join(' ')}</span>` : ''}
+                            </div>
+                        </div>`;
                     }).join('')}
-                </div>
-            `;
+                </div>`;
             lucide.createIcons();
         }
 
+        function renderPipeline() {
+            const el = document.getElementById('pipelineInsights');
+            if (el) el.innerHTML = consoleData.pipeline.insights.map(i => `<div style="margin-bottom: 4px;">• ${esc(i)}</div>`).join('');
+        }
+
+        function renderRetention() {
+            const el = document.getElementById('retentionRisks');
+            if (!el) return;
+            el.innerHTML = consoleData.retention.length
+                ? consoleData.retention.map(r => `
+                    <div style="border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.85rem;">${esc(r.name)} <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">${esc(r.department)}</span></div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">${r.signals.map(esc).join(' · ')}</div>
+                        </div>
+                        <span class="stage-badge" style="${r.score >= 50 ? 'background:#fef2f2;color:#b91c1c' : 'background:#fff7ed;color:#c2410c'};">${esc(r.score)}</span>
+                    </div>`).join('')
+                : '<div style="font-size: 0.8rem; color: var(--text-muted);">No flight-risk signals found.</div>';
+        }
+
         function updateChart() {
-            const stages = { 'Applied': 0, 'Interview': 0, 'Offer': 0, 'Hired': 0, 'Rejected': 0 };
-            allCandidates.forEach(c => {
-                const s = c.stage || 'Applied';
-                if (stages[s] !== undefined) {
-                    stages[s]++;
-                } else {
-                    stages['Applied']++;
-                }
-            });
-
-            const labels = Object.keys(stages);
-            const dataValues = Object.values(stages);
-
+            const counts = consoleData.pipeline.counts;
             const canvas = document.getElementById('stageChart');
             if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-
-            if (stageChart) {
-                stageChart.destroy();
-            }
-
-            stageChart = new Chart(ctx, {
+            if (stageChart) stageChart.destroy();
+            stageChart = new Chart(canvas.getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: labels,
-                    datasets: [{
-                        data: dataValues,
-                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'],
-                        borderWidth: 0,
-                    }]
+                    labels: Object.keys(counts),
+                    datasets: [{ data: Object.values(counts), backgroundColor: ['#3b82f6', '#0ea5e9', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'], borderWidth: 0 }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                font: { family: 'Outfit', size: 11, weight: '600' },
-                                padding: 15
-                            }
-                        }
-                    }
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Outfit', size: 11, weight: '600' }, padding: 15 } } }
                 }
             });
         }
+
+        loadConsole();
+        setInterval(() => { if (!document.hidden) loadConsole(); }, 120000);
 
         // Custom Apps Injection
         const DEFAULT_APPS = [

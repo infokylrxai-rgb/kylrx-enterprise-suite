@@ -223,6 +223,20 @@
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
         }
+
+        /* AI assist (compose, audience, pre-send check) */
+        .ai-assist-box { background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid #ddd6fe; border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
+        .ai-assist-title { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 800; color: #5b21b6; text-transform: uppercase; letter-spacing: 0.3px; }
+        .ai-assist-mode { margin-left: auto; font-size: 0.65rem; font-weight: 700; color: #7c3aed; text-transform: none; letter-spacing: 0; }
+        .ai-assist-box textarea, .ai-assist-box input, .ai-assist-box select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #c4b5fd; font-size: 0.8rem; font-family: inherit; background: #fff; outline: none; box-sizing: border-box; }
+        .ai-assist-box select { width: auto; }
+        .ai-assist-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #7c3aed; color: #fff; border: 1px solid #7c3aed; border-radius: 8px; padding: 8px 14px; font-size: 0.78rem; font-weight: 800; cursor: pointer; white-space: nowrap; }
+        .ai-assist-btn:disabled { opacity: 0.6; cursor: wait; }
+        .ai-assist-btn-outline { background: #fff; color: #6d28d9; border-color: #c4b5fd; }
+        .ai-assist-result { font-size: 0.75rem; color: #5b21b6; line-height: 1.45; }
+        .ai-assist-result:empty { display: none; }
+        .ai-review-card { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: #fff; display: flex; flex-direction: column; gap: 6px; }
+        .ai-review-item { font-size: 0.76rem; padding: 6px 9px; border-radius: 8px; }
     </style>
 </head>
 <body class="admin-dashboard">
@@ -432,17 +446,13 @@
                             Firebase Firestore Connected
                         </span>
                         <span id="firebaseDatasetBadge" style="font-size: 0.74rem; font-weight: 700; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 4px 10px; border-radius: 20px;">
-                            🏢 Live Workforce Documents (Auto-Sync)
+                            🏢 Your organization's people
                         </span>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <button onclick="loadRecipientsFromFirebase('live')" style="background: #f8fafc; border: 1px solid var(--border); color: #0f172a; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Load live registered staff from Firestore users & employees">
+                        <button onclick="loadRecipientsFromFirebase('live')" style="background: #f8fafc; border: 1px solid var(--border); color: #0f172a; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Load your organization's people from Firebase">
                             <i data-lucide="users" style="width: 14px; height: 14px;"></i>
-                            <span>Live Firestore Staff</span>
-                        </button>
-                        <button onclick="loadRecipientsFromFirebase('100')" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Load 100 enterprise test cohort partitioned into 5 batches of 20">
-                            <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
-                            <span>100 Enterprise Test Batch (5 × 20)</span>
+                            <span>Load Your People</span>
                         </button>
                         <button onclick="loadRecipientsFromFirebase('auto')" style="background: #f0fdf4; border: 1px solid #86efac; color: #15803d; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Refresh live records from Firebase">
                             <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
@@ -479,7 +489,21 @@
                     <!-- Message Details -->
                     <div style="background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem;">
                         <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">2. Message & Parameters</h4>
-                        
+
+                        <!-- AI Compose -->
+                        <div class="ai-assist-box">
+                            <div class="ai-assist-title"><i data-lucide="sparkles" style="width: 15px; height: 15px;"></i> AI Compose <span id="aiAssistMode" class="ai-assist-mode"></span></div>
+                            <textarea id="aiComposeIntent" rows="2" placeholder="Describe the message, e.g. Remind everyone to complete the POSH training by Friday"></textarea>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <select id="aiComposeTone" title="Tone">
+                                    <option value="formal">Formal</option>
+                                    <option value="friendly">Friendly</option>
+                                </select>
+                                <button type="button" id="btnAiCompose" onclick="aiComposeMessage()" class="ai-assist-btn">Write message</button>
+                            </div>
+                            <div id="aiComposeResult" class="ai-assist-result"></div>
+                        </div>
+
                         <div style="margin-bottom: 12px;">
                             <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Subject Line *</label>
                             <input type="text" id="triggerSubjectInput" value="Mandatory Annual Security Certification (FY27)" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.85rem; background: #f8fafc;">
@@ -489,6 +513,11 @@
                             <label style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Message Body (Supports {{name}}, {{department}} tokens)</label>
                             <textarea id="triggerMessageInput" rows="4" style="width: 100%; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 0.82rem; background: #f8fafc; font-family: inherit;">Dear {{name}}, your annual compliance and cybersecurity verification module is now open. Please complete authentication and review.</textarea>
                         </div>
+
+                        <button type="button" id="btnAiReview" onclick="aiReviewMessage()" class="ai-assist-btn ai-assist-btn-outline" style="width: 100%; margin-bottom: 10px;">
+                            <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i> AI Pre-send Check
+                        </button>
+                        <div id="aiReviewResult" style="margin-bottom: 12px;"></div>
 
                         <button id="btnStartBulkTrigger" onclick="startBulkTriggerExecution()" class="btn-primary-trigger" style="width: 100%; justify-content: center;">
                             <i data-lucide="play" style="width: 16px; height: 16px;"></i>
@@ -504,17 +533,24 @@
                                 <p style="font-size: 0.72rem; color: #64748b; margin: 2px 0 0 0;"><span id="recipientSelectedCount">100</span> items loaded in workspace</p>
                             </div>
                             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                                <button id="btnLoadFirestoreRecipients" onclick="loadRecipientsFromFirebase()" style="background: #f0fdf4; color: #15803d; border: 1.5px solid #86efac; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Load live users/employees from Firebase Firestore">
+                                <button id="btnLoadFirestoreRecipients" onclick="loadRecipientsFromFirebase()" style="background: #f0fdf4; color: #15803d; border: 1.5px solid #86efac; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="Load your organization's people from Firebase">
                                     <i data-lucide="database" style="width: 14px; height: 14px;"></i>
-                                    <span>Load Firebase Employees</span>
-                                </button>
-                                <button onclick="populateSampleRecipients(100)" style="background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
-                                    Load 100 (5 Batches)
+                                    <span>Load Your People</span>
                                 </button>
                                 <button onclick="clearAllRecipients()" style="background: #f8fafc; color: #64748b; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
                                     Clear
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- AI Audience -->
+                        <div class="ai-assist-box" style="margin-bottom: 12px;">
+                            <div class="ai-assist-title"><i data-lucide="sparkles" style="width: 15px; height: 15px;"></i> AI Audience</div>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="aiAudienceInput" placeholder="Who should get it? e.g. everyone in Cybersecurity except managers" style="flex: 1;">
+                                <button type="button" id="btnAiAudience" onclick="aiSelectAudience()" class="ai-assist-btn">Select</button>
+                            </div>
+                            <div id="aiAudienceResult" class="ai-assist-result"></div>
                         </div>
 
                         <div style="flex: 1; max-height: 280px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
@@ -609,9 +645,6 @@
                             <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
                                 <button onclick="switchToTab('trigger')" style="background: white; border: 1.5px solid #cbd5e1; color: #0f172a; padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
                                     👈 Go to Trigger Configuration
-                                </button>
-                                <button onclick="triggerQuickTestBatch()" style="background: #2563eb; border: none; color: white; padding: 9px 18px; border-radius: 10px; font-weight: 800; font-size: 0.82rem; cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
-                                    ⚡ Run 100-Item Test Batch (5 × 20)
                                 </button>
                             </div>
                         </div>
@@ -1007,15 +1040,11 @@
         </div>
     </div>
 
-    <!-- Direct Firebase Client Integration -->
-    <script type="module">
-        import * as fb from "./firebase-config.js";
-        window.firebaseClient = fb;
-        window.dispatchEvent(new CustomEvent('firebase-client-ready', { detail: fb }));
-    </script>
+    <!-- Sign-in session (adds the login token to the page's /api calls) -->
+    <script type="module" src="./firebase-config.js"></script>
 
     <!-- Script Controller & Sidebar Sync -->
-    <script src="bulk-trigger-controller.js"></script>
+    <script src="bulk-trigger-controller.js?v=3"></script>
     <script type="module" src="./admin-sidebar-sync.js"></script>
     <script>
         if (typeof window.renderLucideIcons === 'function') {

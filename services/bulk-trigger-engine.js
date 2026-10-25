@@ -1,7 +1,17 @@
 const crypto = require('crypto');
 const logger = require('../utils/logger');
-const { db } = require('../config/firebase');
+const { db, rawCollection } = require('../config/firebase');
+const { confirmedWrite } = require('../config/firestore-write');
+const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
 const otpVerificationService = require('./otp-verification-service');
+
+/** Real email delivery is available when a provider is configured (and never in local test mode) */
+function emailDeliveryAvailable() {
+    return !process.env.KYLRX_LOCAL_DB && Boolean((process.env.SMTP_USER && process.env.SMTP_PASS) || process.env.RESEND_API_KEY);
+}
+
+/** Map with Firestore-safe (plain JSON) values */
+const plain = (value) => JSON.parse(JSON.stringify(value === undefined ? null : value));
 
 /**
  * Resilient Firestore write helper that never hangs event loop on quota or latency
@@ -59,7 +69,18 @@ function safeFirestoreWrite(writePromise, timeoutMs = 4000) {
  *   • Bulk email respects provider rate limits & recipient consent rules
  */
 class BulkTriggerEngine {
-    constructor() {
+    /**
+     * @param {Object} [options]
+     * @param {string} [options.orgId] - Organization this engine works for. With an orgId, the
+     *   engine loads and saves only that organization's settings, jobs and audit trail, picks
+     *   recipients from its people only, and every save is confirmed by Firestore (a failed save
+     *   throws instead of being ignored). Without one it is the legacy shared engine.
+     */
+    constructor(options = {}) {
+        this.orgId = options.orgId || null;
+        // offline: nothing is read from or written to Firestore (acceptance self-tests)
+        this.offline = options.offline === true;
+
         // Jobs Store: jobId -> Job Record
         this.jobs = new Map();
 
@@ -84,8 +105,94 @@ class BulkTriggerEngine {
             CUSTOM_WORKFLOW: ['super_admin', 'hr_admin', 'admin']
         };
 
-        // Initialize synchronization with Firebase Firestore
-        this.initFirestoreSync().catch(() => {});
+        // Initialize synchronization with Firebase Firestore (callers await `ready`)
+        this.ready = (this.orgId ? this.loadOrgState() : this.initFirestoreSync()).catch(err => {
+            logger.warn(`[BulkTriggerEngine] Initial load notice${this.orgId ? ` for ${this.orgId}` : ''}: ${err.message}`);
+            throw err;
+        });
+        this.ready.catch(() => {});
+    }
+
+    configDocId() {
+        return this.orgId ? `bulk_trigger_config_${this.orgId}` : 'bulk_trigger_config';
+    }
+
+    /**
+     * Loads this organization's settings, recent jobs and audit trail. The shared (untagged)
+     * records written before organizations were separated belong to the legacy organization.
+     */
+    async loadOrgState() {
+        const isLegacy = this.orgId === LEGACY_ORG_ID;
+        const configSnap = await rawCollection('system_configs').doc(this.configDocId()).get();
+        const legacyConfig = !configSnap.exists && isLegacy ? await rawCollection('system_configs').doc('bulk_trigger_config').get() : null;
+        const stored = configSnap.exists ? configSnap.data() : (legacyConfig && legacyConfig.exists ? legacyConfig.data() : null);
+        if (stored && stored.batchSize) {
+            const { batchSize, interBatchDelayMs, maxEmailsPerSecond, strictConsentRequired } = stored;
+            this.config = { ...this.config, ...plain({ batchSize, interBatchDelayMs, maxEmailsPerSecond, strictConsentRequired }) };
+        }
+
+        const [jobs, audits] = await Promise.all([
+            orgDocs(rawCollection, 'bulk_trigger_jobs', this.orgId, 200),
+            orgDocs(rawCollection, 'bulk_trigger_audit_logs', this.orgId, 500)
+        ]);
+        jobs.filter(j => j.jobId)
+            .sort((a, b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')))
+            .forEach(jobData => this.jobs.set(jobData.jobId, {
+                ...jobData,
+                validItems: jobData.validItems || [],
+                failedItems: jobData.failedItems || [],
+                itemResults: new Map(Object.entries(jobData.itemResults || {}))
+            }));
+        this.auditLogs = audits.filter(a => a.auditId).sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+        logger.info(`[BulkTriggerEngine] Loaded ${this.orgId}: ${this.jobs.size} jobs, ${this.auditLogs.length} audit entries.`);
+    }
+
+    /** Job document as stored in Firestore (with what a retry after a restart needs) */
+    jobDocument(job) {
+        const itemResults = {};
+        if (job.itemResults instanceof Map) job.itemResults.forEach((val, key) => { itemResults[key] = val; });
+        else Object.assign(itemResults, job.itemResults || {});
+        return plain({
+            ...(this.orgId ? { orgId: this.orgId } : {}),
+            jobId: job.jobId,
+            action: job.action,
+            status: job.status,
+            actor: job.actor,
+            payload: job.payload || {},
+            batchSize: job.batchSize,
+            totalItems: job.totalItems,
+            totalBatches: job.totalBatches,
+            currentBatchIndex: job.currentBatchIndex,
+            processedCount: job.processedCount,
+            successCount: job.successCount,
+            failureCount: job.failureCount,
+            skippedCount: job.skippedCount,
+            batches: job.batches || [],
+            validItems: job.validItems || [],
+            invalidPrecheckItems: job.invalidPrecheckItems || [],
+            failedItems: job.failedItems || [],
+            itemResults,
+            createdAt: job.createdAt,
+            startedAt: job.startedAt,
+            completedAt: job.completedAt,
+            auditSummary: job.auditSummary || null,
+            syncedAt: new Date().toISOString()
+        });
+    }
+
+    /**
+     * Saves a job (and its pending audit entry) for an organization engine; resolves once
+     * Firestore confirmed it, rejects (503) otherwise.
+     */
+    async saveJobConfirmed(job) {
+        const batch = db.batch();
+        batch.set(rawCollection('bulk_trigger_jobs').doc(job.jobId), this.jobDocument(job));
+        if (job._pendingAudit) {
+            batch.set(rawCollection('bulk_trigger_audit_logs').doc(job._pendingAudit.auditId), plain({ ...job._pendingAudit, syncedAt: new Date().toISOString() }));
+        }
+        await confirmedWrite(() => batch.commit());
+        delete job._pendingAudit;
+        job.firebaseSaved = true;
     }
 
     /**
@@ -99,7 +206,7 @@ class BulkTriggerEngine {
      * Synchronize bulk trigger configurations, recent jobs, and audit logs with Firebase Firestore
      */
     async initFirestoreSync() {
-        if (!db || typeof db.collection !== 'function') return;
+        if (this.offline || !db || typeof db.collection !== 'function') return;
         try {
             // 1. Sync System Config
             const configDoc = await db.collection('system_configs').doc('bulk_trigger_config').get().catch(() => null);
@@ -154,7 +261,9 @@ class BulkTriggerEngine {
      * Persist job metadata and batch state to Firebase Firestore
      */
     async syncJobToFirestore(job) {
-        if (!db || typeof db.collection !== 'function' || !job || !job.jobId) return;
+        // Organization engines save through saveJobConfirmed()
+        if (this.orgId) return;
+        if (this.offline || !db || typeof db.collection !== 'function' || !job || !job.jobId) return;
         try {
             const itemResultsObj = {};
             if (job.itemResults instanceof Map) {
@@ -202,6 +311,7 @@ class BulkTriggerEngine {
      * Supports 'live', '100', or 'auto' cohort modes.
      */
     async fetchRecipientsFromFirestore(limit = 100, cohortType = 'auto') {
+        if (this.orgId) return this.fetchOrgRecipients(limit);
         const recipients = [];
         const seenIds = new Set();
         const seenEmails = new Set();
@@ -320,6 +430,35 @@ class BulkTriggerEngine {
     }
 
     /**
+     * This organization's people as recipients (no generated test people). Exited staff and
+     * people who opted out of bulk messages are marked opted_out so validation excludes them.
+     */
+    async fetchOrgRecipients(limit = 500) {
+        const users = await orgDocs(rawCollection, 'users', this.orgId, Math.max(1, Math.min(limit, 2000)));
+        const seen = new Set();
+        const recipients = [];
+        users.forEach(u => {
+            const email = String(u.email || u.companyEmail || '').trim().toLowerCase();
+            const key = email || u.id;
+            if (seen.has(key) || !(u.name || u.displayName || email)) return;
+            seen.add(key);
+            const exited = u.isActive === false || /exited|relieved|inactive|terminated/i.test(String(u.employmentStatus || u.status || ''));
+            recipients.push({
+                id: u.id,
+                name: u.name || u.displayName || email.split('@')[0],
+                email,
+                phone: String(u.phone || u.mobile || ''),
+                department: u.departmentName || u.department || '',
+                role: u.role || u.designation || 'employee',
+                consentStatus: exited || u.consentStatus === 'opted_out' || u.unsubscribed === true ? 'opted_out' : 'granted',
+                source: exited ? 'firestore:users (exited)' : 'firestore:users'
+            });
+        });
+        recipients.sort((a, b) => a.name.localeCompare(b.name));
+        return { success: true, source: 'firestore:users', count: recipients.length, recipients };
+    }
+
+    /**
      * Generate high-fidelity 100-member cohort with PRD §2.1 & §2.2 properties:
      * - 98 Valid & eligible records
      * - 2 Excluded/Invalid records (1 malformed email, 1 opted-out)
@@ -399,7 +538,8 @@ class BulkTriggerEngine {
         }
 
         // Persist updated configuration to Firebase Firestore asynchronously
-        if (db && typeof db.collection === 'function') {
+        // (organization engines save through updateConfigConfirmed instead)
+        if (!this.orgId && !this.offline && db && typeof db.collection === 'function') {
             safeFirestoreWrite(
                 db.collection('system_configs').doc('bulk_trigger_config').set({
                     ...this.config,
@@ -412,6 +552,25 @@ class BulkTriggerEngine {
 
         logger.info(`[BulkTriggerEngine] Config updated by ${actor.name || 'Admin'}: batchSize=${this.config.batchSize}`);
         return { success: true, config: this.getConfig() };
+    }
+
+    /** Organization engines: update, save (confirmed) and keep the old settings if the save fails */
+    async updateConfigConfirmed(newConfig = {}, actor = {}) {
+        const previous = { ...this.config };
+        const result = this.updateConfig(newConfig, actor);
+        try {
+            const { batchSize, interBatchDelayMs, maxEmailsPerSecond, strictConsentRequired } = this.config;
+            await confirmedWrite(() => rawCollection('system_configs').doc(this.configDocId()).set(plain({
+                orgId: this.orgId,
+                batchSize, interBatchDelayMs, maxEmailsPerSecond, strictConsentRequired,
+                updatedAt: new Date().toISOString(),
+                updatedBy: { id: actor.id, name: actor.name, role: actor.role }
+            }), { merge: true }));
+        } catch (err) {
+            this.config = previous;
+            throw err;
+        }
+        return result;
     }
 
     /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -462,6 +621,12 @@ class BulkTriggerEngine {
             const unsubscribed = Boolean(item.unsubscribed || item.optOut);
 
             const errors = [];
+
+            // Organization engines only reach that organization's own people (memberIds is set
+            // by the route from the organization's users before validating)
+            if (this.memberIds && !this.memberIds.has(String(id))) {
+                errors.push('Not a person in your organization');
+            }
 
             // Action-specific validations
             if (normAction === 'EMAIL_NOTIFICATION') {
@@ -611,7 +776,17 @@ class BulkTriggerEngine {
         };
 
         this.jobs.set(jobId, job);
-        this.syncJobToFirestore(job).catch(() => {});
+        if (this.orgId) {
+            // Nothing is dispatched unless Firestore accepted the queued job
+            try {
+                await this.saveJobConfirmed(job);
+            } catch (err) {
+                this.jobs.delete(jobId);
+                throw err;
+            }
+        } else {
+            this.syncJobToFirestore(job).catch(() => {});
+        }
         logger.info(`[BulkTriggerEngine] Job ${jobId} QUEUED: ${totalItems} items in ${totalBatches} batches (batchSize: ${batchSize})`);
 
         // Execute Job (Transition: queued -> processing)
@@ -682,11 +857,30 @@ class BulkTriggerEngine {
         // Record Audit (PRD §2.2: Record initiator, time, count and outcome)
         const auditEntry = this.recordAuditLog(job);
         job.auditSummary = auditEntry;
-        this.syncJobToFirestore(job).catch(() => {});
+        await this.saveFinalState(job);
 
         logger.info(`[BulkTriggerEngine] Job ${jobId} ${job.status.toUpperCase()}: ${job.successCount} succeeded, ${job.failureCount} failed of ${totalItems} total`);
 
         return this.getJobStatus(jobId);
+    }
+
+    /**
+     * Saves a finished job and its audit entry. Organization engines wait for Firestore; if it
+     * refuses, the job keeps running in memory and is flagged firebaseSaved: false (the
+     * dispatched notifications were saved one by one already).
+     */
+    async saveFinalState(job) {
+        if (!this.orgId) {
+            this.syncJobToFirestore(job).catch(() => {});
+            return;
+        }
+        try {
+            await this.saveJobConfirmed(job);
+        } catch (err) {
+            job.firebaseSaved = false;
+            job.saveError = err.message;
+            logger.warn(`[BulkTriggerEngine] Job ${job.jobId} result not saved: ${err.message}`);
+        }
     }
 
     /**
@@ -724,6 +918,34 @@ class BulkTriggerEngine {
                     .replace(/\{\{name\}\}/gi, item.name)
                     .replace(/\{\{department\}\}/gi, item.department);
 
+                if (this.orgId) {
+                    // In-app notification (confirmed), then a real email when a provider is set up
+                    const now = new Date();
+                    await confirmedWrite(() => rawCollection('notifications').doc().set({
+                        orgId: this.orgId,
+                        userId: item.itemId, targetUid: item.itemId, target: item.itemId,
+                        title: subject, text: body, message: body,
+                        recipient_email: item.email, recipient_name: item.name,
+                        type: 'bulk_message', priority: 'normal',
+                        entity_id: `BULK-JOB-${job.jobId}`, idempotencyKey,
+                        read: false, timestamp: now, createdAt: now.toISOString(),
+                        source: 'bulk_trigger_engine'
+                    }));
+                    let email = { sent: false, reason: process.env.KYLRX_LOCAL_DB ? 'local test mode' : 'no email provider configured' };
+                    if (emailDeliveryAvailable() && item.email) {
+                        try {
+                            const { sendEmail } = require('../utils/email');
+                            const info = await sendEmail({ to: item.email, subject, text: body });
+                            email = { sent: true, provider: info.provider, messageId: info.id };
+                        } catch (mailErr) {
+                            email = { sent: false, reason: mailErr.message };
+                        }
+                    }
+                    result.output = { channel: 'in_app_notification', recipient: item.email, subject, inAppSaved: true, email };
+                    result.status = 'success';
+                    return result;
+                }
+
                 result.output = {
                     channel: 'email',
                     recipient: item.email,
@@ -734,7 +956,7 @@ class BulkTriggerEngine {
                 result.status = 'success';
 
                 // Write live in-app notification document to Firestore notifications collection
-                if (db && typeof db.collection === 'function') {
+                if (!this.offline && db && typeof db.collection === 'function') {
                     safeFirestoreWrite(
                         db.collection('notifications').add({
                             id: crypto.randomUUID ? crypto.randomUUID() : `notif-${Date.now()}-${item.itemId}`,
@@ -775,7 +997,9 @@ class BulkTriggerEngine {
                     purpose: otpRes.purpose,
                     expiresAt: otpRes.expiresAt,
                     maxAttempts: otpRes.maxAttempts,
-                    dispatched: true
+                    dispatched: true,
+                    // The code is issued; delivering it by SMS/email needs a provider
+                    ...(this.orgId ? { delivered: false, deliveryNote: 'OTP issued; no SMS/email delivery provider is configured' } : {})
                 };
                 result.status = 'success';
             } else if (action === 'TEMPLATE_SETUP_DISPATCH') {
@@ -891,7 +1115,7 @@ class BulkTriggerEngine {
 
         // Record audit entry for retry action
         this.recordAuditLog(job, `SAFE_RETRY_PASS (${retrySuccessCount} recovered, ${retryFailCount} still failed)`);
-        this.syncJobToFirestore(job).catch(() => {});
+        await this.saveFinalState(job);
 
         logger.info(`[BulkTriggerEngine] [Job ${jobId}] Retry pass completed: ${retrySuccessCount} succeeded, ${retryFailCount} failed.`);
 
@@ -933,7 +1157,8 @@ class BulkTriggerEngine {
             createdAt: job.createdAt,
             startedAt: job.startedAt,
             completedAt: job.completedAt,
-            auditSummary: job.auditSummary
+            auditSummary: job.auditSummary,
+            ...(this.orgId ? { firebaseSaved: job.firebaseSaved !== false, saveError: job.saveError || null } : {})
         };
     }
 
@@ -941,19 +1166,23 @@ class BulkTriggerEngine {
      * Retrieve the most recently initiated/executed job status (PRD §2.2)
      */
     getLatestJob() {
-        if (!this.jobs || this.jobs.size === 0) return null;
-        const jobKeys = Array.from(this.jobs.keys());
-        const latestJobId = jobKeys[jobKeys.length - 1];
-        return this.getJobStatus(latestJobId);
+        const [latest] = this.newestJobIds(1);
+        return latest ? this.getJobStatus(latest) : null;
+    }
+
+    /** Job ids, newest first (by creation time) */
+    newestJobIds(limit) {
+        return Array.from(this.jobs.values())
+            .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+            .slice(0, limit)
+            .map(j => j.jobId);
     }
 
     /**
      * Retrieve list of recent jobs (PRD §2.2)
      */
     getRecentJobs(limit = 10) {
-        if (!this.jobs || this.jobs.size === 0) return [];
-        const jobKeys = Array.from(this.jobs.keys()).reverse().slice(0, limit);
-        return jobKeys.map(id => this.getJobStatus(id)).filter(Boolean);
+        return this.newestJobIds(limit).map(id => this.getJobStatus(id)).filter(Boolean);
     }
 
     /**
@@ -999,11 +1228,15 @@ class BulkTriggerEngine {
             timestamp: new Date().toISOString()
         };
 
+        if (this.orgId) auditPayload.orgId = this.orgId;
         auditPayload.integrityHash = this.computeHash(auditPayload);
         this.auditLogs.unshift(auditPayload);
 
         // Persist audit record to Firebase Firestore
-        if (db && typeof db.collection === 'function') {
+        // (organization engines save it together with the job, confirmed)
+        if (this.orgId) {
+            job._pendingAudit = auditPayload;
+        } else if (!this.offline && db && typeof db.collection === 'function') {
             safeFirestoreWrite(
                 db.collection('bulk_trigger_audit_logs').doc(auditPayload.auditId).set({
                     ...auditPayload,
