@@ -1018,6 +1018,24 @@
         import { auth, onSnapshot, registerListener } from "./firebase-config.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
+        // "Refresh Status" on the Recruitment add-on card: read-only GET, never changes the subscription
+        window.toggleRecruitmentAddon = async () => {
+            const statusEl = document.getElementById('recruitment-addon-status-text');
+            const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : (window.API_BASE || window.location.origin);
+            try {
+                const token = (auth.currentUser && await auth.currentUser.getIdToken()) || localStorage.getItem('token') || localStorage.getItem('kylrx_auth_token');
+                const res = await fetch(`${apiBase}/api/integrations/recruitment`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(typeof data.error === 'string' ? data.error : (data.error?.message || `HTTP ${res.status}`));
+                const enabled = data.integration && data.integration.enabled === true;
+                statusEl.textContent = enabled ? 'Active Integration' : 'Inactive Integration';
+                statusEl.style.color = enabled ? '#10b981' : '#ef4444';
+            } catch (err) {
+                statusEl.textContent = `Could not load status: ${err.message}`;
+                statusEl.style.color = '#ef4444';
+            }
+        };
+
         const currentRole = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
         const superAdminRoles = ['super_admin', 'superadmin', 'admin'];
         if (currentRole && !superAdminRoles.includes(currentRole)) {
