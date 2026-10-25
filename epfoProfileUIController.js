@@ -400,23 +400,9 @@
             pfDetails = await window.KylrxPfDetailsService.getEmployeePfDetails(orgId, employeeId);
         }
 
-        if (!pfDetails && window.KylrxPfDetailsService) {
-            pfDetails = window.KylrxPfDetailsService.DEFAULT_PF_PROFILES.find(p => p.employeeId === employeeId) || {
-                employeeId,
-                organizationId: orgId,
-                isPfApplicable: true,
-                uan: options.uan || "100904829102",
-                currentMemberId: options.pfMemberId || "KNBNG00123450000010023",
-                previousUan: null,
-                previousMemberId: null,
-                epfoEstablishmentId: "KN/BNG/0012345/000",
-                dateOfPfJoining: options.joiningDate || "2026-01-15",
-                isEpsApplicable: true,
-                isEdliApplicable: true,
-                kyc: { overallStatus: "VERIFIED", aadhaarKyc: "VERIFIED", panKyc: "VERIFIED", bankKyc: "VERIFIED" },
-                uanStatus: "ACTIVE",
-                verification: { status: "SUCCESS", officialSource: "Decentro Fabric" }
-            };
+        if (!pfDetails) {
+            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            return;
         }
 
         container.innerHTML = renderCardHtml(pfDetails, options);
