@@ -304,7 +304,7 @@ export class MakerCheckerGuard {
         const batch = getBatch ? await getBatch(req) : req.batch;
         const checkerId = getCheckerId
           ? await getCheckerId(req)
-          : (req.user?.user_id || req.body?.checker_id || req.headers['x-user-id']);
+          : (req.user?.user_id || req.user?.id);
 
         MakerCheckerGuard.assertSeparationOfDuties({
           batch,

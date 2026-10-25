@@ -48,6 +48,10 @@ import {
 } from '../services/pf-ecr-automation-engine.mjs';
 
 import pfComplianceRouter from '../routes/pf-compliance.mjs';
+import jwt from 'jsonwebtoken';
+
+// Identity comes from a signed token (verifyToken), exactly as in production
+const asRole = (role) => ({ Authorization: `Bearer ${jwt.sign({ id: 'usr_' + role, role }, process.env.JWT_SECRET, { expiresIn: '10m' })}` });
 
 describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Suite', () => {
   let app;
@@ -363,7 +367,7 @@ describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Sui
 
     it('GET /profiles returns masked UAN and Member ID for unprivileged users', async () => {
       const res = await fetch(`${baseUrl}/profiles`, {
-        headers: { 'x-user-role': 'EMPLOYEE' },
+        headers: asRole('hr_admin'),
       });
       assert.equal(res.status, 200);
       const body = await res.json();
@@ -379,7 +383,7 @@ describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Sui
 
     it('GET /profiles returns raw unmasked identifiers for privileged Compliance Officer', async () => {
       const res = await fetch(`${baseUrl}/profiles`, {
-        headers: { 'x-user-role': 'Compliance Officer' },
+        headers: asRole('compliance_officer'),
       });
       assert.equal(res.status, 200);
       const body = await res.json();
@@ -395,7 +399,7 @@ describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Sui
     it('GET /profiles/:id returns masked view for unprivileged user and unmasked for Payroll Admin', async () => {
       // Non-privileged
       const resUnpriv = await fetch(`${baseUrl}/profiles/EMP_SEC_02`, {
-        headers: { 'x-user-role': 'AUDITOR' },
+        headers: asRole('hr_admin'),
       });
       assert.equal(resUnpriv.status, 200);
       const bodyUnpriv = await resUnpriv.json();
@@ -405,7 +409,7 @@ describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Sui
 
       // Privileged
       const resPriv = await fetch(`${baseUrl}/profiles/EMP_SEC_02`, {
-        headers: { 'x-user-role': 'PAYROLL_ADMIN' },
+        headers: asRole('hr_payroll'),
       });
       assert.equal(resPriv.status, 200);
       const bodyPriv = await resPriv.json();
@@ -414,9 +418,24 @@ describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Sui
       assert.equal(bodyPriv.data.is_masked, false);
     });
 
+    it('role claimed via x-user-role header or ?role= is ignored; the token role decides', async () => {
+      const spoof = { ...asRole('hr_admin'), 'x-user-role': 'PAYROLL_ADMIN', 'x-user-id': 'attacker' };
+      const res = await fetch(`${baseUrl}/profiles?role=PAYROLL_ADMIN&user_role=PAYROLL_ADMIN`, { headers: spoof });
+      assert.equal(res.status, 200);
+      const body = await res.json();
+      assert.equal(body.data.is_masked, true, 'spoofed role must not unmask PF identifiers');
+      const exp = await fetch(`${baseUrl}/export/BATCH_SEC_EXP_01?role=PAYROLL_ADMIN`, { headers: spoof });
+      assert.equal(exp.status, 403);
+    });
+
+    it('a user whose role has no compliance privilege gets masked data by default', async () => {
+      const res = await fetch(`${baseUrl}/profiles`, { headers: asRole('HRMS') });
+      assert.equal((await res.json()).data.is_masked, true);
+    });
+
     it('GET /export/:batch_id rejects unprivileged callers with 403 Forbidden', async () => {
       const res = await fetch(`${baseUrl}/export/BATCH_SEC_EXP_01`, {
-        headers: { 'x-user-role': 'EMPLOYEE' },
+        headers: asRole('hr_admin'),
       });
       assert.equal(res.status, 403);
       const body = await res.json();
@@ -427,7 +446,7 @@ describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Sui
 
     it('GET /export/:batch_id permits download for privileged roles (Payroll Admin)', async () => {
       const res = await fetch(`${baseUrl}/export/BATCH_SEC_EXP_01`, {
-        headers: { 'x-user-role': 'Payroll Admin' },
+        headers: asRole('hr_payroll'),
       });
       assert.equal(res.status, 200);
       const text = await res.text();
@@ -442,8 +461,7 @@ describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Sui
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-role': 'COMPLIANCE_OFFICER',
-          'x-user-id': 'usr_comp_99',
+          ...asRole('compliance_officer'),
         },
         body: JSON.stringify({
           action_type: AUDIT_ACTION_TYPES.TRRN_UPDATED,

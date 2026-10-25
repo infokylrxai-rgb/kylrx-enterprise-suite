@@ -133,9 +133,9 @@ router.get('/account-view/:employeeId', (req, res) => {
         }
 
         const actor = {
-            id: req.user?.id || req.query.actorId || req.headers['x-user-id'] || 'EMP-1001',
-            role: req.user?.role || req.query.actorRole || req.headers['x-user-role'] || 'employee',
-            name: req.user?.name || req.query.actorName || 'Current User'
+            id: req.user.id,
+            role: req.user.role,
+            name: req.user.name || 'Current User'
         };
 
         const accountData = payrollService.getAccountView(employeeId, actor);

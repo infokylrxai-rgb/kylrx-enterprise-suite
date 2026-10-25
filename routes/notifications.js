@@ -81,7 +81,7 @@ router.get(['/', '/feed'], async (req, res) => {
         const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
         // Employee-facing reads must be restricted to req.user.id
         const uid = userRole === 'employee' ? req.user.id : (req.query.uid || req.user?.id || 'demo_emp');
-        const role = userRole === 'employee' ? 'employee' : (req.query.role || req.user?.role || 'employee').toLowerCase();
+        const role = userRole === 'employee' ? 'employee' : (req.user?.role || 'employee').toLowerCase();
         const dept = (req.query.department || req.user?.department || '').toLowerCase();
         
         // Build candidate user IDs for matching

@@ -541,8 +541,9 @@ async function buildTenantOverview(user) {
 
 router.get('/overview', async (req, res) => {
     try {
-        const userRole = (req.query.role || 'super_admin').toLowerCase();
-        const permissions = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS.super_admin;
+        // Widget set follows the verified role; unknown roles get the narrowest view, never super_admin
+        const userRole = String(req.user.role || '').toLowerCase().replace(/[s-]+/g, '_');
+        const permissions = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS.manager;
 
         // Signed-in organization users only ever see their own organization's data
         if (req.user && req.user.orgId && admin.apps.length) {

@@ -8,6 +8,7 @@ if (!process.env.JWT_SECRET) {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const ALLOWED_ROLES = [
+    'compliance_officer',
     'Super Admin',
     'Admin',
     'Manager',
