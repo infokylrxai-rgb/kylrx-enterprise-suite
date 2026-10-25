@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 const { rawCollection } = require('../config/firebase');
-const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { orgDocs } = require('../config/tenant');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 const ops = require('../services/operations-intel-service');
 
 router.use(verifyToken);
+router.use(requireOrg);
 router.use(authorize(ADMIN_HR_ROLES));
 
 /**
@@ -15,7 +16,7 @@ router.use(authorize(ADMIN_HR_ROLES));
  */
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 async function reports(orgId) {

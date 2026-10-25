@@ -3,11 +3,12 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const { admin, db, rawCollection } = require('../config/firebase');
 const { confirmedWrite } = require('../config/firestore-write');
-const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { orgDocs } = require('../config/tenant');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 const intel = require('../services/onboarding-intel-service');
 
 router.use(verifyToken);
+router.use(requireOrg);
 router.use(authorize(ADMIN_HR_ROLES));
 
 /**
@@ -21,7 +22,7 @@ router.use(authorize(ADMIN_HR_ROLES));
  */
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 function meOf(req) {

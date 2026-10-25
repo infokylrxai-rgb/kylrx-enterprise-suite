@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 const { rawCollection } = require('../config/firebase');
-const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { orgDocs } = require('../config/tenant');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 router.use(authorize(ADMIN_HR_ROLES));
 
 /**
@@ -25,7 +26,7 @@ const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const PERIOD_RE = /^\d{4}-\d{2}$/;
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 function sendError(res, err, context) {

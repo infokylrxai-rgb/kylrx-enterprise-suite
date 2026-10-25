@@ -4,9 +4,10 @@ const { confirmedWrite } = require('../config/firestore-write');
 const logger = require('../utils/logger');
 const { db, rawCollection } = require('../config/firebase');
 const { orgDocs, ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 router.use(authorize(ADMIN_HR_ROLES));
 
 /**
@@ -38,7 +39,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_IMPORT = 400;
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 function actorOf(req) {
