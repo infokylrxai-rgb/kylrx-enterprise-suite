@@ -529,6 +529,7 @@
                 }, { merge: true });
             } catch (err) {
                 console.warn("[KylrxPfDetailsService] Firestore direct set failed, stored in-memory:", err);
+                throw err;
             }
         }
 
@@ -618,6 +619,7 @@
                 await deleteDoc(docRef);
             } catch (e) {
                 console.warn("[KylrxPfDetailsService] Firestore delete fallback:", e);
+                throw e;
             }
         }
         return true;

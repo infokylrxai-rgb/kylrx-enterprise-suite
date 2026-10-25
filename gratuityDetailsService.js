@@ -539,6 +539,7 @@
                 }, { merge: true });
             } catch (err) {
                 console.warn("Firestore update skipped or failed, using local ledger:", err);
+                throw err;
             }
         }
 
@@ -581,6 +582,7 @@
                 }, { merge: true });
             } catch (err) {
                 console.warn("Firestore setDoc failed, retained in local cache:", err);
+                throw err;
             }
         }
 
@@ -668,6 +670,7 @@
                 await deleteDoc(docRef);
             } catch (err) {
                 console.warn("Firestore deleteDoc failed:", err);
+                throw err;
             }
         }
 

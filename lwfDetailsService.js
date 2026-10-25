@@ -422,6 +422,7 @@
                 await window.setDoc(docRef, payload, { merge: true });
             } catch (err) {
                 console.warn(`[KylrxLwfDetailsService] Firestore write failed for ${employeeId}, keeping local state.`, err);
+                throw err;
             }
         }
 

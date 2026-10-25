@@ -397,6 +397,7 @@
                 await docRef.set(payload, { merge: true });
             } catch (err) {
                 console.warn(`[KylrxEsicDetailsService] Firestore write failed for ${employeeId}, keeping local state.`, err);
+                throw err;
             }
         }
 
