@@ -1895,13 +1895,14 @@ if (btnSaveSettings) {
     btnSaveSettings.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     
     try {
-      // Direct Firestore update using User UID
+      // Direct Firestore update using User UID. merge: a plain setDoc replaces the whole profile,
+      // dropping orgId/linkedAuthUid/super_admin, which firestore.rules rejects for non-admins.
       await setDoc(doc(db, 'users', auth.currentUser.uid), { 
         name: newName, 
         email: newEmail, 
         role: newRole, 
         updatedAt: new Date().toISOString() 
-      });
+      }, { merge: true });
 
       // Update UI locally
       const sideName = document.querySelector('.user-name');
