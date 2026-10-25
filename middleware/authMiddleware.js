@@ -37,7 +37,7 @@ const verifyToken = async (req, res, next) => {
         if (!token || token === 'super_admin_dev_token' || token.startsWith('dev_')) {
             // Dev identity is for local development only: in production neither a dev token nor ?role= may
             // stand in for a real login
-            if (process.env.NODE_ENV !== 'production') {
+            if (process.env.NODE_ENV !== 'production' && process.env.ALLOW_DEV_IDENTITY === 'true') {
                 req.user = {
                     id: 'superadmin_dev',
                     uid: 'superadmin_dev',
@@ -69,7 +69,7 @@ const verifyToken = async (req, res, next) => {
                 decoded = await admin.auth().verifyIdToken(token);
                 userId = decoded.uid;
             } catch (firebaseError) {
-                if (process.env.NODE_ENV !== 'production') {
+                if (process.env.NODE_ENV !== 'production' && process.env.ALLOW_DEV_IDENTITY === 'true') {
                     req.user = {
                         id: 'superadmin_dev',
                         uid: 'superadmin_dev',

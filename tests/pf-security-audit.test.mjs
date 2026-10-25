@@ -480,7 +480,7 @@ describe('🛡️ PF Compliance Access Control, Data Masking & Unified Audit Sui
       assert.equal(recordData.data.correlation_id, correlationId);
 
       // Trace via API
-      const traceRes = await fetch(`${baseUrl}/audit/trace/${correlationId}`);
+      const traceRes = await fetch(`${baseUrl}/audit/trace/${correlationId}`, { headers: asRole('compliance_officer') });
       assert.equal(traceRes.status, 200);
       const traceData = await traceRes.json();
       assert.equal(traceData.success, true);

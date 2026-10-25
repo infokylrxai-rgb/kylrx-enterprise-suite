@@ -30,6 +30,9 @@ import {
 
 import { globalComplianceAuditStream } from '../services/compliance-audit-logger.mjs';
 import pfComplianceRouter from '../routes/pf-compliance.mjs';
+import jwt from 'jsonwebtoken';
+// verifyToken needs a real identity: every request in this file carries a signed Super Admin token
+const fetch = (url, opts = {}) => globalThis.fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_admin', role: 'Super Admin' }, process.env.JWT_SECRET)}`, ...opts.headers } });
 
 describe('🏛️ Section 6: State Machine and Challan Reconciliation Service (EPFO Engine)', () => {
   let app;

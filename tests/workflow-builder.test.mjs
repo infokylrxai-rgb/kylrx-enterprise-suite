@@ -9,6 +9,9 @@ const __dirname = path.dirname(__filename);
 
 // Import services via CommonJS createRequire
 import { createRequire } from 'module';
+import jwt from 'jsonwebtoken';
+// verifyToken needs a real identity: every request in this file carries a signed Super Admin token
+const fetch = (url, opts = {}) => globalThis.fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_admin', role: 'Super Admin' }, process.env.JWT_SECRET)}`, ...opts.headers } });
 const require = createRequire(import.meta.url);
 
 const workflowBuilderService = require('../services/workflow-builder-service.js');
