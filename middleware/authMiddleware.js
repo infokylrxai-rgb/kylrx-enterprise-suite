@@ -42,7 +42,8 @@ const verifyToken = async (req, res, next) => {
                     id: 'superadmin_dev',
                     uid: 'superadmin_dev',
                     email: 'superadmin@kylrx.ai',
-                    role: req.query.role || 'super_admin'
+                    role: req.query.role || 'super_admin',
+                    orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai'
                 };
                 return next();
             }
@@ -74,7 +75,8 @@ const verifyToken = async (req, res, next) => {
                         id: 'superadmin_dev',
                         uid: 'superadmin_dev',
                         email: 'superadmin@kylrx.ai',
-                        role: req.query.role || 'super_admin'
+                        role: req.query.role || 'super_admin',
+                        orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai'
                     };
                     return next();
                 }
