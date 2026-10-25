@@ -542,7 +542,7 @@ async function buildTenantOverview(user) {
 router.get('/overview', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     try {
         // Widget set follows the verified role; unknown roles get the narrowest view, never super_admin
-        const userRole = String(req.user.role || '').toLowerCase().replace(/[s-]+/g, '_');
+        const userRole = String(req.user.role || '').toLowerCase().replace(/[\s-]+/g, '_');
         const permissions = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS.manager;
 
         // Signed-in organization users only ever see their own organization's data
