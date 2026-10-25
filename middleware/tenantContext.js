@@ -10,7 +10,7 @@
  */
 const jwt = require('jsonwebtoken');
 const { admin, rawCollection } = require('../config/firebase');
-const { runWithTenant, LEGACY_ORG_ID } = require('../config/tenant');
+const { runWithTenant } = require('../config/tenant');
 
 const DEV_DEFAULT_ORG_ID = process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai';
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -40,13 +40,13 @@ async function resolveOrgId(req) {
         if (admin.apps.length) {
             try {
                 const decoded = await admin.auth().verifyIdToken(token);
-                // Accounts from before multi-tenancy have no org yet; they belong to the original org
-                return decoded.orgId || await orgIdForUser(decoded.uid) || LEGACY_ORG_ID;
+                // No org on the token or the user record means no tenant data
+                return decoded.orgId || await orgIdForUser(decoded.uid) || null;
             } catch (_) {}
         }
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            if (decoded && decoded.id) return await orgIdForUser(decoded.id) || LEGACY_ORG_ID;
+            if (decoded && decoded.id) return await orgIdForUser(decoded.id) || null;
         } catch (_) {}
     }
     return process.env.NODE_ENV === 'production' ? null : DEV_DEFAULT_ORG_ID;
