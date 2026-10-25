@@ -2401,8 +2401,8 @@
                                 applyHrAdminUiState(user, claims);
                             }
                         } catch (err) {
-                            console.warn("Notice checking user claims:", err.message);
-                            applySuperAdminUiState(user, { role: 'SUPER_ADMIN' });
+                            console.warn("Could not verify user claims:", err.message);
+                            window.location.href = 'login.html';
                         }
                     } else {
                         // No session: send the visitor to the login page
