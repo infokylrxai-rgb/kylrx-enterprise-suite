@@ -9,7 +9,8 @@
     "provision:superadmin": "node scripts/provision-superadmin.js",
     "migrate:passwords": "node scripts/migrate-plaintext-passwords.js",
     "deploy:firebase": "firebase deploy --only firestore:rules,firestore:indexes,storage",
-    "start:local": "node scripts/start-local.js"
+    "start:local": "node scripts/start-local.js",
+    "test:rules": "firebase emulators:exec --only firestore --project kylrx-rules-test \"node --test --test-force-exit tests/firestore-rules.test.mjs\""
   },
   "repository": {
     "type": "git",
@@ -45,5 +46,9 @@
     "winston": "^3.19.0",
     "xlsx": "^0.18.5",
     "xss": "^1.0.16"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.1.0"
   }
 }
