@@ -2284,7 +2284,7 @@ const DEFAULT_ATTENDANCE_POLICIES = [
 ];
 
 function getPolicyOrgId(req) {
-    return req.query.orgId || req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+    return req.query.orgId || req.body?.orgId || req.headers['x-org-id'] || 'org_kylrx';
 }
 
 function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
