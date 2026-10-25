@@ -251,6 +251,28 @@ app.get('/reset-browser-data', (req, res) => {
 <p><a href="/login.html" style="color:#2563eb;font-weight:600">Go to login</a></p>
 </body></html>`);
 });
+// The static root is the repo folder: never serve server code, rules, data, logs or secrets.
+// services/ is blocked except the files browser pages import. reports/ stays public because
+// tvc-dashboard.html links to its CSV downloads.
+const STATIC_BLOCKED = /^\/(server\.js|package(-lock)?\.json|firestore\.indexes\.json|Templates\.xlsx)$|\.(rules|log|py|md)$|^\/(config|middleware|controllers|routes|scripts|tests|node_modules|data|logs|migrations|functions)(\/|$)|(^|\/)\.env/i;
+const STATIC_BROWSER_SERVICES = new Set([
+    'atomic-counter-service', 'attendance-policy-parser', 'cost-center-parser', 'employee-finance-parser',
+    'employee-finance-service', 'employee-type-parser', 'employee-type-service', 'rbac-ui-controller',
+    'salary-structure-parser', 'salary-structure-service', 'shift-parser', 'statutory-compliance-ui-controller',
+    'sub-department-parser', 'template-parser-service'
+].map(n => `/services/${n}.js`));
+app.use((req, res, next) => {
+    let p;
+    try {
+        p = path.posix.normalize(decodeURIComponent(req.path).replace(/\\/g, '/'));
+    } catch (_) {
+        return res.sendStatus(400);
+    }
+    if (STATIC_BLOCKED.test(p) || (/^\/services\//i.test(p) && !STATIC_BROWSER_SERVICES.has(p.toLowerCase()))) {
+        return res.sendStatus(404);
+    }
+    next();
+});
 app.use(express.static(__dirname));
 
 // Route Wiring
