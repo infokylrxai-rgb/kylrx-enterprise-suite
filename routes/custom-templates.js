@@ -3,7 +3,6 @@ const router = express.Router();
 const customTemplateEngine = require('../services/custom-template-engine');
 const TenantEngineStore = require('../services/tenant-engine-store');
 const logger = require('../utils/logger');
-const { LEGACY_ORG_ID } = require('../config/tenant');
 const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
