@@ -91,9 +91,9 @@ const isAllowedOrigin = (origin) => {
         return process.env.NODE_ENV !== 'production';
     }
     const isProductionAllowed =
-        /kylrxai\.(firebaseapp|web)\.app$/.test(origin) ||
-        /kylrxai\.firebaseapp\.com$/.test(origin) ||
-        /app\.kylrxai\.com$/.test(origin);
+        /^https:\/\/kylrxai\.(firebaseapp|web)\.app$/.test(origin) ||
+        /^https:\/\/kylrxai\.firebaseapp\.com$/.test(origin) ||
+        /^https:\/\/app\.kylrxai\.com$/.test(origin);
     return isProductionAllowed;
 };
 
