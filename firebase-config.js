@@ -290,6 +290,25 @@ function belongsToOtherTenant(ref, snap) {
   return !!owner && owner !== activeOrgId;
 }
 
+// "users", "organizations/o1/roles" ... for log lines and UI error state
+function describeTarget(target) {
+  try {
+    if (target && typeof target.path === 'string') return target.path;
+    const p = target && target._query && target._query.path;
+    return p && typeof p.canonicalString === 'function' ? p.canonicalString() : 'unknown';
+  } catch (_) { return 'unknown'; }
+}
+
+// A permission-denied read must never look like "no data": log it past the console filters and
+// tell the UI (window event 'firestore-permission-denied', and snapshot.permissionDenied / .error)
+function reportPermissionDenied(target, err) {
+  const name = describeTarget(target);
+  _origConsoleError.call(console, `[Firestore] permission-denied reading "${name}": ${err?.message || err}`);
+  try {
+    window.dispatchEvent(new CustomEvent('firestore-permission-denied', { detail: { target: name, error: err } }));
+  } catch (_) {}
+}
+
 // Quota-safe wrappers to ensure the application never crashes when quota is reached
 const getDocs = async (rawTarget) => {
   await tenantReady;
@@ -300,12 +319,13 @@ const getDocs = async (rawTarget) => {
     return await rawGetDocs(q);
   } catch (err) {
     const isPermission = err?.code === 'permission-denied' || String(err?.message || err).includes('Missing or insufficient permissions');
+    if (isPermission) reportPermissionDenied(q, err);
     if (isQuotaError(err) || isPermission) {
       try {
         const cacheRes = await getDocsFromCache(q);
-        if (cacheRes && (!cacheRes.empty || isPermission)) return cacheRes;
+        if (cacheRes && !cacheRes.empty) return cacheRes;
       } catch (_) {}
-      return { empty: true, docs: [], size: 0, forEach: () => {} };
+      return { empty: true, docs: [], size: 0, forEach: () => {}, permissionDenied: isPermission, error: isPermission ? err : undefined };
     }
     throw err;
   }
