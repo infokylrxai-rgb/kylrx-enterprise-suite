@@ -361,12 +361,14 @@ const logoutBtn = document.getElementById('logoutBtn');
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', async () => {
     setupAuthWatcher();
-    setupNavigationTabs();
+    const showTab = setupNavigationTabs();
     setupInAppDownload();
     setupManualForm();
     setupFileUpload();
     setupLogout();
     await checkExistingOrganizationStatus();
+    // Restore the tab from the URL hash so a reload stays on the same tab
+    if (showTab && location.hash) showTab(location.hash.slice(1));
 });
 
 /**
@@ -474,7 +476,7 @@ function populateManualFormWithExistingData(data) {
  * Switcher between Tab A (Manual Form), Tab B (Bulk Upload), Tab C (Business Units), and Tab D (Cost Centers)
  */
 function setupNavigationTabs() {
-    if (!(tabManual && tabBulk)) return;
+    if (!(tabManual && tabBulk)) return null;
 
     // [tab button, panel, optional render hook]; showTab hides every panel and clears every tab first
     const TABS = {
@@ -500,6 +502,7 @@ function setupNavigationTabs() {
     };
 
     function showTab(key) {
+        if (!TABS[key] || !TABS[key][0]) return;
         for (const [tab, view] of Object.values(TABS)) {
             if (tab) tab.classList.remove('active');
             if (view) view.style.display = 'none';
@@ -508,11 +511,13 @@ function setupNavigationTabs() {
         tab.classList.add('active');
         if (view) view.style.display = 'block';
         if (render) render();
+        history.replaceState(null, "", "#" + key);
     }
 
     for (const [key, [tab]] of Object.entries(TABS)) {
         if (tab) tab.onclick = () => showTab(key);
     }
+    return showTab;
 }
 
 /**

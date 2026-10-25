@@ -1061,6 +1061,7 @@
                 
                 btn.classList.add('active');
                 document.getElementById(targetTab)?.classList.add('active');
+                history.replaceState(null, '', '#' + targetTab);
 
                 if (targetTab === 'bu_rules') {
                     if (window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.renderAdminConsole === 'function') {
@@ -1096,6 +1097,9 @@
                 }
             });
         });
+
+        // Restore the tab from the URL hash so a reload stays on the same tab
+        [...tabBtns].find(b => b.getAttribute('data-tab') === location.hash.slice(1))?.click();
 
         // Form Submit to Firestore
         document.querySelectorAll('.settingsForm').forEach(form => {
