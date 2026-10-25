@@ -3,19 +3,20 @@ const router = express.Router();
 const { confirmedWrite } = require('../config/firestore-write');
 const analyticsEngine = require('../services/custom-analytics-engine');
 const logger = require('../utils/logger');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 const crypto = require('crypto');
 const { rawCollection } = require('../config/firebase');
-const { orgDocs, ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
+const { orgDocs, ownerOrgId } = require('../config/tenant');
 
 router.use(verifyToken);
+router.use(requireOrg);
 
 /* Saved dashboards live in Firestore 'analytics_dashboards' per organization; the built-in
  * dashboards are read-only templates shown to every organization. */
 const DASHBOARD_COLLECTION = 'analytics_dashboards';
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 

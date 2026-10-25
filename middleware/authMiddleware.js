@@ -156,4 +156,10 @@ const authorize = (...roles) => {
     };
 };
 
-module.exports = { verifyToken, authorize, ALLOWED_ROLES, ADMIN_HR_ROLES };
+// Tenant routes need an organization: a verified user without one gets no data
+const requireOrg = (req, res, next) => {
+    if (req.user && req.user.orgId) return next();
+    return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
+};
+
+module.exports = { verifyToken, authorize, requireOrg, ALLOWED_ROLES, ADMIN_HR_ROLES };

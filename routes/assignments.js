@@ -5,15 +5,16 @@ const centralAssignmentEngine = require('../services/central-assignment-engine')
 const assignmentAi = require('../services/assignment-ai-service');
 const eventBus = require('../services/event-bus');
 const { db, rawCollection } = require('../config/firebase');
-const { ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
+const { ownerOrgId } = require('../config/tenant');
 const logger = require('../utils/logger');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 

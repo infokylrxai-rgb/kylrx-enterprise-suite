@@ -8,9 +8,10 @@ const logger = require('../utils/logger');
 const { db, rawCollection } = require('../config/firebase');
 const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
 const triggerRegistryService = require('../services/alert-trigger-registry-service');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 
 /**
  * Enterprise Alert Builder Route Handler
@@ -271,7 +272,7 @@ syncAlertRulesWithFirestore().catch(() => {});
  */
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 function ruleDocId(orgId, ruleId) {
