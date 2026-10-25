@@ -326,10 +326,10 @@
 
             // Dual-save to backend API
             try {
-                const token = localStorage.getItem('access_token') || 'demo-token';
+                const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser) ? await window.auth.currentUser.getIdToken() : localStorage.getItem('access_token');
                 await fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (typeof window !== "undefined" && window.API_BASE ? window.API_BASE : (typeof window !== "undefined" && window.location ? window.location.origin : ""))}/api/admin/employees/${employeeId}/documents`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
                     body: JSON.stringify(docRecord)
                 });
             } catch (_) {}
@@ -436,10 +436,10 @@
 
         // Backend API
         try {
-            const token = localStorage.getItem('access_token') || 'demo-token';
+            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser) ? await window.auth.currentUser.getIdToken() : localStorage.getItem('access_token');
             await fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (typeof window !== "undefined" && window.API_BASE ? window.API_BASE : (typeof window !== "undefined" && window.location ? window.location.origin : ""))}/api/admin/employees/${employeeId}/documents/${docId}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
         } catch (_) {}
 
