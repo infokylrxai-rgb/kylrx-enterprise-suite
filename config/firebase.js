@@ -53,6 +53,9 @@ if (serviceAccount) {
   rawCollection = require('./tenant').installTenantScoping(db);
   messaging = admin.messaging();
 } else {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Firebase credentials are required in production: set FIREBASE_SERVICE_ACCOUNT or FIREBASE_SERVICE_ACCOUNT_PATH.');
+  }
   console.log("Firebase Backend: Active in local connected development mode (kylrxai).");
   
   const _firestoreStore = new Map();
