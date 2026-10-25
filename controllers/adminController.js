@@ -1016,7 +1016,8 @@ exports.getOrgChart = async (req, res, next) => {
  */
 exports.getBuRules = async (req, res, next) => {
     try {
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         
         // 1. Try fetching from Firestore organizations/{orgId}/business_units
         try {
@@ -1056,7 +1057,8 @@ exports.getBuRules = async (req, res, next) => {
  */
 exports.saveBuRule = async (req, res, next) => {
     try {
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const actor = req.user?.name || req.user?.email || 'Super Admin';
 
         const rawCode = req.body.businessUnitCode || req.body.Business_Unit_Code || req.body.code;
@@ -1144,7 +1146,8 @@ exports.updateBusinessUnit = async (req, res, next) => {
 exports.toggleBusinessUnitStatus = async (req, res, next) => {
     try {
         const buCode = req.params.code.toUpperCase();
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const buRef = db.collection('organizations').doc(orgId).collection('business_units').doc(buCode);
         const snap = await buRef.get();
 
@@ -1182,7 +1185,8 @@ exports.toggleBusinessUnitStatus = async (req, res, next) => {
 exports.deleteBusinessUnit = async (req, res, next) => {
     try {
         const buCode = req.params.code.toUpperCase();
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         await db.collection('organizations').doc(orgId).collection('business_units').doc(buCode).delete();
         const ruleId = `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
@@ -1210,7 +1214,8 @@ exports.deleteBusinessUnit = async (req, res, next) => {
  */
 exports.getCostCenters = async (req, res, next) => {
     try {
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const activeOnly = req.query.active === 'true';
 
         let query = db.collection('organizations').doc(orgId).collection('cost_centers');
@@ -1240,7 +1245,8 @@ exports.getCostCenters = async (req, res, next) => {
  */
 exports.createCostCenter = async (req, res, next) => {
     try {
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const rawCode = req.body.costCenterCode || req.body.Cost_Center_Code || req.body.code;
         const rawName = req.body.costCenterName || req.body.Cost_Center_Name || req.body.name;
         const rawOwnerId = req.body.ownerEmployeeId || req.body.Owner_Employee_ID || req.body['Owner Employee ID'] || '';
@@ -1294,7 +1300,8 @@ exports.createCostCenter = async (req, res, next) => {
 exports.updateCostCenter = async (req, res, next) => {
     try {
         const costCenterCode = req.params.code.toUpperCase();
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         const ccRef = db.collection('organizations').doc(orgId).collection('cost_centers').doc(costCenterCode);
         const updateData = {
@@ -1321,7 +1328,8 @@ exports.updateCostCenter = async (req, res, next) => {
 exports.toggleCostCenterStatus = async (req, res, next) => {
     try {
         const costCenterCode = req.params.code.toUpperCase();
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         const ccRef = db.collection('organizations').doc(orgId).collection('cost_centers').doc(costCenterCode);
         const snap = await ccRef.get();
@@ -1354,7 +1362,8 @@ exports.toggleCostCenterStatus = async (req, res, next) => {
 exports.deleteCostCenter = async (req, res, next) => {
     try {
         const costCenterCode = req.params.code.toUpperCase();
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         await db.collection('organizations').doc(orgId).collection('cost_centers').doc(costCenterCode).delete();
 
@@ -1373,7 +1382,8 @@ exports.deleteCostCenter = async (req, res, next) => {
  */
 exports.bulkImportCostCenters = async (req, res, next) => {
     try {
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const costCenters = req.body.costCenters || req.body.records || [];
 
         if (!Array.isArray(costCenters) || costCenters.length === 0) {
@@ -1423,7 +1433,8 @@ exports.bulkImportCostCenters = async (req, res, next) => {
  */
 exports.getSubDepartments = async (req, res, next) => {
     try {
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const activeOnly = req.query.active === 'true';
         const departmentCode = req.query.departmentCode ? String(req.query.departmentCode).trim().toUpperCase() : null;
         const costCenterCode = req.query.costCenterCode ? String(req.query.costCenterCode).trim().toUpperCase() : null;
@@ -1471,7 +1482,8 @@ exports.getSubDepartments = async (req, res, next) => {
  */
 exports.createSubDepartment = async (req, res, next) => {
     try {
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const rawCode = req.body.subDepartmentCode || req.body['Sub-Department_Code'] || req.body.code;
         const rawName = req.body.subDepartmentName || req.body['Sub-Department_Name'] || req.body.name;
         const rawHead = req.body.headEmployeeId || req.body['Sub-Department_Head_Employee_ID'] || req.body.headId || '';
@@ -1607,7 +1619,8 @@ exports.createSubDepartment = async (req, res, next) => {
 exports.updateSubDepartment = async (req, res, next) => {
     try {
         const subDepartmentCode = req.params.code.toUpperCase();
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         const subRef = db.collection('organizations').doc(orgId).collection('sub_departments').doc(subDepartmentCode);
         const updateData = {
@@ -1634,7 +1647,8 @@ exports.updateSubDepartment = async (req, res, next) => {
 exports.toggleSubDepartmentStatus = async (req, res, next) => {
     try {
         const subDepartmentCode = req.params.code.toUpperCase();
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         const subRef = db.collection('organizations').doc(orgId).collection('sub_departments').doc(subDepartmentCode);
         const snap = await subRef.get();
@@ -1667,7 +1681,8 @@ exports.toggleSubDepartmentStatus = async (req, res, next) => {
 exports.deleteSubDepartment = async (req, res, next) => {
     try {
         const subDepartmentCode = req.params.code.toUpperCase();
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         await db.collection('organizations').doc(orgId).collection('sub_departments').doc(subDepartmentCode).delete();
 
@@ -1686,7 +1701,8 @@ exports.deleteSubDepartment = async (req, res, next) => {
  */
 exports.bulkImportSubDepartments = async (req, res, next) => {
     try {
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const subDepartments = req.body.subDepartments || req.body.records || [];
 
         if (!Array.isArray(subDepartments) || subDepartments.length === 0) {
@@ -1740,7 +1756,8 @@ exports.bulkImportSubDepartments = async (req, res, next) => {
 exports.propagateDepartmentHeadUpdate = async (req, res, next) => {
     try {
         const departmentCode = req.params.code.toUpperCase();
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const newHeadEmployeeId = String(req.body.newHeadEmployeeId || req.body.headEmployeeId || '').trim().toUpperCase();
         const newHeadEmployeeName = req.body.newHeadEmployeeName || req.body.headEmployeeName || '';
 
@@ -1876,7 +1893,8 @@ const DEFAULT_ENTERPRISE_SHIFTS = [
  */
 exports.getShifts = async (req, res, next) => {
     try {
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const snapshot = await db.collection('organizations').doc(orgId).collection('shifts').get();
 
         if (snapshot.empty) {
@@ -1911,7 +1929,8 @@ exports.getShifts = async (req, res, next) => {
  */
 exports.createShift = async (req, res, next) => {
     try {
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const rawCode = req.body.shiftCode || req.body['Shift_Code'] || req.body.code;
         const rawName = req.body.shiftName || req.body['Shift_Name'] || req.body.name;
 
@@ -1983,7 +2002,8 @@ exports.createShift = async (req, res, next) => {
 exports.updateShift = async (req, res, next) => {
     try {
         const shiftCode = req.params.code.toUpperCase();
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         const updateData = { ...req.body };
         delete updateData.shiftCode;
@@ -2010,7 +2030,8 @@ exports.updateShift = async (req, res, next) => {
 exports.toggleShiftStatus = async (req, res, next) => {
     try {
         const shiftCode = req.params.code.toUpperCase();
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         const shiftRef = db.collection('organizations').doc(orgId).collection('shifts').doc(shiftCode);
         const snap = await shiftRef.get();
@@ -2043,7 +2064,8 @@ exports.toggleShiftStatus = async (req, res, next) => {
 exports.deleteShift = async (req, res, next) => {
     try {
         const shiftCode = req.params.code.toUpperCase();
-        const orgId = req.query.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
         await db.collection('organizations').doc(orgId).collection('shifts').doc(shiftCode).delete();
 
@@ -2062,7 +2084,8 @@ exports.deleteShift = async (req, res, next) => {
  */
 exports.bulkImportShifts = async (req, res, next) => {
     try {
-        const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+        const orgId = req.user && req.user.orgId;
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const shifts = req.body.shifts || req.body.records || [];
 
         if (!Array.isArray(shifts) || shifts.length === 0) {
@@ -2123,7 +2146,8 @@ exports.calculatePunchAttendance = async (req, res, next) => {
         // Resolve shift policy
         let policy = shift;
         if (!policy && shiftCode) {
-            const orgId = req.body.orgId || req.headers['x-org-id'] || 'org_kylrx';
+            const orgId = req.user && req.user.orgId;
+            if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
             const snap = await db.collection('organizations').doc(orgId).collection('shifts').doc(shiftCode.toUpperCase()).get();
             if (snap.exists) {
                 policy = snap.data();
@@ -2284,7 +2308,7 @@ const DEFAULT_ATTENDANCE_POLICIES = [
 ];
 
 function getPolicyOrgId(req) {
-    return req.query.orgId || req.body?.orgId || req.headers['x-org-id'] || 'org_kylrx';
+    return req.user && req.user.orgId;
 }
 
 function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
@@ -2308,6 +2332,7 @@ function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
 exports.getAttendancePolicies = async (req, res, next) => {
     try {
         const orgId = getPolicyOrgId(req);
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const snapshot = await db.collection('organizations').doc(orgId).collection('attendance_policies').get();
         let policies = [];
 
@@ -2334,6 +2359,7 @@ exports.getAttendancePolicies = async (req, res, next) => {
 exports.getAttendancePolicyByCode = async (req, res, next) => {
     try {
         const orgId = getPolicyOrgId(req);
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const code = String(req.params.code).trim().toUpperCase();
         const docRef = db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code);
         const snap = await docRef.get();
@@ -2359,6 +2385,7 @@ exports.getAttendancePolicyByCode = async (req, res, next) => {
 exports.createAttendancePolicy = async (req, res, next) => {
     try {
         const orgId = getPolicyOrgId(req);
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const {
             attendancePolicyCode,
             policyName,
@@ -2417,6 +2444,7 @@ exports.createAttendancePolicy = async (req, res, next) => {
 exports.updateAttendancePolicy = async (req, res, next) => {
     try {
         const orgId = getPolicyOrgId(req);
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const code = String(req.params.code).trim().toUpperCase();
         const docRef = db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code);
 
@@ -2446,6 +2474,7 @@ exports.updateAttendancePolicy = async (req, res, next) => {
 exports.toggleAttendancePolicyStatus = async (req, res, next) => {
     try {
         const orgId = getPolicyOrgId(req);
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const code = String(req.params.code).trim().toUpperCase();
         const docRef = db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code);
         const snap = await docRef.get();
@@ -2482,6 +2511,7 @@ exports.toggleAttendancePolicyStatus = async (req, res, next) => {
 exports.deleteAttendancePolicy = async (req, res, next) => {
     try {
         const orgId = getPolicyOrgId(req);
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const code = String(req.params.code).trim().toUpperCase();
         await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(code).delete();
 
@@ -2501,6 +2531,7 @@ exports.deleteAttendancePolicy = async (req, res, next) => {
 exports.bulkImportAttendancePolicies = async (req, res, next) => {
     try {
         const orgId = getPolicyOrgId(req);
+        if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         const policies = req.body.policies || req.body;
         if (!Array.isArray(policies) || policies.length === 0) {
             return res.status(400).json({ status: 'error', success: false, message: 'Policies array is required.' });
@@ -2572,6 +2603,7 @@ exports.evaluateClockIn = async (req, res, next) => {
         let activePolicy = policy;
         if (!activePolicy && policyCode) {
             const orgId = getPolicyOrgId(req);
+            if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
             const snap = await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(policyCode.toUpperCase()).get();
             if (snap.exists) activePolicy = snap.data();
         }
@@ -2707,6 +2739,7 @@ exports.validateRegularization = async (req, res, next) => {
         let activePolicy = policy;
         if (!activePolicy && policyCode) {
             const orgId = getPolicyOrgId(req);
+            if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
             const snap = await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(policyCode.toUpperCase()).get();
             if (snap.exists) activePolicy = snap.data();
         }
@@ -2773,6 +2806,7 @@ exports.evaluateOvertime = async (req, res, next) => {
         let activePolicy = policy;
         if (!activePolicy && policyCode) {
             const orgId = getPolicyOrgId(req);
+            if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
             const snap = await db.collection('organizations').doc(orgId).collection('attendance_policies').doc(policyCode.toUpperCase()).get();
             if (snap.exists) activePolicy = snap.data();
         }
