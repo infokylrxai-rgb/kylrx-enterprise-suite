@@ -2,6 +2,7 @@ const { admin, db } = require('../config/firebase');
 const { generateEmployeeId } = require('../utils/idGenerator');
 const { generateSecurePassword } = require('../utils/passwordGenerator');
 const { sendEmail } = require('../utils/email');
+const logger = require('../utils/logger');
 const buRulesService = require('../services/bu-employee-type-rules-service');
 const employeeProfileService = require('../services/employee-profile-service');
 const managerAssignmentService = require('../services/manager-assignment-service');
