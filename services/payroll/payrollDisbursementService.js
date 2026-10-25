@@ -70,6 +70,12 @@ async function safeDbGet(promise, timeoutMs = 800) {
 
 class PayrollDisbursementService {
   constructor(options = {}) {
+    // Production must never run on the built-in demo secrets (they would validate forged callbacks)
+    if (process.env.NODE_ENV === 'production') {
+      const missing = [['clientSecret', 'DECENTRO_CLIENT_SECRET'], ['moduleSecret', 'DECENTRO_MODULE_SECRET'], ['providerSecret', 'DECENTRO_PROVIDER_SECRET']]
+        .filter(([opt, env]) => !options[opt] && !process.env[env]).map(([, env]) => env);
+      if (missing.length) throw new Error(`Missing required environment variable(s) in production: ${missing.join(', ')}`);
+    }
     this.db = options.db !== undefined ? options.db : (process.env.NODE_ENV === 'test' ? null : db);
     this.decentroBaseUrl = options.decentroBaseUrl || process.env.DECENTRO_BASE_URL || 'https://staging.dashboard.decentro.tech/fabric';
     this.clientId = options.clientId || process.env.DECENTRO_CLIENT_ID || 'demo_decentro_client_id';
