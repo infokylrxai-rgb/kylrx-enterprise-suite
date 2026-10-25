@@ -90,6 +90,12 @@ function initFirebaseRealtimeSync() {
     } catch (err) {}
 }
 
+function redirectToLogin() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('kylrx_auth_token');
+    window.location.href = 'login.html';
+}
+
 /**
  * Fetch and populate live data for all 11 widgets from Firebase backend
  */
@@ -101,18 +107,15 @@ async function refreshDashboardData() {
             if (auth && typeof auth.authStateReady === 'function') await auth.authStateReady();
             if (auth && auth.currentUser) firebaseToken = await auth.currentUser.getIdToken();
         } catch (_) {}
-        let token = firebaseToken || localStorage.getItem('token') || localStorage.getItem('kylrx_auth_token') || 'super_admin_dev_token';
-        let res = await fetch(`${API_BASE}/api/central-dashboard/overview?role=${activeRole}`, {
+        const token = firebaseToken || localStorage.getItem('token') || localStorage.getItem('kylrx_auth_token');
+        if (!token) return redirectToLogin();
+        // The server decides the widget set from the verified token, so no role is sent
+        const res = await fetch(`${API_BASE}/api/central-dashboard/overview`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
-        if (res.status === 401) {
-            // Stale or invalid bearer token detected; retry with direct role query
-            localStorage.removeItem('token');
-            localStorage.removeItem('kylrx_auth_token');
-            res = await fetch(`${API_BASE}/api/central-dashboard/overview?role=${activeRole}`);
-        }
+        if (res.status === 401) return redirectToLogin();
         if (res.ok) {
             const json = await res.json();
             dashboardData = json.data;
