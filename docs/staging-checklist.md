@@ -45,7 +45,7 @@ Decision to confirm: if HR must be able to onboard managers, the `users` create 
 | Step | Super admin A (maker) | Second super admin A (checker) | HR | Manager | Employee | Super admin B |
 |---|---|---|---|---|---|---|
 | Create batch (orgId A) | OK | OK | denied | denied | denied | denied |
-| List batches with the org filter (operational-dashboard) | OK | OK | denied | OK (read) | denied | only own org |
+| List batches with the org filter (operational-dashboard) | OK | OK | OK (read) | OK (read) | denied | only own org |
 | Approve with a **different** checker | n/a | OK | denied | denied | denied | denied |
 | Approve where checker = maker | **denied** | **denied** | n/a | n/a | n/a | n/a |
 | Change status on an older batch that has no `maker_checker` map | OK | OK | denied | denied | denied | denied |
@@ -58,7 +58,7 @@ Decision to confirm: if HR must be able to onboard managers, the `users` create 
 | Step | Employee | Manager (not the initiator) | Manager who started the request | Super admin | Other org |
 |---|---|---|---|---|---|
 | Read the workflow instance / task | OK (own org) | OK | OK | OK | denied |
-| Create an instance or task | **denied** | OK | OK only if status is not pre-approved (pending/in progress) | OK | denied |
+| Create an instance or task | **denied** | OK | **denied** (cannot create a request they initiated) | OK | denied |
 | Approve/reject a task | **denied** | OK | **denied** (no self-approval) | OK (override) | denied |
 | Advance an instance | denied | OK | **denied** | OK | denied |
 | Delete a task or instance | denied | denied | denied | OK (configured org) | denied |
