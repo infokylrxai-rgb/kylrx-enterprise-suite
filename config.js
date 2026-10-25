@@ -35,21 +35,14 @@ if (typeof window !== 'undefined') {
         } catch (_) {}
     }
 
-    // Console interceptor for internal WebGPU diagnostic warnings
-    if (typeof console !== 'undefined') {
-        const isGpuWarning = (arg) => {
-            const s = String(arg || '');
-            return s.includes('powerPreference') || s.includes('requestAdapter') || s.includes('369219127');
+    // Hide only Chromium's one-off WebGPU warning (crbug.com/369219127); every other console call passes through
+    if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+        const GPU_WARNING = /powerPreference option is currently ignored when calling requestAdapter/;
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (typeof args[0] === 'string' && GPU_WARNING.test(args[0])) return;
+            originalWarn.apply(console, args);
         };
-        ['warn', 'error', 'info', 'log'].forEach(method => {
-            if (typeof console[method] === 'function') {
-                const original = console[method];
-                console[method] = function(...args) {
-                    if (args.some(isGpuWarning)) return;
-                    original.apply(console, args);
-                };
-            }
-        });
     }
 }
 
