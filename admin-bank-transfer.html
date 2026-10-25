@@ -532,12 +532,6 @@
     import { collection, getDocs, setDoc, doc, serverTimestamp, addDoc } from "./firebase-config.js";
     import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
-    // ─────────────────────────────────────────────
-    // EMAIL API CONFIGURATION
-    // ─────────────────────────────────────────────
-    const EMAIL_API_KEY = "6f8d75dc-500b-4eb1-b0db-6e6b4e7235db";
-    const SENDER_EMAIL = "payroll@kylrxai.com";
-
     // Initialise Lucide icons
     if (window.lucide) lucide.createIcons();
 
@@ -782,28 +776,28 @@
         const selectedOpt = recipientSelect.options[recipientSelect.selectedIndex];
         const employeeEmail = selectedOpt ? (selectedOpt.dataset.email || '') : '';
 
-        if (payload.emailMessage && employeeEmail && EMAIL_API_KEY && EMAIL_API_KEY !== 'YOUR_SMTPJS_SECURE_TOKEN_HERE') {
+        if (payload.emailMessage && employeeEmail) {
           try {
-            console.log(`[EMAIL] Dispatching payment notification to ${employeeEmail} via Web3Forms...`);
-            const response = await fetch("https://api.web3forms.com/submit", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-              },
+            console.log(`[EMAIL] Dispatching payment notification to ${employeeEmail}...`);
+            const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+            const response = await fetch('/api/email/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
               body: JSON.stringify({
-                access_key: EMAIL_API_KEY,
-                name: "Kylrx AI Payroll Gate",
-                email: SENDER_EMAIL,
+                to: employeeEmail,
                 subject: "Kylrx AI - Payout Process Initiated",
-                message: `Dear ${recipientSelect.options[recipientSelect.selectedIndex].text},\n\nWe are pleased to inform you that a bank transfer payout has been initiated successfully.\n\n${payload.emailMessage}`
+                text: `Dear ${recipientSelect.options[recipientSelect.selectedIndex].text},
+
+We are pleased to inform you that a bank transfer payout has been initiated successfully.
+
+${payload.emailMessage}`
               })
             });
             const result = await response.json();
             if (result.success) {
               console.log(`[EMAIL] Successfully sent notification to ${employeeEmail}.`);
             } else {
-              console.warn('[EMAIL] Dispatch failed:', result.message);
+              console.warn('[EMAIL] Dispatch failed:', result.error);
             }
           } catch (mailErr) {
             console.warn('[EMAIL] Dispatch failed:', mailErr);

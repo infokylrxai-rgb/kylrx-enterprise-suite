@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js";
+import { db, auth } from "./firebase-config.js";
 import { doc, setDoc, updateDoc, serverTimestamp, collection, addDoc, getDoc, query, where, getDocs } from "./firebase-config.js";
 
 /**
@@ -85,8 +85,6 @@ export async function processBankApproval(employeeId, action, adminId, reason = 
             }
 
             const amount = vData.amount || 50000;
-            const EMAIL_API_KEY = "6f8d75dc-500b-4eb1-b0db-6e6b4e7235db";
-            const SENDER_EMAIL = "payroll@kylrxai.com";
 
             // 1. System Notification
             await createNotification(
@@ -119,20 +117,14 @@ export async function processBankApproval(employeeId, action, adminId, reason = 
                         const emailBody = `Dear ${uData.name || 'Employee'},\n\nWe are pleased to inform you that your bank transfer payout has been approved and processed successfully.\n\nPayout Details:\n- Amount: ₹${amount}\n- Status: Completed\n\nYour detailed payslip/invoice is now available in your Employee Documents Portal.\n\nBest regards,\nPayroll Operations Team`;
                         
                         console.log(`[EMAIL] Sending payment approval email to ${employeeEmail}...`);
-                        await fetch("https://api.web3forms.com/submit", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Accept": "application/json"
-                            },
-                            body: JSON.stringify({
-                                access_key: EMAIL_API_KEY,
-                                name: "Kylrx AI Payroll Gate",
-                                email: SENDER_EMAIL,
-                                subject: "Kylrx AI - Payout Processed",
-                                message: vData.emailMessage || emailBody
-                            })
-                        });
+                        await (async () => {
+                            const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+                            return fetch('/api/email/send', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                                body: JSON.stringify({ to: employeeEmail, subject: "Kylrx AI - Payout Processed", text: vData.emailMessage || emailBody })
+                            });
+                        })();
                     }
                 }
             } catch (emailErr) {
