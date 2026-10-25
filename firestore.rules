@@ -45,14 +45,26 @@ service cloud.firestore {
       );
     }
 
+    // HR / admin roles (everything in isStaff except managers and super admins)
+    function isHrRole() {
+      return signedIn() && getRole() in [
+        'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR', 'hradmin', 'HR Admin', 'hr_admin'
+      ];
+    }
+
     function isStaff() {
       return signedIn() && (
         isSuperAdmin() ||
-        getRole() in [
-          'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR', 'hradmin', 'HR Admin',
-          'manager', 'Manager'
-        ]
+        isHrRole() ||
+        getRole() in ['manager', 'Manager']
       );
+    }
+
+    function isAdminRoleName(role) {
+      return role in [
+        'super_admin', 'SUPER_ADMIN', 'super admin', 'Super Admin', 'superadmin',
+        'admin', 'Admin'
+      ];
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -366,16 +378,31 @@ service cloud.firestore {
     match /users/{userId} {
       // Own profile, or profiles in the same organization
       allow read: if signedIn() && (request.auth.uid == userId || tenantRead());
-      // Restrict create so a new doc cannot set role above 'Employee'
+      // Restrict create so a new doc cannot set role above 'Employee'.
+      // HR may onboard Employee-role users in their own org (hrms-dashboard, recruitment).
+      // A self-created profile may not name an org (it would join any tenant): orgId is
+      // either absent or equal to the one already in the caller's token.
       allow create: if signedIn() && (
         (canAccessAdmin() && tenantCreate()) || (
+          isHrRole() && tenantCreate() &&
+          request.resource.data.get('role', '') in ['Employee', 'employee'] &&
+          request.resource.data.get('super_admin', false) != true
+        ) || (
           request.auth.uid == userId &&
+          (!('orgId' in request.resource.data) || (getOrgId() != null && request.resource.data.orgId == getOrgId())) &&
           (!('role' in request.resource.data) || request.resource.data.role in ['Employee', 'employee']) &&
           (!('super_admin' in request.resource.data) || request.resource.data.super_admin != true)
         )
       );
-      // A user cannot modify role, orgId, linkedAuthUid, or super_admin on their own profile
+      // A user cannot modify role, orgId, linkedAuthUid, or super_admin on their own profile.
+      // HR can edit profiles of non-admin users in their org, but never privilege/credential fields.
       allow update: if (canAccessAdmin() && tenantUpdate()) || (
+        isHrRole() && tenantUpdate() &&
+        !isAdminRoleName(resource.data.get('role', '')) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'role', 'orgId', 'linkedAuthUid', 'super_admin', 'password', 'passwordHash', 'mfaSecret', 'mfaEnabled'
+        ])
+      ) || (
         signedIn() &&
         request.auth.uid == userId &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'orgId', 'linkedAuthUid', 'super_admin'])
