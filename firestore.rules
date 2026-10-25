@@ -88,14 +88,18 @@ service cloud.firestore {
       return signedIn() && isStaff() && (isOrgConfigured(orgId) || !isSuperAdmin());
     }
 
+    // Missing linkedAuthUid / email must evaluate to "not the owner", not to a rule error
     function ownsEmployeeId(employeeId) {
       return signedIn() && (
         request.auth.uid == employeeId
         || (
           userExists(employeeId)
           && (
-            userDoc(employeeId).linkedAuthUid == request.auth.uid
-            || userDoc(employeeId).email == request.auth.token.email
+            userDoc(employeeId).get('linkedAuthUid', null) == request.auth.uid
+            || (
+              request.auth.token.get('email', null) != null
+              && userDoc(employeeId).get('email', null) == request.auth.token.get('email', null)
+            )
           )
         )
       );
@@ -198,14 +202,32 @@ service cloud.firestore {
         allow write: if canAccessAdmin() && isSameTenant(orgId);
       }
 
+      // Approvals: only staff may create or decide; nobody but a super admin may act on
+      // a request they started themselves (no self-approval). Employees can read only.
+      function initiatorOf(d) {
+        return d.get('initiatorId', d.get('requesterId', null));
+      }
+
+      function startedByCaller(d) {
+        return initiatorOf(d) != null && ownsEmployeeId(initiatorOf(d));
+      }
+
+      function approvalWriteOk(d) {
+        return signedIn() && isSameTenant(orgId) && isStaff() && (isSuperAdmin() || !startedByCaller(d));
+      }
+
       match /workflow_instances/{instanceId} {
         allow read: if signedIn() && isSameTenant(orgId);
-        allow write: if signedIn() && isSameTenant(orgId);
+        allow create: if approvalWriteOk(request.resource.data);
+        allow update: if approvalWriteOk(resource.data) && approvalWriteOk(request.resource.data);
+        allow delete: if canAccessAdmin() && isSameTenant(orgId);
       }
 
       match /approval_tasks/{taskId} {
         allow read: if signedIn() && isSameTenant(orgId);
-        allow write: if signedIn() && isSameTenant(orgId);
+        allow create: if approvalWriteOk(request.resource.data);
+        allow update: if approvalWriteOk(resource.data) && approvalWriteOk(request.resource.data);
+        allow delete: if canAccessAdmin() && isSameTenant(orgId);
       }
 
       // Statutory Profiles (PRD §§ 1, 4, 11, & 13)
