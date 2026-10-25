@@ -3757,10 +3757,6 @@ async function renderOnboardingEpfoMasterTable() {
         }
     }
 
-    if (records.length === 0 && window.KylrxPfDetailsService) {
-        records = window.KylrxPfDetailsService.DEFAULT_PF_PROFILES;
-    }
-
     container.innerHTML = `
         <div style="background: white; border-radius: 20px; padding: 2rem; border: 1px solid var(--border); box-shadow: var(--shadow);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
@@ -3996,10 +3992,6 @@ async function renderOnboardingEsicMasterTable() {
         } catch (e) {
             console.warn("Could not list ESIC profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxEsicDetailsService) {
-        records = window.KylrxEsicDetailsService.DEFAULT_ESIC_PROFILES || [];
     }
 
     container.innerHTML = `
@@ -4245,10 +4237,6 @@ async function renderOnboardingPtMasterTable() {
         }
     }
 
-    if (records.length === 0 && window.KylrxPtDetailsService) {
-        records = window.KylrxPtDetailsService.DEFAULT_PT_PROFILES || [];
-    }
-
     container.innerHTML = `
         <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -4471,10 +4459,6 @@ async function renderOnboardingLwfMasterTable() {
         } catch (e) {
             console.warn("Could not list LWF profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxLwfDetailsService) {
-        records = window.KylrxLwfDetailsService.DEFAULT_LWF_PROFILES || [];
     }
 
     container.innerHTML = `
@@ -4711,10 +4695,6 @@ async function renderOnboardingNpsMasterTable() {
         } catch (e) {
             console.warn("Could not list NPS profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxNpsDetailsService) {
-        records = window.KylrxNpsDetailsService.DEFAULT_NPS_PROFILES || [];
     }
 
     container.innerHTML = `
@@ -4991,10 +4971,6 @@ async function renderOnboardingGratuityMasterTable() {
         } catch (e) {
             console.warn("Could not list Gratuity profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxGratuityDetailsService) {
-        records = window.KylrxGratuityDetailsService.DEFAULT_GRATUITY_PROFILES || [];
     }
 
     const totalVested = records.filter(r => r.eligibilityStatus === 'VESTED' || r.eligibilityStatus === 'ELIGIBLE').length;
