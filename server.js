@@ -255,12 +255,15 @@ app.get('/reset-browser-data', (req, res) => {
 // services/ is blocked except the files browser pages import. reports/ stays public because
 // tvc-dashboard.html links to its CSV downloads.
 const STATIC_BLOCKED = /^\/(server\.js|package(-lock)?\.json|firestore\.indexes\.json|Templates\.xlsx)$|\.(rules|log|py|md)$|^\/(config|middleware|controllers|routes|scripts|tests|node_modules|data|logs|migrations|functions)(\/|$)|(^|\/)\.env/i;
+// Dev tooling, config, scratch scripts and server-only helpers. utils/ is blocked below except the
+// two vendor files (xlsx, Sortable) that admin pages load with <script src>.
+const STATIC_BLOCKED_TOOLING = /^\/(firebase\.json|tsconfig\.json|requirements\.txt|runtime\.txt|test\.mjs|scan_db\.js|send_live_test\.js|sync_firebase_backend\.js)$|^\/(check_|seed_|test_|trigger|compare_|inject_)[^/]*\.m?js$|^\/(tools|root_configs|types|__pycache__)(\/|$)|^\/modules\/[^/]*-adapter\.js$|^\/test_onboarding_manifest[^/]*\.csv$|\.(doc|firebaserc|python-version|tool-versions|gitignore)$/i;
 const STATIC_BROWSER_SERVICES = new Set([
     'atomic-counter-service', 'attendance-policy-parser', 'cost-center-parser', 'employee-finance-parser',
     'employee-finance-service', 'employee-type-parser', 'employee-type-service', 'rbac-ui-controller',
     'salary-structure-parser', 'salary-structure-service', 'shift-parser', 'statutory-compliance-ui-controller',
     'sub-department-parser', 'template-parser-service'
-].map(n => `/services/${n}.js`));
+].map(n => `/services/${n}.js`).concat(['/utils/xlsx.full.min.js', '/utils/sortable.min.js']));
 app.use((req, res, next) => {
     let p;
     try {
@@ -268,7 +271,7 @@ app.use((req, res, next) => {
     } catch (_) {
         return res.sendStatus(400);
     }
-    if (STATIC_BLOCKED.test(p) || (/^\/services\//i.test(p) && !STATIC_BROWSER_SERVICES.has(p.toLowerCase()))) {
+    if (STATIC_BLOCKED.test(p) || STATIC_BLOCKED_TOOLING.test(p) || (/^\/(services|utils)\//i.test(p) && !STATIC_BROWSER_SERVICES.has(p.toLowerCase()))) {
         return res.sendStatus(404);
     }
     next();
