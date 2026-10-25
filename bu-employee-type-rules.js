@@ -386,11 +386,11 @@
 
         // Also attempt loading from local backend API (safely without crashing or unhandled connection refusals)
         try {
-            const token = localStorage.getItem('authToken') || 
+            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser ? await window.auth.currentUser.getIdToken() : null) ||
+                          localStorage.getItem('authToken') || 
                           localStorage.getItem('hr_access_token') || 
                           localStorage.getItem('access_token') || 
-                          localStorage.getItem('token') || 
-                          'demo-static-token';
+                          localStorage.getItem('token');
             const apiUrl = getBuRulesApiUrl();
             const isDifferentPort = typeof window !== 'undefined' && window.location && 
                 window.location.port && window.location.port !== '3000' && window.location.port !== '5500' && window.location.port !== '5501';
@@ -654,11 +654,11 @@
 
         // 3. Save to backend API
         try {
-            const token = localStorage.getItem('authToken') || 
+            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser ? await window.auth.currentUser.getIdToken() : null) ||
+                          localStorage.getItem('authToken') || 
                           localStorage.getItem('hr_access_token') || 
                           localStorage.getItem('access_token') || 
-                          localStorage.getItem('token') || 
-                          'demo-static-token';
+                          localStorage.getItem('token');
             const apiUrl = getBuRulesApiUrl();
             await fetch(apiUrl, {
                 method: 'POST',

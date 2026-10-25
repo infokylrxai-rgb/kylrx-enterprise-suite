@@ -2387,7 +2387,7 @@ function setupEventListeners() {
         try {
             // Get current ID token from Firebase auth for API auth
             const rawToken = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('access_token');
-            const token = rawToken || 'demo-static-token';
+            const token = rawToken;
             const headers = { 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
@@ -3230,7 +3230,7 @@ window.deleteEmployee = (id, name) => {
             confirmBtn.textContent = 'Deleting...';
             
             const rawToken = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('access_token');
-            const token = rawToken || 'demo-static-token';
+            const token = rawToken;
             
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/employees/${id}`, {

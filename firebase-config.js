@@ -172,6 +172,7 @@ try {
 }
 if (typeof window !== 'undefined') {
   window.db = db;
+  window.auth = auth;
 }
 const storage = getStorage(app);
 

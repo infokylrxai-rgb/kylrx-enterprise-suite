@@ -322,12 +322,12 @@
 
         // 2. Also save to local backend API if available
         try {
-            const token = (typeof localStorage !== 'undefined' && (
+            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser ? await window.auth.currentUser.getIdToken() : null) || (typeof localStorage !== 'undefined' && (
                 localStorage.getItem('authToken') || 
                 localStorage.getItem('hr_access_token') || 
                 localStorage.getItem('access_token') || 
                 localStorage.getItem('token')
-            )) || 'demo-static-token';
+            ));
 
             if (typeof fetch !== 'undefined') {
                 await fetch(`${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api/admin/cost-centers`, {

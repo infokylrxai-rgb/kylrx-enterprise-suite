@@ -529,12 +529,12 @@
 
         // 2. Also save to local backend API
         try {
-            const token = (typeof localStorage !== 'undefined' && (
+            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser ? await window.auth.currentUser.getIdToken() : null) || (typeof localStorage !== 'undefined' && (
                 localStorage.getItem('authToken') || 
                 localStorage.getItem('hr_access_token') || 
                 localStorage.getItem('access_token') || 
                 localStorage.getItem('token')
-            )) || 'demo-static-token';
+            ));
             const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''));
             await fetch(`${apiBase}/api/admin/bu-rules`, {
                 method: 'POST',
