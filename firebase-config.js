@@ -73,12 +73,11 @@ function isCoopOrPopupMessage(...args) {
     }
     return String(a || '');
   }).join(' ');
+  // Only Chromium's exact WebGPU warning is hidden here (same message config.js filters)
   return text.includes('Cross-Origin-Opener-Policy') || 
          text.includes('window.closed') || 
          text.includes('window.close') ||
-         text.includes('powerPreference') ||
-         text.includes('requestAdapter') ||
-         text.includes('369219127');
+         /powerPreference option is currently ignored when calling requestAdapter/.test(text);
 }
 
 function isPermissionOrQuotaMessage(...args) {
