@@ -51,7 +51,7 @@
         }
 
         const isNpsApplicable = npsDetails.isNpsApplicable !== false && npsDetails['NPS Applicable'] !== 'No';
-        const pran = npsDetails.pran || npsDetails['PRAN'] || "110023456789";
+        const pran = npsDetails.pran || npsDetails['PRAN'] || "Not added";
         const accountStatus = npsDetails.npsAccountStatus || npsDetails['NPS Account Status'] || "ACTIVE";
         const npsModel = npsDetails.npsModel || npsDetails['NPS Model'] || "Corporate Model";
         const craAgency = npsDetails.craAgency || npsDetails['CRA / Recordkeeping Agency'] || "Protean (NSDL)";
@@ -69,10 +69,10 @@
         const ytd = Number(contribs.totalContributionYtd || npsDetails['Total Contribution YTD'] || 0);
 
         const kyc = npsDetails.kyc || {};
-        const overallKyc = kyc.overallStatus || npsDetails['KYC Status'] || "VERIFIED";
-        const panKyc = kyc.panKyc || npsDetails['PAN KYC'] || "VERIFIED";
-        const aadhaarKyc = kyc.aadhaarKyc || npsDetails['Aadhaar KYC'] || "VERIFIED";
-        const bankKyc = kyc.bankKyc || npsDetails['Bank KYC'] || "VERIFIED";
+        const overallKyc = kyc.overallStatus || npsDetails['KYC Status'] || "PENDING";
+        const panKyc = kyc.panKyc || npsDetails['PAN KYC'] || "PENDING";
+        const aadhaarKyc = kyc.aadhaarKyc || npsDetails['Aadhaar KYC'] || "PENDING";
+        const bankKyc = kyc.bankKyc || npsDetails['Bank KYC'] || "PENDING";
         const nomineeStatus = npsDetails.nomineeStatus || npsDetails['Nominee Details Status'] || "SUBMITTED";
 
         const statusBadge = (service && typeof service.resolveNpsStatusBadge === 'function')
@@ -533,39 +533,9 @@
             } catch (e) {}
         }
 
-        if (!npsDetails && service && Array.isArray(service.DEFAULT_NPS_PROFILES)) {
-            npsDetails = service.DEFAULT_NPS_PROFILES.find(p => p.employeeId === employeeId);
-        }
-
         if (!npsDetails) {
-            npsDetails = {
-                employeeId,
-                organizationId: orgId,
-                isNpsApplicable: options.isNpsApplicable !== false,
-                pran: options.pran || "110023456789",
-                npsAccountStatus: "ACTIVE",
-                npsModel: "Corporate Model",
-                craAgency: options.craAgency || "Protean (NSDL)",
-                popIntermediary: options.popIntermediary || "HDFC Pension Management Co.",
-                tier1Active: true,
-                tier2Active: false,
-                dateOfNpsJoining: options.dateOfNpsJoining || options.joiningDate || "2026-01-15",
-                dateOfNpsExit: null,
-                contributions: {
-                    employeePercentage: options.employeePercentage !== undefined ? options.employeePercentage : 10.0,
-                    employeeAmount: null,
-                    employerPercentage: options.employerPercentage !== undefined ? options.employerPercentage : 10.0,
-                    employerAmount: null,
-                    totalContributionYtd: 0.00
-                },
-                nomineeStatus: "SUBMITTED",
-                kyc: {
-                    overallStatus: "VERIFIED",
-                    panKyc: "VERIFIED",
-                    aadhaarKyc: "VERIFIED",
-                    bankKyc: "VERIFIED"
-                }
-            };
+            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            return;
         }
 
         container.innerHTML = renderCardHtml(npsDetails, options);

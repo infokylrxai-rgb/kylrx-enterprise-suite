@@ -80,7 +80,7 @@
 
         const calculationBasis = gratuityDetails.calculationBasis || gratuityDetails['Gratuity Calculation Basis'] || '15/26 Formula';
         const schemePolicyName = gratuityDetails.schemePolicyName || gratuityDetails['Scheme / Policy Name'] || 'LIC Group Gratuity Cash Accumulation';
-        const nomineeStatus = gratuityDetails.nomineeStatus || gratuityDetails['Nominee Details Status'] || 'VERIFIED';
+        const nomineeStatus = gratuityDetails.nomineeStatus || gratuityDetails['Nominee Details Status'] || 'PENDING';
         const rawStatus = gratuityDetails.eligibilityStatus || gratuityDetails['Gratuity Eligibility Status'] || 'VESTED';
 
         const settlement = gratuityDetails.settlement || {};
@@ -342,33 +342,9 @@
             }
         }
 
-        // Fallback default if not in store
         if (!gratuityDetails) {
-            gratuityDetails = {
-                employeeId,
-                organizationId: orgId,
-                isGratuityApplicable: true,
-                dateOfJoining: options.joiningDate || "2020-01-15",
-                dateOfExit: options.exitDate || null,
-                continuousServiceYears: options.exitDate ? 5.8 : 6.7,
-                eligibilityStatus: "VESTED",
-                wages: {
-                    lastDrawnBasic: options.basicPay || 60000.00,
-                    lastDrawnDa: options.daPay || 0.00,
-                    eligibleSalary: (Number(options.basicPay || 60000) + Number(options.daPay || 0))
-                },
-                completedYearsForGratuity: options.exitDate ? 6 : 7,
-                accruedGratuityAmount: 242307.69,
-                calculationBasis: "15/26 Formula",
-                schemePolicyName: "LIC Group Gratuity Cash Accumulation",
-                nomineeStatus: "VERIFIED",
-                settlement: {
-                    paymentStatus: options.exitDate ? "PENDING_SETTLEMENT" : "ACCRUING",
-                    paymentDate: null,
-                    paymentReference: null,
-                    decentroDisbursementId: null
-                }
-            };
+            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            return;
         }
 
         container.innerHTML = renderCardHtml(gratuityDetails, {

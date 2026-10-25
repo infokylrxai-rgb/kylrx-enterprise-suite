@@ -319,25 +319,12 @@
             } catch (e) {}
         }
 
-        if (!ptDetails && service && Array.isArray(service.DEFAULT_PT_PROFILES)) {
-            ptDetails = service.DEFAULT_PT_PROFILES.find(p => p.employeeId === employeeId);
+        if (!ptDetails) {
+            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            return;
         }
 
-        if (!ptDetails) {
-            ptDetails = {
-                employeeId,
-                organizationId: orgId,
-                isPtApplicable: options.isPtApplicable !== false,
-                state: options.state || "Karnataka",
-                ptRegistrationNo: options.ptRegistrationNo || "PTRC1234567K",
-                ptSlab: options.ptSlab || "KA_DEFAULT",
-                monthlyDeduction: options.monthlyDeduction !== undefined ? options.monthlyDeduction : 200.00,
-                effectiveFrom: options.effectiveFrom || options.joiningDate || "2026-01-01",
-                effectiveTo: options.effectiveTo || null,
-                isActive: options.isActive !== false,
-                overrides: { isManualOverride: false, exemptReason: null }
-            };
-        } else if (options && Object.keys(options).length > 0) {
+        if (options && Object.keys(options).length > 0) {
             if (options.state) ptDetails.state = options.state;
             if (options.ptRegistrationNo) ptDetails.ptRegistrationNo = options.ptRegistrationNo;
             if (options.ptSlab) ptDetails.ptSlab = options.ptSlab;
