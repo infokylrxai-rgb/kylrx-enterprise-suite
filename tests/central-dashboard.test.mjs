@@ -1,12 +1,16 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
+import jwt from 'jsonwebtoken';
 import automationEngine from '../services/automation-engine.js';
+
+// verifyToken needs a real identity: the role comes from a signed token, not from ?role=
+const asRole = (role) => ({ headers: { Authorization: `Bearer ${jwt.sign({ id: `test_${role}`, role, orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai' }, process.env.JWT_SECRET)}` } });
 
 describe('Admin Central Dashboard (Command Center) Suite', () => {
 
     test('1. Overview API aggregates all 11 prompt widgets with live data', async () => {
-        const res = await fetch('http://localhost:3000/api/central-dashboard/overview?role=super_admin');
+        const res = await fetch('http://localhost:3000/api/central-dashboard/overview', asRole('super_admin'));
         assert.strictEqual(res.status, 200);
 
         const body = await res.json();
@@ -72,12 +76,12 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
 
     test('5. Role-based Permission Gating applies appropriate widget access', async () => {
         // Test Super Admin permissions (All 11 widgets)
-        const superRes = await fetch('http://localhost:3000/api/central-dashboard/overview?role=super_admin');
+        const superRes = await fetch('http://localhost:3000/api/central-dashboard/overview', asRole('super_admin'));
         const superBody = await superRes.json();
         assert.strictEqual(superBody.allowedWidgets.length, 11, 'Super Admin must have access to all 11 widgets');
 
         // Test Manager permissions (Restricted subset)
-        const mgrRes = await fetch('http://localhost:3000/api/central-dashboard/overview?role=manager');
+        const mgrRes = await fetch('http://localhost:3000/api/central-dashboard/overview', asRole('manager'));
         const mgrBody = await mgrRes.json();
         assert.ok(mgrBody.allowedWidgets.length < 11, 'Manager should have restricted widget permissions');
         assert.ok(!mgrBody.allowedWidgets.includes('payroll'), 'Manager should not have permission to view payroll');
