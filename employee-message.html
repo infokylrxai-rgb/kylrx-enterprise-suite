@@ -765,6 +765,11 @@
     <script type="module">
         import { auth, db, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, doc, setDoc, deleteField, limit, arrayUnion, registerListener } from "./firebase-config.js";
         import { whereMyOrg } from "./firebase-config.js";
+        import { chatCache, syncChatCacheOwner, clearChatCaches, CHAT_CACHE_PREFIX } from "./chat-cache.js";
+        // Chat cache: entries belong to the signed-in uid (see chat-cache.js)
+        const cacheGet = (name, fallback) => chatCache(auth.currentUser && auth.currentUser.uid).get(name, fallback);
+        const cacheSet = (name, value) => chatCache(auth.currentUser && auth.currentUser.uid).set(name, value);
+        const cacheRemove = (name) => chatCache(auth.currentUser && auth.currentUser.uid).remove(name);
         import { loadIdentity } from "./notification-actions.js";
 
         if (window.lucide) lucide.createIcons();
@@ -974,7 +979,8 @@
         onAuthStateChanged(auth, async (user) => {
             authStateHandled = true;
             loadCommandCenterConfig();
-            if (!user) return;
+            if (!user) { clearChatCaches(); return; }
+            syncChatCacheOwner(user.uid); // another user's cached chats are deleted
             try {
                 me = await loadIdentity();
             } catch (err) {
@@ -1376,7 +1382,7 @@
             // 1. Immediately hydrate from LocalStorage for 0ms instant UI
             const localMsgs = [];
             try {
-                const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                const fsCol = cacheGet('fs_col_messages', []);
                 fsCol.forEach(m => {
                     if (candidates.includes(m.chatId) || m.receiverId === activeChatPartnerId || m.senderId === activeChatPartnerId) {
                         const cleared = m.clearedBy || [];
@@ -1384,7 +1390,7 @@
                     }
                 });
                 for (const c of candidates) {
-                    const cList = JSON.parse(localStorage.getItem(`fs_chat_${c}`) || '[]');
+                    const cList = cacheGet(`fs_chat_${c}`, []);
                     cList.forEach(m => {
                         const cleared = m.clearedBy || [];
                         if (!cleared.includes(currentUser?.uid) && !localMsgs.some(x => x.id === m.id)) localMsgs.push(m);
@@ -1566,14 +1572,14 @@
 
                 // 3. Save into LocalStorage for instant cross-tab persistence
                 try {
-                    const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                    const fsCol = cacheGet('fs_col_messages', []);
                     fsCol.unshift(msgObj);
-                    localStorage.setItem('fs_col_messages', JSON.stringify(fsCol.slice(0, 150)));
+                    cacheSet('fs_col_messages', fsCol.slice(0, 150));
 
                     const threadKey = `fs_chat_${chatId}`;
-                    const threadList = JSON.parse(localStorage.getItem(threadKey) || '[]');
+                    const threadList = cacheGet(threadKey, []);
                     threadList.push(msgObj);
-                    localStorage.setItem(threadKey, JSON.stringify(threadList.slice(-100)));
+                    cacheSet(threadKey, threadList.slice(-100));
                 } catch (_) {}
 
                 // 4. Send to Node backend API
@@ -1610,7 +1616,7 @@
 
         // Window storage event listener for 0ms cross-tab updates
         window.addEventListener('storage', (e) => {
-            if (e.key === 'fs_col_messages' || e.key?.startsWith('fs_chat_')) {
+            if (e.key?.startsWith(CHAT_CACHE_PREFIX)) {
                 const candidates = getCandidateChatIds();
                 const candQuery = candidates.join(',');
                 fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/messages/thread/${candQuery}`)
@@ -1646,6 +1652,7 @@
 
         window.handleLogout = async () => {
             try {
+                clearChatCaches();
                 localStorage.removeItem('employee_uid');
                 localStorage.removeItem('userName');
                 localStorage.removeItem('userRole');

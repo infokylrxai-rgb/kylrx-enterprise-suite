@@ -38,18 +38,6 @@
 
     <!-- Super Admin Session Guard -->
     <script>
-        try {
-            if (localStorage.getItem('hr_logged_in') !== 'true') {
-                localStorage.setItem('hr_logged_in', 'true');
-            }
-            if (!localStorage.getItem('user_role')) {
-                localStorage.setItem('user_role', 'super_admin');
-            }
-            if (!localStorage.getItem('userRole')) {
-                localStorage.setItem('userRole', 'admin');
-            }
-        } catch(e) {}
-
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         const role = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
         const validRoles = ['admin', 'super_admin', 'hr_admin', 'superadmin', ''];
@@ -832,6 +820,7 @@
     <script type="module">
         import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion, registerListener } from "./firebase-config.js";
         import { tenantReady, whereMyOrg } from "./firebase-config.js";
+        import { chatCache, syncChatCacheOwner, clearChatCaches, CHAT_CACHE_PREFIX } from "./chat-cache.js";
         import { watchNotificationBadge } from "./notification-actions.js";
         import { setDoc, arrayRemove } from "./firebase-config.js";
 
@@ -843,7 +832,11 @@
         window.teams = teams;
         let selectedUserIds = new Set();
         window.selectedUserIds = selectedUserIds;
-        let currentUserId = window.__kylrxUid || localStorage.getItem('adminUid') || 'ADMIN_GLOBAL';
+        // Chat cache: entries belong to the signed-in uid (see chat-cache.js)
+        const cacheGet = (name, fallback) => chatCache(auth.currentUser && auth.currentUser.uid).get(name, fallback);
+        const cacheSet = (name, value) => chatCache(auth.currentUser && auth.currentUser.uid).set(name, value);
+        const cacheRemove = (name) => chatCache(auth.currentUser && auth.currentUser.uid).remove(name);
+        let currentUserId = ''; // the verified uid, set when sign-in resolves
         let currentRoleFilter = 'all';
         let currentDeptFilter = 'all';
         let pendingFiles = [];
@@ -899,8 +892,11 @@
         onAuthStateChanged(auth, user => {
             if (user) {
                 currentUserId = user.uid;
+                syncChatCacheOwner(user.uid); // another user's cached chats are deleted
                 localStorage.setItem('hr_user_id', user.uid);
                 localStorage.setItem('adminUid', user.uid);
+            } else {
+                clearChatCaches();
             }
             tenantReady.then(() => syncHeaderBadges(currentUserId));
         });
@@ -1274,7 +1270,7 @@
             // 1. Immediately hydrate from LocalStorage for instant UI responsiveness
             const localMsgs = [];
             try {
-                const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                const fsCol = cacheGet('fs_col_messages', []);
                 fsCol.forEach(m => {
                     if (candidates.includes(m.chatId) || m.receiverId === recipientId || m.recipientId === recipientId) {
                         const cleared = m.clearedBy || [];
@@ -1282,7 +1278,7 @@
                     }
                 });
                 for (const c of candidates) {
-                    const cList = JSON.parse(localStorage.getItem(`fs_chat_${c}`) || '[]');
+                    const cList = cacheGet(`fs_chat_${c}`, []);
                     cList.forEach(m => {
                         const cleared = m.clearedBy || [];
                         if (!cleared.includes(currentUserId) && !localMsgs.some(x => x.id === m.id)) localMsgs.push(m);
@@ -1330,7 +1326,7 @@
             if (!window._adminStorageBound) {
                 window._adminStorageBound = true;
                 window.addEventListener('storage', (e) => {
-                    if (e.key === 'fs_col_messages' || e.key?.startsWith('fs_chat_')) {
+                    if (e.key?.startsWith(CHAT_CACHE_PREFIX)) {
                         syncFromBackend();
                     }
                 });
@@ -1458,14 +1454,14 @@
 
                     // 2. Save into LocalStorage for instant persistence
                     try {
-                        const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                        const fsCol = cacheGet('fs_col_messages', []);
                         fsCol.unshift(msgObj);
-                        localStorage.setItem('fs_col_messages', JSON.stringify(fsCol.slice(0, 150)));
+                        cacheSet('fs_col_messages', fsCol.slice(0, 150));
 
                         const threadKey = `fs_chat_${chatId}`;
-                        const threadList = JSON.parse(localStorage.getItem(threadKey) || '[]');
+                        const threadList = cacheGet(threadKey, []);
                         threadList.push(msgObj);
-                        localStorage.setItem(threadKey, JSON.stringify(threadList.slice(-100)));
+                        cacheSet(threadKey, threadList.slice(-100));
                     } catch (_) {}
 
                     // 3. Asynchronously post to backend API
@@ -1652,9 +1648,9 @@
                 }
                 // Update LocalStorage
                 try {
-                    const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                    const fsCol = cacheGet('fs_col_messages', []);
                     const m = fsCol.find(x => x.id === msgId);
-                    if (m) { m.text = trimmed; localStorage.setItem('fs_col_messages', JSON.stringify(fsCol)); }
+                    if (m) { m.text = trimmed; cacheSet('fs_col_messages', fsCol); }
                 } catch(_) {}
                 try {
                     await updateDoc(doc(db, 'messages', msgId), { text: trimmed });
@@ -1673,12 +1669,12 @@
             }
             // Remove/hide in LocalStorage
             try {
-                const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                const fsCol = cacheGet('fs_col_messages', []);
                 const m = fsCol.find(x => x.id === msgId);
                 if (m) {
                     m.clearedBy = m.clearedBy || [];
                     m.clearedBy.push(currentUserId);
-                    localStorage.setItem('fs_col_messages', JSON.stringify(fsCol));
+                    cacheSet('fs_col_messages', fsCol);
                 }
             } catch(_) {}
             try {
@@ -1704,11 +1700,11 @@
             // Clear in localStorage
             try {
                 for (const c of candidates) {
-                    localStorage.removeItem(`fs_chat_${c}`);
+                    cacheRemove(`fs_chat_${c}`);
                 }
-                const fsCol = JSON.parse(localStorage.getItem('fs_col_messages') || '[]');
+                const fsCol = cacheGet('fs_col_messages', []);
                 const remaining = fsCol.filter(m => !candidates.includes(m.chatId) && m.receiverId !== targetId && m.recipientId !== targetId);
-                localStorage.setItem('fs_col_messages', JSON.stringify(remaining));
+                cacheSet('fs_col_messages', remaining);
             } catch(_) {}
 
             // Post to backend to clear
@@ -1759,12 +1755,13 @@
         // Logout
         document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
             e.preventDefault();
+            clearChatCaches();
             localStorage.clear();
             window.location.href = 'index.html';
         });
 
         window.addEventListener('storage', (e) => {
-            if ((e.key === 'fs_col_messages' || (e.key && e.key.startsWith('fs_chat_'))) && selectedUserIds.size === 1) {
+            if ((e.key && e.key.startsWith(CHAT_CACHE_PREFIX)) && selectedUserIds.size === 1) {
                 const selId = Array.from(selectedUserIds)[0];
                 fetchMessages(selId);
             }

@@ -598,7 +598,7 @@
         let teams = [];
         let selectedUserIds = new Set();
         // Start with localStorage fallback; will be replaced by real Auth UID below
-        let currentUserId = window.__kylrxUid || localStorage.getItem('adminUid') || 'ADMIN_GLOBAL';
+        let currentUserId = ''; // the verified uid, set when sign-in resolves
 
         function syncHeaderBadges(userId) {
             const msgBadge = document.getElementById('headerMsgBadge');
