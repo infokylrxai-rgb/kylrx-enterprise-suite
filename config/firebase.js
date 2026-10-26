@@ -60,6 +60,15 @@ if (serviceAccount) {
   
   const _firestoreStore = new Map();
 
+  // update()/set({merge}) with FieldValue.delete() removes the field (top-level fields only)
+  const { FieldValue } = require('firebase-admin/firestore');
+  const isDeleteSentinel = (v) => Boolean(v) && typeof v.isEqual === 'function' && v.isEqual(FieldValue.delete());
+  function mergeFields(existing, data) {
+    const merged = { ...existing, ...data };
+    for (const key of Object.keys(data)) if (isDeleteSentinel(data[key])) delete merged[key];
+    return merged;
+  }
+
   function getCollectionData(name) {
     if (!_firestoreStore.has(name)) {
       const colMap = new Map();
@@ -164,14 +173,14 @@ if (serviceAccount) {
           set: async function(data, opts = {}) {
             const colMap = getCollectionData(collectionName);
             const existing = colMap.get(docId) || {};
-            const merged = opts.merge ? { ...existing, ...data, id: docId } : { ...data, id: docId };
+            const merged = opts.merge ? { ...mergeFields(existing, data), id: docId } : { ...data, id: docId };
             colMap.set(docId, merged);
             return { id: docId };
           },
           update: async function(data) {
             const colMap = getCollectionData(collectionName);
             const existing = colMap.get(docId) || { id: docId };
-            colMap.set(docId, { ...existing, ...data });
+            colMap.set(docId, mergeFields(existing, data));
             return { id: docId };
           },
           delete: async function() {
