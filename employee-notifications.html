@@ -553,7 +553,7 @@
         function hydrateProfileUI(user) {
             if (!user) return;
             const name = user.displayName || user.name || user.fullName || 'Employee';
-            const role = user.designation || user.role || 'Cybersecurity Specialist';
+            const role = user.designation || user.role || 'Employee';
             const parts = name.trim().split(/\s+/).filter(Boolean);
             const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (parts[0] ? parts[0].slice(0, 2).toUpperCase() : 'JD');
 
@@ -572,32 +572,13 @@
         let isInitialLoad = true;
 
         const urlParams = new URLSearchParams(window.location.search);
-        const urlId = urlParams.get('id');
-        let currentUid = urlId || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
-
-        // 1. Immediate Synchronous Profile Hydration (Prevents "-- --" hang on load)
-        let defaultName = 'John Doe';
-        if (currentUid === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2' || urlId === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2') {
-            defaultName = 'Marry Doe';
-        } else if (localStorage.getItem('userName')) {
-            defaultName = localStorage.getItem('userName');
-        }
-        let defaultRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
-        let defaultDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'Cybersecurity';
-
-        // Auto-normalize Marry's account so it matches directory records
-        if (currentUid.startsWith('EMP_MARRY_') || (defaultName && defaultName.toLowerCase().includes('marry')) || localStorage.getItem('userEmail') === 'marry@gmail.com') {
-            currentUid = 'EMP_1789230184645';
-            defaultName = 'Marry Doe';
-            defaultRole = 'Cybersecurity Employee';
-            localStorage.setItem('employee_uid', 'EMP_1789230184645');
-            localStorage.setItem('hr_user_id', 'EMP_1789230184645');
-            localStorage.setItem('userName', 'Marry Doe');
-            localStorage.setItem('userRole', 'Cybersecurity Employee');
-        }
+        // Display hints from the last visit; the uid and organization come only from the verified session
+        let defaultName = localStorage.getItem('userName') || 'Employee';
+        const defaultRole = localStorage.getItem('userRole') || 'Employee';
+        const defaultDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'General';
 
         currentUser = {
-            uid: currentUid,
+            uid: '',
             name: defaultName,
             displayName: defaultName,
             role: defaultRole,
@@ -981,7 +962,7 @@
         onAuthStateChanged(auth, async (user) => {
             loadCommandCenterConfig();
             if (user) {
-                if (user.displayName && defaultName === 'John Doe') {
+                if (user.displayName && defaultName === 'Employee') {
                     defaultName = user.displayName;
                     currentUser.name = user.displayName;
                     currentUser.displayName = user.displayName;

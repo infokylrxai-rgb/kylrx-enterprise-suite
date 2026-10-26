@@ -151,3 +151,11 @@ describe('employee-notifications.html', () => {
     assert.match(document.getElementById('notificationsFeed').textContent, /Permission denied/);
   });
 });
+
+describe('employee-notifications.html: no demo identity', () => {
+  it('has no demo persona and never rewrites the stored uid', () => {
+    const page = fs.readFileSync(fileURLToPath(new URL('../employee-notifications.html', import.meta.url)), 'utf8');
+    for (const bad of ['Marry', 'John Doe', 'Cybersecurity', 'demo_emp', 'EMP_1789230184645', 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2']) assert.ok(!page.includes(bad), `${bad} is still in the page`);
+    assert.ok(!/localStorage\.setItem\('(employee_uid|hr_user_id)'/.test(page), 'the page writes the user id into localStorage');
+  });
+});
