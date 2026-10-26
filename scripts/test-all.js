@@ -17,7 +17,8 @@ const files = args.length
         .flatMap(dir => fs.readdirSync(dir).filter(f => /\.test\.m?js$/.test(f)).map(f => `${dir}/${f}`))
         .filter(f => !EMULATOR_ONLY.has(f));
 
-const env = { ...process.env, FIREBASE_SERVICE_ACCOUNT: '', FIREBASE_SERVICE_ACCOUNT_PATH: '', GOOGLE_APPLICATION_CREDENTIALS: '', NODE_ENV: 'test' };
+// Fixed test-only secrets when none are set (a fresh clone or CI has no .env); dotenv never overrides them
+const env = { JWT_SECRET: 'test-only-jwt-secret', REFRESH_SECRET: 'test-only-refresh-secret', ...process.env, FIREBASE_SERVICE_ACCOUNT: '', FIREBASE_SERVICE_ACCOUNT_PATH: '', GOOGLE_APPLICATION_CREDENTIALS: '', NODE_ENV: 'test' };
 // No --test-force-exit: on Windows with Node 24 it crashes libuv at exit (UV_HANDLE_CLOSING) and fails
 // files whose tests all passed. Every file exits on its own; the timeout is the guard against a hang.
 const run = spawnSync(process.execPath, ['--test', ...files], { stdio: 'inherit', env, timeout: 10 * 60 * 1000 });
