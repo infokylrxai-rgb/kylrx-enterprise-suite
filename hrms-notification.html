@@ -372,16 +372,9 @@
         import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, updateDoc, arrayUnion, where, registerListener } from "./firebase-config.js";
 
         import { loadIdentity, orgNotificationsQuery, setReadState, failureReason } from "./notification-actions.js";
-        import { isUnread as unreadFor, unreadCount, canMarkUnread } from "./notification-read-state.js";
+        import { isUnread as unreadFor, unreadCount, canMarkUnread, isHrmsNotification } from "./notification-read-state.js";
 
         let me = null; // { uid, orgId, role } from the verified token
-
-        // HRMS inbox: notifications addressed to HRMS and employee help requests
-        const isHrmsNotification = (n) => {
-            const tgt = (n.target || n.departmentId || '').toLowerCase();
-            const type = (n.type || '').toLowerCase();
-            return tgt === 'hrms' || type === 'employee_help' || type === 'employee_help_approved';
-        };
 
         function showHrmsToast(message, isError = false) {
             let el = document.getElementById('hrmsToast');

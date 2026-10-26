@@ -65,3 +65,23 @@ export function isTargetedTo(n, { uid, role } = {}) {
     if (audience.length === 0) return kind === 'admin';
     return audience.some(a => EVERYONE.includes(a) || AUDIENCES[kind].includes(a));
 }
+
+// HRMS inbox: notifications addressed to HRMS, and employee help requests
+export function isHrmsNotification(n) {
+    if (!n) return false;
+    const tgt = String(n.target || n.departmentId || '').toLowerCase();
+    const type = String(n.type || '').toLowerCase();
+    return tgt === 'hrms' || type === 'employee_help' || type === 'employee_help_approved';
+}
+
+/**
+ * Manager inbox: notices for managers, for this manager, their command center or department,
+ * general or untargeted notices, and employee help requests.
+ */
+export function isManagerNotification(n, { uid = '', centerId = '', dept = '' } = {}) {
+    if (!n) return false;
+    const tgt = String(n.target || n.departmentId || '').toLowerCase();
+    const type = String(n.type || '').toLowerCase();
+    const mine = [uid, centerId, dept].map(x => String(x || '').toLowerCase()).filter(Boolean);
+    return tgt === 'manager' || type === 'employee_help' || tgt === 'general' || !tgt || mine.includes(tgt);
+}

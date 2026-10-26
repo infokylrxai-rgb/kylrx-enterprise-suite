@@ -2560,6 +2560,8 @@
 <!-- Custom Apps & Header Badge Sync Script -->
 <script type="module">
     import { db, collection, query, where, orderBy, limit, onSnapshot, registerListener } from "./firebase-config.js";
+    import { auth, tenantReady, whereMyOrg } from "./firebase-config.js";
+    import { watchNotificationBadge } from "./notification-actions.js";
     import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
     function syncDashboardHeaderBadges(userId) {
@@ -2569,6 +2571,7 @@
         try {
             const msgQuery = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('receiverId', '==', 'hr_support'),
                 where('read', '==', false)
             );
@@ -2581,26 +2584,12 @@
             }, () => {});
         } catch(e) {}
 
-        try {
-            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
-            onSnapshot(notifQuery, (snap) => {
-                const unreadNotifs = snap.docs.filter(d => {
-                    const data = d.data();
-                    if (data.read) return false;
-                    const clearedBy = data.clearedBy || [];
-                    return !clearedBy.includes(userId);
-                });
-                if (notifBadge) {
-                    const count = unreadNotifs.length;
-                    notifBadge.textContent = count > 9 ? '9+' : count;
-                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
-                }
-            }, () => {});
-        } catch(e) {}
+        // Notifications of my organization addressed to me, my role or everyone, unread by my readBy
+        watchNotificationBadge(notifBadge).catch(() => {});
     }
 
-    const currentUid = localStorage.getItem('hr_user_id') || 'admin_demo';
-    syncDashboardHeaderBadges(currentUid);
+    // Start once the signed-in user's organization is known from the verified token
+    tenantReady.then(() => { if (auth.currentUser) syncDashboardHeaderBadges(auth.currentUser.uid); });
 
 
 

@@ -5,9 +5,9 @@
  */
 import {
     auth, db, tenantReady, getActiveOrgId,
-    collection, query, where, orderBy, limit, doc, getDoc, updateDoc, writeBatch, arrayUnion, arrayRemove
+    collection, query, where, orderBy, limit, doc, getDoc, updateDoc, writeBatch, arrayUnion, arrayRemove, onSnapshot
 } from './firebase-config.js';
-import { chunk } from './notification-read-state.js';
+import { chunk, unreadCount, isTargetedTo } from './notification-read-state.js';
 
 /** { uid, orgId, role } of the signed-in user; throws when there is no session or no organization */
 export async function loadIdentity() {
@@ -45,6 +45,23 @@ export async function markAllRead(ids, uid) {
         part.forEach(id => batch.update(doc(db, 'notifications', id), { readBy: arrayUnion(uid) }));
         await batch.commit();
     }
+}
+
+/**
+ * Keeps a header bell in sync: notifications of my organization that `belongsHere(n, identity)`
+ * accepts, that I have not cleared, and that are unread by my readBy. Rejects when nobody is signed in.
+ */
+export async function watchNotificationBadge(badge, belongsHere = isTargetedTo, max = 60) {
+    if (!badge) return null;
+    const identity = await loadIdentity();
+    return onSnapshot(orgNotificationsQuery(identity, max), snap => {
+        const mine = snap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter(n => !(n.clearedBy || []).includes(identity.uid) && belongsHere(n, identity));
+        const count = unreadCount(mine, identity.uid);
+        badge.textContent = count > 9 ? '9+' : count;
+        badge.style.display = count > 0 ? 'flex' : 'none';
+    }, () => {});
 }
 
 /** A message a person can act on, with the real reason */

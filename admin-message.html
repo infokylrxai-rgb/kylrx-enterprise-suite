@@ -831,20 +831,17 @@
     <!-- Firebase Logic & Messaging Engine -->
     <script type="module">
         import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion, registerListener } from "./firebase-config.js";
+        import { tenantReady, whereMyOrg } from "./firebase-config.js";
+        import { watchNotificationBadge } from "./notification-actions.js";
         import { setDoc, arrayRemove } from "./firebase-config.js";
 
-        const defaultUsers = [
-            { id: 'EMP_1789151730443', type: 'user', name: 'John Doe', role: 'manager', dept: 'Cybersecurity Manager', initials: 'JD', color: '#2563eb' },
-            { id: 'EMP_1789230184645', type: 'user', name: 'Marry', role: 'employee', dept: 'Cybersecurity Employee', initials: 'M', color: '#db2777' },
-            { id: 'EMP_1789286607504', type: 'user', name: 'Savitha', role: 'hrms', dept: 'General HRMS', initials: 'S', color: '#7c3aed' },
-            { id: 'w2XWBkvIgkS9xonTqVM5wPNckav2', type: 'user', name: 'jame', role: 'employee', dept: 'Cybersecurity Employee', initials: 'J', color: '#0284c7' }
-        ];
+        const defaultUsers = []; // contacts come only from this organization's directory
 
         let users = [...defaultUsers];
         window.users = users;
         let teams = [];
         window.teams = teams;
-        let selectedUserIds = new Set(['EMP_1789230184645']);
+        let selectedUserIds = new Set();
         window.selectedUserIds = selectedUserIds;
         let currentUserId = localStorage.getItem('hr_user_id') || localStorage.getItem('adminUid') || 'ADMIN_GLOBAL';
         let currentRoleFilter = 'all';
@@ -878,6 +875,7 @@
             try {
                 const msgQuery = query(
                     collection(db, 'messages'),
+                    whereMyOrg(),
                     where('receiverId', '==', 'hr_support'),
                     where('read', '==', false)
                 );
@@ -890,26 +888,12 @@
                 }, () => {});
             } catch(e) {}
 
-            try {
-                const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
-                onSnapshot(notifQuery, snap => {
-                    const unread = snap.docs.filter(d => {
-                        const data = d.data();
-                        if (data.read) return false;
-                        const cleared = data.clearedBy || [];
-                        return !cleared.includes(userId);
-                    });
-                    if (notifBadge) {
-                        const count = unread.length;
-                        notifBadge.textContent = count > 9 ? '9+' : count;
-                        notifBadge.style.display = count > 0 ? 'flex' : 'none';
-                    }
-                }, () => {});
-            } catch(e) {}
+            // Notifications of my organization addressed to me, my role or everyone, unread by my readBy
+            watchNotificationBadge(notifBadge).catch(() => {});
         }
 
-        // Setup realtime directory immediately on boot
-        setupRealtimeDirectory();
+        // The directory starts once the signed-in user's organization is known
+        tenantReady.then(() => setupRealtimeDirectory());
 
         // Firebase Auth State
         onAuthStateChanged(auth, user => {
@@ -918,8 +902,7 @@
                 localStorage.setItem('hr_user_id', user.uid);
                 localStorage.setItem('adminUid', user.uid);
             }
-            syncHeaderBadges(currentUserId);
-            setupRealtimeDirectory();
+            tenantReady.then(() => syncHeaderBadges(currentUserId));
         });
 
         function stringToColor(str) {
@@ -935,7 +918,7 @@
 
             // Departments from command centers
             try {
-                onSnapshot(collection(db, 'command_centers'), snap => {
+                onSnapshot(query(collection(db, 'command_centers'), whereMyOrg()), snap => {
                     const deptList = document.getElementById('deptListContainer');
                     if (deptList) deptList.innerHTML = '';
                     
@@ -963,15 +946,11 @@
 
             // Users
             try {
-                onSnapshot(collection(db, 'users'), snap => {
+                onSnapshot(query(collection(db, 'users'), whereMyOrg()), snap => {
                     const rawUsers = snap.docs.map(uDoc => {
                         const u = uDoc.data();
                         let uid = uDoc.id;
                         let uname = u.name || u.displayName || 'Personnel';
-                        if (uname.toLowerCase().includes('marry') || (u.email && u.email.toLowerCase().includes('marry'))) {
-                            uid = 'EMP_1789230184645';
-                            uname = 'Marry';
-                        }
                         return {
                             id: uid,
                             type: 'user',
@@ -1001,7 +980,7 @@
 
             // Teams
             try {
-                onSnapshot(collection(db, 'department_teams'), snap => {
+                onSnapshot(query(collection(db, 'department_teams'), whereMyOrg()), snap => {
                     const rawTeams = snap.docs.map(tDoc => {
                         const t = tDoc.data();
                         return {
@@ -1361,6 +1340,7 @@
             try {
                 const q = query(
                     collection(db, 'messages'),
+                    whereMyOrg(),
                     where('chatId', 'in', candidates),
                     limit(100)
                 );
@@ -1737,7 +1717,7 @@
             }
 
             try {
-                const q = query(collection(db, 'messages'), where('chatId', 'in', candidates));
+                const q = query(collection(db, 'messages'), whereMyOrg(), where('chatId', 'in', candidates));
                 const snap = await getDocs(q);
                 const updates = snap.docs.map(d => updateDoc(doc(db, 'messages', d.id), {
                     clearedBy: arrayUnion(currentUserId)

@@ -53,7 +53,8 @@ function boot({ docs = [], setReadState, updateDoc, snapshotError = null } = {})
     orgNotificationsQuery: () => ({ __query: true }),
     setReadState: async (...a) => { calls.setReadState.push(a); return setReadState ? setReadState(...a) : undefined; },
     failureReason: (e) => (e && e.code === 'permission-denied' ? 'Permission denied: test' : (e && e.message) || 'Unknown error'),
-    unreadFor: readState.isUnread, unreadCount: readState.unreadCount, canMarkUnread: readState.canMarkUnread
+    unreadFor: readState.isUnread, unreadCount: readState.unreadCount, canMarkUnread: readState.canMarkUnread,
+    isHrmsNotification: readState.isHrmsNotification
   });
   window.__stubs = stubs;
   window.lucide = { createIcons: () => {} };

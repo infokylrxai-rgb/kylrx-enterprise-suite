@@ -731,6 +731,9 @@
     </div>
     <script type="module">
         import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, getDoc, updateDoc, deleteDoc, arrayUnion, registerListener } from "./firebase-config.js";
+        import { tenantReady, whereMyOrg } from "./firebase-config.js";
+        import { watchNotificationBadge } from "./notification-actions.js";
+        import { isManagerNotification } from "./notification-read-state.js";
 
         // UI State
         let currentContactId = null;
@@ -871,6 +874,7 @@
             
             const msgQuery = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('receiverId', '==', msgTargetId),
                 where('read', '==', false)
             );
@@ -882,38 +886,10 @@
                 }
             });
 
-            // 2. Listen for notifications targeted to this manager
-            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
-            onSnapshot(notifQuery, (snap) => {
-                const currentUid = userId.toLowerCase();
-                const currentHrUserId = (localStorage.getItem('hr_user_id') || '').toLowerCase();
-                const centerId = (new URLSearchParams(window.location.search).get('id') || '').toLowerCase();
-                const userDept = (localStorage.getItem('userDept') || '').toLowerCase();
-
-                const unreadNotifs = snap.docs.filter(d => {
-                    const data = d.data();
-                    if (data.read) return false;
-                    const clearedBy = data.clearedBy || [];
-                    if (clearedBy.includes(userId)) return false;
-                    const tgt = (data.target || data.departmentId || '').toLowerCase();
-                    const type = (data.type || '').toLowerCase();
-
-                    return tgt === 'manager' || 
-                           type === 'employee_help' || 
-                           tgt === 'general' || 
-                           (!tgt) || 
-                           (currentUid && tgt === currentUid) ||
-                           (currentHrUserId && tgt === currentHrUserId) ||
-                           (centerId && tgt === centerId) ||
-                           (userDept && tgt === userDept);
-                });
-
-                if (notifBadge) {
-                    const count = unreadNotifs.length;
-                    notifBadge.textContent = count > 9 ? '9+' : count;
-                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
-                }
-            });
+            // 2. Manager notifications of my organization, unread by my readBy
+            const centerId = new URLSearchParams(window.location.search).get('id') || '';
+            const dept = localStorage.getItem('userDept') || '';
+            watchNotificationBadge(notifBadge, (n, me) => isManagerNotification(n, { uid: me.uid, centerId, dept })).catch(() => {});
         }
 
         // Resolve real Firebase Auth UID so chatId matches across dashboards
@@ -923,6 +899,7 @@
                 localStorage.setItem('hr_user_id', user.uid);
                 localStorage.setItem('adminUid', user.uid);
             }
+            await tenantReady;
             syncHeaderBadges(currentUserId);
 
             // Dynamic Sidebar Hydration
@@ -988,7 +965,7 @@
             let deptMap = {};
 
             // Real-time Departments (Command Centers)
-            onSnapshot(collection(db, 'command_centers'), (snap) => {
+            onSnapshot(query(collection(db, 'command_centers'), whereMyOrg()), (snap) => {
                 const deptList = document.getElementById('deptListContainer');
                 if (deptList) deptList.innerHTML = '';
                 
@@ -1015,7 +992,7 @@
             });
 
             // Real-time Users
-            onSnapshot(collection(db, 'users'), (snap) => {
+            onSnapshot(query(collection(db, 'users'), whereMyOrg()), (snap) => {
                 const rawUsers = snap.docs.map(doc => {
                     const u = doc.data();
                     return {
@@ -1042,7 +1019,7 @@
             });
 
             // Real-time Teams
-            onSnapshot(collection(db, 'department_teams'), (snap) => {
+            onSnapshot(query(collection(db, 'department_teams'), whereMyOrg()), (snap) => {
                 const rawTeams = snap.docs.map(doc => {
                     const t = doc.data();
                     const deptId = t.departmentId || 'Cross-Functional';
@@ -1085,6 +1062,7 @@
             // Query by chatId
             const q = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('chatId', '==', chatId),
                 limit(100)
             );
@@ -1276,7 +1254,8 @@
         });
 
         // Initialize
-        setupRealtimeDirectory();
+        // The directory starts once the signed-in user's organization is known
+        tenantReady.then(() => setupRealtimeDirectory());
 
         // AI Correction Implementation (OpenAI GPT API)
         document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
@@ -1681,7 +1660,7 @@
             document.getElementById('customClearAllConfirm').onclick = async () => {
                 modal.style.display = 'none';
                 try {
-                    const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
+                    const q = query(collection(db, 'messages'), whereMyOrg(), where('chatId', '==', chatId));
                     const snap = await getDocs(q);
                     const updatePromises = snap.docs.map(d => updateDoc(doc(db, 'messages', d.id), {
                         clearedBy: arrayUnion(currentUserId)

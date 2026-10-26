@@ -242,6 +242,13 @@ const tenantReady = new Promise((resolve) => {
   });
 });
 
+// where('orgId', '==', <the signed-in user's organization>) for reads of tenant collections. Call it after
+// tenantReady; it throws while the organization is unknown, so a query can never run unscoped.
+function whereMyOrg() {
+  if (!activeOrgId) throw new Error('No organization found for the signed-in user.');
+  return where('orgId', '==', activeOrgId);
+}
+
 function getActiveOrgId() {
   return activeOrgId;
 }
@@ -714,7 +721,7 @@ export {
   onAuthStateChanged, signOut, signInWithEmailAndPassword,
   doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, runTransaction, writeBatch, arrayUnion, arrayRemove, collection, query, where, getDocs, orderBy, limit, deleteField,
   registerListener, detachAllListeners, showReconnectingStatus, hideReconnectingStatus,
-  getActiveOrgId, tenantReady
+  getActiveOrgId, tenantReady, whereMyOrg
 };
 
 // Everything else from the Firestore SDK (Timestamp, increment, ...), so pages import Firestore

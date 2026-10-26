@@ -108,3 +108,28 @@ describe('audience', () => {
     assert.equal(isTargetedTo({ title: 'system' }, employee), false);
   });
 });
+
+describe('inbox audiences', () => {
+  const { isHrmsNotification, isManagerNotification } = api;
+
+  it('HRMS inbox: addressed to HRMS, or an employee help request', () => {
+    assert.equal(isHrmsNotification({ target: 'HRMS' }), true);
+    assert.equal(isHrmsNotification({ departmentId: 'hrms' }), true);
+    assert.equal(isHrmsNotification({ type: 'employee_help' }), true);
+    assert.equal(isHrmsNotification({ type: 'employee_help_approved' }), true);
+    assert.equal(isHrmsNotification({ target: 'manager' }), false);
+    assert.equal(isHrmsNotification(null), false);
+  });
+
+  it('manager inbox: managers, me, my center or department, general/untargeted, help requests', () => {
+    const me = { uid: 'M1', centerId: 'cc_eng', dept: 'Engineering' };
+    for (const n of [{ target: 'manager' }, { target: 'm1' }, { target: 'CC_ENG' }, { target: 'engineering' }, { target: 'general' }, {}, { type: 'employee_help', target: 'x' }]) {
+      assert.equal(isManagerNotification(n, me), true, JSON.stringify(n));
+    }
+    for (const n of [{ target: 'employee' }, { target: 'm2' }, { target: 'cc_sales' }, { target: 'hrms' }]) {
+      assert.equal(isManagerNotification(n, me), false, JSON.stringify(n));
+    }
+    // an empty context matches nobody's personal target
+    assert.equal(isManagerNotification({ target: 'm1' }, {}), false);
+  });
+});
