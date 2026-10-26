@@ -1,7 +1,10 @@
 import test from 'node:test';
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
+// Use PUPPETEER_EXECUTABLE_PATH, else the system Chrome on Windows; Chrome is never downloaded
+const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || (process.platform === 'win32' ? ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'].find((p) => fs.existsSync(p)) : undefined);
 
 const { 
     AdminAttendanceControllerClass, 
@@ -207,6 +210,7 @@ test('5. End-to-End Headless Browser Verification (Puppeteer UI & Interaction)',
     const puppeteer = require('puppeteer');
     const browser = await puppeteer.launch({
         headless: 'new',
+        executablePath: CHROME_PATH,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 

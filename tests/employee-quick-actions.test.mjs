@@ -5,6 +5,8 @@ import path from 'node:path';
 import puppeteer from 'puppeteer';
 
 const ROOT_DIR = path.resolve('.');
+// Use PUPPETEER_EXECUTABLE_PATH, else the system Chrome on Windows; Chrome is never downloaded
+const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || (process.platform === 'win32' ? ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'].find((p) => fs.existsSync(p)) : undefined);
 
 describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () => {
 
@@ -117,7 +119,7 @@ describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () =>
 
     describe('4. Headless Browser End-to-End Test (Puppeteer)', () => {
         test('Documents Quick Action opens slide-over drawer, renders tabs and triggers preview', async () => {
-            const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+            const browser = await puppeteer.launch({ headless: 'new', executablePath: CHROME_PATH, args: ['--no-sandbox'] });
             const page = await browser.newPage();
 
             const consoleErrors = [];
@@ -182,7 +184,7 @@ describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () =>
         });
 
         test('Attendance, Leave, Tasks, and Job Details Quick Actions open in-page modals without navigating away', async () => {
-            const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+            const browser = await puppeteer.launch({ headless: 'new', executablePath: CHROME_PATH, args: ['--no-sandbox'] });
             const page = await browser.newPage();
 
             try {
