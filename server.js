@@ -52,6 +52,7 @@ const onboardingAiRoutes = require("./routes/onboarding-ai");
 const hrConsoleRoutes = require("./routes/hr-console");
 const analysisRoutes = require("./routes/analysis");
 const operationsRoutes = require("./routes/operations");
+const workforceMonitorRoutes = require("./routes/workforce-monitor");
 
 const automationEngine = require("./services/automation-engine");
 
@@ -317,6 +318,7 @@ app.use("/api/onboarding-ai", onboardingAiRoutes);
 app.use("/api/hr-console", hrConsoleRoutes);
 app.use("/api/analysis", analysisRoutes);
 app.use("/api/operations", operationsRoutes);
+app.use("/api/workforce-monitor", workforceMonitorRoutes);
 
 // ─────────────────────────────────────────────
 // Dynamic ESM Route Registration (Reconciliation, ESIC, Gratuity, NPS, Compliance, PF)

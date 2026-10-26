@@ -150,7 +150,8 @@ if (serviceAccount) {
         const docs = items.map(d => ({
           id: d.id,
           exists: true,
-          data: () => d
+          data: () => d,
+          get: (field) => d[field]
         }));
         return {
           empty: docs.length === 0,
@@ -167,7 +168,8 @@ if (serviceAccount) {
             return {
               id: docId,
               exists: Boolean(data),
-              data: () => data || null
+              data: () => data || null,
+              get: (field) => (data ? data[field] : undefined)
             };
           },
           set: async function(data, opts = {}) {

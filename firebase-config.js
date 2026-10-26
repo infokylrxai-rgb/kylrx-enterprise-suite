@@ -217,8 +217,9 @@ const GLOBAL_COLLECTIONS = new Set(['organizations', 'system_config']);
 // (scripts/migrate-tenant-orgid.js). Until then existing documents have no orgId, so
 // filtering would hide them; new documents are stamped with orgId either way.
 const TENANT_READ_SCOPING = false;
+// The active organization comes only from the verified token claims (or the server-written profile),
+// resolved by tenantReady; it is never read from localStorage.
 let activeOrgId = null;
-try { activeOrgId = localStorage.getItem('orgId') || null; } catch (_) {}
 
 const tenantReady = new Promise((resolve) => {
   onAuthStateChanged(auth, async (user) => {

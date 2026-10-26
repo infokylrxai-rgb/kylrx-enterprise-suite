@@ -711,7 +711,6 @@
         import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
         import { doc, setDoc, collection, serverTimestamp, arrayUnion, arrayRemove } from "./firebase-config.js";
         import { signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getAllAttendanceLogs } from "./attendance-service.js";
 
         lucide.createIcons();
         const configSidebar = document.getElementById('configSidebar');
@@ -872,60 +871,55 @@
         // regardless of attendance status.
         // Also fires under-hours manager alerts for < 4h shifts.
         // ============================================================
-        const _state = { users: [], activity: {}, attendance: {}, adminSessions: [] };
+        const _state = { users: [], activity: {}, attendance: {}, adminSessions: [], error: null };
         const _alertedUsers = new Set(); // prevent duplicate alerts per session
 
-        function initTelemetry() {
+        // The monitor reads one organization-scoped API instead of listening to whole Firestore
+        // collections: the server takes the organization from the verified token, so another
+        // organization's employees can never reach this page. (firebase-config.js adds the token.)
+        const TELEMETRY_POLL_MS = 10000;
+
+        async function loadTelemetry() {
             const today = new Date().toISOString().split('T')[0];
+            try {
+                const res = await fetch('/api/workforce-monitor');
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) throw new Error(data.message || data.error || `HTTP ${res.status}`);
 
-            // Listener 1 – All users (employees + managers, excluding admins)
-            onSnapshot(collection(db, 'users'), snap => {
-                _state.users = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .filter(u => (u.role || '').toLowerCase() !== 'admin');
-                renderGrid();
-            });
+                _state.users = data.users;
 
-            // Listener 2 – Live activity status
-            onSnapshot(collection(db, 'activityStatus'), snap => {
                 _state.activity = {};
-                snap.docs.forEach(d => { _state.activity[d.id] = d.data(); });
-                renderGrid();
-                if (typeof checkFocusScores === 'function') checkFocusScores();
-            });
+                data.activity.forEach(a => { _state.activity[a.id] = a; });
 
-            // Listener 3 – Today's attendance records
-            onSnapshot(collection(db, 'attendance'), snap => {
                 _state.attendance = {};
-                snap.docs.forEach(d => {
-                    if (d.id.includes(today)) {
-                        const empId = d.id.split('_')[0];
-                        _state.attendance[empId] = { id: d.id, ...d.data() };
-                    }
+                data.attendance.forEach(a => {
+                    if (String(a.id).includes(today)) _state.attendance[a.userId || a.id.split('_')[0]] = a;
                 });
-                renderGrid();
-                checkUnderHours();  // ← trigger alert check on every attendance update
-                if (typeof checkFocusScores === 'function') checkFocusScores();
-            });
 
-            // Periodically refresh the grid to update live shift durations (since new Date() needs to be recalculated)
-            setInterval(renderGrid, 60000);
-
-            // Listener 4 – Today's admin / manager sessions
-            onSnapshot(collection(db, 'admin_sessions'), snap => {
-                const sessions = snap.docs
-                    .filter(d => d.id.includes(today))
-                    .map(d => ({ id: d.id, ...d.data() }));
-                
                 const deduped = {};
-                sessions.forEach(s => {
-                    const key = s.name || s.id;
-                    if (!deduped[key] || s.status === 'Active') {
-                        deduped[key] = s;
-                    }
+                data.adminSessions.forEach(sess => {
+                    const key = sess.name || sess.id;
+                    if (!deduped[key] || sess.status === 'Active') deduped[key] = sess;
                 });
                 _state.adminSessions = Object.values(deduped);
+
+                _state.error = null;
                 renderGrid();
-            });
+                checkUnderHours();  // alert check on every attendance refresh
+                if (typeof checkFocusScores === 'function') checkFocusScores();
+            } catch (err) {
+                console.error('[WORKFORCE MONITOR] Could not load telemetry:', err);
+                _state.error = err.message;
+                const grid = document.getElementById('telemetryGrid');
+                if (grid) grid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; padding: 2rem; color: var(--danger);">Could not load the workforce monitor: ${String(err.message).replace(/[<>&]/g, '')}</div>`;
+            }
+        }
+
+        function initTelemetry() {
+            loadTelemetry();
+            setInterval(loadTelemetry, TELEMETRY_POLL_MS);
+            // Refresh the grid so live shift durations (computed from the clock) keep moving
+            setInterval(renderGrid, 60000);
         }
 
         let currentTeleView = 'grid';
@@ -1676,8 +1670,10 @@
             setTimeout(() => modal.style.opacity = '1', 10);
             
             try {
-                const logs = await getAllAttendanceLogs();
-                const userLogs = logs.filter(l => l.userId === userId || l.employeeId === userId);
+                const logRes = await fetch(`/api/workforce-monitor/attendance/${encodeURIComponent(userId)}`);
+                const logData = await logRes.json().catch(() => ({}));
+                if (!logRes.ok || !logData.success) throw new Error(logData.error || logData.message || `HTTP ${logRes.status}`);
+                const userLogs = logData.logs;
                 
                 const dailyHours = [0, 0, 0, 0, 0, 0, 0];
                 
