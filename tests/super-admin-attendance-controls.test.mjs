@@ -63,27 +63,20 @@ test('2. Dynamic Recalculation Engine: Punctuality, Working Hours & Overtime', (
     assert.equal(absent.totalHoursWorked, 0);
 });
 
-test('3. Firestore Schema Conformance: Collection attendance_records/{attendanceId}', async () => {
+test('3. Manual attendance is sent to the backend API with the computed metrics', async () => {
     const ctrl = new AdminAttendanceControllerClass();
-    
-    // Mock Firestore backend
-    const writtenDocs = {};
 
-    const mockDb = {};
-    const mockFbUtils = {
-        doc: (db, coll, id) => {
-            return { coll, id };
-        },
-        setDoc: async (ref, data) => {
-            writtenDocs[ref.coll] = { id: ref.id, data };
-            return true;
-        },
-        serverTimestamp: () => 'SERVER_TIMESTAMP'
-    };
-
+    // The controller no longer writes to Firestore itself: it calls the backend attendance API,
+    // which owns the attendance_records document (id, recordedBy and timestamps).
+    let sent = null;
     ctrl.init({
-        db: mockDb,
-        firestoreUtils: mockFbUtils,
+        api: {
+            localDateStr: (d) => d.toISOString().split('T')[0],
+            recordAttendance: async (payload) => {
+                sent = payload;
+                return { success: true, data: { employeeName: 'Rahul Sharma', ...payload } };
+            }
+        },
         auth: { currentUser: { uid: 'super_admin_test_uid' } }
     });
 
@@ -101,32 +94,30 @@ test('3. Firestore Schema Conformance: Collection attendance_records/{attendance
 
     const res = await ctrl.recordAttendance(formInput);
     assert.equal(res.success, true);
-    assert.ok(writtenDocs['attendance_records'], 'Write to attendance_records collection must occur');
-    
-    const recRecord = writtenDocs['attendance_records'];
-    assert.equal(recRecord.id, 'ATT-20260930-EMP0012');
-    const savedData = recRecord.data;
+    assert.ok(sent, 'The backend API must be called');
 
-    // Verify exact schema fields required by PRD Section 16 & Prompt
-    assert.equal(savedData.employeeId, "EMP0012");
-    assert.equal(savedData.employeeName, "Rahul Sharma");
-    assert.equal(savedData.date, "2026-09-30");
-    assert.equal(savedData.punchIn, "09:12:00");
-    assert.equal(savedData.punchOut, "18:30:00");
-    assert.equal(savedData.shiftCode, "SH_GEN_01");
-    assert.equal(savedData.status, "PRESENT");
-    assert.equal(typeof savedData.isLate, "boolean");
-    assert.equal(typeof savedData.lateMinutes, "number");
-    assert.equal(typeof savedData.totalHoursWorked, "number");
-    assert.equal(savedData.isManualEntry, true);
-    assert.equal(savedData.recordedBy, "super_admin_test_uid");
-    assert.equal(savedData.adminRemark, "Manual swipe regularization per manager approval");
-    assert.ok(savedData.createdAt);
-    assert.ok(savedData.updatedAt);
+    assert.equal(sent.employeeId, "EMP0012");
+    assert.equal(sent.date, "2026-09-30");
+    assert.equal(sent.punchIn, "09:12:00");
+    assert.equal(sent.punchOut, "18:30:00");
+    assert.equal(sent.shiftCode, "SH_GEN_01");
+    assert.equal(sent.status, "PRESENT");
+    assert.equal(sent.adminRemark, "Manual swipe regularization per manager approval");
+    assert.equal(typeof sent.lateMinutes, "number");
+    assert.equal(typeof sent.totalHoursWorked, "number");
+});
+
+test('3b. Manual attendance without an employee and date is rejected before any API call', async () => {
+    const ctrl = new AdminAttendanceControllerClass();
+    let called = false;
+    ctrl.init({ api: { localDateStr: (d) => d.toISOString().split('T')[0], recordAttendance: async () => { called = true; return { success: true, data: {} }; } } });
+    assert.equal(await ctrl.recordAttendance({ date: "2026-09-30" }), null);
+    assert.equal(called, false);
 });
 
 test('4. Real-Time Team Attendance Filtering Engine (Tabs, Presets, Departments)', () => {
     const ctrl = new AdminAttendanceControllerClass();
+    ctrl.filters.presetPeriod = 'all'; // fixture records are dated 2026-09-30; the default 'today' only matched on that day
     ctrl.records = [
         {
             attendanceId: "ATT-1",
