@@ -7,6 +7,11 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Isolated: blank Firebase credentials so nothing here can reach a real project
+process.env.FIREBASE_SERVICE_ACCOUNT = '';
+process.env.FIREBASE_SERVICE_ACCOUNT_PATH = '';
+process.env.GOOGLE_APPLICATION_CREDENTIALS = '';
+
 // Import services via CommonJS createRequire
 import { createRequire } from 'module';
 import jwt from 'jsonwebtoken';
@@ -16,7 +21,7 @@ const require = createRequire(import.meta.url);
 
 const workflowBuilderService = require('../services/workflow-builder-service.js');
 
-const API_BASE = 'http://localhost:3000/api/workflow-builder';
+let API_BASE; // set once the test server is listening on a free port
 
 test('No-Code Visual Workflow Builder - Service & Schema Suite', async (t) => {
     
@@ -261,28 +266,20 @@ test('No-Code Visual Workflow Builder - Simulation & Test Run Engine', async (t)
 test('No-Code Visual Workflow Builder - REST API Endpoints', async (t) => {
     let server;
     t.before(async () => {
-        try {
-            const check = await fetch(`${API_BASE}/node-types`).catch(() => null);
-            if (!check || !check.ok) {
-                const express = require('express');
-                const app = express();
-                app.use(express.json());
-                app.use('/api/workflow-builder', require('../routes/workflow-builder.js'));
-                await new Promise((resolve) => {
-                    server = app.listen(3000, () => resolve());
-                });
-                if (server.unref) server.unref();
-            }
-        } catch (e) {
-            // port might be bound, ignore
-        }
+        // Always our own server on a free port (never whatever else may be listening on 3000)
+        const express = require('express');
+        const app = express();
+        app.use(express.json());
+        app.use('/api/workflow-builder', require('../routes/workflow-builder.js'));
+        await new Promise((resolve) => {
+            server = app.listen(0, '127.0.0.1', resolve);
+        });
+        API_BASE = `http://127.0.0.1:${server.address().port}/api/workflow-builder`;
     });
 
-    t.after(() => {
-        if (server) {
-            try { server.closeAllConnections?.(); } catch(e){}
-            try { server.close(); } catch(e){}
-        }
+    t.after(async () => {
+        server?.closeAllConnections?.();
+        if (server) await new Promise((resolve) => server.close(resolve));
     });
 
     await t.test('GET /api/workflow-builder/node-types returns 200 and all 11 types', async () => {
