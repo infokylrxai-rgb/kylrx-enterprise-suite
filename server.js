@@ -8,6 +8,8 @@ const xss = require("xss");
 const hpp = require("hpp");
 const morgan = require("morgan");
 require('dotenv').config();
+// Production refuses to start without its required settings (names are listed, values never)
+if (process.env.NODE_ENV === 'production') require('./scripts/check-env').assertEnv('production');
 
 // Utils & Middleware
 const logger = require("./utils/logger");

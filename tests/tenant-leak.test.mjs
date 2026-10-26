@@ -23,8 +23,8 @@ const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048, private
 
 // Production-like environment, set before any app module loads
 process.env.NODE_ENV = 'production';
-process.env.JWT_SECRET = 'leak-test-jwt-secret';
-process.env.REFRESH_SECRET = 'leak-test-refresh-secret';
+process.env.JWT_SECRET = 'leak-test-jwt-secret-at-least-32-characters';
+process.env.REFRESH_SECRET = 'leak-test-refresh-secret-at-least-32-chars';
 // LEAK_TEST_SCOPING=off shows what leaks today, before the orgId migration
 process.env.TENANT_READ_SCOPING = process.env.LEAK_TEST_SCOPING || 'on';
 process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify({
@@ -34,6 +34,14 @@ process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify({
 process.env.GCLOUD_PROJECT = 'demo-leak';
 process.env.FIREBASE_PROJECT_ID = 'demo-leak';
 process.env.FIREBASE_STORAGE_BUCKET = 'demo-leak.appspot.com';
+// The rest of what production requires (scripts/check-env.js): test-only values
+process.env.KYLRX_EXPORT_SIGNING_KEY = 'leak-test-export-signing-key-32-characters';
+process.env.DECENTRO_BASE_URL = 'https://decentro.invalid';
+process.env.DECENTRO_CLIENT_ID = 'leak-test';
+process.env.DECENTRO_CLIENT_SECRET = 'leak-test';
+process.env.DECENTRO_MODULE_SECRET = 'leak-test';
+process.env.DECENTRO_PROVIDER_SECRET = 'leak-test';
+process.env.APP_URL = 'https://app.invalid';
 
 const A = 'org_leak_a';
 const B = 'org_leak_b';
