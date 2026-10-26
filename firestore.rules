@@ -514,7 +514,8 @@ service cloud.firestore {
     // Notifications: same organization only.
     // A signed-in member may only ADD or REMOVE THEIR OWN uid in readBy / clearedBy (the per-user read
     // and dismiss state). HR and managers may also resolve requests (status, resolvedBy/At) in their
-    // organization, and still only change those two arrays for themselves. Every other change, and
+    // organization: resolvedBy, when set, must be their own uid, and they still only change those two
+    // arrays for themselves. Every other change, and
     // deleting, is for super admins (and the Admin SDK on the server, which bypasses these rules).
     function ownUidOnly(field) {
       return request.resource.data.get(field, []).toSet().difference(resource.data.get(field, []).toSet()).hasOnly([request.auth.uid])
@@ -529,7 +530,7 @@ service cloud.firestore {
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy', 'clearedBy'])
             && ownUidOnly('readBy') && ownUidOnly('clearedBy'))
         || (isStaff()
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'read', 'resolvedBy', 'resolvedAt', 'readBy', 'clearedBy'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'read', 'resolvedBy', 'resolvedAt', 'readBy', 'clearedBy']) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['resolvedBy']) || request.resource.data.resolvedBy == request.auth.uid)
             && ownUidOnly('readBy') && ownUidOnly('clearedBy'))
       );
       allow delete: if canAccessAdmin() && tenantRead();

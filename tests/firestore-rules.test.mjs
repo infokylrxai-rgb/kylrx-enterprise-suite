@@ -317,6 +317,21 @@ describe('notifications', () => {
     await no(updateDoc(n(ctx.emp()), { status: 'resolved' }));
   });
 
+  it('when staff set resolvedBy it must be their own uid', async () => {
+    await ok(updateDoc(n(ctx.hr()), { status: 'resolved', resolvedBy: 'hr_a', resolvedAt: '2026-10-26T10:00:00Z' }));
+    await ok(updateDoc(n(ctx.mgr(), 'n_shared'), { status: 'approved', resolvedBy: 'mgr_a' }));
+    await no(updateDoc(n(ctx.hr()), { status: 'resolved', resolvedBy: 'mgr_a' }));      // someone else
+    await no(updateDoc(n(ctx.mgr()), { resolvedBy: 'sa_a' }));                          // even without a status change
+    await no(updateDoc(n(ctx.hr()), { status: 'resolved', resolvedBy: null }));          // clearing it to hide who resolved
+    await ok(updateDoc(n(ctx.hr()), { status: 'resolved', resolvedAt: '2026-10-26T10:00:00Z' })); // not setting it is fine
+  });
+
+  it('staff resolving still cannot touch anyone else\'s readBy or clearedBy', async () => {
+    await no(updateDoc(n(ctx.hr(), 'n_shared'), { status: 'resolved', resolvedBy: 'hr_a', readBy: arrayRemove('mgr_a') }));
+    await no(updateDoc(n(ctx.mgr()), { status: 'approved', clearedBy: arrayUnion('emp_a') }));
+    await ok(updateDoc(n(ctx.mgr()), { status: 'approved', resolvedBy: 'mgr_a', readBy: arrayUnion('mgr_a'), clearedBy: arrayUnion('mgr_a') }));
+  });
+
   it('a member can create a notification only in their own organization', async () => {
     await ok(setDoc(n(ctx.emp(), 'new_a'), { orgId: 'orgA', title: 'Leave request', target: 'manager', readBy: [] }));
     await no(setDoc(n(ctx.emp(), 'new_b'), { orgId: 'orgB', title: 'x', target: 'all' }));
