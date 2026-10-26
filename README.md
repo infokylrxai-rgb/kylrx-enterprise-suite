@@ -83,6 +83,8 @@ email `superadmin@kylrx.ai`, the organization `org_kylrx` and a password that is
 
 ## Running locally
 
+**Local development: create `firebase-web-config.local.js`.** Next to `firebase-web-config.js`, create `firebase-web-config.local.js` exporting `firebaseWebConfigLocal` (same six keys: apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId). When the file exists the browser uses it instead of the `CHANGE_ME` placeholders; without it the placeholders stay and `firebase-config.js` logs an error. The file is in `.gitignore`; never commit it. The server never reads it: server code uses environment variables only.
+
 - `npm start` runs `node server.js` against the project in `.env`. Without a service account (and outside production) the server uses an
   in-memory store: nothing is persisted.
 - `npm run start:local` runs the app against a local Firestore emulator seeded from your project (needs Java and `FIREBASE_PROJECT_ID`).
