@@ -77,7 +77,7 @@ email `superadmin@kylrx.ai`, the organization `org_kylrx` and a password that is
   `orgs/{orgId}/...` path. Server routes use `req.user.orgId` (from the verified token) and `requireOrg`.
 - Documents created before multi-tenancy have no `orgId`. They belong to `LEGACY_ORG_ID` (default `org_kylrx_ai`, override `DEV_DEFAULT_ORG_ID`)
   and are hidden from other organizations. `scripts/migrate-tenant-orgid.js` tags every untagged document with ONE default organization;
-  it is a dry run unless `--apply`. A fresh project does not need it.
+  it needs an explicit `--org-id <id>`, is a dry run unless `--write`, and refuses a project that does not look like a test or emulator project unless `--yes-really`. It does not work out whose a document is. A fresh project does not need it.
 - Storage layout (new files): `orgs/{orgId}/payroll/payslips/{employeeId}/{period}.pdf`, `orgs/{orgId}/recruitment/resumes/{id}.{ext}`,
   `orgs/{orgId}/employees/{employeeId}/documents/{file}`, `orgs/{orgId}/branding/{file}`.
 
