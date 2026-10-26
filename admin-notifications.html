@@ -748,18 +748,29 @@
     <script type="module">
         import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, doc, updateDoc, arrayUnion, addDoc, serverTimestamp, registerListener } from "./firebase-config.js";
         import { setDoc, arrayRemove } from "./firebase-config.js";
+        import { loadIdentity, orgNotificationsQuery, setReadState, failureReason } from "./notification-actions.js";
+        import { isUnread as unreadFor, unreadCount, canMarkUnread, withReadState, isTargetedTo } from "./notification-read-state.js";
 
         let currentFilter = 'all';
         let allNotifications = [];
-        let currentUserId = localStorage.getItem('hr_user_id') || 'admin_global';
+        let me = null; // { uid, orgId, role } from the verified token; set once the user is signed in
+        let streamsStarted = false;
 
-        // Initialize user session listener
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                currentUserId = user.uid;
-                localStorage.setItem('hr_user_id', user.uid);
+        onAuthStateChanged(auth, async user => {
+            if (!user) {
+                showLoadError('You are signed out. Please sign in again.');
+                return;
             }
-            syncHeaderBadges(currentUserId);
+            try {
+                me = await loadIdentity();
+                if (!streamsStarted) {
+                    streamsStarted = true;
+                    syncHeaderBadges(me.uid);
+                    startNotificationList();
+                }
+            } catch (err) {
+                showLoadError(err.message);
+            }
         });
 
         // Toast Helper
@@ -795,16 +806,12 @@
             } catch(e) {}
 
             try {
-                const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(50));
-                onSnapshot(notifQuery, snap => {
-                    const unread = snap.docs.filter(d => {
-                        const data = d.data();
-                        if (data.read) return false;
-                        const cleared = data.clearedBy || [];
-                        return !cleared.includes(userId);
-                    });
+                onSnapshot(orgNotificationsQuery(me, 50), snap => {
+                    const mine = snap.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .filter(n => !(n.clearedBy || []).includes(userId) && isTargetedTo(n, me));
+                    const count = unreadCount(mine, userId);
                     if (notifBadge) {
-                        const count = unread.length;
                         notifBadge.textContent = count > 9 ? '9+' : count;
                         notifBadge.style.display = count > 0 ? 'flex' : 'none';
                     }
@@ -833,78 +840,47 @@
             return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
         }
 
-        // Real-time Notification Listener
         const notifContainer = document.getElementById('notifList');
 
-        try {
-            const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
-            onSnapshot(q, snap => {
-                const rawDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                
-                // Filter out notifications dismissed by the current admin
-                allNotifications = rawDocs.filter(d => {
-                    const cleared = d.clearedBy || [];
-                    return !cleared.includes(currentUserId);
-                });
+        function showLoadError(message) {
+            console.warn('[NOTIFS] Could not load notifications:', message);
+            allNotifications = [];
+            if (notifContainer) {
+                const safe = String(message).replace(/[<>&]/g, '');
+                notifContainer.innerHTML = `<div style="padding: 3rem 2rem; text-align: center; color: #991b1b;"><h3 style="font-weight: 700; font-size: 1.05rem; margin-bottom: 6px;">Could not load notifications</h3><p style="font-size: 0.85rem;">${safe}</p></div>`;
+            }
+            if (window.showToast) window.showToast('Could not load notifications: ' + message, true);
+        }
 
-                updateTabCounts();
-                renderNotifications();
-            }, (error) => {
-                console.warn('[NOTIFS] Firestore stream notice:', error.message);
-                // Fallback default sample data if firestore query index isn't ready
-                if (allNotifications.length === 0) {
-                    allNotifications = [
-                        {
-                            id: 'sys_demo_1',
-                            title: 'Core Engine Operational',
-                            message: 'The Kylrx AI enterprise infrastructure is running with 99.98% uptime.',
-                            priority: 'normal',
-                            target: 'all',
-                            category: 'system',
-                            timestamp: new Date()
-                        },
-                        {
-                            id: 'sys_demo_2',
-                            title: 'Manager Approval Queue Cleared',
-                            message: 'All pending personnel alignment requests have been reconciled.',
-                            priority: 'normal',
-                            target: 'manager',
-                            category: 'operations',
-                            timestamp: new Date(Date.now() - 3600000 * 3)
-                        }
-                    ];
+        // Notifications of my organization that are addressed to me, my role or everyone, and that I have not dismissed.
+        // Older notifications without an orgId belong to no organization and are shown to nobody.
+        function startNotificationList() {
+            try {
+                onSnapshot(orgNotificationsQuery(me, 60), snap => {
+                    allNotifications = snap.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .filter(n => !(n.clearedBy || []).includes(me.uid) && isTargetedTo(n, me));
                     updateTabCounts();
                     renderNotifications();
-                }
-            });
-        } catch(e) {
-            console.error('[NOTIFS] Listener setup error:', e);
+                }, error => showLoadError(error.code === 'permission-denied'
+                    ? 'Permission denied while reading notifications for your organization.'
+                    : error.message));
+            } catch (e) {
+                showLoadError(e.message);
+            }
         }
 
         function updateTabCounts() {
-            const countAll = document.getElementById('countAll');
-            const countCritical = document.getElementById('countCritical');
-            const countManagers = document.getElementById('countManagers');
-            const countEmployees = document.getElementById('countEmployees');
-            const countSystem = document.getElementById('countSystem');
+            const uid = me ? me.uid : null;
+            const unread = allNotifications.filter(n => unreadFor(n, uid));
+            const setCount = (id, list) => { const el = document.getElementById(id); if (el) el.textContent = list.length; };
+            const tgt = (n) => (n.target || '').toLowerCase();
 
-            if (countAll) countAll.textContent = allNotifications.length;
-            if (countCritical) {
-                const crit = allNotifications.filter(n => (n.priority || '').toLowerCase() === 'critical' || (n.priority || '').toLowerCase() === 'high');
-                countCritical.textContent = crit.length;
-            }
-            if (countManagers) {
-                const mgrs = allNotifications.filter(n => (n.target || '').toLowerCase().includes('manager'));
-                countManagers.textContent = mgrs.length;
-            }
-            if (countEmployees) {
-                const emps = allNotifications.filter(n => (n.target || '').toLowerCase().includes('employee') || (n.target || '').toLowerCase() === 'all');
-                countEmployees.textContent = emps.length;
-            }
-            if (countSystem) {
-                const sys = allNotifications.filter(n => (n.category || '').toLowerCase() === 'system' || (n.target || '').toLowerCase() === 'admin_hr');
-                countSystem.textContent = sys.length;
-            }
+            setCount('countAll', unread);
+            setCount('countCritical', unread.filter(n => ['critical', 'high'].includes((n.priority || '').toLowerCase())));
+            setCount('countManagers', unread.filter(n => tgt(n).includes('manager')));
+            setCount('countEmployees', unread.filter(n => tgt(n).includes('employee') || tgt(n) === 'all'));
+            setCount('countSystem', unread.filter(n => (n.category || '').toLowerCase() === 'system' || tgt(n) === 'admin_hr'));
         }
 
         function renderNotifications() {
@@ -961,7 +937,8 @@
             notifContainer.innerHTML = filtered.map(item => {
                 const priority = (item.priority || 'normal').toLowerCase();
                 const target = item.target || 'Enterprise';
-                const isUnread = !item.read;
+                const isUnread = unreadFor(item, me ? me.uid : null);
+                const legacyLocked = !isUnread && !canMarkUnread(item);
 
                 let icon = 'bell';
                 let iconColor = '#2563eb';
@@ -1003,7 +980,7 @@
                                     <span class="tag-pill tag-target">Target: ${target}</span>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <button onclick="window.toggleReadStatus('${item.id}', ${!isUnread})" title="${isUnread ? 'Mark as read' : 'Mark as unread'}" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='var(--text-muted)'">
+                                    <button onclick="window.toggleReadStatus('${item.id}', ${isUnread})" title="${isUnread ? 'Mark as read' : (legacyLocked ? 'Read (older notification, cannot be marked unread)' : 'Mark as unread')}" ${legacyLocked ? 'disabled' : ''} style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='var(--text-muted)'">
                                         <i data-lucide="${isUnread ? 'check' : 'rotate-ccw'}" style="width: 16px; height: 16px;"></i>
                                     </button>
                                     <button onclick="window.dismissNotification('${item.id}')" title="Dismiss notification" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
@@ -1038,36 +1015,39 @@
 
         // Single Dismiss Action
         window.dismissNotification = async (id) => {
+            if (!me) { window.showToast('Sign in again to change notifications.', true); return; }
             try {
-                if (id.startsWith('sys_demo')) {
-                    allNotifications = allNotifications.filter(n => n.id !== id);
-                    updateTabCounts();
-                    renderNotifications();
-                    window.showToast("Notification dismissed");
-                    return;
-                }
                 await updateDoc(doc(db, 'notifications', id), {
-                    clearedBy: arrayUnion(currentUserId)
+                    clearedBy: arrayUnion(me.uid)
                 });
                 window.showToast("Notification dismissed");
             } catch(e) {
                 console.error("Dismiss failed:", e);
-                window.showToast("Failed to dismiss notification", true);
+                window.showToast("Could not dismiss the notification: " + failureReason(e), true);
             }
         };
 
-        // Toggle Read Status
+        // Toggle Read Status: adds or removes my uid in readBy; shows the change at once and undoes it on failure
         window.toggleReadStatus = async (id, setAsRead) => {
+            const previous = allNotifications.find(n => n.id === id);
+            if (!previous || !me) {
+                window.showToast('Sign in again to change notifications.', true);
+                return;
+            }
+            if (!setAsRead && !canMarkUnread(previous)) {
+                window.showToast('This older notification was marked read for everyone and cannot be marked unread.', true);
+                return;
+            }
+
+            const show = (list) => { allNotifications = list; updateTabCounts(); renderNotifications(); };
+            show(allNotifications.map(n => n.id === id ? withReadState(n, me.uid, setAsRead) : n));
             try {
-                if (id.startsWith('sys_demo')) {
-                    const item = allNotifications.find(n => n.id === id);
-                    if (item) item.read = setAsRead;
-                    renderNotifications();
-                    return;
-                }
-                await updateDoc(doc(db, 'notifications', id), { read: setAsRead });
-            } catch(e) {
-                console.error("Toggle read failed:", e);
+                await setReadState(id, me.uid, setAsRead);
+                window.showToast(setAsRead ? 'Marked as read' : 'Marked as unread');
+            } catch (e) {
+                console.error('Toggle read failed:', e);
+                show(allNotifications.map(n => n.id === id ? previous : n));
+                window.showToast('Could not update the notification: ' + failureReason(e), true);
             }
         };
 
@@ -1077,9 +1057,9 @@
             if (!confirm("Are you sure you want to dismiss all visible notifications?")) return;
 
             try {
-                const docIds = allNotifications.filter(n => !n.id.startsWith('sys_demo')).map(n => n.id);
+                const docIds = allNotifications.map(n => n.id);
                 const promises = docIds.map(id => updateDoc(doc(db, 'notifications', id), {
-                    clearedBy: arrayUnion(currentUserId)
+                    clearedBy: arrayUnion(me.uid)
                 }));
                 await Promise.all(promises);
                 allNotifications = [];
@@ -1117,6 +1097,7 @@
             const priority = prioritySelect ? prioritySelect.value : 'normal';
             const category = categorySelect ? categorySelect.value : 'system';
 
+            if (!me) { window.showToast('Sign in again to publish a broadcast.', true); return; }
             if (!title || !message) {
                 alert("Please provide both an alert title and message content.");
                 return;
@@ -1135,7 +1116,9 @@
                     priority,
                     category,
                     createdBy: 'Super Admin',
-                    read: false,
+                    createdByUid: me.uid,
+                    orgId: me.orgId,
+                    readBy: [],
                     timestamp: serverTimestamp()
                 });
 
