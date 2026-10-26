@@ -63,9 +63,20 @@ if (serviceAccount) {
   // update()/set({merge}) with FieldValue.delete() removes the field (top-level fields only)
   const { FieldValue } = require('firebase-admin/firestore');
   const isDeleteSentinel = (v) => Boolean(v) && typeof v.isEqual === 'function' && v.isEqual(FieldValue.delete());
+  // arrayUnion / arrayRemove apply to the stored array, as in Firestore
+  const arrayTransform = (v) => v && Array.isArray(v.elements) && /^Array(Union|Remove)Transform$/.test(v.constructor && v.constructor.name) ? v.constructor.name : null;
   function mergeFields(existing, data) {
     const merged = { ...existing, ...data };
-    for (const key of Object.keys(data)) if (isDeleteSentinel(data[key])) delete merged[key];
+    for (const key of Object.keys(data)) {
+      if (isDeleteSentinel(data[key])) { delete merged[key]; continue; }
+      const kind = arrayTransform(data[key]);
+      if (!kind) continue;
+      const current = Array.isArray(existing[key]) ? existing[key] : [];
+      const items = data[key].elements;
+      merged[key] = kind === 'ArrayUnionTransform'
+        ? [...current, ...items.filter(x => !current.includes(x))]
+        : current.filter(x => !items.includes(x));
+    }
     return merged;
   }
 

@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const messageController = require('../controllers/messageController');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 
 // Thread endpoints
 router.get('/thread/:chatId', messageController.getThreadMessages);

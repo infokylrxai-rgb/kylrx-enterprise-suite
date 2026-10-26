@@ -1,4 +1,17 @@
-const { db, admin } = require('../config/firebase');
+const { db, admin, rawCollection } = require('../config/firebase');
+const { ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+
+// Every read and change is limited to the caller's organization (from the verified token)
+const orgMessages = (req) => rawCollection('messages').where('orgId', '==', req.user.orgId);
+
+// The shared HR inbox identity may be used only by admin/HR roles; anyone else is themselves
+const isAdminOrHr = (req) => ADMIN_HR_ROLES.map(r => r.toLowerCase()).includes(String(req.user.role || '').toLowerCase());
+function senderFor(req, requested) {
+    const me = req.user.id;
+    if (!requested || requested === me) return me;
+    if (requested === 'hr_support' && isAdminOrHr(req)) return 'hr_support';
+    return null;
+}
 
 function normalizeTimestamp(ts) {
     if (!ts) return new Date().toISOString();
@@ -18,12 +31,7 @@ exports.getThreadMessages = async (req, res) => {
         const rawParam = req.params.chatId || '';
         const targetIds = rawParam.split(',').map(s => s.trim()).filter(Boolean);
 
-        const isMarryAdminQuery = targetIds.some(t => 
-            (t.includes('hr_support') || t.includes('ADMIN')) && 
-            (t.includes('EMP_1789230184645') || t.toLowerCase().includes('marry'))
-        );
-
-        const snapshot = await db.collection('messages').get();
+        const snapshot = await orgMessages(req).get();
         let msgs = [];
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -32,15 +40,6 @@ exports.getThreadMessages = async (req, res) => {
 
         msgs = msgs.filter(m => {
             if (targetIds.includes(m.chatId)) return true;
-            if (isMarryAdminQuery) {
-                const hasAdmin = m.chatId?.includes('hr_support') || m.chatId?.includes('ADMIN') || 
-                                 m.senderId === 'hr_support' || m.receiverId === 'hr_support' || m.senderRole === 'admin';
-                const hasMarry = m.chatId?.includes('EMP_1789230184645') || m.chatId?.toLowerCase().includes('marry') ||
-                                 m.senderId === 'EMP_1789230184645' || m.receiverId === 'EMP_1789230184645' ||
-                                 (m.senderName && m.senderName.toLowerCase().includes('marry')) ||
-                                 (m.senderId && m.senderId.toLowerCase().includes('marry'));
-                if (hasAdmin && hasMarry) return true;
-            }
             for (const t of targetIds) {
                 if (t.includes('_')) {
                     const parts = t.split('_');
@@ -83,11 +82,11 @@ exports.getThreadMessages = async (req, res) => {
 exports.getMessages = async (req, res) => {
     try {
         const { recipientId } = req.params;
-        const senderId = (req.user && req.user.uid) || 'hr_support';
+        const senderId = req.user.id;
         const candidate1 = [senderId, recipientId].sort().join('_');
         const candidate2 = ['hr_support', recipientId].sort().join('_');
 
-        const snapshot = await db.collection('messages').get();
+        const snapshot = await orgMessages(req).get();
         let msgs = [];
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -116,7 +115,8 @@ exports.sendMessage = async (req, res) => {
     try {
         const { recipientId, receiverId, text, chatId: clientChatId, senderId: clientSenderId, senderName: clientSenderName, senderRole, attachments } = req.body;
         const targetId = recipientId || receiverId;
-        const senderId = clientSenderId || (req.user && (req.user.uid || req.user.id)) || 'hr_support';
+        const senderId = senderFor(req, clientSenderId);
+        if (!senderId) return res.status(403).json({ success: false, status: 'error', message: 'You can only send messages as yourself.' });
         const senderName = clientSenderName || (req.user && (req.user.name || req.user.displayName)) || 'Super Admin';
 
         if ((!text && (!attachments || attachments.length === 0)) || (!targetId && !clientChatId)) {
@@ -141,7 +141,8 @@ exports.sendMessage = async (req, res) => {
             attachments: attachments || [],
             timestamp: now,
             read: false,
-            type: 'direct'
+            type: 'direct',
+            orgId: req.user.orgId
         };
 
         await db.collection('messages').doc(msgId).set(messageData);
@@ -158,7 +159,7 @@ exports.sendMessage = async (req, res) => {
 exports.broadcastMessage = async (req, res) => {
     try {
         const { recipientIds, text, attachments } = req.body;
-        const senderId = (req.user && (req.user.uid || req.user.id)) || 'hr_support';
+        const senderId = req.user.id;
         const senderName = (req.user && (req.user.name || req.user.displayName)) || 'Super Admin';
 
         if (!recipientIds || !Array.isArray(recipientIds) || (!text && (!attachments || attachments.length === 0))) {
@@ -186,7 +187,8 @@ exports.broadcastMessage = async (req, res) => {
                 attachments: attachments || [],
                 timestamp: now,
                 read: false,
-                type: 'broadcast'
+                type: 'broadcast',
+                orgId: req.user.orgId
             };
             createdMsgs.push(msgObj);
             if (batch) {
@@ -212,21 +214,14 @@ exports.broadcastMessage = async (req, res) => {
 exports.clearChat = async (req, res) => {
     try {
         const { chatId } = req.params;
-        const snapshot = await db.collection('messages').where('chatId', '==', chatId).get();
-        if (snapshot && snapshot.docs && snapshot.docs.length > 0) {
-            const batch = (typeof db.batch === 'function') ? db.batch() : null;
-            for (const doc of snapshot.docs) {
-                if (batch) {
-                    batch.delete(doc.ref || db.collection('messages').doc(doc.id));
-                } else if (doc.ref && typeof doc.ref.delete === 'function') {
-                    await doc.ref.delete();
-                } else {
-                    await db.collection('messages').doc(doc.id).delete();
-                }
-            }
-            if (batch) await batch.commit();
+        const snapshot = await orgMessages(req).where('chatId', '==', chatId).get();
+        const docs = (snapshot && snapshot.docs) || [];
+        for (let i = 0; i < docs.length; i += 500) {
+            const batch = db.batch();
+            docs.slice(i, i + 500).forEach(d => batch.update(rawCollection('messages').doc(d.id), { clearedBy: admin.firestore.FieldValue.arrayUnion(req.user.id) }));
+            await batch.commit();
         }
-        res.json({ success: true, message: 'Chat cleared successfully' });
+        res.json({ success: true, message: 'Chat cleared for you', cleared: docs.length });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
     }
