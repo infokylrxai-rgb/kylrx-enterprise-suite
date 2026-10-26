@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const { db, admin, messaging } = require('../config/firebase');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { db, admin, messaging, rawCollection } = require('../config/firebase');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 
 // Persistent storage outside workspace so writes never trigger Live Server reloads
 const USER_DIR = process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\user';
@@ -13,27 +14,42 @@ const ROOT_DATA_DIR = path.join(USER_DIR, '.kylrx_enterprise_data');
 if (!fs.existsSync(ROOT_DATA_DIR)) {
     try { fs.mkdirSync(ROOT_DATA_DIR, { recursive: true }); } catch (_) {}
 }
-const STORE_PATH = path.join(ROOT_DATA_DIR, 'notifications_store.json');
+// One local cache file per organization (the old single shared file mixed every tenant's notifications)
+const storePath = (orgId) => path.join(ROOT_DATA_DIR, `notifications_store_${String(orgId).replace(/[^a-zA-Z0-9_-]/g, '_')}.json`);
 
-function loadStore() {
+function loadStore(orgId) {
     try {
-        if (!fs.existsSync(STORE_PATH)) {
-            fs.writeFileSync(STORE_PATH, JSON.stringify({ notifications: [] }, null, 2));
+        const file = storePath(orgId);
+        if (!fs.existsSync(file)) {
+            fs.writeFileSync(file, JSON.stringify({ notifications: [] }, null, 2));
             return { notifications: [] };
         }
-        return JSON.parse(fs.readFileSync(STORE_PATH, 'utf8'));
+        return JSON.parse(fs.readFileSync(file, 'utf8'));
     } catch (e) {
         return { notifications: [] };
     }
 }
 
-function saveStore(data) {
+function saveStore(orgId, data) {
     try {
-        fs.writeFileSync(STORE_PATH, JSON.stringify(data, null, 2));
+        fs.writeFileSync(storePath(orgId), JSON.stringify(data, null, 2));
     } catch (e) {
         console.error('Failed to write notifications store:', e);
     }
 }
+
+// A notification id from the URL may only act on documents of the caller's organization
+router.param('id', async (req, res, next, id) => {
+    try {
+        const snap = await rawCollection('notifications').doc(String(id)).get();
+        if (snap.exists && snap.data().orgId !== req.user.orgId) {
+            return res.status(404).json({ success: false, error: 'Notification not found in your organization.' });
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 function normalizeTimestamp(ts) {
     if (!ts) return new Date().toISOString();
@@ -71,29 +87,28 @@ function normalizeNotification(id, d) {
         recipient_role: d.recipient_role || d.targetRole || d.role || '',
         category,
         entity_id: d.entity_id || '',
-        clearedBy: Array.isArray(d.clearedBy) ? d.clearedBy : []
+        clearedBy: Array.isArray(d.clearedBy) ? d.clearedBy : [],
+        orgId: d.orgId
     };
 }
 
 // 1. GET /api/notifications - Real-time notification feed for Employee / User
 router.get(['/', '/feed'], async (req, res) => {
     try {
+        const orgId = req.user.orgId;
         const userRole = (req.user && req.user.role ? req.user.role : '').toLowerCase();
         // Employee-facing reads must be restricted to req.user.id
-        const uid = userRole === 'employee' ? req.user.id : (req.query.uid || req.user?.id || 'demo_emp');
+        const uid = userRole === 'employee' ? req.user.id : (req.query.uid || req.user.id);
         const role = userRole === 'employee' ? 'employee' : (req.user?.role || 'employee').toLowerCase();
         const dept = (req.query.department || req.user?.department || '').toLowerCase();
         
         // Build candidate user IDs for matching
         const candidateUids = [uid];
-        if (uid.toLowerCase().includes('marry') || uid === 'EMP_1789230184645' || uid === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2') {
-            candidateUids.push('EMP_1789230184645', 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2', 'demo_emp');
-        }
 
         let firestoreDocs = [];
         try {
             if (db && typeof db.collection === 'function') {
-                const snap = await db.collection('notifications').get();
+                const snap = await rawCollection('notifications').where('orgId', '==', orgId).limit(500).get();
                 snap.forEach(docSnap => {
                     firestoreDocs.push({ id: docSnap.id, data: docSnap.data() });
                 });
@@ -103,9 +118,9 @@ router.get(['/', '/feed'], async (req, res) => {
         }
 
         // Merge with local persistent store
-        const store = loadStore();
+        const store = loadStore(orgId);
         const storeMap = new Map();
-        (store.notifications || []).forEach(n => storeMap.set(n.id, n));
+        (store.notifications || []).filter(n => n.orgId === orgId).forEach(n => storeMap.set(n.id, n));
 
         firestoreDocs.forEach(fd => {
             const normalized = normalizeNotification(fd.id, fd.data);
@@ -114,7 +129,7 @@ router.get(['/', '/feed'], async (req, res) => {
 
         const mergedAll = Array.from(storeMap.values());
         // Save back merged results
-        saveStore({ notifications: mergedAll.slice(-200) });
+        saveStore(orgId, { notifications: mergedAll.slice(-200) });
 
         // Filter for this user
         const matched = mergedAll.filter(n => {
@@ -153,11 +168,11 @@ router.get(['/', '/feed'], async (req, res) => {
 router.post('/read/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const store = loadStore();
+        const store = loadStore(req.user.orgId);
         const item = (store.notifications || []).find(n => n.id === id);
         if (item) {
             item.read = true;
-            saveStore(store);
+            saveStore(req.user.orgId, store);
         }
 
         // Update Firestore asynchronously
@@ -174,10 +189,10 @@ router.post('/read/:id', async (req, res) => {
 // 3. POST /api/notifications/read-all - Mark all unread notifications as read
 router.post('/read-all', async (req, res) => {
     try {
-        const uid = req.body.uid || 'demo_emp';
-        const candidateUids = [uid, 'EMP_1789230184645', 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2'];
+        const uid = req.user.id;
+        const candidateUids = [uid];
 
-        const store = loadStore();
+        const store = loadStore(req.user.orgId);
         const updatedIds = [];
         (store.notifications || []).forEach(n => {
             const t = (n.target || '').toLowerCase();
@@ -187,7 +202,7 @@ router.post('/read-all', async (req, res) => {
                 updatedIds.push(n.id);
             }
         });
-        saveStore(store);
+        saveStore(req.user.orgId, store);
 
         // Update Firestore asynchronously
         if (db && typeof db.collection === 'function') {
@@ -206,14 +221,14 @@ router.post('/read-all', async (req, res) => {
 router.post('/clear/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const uid = req.body.uid || 'demo_emp';
+        const uid = req.user.id;
 
-        const store = loadStore();
+        const store = loadStore(req.user.orgId);
         const item = (store.notifications || []).find(n => n.id === id);
         if (item) {
             item.clearedBy = item.clearedBy || [];
             if (!item.clearedBy.includes(uid)) item.clearedBy.push(uid);
-            saveStore(store);
+            saveStore(req.user.orgId, store);
         }
 
         // Update Firestore asynchronously
@@ -232,10 +247,9 @@ router.post('/clear/:id', async (req, res) => {
 // 5. POST /api/notifications/clear-all - Clear all notifications for user
 router.post('/clear-all', async (req, res) => {
     try {
-        const uid = req.body.uid || 'demo_emp';
-        const candidateUids = [uid, 'EMP_1789230184645', 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2'];
+        const uid = req.user.id;
 
-        const store = loadStore();
+        const store = loadStore(req.user.orgId);
         const clearedIds = [];
         (store.notifications || []).forEach(n => {
             n.clearedBy = n.clearedBy || [];
@@ -244,7 +258,7 @@ router.post('/clear-all', async (req, res) => {
                 clearedIds.push(n.id);
             }
         });
-        saveStore(store);
+        saveStore(req.user.orgId, store);
 
         // Update Firestore asynchronously
         if (db && typeof db.collection === 'function') {
@@ -266,12 +280,12 @@ router.post('/send', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     try {
         const notifData = req.body;
         const id = notifData.id || ('notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6));
-        const normalized = normalizeNotification(id, notifData);
+        const normalized = normalizeNotification(id, { ...notifData, orgId: req.user.orgId });
 
-        const store = loadStore();
+        const store = loadStore(req.user.orgId);
         store.notifications = store.notifications || [];
         store.notifications.unshift(normalized);
-        saveStore({ notifications: store.notifications.slice(0, 200) });
+        saveStore(req.user.orgId, { notifications: store.notifications.slice(0, 200) });
 
         if (db && typeof db.collection === 'function') {
             db.collection('notifications').doc(id).set({
