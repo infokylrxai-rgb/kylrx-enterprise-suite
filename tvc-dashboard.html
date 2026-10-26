@@ -878,11 +878,55 @@
         // collections: the server takes the organization from the verified token, so another
         // organization's employees can never reach this page. (firebase-config.js adds the token.)
         const TELEMETRY_POLL_MS = 10000;
+        const TELEMETRY_TIMEOUT_MS = 8000;
+
+        // AI and payroll panels: computed from this organization's data, otherwise an honest
+        // empty state or the real error. Nothing here may stay on "Loading..." (see loadTelemetry).
+        function renderPanels() {
+            const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+            const bar = (id, pct, color) => {
+                const el = document.getElementById(id);
+                if (el) { el.style.width = pct + '%'; el.style.background = color; }
+            };
+
+            if (_state.error) {
+                set('burnoutVal', 'Unavailable'); bar('burnoutBar', 0, 'var(--success)');
+                set('riskVal', 'Unavailable'); bar('riskBar', 0, 'var(--success)');
+                set('predictionText', `Could not load workforce data: ${_state.error}`);
+                set('finPayroll', 'Unavailable');
+                set('finBurn', 'Unavailable');
+                return;
+            }
+
+            const people = Object.values(_state.activity);
+            if (people.length === 0) {
+                set('burnoutVal', 'No data yet'); bar('burnoutBar', 0, 'var(--success)');
+                set('riskVal', 'No data yet'); bar('riskBar', 0, 'var(--success)');
+                set('predictionText', 'No workforce telemetry yet. Insights appear once employees are active.');
+            } else {
+                const restless = people.filter(a => (a.tabSwitchCount || 0) > 5).length;
+                const burnout = Math.round((restless / people.length) * 100);
+                set('burnoutVal', burnout + '%');
+                bar('burnoutBar', burnout, burnout > 60 ? 'var(--danger)' : 'var(--warning)');
+
+                const flagged = people.filter(a => a.isAnomaly || (typeof a.aiProductivityScore === 'number' && a.aiProductivityScore < 30)).length;
+                const risk = Math.min(100, flagged * 25);
+                set('riskVal', risk > 50 ? 'Critical' : (risk > 20 ? 'Elevated' : 'Low'));
+                bar('riskBar', Math.max(10, risk), risk > 50 ? 'var(--danger)' : (risk > 20 ? 'var(--warning)' : 'var(--success)'));
+                set('predictionText', `${flagged} of ${people.length} active people are flagged for low productivity or unusual activity.`);
+            }
+
+            // Salaries are annual; the monthly figure is their sum divided by 12
+            const salaries = _state.users.map(u => Number(u.salary)).filter(n => Number.isFinite(n) && n > 0);
+            set('finPayroll', salaries.length ? '₹' + Math.round(salaries.reduce((a, b) => a + b, 0) / 12).toLocaleString('en-IN') : 'No payroll data yet');
+            // There is no per-organization budget to compare against yet
+            set('finBurn', 'No budget set yet');
+        }
 
         async function loadTelemetry() {
             const today = new Date().toISOString().split('T')[0];
             try {
-                const res = await fetch('/api/workforce-monitor');
+                const res = await fetch('/api/workforce-monitor', { signal: AbortSignal.timeout(TELEMETRY_TIMEOUT_MS) });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data.success) throw new Error(data.message || data.error || `HTTP ${res.status}`);
 
@@ -904,14 +948,16 @@
                 _state.adminSessions = Object.values(deduped);
 
                 _state.error = null;
+                renderPanels();
                 renderGrid();
                 checkUnderHours();  // alert check on every attendance refresh
                 if (typeof checkFocusScores === 'function') checkFocusScores();
             } catch (err) {
                 console.error('[WORKFORCE MONITOR] Could not load telemetry:', err);
-                _state.error = err.message;
+                _state.error = err.name === 'TimeoutError' ? `the server did not answer within ${TELEMETRY_TIMEOUT_MS / 1000} seconds` : err.message;
+                renderPanels();
                 const grid = document.getElementById('telemetryGrid');
-                if (grid) grid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; padding: 2rem; color: var(--danger);">Could not load the workforce monitor: ${String(err.message).replace(/[<>&]/g, '')}</div>`;
+                if (grid) grid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; padding: 2rem; color: var(--danger);">Could not load the workforce monitor: ${String(_state.error).replace(/[<>&]/g, '')}</div>`;
             }
         }
 
