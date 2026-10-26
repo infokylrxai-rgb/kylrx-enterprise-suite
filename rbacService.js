@@ -615,7 +615,8 @@
      * @param {Object} [dbInstance] - Firestore instance
      * @returns {Object} Ingestion statistics
      */
-    async function ingestPermissionRecords(records = [], orgId = 'org_kylrx', dbInstance = null) {
+    async function ingestPermissionRecords(records = [], orgId = null, dbInstance = null) {
+        if (dbInstance && !orgId) throw new Error('Your account has no organization');
         let rolesIngested = 0;
         let overridesIngested = 0;
         const errors = [];

@@ -330,7 +330,7 @@
         if (!container) return;
 
         const service = getService();
-        const orgId = options.orgId || localStorage.getItem('orgId');
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
 
         let gratuityDetails = null;

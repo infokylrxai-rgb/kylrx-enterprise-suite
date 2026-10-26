@@ -425,7 +425,7 @@
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const orgId = options.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         const structures = Array.from(_localLedger.values()).filter((v, idx, arr) => arr.findIndex(t => t.id === v.id) === idx);
 
         container.innerHTML = `

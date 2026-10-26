@@ -245,7 +245,7 @@
                 const pan = (panInput ? panInput.value.trim() : '') || 'ABCDE1234F';
                 const aadhaarLast4 = (aadhaarInput ? aadhaarInput.value.trim() : '') || '9021';
 
-                const orgId = options.orgId || localStorage.getItem('orgId');
+                const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
                 if (!orgId) { window.showCustomAlert ? window.showCustomAlert('Organization Missing', 'No organization found for the signed-in user. Sign in again.', 'error') : alert('No organization found for the signed-in user. Sign in again.'); return; }
                 const empId = currentEmployeeId || (document.getElementById('editEmpId') ? document.getElementById('editEmpId').value : 'EMP0001');
 
@@ -394,7 +394,7 @@
 
         if (!container) return;
 
-        const orgId = options.orgId || localStorage.getItem('orgId');
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let pfDetails = null;
 

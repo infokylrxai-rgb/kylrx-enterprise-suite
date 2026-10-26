@@ -82,7 +82,8 @@
      * =========================================================================
      */
     async function ingestJobRosterBatch(records, options = {}) {
-        const orgId = options.orgId || 'ORG_KYLRX_CORP';
+        const orgId = options.orgId;
+        if (!orgId) throw new Error('Your account has no organization');
         const actorId = options.actorId || options.adminId || 'SUPER_ADMIN';
         const onProgress = typeof options.onProgress === 'function' ? options.onProgress : () => {};
         const isDryRun = Boolean(options.dryRun);
@@ -257,7 +258,8 @@
      * =========================================================================
      */
     async function ingestEmployeeFinanceBatch(records, options = {}) {
-        const orgId = options.orgId || 'ORG_KYLRX_CORP';
+        const orgId = options.orgId;
+        if (!orgId) throw new Error('Your account has no organization');
         const actorId = options.actorId || options.adminId || 'SUPER_ADMIN';
         const onProgress = typeof options.onProgress === 'function' ? options.onProgress : () => {};
         const isDryRun = Boolean(options.dryRun);
@@ -474,7 +476,8 @@
 
         for (let i = 0; i < records.length; i++) {
             const row = records[i];
-            const tenantId = row.Organization_ID || 'ORG_KYLRX_CORP';
+            const tenantId = row.Organization_ID || options.orgId;
+            if (!tenantId) throw new Error('Your account has no organization');
 
             try {
                 const nowIso = new Date().toISOString();

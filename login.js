@@ -10,8 +10,7 @@ async function getRedirectUrl(userData, role) {
     }
     const cleanRole = (role || '').toLowerCase().replace(/[\s_-]+/g, '');
     if (cleanRole === 'superadmin' || cleanRole === 'admin') {
-        const orgId = userData?.orgId || localStorage.getItem('orgId') || 'org_kylrx_ai';
-        localStorage.setItem('orgId', orgId);
+        if (userData?.orgId) localStorage.setItem('orgId', userData.orgId);
         localStorage.setItem('orgConfigured', 'true');
         return 'admin-dashboard.html';
     } else if (cleanRole === 'hradmin' || cleanRole === 'hrms' || cleanRole === 'hr') {
@@ -384,8 +383,7 @@ if (googleLoginBtn) {
         if (userData.departmentName) localStorage.setItem('departmentName', userData.departmentName);
         if (userData.departmentCode) localStorage.setItem('departmentCode', userData.departmentCode);
 
-        const orgId = userData.orgId || localStorage.getItem('orgId') || 'org_kylrx_ai';
-        localStorage.setItem('orgId', orgId);
+        if (userData.orgId) localStorage.setItem('orgId', userData.orgId);
         localStorage.setItem('orgConfigured', 'true');
 
         if (role === 'manager' || isManagerAccount) {

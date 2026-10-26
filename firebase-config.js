@@ -236,6 +236,7 @@ const tenantReady = new Promise((resolve) => {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       activeOrgId = null;
+      localStorage.removeItem('orgId'); // the cache must not outlive the session
       resolve(null);
       return;
     }
@@ -263,6 +264,8 @@ function whereMyOrg() {
 function getActiveOrgId() {
   return activeOrgId;
 }
+// for classic scripts (services/*.js) that cannot import this module
+if (typeof window !== 'undefined') window.getActiveOrgId = getActiveOrgId;
 
 // "users/abc" -> "users"; queries expose their path through the SDK's internal _query
 function topLevelCollectionOf(target) {

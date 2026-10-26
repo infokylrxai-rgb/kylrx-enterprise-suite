@@ -25,7 +25,7 @@
  * @author Senior Frontend & Firebase Developer
  */
 
-import { auth, db } from "./firebase-config.js";
+import { auth, db, getActiveOrgId } from "./firebase-config.js";
 import { 
     doc, 
     getDoc, 
@@ -61,7 +61,7 @@ export const ORGANIZATION_ATTRIBUTES = [
 
 // Controller State
 const state = {
-    orgId: localStorage.getItem('orgId') || null,
+    orgId: null, // set from the verified organization by the auth watcher
     isConfigured: false,
     parsedOrgData: null,
     parsedBuData: null,
@@ -2105,7 +2105,7 @@ function renderParsedBuPreview(fileName, sheetName, records, errors = []) {
  * Path: organizations/{orgId}/business_units/{businessUnitCode}
  */
 async function executeBusinessUnitIngest(buDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${buDocs.length} Business Units into organizations/${orgId}/business_units...`);
 
     let ingestedCount = 0;
@@ -2333,7 +2333,7 @@ function renderParsedCcPreview(fileName, sheetName, records, errors = []) {
  * Path: organizations/{orgId}/cost_centers/{costCenterCode}
  */
 async function executeCostCenterIngest(ccDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${ccDocs.length} Cost Centers into organizations/${orgId}/cost_centers...`);
 
     let ingestedCount = 0;
@@ -2634,7 +2634,7 @@ function renderParsedSubDeptPreview(fileName, sheetName, records, errors = []) {
  * Path: organizations/{orgId}/sub_departments/{subDepartmentCode}
  */
 async function executeSubDepartmentIngest(subDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${subDocs.length} Sub-Departments into organizations/${orgId}/sub_departments...`);
 
     let ingestedCount = 0;
@@ -2930,7 +2930,7 @@ function renderParsedShiftPreview(fileName, sheetName, records, errors = []) {
  * Path: organizations/{orgId}/shifts/{shiftCode}
  */
 async function executeShiftIngest(shiftDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${shiftDocs.length} Shift schedules into organizations/${orgId}/shifts...`);
 
     let ingestedCount = 0;
@@ -3358,7 +3358,7 @@ function renderParsedEmployeeTypePreview(fileName, sheetName, records, errors = 
  * Path: organizations/{orgId}/employee_types/{categoryCode}
  */
 async function executeEmployeeTypeIngest(typeDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${typeDocs.length} Employee Types into organizations/${orgId}/employee_types...`);
 
     let ingestedCount = 0;
@@ -3416,7 +3416,7 @@ async function executeEmployeeTypeIngest(typeDocs) {
  */
 async function extract17EmployeeFinanceAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     
     // Attempt to query active employees for Foreign Key validation
     try {
@@ -3531,7 +3531,7 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
  * Links primary accounts to Decentro Fabric Payout Registry
  */
 async function executeEmployeeFinanceIngest(financeDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${financeDocs.length} Employee Finance records into organizations/${orgId}/employee_finance...`);
 
     let ingestedCount = 0;
@@ -3581,7 +3581,7 @@ async function executeEmployeeFinanceIngest(financeDocs) {
  */
 async function extract19EpfoMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -3688,7 +3688,7 @@ function renderParsedEpfoMasterPreview(fileName, sheetName, records, errors = []
  * Path: organizations/{orgId}/employee_pf_details/{employeeId}
  */
 async function executeEpfoMasterIngest(epfoDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${epfoDocs.length} EPFO Statutory Master records into organizations/${orgId}/employee_pf_details...`);
 
     let ingestedCount = 0;
@@ -3738,7 +3738,7 @@ async function renderOnboardingEpfoMasterTable() {
     const container = document.getElementById('onboardingEpfoMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxPfDetailsService && typeof window.KylrxPfDetailsService.listEmployeePfDetails === 'function') {
@@ -3819,7 +3819,7 @@ async function renderOnboardingEpfoMasterTable() {
  */
 async function extract18EsicMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -3925,7 +3925,7 @@ function renderParsedEsicMasterPreview(fileName, sheetName, records, errors = []
  * Path: organizations/{orgId}/employee_esic_details/{employeeId}
  */
 async function executeEsicMasterIngest(esicDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${esicDocs.length} ESIC Statutory Master records into organizations/${orgId}/employee_esic_details...`);
 
     let ingestedCount = 0;
@@ -3975,7 +3975,7 @@ async function renderOnboardingEsicMasterTable() {
     const container = document.getElementById('onboardingEsicMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxEsicDetailsService && typeof window.KylrxEsicDetailsService.listAllEsicDetails === 'function') {
@@ -4068,7 +4068,7 @@ async function renderOnboardingEsicMasterTable() {
  */
 async function extract10PtMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -4168,7 +4168,7 @@ function renderParsedPtMasterPreview(fileName, sheetName, records, errors = []) 
  * Path: organizations/{orgId}/employee_pt_details/{employeeId}
  */
 async function executePtMasterIngest(ptDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${ptDocs.length} PT Statutory Master records into organizations/${orgId}/employee_pt_details...`);
 
     let ingestedCount = 0;
@@ -4218,7 +4218,7 @@ async function renderOnboardingPtMasterTable() {
     const container = document.getElementById('onboardingPtMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxPtDetailsService && typeof window.KylrxPtDetailsService.listAllPtDetails === 'function') {
@@ -4301,7 +4301,7 @@ async function renderOnboardingPtMasterTable() {
  */
 async function extract10LwfMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -4392,7 +4392,7 @@ function renderParsedLwfMasterPreview(fileName, sheetName, records, errors = [])
  * Path: organizations/{orgId}/employee_lwf_details/{employeeId}
  */
 async function executeLwfMasterIngest(lwfDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${lwfDocs.length} LWF Statutory Master records into organizations/${orgId}/employee_lwf_details...`);
 
     let ingestedCount = 0;
@@ -4442,7 +4442,7 @@ async function renderOnboardingLwfMasterTable() {
     const container = document.getElementById('onboardingLwfMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxLwfDetailsService && typeof window.KylrxLwfDetailsService.listAllLwfDetails === 'function') {
@@ -4523,7 +4523,7 @@ async function renderOnboardingLwfMasterTable() {
  */
 async function extract22NpsMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -4628,7 +4628,7 @@ function renderParsedNpsMasterPreview(fileName, sheetName, records, errors = [])
  * Path: organizations/{orgId}/employee_nps_details/{employeeId}
  */
 async function executeNpsMasterIngest(npsDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${npsDocs.length} NPS Statutory Master records into organizations/${orgId}/employee_nps_details...`);
 
     let ingestedCount = 0;
@@ -4678,7 +4678,7 @@ async function renderOnboardingNpsMasterTable() {
     const container = document.getElementById('onboardingNpsMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxNpsDetailsService && typeof window.KylrxNpsDetailsService.listAllNpsDetails === 'function') {
@@ -4776,7 +4776,7 @@ async function renderOnboardingNpsMasterTable() {
  */
 async function extract18GratuityMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -4904,7 +4904,7 @@ function renderParsedGratuityMasterPreview(fileName, sheetName, records, errors 
  * Path: organizations/{orgId}/employee_gratuity_details/{employeeId}
  */
 async function executeGratuityMasterIngest(gratuityDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${gratuityDocs.length} Gratuity Statutory Master records into organizations/${orgId}/employee_gratuity_details...`);
 
     let ingestedCount = 0;
@@ -4954,7 +4954,7 @@ async function renderOnboardingGratuityMasterTable() {
     const container = document.getElementById('onboardingGratuityMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxGratuityDetailsService && typeof window.KylrxGratuityDetailsService.listAllGratuityDetails === 'function') {
@@ -5082,7 +5082,7 @@ async function renderOnboardingGratuityMasterTable() {
 async function extract9SalaryStructureAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
     let existingComponentCodes = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -5215,7 +5215,7 @@ function renderParsedSalaryStructurePreview(fileName, sheetName, records, firest
  * PRD Sections 1 & 4 dynamic compensation versioning
  */
 async function executeSalaryStructureIngest(salaryDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${salaryDocs.length} Salary Structure revisions into organizations/${orgId}/salary_structures...`);
 
     let ingestedCount = 0;
@@ -5266,7 +5266,7 @@ async function executeSalaryStructureIngest(salaryDocs) {
  * Path: organizations/{orgId}/attendance_policies/{attendancePolicyCode}
  */
 async function executePolicyIngest(policyDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${policyDocs.length} Attendance Policies into organizations/${orgId}/attendance_policies...`);
 
     let ingestedCount = 0;
@@ -5448,7 +5448,7 @@ function renderParsedAttributesPreview(fileName, sheetName, data) {
  * 4. Redirect Super Admin to main administrative dashboard (admin-dashboard.html).
  */
 async function executeOrganizationSetup(attributes21, sourceMethod) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     console.log(`🚀 Executing Organization Setup via [${sourceMethod}] for orgId: "${orgId}"...`);
 
@@ -5644,7 +5644,7 @@ function escapeHtml(str) {
  */
 async function extract9HolidayCalendarAttributesFromSheetRows(rows) {
     let existingLocationCodes = new Set();
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const locationsSnap = await getDocs(collection(db, "organizations", orgId, "locations"));
@@ -5766,7 +5766,7 @@ function renderParsedHolidayCalendarPreview(fileName, sheetName, records, firest
  * Path: organizations/{orgId}/holiday_calendars/{calendarCode}/holidays/{holidayId}
  */
 async function executeHolidayCalendarIngest(holidayDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${holidayDocs.length} Holiday closures into organizations/${orgId}/holiday_calendars...`);
 
     let ingestedCount = 0;
@@ -5827,7 +5827,7 @@ async function executeHolidayCalendarIngest(holidayDocs) {
  * 11. Active (Boolean)
  */
 async function extract11StatutoryComplianceAttributesFromSheetRows(rows) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     if (window.KylrxStatutoryComplianceParser && typeof window.KylrxStatutoryComplianceParser.parseStatutoryComplianceSheet === 'function') {
         return window.KylrxStatutoryComplianceParser.parseStatutoryComplianceSheet(rows, { orgId });
     }
@@ -5900,7 +5900,7 @@ function renderParsedStatutoryCompliancePreview(fileName, sheetName, records, fi
  * Path: organizations/{orgId}/statutory_rules/{complianceCode}
  */
 async function executeStatutoryComplianceIngest(statutoryDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${statutoryDocs.length} Statutory Compliance policies into organizations/${orgId}/statutory_rules...`);
 
     let ingestedCount = 0;
@@ -6110,7 +6110,7 @@ function renderParsedRolePermissionPreview(fileName, sheetName, records, firesto
  * - User Overrides: organizations/{orgId}/user_permission_overrides/{employeeId}
  */
 async function executeRolePermissionIngest(roleDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${roleDocs.length} Role & Permission Override documents into organizations/${orgId}...`);
 
     let rolesIngested = 0;
@@ -6339,7 +6339,7 @@ function renderParsedWorkflowRulesPreview(fileName, sheetName, records, workflow
  * Path: organizations/{orgId}/workflows/{workflowCode}
  */
 async function executeWorkflowRulesIngest(workflowDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${workflowDocs.length} Workflow Chain documents into organizations/${orgId}/workflows/...`);
 
     let ingestedCount = 0;
@@ -6400,7 +6400,7 @@ async function executeWorkflowRulesIngest(workflowDocs) {
  */
 async function extract13PayrollComponentAttributesFromSheetRows(rawRows) {
     const parser = window.KylrxPayrollComponentsParser || window.payrollComponentsParser;
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     if (parser && typeof parser.parsePayrollComponents === 'function') {
         const parsed = parser.parsePayrollComponents(rawRows, { orgId });
@@ -6586,7 +6586,7 @@ function renderParsedPayrollComponentPreview(fileName, sheetName, records, fires
  * Path: organizations/{orgId}/payroll_components/{componentCode}
  */
 async function executePayrollComponentIngest(componentDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || missingOrg();
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${componentDocs.length} Payroll Component documents into organizations/${orgId}/payroll_components/...`);
 
     let ingestedCount = 0;

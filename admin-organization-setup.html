@@ -304,7 +304,7 @@
 </div>
 
 <script type="module">
-    import { db, auth } from "./firebase-config.js";
+    import { db, auth, tenantReady, getActiveOrgId } from "./firebase-config.js";
     import { doc, getDoc, setDoc, serverTimestamp } from "./firebase-config.js";
     import { ingestTemplatesWorkbook } from "./services/template-parser-service.js";
 
@@ -319,10 +319,16 @@
     const statusBadge = document.getElementById('statusBadge');
 
     let currentIngestResult = null;
-    const currentOrgId = localStorage.getItem('orgId') || 'org_kylrx';
+    await tenantReady;
+    const currentOrgId = getActiveOrgId();
+    if (!currentOrgId) {
+        statusBadge.textContent = 'Your account has no organization';
+        btnFinalizeSetup.disabled = true;
+    }
 
     // 1. Check existing org status
     async function checkOrgStatus() {
+        if (!currentOrgId) return;
         try {
             const orgSnap = await getDoc(doc(db, 'organizations', currentOrgId));
             if (orgSnap.exists() && orgSnap.data().orgConfigured === true) {

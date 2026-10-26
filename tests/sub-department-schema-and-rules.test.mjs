@@ -27,6 +27,7 @@
  * 5. UI Ingestion & Management Console Integration Deliverables
  */
 
+import './helpers/signed-in-org.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

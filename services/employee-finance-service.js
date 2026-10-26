@@ -656,7 +656,7 @@
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const orgId = options.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         const list = Array.from(_localLedger.values()).filter((v, idx, arr) => arr.findIndex(t => t.employeeId === v.employeeId) === idx);
 
         container.innerHTML = `

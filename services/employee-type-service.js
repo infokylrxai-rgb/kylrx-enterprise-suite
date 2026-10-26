@@ -127,10 +127,10 @@
         if (typeof window !== 'undefined') {
             if (window.currentOrgId) return window.currentOrgId;
             if (window.currentUser && window.currentUser.orgId) return window.currentUser.orgId;
-            const stored = localStorage.getItem('kylrx_org_id') || localStorage.getItem('current_org_id');
-            if (stored) return stored;
+            if (typeof window.getActiveOrgId === 'function' && window.getActiveOrgId()) return window.getActiveOrgId();
         }
-        return 'org_default';
+        if (typeof globalThis.getActiveOrgId === 'function' && globalThis.getActiveOrgId()) return globalThis.getActiveOrgId();
+        throw new Error('Your account has no organization');
     }
 
     /**

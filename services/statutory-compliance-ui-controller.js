@@ -40,7 +40,7 @@
      * Renders the complete Statutory & Compliance console into the specified target element
      */
     function renderAdminConsole(containerId = 'settingsStatutoryRulesContainer', orgId) {
-        _activeOrgId = orgId || localStorage.getItem('orgId') || null;
+        _activeOrgId = orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         const container = typeof containerId === 'string' ? document.getElementById(containerId) : containerId;
         if (!container) return;
         if (!_activeOrgId) {

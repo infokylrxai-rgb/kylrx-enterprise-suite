@@ -25,7 +25,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
-    let _activeOrgId = 'org_default';
+    let _activeOrgId = null;
     let _activeTab = 'ALL'; // 'ALL', 'EARNINGS', 'DEDUCTIONS', 'OTHERS'
     let _searchQuery = '';
 
@@ -40,8 +40,8 @@
     /**
      * Renders the complete Payroll Components Catalog console into target container
      */
-    function renderAdminConsole(containerId = 'payrollComponentsConsoleContainer', orgId = 'org_default') {
-        _activeOrgId = orgId || localStorage.getItem('orgId') || 'org_default';
+    function renderAdminConsole(containerId = 'payrollComponentsConsoleContainer', orgId = null) {
+        _activeOrgId = orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         const container = typeof containerId === 'string' ? document.getElementById(containerId) : containerId;
         if (!container) return;
 

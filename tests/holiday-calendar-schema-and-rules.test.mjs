@@ -9,6 +9,7 @@
  * matching PRD Sections 1, 4, 15, & 16 and the 'Holiday Calendar' sheet from Templates.xlsx.
  */
 
+import './helpers/signed-in-org.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

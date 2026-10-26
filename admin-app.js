@@ -1,4 +1,4 @@
-import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
+import { auth, db, onSnapshot, registerListener, tenantReady, getActiveOrgId } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { collection, getDocs, setDoc, doc, getDoc, runTransaction, serverTimestamp, updateDoc, query, where } from "./firebase-config.js";
 import { allocateAtomicEmployeeIds } from "./services/atomic-counter-service.js";
@@ -2536,7 +2536,9 @@ function setupEventListeners() {
             } else {
                 // CREATE MODE (Draft / Email)
                 // 1. Allocate Sequential Gapless Employee ID via Atomic Counter Service
-                const orgId = localStorage.getItem('current_org_id') || localStorage.getItem('tenant_id') || 'org_kylrx';
+                await tenantReady;
+                const orgId = getActiveOrgId();
+                if (!orgId) throw new Error('Your account has no organization');
                 let allocatedEmployeeId = null;
 
                 try {
@@ -2676,7 +2678,8 @@ function setupEventListeners() {
                 // PRD Sections 1, 4 & 13: Persist Employee Finance & Statutory Record to organizations/{orgId}/employee_finance/{employeeId}
                 if (window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.saveEmployeeFinance === 'function') {
                     try {
-                        const orgId = localStorage.getItem('orgId') || 'org_kylrx';
+                        const orgId = getActiveOrgId();
+                        if (!orgId) throw new Error('Your account has no organization');
                         const holderName = data.financeAccountHolderName || data.name;
                         const bankName = data.financeBankName || 'HDFC Bank';
                         const branchName = data.financeBranchName || 'Koramangala, Bengaluru';
