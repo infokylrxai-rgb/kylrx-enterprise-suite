@@ -146,22 +146,11 @@ try {
     console.warn('Session storage pre-fill failed:', e);
 }
 
-loginForm?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const email = emailInput.value.trim();
-  const password = passwordInput.value.trim();
+// Everything after a verified Firebase sign-in: role from the token claims or profile, local cache, redirect.
+// Shared by the password form and (when demo mode is on) the demo sign-in in demo-login.js.
+async function finishSignIn(userCredential, email) {
   const cleanEmail = email.toLowerCase();
-  
-  const btnText = loginBtn.querySelector('span');
-  const originalText = btnText.textContent;
-  btnText.textContent = 'Authenticating...';
-  loginBtn.disabled = true;
-  errorMessage.style.display = 'none';
-
-  try {
-    // Firebase Authentication with the typed email and password is the only way in
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  const btnText = loginBtn && loginBtn.querySelector('span');
     const finalUid = userCredential.user.uid;
     const token = userCredential.user.accessToken;
 
@@ -229,6 +218,26 @@ loginForm?.addEventListener('submit', async (e) => {
     const redirectUrl = await getRedirectUrl(userData, role);
     if (btnText) btnText.textContent = 'Redirecting to your workspace...';
     window.location.href = redirectUrl;
+}
+window.kylrxFinishSignIn = finishSignIn;
+
+loginForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+  const cleanEmail = email.toLowerCase();
+  
+  const btnText = loginBtn.querySelector('span');
+  const originalText = btnText.textContent;
+  btnText.textContent = 'Authenticating...';
+  loginBtn.disabled = true;
+  errorMessage.style.display = 'none';
+
+  try {
+    // Firebase Authentication with the typed email and password is the only way in
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    await finishSignIn(userCredential, email);
 
   } catch (error) {
     if (error.message && error.message.includes('Access Denied')) {
