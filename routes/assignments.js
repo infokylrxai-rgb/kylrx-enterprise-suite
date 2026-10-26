@@ -5,6 +5,7 @@ const centralAssignmentEngine = require('../services/central-assignment-engine')
 const assignmentAi = require('../services/assignment-ai-service');
 const eventBus = require('../services/event-bus');
 const { db, rawCollection } = require('../config/firebase');
+const { firebaseProjectInfo } = require('../config/firebase');
 const { ownerOrgId } = require('../config/tenant');
 const logger = require('../utils/logger');
 const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
@@ -217,9 +218,9 @@ router.get('/firebase-status', authorize('Super Admin'), async (req, res) => {
             success: true,
             firebase: {
                 connected: isConnected,
-                projectId: 'kylrxai',
-                storageBucket: 'kylrxai.firebasestorage.app',
-                clientEmail: 'firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com',
+                projectId: firebaseProjectInfo().projectId,
+                storageBucket: firebaseProjectInfo().storageBucket,
+                clientEmail: firebaseProjectInfo().clientEmail,
                 collections: {
                     employee_assignments: assignmentsCount,
                     assignment_rules: rulesCount,

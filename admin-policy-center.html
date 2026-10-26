@@ -184,7 +184,7 @@
                         <!-- Firebase Backend Status Badge -->
                         <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
                             <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
-                            <span id="firebaseStatusText">Firebase: kylrxai (Connected)</span>
+                            <span id="firebaseStatusText">Firebase: Connected</span>
                         </div>
                     </div>
                     <p>Govern organizational compliance, roll out mandatory agreements, and track digital acknowledgements in real time.</p>
@@ -513,9 +513,9 @@
                 const res = await fetch(`${API_HOST}/api/policies/compliance-pulse`);
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data.success) throw new Error(data.message || data.error || `HTTP ${res.status}`);
-                alert(`✅ Firebase Connected!\n• Project: kylrxai\n• Backend Status: Active\n• Compliance Pulse: ${data.data.overallRate}% across ${data.data.totalPolicies} policies and ${data.data.totalEmployees} employees`);
+                alert(`✅ Firebase Connected!\n• Project: ${window.FIREBASE_PROJECT_ID || 'not configured'}\n• Backend Status: Active\n• Compliance Pulse: ${data.data.overallRate}% across ${data.data.totalPolicies} policies and ${data.data.totalEmployees} employees`);
             } catch (e) {
-                alert(`Firebase Direct Check:\n• Project: kylrxai\n• Client Firestore SDK: Online\n• Notice: ${e.message}`);
+                alert(`Firebase Direct Check:\n• Project: ${window.FIREBASE_PROJECT_ID || 'not configured'}\n• Client Firestore SDK: Online\n• Notice: ${e.message}`);
             } finally {
                 if (btn) {
                     btn.disabled = false;
@@ -1055,7 +1055,7 @@
                     </div>
                     <div>
                         <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">Firebase Backend Connection</h3>
-                        <p style="margin: 2px 0 0 0; font-size: 0.75rem; opacity: 0.9; color: #dcfce7;">Live Google Cloud Firestore & Firebase Admin SDK (kylrxai)</p>
+                        <p style="margin: 2px 0 0 0; font-size: 0.75rem; opacity: 0.9; color: #dcfce7;">Live Google Cloud Firestore & Firebase Admin SDK</p>
                     </div>
                 </div>
                 <button onclick="toggleFirebaseDetailsModal()" style="background: none; border: none; color: #ffffff; cursor: pointer; font-size: 1.2rem;">✕</button>
@@ -1065,7 +1065,7 @@
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem;">
                     <div style="display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; font-size: 0.82rem;">
                         <span style="color: #64748b; font-weight: 700;">Project ID:</span>
-                        <span style="font-weight: 800; color: #0f172a; font-family: monospace;" id="fbModalProject">kylrxai</span>
+                        <span style="font-weight: 800; color: #0f172a; font-family: monospace;" id="fbModalProject" data-firebase-project>—</span>
 
                         <span style="color: #64748b; font-weight: 700;">Backend Status:</span>
                         <span style="color: #059669; font-weight: 800; display: flex; align-items: center; gap: 6px;" id="fbModalStatus">
@@ -1077,10 +1077,10 @@
                         <span style="font-weight: 800; color: #0f172a;" id="fbModalClient">Firebase JS SDK v12.12.1 (Online)</span>
 
                         <span style="color: #64748b; font-weight: 700;">Admin Service:</span>
-                        <span style="font-size: 0.75rem; color: #475569; word-break: break-all;" id="fbModalEmail">firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com</span>
+                        <span style="font-size: 0.75rem; color: #475569; word-break: break-all;" id="fbModalEmail">the server's service account</span>
 
                         <span style="color: #64748b; font-weight: 700;">Storage Bucket:</span>
-                        <span style="color: #0f172a; font-family: monospace;">kylrxai.firebasestorage.app</span>
+                        <span style="color: #0f172a; font-family: monospace;" data-firebase-bucket>—</span>
 
                         <span style="color: #64748b; font-weight: 700;">Live Collections:</span>
                         <span style="color: #1d4ed8; font-weight: 700;" id="fbModalCollections">policies (4), policy_audit (7), system_config, users</span>

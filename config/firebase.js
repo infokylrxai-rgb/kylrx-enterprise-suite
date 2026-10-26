@@ -1,6 +1,9 @@
 const admin = require("firebase-admin");
 require('dotenv').config();
 
+// The Firebase project comes only from the environment (see .env.example and README.md):
+//   FIREBASE_PROJECT_ID, FIREBASE_STORAGE_BUCKET, and the service account in
+//   FIREBASE_SERVICE_ACCOUNT (raw or base64 JSON) or FIREBASE_SERVICE_ACCOUNT_PATH (key file).
 let serviceAccount;
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -24,13 +27,33 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   } catch (error) {
     console.error("Failed to load FIREBASE_SERVICE_ACCOUNT_PATH key file:", error.message);
   }
-} else {
-  // Check optional local file fallback if explicitly present
-  try {
-    serviceAccount = require("./serviceAccountKey.json");
-  } catch (error) {
-    // Expected when relying exclusively on host environment variables
+}
+
+const projectId = process.env.FIREBASE_PROJECT_ID || '';
+const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || '';
+
+// Production never falls back to anything: fail at startup and say exactly what is missing
+if (process.env.NODE_ENV === 'production') {
+  const missing = [];
+  if (!projectId) missing.push('FIREBASE_PROJECT_ID');
+  if (!storageBucket) missing.push('FIREBASE_STORAGE_BUCKET');
+  if (!serviceAccount) missing.push('FIREBASE_SERVICE_ACCOUNT or FIREBASE_SERVICE_ACCOUNT_PATH (a readable service account key)');
+  if (missing.length) {
+    throw new Error(`Firebase credentials are required in production. Missing or unreadable: ${missing.join(', ')}.`);
   }
+  if (serviceAccount.project_id && serviceAccount.project_id !== projectId) {
+    throw new Error(`FIREBASE_PROJECT_ID (${projectId}) does not match the service account's project (${serviceAccount.project_id}).`);
+  }
+}
+
+/** The configured project for status endpoints and labels; never a hard-coded project */
+function firebaseProjectInfo() {
+  return {
+    configured: Boolean(serviceAccount),
+    projectId: projectId || (serviceAccount && serviceAccount.project_id) || null,
+    storageBucket: storageBucket || null,
+    clientEmail: (serviceAccount && serviceAccount.client_email) || null
+  };
 }
 
 let db;
@@ -41,7 +64,8 @@ if (serviceAccount) {
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "kylrxai.firebasestorage.app"
+      projectId: projectId || serviceAccount.project_id,
+      ...(storageBucket ? { storageBucket } : {})
     });
     console.log("Firebase Admin SDK initialized successfully!");
   }
@@ -53,10 +77,7 @@ if (serviceAccount) {
   rawCollection = require('./tenant').installTenantScoping(db);
   messaging = admin.messaging();
 } else {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Firebase credentials are required in production: set FIREBASE_SERVICE_ACCOUNT or FIREBASE_SERVICE_ACCOUNT_PATH.');
-  }
-  console.log("Firebase Backend: Active in local connected development mode (kylrxai).");
+  console.log("Firebase Backend: Active in local in-memory mode (no Firebase service account configured).");
   
   const _firestoreStore = new Map();
 
@@ -255,5 +276,5 @@ if (serviceAccount) {
 }
 
 // rawCollection(name) bypasses tenant scoping; only for authentication-time lookups
-module.exports = { admin, db, messaging, rawCollection: rawCollection || ((name) => db.collection(name)) };
+module.exports = { admin, db, messaging, rawCollection: rawCollection || ((name) => db.collection(name)), firebaseProjectInfo };
 

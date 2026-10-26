@@ -32,6 +32,8 @@ process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify({
   private_key: privateKey, client_email: 'leak-test@demo-leak.iam.gserviceaccount.com', client_id: '1'
 });
 process.env.GCLOUD_PROJECT = 'demo-leak';
+process.env.FIREBASE_PROJECT_ID = 'demo-leak';
+process.env.FIREBASE_STORAGE_BUCKET = 'demo-leak.appspot.com';
 
 const A = 'org_leak_a';
 const B = 'org_leak_b';

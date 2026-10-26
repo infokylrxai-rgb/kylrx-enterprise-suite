@@ -7,6 +7,7 @@ const TenantEngineStore = require('../services/tenant-engine-store');
 const bulkMessageAi = require('../services/bulk-message-ai-service');
 const logger = require('../utils/logger');
 const { rawCollection } = require('../config/firebase');
+const { firebaseProjectInfo } = require('../config/firebase');
 const { orgDocs } = require('../config/tenant');
 const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
@@ -312,7 +313,7 @@ router.get('/firebase-status', async (req, res) => {
             online: true,
             firebaseReady: Boolean(db && typeof db.collection === 'function'),
             localTestDatabase: Boolean(process.env.FIRESTORE_EMULATOR_HOST),
-            projectId: process.env.FIREBASE_PROJECT_ID || 'kylrxai',
+            projectId: firebaseProjectInfo().projectId,
             collections: {
                 jobs: 'bulk_trigger_jobs',
                 auditLogs: 'bulk_trigger_audit_logs',

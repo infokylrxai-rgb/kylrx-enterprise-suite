@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function initFirebaseRealtimeSync() {
     try {
         if (db) {
-            updateFirebaseBadge(true, "kylrxai", "Connected");
+            updateFirebaseBadge(true, window.FIREBASE_PROJECT_ID || '', "Connected");
             // Only attach client-side Firestore listeners when authenticated user session exists
             if (auth && auth.currentUser) {
                 const actCol = collection(db, "activities");
@@ -122,7 +122,7 @@ async function refreshDashboardData() {
             renderAllWidgets(json.data, json.allowedWidgets);
             
             if (json.firebase) {
-                updateFirebaseBadge(json.firebase.connected, json.firebase.projectId || 'kylrxai', 'Connected');
+                updateFirebaseBadge(json.firebase.connected, json.firebase.projectId || window.FIREBASE_PROJECT_ID || '', 'Connected');
                 const colSpan = document.getElementById('fbModalCollections');
                 if (colSpan && json.firebase.liveCounts) {
                     const lc = json.firebase.liveCounts;
@@ -369,7 +369,7 @@ function renderFallbackLiveDashboard() {
     };
     dashboardData = fallbackData;
     renderAllWidgets(fallbackData, ALL_11_WIDGETS.map(w => w.id));
-    updateFirebaseBadge(true, "kylrxai", "Connected");
+    updateFirebaseBadge(true, window.FIREBASE_PROJECT_ID || '', "Connected");
 }
 
 /**
@@ -553,7 +553,7 @@ function renderWorkforceWidget(wf) {
         elPill.style.background = isZero ? '#f1f5f9' : '#ecfdf5';
         elPill.style.color = isZero ? '#64748b' : '#065f46';
         elPill.style.borderColor = isZero ? '#cbd5e1' : '#a7f3d0';
-        elPill.title = isZero ? 'Firebase Firestore: 0 active employees' : `Connected to Firebase Firestore backend (kylrxai): ${count} active employees`;
+        elPill.title = isZero ? 'Firebase Firestore: 0 active employees' : `Connected to Firebase Firestore backend: ${count} active employees`;
     }
     if (elHires) elHires.textContent = hires;
     if (elAttrition) elAttrition.textContent = attrition;
@@ -920,7 +920,7 @@ function renderOrgStructureTree(tree) {
                 </div>
                 <div style="font-weight:800; font-size:0.88rem; color:#1e293b; margin-bottom:3px;">0 Personnel in Organization Tree</div>
                 <div style="font-size:0.72rem; color:#64748b; max-width:320px; line-height:1.4;">
-                    Enterprise Builder is connected to backend Firebase (kylrxai). 0 active employees found in Firestore. Department hierarchy is cleared.
+                    Enterprise Builder is connected to backend Firebase. 0 active employees found in Firestore. Department hierarchy is cleared.
                 </div>
             </div>
         `;
@@ -1147,7 +1147,7 @@ function showToast(msg) {
 /**
  * Firebase Status Pill & Modal Handlers
  */
-function updateFirebaseBadge(connected, projectId = 'kylrxai', state = 'Connected') {
+function updateFirebaseBadge(connected, projectId = window.FIREBASE_PROJECT_ID || '', state = 'Connected') {
     const badge = document.getElementById('firebaseLiveBadge');
     const text = document.getElementById('firebaseStatusText');
     if (!badge || !text) return;

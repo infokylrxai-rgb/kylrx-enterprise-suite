@@ -92,7 +92,7 @@
                         dot.style.background = '#16a34a';
                         dot.style.boxShadow = '0 0 0 3px rgba(22, 163, 74, 0.2)';
                     }
-                    if (badge) badge.textContent = json.projectId || 'kylrxai';
+                    if (badge) badge.textContent = json.projectId || window.FIREBASE_PROJECT_ID || '';
                     return;
                 }
             }

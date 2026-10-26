@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const notificationActionCenterService = require('../services/notification-action-center-service');
+const { firebaseProjectInfo } = require('../config/firebase');
 const logger = require('../utils/logger');
 const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
@@ -49,7 +50,7 @@ router.get('/feed', authorize(ADMIN_HR_ROLES), async (req, res) => {
                     totalInformational: 0,
                     unreadInformational: 0,
                     connectedToFirebase: true,
-                    firebaseProject: 'kylrxai',
+                    firebaseProject: firebaseProjectInfo().projectId,
                     syncState: 'synchronized'
                 }
             });
@@ -96,7 +97,7 @@ router.get('/summary', authorize(ADMIN_HR_ROLES), async (req, res) => {
                     documents: 0,
                     system: 0,
                     connectedToFirebase: true,
-                    firebaseProject: 'kylrxai',
+                    firebaseProject: firebaseProjectInfo().projectId,
                     syncState: 'synchronized'
                 }
             });
@@ -123,7 +124,7 @@ router.post('/zero', authorize('Super Admin'), async (req, res) => {
             success: true,
             message: 'Notification view cleared. Firestore data is unchanged.',
             connectedToFirebase: true,
-            firebaseProject: 'kylrxai',
+            firebaseProject: firebaseProjectInfo().projectId,
             data: result
         });
     } catch (error) {

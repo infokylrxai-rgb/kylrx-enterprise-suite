@@ -41,6 +41,7 @@ import {
   STATUTORY_TAX_FREE_CAP,
 } from '../services/gratuity-automation-engine.mjs';
 import firebaseConfig from '../config/firebase.js';
+const { firebaseProjectInfo } = firebaseConfig;
 
 const db = firebaseConfig?.db || firebaseConfig?.default?.db;
 
@@ -107,9 +108,9 @@ router.get('/firebase-status', async (req, res) => {
       success: true,
       firebase: {
         connected: true,
-        projectId: 'kylrxai',
+        projectId: firebaseProjectInfo().projectId,
         environment: 'Google Cloud Firestore Production',
-        clientEmail: 'firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com',
+        clientEmail: firebaseProjectInfo().clientEmail,
         collections: {
           gratuity_settlements: settlementsCount,
           gratuity_profiles: profilesCount,

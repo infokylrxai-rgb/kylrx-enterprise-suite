@@ -64,8 +64,11 @@ const PORT = process.env.PORT || 3000;
 // 0. Firebase Auth reverse proxy (/__/auth/*, /__/firebase/*) so Google sign-in can use
 // signInWithRedirect with this server as authDomain (same-origin, no popup, no third-party
 // storage). Registered first so helmet's CSP and the body sanitizer don't touch Google's pages.
-const FIREBASE_AUTH_HOST = 'https://kylrxai.firebaseapp.com';
+// The project's auth domain: FIREBASE_AUTH_DOMAIN, else <FIREBASE_PROJECT_ID>.firebaseapp.com
+const FIREBASE_AUTH_DOMAIN = process.env.FIREBASE_AUTH_DOMAIN || (process.env.FIREBASE_PROJECT_ID ? `${process.env.FIREBASE_PROJECT_ID}.firebaseapp.com` : '');
+const FIREBASE_AUTH_HOST = FIREBASE_AUTH_DOMAIN ? `https://${FIREBASE_AUTH_DOMAIN}` : '';
 app.use(['/__/auth', '/__/firebase'], async (req, res) => {
+    if (!FIREBASE_AUTH_HOST) return res.status(503).send('Firebase auth proxy: set FIREBASE_PROJECT_ID (or FIREBASE_AUTH_DOMAIN)');
     try {
         const upstream = await fetch(FIREBASE_AUTH_HOST + req.originalUrl, {
             method: req.method,
@@ -91,11 +94,11 @@ const isAllowedOrigin = (origin) => {
     if (isLocal) {
         return process.env.NODE_ENV !== 'production';
     }
-    const isProductionAllowed =
-        /^https:\/\/kylrxai\.(firebaseapp|web)\.app$/.test(origin) ||
-        /^https:\/\/kylrxai\.firebaseapp\.com$/.test(origin) ||
-        /^https:\/\/app\.kylrxai\.com$/.test(origin);
-    return isProductionAllowed;
+    // The project's Firebase Hosting domains, plus the client's own domains from ALLOWED_ORIGINS (comma-separated)
+    const project = process.env.FIREBASE_PROJECT_ID;
+    const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim().replace(/\/+$/, '')).filter(Boolean);
+    if (project) allowed.push(`https://${project}.web.app`, `https://${project}.firebaseapp.com`);
+    return allowed.includes(origin);
 };
 
 app.use(cors({
@@ -125,7 +128,7 @@ app.use(helmet({
             "img-src":          ["'self'", "data:", "https:"],
             "connect-src":      ["'self'", "https://*.gstatic.com", "https://*.googleapis.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firestore.googleapis.com", "wss://*.firebaseio.com", "https://*.firebaseapp.com", "http://localhost:*", "http://127.0.0.1:*", "https://unpkg.com", "https://cdn.jsdelivr.net"],
             "font-src":         ["'self'", "https://fonts.gstatic.com", "data:"],
-            "frame-src":        ["'self'", "https://kylrxai.firebaseapp.com", "https://*.firebaseapp.com", "https://accounts.google.com", "https://apis.google.com"],
+            "frame-src":        ["'self'", "https://*.firebaseapp.com", "https://accounts.google.com", "https://apis.google.com"],
             "object-src":       ["'none'"],
             "upgrade-insecure-requests": null,
         },
@@ -204,7 +207,7 @@ app.get("/", (req, res) => {
 // Firebase Backend Health & Status
 app.get("/api/firebase/status", verifyToken, authorize('Super Admin'), async (req, res) => {
     try {
-        const { db } = require('./config/firebase');
+        const { db, firebaseProjectInfo } = require('./config/firebase');
         const collections = ['users', 'employees', 'attendance', 'activities', 'system_intelligence'];
         const collectionCounts = {};
         for (const coll of collections) {
@@ -219,9 +222,9 @@ app.get("/api/firebase/status", verifyToken, authorize('Super Admin'), async (re
             success: true,
             status: "connected",
             service: "Firebase Admin SDK",
-            projectId: "kylrxai",
-            storageBucket: "kylrxai.firebasestorage.app",
-            clientEmail: "firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com",
+            projectId: firebaseProjectInfo().projectId,
+            storageBucket: firebaseProjectInfo().storageBucket,
+            clientEmail: firebaseProjectInfo().clientEmail,
             collections: collectionCounts,
             timestamp: new Date().toISOString()
         });

@@ -149,7 +149,7 @@ async function initFirebaseAlertSync() {
             isBackendAvailable = true;
             const data = await res.json();
             if (data.success && data.firebase) {
-                updateFirebaseBadge(true, data.firebase.projectId || 'kylrxai', 'Connected');
+                updateFirebaseBadge(true, data.firebase.projectId || window.FIREBASE_PROJECT_ID || '', 'Connected');
                 const colSpan = document.getElementById('fbModalCollections');
                 if (colSpan && data.firebase.collections) {
                     const c = data.firebase.collections;
@@ -158,11 +158,11 @@ async function initFirebaseAlertSync() {
             }
         } else {
             isBackendAvailable = false;
-            updateFirebaseBadge(true, 'kylrxai', 'Connected (Client SDK)');
+            updateFirebaseBadge(true, window.FIREBASE_PROJECT_ID || '', 'Connected (Client SDK)');
         }
     } catch (e) {
         isBackendAvailable = false;
-        updateFirebaseBadge(true, 'kylrxai', 'Connected (Client SDK)');
+        updateFirebaseBadge(true, window.FIREBASE_PROJECT_ID || '', 'Connected (Client SDK)');
     }
 
     // 2. Realtime listener on Firestore alert_rules
@@ -248,7 +248,7 @@ async function testFirebaseSync() {
                 isBackendAvailable = true;
                 const data = await res.json();
                 success = true;
-                alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities & alert_rules\n• Project: kylrxai (Live)`);
+                alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities & alert_rules\n• Project: ${window.FIREBASE_PROJECT_ID || 'not configured'} (Live)`);
             }
         } catch (_) {
             isBackendAvailable = false;
@@ -887,7 +887,7 @@ async function zeroAllAlerts() {
         badge.style.background = '#ecfdf5';
         badge.style.borderColor = '#a7f3d0';
         badge.style.color = '#065f46';
-        text.textContent = 'Firebase: kylrxai (Connected) • Slate Zeroed';
+        text.textContent = 'Firebase: Connected • Slate Zeroed';
     }
 }
 
@@ -915,7 +915,7 @@ async function restoreAlerts() {
     const badge = document.getElementById('firebaseLiveBadge');
     const text = document.getElementById('firebaseStatusText');
     if (badge && text) {
-        text.textContent = 'Firebase: kylrxai (Connected) • Live Telemetry';
+        text.textContent = 'Firebase: Connected • Live Telemetry';
     }
 }
 

@@ -20,6 +20,14 @@ const SNAPSHOT = path.join(LOCAL_DIR, 'snapshot.json');
 const EMULATOR_HOST = '127.0.0.1:8080';
 const fresh = process.argv.includes('--fresh');
 
+require('dotenv').config({ quiet: true });
+// The emulator must use the same project id as the app; there is no default project
+const PROJECT_ID = process.env.FIREBASE_PROJECT_ID;
+if (!PROJECT_ID) {
+    console.error('[local] FIREBASE_PROJECT_ID is not set. Set it in .env (see .env.example) and try again.');
+    process.exit(1);
+}
+
 function portOpen(port) {
     return new Promise(resolve => {
         const socket = net.connect(port, '127.0.0.1', () => { socket.end(); resolve(true); });
@@ -54,7 +62,7 @@ function runNode(args, env) {
     }
 
     console.log('[local] Starting local test database (Firestore emulator) on ' + EMULATOR_HOST + '...');
-    const emulatorArgs = ['emulators:start', '--only', 'firestore', '--project', 'kylrxai', '--export-on-exit', DATA_DIR];
+    const emulatorArgs = ['emulators:start', '--only', 'firestore', '--project', PROJECT_ID, '--export-on-exit', DATA_DIR];
     if (!firstRun) emulatorArgs.push('--import', DATA_DIR);
     const emulator = spawn('firebase', emulatorArgs, { cwd: ROOT, stdio: ['ignore', 'ignore', 'inherit'], shell: true });
     emulator.on('exit', code => { console.log(`[local] Emulator stopped (${code}).`); process.exit(code || 0); });

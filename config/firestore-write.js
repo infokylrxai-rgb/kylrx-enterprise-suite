@@ -41,7 +41,8 @@ async function writesRefusedByQuota() {
         const { admin } = require('./firebase');
         if (!admin.apps.length) return false;
         const app = admin.app();
-        const projectId = app.options.projectId || (app.options.credential && app.options.credential.projectId) || 'kylrxai';
+        const projectId = app.options.projectId || (app.options.credential && app.options.credential.projectId);
+        if (!projectId) return false;
         const { access_token: token } = await app.options.credential.getAccessToken();
         const database = `projects/${projectId}/databases/(default)`;
         const res = await fetch(`https://firestore.googleapis.com/v1/${database}/documents:commit`, {

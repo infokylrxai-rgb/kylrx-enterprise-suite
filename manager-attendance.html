@@ -577,7 +577,7 @@
                             <h1 class="page-title">Attendance Log</h1>
                             <div class="backend-status-pill" id="backendStatusPill">
                                 <span class="status-dot-pulse" id="backendPulse"></span>
-                                <span id="backendStatusLabel">Firebase Backend Connected (kylrxai)</span>
+                                <span id="backendStatusLabel">Firebase Backend Connected</span>
                             </div>
                         </div>
                         <p class="page-subtitle" id="empSubtitle">Your complete attendance history & punch-in timeline</p>
@@ -725,7 +725,7 @@
                 const status = await checkBackendFirebaseStatus();
                 if (status.online) {
                     if (pill) pill.className = 'backend-status-pill';
-                    if (label) label.textContent = `Firebase Cloud Connected (kylrxai) • Realtime Active`;
+                    if (label) label.textContent = `Firebase Cloud Connected • Realtime Active`;
                     if (pulse) pulse.className = 'status-dot-pulse';
                 } else {
                     if (pill) pill.className = 'backend-status-pill connecting';
@@ -733,7 +733,7 @@
                     if (pulse) pulse.className = 'status-dot-pulse amber';
                 }
             } catch (e) {
-                if (label) label.textContent = `Firebase Active (kylrxai)`;
+                if (label) label.textContent = `Firebase Active`;
             }
         }
         verifyBackendConnection();

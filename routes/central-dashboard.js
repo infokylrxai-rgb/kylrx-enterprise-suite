@@ -5,6 +5,7 @@ const automationEngine = require('../services/automation-engine');
 const analyticsEngine = require('../services/custom-analytics-engine');
 const logger = require('../utils/logger');
 const { admin, db, rawCollection } = require('../config/firebase');
+const { firebaseProjectInfo } = require('../config/firebase');
 const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
@@ -550,8 +551,8 @@ router.get('/overview', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) =
             const tenantData = await buildTenantOverview(req.user);
             const firebase = {
                 connected: true,
-                projectId: 'kylrxai',
-                storageBucket: 'kylrxai.firebasestorage.app',
+                projectId: firebaseProjectInfo().projectId,
+                storageBucket: firebaseProjectInfo().storageBucket,
                 firestoreSynced: true,
                 orgId: req.user.orgId,
                 liveCounts: { employees: tenantData.workforce.totalHeadcount, users: 1 }
@@ -658,8 +659,8 @@ router.get('/overview', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) =
         // Live Backend Firebase Firestore Ingestion
         let firebaseStatus = {
             connected: true,
-            projectId: "kylrxai",
-            storageBucket: "kylrxai.firebasestorage.app",
+            projectId: firebaseProjectInfo().projectId,
+            storageBucket: firebaseProjectInfo().storageBucket,
             firestoreSynced: true,
             liveCounts: { employees: 950, users: 4 }
         };
@@ -997,9 +998,9 @@ router.get('/firebase-status', authorize('Super Admin'), async (req, res) => {
         res.status(200).json({
             success: true,
             status: isConnected ? "connected" : "standalone",
-            projectId: "kylrxai",
-            storageBucket: "kylrxai.firebasestorage.app",
-            clientEmail: "firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com",
+            projectId: firebaseProjectInfo().projectId,
+            storageBucket: firebaseProjectInfo().storageBucket,
+            clientEmail: firebaseProjectInfo().clientEmail,
             collections: collectionsFound,
             timestamp: new Date().toISOString()
         });

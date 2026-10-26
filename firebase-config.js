@@ -1,5 +1,6 @@
 // @ts-ignore
 import { initializeApp, setLogLevel } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { firebaseWebConfig, isFirebaseWebConfigSet } from "./firebase-web-config.js";
 // @ts-ignore
 import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 // @ts-ignore
@@ -120,21 +121,31 @@ console.warn = function (...args) {
   _origConsoleWarn.apply(console, args);
 };
 
-// Your web app's Firebase configuration
+// The web app config lives in firebase-web-config.js (the one place to change the project)
+if (!isFirebaseWebConfigSet()) {
+  _origConsoleError.call(console, '[Firebase] firebase-web-config.js still has CHANGE_ME values: paste your Firebase web app config there.');
+}
 const firebaseConfig = {
-  apiKey: "AIzaSyBQCO1FI1mPsWxsTvInyLlwIQVFGnUBlco",
+  ...firebaseWebConfig,
   // On HTTPS the Kylrx server proxies /__/auth to Firebase and is its own authDomain (needed for
   // redirect sign-in). The Firebase SDK always opens https://<authDomain>/__/auth/handler, so on
-  // plain-http local development the default firebaseapp.com domain (popup sign-in) is used.
+  // plain-http local development the project's own authDomain (popup sign-in) is used.
   authDomain: (typeof window !== 'undefined' && window.location.protocol === 'https:' && window.location.host)
     ? window.location.host
-    : "kylrxai.firebaseapp.com",
-  projectId: "kylrxai",
-  storageBucket: "kylrxai.firebasestorage.app",
-  messagingSenderId: "483232913511",
-  appId: "1:483232913511:web:769faab820b2eead141cc2",
-  measurementId: "G-3F6VW2MEJG"
+    : firebaseWebConfig.authDomain
 };
+
+// Pages show the configured project, never a hard-coded one: labels marked data-firebase-project /
+// data-firebase-bucket are filled here, and scripts read window.FIREBASE_PROJECT_ID
+if (typeof window !== 'undefined') {
+  window.FIREBASE_PROJECT_ID = firebaseWebConfig.projectId;
+  const fillProjectLabels = () => {
+    document.querySelectorAll('[data-firebase-project]').forEach(el => { el.textContent = firebaseWebConfig.projectId; });
+    document.querySelectorAll('[data-firebase-bucket]').forEach(el => { el.textContent = firebaseWebConfig.storageBucket; });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fillProjectLabels);
+  else fillProjectLabels();
+}
 
 // Resilient Firebase initialization with InPrivate / Private-mode graceful degradation
 // Long-polling fallback enabled via experimentalAutoDetectLongPolling: true

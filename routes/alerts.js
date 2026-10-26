@@ -6,6 +6,7 @@ const automationEngine = require('../services/automation-engine');
 const eventBus = require('../services/event-bus');
 const logger = require('../utils/logger');
 const { db, rawCollection } = require('../config/firebase');
+const { firebaseProjectInfo } = require('../config/firebase');
 const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
 const triggerRegistryService = require('../services/alert-trigger-registry-service');
 const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
@@ -380,9 +381,9 @@ router.get('/firebase-status', authorize('Super Admin'), async (req, res) => {
             success: true,
             firebase: {
                 connected: isConnected,
-                projectId: 'kylrxai',
-                storageBucket: 'kylrxai.firebasestorage.app',
-                clientEmail: 'firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com',
+                projectId: firebaseProjectInfo().projectId,
+                storageBucket: firebaseProjectInfo().storageBucket,
+                clientEmail: firebaseProjectInfo().clientEmail,
                 collections: {
                     alert_rules: rulesCount,
                     alert_breaches: breachesCount,

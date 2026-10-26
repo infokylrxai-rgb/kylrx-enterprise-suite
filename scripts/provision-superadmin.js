@@ -82,51 +82,33 @@ function initializeFirebaseAdmin() {
     return admin.app();
   }
 
+  // The project always comes from the environment: never a default project
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  if (!projectId) {
+    throw new Error('FIREBASE_PROJECT_ID is not set. Set it (and the service account) in .env before provisioning.');
+  }
+
   let serviceAccount = null;
-
-  // 1. Check raw JSON string in environment
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    try {
-      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-    } catch (err) {
-      console.warn('⚠️  Could not parse FIREBASE_SERVICE_ACCOUNT JSON string:', err.message);
-    }
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+    serviceAccount = JSON.parse(raw.startsWith('{') ? raw : Buffer.from(raw, 'base64').toString('utf8'));
+  } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+    serviceAccount = require(path.resolve(__dirname, '..', process.env.FIREBASE_SERVICE_ACCOUNT_PATH));
   }
 
-  // 2. Check local config/serviceAccountKey.json
-  if (!serviceAccount) {
-    const localSaPath = path.resolve(__dirname, '../config/serviceAccountKey.json');
-    if (fs.existsSync(localSaPath)) {
-      try {
-        serviceAccount = require(localSaPath);
-      } catch (err) {
-        console.warn('⚠️  Failed to require serviceAccountKey.json:', err.message);
-      }
-    }
-  }
-
-  // 3. Initialize app
   if (serviceAccount) {
+    if (serviceAccount.project_id && serviceAccount.project_id !== projectId) {
+      throw new Error(`FIREBASE_PROJECT_ID (${projectId}) does not match the service account's project (${serviceAccount.project_id}).`);
+    }
     return admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      projectId: serviceAccount.project_id || process.env.FIREBASE_PROJECT_ID || 'kylrxai',
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'kylrxai.firebasestorage.app',
+      projectId,
+      ...(process.env.FIREBASE_STORAGE_BUCKET ? { storageBucket: process.env.FIREBASE_STORAGE_BUCKET } : {})
     });
   }
 
-  // 4. Fallback to Google Application Default Credentials
-  try {
-    return admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-      projectId: process.env.FIREBASE_PROJECT_ID || 'kylrxai',
-    });
-  } catch (err) {
-    throw new Error(
-      `Failed to initialize Firebase Admin SDK. No service account key found.\n` +
-      `Ensure config/serviceAccountKey.json exists or FIREBASE_SERVICE_ACCOUNT is set.\n` +
-      `Detail: ${err.message}`
-    );
-  }
+  // Google Application Default Credentials (for example in Cloud Shell), still on the configured project
+  return admin.initializeApp({ credential: admin.credential.applicationDefault(), projectId });
 }
 
 // ============================================================================

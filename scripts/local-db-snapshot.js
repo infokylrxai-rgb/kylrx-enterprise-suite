@@ -36,6 +36,7 @@ function decode(value, admin) {
 
 async function exportLive() {
     if (process.env.FIRESTORE_EMULATOR_HOST) throw new Error('export must read the live project; unset FIRESTORE_EMULATOR_HOST');
+    if (!process.env.FIREBASE_PROJECT_ID) throw new Error('FIREBASE_PROJECT_ID is not set; refusing to export from an unknown project');
     const { db } = require('../config/firebase');
     const docs = [];
     async function walk(collections) {

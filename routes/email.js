@@ -138,7 +138,10 @@ router.post('/test', authorize('Super Admin'), async (req, res) => {
         }
 
         const senderName = process.env.EMAIL_SENDER_NAME || 'Kylrx AI HRMS';
-        const fromEmail = process.env.SMTP_USER || process.env.EMAIL_FROM || 'noreply@kylrxai.com';
+        const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER;
+        if (!fromEmail) {
+            return res.status(503).json({ success: false, error: 'Email sender is not configured: set EMAIL_FROM (or SMTP_USER).' });
+        }
 
         const html = `
             <div style="font-family: 'Outfit', sans-serif; max-width: 580px; margin: 0 auto; padding: 32px; border: 1px solid #e2e8f0; border-radius: 20px; background: #ffffff;">

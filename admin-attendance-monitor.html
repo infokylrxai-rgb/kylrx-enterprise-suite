@@ -196,7 +196,7 @@
                         <h1>Attendance Command Center</h1>
                         <div id="firebaseConnectionBadge" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 100px; font-size: 0.72rem; font-weight: 800; color: #065f46;">
                             <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 6px #10b981;"></span>
-                            <span id="firebaseStatusText">Firebase Live: kylrxai</span>
+                            <span id="firebaseStatusText">Firebase Live</span>
                         </div>
                     </div>
                     <p>Track workforce punctuality, missing punches, and regularization requests in real-time.</p>
@@ -1397,7 +1397,7 @@
             checkBackendFirebaseStatus().then(res => {
                 const statusEl = document.getElementById('firebaseStatusText');
                 if (statusEl && res.online) {
-                    statusEl.textContent = `Firebase Live: ${res.projectId || 'kylrxai'} (Backend Online)`;
+                    statusEl.textContent = `Firebase Live: ${res.projectId || window.FIREBASE_PROJECT_ID || ''} (Backend Online)`;
                 }
             });
 

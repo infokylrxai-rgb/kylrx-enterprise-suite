@@ -383,11 +383,12 @@ class BulkTriggerEngine {
                         if (seenIds.has(id)) return;
 
                         const isRelieved = data.employmentStatus === 'Relieved';
-                        const email = (data.email || data.companyEmail || `${id.toLowerCase()}@kylrxai.com`).trim();
-                        if (seenEmails.has(email.toLowerCase())) return;
+                        // No invented address: a person without an email gets no email (in-app notices still work)
+                        const email = (data.email || data.companyEmail || '').trim();
+                        if (email && seenEmails.has(email.toLowerCase())) return;
 
                         seenIds.add(id);
-                        seenEmails.add(email.toLowerCase());
+                        if (email) seenEmails.add(email.toLowerCase());
 
                         recipients.push({
                             id,
@@ -475,7 +476,7 @@ class BulkTriggerEngine {
             list.push({
                 id: `EMP-${String(i).padStart(3, '0')}`,
                 name: `Enterprise User ${i}`,
-                email: isBadEmail ? `invalid-email-format-${i}` : `staff.${i}@kylrxai.com`,
+                email: isBadEmail ? `invalid-email-format-${i}` : `staff.${i}@example.com`,
                 phone: `+9198765${String(i).padStart(5, '0')}`,
                 department: dept,
                 role: i % 10 === 0 ? 'Lead' : 'Member',

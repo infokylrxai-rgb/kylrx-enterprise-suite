@@ -6,6 +6,7 @@ const logger = require('../utils/logger');
 const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 const crypto = require('crypto');
 const { rawCollection } = require('../config/firebase');
+const { firebaseProjectInfo } = require('../config/firebase');
 const { orgDocs, ownerOrgId } = require('../config/tenant');
 
 router.use(verifyToken);
@@ -80,9 +81,9 @@ router.get('/firebase-status', authorize('Super Admin'), async (req, res) => {
             success: true,
             firebase: {
                 connected: true,
-                projectId: 'kylrxai',
+                projectId: firebaseProjectInfo().projectId,
                 environment: 'Google Cloud Firestore Production',
-                clientEmail: 'firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com',
+                clientEmail: firebaseProjectInfo().clientEmail,
                 collections: {
                     employees: employeesCount,
                     analytics_dashboards: dashboardsCount,
