@@ -17,7 +17,7 @@ const files = args.length
         .flatMap(dir => fs.readdirSync(dir).filter(f => /\.test\.m?js$/.test(f)).map(f => `${dir}/${f}`))
         .filter(f => !EMULATOR_ONLY.has(f));
 
-const env = { ...process.env, FIREBASE_SERVICE_ACCOUNT: '', FIREBASE_SERVICE_ACCOUNT_PATH: '', GOOGLE_APPLICATION_CREDENTIALS: '' };
+const env = { ...process.env, FIREBASE_SERVICE_ACCOUNT: '', FIREBASE_SERVICE_ACCOUNT_PATH: '', GOOGLE_APPLICATION_CREDENTIALS: '', NODE_ENV: 'test' };
 // No --test-force-exit: on Windows with Node 24 it crashes libuv at exit (UV_HANDLE_CLOSING) and fails
 // files whose tests all passed. Every file exits on its own; the timeout is the guard against a hang.
 const run = spawnSync(process.execPath, ['--test', ...files], { stdio: 'inherit', env, timeout: 10 * 60 * 1000 });

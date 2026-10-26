@@ -205,6 +205,21 @@ if (serviceAccount) {
     }
   };
 
+  // Write batches exist only in test mode. Elsewhere this store is not a database, so a batch must
+  // fail visibly instead of confirming a save that only went to memory.
+  if (process.env.NODE_ENV === 'test') {
+    db.batch = () => {
+      const ops = [];
+      const batch = {
+        set: (ref, data, opts) => { ops.push(() => ref.set(data, opts)); return batch; },
+        update: (ref, data) => { ops.push(() => ref.update(data)); return batch; },
+        delete: (ref) => { ops.push(() => ref.delete()); return batch; },
+        commit: async () => { for (const op of ops) await op(); return ops.map(() => ({})); }
+      };
+      return batch;
+    };
+  }
+
   admin.firestore = function() {
     return db;
   };
