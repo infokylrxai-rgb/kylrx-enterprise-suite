@@ -60,6 +60,7 @@ async function seed() {
     await set('organizations/orgA/approval_tasks/t_mgr', { assignedApproverId: 'mgr_a', initiatorId: 'mgr_a', status: 'PENDING' });
     await set('organizations/orgA/business_units/bu1', { name: 'BU' });
     await set('payroll_profiles/pp1', { orgId: 'orgA', employeeId: 'emp_a', ctc: 100 });
+    await set('organizations/orgA/config/admin_custom_apps', { customApps: [{ name: 'Datadog', url: 'https://app.datadoghq.com/' }] });
     await set('notifications/n1',        { orgId: 'orgA', title: 'Policy update', message: 'Read it', target: 'all', readBy: [], clearedBy: [] });
     await set('notifications/n_shared',  { orgId: 'orgA', title: 'Shared', target: 'all', readBy: ['mgr_a'], clearedBy: ['mgr_a'] });
     await set('notifications/n_legacy_read', { orgId: 'orgA', title: 'Old', target: 'all', read: true });
@@ -214,6 +215,34 @@ describe('organizations/{orgId}/{subCollection} catch-all', () => {
   it('super admin of an unconfigured org can write config (setup wizard needs it)', () =>
     ok(setDoc(doc(ctx.saC(), 'organizations/orgC/business_units/x'), { name: 'first' })));
   it('other-org super admin cannot', () => no(updateDoc(bu(ctx.saB()), { name: 'x' })));
+});
+
+// Custom sidebar apps: one document per organization; super admin / HR of that organization write it
+describe('organizations/{orgId}/config/admin_custom_apps', () => {
+  const apps = (db, org = 'orgA') => doc(db, 'organizations', org, 'config', 'admin_custom_apps');
+  const add = (db, org) => setDoc(apps(db, org), { customApps: arrayUnion({ name: 'X', url: 'https://x.example/' }) }, { merge: true });
+
+  it('every member of the organization can read it', async () => {
+    await ok(getDoc(apps(ctx.emp())));
+    await ok(getDoc(apps(ctx.mgr())));
+  });
+  it('a super admin or HR of the organization can write it', async () => {
+    await ok(add(ctx.saA()));
+    await ok(add(ctx.hr()));
+  });
+  it('employees and managers cannot write it', async () => {
+    await no(add(ctx.emp()));
+    await no(add(ctx.mgr()));
+  });
+  it("organization B cannot read or write organization A's apps", async () => {
+    await no(getDoc(apps(ctx.empB())));
+    await no(getDoc(apps(ctx.saB())));
+    await no(add(ctx.saB()));
+    await no(add(ctx.saB(), 'orgA'));
+  });
+  it('organization B writes only its own document', async () => {
+    await ok(add(ctx.saB(), 'orgB'));
+  });
 });
 
 // Notifications: same organization; a member may only add/remove their OWN uid in readBy/clearedBy
