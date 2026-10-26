@@ -127,7 +127,11 @@ describe('employee-notifications.html', () => {
     const { document, window, calls } = boot({ docs: [{ id: 'a', ...base }, { id: 'b', ...base }, { id: 'c', ...base, readBy: [ME.uid] }] });
     await tick();
     await window.markAllNotificationsAsRead();
-    assert.deepEqual(JSON.parse(JSON.stringify(calls.markAllRead)), [[['a', 'b'], ME.uid]]); // (arrays from the page's own realm)
+    // (arrays come from the page's own realm; the order of equally old notifications is not defined)
+    const [[ids, uid]] = JSON.parse(JSON.stringify(calls.markAllRead));
+    assert.deepEqual([...ids].sort(), ['a', 'b']);
+    assert.equal(uid, ME.uid);
+    assert.equal(calls.markAllRead.length, 1);
     assert.equal(document.getElementById('unreadBadge').style.display, 'none');
     assert.match(toast(document).text, /Marked 2 notifications as read/);
   });
