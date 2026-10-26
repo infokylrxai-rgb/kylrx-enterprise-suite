@@ -5,6 +5,9 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 process.env.API_PORT = '38911'; // stub backend, never the real one on 3000
@@ -51,6 +54,34 @@ describe('static server', () => {
       assert.doesNotMatch(r.body, /\[fonts\]|private_key|JWT_SECRET/i);
     });
   }
+  for (const p of ['/server.js', '/SERVER.JS', '/kylrx-enterprise-suite-main/server.js', '/scan_db.js', '/sync_firebase_backend.js', '/send_live_test.js', '/seed_intelligence.js', '/companyPolicyService.js']) {
+    it(`returns 403 for the server-only file ${p}`, async () => {
+      const r = await get(p);
+      assert.equal(r.status, 403);
+      assert.doesNotMatch(r.body, /require\(|app\.listen/);
+    });
+  }
+  it('root scan: every root .js file that loads backend code or the Admin SDK is blocked', async () => {
+    const root = fileURLToPath(new URL('..', import.meta.url));
+    const backendMarker = /require\(['"]\.\/(config|middleware|routes|controllers|server)\b|\bapp\.listen\(|require\(['"]firebase-admin/;
+    const serverSide = fs.readdirSync(root).filter((f) => f.endsWith('.js') && backendMarker.test(fs.readFileSync(path.join(root, f), 'utf8')));
+    assert.ok(serverSide.includes('server.js'), 'scan found no server.js, so the marker is wrong');
+    const open = [];
+    for (const f of serverSide) if ((await get('/' + f)).status !== 403) open.push(f);
+    assert.deepEqual(open, [], `served to the browser: ${open.join(', ')}`);
+  });
+  it('still serves browser modules at the root, such as app.js', async () => {
+    assert.equal((await get('/app.js')).status, 200);
+  });
+  it('supports byte ranges so <video> can seek', async () => {
+    const full = await get('/demo.html');
+    assert.equal(full.headers['accept-ranges'], 'bytes');
+    const part = await get('/demo.html', { Range: 'bytes=0-9' });
+    assert.equal(part.status, 206);
+    assert.equal(part.body.length, 10);
+    assert.match(part.headers['content-range'], /^bytes 0-9\/\d+$/);
+    assert.equal((await get('/demo.html', { Range: 'bytes=999999999-' })).status, 416);
+  });
   it('answers 400 (no crash) for a NUL byte or bad percent-encoding', async () => {
     assert.equal((await get('/a%00b')).status, 400);
     assert.equal((await get('/%E0%A4%A')).status, 400);

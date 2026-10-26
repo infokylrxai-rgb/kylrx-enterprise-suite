@@ -113,10 +113,13 @@ function requestHandler(req, res) {
     let safePath = path.normalize(urlPath);
     if (safePath === '/' || safePath === '\\') safePath = '/admin-dashboard.html';
 
+    // Backend entry points and DB scripts at the repo root (same intent as STATIC_BLOCKED in server.js)
+    const SERVER_ONLY = /^\/(server|companyPolicyService|scan_db|sync_firebase_backend|send_live_test|seed_[^/]*)\.m?js$/i;
     // Never serve dotfiles (.env, .git), secrets, data stores or dependencies
     const segments = safePath.split(/[\\/]/).filter(Boolean);
     const forbidden = segments.some(s => s.startsWith('.') || s === 'node_modules' || s === 'data') ||
-        /serviceAccount|adminsdk|\.pem$|\.key$/i.test(safePath);
+        /serviceAccount|adminsdk|\.pem$|\.key$/i.test(safePath) ||
+        SERVER_ONLY.test(safePath.replace(/\\/g, '/'));
     if (forbidden) {
         res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end('403 Forbidden');
@@ -132,7 +135,7 @@ function requestHandler(req, res) {
             return;
         }
 
-        serveFile(filePath, res);
+        serveFile(filePath, req, res, stats.size);
     });
 }
 
@@ -142,12 +145,34 @@ function resolveInside(baseDir, requestPath) {
     return resolved === baseDir || resolved.startsWith(baseDir + path.sep) ? resolved : null;
 }
 
-function serveFile(filePath, res) {
+function serveFile(filePath, req, res, size) {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-    const stream = fs.createReadStream(filePath);
+    // Range support so <video> can seek: a single bytes=a-b / a- / -n range
+    const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+    let start = 0;
+    let end = size - 1;
+    const headers = { 'Content-Type': contentType, 'Accept-Ranges': 'bytes' };
+    let status = 200;
+    if (range && (range[1] || range[2])) {
+        if (range[1]) {
+            start = Number(range[1]);
+            if (range[2]) end = Math.min(Number(range[2]), end);
+        } else {
+            start = Math.max(size - Number(range[2]), 0);
+        }
+        if (start > end) {
+            res.writeHead(416, { 'Content-Range': 'bytes */' + size });
+            res.end();
+            return;
+        }
+        status = 206;
+        headers['Content-Range'] = 'bytes ' + start + '-' + end + '/' + size;
+        headers['Content-Length'] = end - start + 1;
+    }
+    const stream = fs.createReadStream(filePath, status === 206 ? { start, end } : undefined);
     stream.on('open', () => {
-        res.writeHead(200, { 'Content-Type': contentType });
+        res.writeHead(status, headers);
         stream.pipe(res);
     });
     stream.on('error', () => {
@@ -169,7 +194,7 @@ function startServerOnPort(port) {
             console.error(`Server error on port ${port}:`, err);
         }
     });
-    s.listen(port, '0.0.0.0', () => {
+    s.listen(port, process.env.STATIC_HOST || '127.0.0.1', () => {
         console.log(`🌐 Static Server active on http://127.0.0.1:${port}`);
     });
     return s;
