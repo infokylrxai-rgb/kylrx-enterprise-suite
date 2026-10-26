@@ -194,6 +194,7 @@ if (serviceAccount) {
       },
       doc: function(docId) {
         return {
+          collection: (sub) => createQuery(`${collectionName}/${docId}/${sub}`),
           get: async function() {
             const colMap = getCollectionData(collectionName);
             const data = colMap.get(docId);

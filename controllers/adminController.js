@@ -7,6 +7,16 @@ const buRulesService = require('../services/bu-employee-type-rules-service');
 const employeeProfileService = require('../services/employee-profile-service');
 const managerAssignmentService = require('../services/manager-assignment-service');
 
+const buDocId = (code) => String(code).trim().toUpperCase().replace(/s+/g, '_');
+const buCollection = (orgId) => db.collection('organizations').doc(orgId).collection('business_units');
+
+/** PRD §10 check against the organization's own business unit (organizations/{orgId}/business_units); built-in defaults only when it has none for this code */
+async function checkBuCombination(orgId, businessUnitCode, employeeType) {
+    const snap = orgId ? await buCollection(orgId).doc(buDocId(businessUnitCode)).get() : null;
+    const rule = snap && snap.exists ? { ...snap.data(), isActive: snap.data().isActive !== false } : undefined;
+    return buRulesService.isCombinationValid(businessUnitCode, employeeType, rule);
+}
+
 /**
  * Helper to get next sequential ID for departments
  */
@@ -60,7 +70,7 @@ exports.createEmployee = async (req, res, next) => {
         const businessUnitCode = req.body.businessUnitCode || req.body['Business_Unit_Code'];
         const employeeType = req.body.employeeType || req.body['Employment_Type'] || 'FULL_TIME';
         if (businessUnitCode) {
-            const buCheck = buRulesService.isCombinationValid(businessUnitCode, employeeType);
+            const buCheck = await checkBuCombination(req.user && req.user.orgId, businessUnitCode, employeeType);
             if (!buCheck.valid) {
                 return res.status(400).json({
                     status: 'error',
@@ -353,7 +363,7 @@ exports.updateEmployee = async (req, res, next) => {
         const businessUnitCode = updateData.businessUnitCode || updateData['Business_Unit_Code'];
         const employeeType = updateData.employeeType || updateData['Employment_Type'];
         if (businessUnitCode && employeeType) {
-            const buCheck = buRulesService.isCombinationValid(businessUnitCode, employeeType);
+            const buCheck = await checkBuCombination(req.user && req.user.orgId, businessUnitCode, employeeType);
             if (!buCheck.valid) {
                 return res.status(400).json({
                     status: 'error',
@@ -627,34 +637,6 @@ exports.transferBank = async (req, res, next) => {
     } catch (err) {
         console.error('[ADMIN] Bank Transfer error:', err);
         next(err);
-    }
-};
-
-/**
- * GET /bu-rules
- * Get all business unit by employee type rules (PRD Section 10)
- */
-exports.getBuRules = async (req, res, next) => {
-    try {
-        const rules = buRulesService.getAllRules();
-        const employeeTypes = buRulesService.getEmployeeTypes();
-        return res.json({ success: true, rules, employeeTypes });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * POST /bu-rules
- * Save/Update business unit by employee type rule (PRD Section 10)
- */
-exports.saveBuRule = async (req, res, next) => {
-    try {
-        const actor = req.user?.name || req.user?.email || 'Super Admin';
-        const rule = buRulesService.saveRule(req.body, actor);
-        return res.json({ success: true, rule });
-    } catch (error) {
-        next(error);
     }
 };
 
@@ -1019,32 +1001,15 @@ exports.getBuRules = async (req, res, next) => {
         const orgId = req.user && req.user.orgId;
         if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
         
-        // 1. Try fetching from Firestore organizations/{orgId}/business_units
-        try {
-            const buSnap = await db.collection('organizations').doc(orgId).collection('business_units').get();
-            if (!buSnap.empty) {
-                const buList = buSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                buList.forEach(b => {
-                    buRulesService.saveRule(b, 'Firestore Sync');
-                });
-                return res.json({
-                    status: 'success',
-                    success: true,
-                    rules: buList,
-                    data: buList,
-                    total: buList.length
-                });
-            }
-        } catch (_) {}
-
-        // Fallback to buRulesService
-        const rules = buRulesService.getAllRules();
+        const buSnap = await buCollection(orgId).get();
+        const buList = buSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         return res.json({
             status: 'success',
             success: true,
-            rules,
-            data: rules,
-            total: rules.length
+            rules: buList,
+            data: buList,
+            employeeTypes: buRulesService.getEmployeeTypes(),
+            total: buList.length
         });
     } catch (error) {
         next(error);
@@ -1084,17 +1049,8 @@ exports.saveBuRule = async (req, res, next) => {
             ? req.body.allowedEmployeeTypes.map(t => String(t).trim().toUpperCase())
             : ['FULL_TIME', 'CONTRACT'];
 
-        // Save in buRulesService
-        const savedRule = buRulesService.saveRule({
-            businessUnitCode: buCode,
-            businessUnitName: buName,
-            headEmployeeId,
-            isActive,
-            allowedEmployeeTypes: allowedTypes
-        }, actor);
-
-        // Save to Firestore: organizations/{orgId}/business_units/{buCode}
         const record = {
+            orgId,
             businessUnitCode: buCode,
             businessUnitName: buName,
             headEmployeeId,
@@ -1105,21 +1061,15 @@ exports.saveBuRule = async (req, res, next) => {
             updatedBy: actor
         };
 
-        await db.collection('organizations').doc(orgId).collection('business_units').doc(buCode).set(record, { merge: true });
+        await buCollection(orgId).doc(buCode).set(record, { merge: true });
 
-        // Dual-sync to bu_employee_type_rules
-        const ruleId = `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-        await db.collection('bu_employee_type_rules').doc(ruleId).set({
-            ...record,
-            ruleId
-        }, { merge: true });
-
+        const { updatedAt, ...saved } = record;
         return res.status(200).json({
             status: 'success',
             success: true,
             message: `Business Unit '${buCode}' saved successfully.`,
-            rule: savedRule,
-            data: record
+            rule: saved,
+            data: saved
         });
     } catch (error) {
         next(error);
@@ -1148,7 +1098,7 @@ exports.toggleBusinessUnitStatus = async (req, res, next) => {
         const buCode = req.params.code.toUpperCase();
         const orgId = req.user && req.user.orgId;
         if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
-        const buRef = db.collection('organizations').doc(orgId).collection('business_units').doc(buCode);
+        const buRef = buCollection(orgId).doc(buCode);
         const snap = await buRef.get();
 
         let currentActive = true;
@@ -1162,11 +1112,6 @@ exports.toggleBusinessUnitStatus = async (req, res, next) => {
             isActive: newStatus,
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-
-        buRulesService.saveRule({
-            businessUnitCode: buCode,
-            isActive: newStatus
-        }, req.user?.email || 'Super Admin');
 
         return res.json({
             status: 'success',
@@ -1188,9 +1133,7 @@ exports.deleteBusinessUnit = async (req, res, next) => {
         const orgId = req.user && req.user.orgId;
         if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
 
-        await db.collection('organizations').doc(orgId).collection('business_units').doc(buCode).delete();
-        const ruleId = `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-        await db.collection('bu_employee_type_rules').doc(ruleId).delete();
+        await buCollection(orgId).doc(buCode).delete();
 
         return res.json({
             status: 'success',
