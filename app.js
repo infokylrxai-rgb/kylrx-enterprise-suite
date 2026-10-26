@@ -431,7 +431,7 @@ function populateAssigneeDropdown(employees) {
 
 async function loadTasks() {
     if (!managerTaskList) return;
-    const userId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('hr_user_id');
+    const userId = auth.currentUser ? auth.currentUser.uid : null;
     
     if (!auth.currentUser) {
         console.log('Skipping tasks fetch (No active Firebase session)');
@@ -480,7 +480,7 @@ if (btnSaveTask) {
         const assigneeName = document.getElementById('taskAssignee').options[document.getElementById('taskAssignee').selectedIndex].text;
         const deadline = document.getElementById('taskDeadline').value;
         const description = document.getElementById('taskDescription').value.trim();
-        const managerId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('hr_user_id');
+        const managerId = auth.currentUser ? auth.currentUser.uid : null;
         const managerName = localStorage.getItem('userName') || 'Manager';
 
         if (!title || !assigneeId) {
@@ -1277,7 +1277,7 @@ document.addEventListener('click', (e) => {
   // Quick Actions Logic
   if (btn.textContent.includes('Add Employee')) {
     const autoId = `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
-    const hrId = localStorage.getItem('hr_user_id') || 'HR-ADMIN';
+    const hrId = (auth.currentUser ? auth.currentUser.uid : '');
     
     openModal('Add New Employee', `
       <div class="settings-form">
@@ -1407,7 +1407,7 @@ document.addEventListener('click', (e) => {
     navigateTo('reports');
     showToast('Export', 'Redirecting to reports for export...', 'warning');
   } else if (btn.textContent === 'Edit' && btn.closest('.card')?.querySelector('h3')?.textContent.includes('Corporate Account')) {
-    const hrId = localStorage.getItem('hr_user_id') || 'HR-ADMIN';
+    const hrId = (auth.currentUser ? auth.currentUser.uid : '');
     const primaryKey = `BANK-${Math.floor(1000 + Math.random() * 9000)}`;
     
     // Get current values from UI

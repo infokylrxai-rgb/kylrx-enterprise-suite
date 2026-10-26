@@ -3640,7 +3640,7 @@ function startAdminTimer() {
 async function syncAdminStatusToFirebase(status) {
     try {
         const { doc, setDoc, serverTimestamp } = await import("./firebase-config.js");
-        const userId = localStorage.getItem('hr_user_id') || 'admin_demo';
+        const userId = auth.currentUser ? auth.currentUser.uid : '';
         const today = new Date().toISOString().split('T')[0];
         // Import db dynamically or it's already in scope if we are careful, but better to be safe
         const { db } = await import("./firebase-config.js");

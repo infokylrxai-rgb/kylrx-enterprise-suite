@@ -98,7 +98,7 @@ class ManagerAttendanceService {
     }
 
     async syncStatus(status, type) {
-        const userId = this.currentUserId || localStorage.getItem('hr_user_id') || 'manager_demo';
+        const userId = this.currentUserId || (typeof window !== 'undefined' ? window.__kylrxUid : null) || '';
         const today = new Date().toISOString().split('T')[0];
         
         // Internal Manager Session

@@ -20,7 +20,7 @@ function clientFiles(dir = root, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       if (!SKIP_DIRS.has(entry.name)) clientFiles(path.join(dir, entry.name), out);
-    } else if (/\.(js|mjs|html)$/.test(entry.name)) {
+    } else if (/\.(js|mjs|html)$/.test(entry.name) && entry.name !== 'test.mjs') { // test.mjs: a scratch file the server never serves
       out.push(path.join(dir, entry.name));
     }
   }
@@ -51,5 +51,17 @@ describe('no localStorage organization fallback in browser code', () => {
       });
     }
     assert.deepEqual(offenders, [], 'take the organization from getActiveOrgId() (verified token), not localStorage');
+  });
+
+
+  it('no file reads the user id from localStorage (it comes from the verified session, window.__kylrxUid)', () => {
+    const READ_UID = /localStorage\s*\.\s*getItem\s*\(\s*['"`](?:employee_uid|hr_user_id|manager_uid)['"`]\s*\)/;
+    const offenders = [];
+    for (const file of clientFiles()) {
+      fs.readFileSync(file, 'utf8').split(/\r?\n/).forEach((line, i) => {
+        if (READ_UID.test(line)) offenders.push(`${path.relative(root, file).split(path.sep).join('/')}:${i + 1}: ${line.trim().slice(0, 100)}`);
+      });
+    }
+    assert.deepEqual(offenders, [], 'take the uid from window.__kylrxUid / loadIdentity(), not localStorage');
   });
 });
