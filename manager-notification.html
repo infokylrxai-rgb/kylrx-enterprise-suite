@@ -349,6 +349,40 @@
     <script type="module">
         import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, getDoc, addDoc, serverTimestamp, updateDoc, arrayUnion, registerListener } from "./firebase-config.js";
 
+        import { loadIdentity, orgNotificationsQuery, setReadState, failureReason, watchNotificationBadge } from "./notification-actions.js";
+        import { isUnread as unreadFor, canMarkUnread, isManagerNotification } from "./notification-read-state.js";
+        import { whereMyOrg, where } from "./firebase-config.js";
+
+        let me = null; // { uid, orgId, role } from the verified token
+        const managerContext = () => ({
+            uid: me ? me.uid : '',
+            centerId: new URLSearchParams(window.location.search).get('id') || '',
+            dept: localStorage.getItem('userDept') || ''
+        });
+        const esc = (v) => String(v ?? '').replace(/[&<>"'`]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c]));
+
+        function showManagerToast(message, isError = false) {
+            let el = document.getElementById('managerToast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'managerToast';
+                el.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:10px 18px; border-radius:10px; color:#fff; font-weight:600; font-size:0.85rem; z-index:10000; box-shadow:0 8px 24px rgba(0,0,0,0.2); max-width:90%;';
+                document.body.appendChild(el);
+            }
+            el.textContent = message;
+            el.style.background = isError ? '#991b1b' : '#1e293b';
+            el.style.display = 'block';
+            clearTimeout(el._hide);
+            el._hide = setTimeout(() => { el.style.display = 'none'; }, 3500);
+        }
+
+        function showManagerError(message) {
+            console.warn('[Manager notifications] Could not load:', message);
+            const box = document.querySelector('.card');
+            if (box) box.innerHTML = `<div style="text-align:center; padding:4rem 2rem; color:#991b1b;"><strong>Could not load notifications</strong><p style="font-size:0.85rem; margin-top:6px;">${esc(message)}</p></div>`;
+            showManagerToast('Could not load notifications: ' + message, true);
+        }
+
         function syncHeaderBadges(userId) {
             const msgBadge = document.getElementById('headerMsgBadge');
             const notifBadge = document.getElementById('headerNotifBadge');
@@ -360,6 +394,7 @@
             
             const msgQuery = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('receiverId', '==', msgTargetId),
                 where('read', '==', false)
             );
@@ -371,43 +406,23 @@
                 }
             });
 
-            // 2. Listen for notifications targeted to this manager
-            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
-            onSnapshot(notifQuery, (snap) => {
-                const currentUid = userId.toLowerCase();
-                const currentHrUserId = (localStorage.getItem('hr_user_id') || '').toLowerCase();
-                const centerId = (new URLSearchParams(window.location.search).get('id') || '').toLowerCase();
-                const userDept = (localStorage.getItem('userDept') || '').toLowerCase();
-
-                const unreadNotifs = snap.docs.filter(d => {
-                    const data = d.data();
-                    if (data.read) return false;
-                    const clearedBy = data.clearedBy || [];
-                    if (clearedBy.includes(userId)) return false;
-                    const tgt = (data.target || data.departmentId || '').toLowerCase();
-                    const type = (data.type || '').toLowerCase();
-
-                    return tgt === 'manager' || 
-                           type === 'employee_help' || 
-                           tgt === 'general' || 
-                           (!tgt) || 
-                           (currentUid && tgt === currentUid) ||
-                           (currentHrUserId && tgt === currentHrUserId) ||
-                           (centerId && tgt === centerId) ||
-                           (userDept && tgt === userDept);
-                });
-
-                if (notifBadge) {
-                    const count = unreadNotifs.length;
-                    notifBadge.textContent = count > 9 ? '9+' : count;
-                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
-                }
-            });
+            // 2. Manager notifications of my organization, unread by my readBy
+            watchNotificationBadge(notifBadge, (n) => isManagerNotification(n, managerContext())).catch(() => {});
         }
 
+        let managerStarted = false;
         onAuthStateChanged(auth, async (user) => {
-            const currentUserId = user ? user.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
-            syncHeaderBadges(currentUserId);
+            if (!user) { showManagerError('You are signed out. Please sign in again.'); return; }
+            try {
+                me = await loadIdentity();
+                if (!managerStarted) {
+                    managerStarted = true;
+                    syncHeaderBadges(me.uid);
+                    startManagerList();
+                }
+            } catch (err) {
+                showManagerError(err.message);
+            }
             // Dynamic Sidebar Hydration
             const centerId = new URLSearchParams(window.location.search).get('id');
             if (centerId) {
@@ -518,32 +533,16 @@
 
         const notifContainer = document.querySelector('.card');
 
-        // Real-time notification listener — manager-scoped + employee help requests
-        const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
-        onSnapshot(q, (snap) => {
-            const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
-            // Show all notifications; highlight employee help requests specially
+        // Real-time list: my organization's manager notifications and employee help requests.
+        // Older notifications without an orgId belong to no organization and are shown to nobody.
+        const helpEmails = new Map(); // help request id -> employee email, so no email goes into an onclick string
+        function startManagerList() {
+        onSnapshot(orgNotificationsQuery(me, 60), (snap) => {
+            const currentUserId = me.uid;
+            const context = managerContext();
             const allDocs = snap.docs.filter(d => {
                 const data = d.data();
-                const clearedBy = data.clearedBy || [];
-                if (clearedBy.includes(currentUserId)) return false;
-
-                const tgt = (data.target || data.departmentId || '').toLowerCase();
-                const type = (data.type || '').toLowerCase();
-                
-                const currentUid = currentUserId.toLowerCase();
-                const currentHrUserId = (localStorage.getItem('hr_user_id') || '').toLowerCase();
-                const centerId = (new URLSearchParams(window.location.search).get('id') || '').toLowerCase();
-                const userDept = (localStorage.getItem('userDept') || '').toLowerCase();
-
-                return tgt === 'manager' || 
-                       type === 'employee_help' || 
-                       tgt === 'general' || 
-                       (!tgt) || 
-                       (currentUid && tgt === currentUid) ||
-                       (currentHrUserId && tgt === currentHrUserId) ||
-                       (centerId && tgt === centerId) ||
-                       (userDept && tgt === userDept);
+                return !(data.clearedBy || []).includes(currentUserId) && isManagerNotification(data, context);
             });
 
             window.visibleNotifIds = allDocs.map(d => d.id);
@@ -561,6 +560,9 @@
                 const priority = (data.priority || 'normal').toLowerCase();
                 const isHelpRequest = data.type === 'employee_help';
                 const helpStatus = data.status || 'pending';
+                const unread = unreadFor(data, currentUserId);
+                const legacyLocked = !unread && !canMarkUnread(data);
+                if (isHelpRequest) helpEmails.set(docId, data.empEmail || '');
 
                 let icon, color, bg;
                 if (isHelpRequest) {
@@ -575,12 +577,12 @@
 
                 const actionButtons = isHelpRequest && helpStatus === 'pending' ? `
                     <div style="display:flex; gap:8px; margin-top:10px;">
-                        <button onclick="handleHelpRequest('${docId}','${data.empEmail || ''}','allow')"
+                        <button onclick="handleHelpRequest('${esc(docId)}','allow')"
                             style="flex:1; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; border-radius:8px; padding:7px 12px; font-size:0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
                             onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
                             ✅ Allow Access
                         </button>
-                        <button onclick="handleHelpRequest('${docId}','${data.empEmail || ''}','decline')"
+                        <button onclick="handleHelpRequest('${esc(docId)}','decline')"
                             style="flex:1; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:8px; padding:7px 12px; font-size:0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
                             onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
                             ❌ Decline
@@ -588,55 +590,78 @@
                     </div>` : (isHelpRequest ? `<div style="margin-top:8px; padding:5px 10px; border-radius:6px; font-size:0.75rem; font-weight:700; display:inline-block; background:${bg}; color:${color};">${helpStatus === 'allowed' ? '✅ Access Allowed' : '❌ Declined'}</div>` : '');
 
                 return `
-                    <div class="notif-item" id="notif-${docId}">
+                    <div class="notif-item" id="notif-${esc(docId)}">
                         <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
                         <div class="notif-content">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">${data.title || (priority.toUpperCase() + ' ALERT')}</div>
-                                <button onclick="deleteNotification('${docId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                                <div class="notif-title">${unread ? '<span title="Unread" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#2563eb; margin-right:6px;"></span>' : ''}${esc(data.title || (priority.toUpperCase() + ' ALERT'))}</div>
+                                <span style="display:flex; gap:4px;">
+                                <button onclick="managerToggleRead('${esc(docId)}', ${unread})" title="${unread ? 'Mark as read' : (legacyLocked ? 'Read (older notification, cannot be marked unread)' : 'Mark as unread')}" ${legacyLocked ? 'disabled' : ''} style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px;"><i data-lucide="${unread ? 'check' : 'rotate-ccw'}" size="16"></i></button>
+                                <button onclick="deleteNotification('${esc(docId)}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                                </span>
                             </div>
-                            <div class="notif-desc">${data.message || 'No details provided.'}</div>
-                            ${isHelpRequest && data.empEmail ? `<div style="margin-top:4px; font-size:0.75rem; color:var(--primary); font-weight:700;">📧 Employee Email: ${data.empEmail}</div>` : ''}
-                            <div class="notif-time">${date}</div>
+                            <div class="notif-desc">${esc(data.message || 'No details provided.')}</div>
+                            ${isHelpRequest && data.empEmail ? `<div style="margin-top:4px; font-size:0.75rem; color:var(--primary); font-weight:700;">📧 Employee Email: ${esc(data.empEmail)}</div>` : ''}
+                            <div class="notif-time">${esc(date)}</div>
                             ${actionButtons}
                         </div>
                     </div>
                 `;
             }).join('');
             if (window.lucide) lucide.createIcons();
-        });
+        }, (err) => showManagerError(err.code === 'permission-denied'
+            ? 'Permission denied while reading notifications for your organization.'
+            : err.message));
+        }
 
-        // Handle Allow / Decline for employee help requests
-        window.handleHelpRequest = async (notifId, empEmail, action) => {
+        // Handle Allow / Decline for employee help requests: record the decision as me, and mark it read for me
+        window.handleHelpRequest = async (notifId, action) => {
+            if (!me) { showManagerToast('Sign in again to change notifications.', true); return; }
+            const empEmail = helpEmails.get(notifId) || '';
+            const status = action === 'allow' ? 'allowed' : 'declined';
             try {
-                const status = action === 'allow' ? 'allowed' : 'declined';
-                await updateDoc(doc(db, 'notifications', notifId), { status, read: true });
-
+                await updateDoc(doc(db, 'notifications', notifId), {
+                    status,
+                    resolvedBy: me.uid,
+                    resolvedAt: new Date().toISOString(),
+                    readBy: arrayUnion(me.uid)
+                });
                 if (action === 'allow') {
-                    // Notify HRMS of manager's approval
+                    // Tell HRMS of my organization that the request was approved
                     await addDoc(collection(db, 'notifications'), {
+                        orgId: me.orgId,
                         type: 'employee_help_approved',
                         title: '✅ Manager Approved — Employee Access Request',
                         message: `Manager has approved access for employee "${empEmail}". Please proceed with credential verification and onboarding support.`,
-                        empEmail: empEmail,
+                        empEmail,
                         target: 'hrms',
                         departmentId: 'hrms',
                         priority: 'high',
                         status: 'pending_hrms',
-                        read: false,
+                        readBy: [],
+                        createdByUid: me.uid,
                         timestamp: serverTimestamp(),
                         createdAt: serverTimestamp()
                     });
-                    console.log('✅ Manager approved help request for:', empEmail);
-                } else {
-                    console.log('❌ Manager declined help request for:', empEmail);
                 }
+                showManagerToast(action === 'allow' ? 'Access allowed; HRMS has been notified' : 'Request declined');
             } catch (err) {
                 console.error('Failed to handle help request:', err);
+                showManagerToast('Could not update the request: ' + failureReason(err), true);
             }
         };
 
-
+        // Mark one notification read (setAsRead = true) or unread for me; the list refreshes from the snapshot
+        window.managerToggleRead = async (id, setAsRead) => {
+            if (!me) { showManagerToast('Sign in again to change notifications.', true); return; }
+            try {
+                await setReadState(id, me.uid, setAsRead);
+                showManagerToast(setAsRead ? 'Marked as read' : 'Marked as unread');
+            } catch (err) {
+                console.error('Toggle read failed:', err);
+                showManagerToast('Could not update the notification: ' + failureReason(err), true);
+            }
+        };
 
         window.setTheme = (theme, el) => {
             document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
@@ -720,11 +745,13 @@
             document.getElementById('customDelNotifConfirm').onclick = async () => {
                 modal.style.display = 'none';
                 try {
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+                    if (!me) { showManagerToast('Sign in again to change notifications.', true); return; }
+                    const currentUserId = me.uid;
                     await updateDoc(doc(db, 'notifications', id), {
                         clearedBy: arrayUnion(currentUserId)
                     });
-                } catch(e) { console.error('Error deleting:', e); }
+                    showManagerToast('Notification cleared');
+                } catch(e) { console.error('Error deleting:', e); showManagerToast('Could not clear the notification: ' + failureReason(e), true); }
             };
         };
 
@@ -736,13 +763,15 @@
             document.getElementById('customClearAllNotifConfirm').onclick = async () => {
                 modal.style.display = 'none';
                 try {
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'manager_demo');
+                    if (!me) { showManagerToast('Sign in again to change notifications.', true); return; }
+                    const currentUserId = me.uid;
                     const ids = window.visibleNotifIds || [];
                     const promises = ids.map(id => updateDoc(doc(db, 'notifications', id), {
                         clearedBy: arrayUnion(currentUserId)
                     }));
                     await Promise.all(promises);
-                } catch(e) { console.error('Error clearing all:', e); }
+                    showManagerToast('All notifications cleared');
+                } catch(e) { console.error('Error clearing all:', e); showManagerToast('Could not clear notifications: ' + failureReason(e), true); }
             };
         };
 
