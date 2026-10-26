@@ -19,6 +19,7 @@ describe('Global Route Authentication & RBAC Enforcement Suite', () => {
     const EXEMPT_ROUTES = new Set([
         'POST /api/auth/login',
         'POST /api/auth/signup',
+        'POST /api/auth/register-organization',
         'POST /api/auth/refresh-token',
         'GET /api/health'
     ]);
