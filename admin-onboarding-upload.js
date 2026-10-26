@@ -2125,20 +2125,6 @@ async function executeBusinessUnitIngest(buDocs) {
                 updatedAt: serverTimestamp()
             }, { merge: true });
 
-            // Also dual-sync to bu_employee_type_rules
-            const ruleId = `rule_${bu.businessUnitCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-            const ruleRef = doc(db, "bu_employee_type_rules", ruleId);
-            await setDoc(ruleRef, {
-                ruleId,
-                businessUnitCode: bu.businessUnitCode,
-                businessUnitName: bu.businessUnitName,
-                headEmployeeId: bu.headEmployeeId || '',
-                headEmployeeName: bu.headEmployeeName || '',
-                isActive: bu.isActive !== false,
-                allowedEmployeeTypes: Array.isArray(bu.allowedEmployeeTypes) ? bu.allowedEmployeeTypes : ['FULL_TIME', 'CONTRACT'],
-                updatedAt: serverTimestamp()
-            }, { merge: true }).catch(() => {});
-
             // Update in-memory rules
             if (window.KylrxBuRules && typeof window.KylrxBuRules.saveRule === 'function') {
                 await window.KylrxBuRules.saveRule(bu);

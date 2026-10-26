@@ -23,7 +23,7 @@
  * 2. Real-time Cloud Firestore synchronization + local cache resilience.
  * 3. Dynamic Head Employee Selection from active employees master directory.
  * 4. PRD Section 10 Employee-Type Rule Integration & Form Gating.
- * 5. Dual-collection synchronization (organizations/{orgId}/business_units & bu_employee_type_rules).
+ * 5. One collection: organizations/{orgId}/business_units (the old bu_employee_type_rules is no longer used).
  * 
  * @version 2.0.0
  * @author Senior Frontend & Firebase Developer
@@ -168,11 +168,12 @@
     let activeEmployeesCache = [...CANONICAL_ACTIVE_EMPLOYEES];
     let isInitialized = false;
 
+    // The organization of the signed-in user (verified token, via firebase-config.js); never localStorage or a default
     function getDefaultOrgId() {
-        if (typeof localStorage !== 'undefined') {
-            return localStorage.getItem('orgId') || 'org_kylrx';
-        }
-        return 'org_kylrx';
+        const fb = typeof window !== 'undefined' && window.KylrxFirebase;
+        const orgId = fb && fb.getActiveOrgId && fb.getActiveOrgId();
+        if (!orgId) throw new Error('Your account has no organization');
+        return orgId;
     }
 
     /**
@@ -277,7 +278,6 @@
     /**
      * Loads Business Units from Cloud Firestore:
      * 1. organizations/{orgId}/business_units
-     * 2. bu_employee_type_rules (fallback/dual-read)
      */
     async function loadBusinessUnitsFromFirestore(orgId = getDefaultOrgId()) {
         try {
@@ -287,7 +287,7 @@
             if (fb && fb.db && fb.collection && fb.getDocs) {
                 // 1. Primary path: organizations/{orgId}/business_units
                 const buCollRef = fb.collection(fb.db, 'organizations', orgId, 'business_units');
-                const buSnap = await fb.getDocs(buCollRef).catch(() => ({ empty: true }));
+                const buSnap = await fb.getDocs(buCollRef);
 
                 if (!buSnap.empty) {
                     businessUnitsMap.clear();
@@ -306,31 +306,11 @@
                         });
                     });
                     console.log(`[BusinessUnitController] Loaded ${businessUnitsMap.size} BUs from organizations/${orgId}/business_units`);
-                } else {
-                    // Fallback path: bu_employee_type_rules
-                    const rulesSnap = await fb.getDocs(fb.collection(fb.db, 'bu_employee_type_rules')).catch(() => ({ empty: true }));
-                    if (!rulesSnap.empty) {
-                        rulesSnap.forEach(docSnap => {
-                            const data = docSnap.data();
-                            const buCode = (data.businessUnitCode || docSnap.id).toUpperCase();
-                            if (!businessUnitsMap.has(buCode)) {
-                                businessUnitsMap.set(buCode, {
-                                    businessUnitCode: buCode,
-                                    businessUnitName: data.businessUnitName || buCode,
-                                    headEmployeeId: data.headEmployeeId || '',
-                                    headEmployeeName: data.headEmployeeName || getEmployeeNameById(data.headEmployeeId),
-                                    isActive: data.isActive !== false,
-                                    allowedEmployeeTypes: Array.isArray(data.allowedEmployeeTypes) ? data.allowedEmployeeTypes : ['FULL_TIME', 'CONTRACT'],
-                                    createdAt: data.createdAt || new Date().toISOString(),
-                                    updatedAt: data.updatedAt || new Date().toISOString()
-                                });
-                            }
-                        });
-                    }
                 }
             }
         } catch (err) {
-            console.warn('[BusinessUnitController] Firestore read notice (using memory defaults):', err.message);
+            console.error('[BusinessUnitController] Could not read business units:', err.message);
+            throw err;
         }
 
         isInitialized = true;
@@ -507,19 +487,6 @@
                     updatedAt: fb.serverTimestamp ? fb.serverTimestamp() : record.updatedAt
                 }, { merge: true });
 
-                // Also dual-sync to bu_employee_type_rules collection
-                const ruleId = `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-                const ruleDocRef = fb.doc(fb.db, 'bu_employee_type_rules', ruleId);
-                await fb.setDoc(ruleDocRef, {
-                    ruleId,
-                    businessUnitCode: buCode,
-                    businessUnitName: buName,
-                    headEmployeeId: headId,
-                    headEmployeeName: headName,
-                    isActive: isActive,
-                    allowedEmployeeTypes: allowedTypes,
-                    updatedAt: fb.serverTimestamp ? fb.serverTimestamp() : record.updatedAt
-                }, { merge: true }).catch(() => {});
 
                 console.log(`[BusinessUnitController] Saved to Firestore organizations/${orgId}/business_units/${buCode}`);
             }
@@ -601,8 +568,6 @@
                 const docRef = fb.doc(fb.db, 'organizations', orgId, 'business_units', buCode);
                 await fb.deleteDoc(docRef);
 
-                const ruleId = `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-                await fb.deleteDoc(fb.doc(fb.db, 'bu_employee_type_rules', ruleId)).catch(() => {});
             }
         } catch (err) {
             console.warn('[BusinessUnitController] Firestore delete notice:', err.message);
