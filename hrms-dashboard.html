@@ -18,8 +18,8 @@
         (function() {
             const role = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
             if (role === 'manager') {
-                const centerId = localStorage.getItem('departmentId') || localStorage.getItem('command_center_id') || 'Yksv1DMH9pIeRhNxQ8E3';
-                window.location.replace(`manager-dashboard.html?id=${centerId}`);
+                const centerId = localStorage.getItem('departmentId') || localStorage.getItem('command_center_id') || '';
+                window.location.replace(centerId ? `manager-dashboard.html?id=${centerId}` : 'manager-dashboard.html');
             }
         })();
     </script>
@@ -1064,7 +1064,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">Reporting Manager *</label>
-                                <input type="text" id="hManager" required placeholder="e.g. John Doe (or code)" style="padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; outline: none; background: #f8fafc;">
+                                <input type="text" id="hManager" required placeholder="e.g. a manager name (or code)" style="padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem; outline: none; background: #f8fafc;">
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 8px;">
                                 <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-main);">Joining Date *</label>
@@ -3627,7 +3627,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
                         <label>Full Name</label>
-                        <input type="text" name="name" placeholder="John Doe" required>
+                        <input type="text" name="name" placeholder="Full name" required>
                     </div>
                     <div class="form-group">
                         <label>Email Address</label>
@@ -3910,7 +3910,7 @@
                 alert('Please enter a valid score between 0 and 100.');
                 return;
             }
-            const adminId = auth.currentUser?.uid || localStorage.getItem('hr_user_id') || 'hrms_admin';
+            const adminId = auth.currentUser?.uid || window.__kylrxUid || '';
             try {
                 const btn = document.querySelector(`#eod-item-${eodId} .eod-score-btn`);
                 if(btn) { btn.textContent = 'Saving...'; btn.disabled = true; }

@@ -252,20 +252,20 @@
                 <div class="nav-item"><a href="employee-dashboard.html" class="nav-link" onclick="event.preventDefault(); navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
                 <div class="nav-item"><a href="employee-appraisal.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-appraisal.html');"><i data-lucide="target"></i><span>Performance (PMS)</span></a></div>
                 <div class="nav-item"><a href="employee-leave.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 
                 <div class="nav-label">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
             </nav>
 
             <div class="profile-mini">
                 <div class="avatar" id="userInitial">JD</div>
                 <div class="profile-info">
-                    <div class="profile-name" id="userNameDisplay">John Doe</div>
+                    <div class="profile-name" id="userNameDisplay">Employee</div>
                     <div class="profile-role" id="userRoleDisplay">Employee</div>
                 </div>
                 <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
@@ -411,9 +411,10 @@
         document.getElementById('userInitial').textContent = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
         const urlParams = new URLSearchParams(window.location.search);
-        let empId = urlParams.get('id');
-        if (empId === 'null' || empId === 'undefined') empId = null;
-        empId = empId || localStorage.getItem('employee_uid') || 'demo_emp';
+        import { loadIdentity } from "./notification-actions.js";
+        // The user is the verified session (token), never ?id= or localStorage
+        const SESSION = await loadIdentity().catch(() => null);
+        const empId = SESSION ? SESSION.uid : '';
 
         // Back button
         const backBtn = document.getElementById('backBtn');

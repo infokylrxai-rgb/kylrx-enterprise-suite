@@ -237,6 +237,7 @@ const tenantReady = new Promise((resolve) => {
     if (!user) {
       activeOrgId = null;
       localStorage.removeItem('orgId'); // the cache must not outlive the session
+      window.__kylrxUid = null;
       resolve(null);
       return;
     }
@@ -248,6 +249,7 @@ const tenantReady = new Promise((resolve) => {
         orgId = profile.exists() ? (profile.data().orgId || null) : null;
       }
       activeOrgId = orgId;
+      window.__kylrxUid = user.uid; // the verified uid, for pages and scripts that build links
       if (orgId) localStorage.setItem('orgId', orgId);
     } catch (_) {}
     resolve(activeOrgId);

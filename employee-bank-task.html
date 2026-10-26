@@ -251,7 +251,10 @@
 
         lucide.createIcons();
 
-        const empId = new URLSearchParams(window.location.search).get('id') || 'demo_emp';
+        import { loadIdentity } from "./notification-actions.js";
+        // The user is the verified session (token), never ?id= or localStorage
+        const SESSION = await loadIdentity().catch(() => null);
+        const empId = SESSION ? SESSION.uid : '';
         const form = document.getElementById('bankForm');
         const statusLabel = document.getElementById('statusLabel');
         const rejectionMsg = document.getElementById('rejectionMsg');
