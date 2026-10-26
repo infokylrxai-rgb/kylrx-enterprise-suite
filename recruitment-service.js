@@ -1,6 +1,7 @@
 import { db, storage, onSnapshot, registerListener } from "./firebase-config.js";
 import { collection, doc, addDoc, updateDoc, getDocs, getDoc, setDoc, serverTimestamp, query, orderBy } from "./firebase-config.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
+import { orgStoragePath, safeExtension } from "./storage-paths.js";
 
 export const STAGES = ["Applied", "Screening", "Interview", "Offer", "Hired", "Rejected"];
 export const INTERVIEW_ROUNDS = ["Phone Screen", "Technical", "HR", "Final"];
@@ -160,13 +161,13 @@ export async function deleteCandidate(id) {
 }
 
 export async function uploadResume(candidateId, file) {
-    const ext = file.name.split(".").pop() || "pdf";
-    const storagePath = `recruitment/resumes/${candidateId}.${ext}`;
+    const storagePath = await orgStoragePath("recruitment", "resumes", `${candidateId}.${safeExtension(file.name, "pdf")}`);
     const storageRef = ref(storage, storagePath);
-    await uploadBytes(storageRef, file);
+    await uploadBytes(storageRef, file, { contentType: file.type || "application/pdf" });
     const resumeUrl = await getDownloadURL(storageRef);
     await updateDoc(doc(db, "candidates", candidateId), {
         resumeUrl,
+        resumePath: storagePath,
         resumeFileName: file.name,
         updatedAt: serverTimestamp()
     });

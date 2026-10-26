@@ -106,15 +106,23 @@ router.get('/documents/:docId/download-url', async (req, res) => {
         }
 
         const data = docSnap.data();
+        // Another organization's payslip does not exist for the caller (the Admin SDK bypasses the rules)
+        if (!req.user.orgId || data.orgId !== req.user.orgId) {
+            return res.status(404).json({ success: false, error: 'Payroll document not found' });
+        }
         if (data.employeeId !== employeeId) {
             return res.status(403).json({ success: false, error: 'Not authorized for this document' });
         }
 
-        if (data.storageUrl) {
+        // A short-lived signed URL for a file inside the caller's organization folder (storage.rules layout)
+        if (data.storagePath) {
+            if (!String(data.storagePath).startsWith(`orgs/${req.user.orgId}/`)) {
+                return res.status(404).json({ success: false, error: 'Payroll document not found' });
+            }
+        } else if (data.storageUrl) {
+            // Older documents only kept a long-lived download URL
             return res.json({ success: true, url: data.storageUrl, source: 'firestore' });
-        }
-
-        if (!data.storagePath) {
+        } else {
             return res.status(404).json({ success: false, error: 'No PDF file attached to this document' });
         }
 

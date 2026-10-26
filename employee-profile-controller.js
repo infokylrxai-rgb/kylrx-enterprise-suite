@@ -261,13 +261,17 @@
         if (progressBar) progressBar.style.width = '20%';
 
         const docId = `doc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-        const storagePath = `employees/${employeeId}/documents/${file.name}`;
+        let storagePath = '';
 
         let downloadUrl = '';
 
         try {
-            // Attempt Firebase Storage Upload via Web SDK
-            try {
+            // Under orgs/{orgId}/ (storage.rules); the file name becomes one safe path segment
+            const { orgStoragePath } = await import('./storage-paths.js');
+            storagePath = await orgStoragePath('employees', employeeId, 'documents', `${docId}_${file.name}`);
+
+            // Firebase Storage upload; a failure stops here and is shown to the user
+            {
                 const fbConfig = await import('./firebase-config.js');
                 const fbStorage = await import('https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js');
                 if (fbConfig.storage && fbStorage.ref && fbStorage.uploadBytesResumable) {
@@ -288,14 +292,10 @@
                         );
                     });
                 }
-            } catch (storageErr) {
-                console.warn('[Firebase Storage] Direct upload notice (using secure local object URL fallback):', storageErr.message);
-                downloadUrl = URL.createObjectURL(file);
             }
 
-            if (!downloadUrl) {
-                downloadUrl = URL.createObjectURL(file);
-            }
+            // No local blob: URL "fallback": it looked saved but nobody else could open it
+            if (!downloadUrl) throw new Error('Firebase Storage is not available, so the file was not saved.');
 
             if (progressBar) progressBar.style.width = '100%';
 
