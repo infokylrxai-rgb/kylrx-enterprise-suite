@@ -277,5 +277,17 @@ if (serviceAccount) {
 }
 
 // rawCollection(name) bypasses tenant scoping; only for authentication-time lookups
-module.exports = { admin, db, messaging, rawCollection: rawCollection || ((name) => db.collection(name)), firebaseProjectInfo };
+// Firebase Auth for server code that mints tokens. Without a service account (in-memory mode) only tests get a
+// stand-in, because a real custom token cannot be made without the Admin SDK.
+function getAuth() {
+  if (serviceAccount) return admin.auth();
+  return {
+    createCustomToken: async (uid, claims) => {
+      if (process.env.NODE_ENV !== 'test') throw new Error('Firebase Admin is not configured: custom tokens need a service account.');
+      return `test-custom-token:${uid}:${JSON.stringify(claims)}`;
+    }
+  };
+}
+
+module.exports = { admin, db, messaging, getAuth, rawCollection: rawCollection || ((name) => db.collection(name)), firebaseProjectInfo };
 

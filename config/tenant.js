@@ -157,7 +157,7 @@ const LEGACY_ORG_ID = process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai';
 
 // Default and fallback tenants the code uses; signup must never create one of these
 const RESERVED_ORG_IDS = new Set(
-    [LEGACY_ORG_ID, process.env.DEV_DEFAULT_ORG_ID, 'org_kylrx_ai', 'org_kylrx', 'org_kylrx_default', 'org_default'].filter(Boolean)
+    [LEGACY_ORG_ID, process.env.DEV_DEFAULT_ORG_ID, 'org_kylrx_ai', 'org_kylrx', 'org_kylrx_default', 'org_default', 'org_demo'].filter(Boolean)
 );
 
 function ownerOrgId(data) {

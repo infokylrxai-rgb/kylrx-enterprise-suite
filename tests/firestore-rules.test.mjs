@@ -398,6 +398,30 @@ describe('business units: primary and legacy paths', () => {
   });
 });
 
+// Demo login signs in to the reserved organization org_demo (claims: orgId org_demo, super_admin for the admin
+// button). Its users must be exactly as confined as any other organization's.
+describe('demo organization isolation', () => {
+  const demoAdmin = () => env.authenticatedContext('demo_admin', { orgId: 'org_demo', role: 'super_admin', super_admin: true, demo: true }).firestore();
+  const demoEmp = () => env.authenticatedContext('demo_emp', { orgId: 'org_demo', role: 'Employee', demo: true }).firestore();
+
+  it('a demo user cannot read the documents of a real organization', async () => {
+    await no(getDoc(doc(demoAdmin(), 'users/emp_a')));
+    await no(getDoc(doc(demoAdmin(), 'organizations/orgA')));
+    await no(getDoc(doc(demoAdmin(), 'organizations/orgA/business_units/bu1')));
+    await no(getDoc(doc(demoEmp(), 'payroll_profiles/pp1')));
+    await no(getDoc(doc(demoEmp(), 'notifications/n1')));
+  });
+  it('a demo super admin cannot write into a real organization, even stamping its orgId', async () => {
+    await no(setDoc(doc(demoAdmin(), 'organizations/orgA/business_units/evil'), { orgId: 'orgA' }));
+    await no(setDoc(doc(demoAdmin(), 'payroll_profiles/evil'), { orgId: 'orgA' }));
+    await no(updateDoc(doc(demoAdmin(), 'users/emp_a'), { role: 'Employee' }));
+  });
+  it('a real organization cannot read the demo organization either', async () => {
+    await env.withSecurityRulesDisabled(c => setDoc(doc(c.firestore(), 'organizations/org_demo/business_units/d1'), { orgId: 'org_demo' }));
+    await no(getDoc(doc(ctx.saA(), 'organizations/org_demo/business_units/d1')));
+  });
+});
+
 // Gaps found by this suite that need a product decision before changing; flip to no() once fixed
 describe('KNOWN GAPS (current behaviour, not yet restricted)', () => {
   it('any same-org employee can overwrite payroll_profiles via the top-level catch-all', () =>

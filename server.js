@@ -285,6 +285,10 @@ app.use((req, res, next) => {
 app.use(express.static(__dirname));
 
 // Route Wiring
+// Public, unauthenticated: tells the login pages whether to show the demo sign-in UI
+const { publicConfig } = require('./controllers/demoController');
+app.get('/api/public-config', publicConfig);
+require('./config/demo').logDemoModeStatus(logger);
 app.use("/api/auth", authRoutes);
 app.use("/api/data", dataRoutes);
 app.use("/api/notifications", notificationRoutes);

@@ -106,6 +106,19 @@ email `superadmin@kylrx.ai`, the organization `org_kylrx` and a password that is
 Chrome and need a running server. The emulator suites have **not been run** in this environment (Java was not installed), so the rules tests are
 written but unexecuted.
 
+## Demo login (optional, off by default)
+
+The login pages can show a "1-Click Demo Login" bar (Admin, HRMS, Manager, Employee) and a "Demo Roles" button. They are
+**not in the page HTML**: `login-extras.js` adds them only when `GET /api/public-config` says `demoMode: true`. No account or
+password is stored in any client file.
+
+- Switch on: set `KYLRX_DEMO_MODE=true` in `.env`, run `npm run seed:demo` once (creates the organization `org_demo` and four demo
+  users with random passwords, printed once, not stored; demo login does not need them), then restart the server.
+- Switch off: remove the line or set `KYLRX_DEMO_MODE=false` and restart. `POST /api/auth/demo-login` then returns 404 and the pages show no demo UI.
+- `POST /api/auth/demo-login { role }` returns a Firebase custom token for the demo user of that role, always in `org_demo`
+  (`org_demo` is a reserved organization id; signup cannot create it). It is rate limited (20 per IP per 15 minutes) and every use is logged.
+- In production it stays off even with `KYLRX_DEMO_MODE=true`, unless `KYLRX_DEMO_MODE_ALLOW_PRODUCTION=true` is also set (the server then logs a warning at startup).
+
 ## Demo videos
 
 `demo.html` plays walkthrough videos from `assets/videos/` (about 102 MB; the folder is in `.gitignore` and the files are delivered separately). Copy them there with exactly these names; a missing file shows "Video not available":

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { register, registerOrganization, login, refreshToken, unlockAccount, verifyMfa, resendMfa } = require('../controllers/authController');
+const { demoLogin } = require('../controllers/demoController');
 
 // Rate limiting specifically for Auth
 const rateLimit = require('express-rate-limit');
@@ -32,6 +33,14 @@ const loginAccountLimiter = rateLimit({
     message: { success: false, error: 'Too many failed login attempts for this account, please try again later' }
 });
 
+// Demo login: 20 per IP per window (every use is also logged by the controller)
+const demoLimiter = rateLimit({
+    windowMs: WINDOW_MS,
+    max: 20,
+    message: { success: false, error: 'Too many demo logins, please try again later' }
+});
+
+router.post('/demo-login', demoLimiter, demoLogin);
 router.post('/signup', authLimiter, register);
 router.post('/register-organization', authLimiter, registerOrganization);
 router.post('/login', loginIpLimiter, loginAccountLimiter, login);

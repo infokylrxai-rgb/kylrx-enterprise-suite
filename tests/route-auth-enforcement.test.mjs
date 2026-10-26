@@ -21,6 +21,9 @@ describe('Global Route Authentication & RBAC Enforcement Suite', () => {
         'POST /api/auth/signup',
         'POST /api/auth/register-organization',
         'POST /api/auth/refresh-token',
+        // demo mode (config/demo.js): public by design; POST is a 404 unless KYLRX_DEMO_MODE, see demo-login.test.mjs
+        'POST /api/auth/demo-login',
+        'GET /api/public-config',
         'GET /api/health'
     ]);
 
