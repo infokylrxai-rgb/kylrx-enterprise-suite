@@ -26,6 +26,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load services via CommonJS require (compatible with ESM)
 import { createRequire } from 'node:module';
+import http from 'node:http';
+import admin from 'firebase-admin';
+import { before, after } from 'node:test';
+import jwt from 'jsonwebtoken';
+import serverModule from '../server.js';
+
+// Starts the app on a free port with the in-memory store; refuses to run against a real Firebase app.
+let server;
+let baseUrl;
+before(async () => {
+  assert.equal(admin.apps.length, 0, 'a real Firebase app is initialised: run with blank FIREBASE_SERVICE_ACCOUNT*');
+  await serverModule.dynamicRoutesLoaded;
+  server = http.createServer(serverModule.app);
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  baseUrl = `http://127.0.0.1:${server.address().port}`;
+});
+after(async () => {
+  server.closeAllConnections?.();
+  await new Promise((resolve) => server.close(resolve));
+});
+const authed = (url, opts = {}) => fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_super_admin', role: 'Super Admin', orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai' }, process.env.JWT_SECRET)}`, ...(opts.headers || {}) } });
 const require = createRequire(import.meta.url);
 
 const documentTemplateEngine = require('../services/document-template-engine');
@@ -390,10 +411,10 @@ test('Document Template Engine - Preview (Non-archiving Render)', async (t) => {
    SUITE 7: REST API Endpoint Verification
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 test('Document Template Engine - REST API Endpoints', async (t) => {
-    const BASE_URL = 'http://localhost:3000/api/document-templates';
+    const BASE_URL = `${baseUrl}/api/document-templates`;
 
     await t.test('GET /api/document-templates returns 200 and all 10 templates', async () => {
-        const res = await fetch(BASE_URL);
+        const res = await authed(BASE_URL);
         assert.strictEqual(res.status, 200);
         const json = await res.json();
         assert.strictEqual(json.success, true);
@@ -402,7 +423,7 @@ test('Document Template Engine - REST API Endpoints', async (t) => {
     });
 
     await t.test('GET /api/document-templates/:key returns full template with versions', async () => {
-        const res = await fetch(`${BASE_URL}/offer_letter`);
+        const res = await authed(`${BASE_URL}/offer_letter`);
         assert.strictEqual(res.status, 200);
         const json = await res.json();
         assert.strictEqual(json.success, true);
@@ -412,14 +433,14 @@ test('Document Template Engine - REST API Endpoints', async (t) => {
     });
 
     await t.test('GET /api/document-templates/:key returns 404 for unknown template', async () => {
-        const res = await fetch(`${BASE_URL}/nonexistent_template_xyz`);
+        const res = await authed(`${BASE_URL}/nonexistent_template_xyz`);
         assert.strictEqual(res.status, 404);
         const json = await res.json();
         assert.strictEqual(json.success, false);
     });
 
     await t.test('POST /api/document-templates/:key/preview renders HTML with sample data', async () => {
-        const res = await fetch(`${BASE_URL}/payslip/preview`, {
+        const res = await authed(`${BASE_URL}/payslip/preview`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
@@ -432,7 +453,7 @@ test('Document Template Engine - REST API Endpoints', async (t) => {
     });
 
     await t.test('POST /api/document-templates/generate - permitted module generates document', async () => {
-        const res = await fetch(`${BASE_URL}/generate`, {
+        const res = await authed(`${BASE_URL}/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -455,7 +476,7 @@ test('Document Template Engine - REST API Endpoints', async (t) => {
     });
 
     await t.test('POST /api/document-templates/generate - non-permitted module returns 403', async () => {
-        const res = await fetch(`${BASE_URL}/generate`, {
+        const res = await authed(`${BASE_URL}/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -472,7 +493,7 @@ test('Document Template Engine - REST API Endpoints', async (t) => {
     });
 
     await t.test('GET /api/document-templates/generated returns archive list', async () => {
-        const res = await fetch(`${BASE_URL}/generated`);
+        const res = await authed(`${BASE_URL}/generated`);
         assert.strictEqual(res.status, 200);
         const json = await res.json();
         assert.strictEqual(json.success, true);

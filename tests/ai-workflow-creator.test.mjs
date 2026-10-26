@@ -9,13 +9,34 @@ const __dirname = path.dirname(__filename);
 
 // Import services via CommonJS createRequire
 import { createRequire } from 'module';
+import http from 'node:http';
+import admin from 'firebase-admin';
+import { before, after } from 'node:test';
+import jwt from 'jsonwebtoken';
+import serverModule from '../server.js';
+
+// Starts the app on a free port with the in-memory store; refuses to run against a real Firebase app.
+let server;
+let baseUrl;
+before(async () => {
+  assert.equal(admin.apps.length, 0, 'a real Firebase app is initialised: run with blank FIREBASE_SERVICE_ACCOUNT*');
+  await serverModule.dynamicRoutesLoaded;
+  server = http.createServer(serverModule.app);
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  baseUrl = `http://127.0.0.1:${server.address().port}`;
+});
+after(async () => {
+  server.closeAllConnections?.();
+  await new Promise((resolve) => server.close(resolve));
+});
+const authed = (url, opts = {}) => fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_super_admin', role: 'Super Admin', orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai' }, process.env.JWT_SECRET)}`, ...(opts.headers || {}) } });
 const require = createRequire(import.meta.url);
 
 const aiWorkflowCreatorService = require('../services/ai-workflow-creator-service.js');
 const workflowBuilderService = require('../services/workflow-builder-service.js');
 
-const API_BASE = 'http://localhost:3000/api/workflow-builder';
-const AI_API_BASE = 'http://localhost:3000/api/ai';
+
+
 
 test('AI Automation Creator - Natural Language Intent Parsing & Flow Synthesis', async (t) => {
 
@@ -184,7 +205,7 @@ test('AI Automation Creator - REST API Endpoints', async (t) => {
             prompt: "If an employee is absent for three consecutive working days, notify the manager and HR. If there is no response within two days, escalate to the HR Head."
         };
 
-        const res = await fetch(`${API_BASE}/ai-generate`, {
+        const res = await authed(`${baseUrl}/api/workflow-builder/ai-generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -203,7 +224,7 @@ test('AI Automation Creator - REST API Endpoints', async (t) => {
     });
 
     await t.test('POST /api/workflow-builder/ai-generate fails with 400 when prompt is omitted', async () => {
-        const res = await fetch(`${API_BASE}/ai-generate`, {
+        const res = await authed(`${baseUrl}/api/workflow-builder/ai-generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
@@ -219,7 +240,7 @@ test('AI Automation Creator - REST API Endpoints', async (t) => {
             prompt: "When candidate accepts offer, verify department, generate offer letter, require HR Director approval, and notify employee"
         };
 
-        const res = await fetch(`${AI_API_BASE}/generate-workflow`, {
+        const res = await authed(`${baseUrl}/api/ai/generate-workflow`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
