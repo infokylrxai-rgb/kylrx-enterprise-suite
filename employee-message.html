@@ -619,7 +619,7 @@
                             <div class="channel-icon" style="background: #dcfce7; color: #10b981;"><i data-lucide="users" size="20"></i></div>
                             <div class="channel-info">
                                 <div class="channel-name" id="teamLabel">Team Channel</div>
-                                <div class="channel-desc" id="teamSub">Cybersecurity group sync</div>
+                                <div class="channel-desc" id="teamSub">Team group sync</div>
                             </div>
                         </div>
 
@@ -764,6 +764,8 @@
 
     <script type="module">
         import { auth, db, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, doc, setDoc, deleteField, limit, arrayUnion, registerListener } from "./firebase-config.js";
+        import { whereMyOrg } from "./firebase-config.js";
+        import { loadIdentity } from "./notification-actions.js";
 
         if (window.lucide) lucide.createIcons();
 
@@ -893,7 +895,7 @@
         function hydrateProfileUI(user) {
             if (!user) return;
             const name = user.displayName || user.name || user.fullName || 'Employee';
-            const role = user.designation || user.role || 'Cybersecurity Specialist';
+            const role = user.designation || user.role || 'Employee';
             const initials = name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'EM';
             
             const initEl = document.getElementById('userInitial');
@@ -904,12 +906,12 @@
             if (roleEl) roleEl.textContent = role;
 
             // Custom dynamic manager names
-            const mName = user.managerName || localStorage.getItem('manager_name') || 'Nandan.B';
+            const mName = user.managerName || localStorage.getItem('manager_name') || 'Your manager';
             const mgrLabel = document.getElementById('managerLabel');
             if (mgrLabel) mgrLabel.textContent = mName;
             
             // Custom dynamic department
-            const dept = user.department || user.departmentName || 'Cybersecurity';
+            const dept = user.department || user.departmentName || 'General';
             const teamLabel = document.getElementById('teamLabel');
             const teamSub = document.getElementById('teamSub');
             if (teamLabel) teamLabel.textContent = `${dept} Team`;
@@ -917,29 +919,19 @@
         }
 
         // 1. IMMEDIATE SYNCHRONOUS PROFILE HYDRATION (Prevents "-- --" hang on load)
-        let cachedUid = localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
-        let cachedName = localStorage.getItem('userName') || (cachedUid === 'demo_emp' ? 'John Doe' : 'Employee');
-        let cachedRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
-        let cachedDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'Cybersecurity';
+        // Display-only hints from the last visit; the uid and organization come only from the verified session below
+        let cachedName = localStorage.getItem('userName') || 'Employee';
+        let cachedRole = localStorage.getItem('userRole') || 'Employee';
+        let cachedDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'General';
 
-        // Auto-normalize Marry's account so it matches directory records
-        if (cachedUid.startsWith('EMP_MARRY_') || (cachedName && cachedName.toLowerCase().includes('marry')) || localStorage.getItem('userEmail') === 'marry@gmail.com') {
-            cachedUid = 'EMP_1789230184645';
-            cachedName = 'Marry Doe';
-            cachedRole = 'Cybersecurity Employee';
-            localStorage.setItem('employee_uid', 'EMP_1789230184645');
-            localStorage.setItem('hr_user_id', 'EMP_1789230184645');
-            localStorage.setItem('userName', 'Marry Doe');
-            localStorage.setItem('userRole', 'Cybersecurity Employee');
-        }
-
+        let me = null; // { uid, orgId, role } from the verified token
         currentUser = {
-            uid: cachedUid,
+            uid: '',
             name: cachedName,
             role: cachedRole,
             department: cachedDept,
-            managerName: localStorage.getItem('manager_name') || 'Nandan.B',
-            managerId: 'EMP_1789151730443'
+            managerName: localStorage.getItem('manager_name') || '',
+            managerId: ''
         };
 
         // Render immediate initial UI state
@@ -982,30 +974,32 @@
         onAuthStateChanged(auth, async (user) => {
             authStateHandled = true;
             loadCommandCenterConfig();
-            let activeUid = user ? user.uid : (localStorage.getItem('employee_uid') || currentUser.uid);
-            if (activeUid && (activeUid.startsWith('EMP_MARRY_') || (currentUser.name && currentUser.name.toLowerCase().includes('marry')))) {
-                activeUid = 'EMP_1789230184645';
+            if (!user) return;
+            try {
+                me = await loadIdentity();
+            } catch (err) {
+                console.warn('[Messages] Could not resolve the signed-in organization:', err.message);
+                return;
             }
-            
-            if (activeUid && activeUid !== 'demo_emp') {
-                const userDocRef = doc(db, 'users', activeUid);
-                onSnapshot(userDocRef, (snap) => {
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        currentUser = { uid: activeUid, ...currentUser, ...data };
-                        hydrateProfileUI(currentUser);
-                        syncTeammates(currentUser.department || currentUser.departmentName || 'Cybersecurity');
-                    } else {
-                        currentUser.uid = activeUid;
-                        hydrateProfileUI(currentUser);
-                        syncTeammates(currentUser.department || currentUser.departmentName || 'Cybersecurity');
-                    }
-                }, (err) => {
-                    console.warn("User profile snapshot notice (using local profile):", err.message);
-                    hydrateProfileUI(currentUser);
-                    syncTeammates(currentUser.department || currentUser.departmentName || 'Cybersecurity');
-                });
-            }
+            const activeUid = me.uid;
+            currentUser = { ...currentUser, uid: activeUid };
+            const userDocRef = doc(db, 'users', activeUid);
+            let firstChatOpened = false;
+            const refresh = (data) => {
+                currentUser = { ...currentUser, ...(data || {}), uid: activeUid, managerId: (data && (data.managerId || data.managerUid)) || currentUser.managerId || '' };
+                hydrateProfileUI(currentUser);
+                syncTeammates(currentUser.department || currentUser.departmentName || 'General');
+                if (!firstChatOpened) {
+                    firstChatOpened = true;
+                    switchChatChannel('hr', document.getElementById('chan-hr'));
+                }
+            };
+            onSnapshot(userDocRef, (snap) => {
+                refresh(snap.exists() ? snap.data() : null);
+            }, (err) => {
+                console.warn("User profile snapshot notice (using local profile):", err.message);
+                refresh(null);
+            });
         });
 
         // Fail-safe: if onAuthStateChanged is delayed due to InPrivate tracking prevention
@@ -1024,8 +1018,7 @@
             const renderPeers = (list) => {
                 const filtered = list.filter(p => {
                     if (!p) return false;
-                    if (p.uid === currentUser?.uid || p.uid === 'EMP_1789230184645') return false;
-                    if (p.name && p.name.toLowerCase().includes('marry')) return false;
+                    if (p.uid === currentUser?.uid) return false;
                     return true;
                 });
 
@@ -1057,41 +1050,29 @@
                 if (window.lucide) lucide.createIcons();
             };
 
-            // 1. Instant verified default roster
-            const defaultPeers = [
-                { uid: 'hr_support', name: 'Super Admin', role: 'Executive Leadership', initials: 'SA', isSpecial: true },
-                { uid: 'EMP_1789151730443', name: 'John Doe', role: 'Cybersecurity Manager', initials: 'JD' },
-                { uid: 'EMP_1789286607504', name: 'Savitha', role: 'HRMS Lead', initials: 'S' },
-                { uid: 'w2XWBkvIgkS9xonTqVM5wPNckav2', name: 'jame', role: 'Cybersecurity Employee', initials: 'J' }
-            ];
-            renderPeers(defaultPeers);
+            // The HR support channel is always there; colleagues come from this organization only
+            const hrSupport = { uid: 'hr_support', name: 'Super Admin', role: 'Executive Leadership', initials: 'SA', isSpecial: true };
+            renderPeers([hrSupport]);
 
-            // 2. Query live Firestore users if accessible
             try {
-                const snap = await getDocs(query(collection(db, 'users'), limit(20)));
-                const livePeers = [
-                    { uid: 'hr_support', name: 'Super Admin', role: 'Executive Leadership', initials: 'SA', isSpecial: true }
-                ];
+                const snap = await getDocs(query(collection(db, 'users'), whereMyOrg(), limit(50)));
+                const livePeers = [hrSupport];
                 snap.docs.forEach(d => {
                     const data = d.data();
                     const uid = d.id;
-                    if (uid !== currentUser?.uid && uid !== 'EMP_1789230184645') {
-                        const name = data.name || data.displayName || data.email;
-                        if (name && !name.toLowerCase().includes('marry')) {
-                            livePeers.push({
-                                uid,
-                                name,
-                                role: data.designation || data.role || 'Member',
-                                initials: name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
-                            });
-                        }
-                    }
+                    if (uid === currentUser?.uid) return;
+                    const name = data.name || data.displayName || data.email;
+                    if (!name) return;
+                    livePeers.push({
+                        uid,
+                        name,
+                        role: data.designation || data.role || 'Member',
+                        initials: name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                    });
                 });
-                if (livePeers.length > 1) {
-                    renderPeers(livePeers);
-                }
+                renderPeers(livePeers);
             } catch (err) {
-                console.warn("Live colleagues query notice (roster active):", err.message);
+                console.warn("Colleagues query notice (only HR support is listed):", err.message);
             }
         }
 
@@ -1224,32 +1205,33 @@
         }
 
         function buildChatId() {
-            if (!currentUser) return null;
-            if (activeChatType === 'team') return 'group_' + (currentUser.department || currentUser.departmentName || 'Cybersecurity').toLowerCase().replace(/\s+/g, '_');
+            if (!currentUser || !currentUser.uid) return null;
+            if (activeChatType === 'team') return 'group_' + (currentUser.department || currentUser.departmentName || 'General').toLowerCase().replace(/\s+/g, '_');
             if (activeChatType === 'hr' || activeChatPartnerId === 'hr_support' || activeChatPartnerId === 'ADMIN_GLOBAL' || activeChatPartnerId === 'super_admin') {
                 return ['hr_support', currentUser.uid].sort().join('_');
             }
             if (activeChatType === 'manager') {
-                const mgrId = currentUser.managerId || 'EMP_1789151730443';
-                return [currentUser.uid, mgrId].sort().join('_');
+                if (!currentUser.managerId) return null;
+                return [currentUser.uid, currentUser.managerId].sort().join('_');
             }
             return [currentUser.uid, activeChatPartnerId].sort().join('_');
         }
 
         function getCandidateChatIds() {
-            if (!currentUser) return [];
+            if (!currentUser || !currentUser.uid) return [];
             const chatId = buildChatId();
             if (activeChatType === 'hr' || activeChatPartnerId === 'hr_support' || activeChatPartnerId === 'ADMIN_GLOBAL' || activeChatPartnerId === 'super_admin') {
                 return [
                     chatId,
-                    'EMP_1789230184645_hr_support',
-                    'hr_support_EMP_1789230184645',
-                    'ADMIN_GLOBAL_EMP_1789230184645',
-                    'EMP_1789230184645_ADMIN_GLOBAL'
-                ];
+                    `${currentUser.uid}_hr_support`,
+                    `hr_support_${currentUser.uid}`,
+                    `ADMIN_GLOBAL_${currentUser.uid}`,
+                    `${currentUser.uid}_ADMIN_GLOBAL`
+                ].filter(Boolean);
             }
             if (activeChatType === 'manager') {
-                const mgrId = currentUser.managerId || 'EMP_1789151730443';
+                const mgrId = currentUser.managerId;
+                if (!mgrId) return [];
                 return [
                     chatId,
                     `${mgrId}_${currentUser.uid}`,
@@ -1281,8 +1263,7 @@
                 return;
             }
 
-            const isMe = m.senderId === currentUser?.uid || 
-                         (m.senderRole === 'employee' && (m.senderId === 'EMP_1789230184645' || (m.senderName && m.senderName.toLowerCase().includes('marry'))));
+            const isMe = !!currentUser?.uid && m.senderId === currentUser.uid;
             
             const isSuperAdmin = m.senderRole === 'admin' || m.senderId === 'hr_support' || m.senderId === 'ADMIN_GLOBAL' || (m.senderName && m.senderName.toLowerCase().includes('admin'));
 
@@ -1354,11 +1335,11 @@
                 if (activeTitle) activeTitle.textContent = 'HR Support Hub (Super Admin)';
                 if (activeSubtitle) activeSubtitle.textContent = 'Active Executive Session • Super Admin Live Sync';
             } else if (target === 'manager') {
-                activeChatPartnerId = currentUser?.managerId || 'EMP_1789151730443';
-                if (activeTitle) activeTitle.textContent = currentUser?.managerName || 'John Doe (Manager)';
+                activeChatPartnerId = currentUser?.managerId || '';
+                if (activeTitle) activeTitle.textContent = currentUser?.managerName || (currentUser?.managerId ? 'Your manager' : 'No manager assigned yet');
                 if (activeSubtitle) activeSubtitle.textContent = 'Manager • Direct Report Channel';
             } else if (target === 'team') {
-                const dept = currentUser?.department || currentUser?.departmentName || 'Cybersecurity';
+                const dept = currentUser?.department || currentUser?.departmentName || 'General';
                 activeChatPartnerId = 'group_' + dept.toLowerCase().replace(/\s+/g, '_');
                 if (activeTitle) activeTitle.textContent = `${dept} Team`;
                 if (activeSubtitle) activeSubtitle.textContent = 'Group Sync • Department Workspace';
@@ -1467,7 +1448,7 @@
 
             // 3. Fallback Firestore OnSnapshot stream (resilient to 429)
             try {
-                const q = query(collection(db, 'messages'), where('chatId', 'in', candidates.slice(0, 10)), limit(60));
+                const q = query(collection(db, 'messages'), whereMyOrg(), where('chatId', 'in', candidates.slice(0, 10)), limit(60));
                 messageListener = onSnapshot(q, snap => {
                     snap.docs.forEach(docRef => {
                         const m = { id: docRef.id, ...docRef.data() };
@@ -1540,8 +1521,9 @@
             const chatId = buildChatId();
             if (!chatId) { sendBtn.disabled = false; return; }
 
-            const uid = currentUser ? currentUser.uid : 'EMP_1789230184645';
-            const senderName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.fullName || 'Marry Doe') : 'Marry Doe';
+            if (!currentUser?.uid || !me) { sendBtn.disabled = false; showStatusModal('Sign in', 'Please sign in again to send messages.', 'info'); return; }
+            const uid = currentUser.uid;
+            const senderName = currentUser.displayName || currentUser.name || currentUser.fullName || 'Employee';
             const nowIso = new Date().toISOString();
             const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
 
@@ -1570,7 +1552,8 @@
                     attachments: processedAttachments,
                     timestamp: nowIso,
                     read: false,
-                    type: 'direct'
+                    type: 'direct',
+                    orgId: me.orgId
                 };
 
                 // 1. Instant optimistic DOM render
@@ -1608,6 +1591,7 @@
 
                 // 6. Alert notification
                 addDoc(collection(db, 'notifications'), {
+                    orgId: me.orgId,
                     title: `Message from ${senderName}`,
                     message: val.length > 50 ? val.substring(0, 50) + '...' : val,
                     timestamp: serverTimestamp(),
@@ -1795,7 +1779,7 @@
             document.getElementById('customClearAllConfirm').onclick = async () => {
                 modal.style.display = 'none';
                 try {
-                    const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
+                    const q = query(collection(db, 'messages'), whereMyOrg(), where('chatId', '==', chatId));
                     const snap = await getDocs(q);
                     const updatePromises = snap.docs.map(d => updateDoc(doc(db, 'messages', d.id), {
                         clearedBy: arrayUnion(currentUser?.uid)
@@ -1853,9 +1837,8 @@
             };
         };
 
-        // Initial stream boot (all functions declared)
-        switchChatChannel('hr', document.getElementById('chan-hr'));
-        syncTeammates(currentUser.department);
+        // The first chat stream and the colleague list start from the sign-in handler above, once the
+        // verified identity (uid and organization) exists; nothing is queried before that.
 
     </script>
 </body>
