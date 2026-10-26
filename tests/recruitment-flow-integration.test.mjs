@@ -1,3 +1,4 @@
+import './helpers/isolate-firebase.mjs';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,21 +14,21 @@ import http from 'node:http';
 import admin from 'firebase-admin';
 import { before, after } from 'node:test';
 import jwt from 'jsonwebtoken';
-import serverModule from '../server.js';
 
 // Starts the app on a free port with the in-memory store; refuses to run against a real Firebase app.
 let server;
 let baseUrl;
 before(async () => {
-  assert.equal(admin.apps.length, 0, 'a real Firebase app is initialised: run with blank FIREBASE_SERVICE_ACCOUNT*');
+  const { default: serverModule } = await import('../server.js');
+  assert.equal(admin.apps.length, 0, 'a real Firebase app is initialised; the test must run on the in-memory store');
   await serverModule.dynamicRoutesLoaded;
   server = http.createServer(serverModule.app);
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   baseUrl = `http://127.0.0.1:${server.address().port}`;
 });
 after(async () => {
-  server.closeAllConnections?.();
-  await new Promise((resolve) => server.close(resolve));
+  server?.closeAllConnections?.();
+  if (server) await new Promise((resolve) => server.close(resolve));
 });
 const authed = (url, opts = {}) => fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_super_admin', role: 'Super Admin', orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai' }, process.env.JWT_SECRET)}`, ...(opts.headers || {}) } });
 
