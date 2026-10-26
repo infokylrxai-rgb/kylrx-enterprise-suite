@@ -11,7 +11,7 @@
  * 
  * Cloud Firestore Data Architecture:
  * - Primary Path: organizations/{orgId}/business_units/{businessUnitCode}
- * - Legacy Dual-sync: bu_employee_type_rules/{ruleId}
+ * - The old bu_employee_type_rules collection is no longer read or written.
  * 
  * Document Schema:
  * {
@@ -226,11 +226,29 @@
     let activeEmployeesCache = [...CANONICAL_ACTIVE_EMPLOYEES];
     let isInitialized = false;
 
-    function getTenantOrgId() {
-        if (typeof localStorage !== 'undefined') {
-            return localStorage.getItem('orgId') || 'org_kylrx';
-        }
-        return 'org_kylrx';
+    const NO_ORG_MESSAGE = 'Your account has no organization';
+    let loadError = null;
+
+    async function getFirebase() {
+        return await import('./firebase-config.js').catch(() => null) ||
+               (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+    }
+
+    /** { fb, orgId } from the verified token claims (firebase-config.js tenantReady); throws NO_ORG_MESSAGE without one */
+    async function resolveOrg() {
+        const fb = await getFirebase();
+        if (!fb || !fb.tenantReady || !fb.getActiveOrgId) throw new Error(NO_ORG_MESSAGE);
+        await fb.tenantReady;
+        const orgId = fb.getActiveOrgId();
+        if (!orgId) throw new Error(NO_ORG_MESSAGE);
+        return { fb, orgId };
+    }
+
+    /** Authorization header for the backend API, from the signed-in Firebase user only */
+    async function apiHeaders() {
+        const user = typeof window !== 'undefined' && window.auth && window.auth.currentUser;
+        if (!user) throw new Error('You are signed out. Please sign in again.');
+        return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${await user.getIdToken()}` };
     }
 
     function initDefaultRules() {
@@ -245,6 +263,7 @@
                     headEmployeeName: r.headEmployeeName || resolveEmployeeName(r.headEmployeeId),
                     allowedEmployeeTypes: [...r.allowedEmployeeTypes],
                     isActive: r.isActive !== false,
+                    isSeed: true,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 });
@@ -279,14 +298,13 @@
      */
     async function fetchActiveEmployees() {
         try {
-            const fb = await import('./firebase-config.js').catch(() => null) ||
-                       (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+            const { fb, orgId } = await resolveOrg();
 
-            if (fb && fb.db && fb.collection && fb.getDocs) {
+            if (fb.db && fb.collection && fb.getDocs && fb.query && fb.where) {
                 const loaded = [];
 
                 try {
-                    const snap = await fb.getDocs(fb.collection(fb.db, 'users'));
+                    const snap = await fb.getDocs(fb.query(fb.collection(fb.db, 'users'), fb.where('orgId', '==', orgId)));
                     if (!snap.empty) {
                         snap.forEach(docSnap => {
                             const d = docSnap.data();
@@ -303,16 +321,12 @@
                             }
                         });
                     }
-                } catch (_) {}
-
-                if (loaded.length > 0) {
-                    const map = new Map();
-                    loaded.forEach(e => map.set(e.employeeId.toUpperCase(), e));
-                    CANONICAL_ACTIVE_EMPLOYEES.forEach(e => {
-                        if (!map.has(e.employeeId.toUpperCase())) map.set(e.employeeId.toUpperCase(), e);
-                    });
-                    activeEmployeesCache = Array.from(map.values());
+                } catch (err) {
+                    console.warn('[BURules] Could not read the employees of this organization:', err.message);
                 }
+
+                // only this organization's people; the built-in demo list is used only when nobody was found
+                if (loaded.length > 0) activeEmployeesCache = loaded;
             }
         } catch (err) {
             console.warn('[BURules] Employee list fetch notice:', err.message);
@@ -322,112 +336,45 @@
     }
 
     /**
-     * Fetch rules and business units from Cloud Firestore:
-     * Primary: organizations/{orgId}/business_units
-     * Secondary: bu_employee_type_rules
+     * Fetch the organization's business units from Cloud Firestore: organizations/{orgId}/business_units.
+     * Rejects when the organization is unknown or the read fails (the cause is also kept in getLoadError()).
      */
     async function loadRulesFromFirestore() {
-        const orgId = getTenantOrgId();
-
         try {
-            const fb = await import('./firebase-config.js').catch(() => null) ||
-                       (typeof window !== 'undefined' && window.KylrxFirebase) || null;
-
-            if (fb && fb.db && fb.collection && fb.getDocs) {
-                // 1. Primary path: organizations/{orgId}/business_units
-                const buCollRef = fb.collection(fb.db, 'organizations', orgId, 'business_units');
-                const buSnap = await fb.getDocs(buCollRef).catch(() => ({ empty: true }));
-
-                if (!buSnap.empty) {
-                    currentRules.clear();
-                    buSnap.forEach(docSnap => {
-                        const data = docSnap.data();
-                        const buCode = (data.businessUnitCode || docSnap.id).toUpperCase();
-                        currentRules.set(buCode, {
-                            ruleId: `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
-                            businessUnitCode: buCode,
-                            businessUnitName: data.businessUnitName || buCode,
-                            headEmployeeId: data.headEmployeeId || '',
-                            headEmployeeName: data.headEmployeeName || resolveEmployeeName(data.headEmployeeId),
-                            allowedEmployeeTypes: Array.isArray(data.allowedEmployeeTypes) ? data.allowedEmployeeTypes : ['FULL_TIME', 'CONTRACT'],
-                            isActive: data.isActive !== false,
-                            createdAt: data.createdAt || null,
-                            updatedAt: data.updatedAt || null
-                        });
+            const { fb, orgId } = await resolveOrg();
+            const buSnap = await fb.getDocs(fb.collection(fb.db, 'organizations', orgId, 'business_units'));
+            if (!buSnap.empty) {
+                currentRules.clear();
+                buSnap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const buCode = (data.businessUnitCode || docSnap.id).toUpperCase();
+                    currentRules.set(buCode, {
+                        ruleId: `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+                        businessUnitCode: buCode,
+                        businessUnitName: data.businessUnitName || buCode,
+                        headEmployeeId: data.headEmployeeId || '',
+                        headEmployeeName: data.headEmployeeName || resolveEmployeeName(data.headEmployeeId),
+                        allowedEmployeeTypes: Array.isArray(data.allowedEmployeeTypes) ? data.allowedEmployeeTypes : ['FULL_TIME', 'CONTRACT'],
+                        isActive: data.isActive !== false,
+                        createdAt: data.createdAt || null,
+                        updatedAt: data.updatedAt || null
                     });
-                    console.log(`[BURules] Loaded ${currentRules.size} business units from organizations/${orgId}/business_units`);
-                } else {
-                    // 2. Secondary path: bu_employee_type_rules collection
-                    const querySnapshot = await fb.getDocs(fb.collection(fb.db, 'bu_employee_type_rules')).catch(() => ({ empty: true }));
-                    if (!querySnapshot.empty) {
-                        currentRules.clear();
-                        querySnapshot.forEach(docSnap => {
-                            const data = docSnap.data();
-                            const buCode = (data.businessUnitCode || docSnap.id).toUpperCase();
-                            currentRules.set(buCode, {
-                                ruleId: docSnap.id,
-                                businessUnitCode: buCode,
-                                businessUnitName: data.businessUnitName || buCode,
-                                headEmployeeId: data.headEmployeeId || '',
-                                headEmployeeName: data.headEmployeeName || resolveEmployeeName(data.headEmployeeId),
-                                allowedEmployeeTypes: Array.isArray(data.allowedEmployeeTypes) ? data.allowedEmployeeTypes : ['FULL_TIME', 'CONTRACT'],
-                                isActive: data.isActive !== false,
-                                createdAt: data.createdAt || null,
-                                updatedAt: data.updatedAt || null
-                            });
-                        });
-                        console.log(`[BURules] Loaded ${currentRules.size} rules from bu_employee_type_rules.`);
-                    }
-                }
+                });
+                console.log(`[BURules] Loaded ${currentRules.size} business units from organizations/${orgId}/business_units`);
             }
+            loadError = null;
         } catch (err) {
-            console.warn('[BURules] Firestore load notice (using resilient defaults):', err.message);
+            loadError = err;
+            throw err;
+        } finally {
+            isInitialized = true;
+            dispatchRulesUpdatedEvent();
         }
-
-        // Also attempt loading from local backend API (safely without crashing or unhandled connection refusals)
-        try {
-            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser ? await window.auth.currentUser.getIdToken() : null) ||
-                          localStorage.getItem('authToken') || 
-                          localStorage.getItem('hr_access_token') || 
-                          localStorage.getItem('access_token') || 
-                          localStorage.getItem('token');
-            const apiUrl = getBuRulesApiUrl();
-            const isDifferentPort = typeof window !== 'undefined' && window.location && 
-                window.location.port && window.location.port !== '3000' && window.location.port !== '5500' && window.location.port !== '5501';
-
-            // If running on a standalone static port and rules were already loaded from Firestore/defaults, skip raw port 3000 polling
-            if (!isDifferentPort || currentRules.size === 0) {
-                const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-                const timeoutId = controller ? setTimeout(() => controller.abort(), 1500) : null;
-
-                try {
-                    const res = await fetch(apiUrl, {
-                        headers: { 'Authorization': `Bearer ${token}` },
-                        signal: controller ? controller.signal : undefined
-                    });
-                    if (timeoutId) clearTimeout(timeoutId);
-                    if (res && res.ok) {
-                        const json = await res.json();
-                        if (json.success && Array.isArray(json.rules) && json.rules.length > 0) {
-                            json.rules.forEach(r => {
-                                const code = r.businessUnitCode.toUpperCase();
-                                currentRules.set(code, {
-                                    ...r,
-                                    businessUnitCode: code,
-                                    headEmployeeName: r.headEmployeeName || resolveEmployeeName(r.headEmployeeId)
-                                });
-                            });
-                        }
-                    }
-                } catch (fetchErr) {
-                    if (timeoutId) clearTimeout(timeoutId);
-                }
-            }
-        } catch (_) {}
-
-        isInitialized = true;
-        dispatchRulesUpdatedEvent();
         return Array.from(currentRules.values());
+    }
+
+    function getLoadError() {
+        return loadError;
     }
 
     function dispatchRulesUpdatedEvent() {
@@ -623,54 +570,36 @@
             updatedBy: actor
         };
 
-        const orgId = getTenantOrgId();
+        const { fb, orgId } = await resolveOrg();
+        if (!fb.db || !fb.doc || !fb.setDoc) throw new Error('The database is not available. Reload the page and try again.');
+        record.orgId = orgId;
 
-        // 1. Primary Write: organizations/{orgId}/business_units/{buCode}
-        // 2. Legacy Dual-sync Write: bu_employee_type_rules/{ruleId}
+        // 1. Firestore: organizations/{orgId}/business_units/{buCode}
+        const docRef = fb.doc(fb.db, 'organizations', orgId, 'business_units', buCode);
+        await fb.setDoc(docRef, {
+            ...record,
+            updatedAt: fb.serverTimestamp ? fb.serverTimestamp() : record.updatedAt
+        }, { merge: true });
+
+        // 2. Backend API (validation rules used when onboarding); if it fails the Firestore write is undone
         try {
-            const fb = await import('./firebase-config.js').catch(() => null) ||
-                       (typeof window !== 'undefined' && window.KylrxFirebase) || null;
-
-            if (fb && fb.db && fb.doc && fb.setDoc) {
-                // Primary path
-                const primaryDocRef = fb.doc(fb.db, 'organizations', orgId, 'business_units', buCode);
-                await fb.setDoc(primaryDocRef, {
-                    ...record,
-                    updatedAt: fb.serverTimestamp ? fb.serverTimestamp() : record.updatedAt
-                }, { merge: true });
-
-                // Legacy path
-                const legacyDocRef = fb.doc(fb.db, 'bu_employee_type_rules', ruleId);
-                await fb.setDoc(legacyDocRef, {
-                    ...record,
-                    updatedAt: fb.serverTimestamp ? fb.serverTimestamp() : record.updatedAt
-                }, { merge: true }).catch(() => {});
-
-                console.log(`[BURules] Saved to organizations/${orgId}/business_units/${buCode} and bu_employee_type_rules/${ruleId}`);
+            const res = await fetch(getBuRulesApiUrl(), { method: 'POST', headers: await apiHeaders(), body: JSON.stringify(record) });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.error || body.message || `The server rejected the save (HTTP ${res.status}).`);
             }
         } catch (err) {
-            console.warn('[BURules] Firestore write notice:', err.message);
+            let undone = '';
+            try {
+                if (existing.createdAt && !existing.isSeed) await fb.setDoc(docRef, { ...existing, orgId }, { merge: true });
+                else await fb.deleteDoc(docRef);
+            } catch (_) {
+                undone = ' The earlier database write could not be undone: reload and check the Business Unit.';
+            }
+            throw new Error(`${err.message}${undone}`);
         }
 
-        // 3. Save to backend API
-        try {
-            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser ? await window.auth.currentUser.getIdToken() : null) ||
-                          localStorage.getItem('authToken') || 
-                          localStorage.getItem('hr_access_token') || 
-                          localStorage.getItem('access_token') || 
-                          localStorage.getItem('token');
-            const apiUrl = getBuRulesApiUrl();
-            await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(record)
-            }).catch(() => {});
-        } catch (_) {}
-
-        // 4. Update memory cache & dispatch
+        // 3. Everything succeeded: update the memory cache
         currentRules.set(buCode, record);
         dispatchRulesUpdatedEvent();
         return record;
@@ -705,22 +634,8 @@
      */
     async function deleteBusinessUnit(businessUnitCode) {
         const buCode = String(businessUnitCode).trim().toUpperCase();
-        const orgId = getTenantOrgId();
-
-        try {
-            const fb = await import('./firebase-config.js').catch(() => null) ||
-                       (typeof window !== 'undefined' && window.KylrxFirebase) || null;
-
-            if (fb && fb.db && fb.doc && fb.deleteDoc) {
-                const docRef = fb.doc(fb.db, 'organizations', orgId, 'business_units', buCode);
-                await fb.deleteDoc(docRef);
-
-                const ruleId = `rule_${buCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-                await fb.deleteDoc(fb.doc(fb.db, 'bu_employee_type_rules', ruleId)).catch(() => {});
-            }
-        } catch (err) {
-            console.warn('[BURules] Firestore delete notice:', err.message);
-        }
+        const { fb, orgId } = await resolveOrg();
+        await fb.deleteDoc(fb.doc(fb.db, 'organizations', orgId, 'business_units', buCode));
 
         currentRules.delete(buCode);
         dispatchRulesUpdatedEvent();
@@ -1017,6 +932,9 @@
                     </button>
                 </div>
 
+                <div id="buModalOrgNotice" role="alert" style="display: none; margin-bottom: 1rem; padding: 10px 14px; border-radius: 10px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.85rem; font-weight: 700;"></div>
+                <div id="buModalError" role="alert" style="display: none; margin-bottom: 1rem; padding: 10px 14px; border-radius: 10px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; font-size: 0.85rem;"></div>
+
                 <form id="buModalForm" onsubmit="event.preventDefault(); window.KylrxBuRules.handleModalSubmit();">
                     <input type="hidden" id="buModalIsEdit" value="false">
 
@@ -1095,6 +1013,19 @@
         const modal = document.getElementById('buEditModal');
         if (!modal) return;
 
+        showModalError('');
+        const saveBtn = document.getElementById('btnBuModalSave');
+        const orgNotice = document.getElementById('buModalOrgNotice');
+        try {
+            await resolveOrg();
+            orgNotice.style.display = 'none';
+            saveBtn.disabled = false;
+        } catch (err) {
+            orgNotice.textContent = err.message === NO_ORG_MESSAGE ? NO_ORG_MESSAGE : `Could not check your organization: ${err.message}`;
+            orgNotice.style.display = 'block';
+            saveBtn.disabled = true;
+        }
+
         await fetchActiveEmployees();
 
         const titleEl = document.getElementById('buModalTitle');
@@ -1152,6 +1083,13 @@
         modal.style.display = 'flex';
     }
 
+    function showModalError(message) {
+        const el = document.getElementById('buModalError');
+        if (!el) return;
+        el.textContent = message;
+        el.style.display = message ? 'block' : 'none';
+    }
+
     function closeBuModal() {
         const modal = document.getElementById('buEditModal');
         if (modal) modal.style.display = 'none';
@@ -1170,11 +1108,14 @@
         const isActive = activeSelect.value === 'true';
 
         if (!buCode || !buName) {
-            alert('Business Unit Code and Name are required.');
+            showModalError('Business Unit Code and Name are required.');
             return;
         }
 
         const headName = resolveEmployeeName(headId);
+        const saveBtn = document.getElementById('btnBuModalSave');
+        showModalError('');
+        if (saveBtn) saveBtn.disabled = true;
 
         try {
             await saveRule({
@@ -1201,7 +1142,9 @@
                 alert(`Business Unit ${buCode} saved successfully!`);
             }
         } catch (err) {
-            alert(`Error saving Business Unit: ${err.message}`);
+            // the modal stays open with the real reason
+            showModalError(`Could not save Business Unit: ${err.message}`);
+            if (saveBtn && err.message !== NO_ORG_MESSAGE) saveBtn.disabled = false;
         }
     }
 
@@ -1275,9 +1218,14 @@
     async function saveAllRules() {
         const rules = getAllRules();
         let count = 0;
-        for (const r of rules) {
-            await saveRule(r);
-            count++;
+        try {
+            for (const r of rules) {
+                await saveRule(r);
+                count++;
+            }
+        } catch (err) {
+            alert(`Saved ${count} of ${rules.length} Business Units. Failed: ${err.message}`);
+            return;
         }
         if (typeof window.showToast === 'function') {
             window.showToast(`All ${count} Business Unit rules saved to Cloud Firestore!`, 'success');
@@ -1286,16 +1234,17 @@
         }
     }
 
-    // Auto-load rules on initialization
+    // Auto-load rules on initialization; a failure is logged and kept in getLoadError(), shown by the table
+    function autoLoad() {
+        loadRulesFromFirestore().catch(err => console.error('[BURules] Could not load business units:', err.message));
+        fetchActiveEmployees();
+    }
+
     if (typeof window !== 'undefined') {
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
-            loadRulesFromFirestore();
-            fetchActiveEmployees();
+            autoLoad();
         } else {
-            document.addEventListener('DOMContentLoaded', () => {
-                loadRulesFromFirestore();
-                fetchActiveEmployees();
-            });
+            document.addEventListener('DOMContentLoaded', autoLoad);
         }
     }
 
@@ -1304,6 +1253,7 @@
         CANONICAL_EMPLOYEE_TYPES,
         DEFAULT_BU_RULES,
         loadRulesFromFirestore,
+        getLoadError,
         getAllRules,
         getAllBusinessUnits,
         getRuleByCode,

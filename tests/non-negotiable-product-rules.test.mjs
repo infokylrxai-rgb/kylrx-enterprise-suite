@@ -328,7 +328,8 @@ describe('18. Non-Negotiable Product Rules Suite (Rules 24 - 33)', () => {
         assert.ok(fs.existsSync(clientScriptPath));
         const clientScript = fs.readFileSync(clientScriptPath, 'utf8');
         assert.ok(clientScript.includes('bindEmployeeTypeAndBuGating'), 'Must provide client binding function');
-        assert.ok(clientScript.includes('bu_employee_type_rules'), 'Must target Firestore bu_employee_type_rules collection');
+        assert.ok(clientScript.includes("'business_units'"), 'Must target the organization-scoped business_units collection');
+        assert.ok(!/(doc|collection)\([^)]*'bu_employee_type_rules'/.test(clientScript), 'The legacy bu_employee_type_rules collection is no longer used');
     });
 
     it('PRD Section 11: Simplified Alert Monitor & Safe AI Simulation Sandbox validation', async () => {
