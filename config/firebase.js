@@ -214,7 +214,7 @@ if (serviceAccount) {
         set: (ref, data, opts) => { ops.push(() => ref.set(data, opts)); return batch; },
         update: (ref, data) => { ops.push(() => ref.update(data)); return batch; },
         delete: (ref) => { ops.push(() => ref.delete()); return batch; },
-        commit: async () => { for (const op of ops) await op(); return ops.map(() => ({})); }
+        commit: async () => { for (const op of ops) await op(); return ops.map(() => ({})); } // shortcut: not atomic, test only
       };
       return batch;
     };
