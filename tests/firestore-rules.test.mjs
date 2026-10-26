@@ -353,6 +353,51 @@ describe('cross-tenant isolation', () => {
   });
 });
 
+// Business units (PRD §10): the app uses organizations/{orgId}/business_units only. The legacy
+// bu_employee_type_rules collection is no longer read or written by the app; its rules are kept as they were.
+describe('business units: primary and legacy paths', () => {
+  const bu = (db, org = 'orgA', code = 'bu_new') => doc(db, `organizations/${org}/business_units/${code}`);
+  const rule = (db, id = 'rule_x') => doc(db, `bu_employee_type_rules/${id}`);
+
+  it('super admin and HR write a business unit in their own organization', async () => {
+    await ok(setDoc(bu(ctx.saA()), { orgId: 'orgA', businessUnitCode: 'BU_NEW', isActive: true }));
+    await ok(setDoc(bu(ctx.hr(), 'orgA', 'bu_hr'), { orgId: 'orgA', businessUnitCode: 'BU_HR', isActive: true }));
+  });
+
+  it('a manager or an employee cannot write a business unit, but members can read them', async () => {
+    await no(setDoc(bu(ctx.mgr()), { orgId: 'orgA' }));
+    await no(setDoc(bu(ctx.emp()), { orgId: 'orgA' }));
+    await ok(getDoc(bu(ctx.emp(), 'orgA', 'bu1')));
+  });
+
+  it('the old bug: writing under another organization id (the localStorage default) is refused, as is reading it', async () => {
+    await no(setDoc(bu(ctx.saA(), 'org_kylrx'), { orgId: 'org_kylrx', businessUnitCode: 'BU_NEW' }));
+    await no(getDoc(bu(ctx.saA(), 'orgB', 'bu1')));
+    await no(getDocs(collection(ctx.saA(), 'organizations/orgB/business_units')));
+  });
+
+  it('another organization cannot write into this one, even with orgId stamped orgA', async () => {
+    await no(setDoc(bu(ctx.saB()), { orgId: 'orgA', businessUnitCode: 'BU_NEW' }));
+    await no(setDoc(bu(ctx.empB()), { orgId: 'orgA', businessUnitCode: 'BU_NEW' }));
+  });
+
+  it('legacy collection: a staff create needs the own organization id on the record', async () => {
+    await ok(setDoc(rule(ctx.hr()), { orgId: 'orgA', businessUnitCode: 'BU_X' }));
+    await no(setDoc(rule(ctx.hr(), 'rule_noorg'), { businessUnitCode: 'BU_X' })); // what an unstamped write looked like
+    await no(setDoc(rule(ctx.hr(), 'rule_other'), { orgId: 'orgB', businessUnitCode: 'BU_X' }));
+    await no(setDoc(rule(ctx.emp(), 'rule_emp'), { orgId: 'orgA', businessUnitCode: 'BU_X' }));
+  });
+
+  it('legacy collection: reads are limited to the organization and orgId cannot be changed', async () => {
+    await env.withSecurityRulesDisabled(c => setDoc(doc(c.firestore(), 'bu_employee_type_rules/rule_a'), { orgId: 'orgA', businessUnitCode: 'BU_A' }));
+    await ok(getDoc(rule(ctx.emp(), 'rule_a')));
+    await no(getDoc(rule(ctx.empB(), 'rule_a')));
+    await no(updateDoc(rule(ctx.hr(), 'rule_a'), { orgId: 'orgB' }));
+    await no(getDocs(collection(ctx.empB(), 'bu_employee_type_rules'))); // unfiltered list: the old unscoped read
+    await ok(getDocs(query(collection(ctx.emp(), 'bu_employee_type_rules'), where('orgId', '==', 'orgA'))));
+  });
+});
+
 // Gaps found by this suite that need a product decision before changing; flip to no() once fixed
 describe('KNOWN GAPS (current behaviour, not yet restricted)', () => {
   it('any same-org employee can overwrite payroll_profiles via the top-level catch-all', () =>
