@@ -355,13 +355,21 @@ async function initFirebaseConnection() {
         const notifBadge = document.getElementById('headerNotifBadge');
         if (notifBadge) {
             try {
-                const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(20));
-                onSnapshot(notifQuery, (snap) => {
-                    const unread = snap.docs.filter(d => !d.data().read).length;
+                // The bell counts what is unread FOR ME in my organization, addressed to me, my role or everyone
+                const { loadIdentity, orgNotificationsQuery } = await import('./notification-actions.js');
+                const { unreadCount, isTargetedTo } = await import('./notification-read-state.js');
+                const identity = await loadIdentity();
+                onSnapshot(orgNotificationsQuery(identity, 50), (snap) => {
+                    const mine = snap.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .filter(n => !(n.clearedBy || []).includes(identity.uid) && isTargetedTo(n, identity));
+                    const unread = unreadCount(mine, identity.uid);
                     notifBadge.textContent = unread > 9 ? '9+' : unread;
                     notifBadge.style.display = unread > 0 ? 'flex' : 'none';
                 }, () => {});
-            } catch (e) {}
+            } catch (e) {
+                console.warn('[NotificationCenter] Bell badge unavailable:', e.message);
+            }
         }
 
         // Real-time listener for Header Message Badge
