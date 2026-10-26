@@ -511,7 +511,31 @@ service cloud.firestore {
       allow create: if tenantCreate();
     }
 
-    // Every other top-level collection (attendance, notifications, messages,
+    // Notifications: same organization only.
+    // A signed-in member may only ADD or REMOVE THEIR OWN uid in readBy / clearedBy (the per-user read
+    // and dismiss state). HR and managers may also resolve requests (status, resolvedBy/At) in their
+    // organization, and still only change those two arrays for themselves. Every other change, and
+    // deleting, is for super admins (and the Admin SDK on the server, which bypasses these rules).
+    function ownUidOnly(field) {
+      return request.resource.data.get(field, []).toSet().difference(resource.data.get(field, []).toSet()).hasOnly([request.auth.uid])
+        && resource.data.get(field, []).toSet().difference(request.resource.data.get(field, []).toSet()).hasOnly([request.auth.uid]);
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if tenantRead();
+      allow create: if tenantCreate();
+      allow update: if tenantUpdate() && (
+        canAccessAdmin()
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy', 'clearedBy'])
+            && ownUidOnly('readBy') && ownUidOnly('clearedBy'))
+        || (isStaff()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'read', 'resolvedBy', 'resolvedAt', 'readBy', 'clearedBy'])
+            && ownUidOnly('readBy') && ownUidOnly('clearedBy'))
+      );
+      allow delete: if canAccessAdmin() && tenantRead();
+    }
+
+    // Every other top-level collection (attendance, messages,
     // payroll_profiles, holidays, ...): same organization only. Collections with
     // an explicit rule above are excluded so this fallback never loosens them.
     match /{collection}/{document} {
@@ -527,7 +551,7 @@ service cloud.firestore {
         'payroll_documents', 'statutory_policy_configs', 'payroll_runs', 'payment_batches',
         'compliance_returns', 'statutory_exceptions', 'bank_files', 'bank_reconciliations',
         'disbursement_logs', 'candidates', 'recruitment_events', 'users',
-        'bu_employee_type_rules', 'alert_trigger_registry', 'workflows', 'employees', 'audit_logs'
+        'bu_employee_type_rules', 'alert_trigger_registry', 'workflows', 'employees', 'audit_logs', 'notifications'
       ];
     }
   }

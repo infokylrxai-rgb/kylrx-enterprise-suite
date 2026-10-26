@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
 import {
-  doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, collection, query, where
+  doc, setDoc, getDoc, updateDoc, deleteDoc, getDocs, collection, query, where, arrayUnion, arrayRemove
 } from 'firebase/firestore';
 
 const rulesPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'firestore.rules');
@@ -60,6 +60,11 @@ async function seed() {
     await set('organizations/orgA/approval_tasks/t_mgr', { assignedApproverId: 'mgr_a', initiatorId: 'mgr_a', status: 'PENDING' });
     await set('organizations/orgA/business_units/bu1', { name: 'BU' });
     await set('payroll_profiles/pp1', { orgId: 'orgA', employeeId: 'emp_a', ctc: 100 });
+    await set('notifications/n1',        { orgId: 'orgA', title: 'Policy update', message: 'Read it', target: 'all', readBy: [], clearedBy: [] });
+    await set('notifications/n_shared',  { orgId: 'orgA', title: 'Shared', target: 'all', readBy: ['mgr_a'], clearedBy: ['mgr_a'] });
+    await set('notifications/n_legacy_read', { orgId: 'orgA', title: 'Old', target: 'all', read: true });
+    await set('notifications/n_untagged', { title: 'Before orgId existed', target: 'all' }); // no orgId
+    await set('notifications/nB',        { orgId: 'orgB', title: 'Other org', target: 'all', readBy: [] });
   });
 }
 
@@ -209,6 +214,85 @@ describe('organizations/{orgId}/{subCollection} catch-all', () => {
   it('super admin of an unconfigured org can write config (setup wizard needs it)', () =>
     ok(setDoc(doc(ctx.saC(), 'organizations/orgC/business_units/x'), { name: 'first' })));
   it('other-org super admin cannot', () => no(updateDoc(bu(ctx.saB()), { name: 'x' })));
+});
+
+// Notifications: same organization; a member may only add/remove their OWN uid in readBy/clearedBy
+describe('notifications', () => {
+  const n = (db, id = 'n1') => doc(db, 'notifications/' + id);
+
+  it('same-org members read their organization\'s notifications; other orgs do not', async () => {
+    await ok(getDoc(n(ctx.emp())));
+    await ok(getDoc(n(ctx.saA())));
+    await no(getDoc(n(ctx.empB())));
+    await no(getDoc(n(ctx.saB())));
+  });
+
+  it('a query must be scoped to the organization; an unfiltered list is refused', async () => {
+    await ok(getDocs(query(collection(ctx.emp(), 'notifications'), where('orgId', '==', 'orgA'))));
+    await no(getDocs(collection(ctx.emp(), 'notifications')));
+    await no(getDocs(query(collection(ctx.emp(), 'notifications'), where('orgId', '==', 'orgB'))));
+  });
+
+  it('notifications without an orgId are readable and changeable by nobody (not even a super admin)', async () => {
+    await no(getDoc(n(ctx.emp(), 'n_untagged')));
+    await no(getDoc(n(ctx.saA(), 'n_untagged')));
+    await no(updateDoc(n(ctx.emp(), 'n_untagged'), { readBy: arrayUnion('emp_a') }));
+    await no(updateDoc(n(ctx.saA(), 'n_untagged'), { readBy: arrayUnion('sa_a') }));
+  });
+
+  it('a member can mark a notification read and unread for themselves', async () => {
+    await ok(updateDoc(n(ctx.emp()), { readBy: arrayUnion('emp_a') }));
+    await ok(updateDoc(n(ctx.emp(), 'n_shared'), { readBy: arrayUnion('emp_a') }));
+    await ok(updateDoc(n(ctx.mgr(), 'n_shared'), { readBy: arrayRemove('mgr_a') }));
+  });
+
+  it('a member cannot add or remove anyone else\'s uid in readBy', async () => {
+    await no(updateDoc(n(ctx.emp()), { readBy: arrayUnion('mgr_a') }));
+    await no(updateDoc(n(ctx.emp()), { readBy: arrayUnion('emp_a', 'mgr_a') }));
+    await no(updateDoc(n(ctx.emp(), 'n_shared'), { readBy: arrayRemove('mgr_a') }));
+    await no(updateDoc(n(ctx.emp()), { readBy: [] , clearedBy: arrayUnion('hr_a') }));
+  });
+
+  it('dismissing (clearedBy) follows the same rule', async () => {
+    await ok(updateDoc(n(ctx.emp()), { clearedBy: arrayUnion('emp_a') }));
+    await no(updateDoc(n(ctx.emp()), { clearedBy: arrayUnion('mgr_a') }));
+    await no(updateDoc(n(ctx.emp(), 'n_shared'), { clearedBy: arrayRemove('mgr_a') }));
+  });
+
+  it('a member cannot change anything else on a notification', async () => {
+    await no(updateDoc(n(ctx.emp()), { title: 'Hacked' }));
+    await no(updateDoc(n(ctx.emp()), { target: 'employee' }));
+    await no(updateDoc(n(ctx.emp()), { read: true }));              // the old shared flag
+    await no(updateDoc(n(ctx.emp()), { orgId: 'orgB' }));
+    await no(updateDoc(n(ctx.emp()), { readBy: arrayUnion('emp_a'), title: 'Hacked' }));
+    await no(deleteDoc(n(ctx.emp())));
+  });
+
+  it('other organizations cannot touch it at all', async () => {
+    await no(updateDoc(n(ctx.empB()), { readBy: arrayUnion('emp_b') }));
+    await no(updateDoc(n(ctx.saB()), { title: 'x' }));
+    await no(deleteDoc(n(ctx.saB())));
+  });
+
+  it('a configured super admin manages notifications of their organization', async () => {
+    await ok(updateDoc(n(ctx.saA()), { title: 'Edited' }));
+    await ok(updateDoc(n(ctx.saA()), { readBy: arrayUnion('sa_a') }));
+    await ok(deleteDoc(n(ctx.saA(), 'n_shared')));
+  });
+
+  it('HR and managers may resolve requests (status) and still only touch their own readBy', async () => {
+    await ok(updateDoc(n(ctx.hr()), { status: 'resolved', readBy: arrayUnion('hr_a') }));
+    await ok(updateDoc(n(ctx.mgr()), { status: 'approved', read: true }));
+    await no(updateDoc(n(ctx.hr()), { title: 'Hacked' }));
+    await no(updateDoc(n(ctx.hr()), { status: 'resolved', readBy: arrayUnion('mgr_a') }));
+    await no(updateDoc(n(ctx.emp()), { status: 'resolved' }));
+  });
+
+  it('a member can create a notification only in their own organization', async () => {
+    await ok(setDoc(n(ctx.emp(), 'new_a'), { orgId: 'orgA', title: 'Leave request', target: 'manager', readBy: [] }));
+    await no(setDoc(n(ctx.emp(), 'new_b'), { orgId: 'orgB', title: 'x', target: 'all' }));
+    await no(setDoc(n(ctx.emp(), 'new_untagged'), { title: 'x', target: 'all' }));
+  });
 });
 
 // Tenant isolation: another org's user must see nothing of org A in any collection family
