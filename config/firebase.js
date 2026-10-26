@@ -29,6 +29,12 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   }
 }
 
+// Tests never talk to a real project: with NODE_ENV=test the service account is ignored unless a Firestore
+// emulator is in use (FIRESTORE_EMULATOR_HOST). A .env with real credentials therefore cannot be reached by a test run.
+if (process.env.NODE_ENV === 'test' && !process.env.FIRESTORE_EMULATOR_HOST) {
+  serviceAccount = undefined;
+}
+
 const projectId = process.env.FIREBASE_PROJECT_ID || '';
 const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || '';
 
