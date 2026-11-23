@@ -75,7 +75,7 @@ describe('demo mode off', () => {
   it('POST /api/auth/demo-login is a 404 and /api/public-config says off', async () => {
     await withEnv({ KYLRX_DEMO_MODE: undefined }, async () => {
       assert.equal((await call('POST', '/api/auth/demo-login', { role: 'admin' })).status, 404);
-      assert.deepEqual(await (await call('GET', '/api/public-config')).json(), { demoMode: false });
+      assert.deepEqual(await (await call('GET', '/api/public-config')).json(), { demoMode: false, firebase: null });
     });
   });
   it('is a 404 in production even with KYLRX_DEMO_MODE=true', async () => {
@@ -121,7 +121,7 @@ describe('demo mode on', () => {
 
   it('returns a session for the demo organization only', async () => {
     await withEnv({ KYLRX_DEMO_MODE: 'true' }, async () => {
-      assert.deepEqual(await (await call('GET', '/api/public-config')).json(), { demoMode: true });
+      assert.deepEqual(await (await call('GET', '/api/public-config')).json(), { demoMode: true, firebase: null });
       for (const [role, claimRole] of [['admin', 'super_admin'], ['hrms', 'HRMS'], ['manager', 'Manager'], ['employee', 'Employee']]) {
         const res = await call('POST', '/api/auth/demo-login', { role });
         assert.equal(res.status, 200, await res.clone().text());

@@ -5,10 +5,35 @@ const { DEMO_ORG_ID, DEMO_ROLES, demoEnabled } = require('../config/demo');
 // Role claim written to the token for each demo button (same spelling the signup flow uses)
 const CLAIM_ROLE = { admin: 'super_admin', hrms: 'HRMS', manager: 'Manager', employee: 'Employee' };
 
+/**
+ * The Firebase web config the BROWSER needs, assembled from the environment.
+ * These six values are public by design (every visitor receives them) - security comes
+ * from Firebase Auth plus the Firestore/Storage rules. They are served at runtime rather
+ * than committed so that firebase-web-config.js stays free of project-specific values
+ * and a deployed host can be repointed by changing environment variables alone.
+ * Returns null unless the whole set is present, so a half-configured host cannot
+ * initialise Firebase against the wrong project.
+ */
+function firebaseWebConfigFromEnv() {
+    const projectId = process.env.FIREBASE_PROJECT_ID || '';
+    const cfg = {
+        apiKey: process.env.FIREBASE_WEB_API_KEY || '',
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN || (projectId ? projectId + '.firebaseapp.com' : ''),
+        projectId,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET || '',
+        messagingSenderId: process.env.FIREBASE_WEB_MESSAGING_SENDER_ID || '',
+        appId: process.env.FIREBASE_WEB_APP_ID || ''
+    };
+    const complete = Object.values(cfg).every(v => v && !String(v).includes('CHANGE_ME'));
+    return complete ? cfg : null;
+}
+
 /** GET /api/public-config: what the login pages may show */
 exports.publicConfig = (req, res) => {
-    res.json({ demoMode: demoEnabled() });
+    res.json({ demoMode: demoEnabled(), firebase: firebaseWebConfigFromEnv() });
 };
+
+exports.firebaseWebConfigFromEnv = firebaseWebConfigFromEnv;
 
 /**
  * POST /api/auth/demo-login { role }

@@ -16,9 +16,29 @@ const placeholders = {
 };
 
 // Local development: an optional, git-ignored firebase-web-config.local.js replaces the placeholders.
-// It does not exist on a deployed host, so the import fails quietly and the placeholders stay.
 const local = await import('./firebase-web-config.local.js').then(m => m.firebaseWebConfigLocal, () => null);
-export const firebaseWebConfig = local || placeholders;
+
+/**
+ * Deployed hosts have no local override, so the config comes from the server, which builds
+ * it from its environment (GET /api/public-config). Keeping the values out of this file is
+ * deliberate and enforced by tests/firebase-web-config-committed.test.mjs: it means the repo
+ * carries no project-specific values and a host is repointed by changing env vars alone.
+ * Any failure falls through to the placeholders, exactly as before.
+ */
+async function fromServer() {
+    try {
+        const res = await fetch('/api/public-config', { credentials: 'same-origin' });
+        if (!res.ok) return null;
+        const cfg = (await res.json()).firebase;
+        if (!cfg || Object.values(cfg).some(v => !v || String(v).includes('CHANGE_ME'))) return null;
+        return cfg;
+    } catch (_) {
+        return null;
+    }
+}
+
+// Local override wins, so development never makes this request and its behaviour is unchanged.
+export const firebaseWebConfig = local || (await fromServer()) || placeholders;
 
 /** True once the placeholders have been replaced */
 export const isFirebaseWebConfigSet = () => !Object.values(firebaseWebConfig).some(v => String(v).includes('CHANGE_ME'));
