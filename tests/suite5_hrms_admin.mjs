@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import assert from 'assert';
+import { CREDS } from './helpers/e2e-credentials.mjs';
 
 const BASE_URL = 'http://localhost:3000';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -16,8 +17,8 @@ function record(id, title, status, details = '') {
 async function loginAsHRAdmin(page) {
   await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle2' });
   await page.evaluate(() => localStorage.clear());
-  await page.type('#email', 'Savitha.balraju@GMAIL.COM');
-  await page.type('#password', 'SYSTEM-Hrms-Savitha@2026!');
+  await page.type('#email', CREDS.hrAdmin.email);
+  await page.type('#password', CREDS.hrAdmin.pass);
   await page.click('#loginBtn');
   try {
     await page.waitForNavigation({ timeout: 8000, waitUntil: 'domcontentloaded' });

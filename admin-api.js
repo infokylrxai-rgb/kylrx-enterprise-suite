@@ -12,6 +12,28 @@ const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_
 const REQUEST_TIMEOUT_MS = 25000;
 const REFRESH_MS = 30000;
 
+/**
+ * Authorization header for the signed-in user. The backend scopes every admin API to the
+ * caller's organization via this token's claims; without it the server cannot resolve the
+ * org and returns nothing (or 401).
+ *
+ * The session token saved at login is used first (synchronous, so the first page load carries
+ * it immediately). firebase-config is imported LAZILY, only as a fallback, so pulling in the
+ * Firebase SDK never delays this module's evaluation past the page's DOMContentLoaded.
+ */
+async function authHeader() {
+    try {
+        let token = (typeof localStorage !== 'undefined') ? localStorage.getItem('hr_access_token') : null;
+        if (!token) {
+            const { auth } = await import('./firebase-config.js');
+            if (auth && auth.currentUser) token = await auth.currentUser.getIdToken();
+        }
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    } catch (_) {
+        return {};
+    }
+}
+
 let writeStatusCache = { at: 0, value: null };
 export async function getWriteStatus() {
     if (writeStatusCache.value && Date.now() - writeStatusCache.at < 60000) return writeStatusCache.value;
@@ -35,7 +57,10 @@ export function createApi(base) {
         try {
             const res = await fetch(`${API_HOST}${base}${path}`, {
                 method,
-                headers: body ? { 'Content-Type': 'application/json' } : { Accept: 'application/json' },
+                headers: {
+                    ...(body ? { 'Content-Type': 'application/json' } : { Accept: 'application/json' }),
+                    ...(await authHeader())
+                },
                 body: body ? JSON.stringify(body) : undefined,
                 signal: controller.signal
             });

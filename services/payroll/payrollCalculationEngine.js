@@ -8,7 +8,7 @@
  * 2. Statutory Wage Base Aggregation (PF, ESI, PT, TDS)
  * 3. Decoupled integration with:
  *    - payrollDocumentService.js (payslip PDF & Excel generation)
- *    - payrollDisbursementService.js (Decentro Fabric banking batch payouts)
+ *    - payrollDisbursementService.js (Cashfree Payouts banking batch payouts)
  * 
  * @version 1.0.0
  * @author Principal Fintech & Payroll Systems Architect
@@ -193,7 +193,7 @@
                 taxableGross: Math.round(totalTaxableIncome * 100) / 100
             },
             components: resolvedComponents,
-            // Pre-structured payout payload for Decentro Fabric
+            // Pre-structured payout payload for Cashfree Payouts
             disbursementPayload: {
                 beneficiaryId: employee.employeeId || employee.id,
                 beneficiaryName: employee.employeeName || employee.name,

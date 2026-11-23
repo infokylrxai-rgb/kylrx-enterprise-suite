@@ -2,6 +2,22 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
+// Decoupled Payroll Controller (PRD Section 4)
+const payrollControllerEarly = require('../controllers/payroll-controller');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROVIDER WEBHOOK — REGISTERED BEFORE verifyToken ON PURPOSE.
+// Cashfree calls this server-to-server and cannot present a user JWT, so a token
+// gate here would silently drop every payout callback. It is NOT unauthenticated:
+// the handler verifies Cashfree's HMAC-SHA256 signature over the raw body and
+// rejects anything unsigned or forged (see handleCashfreeWebhook).
+// ─────────────────────────────────────────────────────────────────────────────
+router.post(
+    '/disburse/webhook/cashfree',
+    express.raw({ type: '*/*' }),
+    payrollControllerEarly.handleCashfreeWebhook
+);
+
 router.use(verifyToken);
 
 // Administrative payroll routes require Admin/HR roles; employee document reads are gated by req.user.id
@@ -69,13 +85,13 @@ router.post('/documents/export-register-pdf', payrollController.exportRegisterPd
 router.get('/documents/vault', payrollController.getVaultDocuments);
 
 // ─────────────────────────────────────────────
-// 2. DECOUPLED DECENTRO DISBURSEMENT ROUTES
+// 2. DECOUPLED CASHFREE DISBURSEMENT ROUTES
 // ─────────────────────────────────────────────
 router.post('/disburse/create-batch', payrollController.createDisbursementBatch);
 router.post('/disburse/batch/:batchId/approve', payrollController.approveDisbursementBatch);
 router.post('/disburse/batch/:batchId/execute', payrollController.executeDisbursementBatch);
 router.get('/disburse/batch/:batchId/status', payrollController.getDisbursementBatchStatus);
-router.post('/disburse/webhook/decentro', payrollController.handleDecentroWebhook);
+router.post('/disburse/batch/:batchId/reconcile', payrollController.reconcileDisbursementBatch);
 
 
 /**

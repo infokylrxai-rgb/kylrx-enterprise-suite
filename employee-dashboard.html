@@ -980,7 +980,10 @@
         syncBackendStatus();
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) return;
+            // No signed-in user: bounce to the landing page. Previously this just returned,
+            // which left the dashboard shell rendered for an unauthenticated visitor —
+            // every other portal dashboard redirects, so this one now matches.
+            if (!user) { window.location.href = 'index.html'; return; }
             let me;
             try {
                 me = await loadIdentity();

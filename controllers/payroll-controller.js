@@ -8,7 +8,7 @@
  *
  * Integrated with:
  *  - PayrollDocumentService (Document generation, Excel/PDF registers, Archival)
- *  - PayrollDisbursementService (Decentro Fabric Staging, Maker-Checker, Webhooks)
+ *  - PayrollDisbursementService (Cashfree Payouts, Maker-Checker, Signed Webhooks)
  * ============================================================================
  */
 
@@ -146,6 +146,7 @@ async function createDisbursementBatch(req, res) {
       batchId,
       period: period || 'September 2026',
       makerId,
+      orgId: req.user?.orgId || null,
       payoutChannel: payoutChannel || 'IMPS',
       employees: employees || []
     });
@@ -197,13 +198,13 @@ async function approveDisbursementBatch(req, res) {
 
 /**
  * POST /api/payroll/disburse/batch/:batchId/execute
- * Triggers Decentro Fabric payout execution.
+ * Triggers Cashfree Payouts execution (idempotent per employee).
  * Requires batch to be APPROVED.
  */
 async function executeDisbursementBatch(req, res) {
   try {
     const { batchId } = req.params;
-    const result = await disbursementService.executeDecentroPayoutBatch(batchId, req.body);
+    const result = await disbursementService.executeCashfreePayoutBatch(batchId, req.body);
     return res.status(200).json(result);
   } catch (error) {
     if (error instanceof MakerCheckerViolationError || error.name === 'MakerCheckerViolationError') {
@@ -213,8 +214,28 @@ async function executeDisbursementBatch(req, res) {
         message: error.message
       });
     }
-    console.error('[PAYROLL_CTRL] Execute Decentro payout error:', error);
+    // Business rejections (no payable records, insufficient balance) are not gateway faults.
+    if (error.name === 'PayoutValidationError') {
+      return res.status(error.statusCode || 400).json({ success: false, error: error.message, details: error.details });
+    }
+    console.error('[PAYROLL_CTRL] Execute Cashfree payout error:', error);
     return res.status(502).json({ success: false, error: error.message });
+  }
+}
+
+/**
+ * POST /api/payroll/disburse/batch/:batchId/reconcile
+ * Polling fallback: pulls authoritative status from Cashfree for anything still PENDING,
+ * so a dropped webhook can never strand a payout.
+ */
+async function reconcileDisbursementBatch(req, res) {
+  try {
+    const { batchId } = req.params;
+    const result = await disbursementService.reconcilePendingTransfers(batchId);
+    return res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    console.error('[PAYROLL_CTRL] Reconcile error:', error);
+    return res.status(500).json({ success: false, error: error.message });
   }
 }
 
@@ -237,18 +258,27 @@ async function getDisbursementBatchStatus(req, res) {
 }
 
 /**
- * POST /api/payroll/disburse/webhook/decentro
- * Decentro Fabric Asynchronous Webhook Listener.
- * Idempotently reconciles payment status in Firestore.
+ * POST /api/payroll/disburse/webhook/cashfree
+ * Cashfree Payouts asynchronous webhook listener.
+ * Signature-verified, then idempotently reconciles payment status in Firestore.
+ *
+ * The route mounts a raw body parser so the HMAC is computed over the EXACT bytes
+ * Cashfree signed — re-serialised JSON would not match.
  */
-async function handleDecentroWebhook(req, res) {
+async function handleCashfreeWebhook(req, res) {
   try {
-    const payload = req.body;
-    const result = await disbursementService.handleDecentroWebhook(payload);
+    const signature = req.get('x-webhook-signature') || req.get('x-cf-signature');
+    const timestamp = req.get('x-webhook-timestamp') || req.get('x-cf-timestamp');
+    const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : (req.rawBody || null);
+    const payload = rawBody ? undefined : req.body;
+
+    const result = await disbursementService.handleCashfreeWebhook({ rawBody, signature, timestamp, payload });
     return res.status(200).json(result);
   } catch (error) {
-    console.error('[PAYROLL_CTRL] Decentro webhook handling error:', error);
-    return res.status(400).json({ success: false, error: error.message });
+    // 401 for a rejected signature so forged callbacks are visible in logs/monitoring.
+    const status = error.name === 'PayoutValidationError' ? (error.statusCode || 400) : 400;
+    console.error('[PAYROLL_CTRL] Cashfree webhook handling error:', error.message);
+    return res.status(status).json({ success: false, error: error.message });
   }
 }
 
@@ -266,5 +296,6 @@ module.exports = {
   approveDisbursementBatch,
   executeDisbursementBatch,
   getDisbursementBatchStatus,
-  handleDecentroWebhook
+  handleCashfreeWebhook,
+  reconcileDisbursementBatch
 };

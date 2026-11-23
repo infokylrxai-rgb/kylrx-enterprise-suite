@@ -8,7 +8,7 @@
  * 
  * 1. Live Verification Pills: Aadhaar KYC, PAN KYC, and Bank KYC status.
  * 2. Current vs. Previous Member ID and UAN Lineage display.
- * 3. "Verify via Decentro/EPFO" action trigger with live asynchronous handshake.
+ * 3. "Verify via Cashfree/EPFO" action trigger with live asynchronous handshake.
  * 
  * @version 1.0.0
  * @author Principal Fintech & Statutory Payroll Architect
@@ -71,7 +71,7 @@
         const estId = pfDetails.epfoEstablishmentId || 'KN/BNG/0012345/000';
         const pfDoj = pfDetails.dateOfPFJoining || pfDetails.dateOfPfJoining || employeeInfo.joiningDate || '—';
         const pfDoe = pfDetails.dateOfPFExit || pfDetails.dateOfPfExit || 'Active / On-roll';
-        const source = verification.officialSource || 'Decentro Fabric';
+        const source = verification.officialSource || 'Cashfree Payouts';
 
         const isEps = pfDetails.isEpsApplicable !== false;
         const isEdli = pfDetails.isEdliApplicable !== false;
@@ -86,7 +86,7 @@
                     </div>
                     <div>
                         <h4 style="margin: 0; font-size: 0.98rem; font-weight: 800; letter-spacing: -0.01em; color: #ffffff;">EPFO &amp; Statutory KYC Master Profile</h4>
-                        <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: rgba(255, 255, 255, 0.85);">PRD §§ 1, 4, 11 &amp; 13 • 19-Column Schema &amp; Decentro Fabric Gate</p>
+                        <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: rgba(255, 255, 255, 0.85);">PRD §§ 1, 4, 11 &amp; 13 • 19-Column Schema &amp; Cashfree Payouts Gate</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -378,7 +378,7 @@
         }
 
         const epfoDisplaySource = container.querySelector('#epfoDisplaySource');
-        if (epfoDisplaySource) epfoDisplaySource.textContent = verification.officialSource || 'Decentro Fabric';
+        if (epfoDisplaySource) epfoDisplaySource.textContent = verification.officialSource || 'Cashfree Payouts';
 
         const epfoDisplayCurrentUan = container.querySelector('#epfoDisplayCurrentUan');
         if (epfoDisplayCurrentUan && profile.uan) epfoDisplayCurrentUan.textContent = profile.uan;

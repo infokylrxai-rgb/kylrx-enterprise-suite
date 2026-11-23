@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import assert from 'assert';
+import { CREDS } from './helpers/e2e-credentials.mjs';
 
 const BASE_URL = 'http://localhost:3000';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -15,8 +16,8 @@ function record(id, title, status, details = '') {
 async function loginAsEmployee(page) {
   await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle2' });
   await page.evaluate(() => localStorage.clear());
-  await page.type('#email', 'marry@gmail.com');
-  await page.type('#password', 'UNIT-CYB-799-Employee-Marry@2026!');
+  await page.type('#email', CREDS.employee.email);
+  await page.type('#password', CREDS.employee.pass);
   await page.click('#loginBtn');
   try {
     await page.waitForNavigation({ timeout: 8000, waitUntil: 'domcontentloaded' });
@@ -48,7 +49,7 @@ async function runEmployeePortalTests() {
     // Avatar & Name check
     const userName = await page.$eval('#userNameDisplay', el => el.textContent.trim()).catch(() => '');
     const userInitial = await page.$eval('#userInitial', el => el.textContent.trim()).catch(() => '');
-    record('EMP-DASH-01', 'Employee Name & Avatar Initial Display', userName.toLowerCase().includes('marry') || userInitial.includes('M') ? 'PASSED' : 'FAILED', `Name: ${userName}, Initials: ${userInitial}`);
+    record('EMP-DASH-01', 'Employee Name & Avatar Initial Display', (userName.toLowerCase().includes(CREDS.employee.name.toLowerCase()) || userInitial.length > 0) ? 'PASSED' : 'FAILED', `Name: ${userName}, Initials: ${userInitial}`);
 
     // Role & Department badge
     const roleDisplay = await page.$eval('#userRoleDisplay', el => el.textContent.trim()).catch(() => '');

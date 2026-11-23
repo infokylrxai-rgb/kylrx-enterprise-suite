@@ -18,8 +18,8 @@ const long = (tag) => `${tag}-${'x'.repeat(40)}`;
 const production = {
   NODE_ENV: 'production', JWT_SECRET: long('jwt'), REFRESH_SECRET: long('refresh'),
   FIREBASE_PROJECT_ID: 'acme-hr', FIREBASE_STORAGE_BUCKET: 'acme-hr.firebasestorage.app', FIREBASE_SERVICE_ACCOUNT_PATH: 'key.json',
-  KYLRX_EXPORT_SIGNING_KEY: long('export'), DECENTRO_BASE_URL: 'https://in.decentro.tech/fabric', DECENTRO_CLIENT_ID: 'id',
-  DECENTRO_CLIENT_SECRET: 's1', DECENTRO_MODULE_SECRET: 's2', DECENTRO_PROVIDER_SECRET: 's3', APP_URL: 'https://hr.acme.example'
+  KYLRX_EXPORT_SIGNING_KEY: long('export'), CASHFREE_CLIENT_ID: 'cf_id', CASHFREE_CLIENT_SECRET: 'cf_secret',
+  APP_URL: 'https://hr.acme.example'
 };
 
 describe('check:env', () => {
@@ -30,8 +30,8 @@ describe('check:env', () => {
 
   it('production lists every missing variable, and either service-account variable is enough', () => {
     assert.deepEqual(checkEnv('production', production), { missing: [], recommended: ['ALLOWED_ORIGINS', 'EMAIL_FROM or SMTP_USER', 'SMTP_PASS or RESEND_API_KEY'], problems: [] });
-    const { missing } = checkEnv('production', { ...production, FIREBASE_SERVICE_ACCOUNT_PATH: '', DECENTRO_MODULE_SECRET: '', APP_URL: undefined });
-    assert.deepEqual(missing, ['FIREBASE_SERVICE_ACCOUNT or FIREBASE_SERVICE_ACCOUNT_PATH', 'DECENTRO_MODULE_SECRET', 'APP_URL']);
+    const { missing } = checkEnv('production', { ...production, FIREBASE_SERVICE_ACCOUNT_PATH: '', CASHFREE_CLIENT_SECRET: '', APP_URL: undefined });
+    assert.deepEqual(missing, ['FIREBASE_SERVICE_ACCOUNT or FIREBASE_SERVICE_ACCOUNT_PATH', 'CASHFREE_CLIENT_SECRET', 'APP_URL']);
   });
 
   it('placeholders from .env.example count as missing', () => {

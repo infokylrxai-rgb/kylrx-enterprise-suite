@@ -637,7 +637,7 @@
                 });
             }
 
-            // PRD Sections 1, 4 & 13: Core Banking & Decentro Fabric Integration
+            // PRD Sections 1, 4 & 13: Core Banking & Cashfree Payouts Integration
             let finRec = null;
             if (id && (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null) && window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.getEmployeeFinance === 'function') {
                 try {
@@ -1050,9 +1050,9 @@
                         if (benIdDisplay) benIdDisplay.textContent = res.decentroBeneficiaryId;
                         const decBadge = document.getElementById('decentroVerificationBadge');
                         if (decBadge) decBadge.textContent = 'VERIFIED';
-                        alert(`Decentro Fabric Penny Drop Successful!\n\nBeneficiary ID: ${res.decentroBeneficiaryId}\nAccount Holder: ${res.accountHolderName}\nIFSC: ${res.ifsc}\nGateway: ${res.gateway}\nStatus: VERIFIED`);
+                        alert(`Cashfree Penny Drop Successful!\n\nBeneficiary ID: ${res.decentroBeneficiaryId}\nAccount Holder: ${res.accountHolderName}\nIFSC: ${res.ifsc}\nGateway: ${res.gateway}\nStatus: VERIFIED`);
                     } else {
-                        alert(`Decentro Verification Failed:\n${res.error}`);
+                        alert(`Cashfree Verification Failed:\n${res.error}`);
                     }
                 }
 

@@ -28,6 +28,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import crypto from 'crypto';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
@@ -36,7 +37,7 @@ process.env.NODE_ENV = 'test';
 const { PayrollDocumentService, DEFAULT_PAYROLL_COMPONENTS } = require('../services/payroll/payrollDocumentService.js');
 const { PayrollDisbursementService, MakerCheckerViolationError } = require('../services/payroll/payrollDisbursementService.js');
 
-describe('Kylrx.ai Payroll Management & Decentro Fabric Integration (PRD §4)', () => {
+describe('Kylrx.ai Payroll Management & Cashfree Payouts Integration (PRD §4)', () => {
 
   // ──────────────────────────────────────────────────────────────────────────
   // 1. STRICT SEPARATION OF CONCERNS (PRD SECTION 4)
@@ -45,7 +46,7 @@ describe('Kylrx.ai Payroll Management & Decentro Fabric Integration (PRD §4)', 
     it('1.1 PayrollDocumentService must have zero banking, payout, or disbursement methods', () => {
       const docService = new PayrollDocumentService();
       const forbiddenTerms = [
-        'disburse', 'payout', 'decentro', 'bankTransfer', 'utr', 'imps', 'neft', 'rtgs', 'makerChecker'
+        'disburse', 'payout', 'cashfree', 'bankTransfer', 'utr', 'imps', 'neft', 'rtgs', 'makerChecker'
       ];
 
       for (const term of forbiddenTerms) {
@@ -80,8 +81,9 @@ describe('Kylrx.ai Payroll Management & Decentro Fabric Integration (PRD §4)', 
       // Must have pure disbursement and banking methods
       assert.strictEqual(typeof disbService.createDisbursementBatch, 'function');
       assert.strictEqual(typeof disbService.approveDisbursementBatch, 'function');
-      assert.strictEqual(typeof disbService.executeDecentroPayoutBatch, 'function');
-      assert.strictEqual(typeof disbService.handleDecentroWebhook, 'function');
+      assert.strictEqual(typeof disbService.executeCashfreePayoutBatch, 'function');
+      assert.strictEqual(typeof disbService.handleCashfreeWebhook, 'function');
+      assert.strictEqual(typeof disbService.reconcilePendingTransfers, 'function');
     });
 
     it('1.3 Document generation runs independently without triggering or requiring disbursement', async () => {
@@ -224,7 +226,7 @@ describe('Kylrx.ai Payroll Management & Decentro Fabric Integration (PRD §4)', 
       assert.strictEqual(approval.batch.checker.checkerId, 'ADMIN_CHECKER_02');
     });
 
-    it('3.4 BLOCKS Decentro execution if batch is not APPROVED', async () => {
+    it('3.4 BLOCKS Cashfree execution if batch is not APPROVED', async () => {
       const disbService = new PayrollDisbursementService();
       await disbService.createDisbursementBatch({
         batchId: 'BATCH_UNAPPROVED_EXEC_TEST',
@@ -235,7 +237,7 @@ describe('Kylrx.ai Payroll Management & Decentro Fabric Integration (PRD §4)', 
       // Batch is still PENDING_APPROVAL
       await assert.rejects(
         async () => {
-          await disbService.executeDecentroPayoutBatch('BATCH_UNAPPROVED_EXEC_TEST');
+          await disbService.executeCashfreePayoutBatch('BATCH_UNAPPROVED_EXEC_TEST');
         },
         (err) => {
           assert.strictEqual(err.name, 'MakerCheckerViolationError');
@@ -247,126 +249,236 @@ describe('Kylrx.ai Payroll Management & Decentro Fabric Integration (PRD §4)', 
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 4. DECENTRO FABRIC INTEGRATION & BATCH EXECUTION
+  // 4. CASHFREE PAYOUTS INTEGRATION & BATCH EXECUTION
   // ──────────────────────────────────────────────────────────────────────────
-  describe('4. Decentro Fabric API Integration & Dispatch', () => {
-    it('4.1 Dispatches approved batch to Decentro Fabric staging gateway with transaction IDs', async () => {
-      const disbService = new PayrollDisbursementService({
-        decentroBaseUrl: 'https://staging.dashboard.decentro.tech/fabric'
-      });
+  describe('4. Cashfree Payouts API Integration & Dispatch', () => {
+    // Fake gateway: records every call so we can assert idempotency / retry semantics.
+    function makeFakeProvider(overrides = {}) {
+      const calls = { beneficiaries: [], transfers: [], statusChecks: [] };
+      return {
+        apiVersion: 'v2', environment: 'sandbox', calls,
+        async getBalance() { return { availableBalance: overrides.balance !== undefined ? overrides.balance : 10000000 }; },
+        async ensureBeneficiary(b) { calls.beneficiaries.push(b); return { beneficiaryId: b.beneficiaryId, created: true }; },
+        async createTransfer(t) {
+          calls.transfers.push(t);
+          if (overrides.failWith) throw overrides.failWith;
+          return { transferId: t.transferId, providerReferenceId: 'CF_' + t.transferId, status: overrides.status || 'PENDING', utr: null, message: null };
+        },
+        async getTransferStatus(id) { calls.statusChecks.push(id); return { transferId: id, providerReferenceId: 'CF_' + id, status: overrides.pollStatus || 'SUCCESS', utr: 'UTR_POLLED_123', message: null }; },
+        verifyWebhookSignature() { return true; }
+      };
+    }
 
-      const batch = await disbService.createDisbursementBatch({
-        batchId: 'BATCH_DECENTRO_DISPATCH',
-        makerId: 'MAKER_101',
-        payoutChannel: 'IMPS',
+    it('4.1 Dispatches approved batch to Cashfree with deterministic, idempotent transfer ids', async () => {
+      const provider = makeFakeProvider();
+      const disbService = new PayrollDisbursementService({ provider, db: null });
+      await disbService.createDisbursementBatch({
+        batchId: 'BATCH_CF_DISPATCH', makerId: 'MAKER_101', payoutChannel: 'IMPS',
         employees: [
           {
-            id: 'EMP_101',
-            name: 'Sunil Gavaskar',
-            netPayable: 75000,
-            financeDetails: {
-              Account_Holder_Name: 'Sunil Gavaskar',
-              Bank_Name: 'Axis Bank',
-              Account_Number: '912010012345678',
-              IFSC: 'UTIB0000123',
-              Account_Type: 'SAVINGS',
-              Is_Primary: true
-            }
+            id: 'EMP_101', name: 'Sunil Gavaskar', netPayable: 75000,
+            financeDetails: { Account_Holder_Name: 'Sunil Gavaskar', Bank_Name: 'Axis Bank', Account_Number: '912010012345678', IFSC: 'UTIB0000123', Account_Type: 'SAVINGS', Is_Primary: true }
           },
           {
-            id: 'EMP_102',
-            name: 'Kapil Dev',
-            netPayable: 80000,
-            financeDetails: {
-              Account_Holder_Name: 'Kapil Dev',
-              Bank_Name: 'HDFC Bank',
-              Account_Number: '50100987654321',
-              IFSC: 'HDFC0000456',
-              Account_Type: 'SAVINGS',
-              Is_Primary: true
-            }
+            id: 'EMP_102', name: 'Kapil Dev', netPayable: 80000,
+            financeDetails: { Account_Holder_Name: 'Kapil Dev', Bank_Name: 'Axis Bank', Account_Number: '50100987654321', IFSC: 'HDFC0000456', Account_Type: 'SAVINGS', Is_Primary: true }
           }
         ]
       });
+      await disbService.approveDisbursementBatch('BATCH_CF_DISPATCH', 'CHECKER_202');
 
-      // 4-Eyes Checker Approval
-      await disbService.approveDisbursementBatch('BATCH_DECENTRO_DISPATCH', 'CHECKER_202');
-
-      // Execute Decentro Payout
-      const execResult = await disbService.executeDecentroPayoutBatch('BATCH_DECENTRO_DISPATCH');
+      const execResult = await disbService.executeCashfreePayoutBatch('BATCH_CF_DISPATCH');
       assert.strictEqual(execResult.success, true);
       assert.strictEqual(execResult.totalDispatched, 2);
-      assert.strictEqual(execResult.gateway, 'Decentro Fabric (Staging)');
-      assert.strictEqual(execResult.decentroBaseUrl, 'https://staging.dashboard.decentro.tech/fabric');
+      assert.ok(execResult.gateway.startsWith('Cashfree Payouts'));
 
-      // Check transaction tokens
-      const updatedBatch = await disbService.getBatch('BATCH_DECENTRO_DISPATCH');
-      assert.ok(updatedBatch.records[0].decentroTxnId.startsWith('DEC-'));
-      assert.ok(updatedBatch.records[1].decentroTxnId.startsWith('DEC-'));
-      assert.strictEqual(updatedBatch.status, 'DISBURSING');
+      // Every employee is registered as a beneficiary before their transfer
+      assert.strictEqual(provider.calls.beneficiaries.length, 2);
+      // Transfer ids are deterministic (batch + employee), which is what makes retries safe
+      const ids = provider.calls.transfers.map(t => t.transferId).sort();
+      assert.deepStrictEqual(ids, ['BATCH_CF_DISPATCH-EMP_101', 'BATCH_CF_DISPATCH-EMP_102']);
+
+      const updated = await disbService.getBatch('BATCH_CF_DISPATCH');
+      assert.strictEqual(updated.records[0].cashfreeTransferId, 'BATCH_CF_DISPATCH-EMP_101');
+      assert.strictEqual(updated.status, 'DISBURSING');
+    });
+
+    it('4.2 A re-run reuses the SAME transfer id, so an employee can never be paid twice', async () => {
+      const provider = makeFakeProvider();
+      const disbService = new PayrollDisbursementService({ provider, db: null });
+      await disbService.createDisbursementBatch({
+        batchId: 'BATCH_CF_IDEMP', makerId: 'M1', employees: [
+          {
+            id: 'EMP_201', name: 'Anil Kumble', netPayable: 50000,
+            financeDetails: { Account_Holder_Name: 'Anil Kumble', Bank_Name: 'Axis Bank', Account_Number: '1234567890', IFSC: 'SBIN0001234', Account_Type: 'SAVINGS', Is_Primary: true }
+          }
+        ]
+      });
+      await disbService.approveDisbursementBatch('BATCH_CF_IDEMP', 'C1');
+      await disbService.executeCashfreePayoutBatch('BATCH_CF_IDEMP');
+      const firstId = provider.calls.transfers[0].transferId;
+
+      // Force a second dispatch of the same batch
+      const batch = await disbService.getBatch('BATCH_CF_IDEMP');
+      batch.status = 'APPROVED';
+      await disbService.executeCashfreePayoutBatch('BATCH_CF_IDEMP');
+
+      assert.strictEqual(provider.calls.transfers.length, 2, 'two API calls were made');
+      assert.strictEqual(provider.calls.transfers[1].transferId, firstId,
+        'the SECOND call reused the same transfer id — Cashfree de-duplicates, so no double payment');
+    });
+
+    it('4.3 Does NOT retry a business rejection (only transient faults are retried)', async () => {
+      const nonRetryable = Object.assign(new Error('Invalid beneficiary account'), { retryable: false, statusCode: 400 });
+      const provider = makeFakeProvider({ failWith: nonRetryable });
+      const disbService = new PayrollDisbursementService({ provider, db: null });
+      await disbService.createDisbursementBatch({
+        batchId: 'BATCH_CF_NORETRY', makerId: 'M1', employees: [
+          {
+            id: 'EMP_301', name: 'Zaheer Khan', netPayable: 40000,
+            financeDetails: { Account_Holder_Name: 'Zaheer Khan', Bank_Name: 'Axis Bank', Account_Number: '999988887777', IFSC: 'ICIC0000111', Account_Type: 'SAVINGS', Is_Primary: true }
+          }
+        ]
+      });
+      await disbService.approveDisbursementBatch('BATCH_CF_NORETRY', 'C1');
+      const res = await disbService.executeCashfreePayoutBatch('BATCH_CF_NORETRY');
+
+      assert.strictEqual(provider.calls.transfers.length, 1, 'a 4xx business rejection must not be retried');
+      assert.strictEqual(res.failed, 1);
+      const b = await disbService.getBatch('BATCH_CF_NORETRY');
+      assert.strictEqual(b.records[0].status, 'FAILURE');
+      assert.ok(b.records[0].failureReason.includes('Invalid beneficiary'));
+    });
+
+    it('4.4 Blocks the whole batch when the Cashfree balance cannot cover it (no part-paid payroll)', async () => {
+      const provider = makeFakeProvider({ balance: 100 });
+      const disbService = new PayrollDisbursementService({ provider, db: null });
+      await disbService.createDisbursementBatch({
+        batchId: 'BATCH_CF_BALANCE', makerId: 'M1', employees: [
+          {
+            id: 'EMP_401', name: 'Virat K', netPayable: 90000,
+            financeDetails: { Account_Holder_Name: 'Virat K', Bank_Name: 'Axis Bank', Account_Number: '111122223333', IFSC: 'HDFC0000999', Account_Type: 'SAVINGS', Is_Primary: true }
+          }
+        ]
+      });
+      await disbService.approveDisbursementBatch('BATCH_CF_BALANCE', 'C1');
+      await assert.rejects(
+        () => disbService.executeCashfreePayoutBatch('BATCH_CF_BALANCE'),
+        (err) => { assert.strictEqual(err.name, 'PayoutValidationError'); assert.ok(/Insufficient Cashfree balance/.test(err.message)); return true; }
+      );
+      assert.strictEqual(provider.calls.transfers.length, 0, 'nothing was debited');
+    });
+
+    it('4.5 Polling fallback settles a PENDING transfer when a webhook never arrives', async () => {
+      const provider = makeFakeProvider({ status: 'PENDING', pollStatus: 'SUCCESS' });
+      const disbService = new PayrollDisbursementService({ provider, db: null });
+      await disbService.createDisbursementBatch({
+        batchId: 'BATCH_CF_POLL', makerId: 'M1', employees: [
+          {
+            id: 'EMP_501', name: 'Jasprit B', netPayable: 55000,
+            financeDetails: { Account_Holder_Name: 'Jasprit B', Bank_Name: 'Axis Bank', Account_Number: '444455556666', IFSC: 'UTIB0000777', Account_Type: 'SAVINGS', Is_Primary: true }
+          }
+        ]
+      });
+      await disbService.approveDisbursementBatch('BATCH_CF_POLL', 'C1');
+      await disbService.executeCashfreePayoutBatch('BATCH_CF_POLL');
+
+      const result = await disbService.reconcilePendingTransfers('BATCH_CF_POLL');
+      assert.strictEqual(result.updated, 1);
+      assert.strictEqual(result.status, 'DISBURSED');
+      const b = await disbService.getBatch('BATCH_CF_POLL');
+      assert.strictEqual(b.records[0].status, 'SUCCESS');
+      assert.strictEqual(b.records[0].utr, 'UTR_POLLED_123');
     });
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 5. ASYNCHRONOUS DECENTRO WEBHOOKS & IDEMPOTENT RECONCILIATION
+  // 5. SIGNED CASHFREE WEBHOOKS & IDEMPOTENT RECONCILIATION
   // ──────────────────────────────────────────────────────────────────────────
-  describe('5. Decentro Webhook Callback & Idempotent Reconciliation', () => {
-    it('5.1 Idempotently reconciles SUCCESS webhook callback and assigns UTR', async () => {
-      const disbService = new PayrollDisbursementService();
-      const batch = await disbService.createDisbursementBatch({
-        batchId: 'BATCH_WEBHOOK_TEST',
-        makerId: 'MAKER_101',
-        employees: [
+  describe('5. Cashfree Webhook Callback & Idempotent Reconciliation', () => {
+    const SECRET = 'test_webhook_secret';
+    function signedProvider() {
+      return {
+        apiVersion: 'v2', environment: 'sandbox',
+        async getBalance() { return { availableBalance: 10000000 }; },
+        async ensureBeneficiary(b) { return { beneficiaryId: b.beneficiaryId }; },
+        async createTransfer(t) { return { transferId: t.transferId, providerReferenceId: 'CF_' + t.transferId, status: 'PENDING', utr: null }; },
+        async getTransferStatus(id) { return { transferId: id, status: 'PENDING', utr: null }; },
+        verifyWebhookSignature(rawBody, signature, timestamp) {
+          const expected = crypto.createHmac('sha256', SECRET).update(String(timestamp || '') + rawBody).digest('base64');
+          return signature === expected;
+        }
+      };
+    }
+    async function seedDispatched(batchId) {
+      const disbService = new PayrollDisbursementService({ provider: signedProvider(), db: null, requireWebhookSignature: true });
+      await disbService.createDisbursementBatch({
+        batchId, makerId: 'MAKER_101', employees: [
           {
-            id: 'EMP_WH_1',
-            name: 'Rahul Dravid',
-            netPayable: 62000,
-            financeDetails: {
-              Account_Holder_Name: 'Rahul Dravid',
-              Bank_Name: 'SBI',
-              Account_Number: '30012345678',
-              IFSC: 'SBIN0001234',
-              Account_Type: 'SAVINGS',
-              Is_Primary: true
-            }
+            id: 'EMP_WH_1', name: 'Rahul Dravid', netPayable: 62000,
+            financeDetails: { Account_Holder_Name: 'Rahul Dravid', Bank_Name: 'Axis Bank', Account_Number: '30012345678', IFSC: 'SBIN0001234', Account_Type: 'SAVINGS', Is_Primary: true }
           }
         ]
       });
+      await disbService.approveDisbursementBatch(batchId, 'CHECKER_202');
+      await disbService.executeCashfreePayoutBatch(batchId);
+      return disbService;
+    }
+    const bodyFor = (transferId, status, utr) => JSON.stringify({
+      type: 'TRANSFER_STATUS',
+      data: { transfer: { transfer_id: transferId, transfer_status: status, transfer_utr: utr, cf_transfer_id: 'CF_1' } }
+    });
 
-      await disbService.approveDisbursementBatch('BATCH_WEBHOOK_TEST', 'CHECKER_202');
-      await disbService.executeDecentroPayoutBatch('BATCH_WEBHOOK_TEST');
+    it('5.1 Verified webhook reconciles to SUCCESS, assigns UTR, and a replay is idempotent', async () => {
+      const svc = await seedDispatched('BATCH_WEBHOOK_TEST');
+      const transferId = 'BATCH_WEBHOOK_TEST-EMP_WH_1';
+      const rawBody = bodyFor(transferId, 'SUCCESS', 'UTR_CF_99887766');
+      const timestamp = '1700000000';
+      const signature = crypto.createHmac('sha256', SECRET).update(timestamp + rawBody).digest('base64');
 
-      const targetTxnId = batch.records[0].decentroTxnId;
+      const first = await svc.handleCashfreeWebhook({ rawBody, signature, timestamp });
+      assert.strictEqual(first.success, true);
+      assert.strictEqual(first.idempotent, false);
+      assert.strictEqual(first.reconciledStatus, 'SUCCESS');
+      assert.strictEqual(first.reconciledRecord.utr, 'UTR_CF_99887766');
+      assert.strictEqual((await svc.getBatch('BATCH_WEBHOOK_TEST')).status, 'DISBURSED');
 
-      // 1st Webhook Delivery: SUCCESS
-      const webhook1 = await disbService.handleDecentroWebhook({
-        decentro_txn_id: targetTxnId,
-        reference_id: batch.records[0].instructionId,
-        transaction_status: 'SUCCESS',
-        bank_reference_number: 'UTR_DECENTRO_99887766',
-        response_code: 'TRS_000',
-        message: 'Transaction settled successfully via IMPS'
-      });
+      const replay = await svc.handleCashfreeWebhook({ rawBody, signature, timestamp });
+      assert.strictEqual(replay.idempotent, true);
+      assert.ok(replay.message.includes('already processed'));
+    });
 
-      assert.strictEqual(webhook1.success, true);
-      assert.strictEqual(webhook1.idempotent, false);
-      assert.strictEqual(webhook1.reconciledStatus, 'SUCCESS');
-      assert.strictEqual(webhook1.reconciledRecord.utr, 'UTR_DECENTRO_99887766');
+    it('5.2 REJECTS a forged or unsigned webhook (a fake SUCCESS cannot mark payroll paid)', async () => {
+      const svc = await seedDispatched('BATCH_WEBHOOK_FORGED');
+      const transferId = 'BATCH_WEBHOOK_FORGED-EMP_WH_1';
+      const rawBody = bodyFor(transferId, 'SUCCESS', 'UTR_FAKE');
 
-      // Batch status should be DISBURSED
-      const reconciledBatch = await disbService.getBatch('BATCH_WEBHOOK_TEST');
-      assert.strictEqual(reconciledBatch.status, 'DISBURSED');
+      await assert.rejects(
+        () => svc.handleCashfreeWebhook({ rawBody, signature: 'not-a-real-signature', timestamp: '1700000000' }),
+        (err) => { assert.strictEqual(err.name, 'PayoutValidationError'); assert.ok(/signature/i.test(err.message)); return true; }
+      );
+      await assert.rejects(() => svc.handleCashfreeWebhook({ rawBody, timestamp: '1700000000' }));
 
-      // 2nd Duplicate Webhook Delivery: Should be flagged idempotent with no state mutation
-      const webhook2 = await disbService.handleDecentroWebhook({
-        decentro_txn_id: targetTxnId,
-        reference_id: batch.records[0].instructionId,
-        transaction_status: 'SUCCESS',
-        bank_reference_number: 'UTR_DECENTRO_99887766'
-      });
+      // State untouched by the forgery attempt
+      const b = await svc.getBatch('BATCH_WEBHOOK_FORGED');
+      assert.strictEqual(b.records[0].status, 'PENDING');
+      assert.notStrictEqual(b.status, 'DISBURSED');
+    });
 
-      assert.strictEqual(webhook2.idempotent, true);
-      assert.ok(webhook2.message.includes('already been processed'));
+    it('5.3 A late PENDING delivery never regresses an already-settled payment', async () => {
+      const svc = await seedDispatched('BATCH_WEBHOOK_ORDER');
+      const transferId = 'BATCH_WEBHOOK_ORDER-EMP_WH_1';
+      const sign = (raw, ts) => crypto.createHmac('sha256', SECRET).update(ts + raw).digest('base64');
+
+      const okBody = bodyFor(transferId, 'SUCCESS', 'UTR_FINAL');
+      await svc.handleCashfreeWebhook({ rawBody: okBody, signature: sign(okBody, '1'), timestamp: '1' });
+
+      const lateBody = bodyFor(transferId, 'PENDING', null);
+      await svc.handleCashfreeWebhook({ rawBody: lateBody, signature: sign(lateBody, '2'), timestamp: '2' });
+
+      const b = await svc.getBatch('BATCH_WEBHOOK_ORDER');
+      assert.strictEqual(b.records[0].status, 'SUCCESS', 'settled payment must not fall back to PENDING');
+      assert.strictEqual(b.records[0].utr, 'UTR_FINAL');
     });
   });
 

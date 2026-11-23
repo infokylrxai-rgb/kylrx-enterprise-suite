@@ -3528,7 +3528,7 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
 /**
  * Commits parsed Employee Finance records to Cloud Firestore:
  * Path: organizations/{orgId}/employee_finance/{employeeId}
- * Links primary accounts to Decentro Fabric Payout Registry
+ * Links primary accounts to Cashfree Payout Registry
  */
 async function executeEmployeeFinanceIngest(financeDocs) {
     const orgId = state.orgId || getActiveOrgId() || missingOrg();
@@ -3560,7 +3560,7 @@ async function executeEmployeeFinanceIngest(financeDocs) {
     } else {
         window.showCustomAlert(
             "Employee Finance Ingested",
-            `Successfully ingested all ${ingestedCount} Employee Finance & Statutory records into Cloud Firestore under organizations/${orgId}/employee_finance matching PRD Sections 1, 4 & 13! Decentro Fabric payout registry initialized.`,
+            `Successfully ingested all ${ingestedCount} Employee Finance & Statutory records into Cloud Firestore under organizations/${orgId}/employee_finance matching PRD Sections 1, 4 & 13! Cashfree payout registry initialized.`,
             "success"
         );
     }
@@ -3802,7 +3802,7 @@ async function renderOnboardingEpfoMasterTable() {
                                         ${escapeHtml(r.kyc?.overallStatus || 'PENDING')}
                                     </span>
                                 </td>
-                                <td style="font-size: 0.74rem; color: #64748b;">${escapeHtml(r.verification?.officialSource || 'Decentro Fabric')}</td>
+                                <td style="font-size: 0.74rem; color: #64748b;">${escapeHtml(r.verification?.officialSource || 'Cashfree Payouts')}</td>
                             </tr>
                         `).join('')}
                     </tbody>

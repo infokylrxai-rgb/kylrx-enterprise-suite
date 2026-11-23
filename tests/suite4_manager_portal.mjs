@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import assert from 'assert';
+import { CREDS } from './helpers/e2e-credentials.mjs';
 
 const BASE_URL = 'http://localhost:3000';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -16,8 +17,8 @@ function record(id, title, status, details = '') {
 async function loginAsManager(page) {
   await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle2' });
   await page.evaluate(() => localStorage.clear());
-  await page.type('#email', 'john.doe@example.com');
-  await page.type('#password', 'UNIT-CYB-802-Manager-John@2026!');
+  await page.type('#email', CREDS.manager.email);
+  await page.type('#password', CREDS.manager.pass);
   await page.click('#loginBtn');
   try {
     await page.waitForNavigation({ timeout: 8000, waitUntil: 'domcontentloaded' });
@@ -47,7 +48,7 @@ async function runManagerPortalTests() {
     await new Promise(r => setTimeout(r, 1500));
 
     const mgrName = await page.$eval('#userNameDisplay', el => el.textContent.trim()).catch(() => '');
-    record('MGR-DASH-01', 'Manager Identity Display', mgrName.toLowerCase().includes('john'), `Name: ${mgrName}`);
+    record('MGR-DASH-01', 'Manager Identity Display', mgrName.toLowerCase().includes(CREDS.manager.name.toLowerCase()), `Name: ${mgrName}`);
 
     const sideDeptName = await page.$eval('#sideDeptName', el => el.textContent.trim()).catch(() => '');
     const sideDeptCode = await page.$eval('#sideDeptCode', el => el.textContent.trim()).catch(() => '');

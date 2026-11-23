@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import assert from 'assert';
+import { CREDS } from './helpers/e2e-credentials.mjs';
 
 const BASE_URL = 'http://localhost:3000';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -39,8 +40,8 @@ async function runResponsiveUIUXTests() {
     console.log('\n--- 1. Viewport Tests: Employee Dashboard ---');
     await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle2' });
     await page.evaluate(() => localStorage.clear());
-    await page.type('#email', 'marry@gmail.com');
-    await page.type('#password', 'UNIT-CYB-799-Employee-Marry@2026!');
+    await page.type('#email', CREDS.employee.email);
+    await page.type('#password', CREDS.employee.pass);
     await page.click('#loginBtn');
     try { await page.waitForNavigation({ timeout: 8000, waitUntil: 'domcontentloaded' }); } catch(e) {}
     await page.goto(`${BASE_URL}/employee-dashboard.html`, { waitUntil: 'domcontentloaded' });
@@ -67,8 +68,8 @@ async function runResponsiveUIUXTests() {
     console.log('\n--- 2. Viewport Tests: Manager Command Center ---');
     await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle2' });
     await page.evaluate(() => localStorage.clear());
-    await page.type('#email', 'john.doe@example.com');
-    await page.type('#password', 'UNIT-CYB-802-Manager-John@2026!');
+    await page.type('#email', CREDS.manager.email);
+    await page.type('#password', CREDS.manager.pass);
     await page.click('#loginBtn');
     try { await page.waitForNavigation({ timeout: 8000, waitUntil: 'domcontentloaded' }); } catch(e) {}
     await page.goto(`${BASE_URL}/manager-dashboard.html`, { waitUntil: 'domcontentloaded' });
@@ -94,8 +95,8 @@ async function runResponsiveUIUXTests() {
     console.log('\n--- 3. Viewport Tests: Super Admin Dashboard ---');
     await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle2' });
     await page.evaluate(() => localStorage.clear());
-    await page.type('#email', 'nandanb449@gmail.com');
-    await page.type('#password', 'Nansav@04');
+    await page.type('#email', CREDS.superAdmin.email);
+    await page.type('#password', CREDS.superAdmin.pass);
     await page.click('#loginBtn');
     try { await page.waitForNavigation({ timeout: 8000, waitUntil: 'domcontentloaded' }); } catch(e) {}
     await page.goto(`${BASE_URL}/admin-dashboard.html`, { waitUntil: 'domcontentloaded' });

@@ -36,11 +36,9 @@ process.env.FIREBASE_PROJECT_ID = 'demo-leak';
 process.env.FIREBASE_STORAGE_BUCKET = 'demo-leak.appspot.com';
 // The rest of what production requires (scripts/check-env.js): test-only values
 process.env.KYLRX_EXPORT_SIGNING_KEY = 'leak-test-export-signing-key-32-characters';
-process.env.DECENTRO_BASE_URL = 'https://decentro.invalid';
-process.env.DECENTRO_CLIENT_ID = 'leak-test';
-process.env.DECENTRO_CLIENT_SECRET = 'leak-test';
-process.env.DECENTRO_MODULE_SECRET = 'leak-test';
-process.env.DECENTRO_PROVIDER_SECRET = 'leak-test';
+process.env.CASHFREE_CLIENT_ID = 'leak-test';
+process.env.CASHFREE_CLIENT_SECRET = 'leak-test';
+process.env.CASHFREE_BASE_URL = 'https://cashfree.invalid';
 process.env.APP_URL = 'https://app.invalid';
 
 const A = 'org_leak_a';

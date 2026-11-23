@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 import http from 'http';
 import assert from 'assert';
+import { CREDS } from './helpers/e2e-credentials.mjs';
 
 const BASE_URL = 'http://localhost:3000';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
@@ -81,8 +82,8 @@ async function runSecurityAudit() {
     // Login as Employee (Marry)
     await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle2' });
     await page.evaluate(() => localStorage.clear());
-    await page.type('#email', 'marry@gmail.com');
-    await page.type('#password', 'UNIT-CYB-799-Employee-Marry@2026!');
+    await page.type('#email', CREDS.employee.email);
+    await page.type('#password', CREDS.employee.pass);
     await page.click('#loginBtn');
     try { await page.waitForNavigation({ timeout: 8000, waitUntil: 'domcontentloaded' }); } catch(e) {}
 
@@ -90,7 +91,7 @@ async function runSecurityAudit() {
     await page.goto(`${BASE_URL}/employee-docs.html?id=EMP_FOREIGN_99999`, { waitUntil: 'domcontentloaded' });
     await new Promise(r => setTimeout(r, 1200));
     const activeUser = await page.$eval('#userNameDisplay', el => el.textContent.trim()).catch(() => '');
-    record('SEC-IDOR-01', 'Cross-Employee Vault IDOR Tampering Prevention', activeUser.toLowerCase().includes('marry'), `Restricted to own session (${activeUser})`);
+    record('SEC-IDOR-01', 'Cross-Employee Vault IDOR Tampering Prevention', activeUser.toLowerCase().includes(CREDS.employee.name.toLowerCase()), `Restricted to own session (${activeUser})`);
 
     // Test Cross-Role / Entity IDOR: Employee attempts to access Manager Workforce console
     await page.goto(`${BASE_URL}/manager-workforce.html?dept=FOREIGN_HR_DEPT`, { waitUntil: 'domcontentloaded' });
@@ -133,7 +134,7 @@ async function runSecurityAudit() {
     const sensitiveInStorage = await page.evaluate(() => {
       for (const k of Object.keys(localStorage)) {
         const val = localStorage.getItem(k) || '';
-        if (k.toLowerCase().includes('pass') || val.includes('UNIT-CYB-802-Manager') || val.includes('Nansav@04')) {
+        if (k.toLowerCase().includes('pass') || val.includes(CREDS.manager.pass) || val.includes(CREDS.superAdmin.pass)) {
           return true;
         }
       }

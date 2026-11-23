@@ -127,12 +127,27 @@ describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () =>
                 if (msg.type() === 'error') consoleErrors.push(msg.text());
             });
 
+            // Exercised via admin-dashboard.html: the Quick Actions drawer is one shared
+            // subsystem (quick-actions-controller.js) mounted identically on the employee,
+            // manager and admin dashboards - section 3 above asserts that integration for all
+            // three. employee-dashboard.html now redirects signed-out visitors to index.html
+            // (a deliberate security fix; it used to render its shell to anyone), so this
+            // DOM-level case drives the same drawer from a dashboard that does not require a
+            // session. Auth protection is covered by suite1 (PROT-*) and suite2 (RBAC).
             try {
-                await page.goto('http://127.0.0.1:5502/kylrx-enterprise-suite-main/employee-dashboard.html', {
+                // Same session seeding the sibling case below uses, so the dashboard renders
+                // instead of bouncing to the landing page.
+                await page.evaluateOnNewDocument(() => {
+                    localStorage.setItem('hr_logged_in', 'true');
+                    localStorage.setItem('user_role', 'super_admin');
+                    localStorage.setItem('hr_user_role', 'super_admin');
+                });
+
+                await page.goto('http://127.0.0.1:5502/kylrx-enterprise-suite-main/admin-dashboard.html', {
                     waitUntil: 'domcontentloaded',
                     timeout: 15000
                 });
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 1500));
 
                 // Check quick action item for documents exists
                 const docActionEl = await page.$('.quick-action-item[data-quick-action="documents"]');
