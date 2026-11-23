@@ -257,6 +257,15 @@ app.get('/reset-browser-data', (req, res) => {
 <p><a href="/login.html" style="color:#2563eb;font-weight:600">Go to login</a></p>
 </body></html>`);
 });
+// Credential-shaped files are refused by SHAPE, not by name. The lists below are denylists
+// written against what the repository contains, so they cannot know about a file a host drops
+// into the project root at deploy time. Render's Secret Files do exactly that: a secret added
+// as serviceAccount.json lands in the static root and was served publicly. Anything shaped like
+// a key or a service account is now refused wherever it appears, whatever it is called.
+const STATIC_BLOCKED_SECRETS = new RegExp(
+    String.raw`(^|/)(service[-_]?account|[^/]*-adminsdk-[^/]*|credentials?|secrets?|[^/]*private[^/]*key[^/]*)[^/]*.json$`
+    + String.raw`|.(pem|key|p12|pfx|crt|cer|der|jks|keystore|ppk)$`, 'i');
+
 // The static root is the repo folder: never serve server code, rules, data, logs or secrets.
 // services/ is blocked except the files browser pages import. reports/ stays public because
 // tvc-dashboard.html links to its CSV downloads.
@@ -277,7 +286,7 @@ app.use((req, res, next) => {
     } catch (_) {
         return res.sendStatus(400);
     }
-    if (STATIC_BLOCKED.test(p) || STATIC_BLOCKED_TOOLING.test(p) || (/^\/(services|utils)\//i.test(p) && !STATIC_BROWSER_SERVICES.has(p.toLowerCase()))) {
+    if (STATIC_BLOCKED_SECRETS.test(p) || STATIC_BLOCKED.test(p) || STATIC_BLOCKED_TOOLING.test(p) || (/^\/(services|utils)\//i.test(p) && !STATIC_BROWSER_SERVICES.has(p.toLowerCase()))) {
         return res.sendStatus(404);
     }
     next();
