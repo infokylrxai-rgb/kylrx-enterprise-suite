@@ -496,6 +496,7 @@ test('PRD Sections 1, 4, 11 & 13: Labour Welfare Fund (LWF) Statutory Master Mod
 
             try {
                 await lwfUi.mountLwfCard('lwfTestContainer', 'EMP0001', {
+                    orgId: 'ORG_KYLRX_01',
                     state: 'Karnataka',
                     employerRegistrationNo: 'LWF/KA/BNG/2026/0912',
                     frequency: 'Annual',

@@ -215,14 +215,15 @@ class BuEmployeeTypeRulesService {
     /**
      * Validate whether a Business Unit and Employee Type pair is permitted
      */
-    isCombinationValid(buCode, employeeType) {
+    isCombinationValid(buCode, employeeType, ruleOverride) {
         if (!buCode || !employeeType) {
             return { valid: false, error: 'Both Business Unit and Employee Type are required for validation.' };
         }
         const normalizedBU = buCode.trim().toUpperCase();
         const candidateTypes = this.resolveEmployeeTypeSynonyms(employeeType);
 
-        const rule = this.rules.get(normalizedBU);
+        // ruleOverride: an organization's own rule (from its business_units); otherwise the built-in defaults
+        const rule = ruleOverride !== undefined ? ruleOverride : this.rules.get(normalizedBU);
         if (!rule) {
             // Unknown BU: return error to prevent unmapped combinations
             return {

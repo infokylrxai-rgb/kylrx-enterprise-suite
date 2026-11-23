@@ -291,7 +291,7 @@
                 const docRef = window.db.collection('organizations').doc(cleanOrgId).collection('salary_structures').doc(docId);
                 await docRef.set(firestoreDoc, { merge: true });
             } else {
-                const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+                const fb = await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
                 if (fb && fb.db && fb.doc && fb.setDoc) {
                     const docRef = fb.doc(fb.db, 'organizations', cleanOrgId, 'salary_structures', docId);
                     await fb.setDoc(docRef, firestoreDoc, { merge: true });
@@ -406,7 +406,7 @@
             if (typeof window !== 'undefined' && window.db) {
                 await window.db.collection('organizations').doc(cleanOrgId).collection('salary_structures').doc(structureId).delete();
             } else {
-                const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+                const fb = await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
                 if (fb && fb.db && fb.doc && fb.deleteDoc) {
                     const docRef = fb.doc(fb.db, 'organizations', cleanOrgId, 'salary_structures', structureId);
                     await fb.deleteDoc(docRef);
@@ -425,7 +425,7 @@
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const orgId = options.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         const structures = Array.from(_localLedger.values()).filter((v, idx, arr) => arr.findIndex(t => t.id === v.id) === idx);
 
         container.innerHTML = `

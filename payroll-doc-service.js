@@ -1,4 +1,4 @@
-import { db } from "./firebase-config.js";
+import { db, auth } from "./firebase-config.js";
 import { collection, doc, setDoc, updateDoc, serverTimestamp, getDoc, query, where, getDocs, addDoc } from "./firebase-config.js";
 import { generatePayslipPdfBlob, uploadPayslipPdf, normalizePayslipEmployee, parsePeriod } from "./payslip-pdf-service.js";
 
@@ -153,8 +153,6 @@ export async function disburseSalaries(authority) {
     const docsSnap = await getDocs(query(collection(db, 'payroll_documents'), where('status', '==', 'Generated')));
     
     let count = 0;
-    const EMAIL_API_KEY = "6f8d75dc-500b-4eb1-b0db-6e6b4e7235db";
-    const SENDER_EMAIL = "payroll@kylrxai.com";
 
     for (const d of docsSnap.docs) {
         const dData = d.data();
@@ -218,20 +216,14 @@ export async function disburseSalaries(authority) {
                     const emailBody = `Dear ${uData.name || 'Employee'},\n\nWe are pleased to inform you that your monthly salary payout has been successfully disbursed via the automated ${authority} gateway.\n\nPayout Details:\n- Net Amount: ₹${amount}\n- Disbursement Method: ${authority} Gate\n- Status: Completed\n\nYour detailed payslip is now available in your Employee Documents Portal.\n\nBest regards,\nPayroll Operations Team`;
                     
                     console.log(`[EMAIL] Sending salary disbursement email to ${employeeEmail}...`);
-                    await fetch("https://api.web3forms.com/submit", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json"
-                        },
-                        body: JSON.stringify({
-                            access_key: EMAIL_API_KEY,
-                            name: "Kylrx AI Payroll Gate",
-                            email: SENDER_EMAIL,
-                            subject: "Kylrx AI - Salary Disbursed",
-                            message: emailBody
-                        })
-                    });
+                    await (async () => {
+                        const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+                        return fetch('/api/email/send', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                            body: JSON.stringify({ to: employeeEmail, subject: "Kylrx AI - Salary Disbursed", text: emailBody })
+                        });
+                    })();
                 }
             }
         } catch (emailErr) {

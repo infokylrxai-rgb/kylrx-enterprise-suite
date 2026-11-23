@@ -191,7 +191,8 @@ async function persist(ctx) {
  * the changes; failed requests are rolled back.
  */
 async function attach(req, res, next) {
-    const orgId = req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    const orgId = req.user && req.user.orgId;
+    if (!orgId) return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
     const release = await acquire(orgId);
     res.on('finish', release);
     res.on('close', release);

@@ -17,6 +17,9 @@ import assert from 'node:assert/strict';
 import express from 'express';
 import esicRouter from '../routes/esic.mjs';
 import { globalEsicAutomationEngine } from '../services/esic-automation-engine.mjs';
+import jwt from 'jsonwebtoken';
+// verifyToken needs a real identity: every request in this file carries a signed Super Admin token
+const fetch = (url, opts = {}) => globalThis.fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_admin', role: 'Super Admin' }, process.env.JWT_SECRET)}`, ...opts.headers } });
 
 describe('Column 1 ESIC Visual Compliance Automation - End-to-End Suite', () => {
   let app;

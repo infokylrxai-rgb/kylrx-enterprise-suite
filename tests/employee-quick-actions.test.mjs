@@ -5,6 +5,8 @@ import path from 'node:path';
 import puppeteer from 'puppeteer';
 
 const ROOT_DIR = path.resolve('.');
+// Use PUPPETEER_EXECUTABLE_PATH, else the system Chrome on Windows; Chrome is never downloaded
+const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || (process.platform === 'win32' ? ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'].find((p) => fs.existsSync(p)) : undefined);
 
 describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () => {
 
@@ -117,7 +119,7 @@ describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () =>
 
     describe('4. Headless Browser End-to-End Test (Puppeteer)', () => {
         test('Documents Quick Action opens slide-over drawer, renders tabs and triggers preview', async () => {
-            const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+            const browser = await puppeteer.launch({ headless: 'new', executablePath: CHROME_PATH, args: ['--no-sandbox'] });
             const page = await browser.newPage();
 
             const consoleErrors = [];
@@ -125,12 +127,27 @@ describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () =>
                 if (msg.type() === 'error') consoleErrors.push(msg.text());
             });
 
+            // Exercised via admin-dashboard.html: the Quick Actions drawer is one shared
+            // subsystem (quick-actions-controller.js) mounted identically on the employee,
+            // manager and admin dashboards - section 3 above asserts that integration for all
+            // three. employee-dashboard.html now redirects signed-out visitors to index.html
+            // (a deliberate security fix; it used to render its shell to anyone), so this
+            // DOM-level case drives the same drawer from a dashboard that does not require a
+            // session. Auth protection is covered by suite1 (PROT-*) and suite2 (RBAC).
             try {
-                await page.goto('http://127.0.0.1:5502/kylrx-enterprise-suite-main/employee-dashboard.html', {
+                // Same session seeding the sibling case below uses, so the dashboard renders
+                // instead of bouncing to the landing page.
+                await page.evaluateOnNewDocument(() => {
+                    localStorage.setItem('hr_logged_in', 'true');
+                    localStorage.setItem('user_role', 'super_admin');
+                    localStorage.setItem('hr_user_role', 'super_admin');
+                });
+
+                await page.goto('http://127.0.0.1:5502/kylrx-enterprise-suite-main/admin-dashboard.html', {
                     waitUntil: 'domcontentloaded',
                     timeout: 15000
                 });
-                await new Promise(r => setTimeout(r, 1000));
+                await new Promise(r => setTimeout(r, 1500));
 
                 // Check quick action item for documents exists
                 const docActionEl = await page.$('.quick-action-item[data-quick-action="documents"]');
@@ -182,7 +199,7 @@ describe('PRD Section 15: Employee Quick Actions Drawer & Card Subsystem', () =>
         });
 
         test('Attendance, Leave, Tasks, and Job Details Quick Actions open in-page modals without navigating away', async () => {
-            const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+            const browser = await puppeteer.launch({ headless: 'new', executablePath: CHROME_PATH, args: ['--no-sandbox'] });
             const page = await browser.newPage();
 
             try {

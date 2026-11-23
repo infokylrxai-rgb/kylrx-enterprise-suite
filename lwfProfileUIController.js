@@ -298,7 +298,8 @@
     function bindEvents(container, employeeId, options = {}) {
         if (!container) return;
 
-        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
+        if (!orgId) return;
 
         // Auto-fill rates when State Jurisdiction changes
         const selectState = container.querySelector('#selectLwfState');
@@ -499,7 +500,8 @@
 
         if (!container) return;
 
-        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let lwfDetails = null;
 
         let service = (typeof window !== 'undefined' && window.KylrxLwfDetailsService) ? window.KylrxLwfDetailsService : null;
@@ -515,31 +517,12 @@
             } catch (e) {}
         }
 
-        if (!lwfDetails && service && Array.isArray(service.DEFAULT_LWF_PROFILES)) {
-            lwfDetails = service.DEFAULT_LWF_PROFILES.find(p => p.employeeId === employeeId);
+        if (!lwfDetails) {
+            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            return;
         }
 
-        const stateName = options.state || (lwfDetails && lwfDetails.state) || "Karnataka";
-        const defaultRates = STATE_LWF_RATES[stateName] || STATE_LWF_RATES["Karnataka"];
-
-        if (!lwfDetails) {
-            lwfDetails = {
-                employeeId,
-                organizationId: orgId,
-                isLwfApplicable: options.isLwfApplicable !== false,
-                state: stateName,
-                employerRegistrationNo: options.employerRegistrationNo || `${defaultRates.prefix}/BNG/2026/0912`,
-                employeeContribution: options.employeeContribution !== undefined ? options.employeeContribution : defaultRates.ee,
-                employerContribution: options.employerContribution !== undefined ? options.employerContribution : defaultRates.er,
-                frequency: options.frequency || defaultRates.frequency,
-                effectiveFrom: options.effectiveFrom || options.joiningDate || "2026-01-01",
-                effectiveTo: options.effectiveTo || null,
-                deductionSchedule: {
-                    deductionMonths: defaultRates.months,
-                    nextDeduction: `${new Date().getFullYear()}-12`
-                }
-            };
-        } else if (options && Object.keys(options).length > 0) {
+        if (options && Object.keys(options).length > 0) {
             if (options.state) lwfDetails.state = options.state;
             if (options.frequency) lwfDetails.frequency = options.frequency;
             if (options.employerRegistrationNo) lwfDetails.employerRegistrationNo = options.employerRegistrationNo;

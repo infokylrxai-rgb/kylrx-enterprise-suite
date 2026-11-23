@@ -9,7 +9,25 @@ const API_HOST = (typeof window !== 'undefined' && window.API_BASE ? window.API_
 const API_BASE = `${API_HOST}/api/exits`;
 const REQUEST_TIMEOUT_MS = 25000;
 
+// Whether the backend's Firestore currently accepts writes (cached for a minute)
+let writeStatusCache = { at: 0, value: null };
+export async function getWriteStatus() {
+    if (writeStatusCache.value && Date.now() - writeStatusCache.at < 60000) return writeStatusCache.value;
+    try {
+        const res = await fetch(`${API_HOST}/api/firestore/write-status`);
+        const json = await res.json();
+        writeStatusCache = { at: Date.now(), value: { accepting: json.accepting !== false, localTestDatabase: json.localTestDatabase === true } };
+    } catch (_) {
+        writeStatusCache = { at: Date.now(), value: { accepting: true, localTestDatabase: false } };
+    }
+    return writeStatusCache.value;
+}
+
 async function api(path = '', { method = 'GET', body } = {}) {
+    // Saves are not sent while Firebase refuses writes: the server would only answer 503
+    if (method !== 'GET' && !(await getWriteStatus()).accepting) {
+        throw new Error('Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Nothing was sent or saved. Please try again after the quota resets.');
+    }
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {

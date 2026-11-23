@@ -8,6 +8,7 @@ if (!process.env.JWT_SECRET) {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const ALLOWED_ROLES = [
+    'compliance_officer',
     'Super Admin',
     'Admin',
     'Manager',
@@ -34,13 +35,15 @@ const verifyToken = async (req, res, next) => {
         }
 
         if (!token || token === 'super_admin_dev_token' || token.startsWith('dev_')) {
-            // Allow development mode, dev tokens, or internal frontend console requests with role parameter
-            if (process.env.NODE_ENV !== 'production' || req.query.role || token === 'super_admin_dev_token') {
+            // Dev identity is for local development only: in production neither a dev token nor ?role= may
+            // stand in for a real login
+            if (process.env.NODE_ENV !== 'production' && process.env.ALLOW_DEV_IDENTITY === 'true') {
                 req.user = {
                     id: 'superadmin_dev',
                     uid: 'superadmin_dev',
                     email: 'superadmin@kylrx.ai',
-                    role: req.query.role || 'super_admin'
+                    role: req.query.role || 'super_admin',
+                    orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai'
                 };
                 return next();
             }
@@ -67,12 +70,13 @@ const verifyToken = async (req, res, next) => {
                 decoded = await admin.auth().verifyIdToken(token);
                 userId = decoded.uid;
             } catch (firebaseError) {
-                if (req.query.role || process.env.NODE_ENV !== 'production') {
+                if (process.env.NODE_ENV !== 'production' && process.env.ALLOW_DEV_IDENTITY === 'true') {
                     req.user = {
                         id: 'superadmin_dev',
                         uid: 'superadmin_dev',
                         email: 'superadmin@kylrx.ai',
-                        role: req.query.role || 'super_admin'
+                        role: req.query.role || 'super_admin',
+                        orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai'
                     };
                     return next();
                 }
@@ -154,4 +158,10 @@ const authorize = (...roles) => {
     };
 };
 
-module.exports = { verifyToken, authorize, ALLOWED_ROLES, ADMIN_HR_ROLES };
+// Tenant routes need an organization: a verified user without one gets no data
+const requireOrg = (req, res, next) => {
+    if (req.user && req.user.orgId) return next();
+    return res.status(403).json({ success: false, message: 'No organization found for the signed-in user.' });
+};
+
+module.exports = { verifyToken, authorize, requireOrg, ALLOWED_ROLES, ADMIN_HR_ROLES };

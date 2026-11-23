@@ -8,11 +8,13 @@ const xss = require("xss");
 const hpp = require("hpp");
 const morgan = require("morgan");
 require('dotenv').config();
+// Production refuses to start without its required settings (names are listed, values never)
+if (process.env.NODE_ENV === 'production') require('./scripts/check-env').assertEnv('production');
 
 // Utils & Middleware
 const logger = require("./utils/logger");
 const errorHandler = require("./middleware/errorHandler");
-const { verifyToken } = require("./middleware/authMiddleware");
+const { verifyToken, authorize } = require("./middleware/authMiddleware");
 
 // Route Imports
 const authRoutes = require("./routes/auth");
@@ -38,12 +40,21 @@ const hrOsRoutes = require("./routes/hr-os");
 const policiesRoutes = require("./routes/policies");
 const assetsRoutes = require("./routes/assets");
 const exitsRoutes = require("./routes/exits");
+const attendanceAdminRoutes = require("./routes/attendance-admin");
+const leaveAdminRoutes = require("./routes/leave-admin");
 const managerGoalsRoutes = require("./routes/manager-goals");
 const employeeGoalsRoutes = require("./routes/employee-goals");
 const customTemplatesRoutes = require("./routes/custom-templates");
 const bulkTriggerRoutes = require("./routes/bulk-trigger");
 const payrollSettingsRoutes = require("./routes/payroll-settings");
 const controlsAcceptanceRoutes = require("./routes/controls-acceptance");
+const payrollComplianceRoutes = require("./routes/payroll-compliance");
+const inactivityRoutes = require("./routes/inactivity");
+const onboardingAiRoutes = require("./routes/onboarding-ai");
+const hrConsoleRoutes = require("./routes/hr-console");
+const analysisRoutes = require("./routes/analysis");
+const operationsRoutes = require("./routes/operations");
+const workforceMonitorRoutes = require("./routes/workforce-monitor");
 
 const automationEngine = require("./services/automation-engine");
 
@@ -55,8 +66,11 @@ const PORT = process.env.PORT || 3000;
 // 0. Firebase Auth reverse proxy (/__/auth/*, /__/firebase/*) so Google sign-in can use
 // signInWithRedirect with this server as authDomain (same-origin, no popup, no third-party
 // storage). Registered first so helmet's CSP and the body sanitizer don't touch Google's pages.
-const FIREBASE_AUTH_HOST = 'https://kylrxai.firebaseapp.com';
+// The project's auth domain: FIREBASE_AUTH_DOMAIN, else <FIREBASE_PROJECT_ID>.firebaseapp.com
+const FIREBASE_AUTH_DOMAIN = process.env.FIREBASE_AUTH_DOMAIN || (process.env.FIREBASE_PROJECT_ID ? `${process.env.FIREBASE_PROJECT_ID}.firebaseapp.com` : '');
+const FIREBASE_AUTH_HOST = FIREBASE_AUTH_DOMAIN ? `https://${FIREBASE_AUTH_DOMAIN}` : '';
 app.use(['/__/auth', '/__/firebase'], async (req, res) => {
+    if (!FIREBASE_AUTH_HOST) return res.status(503).send('Firebase auth proxy: set FIREBASE_PROJECT_ID (or FIREBASE_AUTH_DOMAIN)');
     try {
         const upstream = await fetch(FIREBASE_AUTH_HOST + req.originalUrl, {
             method: req.method,
@@ -82,11 +96,11 @@ const isAllowedOrigin = (origin) => {
     if (isLocal) {
         return process.env.NODE_ENV !== 'production';
     }
-    const isProductionAllowed =
-        /kylrxai\.(firebaseapp|web)\.app$/.test(origin) ||
-        /kylrxai\.firebaseapp\.com$/.test(origin) ||
-        /app\.kylrxai\.com$/.test(origin);
-    return isProductionAllowed;
+    // The project's Firebase Hosting domains, plus the client's own domains from ALLOWED_ORIGINS (comma-separated)
+    const project = process.env.FIREBASE_PROJECT_ID;
+    const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim().replace(/\/+$/, '')).filter(Boolean);
+    if (project) allowed.push(`https://${project}.web.app`, `https://${project}.firebaseapp.com`);
+    return allowed.includes(origin);
 };
 
 app.use(cors({
@@ -116,7 +130,7 @@ app.use(helmet({
             "img-src":          ["'self'", "data:", "https:"],
             "connect-src":      ["'self'", "https://*.gstatic.com", "https://*.googleapis.com", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firestore.googleapis.com", "wss://*.firebaseio.com", "https://*.firebaseapp.com", "http://localhost:*", "http://127.0.0.1:*", "https://unpkg.com", "https://cdn.jsdelivr.net"],
             "font-src":         ["'self'", "https://fonts.gstatic.com", "data:"],
-            "frame-src":        ["'self'", "https://kylrxai.firebaseapp.com", "https://*.firebaseapp.com", "https://accounts.google.com", "https://apis.google.com"],
+            "frame-src":        ["'self'", "https://*.firebaseapp.com", "https://accounts.google.com", "https://apis.google.com"],
             "object-src":       ["'none'"],
             "upgrade-insecure-requests": null,
         },
@@ -193,9 +207,9 @@ app.get("/", (req, res) => {
 });
 
 // Firebase Backend Health & Status
-app.get("/api/firebase/status", verifyToken, async (req, res) => {
+app.get("/api/firebase/status", verifyToken, authorize('Super Admin'), async (req, res) => {
     try {
-        const { db } = require('./config/firebase');
+        const { db, firebaseProjectInfo } = require('./config/firebase');
         const collections = ['users', 'employees', 'attendance', 'activities', 'system_intelligence'];
         const collectionCounts = {};
         for (const coll of collections) {
@@ -210,9 +224,9 @@ app.get("/api/firebase/status", verifyToken, async (req, res) => {
             success: true,
             status: "connected",
             service: "Firebase Admin SDK",
-            projectId: "kylrxai",
-            storageBucket: "kylrxai.firebasestorage.app",
-            clientEmail: "firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com",
+            projectId: firebaseProjectInfo().projectId,
+            storageBucket: firebaseProjectInfo().storageBucket,
+            clientEmail: firebaseProjectInfo().clientEmail,
             collections: collectionCounts,
             timestamp: new Date().toISOString()
         });
@@ -243,9 +257,38 @@ app.get('/reset-browser-data', (req, res) => {
 <p><a href="/login.html" style="color:#2563eb;font-weight:600">Go to login</a></p>
 </body></html>`);
 });
+// The static root is the repo folder: never serve server code, rules, data, logs or secrets.
+// services/ is blocked except the files browser pages import. reports/ stays public because
+// tvc-dashboard.html links to its CSV downloads.
+const STATIC_BLOCKED = /^\/(server\.js|package(-lock)?\.json|firestore\.indexes\.json|Templates\.xlsx)$|\.(rules|log|py|md)$|^\/(config|middleware|controllers|routes|scripts|tests|node_modules|data|logs|migrations|functions)(\/|$)|(^|\/)\.env/i;
+// Dev tooling, config, scratch scripts and server-only helpers. utils/ is blocked below except the
+// two vendor files (xlsx, Sortable) that admin pages load with <script src>.
+const STATIC_BLOCKED_TOOLING = /^\/(firebase\.json|tsconfig\.json|requirements\.txt|runtime\.txt|test\.mjs|scan_db\.js|send_live_test\.js|sync_firebase_backend\.js)$|^\/(check_|seed_|test_|trigger|compare_|inject_)[^/]*\.m?js$|^\/(tools|root_configs|types|__pycache__)(\/|$)|^\/modules\/[^/]*-adapter\.js$|^\/test_onboarding_manifest[^/]*\.csv$|\.(doc|firebaserc|python-version|tool-versions|gitignore)$/i;
+const STATIC_BROWSER_SERVICES = new Set([
+    'atomic-counter-service', 'attendance-policy-parser', 'cost-center-parser', 'employee-finance-parser',
+    'employee-finance-service', 'employee-type-parser', 'employee-type-service', 'rbac-ui-controller',
+    'salary-structure-parser', 'salary-structure-service', 'shift-parser', 'statutory-compliance-ui-controller',
+    'sub-department-parser', 'template-parser-service'
+].map(n => `/services/${n}.js`).concat(['/utils/xlsx.full.min.js', '/utils/sortable.min.js']));
+app.use((req, res, next) => {
+    let p;
+    try {
+        p = path.posix.normalize(decodeURIComponent(req.path).replace(/\\/g, '/'));
+    } catch (_) {
+        return res.sendStatus(400);
+    }
+    if (STATIC_BLOCKED.test(p) || STATIC_BLOCKED_TOOLING.test(p) || (/^\/(services|utils)\//i.test(p) && !STATIC_BROWSER_SERVICES.has(p.toLowerCase()))) {
+        return res.sendStatus(404);
+    }
+    next();
+});
 app.use(express.static(__dirname));
 
 // Route Wiring
+// Public, unauthenticated: tells the login pages whether to show the demo sign-in UI
+const { publicConfig } = require('./controllers/demoController');
+app.get('/api/public-config', publicConfig);
+require('./config/demo').logDemoModeStatus(logger);
 app.use("/api/auth", authRoutes);
 app.use("/api/data", dataRoutes);
 app.use("/api/notifications", notificationRoutes);
@@ -270,12 +313,21 @@ app.use("/api/hr-os", hrOsRoutes);
 app.use("/api/policies", policiesRoutes);
 app.use("/api/assets", assetsRoutes);
 app.use("/api/exits", exitsRoutes);
+app.use("/api/attendance-admin", attendanceAdminRoutes);
+app.use("/api/leave-admin", leaveAdminRoutes);
 app.use("/api/manager-goals", managerGoalsRoutes);
 app.use("/api/employee-goals", employeeGoalsRoutes);
 app.use("/api/custom-templates", customTemplatesRoutes);
 app.use("/api/bulk-trigger", bulkTriggerRoutes);
 app.use("/api/payroll-settings", payrollSettingsRoutes);
 app.use("/api/controls-acceptance", controlsAcceptanceRoutes);
+app.use("/api/payroll-compliance", payrollComplianceRoutes);
+app.use("/api/inactivity", inactivityRoutes);
+app.use("/api/onboarding-ai", onboardingAiRoutes);
+app.use("/api/hr-console", hrConsoleRoutes);
+app.use("/api/analysis", analysisRoutes);
+app.use("/api/operations", operationsRoutes);
+app.use("/api/workforce-monitor", workforceMonitorRoutes);
 
 // ─────────────────────────────────────────────
 // Dynamic ESM Route Registration (Reconciliation, ESIC, Gratuity, NPS, Compliance, PF)
@@ -350,6 +402,10 @@ async function registerDynamicRoutes(targetApp = app) {
 const dynamicRoutesLoaded = registerDynamicRoutes(app);
 
 async function startServer() {
+  // The compliance routes load through try/catch above, so a missing signing key would only drop them silently
+  if (process.env.NODE_ENV === 'production' && !process.env.KYLRX_EXPORT_SIGNING_KEY) {
+    throw new Error('Missing required environment variable in production: KYLRX_EXPORT_SIGNING_KEY');
+  }
   await dynamicRoutesLoaded;
 
   try {
@@ -440,7 +496,10 @@ process.on('unhandledRejection', (err) => {
 });
 
 if (require.main === module) {
-    startServer();
+    startServer().catch((err) => {
+        logger.error(`Startup failed: ${err.message}`);
+        process.exit(1);
+    });
 }
 
 module.exports = { app, startServer, registerDynamicRoutes, dynamicRoutesLoaded };

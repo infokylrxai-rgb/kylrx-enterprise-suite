@@ -1,33 +1,34 @@
 import puppeteer from 'puppeteer';
 import assert from 'assert';
+import { CREDS } from './helpers/e2e-credentials.mjs';
 
 const BASE_URL = 'http://localhost:3000';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 
 const ROLES = {
   hrAdmin: {
-    email: 'Savitha.balraju@GMAIL.COM',
-    pass: 'SYSTEM-Hrms-Savitha@2026!',
+    email: CREDS.hrAdmin.email,
+    pass: CREDS.hrAdmin.pass,
     expectedDashboard: 'hrms-dashboard.html',
-    name: 'Savitha'
+    name: CREDS.hrAdmin.name
   },
   employee: {
-    email: 'marry@gmail.com',
-    pass: 'UNIT-CYB-799-Employee-Marry@2026!',
+    email: CREDS.employee.email,
+    pass: CREDS.employee.pass,
     expectedDashboard: 'employee-dashboard.html',
-    name: 'Marry'
+    name: CREDS.employee.name
   },
   manager: {
-    email: 'john.doe@example.com',
-    pass: 'UNIT-CYB-802-Manager-John@2026!',
+    email: CREDS.manager.email,
+    pass: CREDS.manager.pass,
     expectedDashboard: 'manager-dashboard.html',
-    name: 'John Doe'
+    name: CREDS.manager.name
   },
   superAdmin: {
-    email: 'nandanb449@gmail.com',
-    pass: 'Nansav@04',
+    email: CREDS.superAdmin.email,
+    pass: CREDS.superAdmin.pass,
     expectedDashboard: 'admin-dashboard.html',
-    name: 'Nandan'
+    name: CREDS.superAdmin.name
   }
 };
 
@@ -115,7 +116,7 @@ async function runAuthTests() {
     {
       const page = await browser.newPage();
       await page.goto(`${BASE_URL}/login.html`, { waitUntil: 'networkidle2' });
-      await page.type('#email', 'nandanb449@gmail.com');
+      await page.type('#email', CREDS.superAdmin.email);
       await page.type('#password', 'WrongPasswordXYZ999!');
       await page.click('#loginBtn');
       await new Promise(r => setTimeout(r, 3000));

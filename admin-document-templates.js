@@ -46,34 +46,94 @@ let generatedDocsList = [];
 document.addEventListener('DOMContentLoaded', () => {
     loadTemplates();
     loadNotifBadge();
+    showSaveNotice();
+    setInterval(showSaveNotice, 120000);
 });
 
-async function loadTemplates() {
-    // 1. Instantly seed with standard 10 templates so UI never hangs or flashes empty
-    if (!allTemplates.length) {
-        allTemplates = getStandardTemplatesSeed();
-        renderStats(allTemplates);
-        renderTemplateGrid(allTemplates);
-        renderGatingRules(allTemplates);
+/**
+ * Backend call: JSON body in/out, the server's message on failure, 25 s timeout. Saves are not
+ * sent while Firebase refuses writes (the server would only answer 503).
+ */
+async function apiCall(path, { method = 'GET', body } = {}) {
+    if (method !== 'GET' && !(await getWriteStatus()).accepting) {
+        throw new Error('Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Nothing was saved. Please try again after the quota resets.');
     }
-
-    // 2. Fetch live data from API with resilient timeout
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 25000);
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3500);
-        const res = await fetch(`${API}/document-templates`, { signal: controller.signal });
-        clearTimeout(timer);
-        if (res.ok) {
-            const json = await res.json();
-            if (json.success && Array.isArray(json.data) && json.data.length) {
-                allTemplates = json.data;
-                renderStats(allTemplates);
-                renderTemplateGrid(allTemplates);
-                renderGatingRules(allTemplates);
-            }
-        }
+        const res = await fetch(`${API}${path}`, {
+            method,
+            headers: body ? { 'Content-Type': 'application/json' } : { Accept: 'application/json' },
+            body: body ? JSON.stringify(body) : undefined,
+            signal: controller.signal
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || json.success === false) throw new Error(json.message || json.error || `Request failed (HTTP ${res.status})`);
+        return json;
     } catch (err) {
-        console.debug('Backend templates running with resilient local seed:', err.message);
+        if (err.name === 'AbortError') throw new Error('The server did not respond in time. Please try again.');
+        throw err;
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+let writeStatusCache = { at: 0, value: null };
+async function getWriteStatus() {
+    if (writeStatusCache.value && Date.now() - writeStatusCache.at < 60000) return writeStatusCache.value;
+    try {
+        const json = await (await fetch(`${API}/firestore/write-status`)).json();
+        writeStatusCache = { at: Date.now(), value: { accepting: json.accepting !== false, localTestDatabase: json.localTestDatabase === true } };
+    } catch (_) {
+        writeStatusCache = { at: Date.now(), value: { accepting: true, localTestDatabase: false } };
+    }
+    return writeStatusCache.value;
+}
+
+// Banner when saves go to the local test database, or when Firebase is refusing saves
+async function showSaveNotice() {
+    const status = await getWriteStatus();
+    let notice = document.getElementById('docSaveNotice');
+    if (status.accepting && !status.localTestDatabase) { notice?.remove(); return; }
+    if (!notice) {
+        notice = document.createElement('div');
+        notice.id = 'docSaveNotice';
+        notice.style.cssText = 'margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;';
+        const header = document.querySelector('.main-content > header, .main-content > .page-header, .main-content > div');
+        if (header) header.after(notice); else document.querySelector('.main-content')?.prepend(notice);
+    }
+    if (status.localTestDatabase) {
+        notice.style.background = '#eff6ff'; notice.style.color = '#1e40af'; notice.style.border = '1px solid #bfdbfe';
+        notice.textContent = 'Local test database: saves on this page go to the local copy of your Firebase data, not the live project.';
+    } else {
+        notice.style.background = '#fffbeb'; notice.style.color = '#92400e'; notice.style.border = '1px solid #fde68a';
+        notice.textContent = 'Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). You can still view templates; saves will work again after the quota resets.';
+    }
+}
+
+/** Template HTML from the server is shown without scripts, embedded frames or event handlers */
+function safeDocHtml(html) {
+    return String(html || '')
+        .replace(/<(script|iframe|object|embed|style)[\s\S]*?<\/\1>/gi, '')
+        .replace(/<(script|iframe|object|embed)[^>]*>/gi, '')
+        .replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+        .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"');
+}
+
+async function loadTemplates() {
+    const grid = document.getElementById('template-grid');
+    if (grid && !allTemplates.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto 8px;"></div><p style="font-size:0.85rem;color:#94a3b8;">Loading templates from Firebase…</p></div>';
+    }
+    try {
+        const json = await apiCall('/document-templates');
+        allTemplates = Array.isArray(json.data) ? json.data : [];
+        renderStats(allTemplates);
+        filterTemplates();
+        renderGatingRules(allTemplates);
+    } catch (err) {
+        console.error('[DOCS] Could not load templates:', err);
+        if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><h3 style="font-size:1.05rem;font-weight:700;color:#b91c1c;">Could not load templates</h3><p style="font-size:0.85rem;color:#64748b;">${escapeHtmlTpl(err.message)}</p><button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="loadTemplates()">Try again</button></div>`;
     }
 }
 
@@ -182,12 +242,12 @@ function renderTemplateGrid(templates) {
                     <i data-lucide="${style.lucide}" class="fas ${style.icon}"></i>
                 </div>
                 <div class="template-card-title">
-                    <h3>${t.name}</h3>
-                    <p>${t.description}</p>
+                    <h3>${escapeHtmlTpl(t.name)}</h3>
+                    <p>${escapeHtmlTpl(t.description)}</p>
                 </div>
             </div>
             <div class="template-meta">
-                <span class="tag ${style.tag}">${t.category}</span>
+                <span class="tag ${style.tag}">${escapeHtmlTpl(t.category)}</span>
                 ${statusTag}
                 <span class="tag tag-blue"><i data-lucide="code" class="fas fa-code"></i> ${tokenCount} tokens</span>
             </div>
@@ -196,7 +256,7 @@ function renderTemplateGrid(templates) {
             </div>
             <div class="template-card-footer">
                 <div class="template-version-info">
-                    <span>${latestVersion?.versionNumber || 'v1.0'}</span> · ${t.versions?.length || 1} version${(t.versions?.length || 1) > 1 ? 's' : ''}
+                    <span>${escapeHtmlTpl(latestVersion?.versionNumber || 'v1.0')}</span> · ${t.versions?.length || 1} version${(t.versions?.length || 1) > 1 ? 's' : ''}
                     ${approvedVersion ? ` · Active since ${new Date(approvedVersion.effectiveFrom).toLocaleDateString('en-IN')}` : ''}
                 </div>
                 <div class="template-actions" onclick="event.stopPropagation()">
@@ -239,33 +299,22 @@ function filterTemplates() {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 async function openTemplateDetail(key) {
     try {
-        const res = await fetch(`${API}/document-templates/${key}`);
-        const json = await res.json();
-        if (json.success && json.data) {
-            currentTemplate = json.data;
-            renderSidePanel(json.data);
-            document.getElementById('panel-overlay')?.classList.add('active');
-            document.getElementById('side-panel')?.classList.add('open');
-            return;
-        }
-    } catch (err) {
-        console.warn('Backend detail notice (using local template cache):', err.message);
-    }
-
-    const cached = allTemplates.find(t => t.key === key);
-    if (cached) {
-        currentTemplate = cached;
-        renderSidePanel(cached);
+        const json = await apiCall(`/document-templates/${encodeURIComponent(key)}`);
+        currentTemplate = json.data;
+        // Keep the catalog in step with what Firebase holds
+        const idx = allTemplates.findIndex(t => t.key === key);
+        if (idx > -1) allTemplates[idx] = { ...allTemplates[idx], versions: json.data.versions };
+        renderSidePanel(json.data);
         document.getElementById('panel-overlay')?.classList.add('active');
         document.getElementById('side-panel')?.classList.add('open');
-    } else {
-        showToast('error', 'Template not found: ' + key);
+    } catch (err) {
+        showToast('error', 'Could not open template: ' + err.message);
     }
 }
 
 function renderSidePanel(template) {
     const style = CATEGORY_STYLES[template.category] || CATEGORY_STYLES['Onboarding'];
-    const approvedVer = template.versions?.find(v => v.status === 'approved');
+    const approvedVer = template.versions?.find(v => v.isActive && v.status === 'approved') || template.versions?.find(v => v.status === 'approved');
     const allVersions = [...(template.versions || [])].reverse();
 
     // Header
@@ -302,21 +351,22 @@ function renderSidePanel(template) {
                 <div class="version-item ${v.status === 'approved' && i === 0 ? 'active-version' : ''}">
                     <div class="version-dot ${v.status}"></div>
                     <div class="version-info">
-                        <strong>${v.versionNumber}</strong>
+                        <strong>${escapeHtmlTpl(v.versionNumber)}</strong>
                         <span class="tag ${v.status === 'approved' ? 'tag-green' : v.status === 'draft' ? 'tag-gold' : 'tag-blue'}" style="font-size:10px;padding:2px 8px;margin-left:8px;">
-                            ${v.status.replace('_', ' ').toUpperCase()}
+                            ${escapeHtmlTpl(v.status.replace('_', ' ').toUpperCase())}${v.isActive ? ' · ACTIVE' : ''}
                         </span>
-                        <p>${v.changeNotes || 'Standard production release'}</p>
+                        <p>${escapeHtmlTpl(v.changeNotes || 'Standard production release')}</p>
                         <small>
-                            Created by <strong>${v.createdBy || 'HR Admin'}</strong> · 
+                            Created by <strong>${escapeHtmlTpl(v.createdBy || 'HR Admin')}</strong> ·
                             Effective: ${new Date(v.effectiveFrom).toLocaleDateString('en-IN')}
-                            ${v.approvedBy ? ` · Approved by <strong>${v.approvedBy}</strong>` : ''}
+                            ${v.approvedBy ? ` · Approved by <strong>${escapeHtmlTpl(v.approvedBy)}</strong>` : ''}
                         </small>
                     </div>
                     <div style="display:flex;gap:6px;flex-shrink:0;">
                         ${v.status === 'approved' ? `<button class="btn btn-green btn-sm" onclick="quickGenerate('${template.key}')" title="Generate Document"><i data-lucide="file-plus" class="fas fa-file-circle-plus"></i></button>` : ''}
-                        <button class="btn btn-secondary btn-sm" onclick="previewVersion('${template.key}','${v.versionNumber}')" title="Preview Version"><i data-lucide="eye" class="fas fa-eye"></i></button>
-                        ${v.status !== 'approved' ? `<button class="btn btn-primary btn-sm" onclick="approveVersion('${template.key}','${v.versionNumber}')" title="Approve Version"><i data-lucide="check" class="fas fa-check"></i> Approve</button>` : ''}
+                        <button class="btn btn-secondary btn-sm" onclick="aiReviewVersion('${template.key}','${escapeHtmlTpl(v.versionNumber)}')" title="AI Review: check tokens, structure and completeness"><i data-lucide="sparkles"></i></button>
+                        <button class="btn btn-secondary btn-sm" onclick="previewVersion('${template.key}','${escapeHtmlTpl(v.versionNumber)}')" title="Preview Version"><i data-lucide="eye" class="fas fa-eye"></i></button>
+                        ${v.status !== 'approved' ? `<button class="btn btn-primary btn-sm" onclick="approveVersion('${template.key}','${escapeHtmlTpl(v.versionNumber)}')" title="Approve Version"><i data-lucide="check" class="fas fa-check"></i> Approve</button>` : ''}
                     </div>
                 </div>`).join('')}
             </div>
@@ -338,9 +388,9 @@ function renderSidePanel(template) {
                 <tbody>
                     ${fieldMappings.map(f => `
                     <tr>
-                        <td><span class="token-badge">${f.token}</span></td>
-                        <td style="color:var(--text-secondary);font-weight:600;">${f.label}</td>
-                        <td style="color:var(--text-muted);font-size:12px;">${f.sample || '—'}</td>
+                        <td><span class="token-badge">${escapeHtmlTpl(f.token)}</span></td>
+                        <td style="color:var(--text-secondary);font-weight:600;">${escapeHtmlTpl(f.label)}</td>
+                        <td style="color:var(--text-muted);font-size:12px;">${escapeHtmlTpl(f.sample || '—')}</td>
                         <td>${f.required ? '<span class="required-dot" title="Required"></span>' : '<span style="color:var(--text-muted);font-size:11px;">opt</span>'}</td>
                     </tr>`).join('')}
                 </tbody>
@@ -396,6 +446,21 @@ async function previewTemplate(key) {
 
 async function previewVersion(key, versionNumber) {
     const template = allTemplates.find(t => t.key === key) || currentTemplate || { name: 'Document Template', key };
+    openDocumentModal({
+        title: `Preview: ${template.name}`,
+        subtitle: `${versionNumber ? `Version ${versionNumber}` : 'Active Approved Version'} · Sample values`,
+        generateKey: key
+    });
+    try {
+        const json = await apiCall(`/document-templates/${encodeURIComponent(key)}/preview`, { method: 'POST', body: versionNumber ? { versionNumber } : {} });
+        renderPreviewContent(json.data);
+    } catch (err) {
+        renderPreviewError(err.message);
+    }
+}
+
+/** Opens the A4 document window; its body is filled by renderPreviewContent / renderPreviewError */
+function openDocumentModal({ title, subtitle, generateKey }) {
     const modalId = 'preview-modal-wrapper';
     document.getElementById(modalId)?.remove();
 
@@ -405,16 +470,14 @@ async function previewVersion(key, versionNumber) {
         <div style="position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.parentElement.remove()">
             <div style="background:#ffffff;border:1px solid var(--border);border-radius:20px;width:92vw;max-width:960px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
                 <!-- Modal Header -->
-                <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#f8fafc;">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:36px;height:36px;border-radius:10px;background:#eff6ff;color:#2563eb;display:flex;align-items:center;justify-content:center;">
+                <div style="padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#f8fafc;">
+                    <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:#eff6ff;color:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                             <i data-lucide="file-text" style="width:20px;height:20px;"></i>
                         </div>
-                        <div>
-                            <h2 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0;">Preview: ${template.name}</h2>
-                            <p style="font-size:0.75rem;color:var(--text-muted);margin:2px 0 0 0;">
-                                ${versionNumber ? `Version ${versionNumber}` : 'Active Approved Version'} · Simulated A4 Document Output
-                            </p>
+                        <div style="min-width:0;">
+                            <h2 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0;">${escapeHtmlTpl(title)}</h2>
+                            <p style="font-size:0.75rem;color:var(--text-muted);margin:2px 0 0 0;">${escapeHtmlTpl(subtitle)}</p>
                         </div>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
@@ -424,9 +487,9 @@ async function previewVersion(key, versionNumber) {
                         <button class="btn btn-secondary btn-sm" onclick="copyPreviewHtml()" title="Copy HTML to clipboard">
                             <i data-lucide="copy"></i> Copy HTML
                         </button>
-                        <button class="btn btn-primary btn-sm" onclick="quickGenerate('${key}'); document.getElementById('${modalId}').remove();" title="Proceed to Generate">
+                        ${generateKey ? `<button class="btn btn-primary btn-sm" onclick="quickGenerate('${generateKey}'); document.getElementById('${modalId}').remove();" title="Proceed to Generate">
                             <i data-lucide="file-plus"></i> Generate
-                        </button>
+                        </button>` : ''}
                         <button onclick="document.getElementById('${modalId}').remove()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer;margin-left:4px;">
                             <i data-lucide="x" style="width:16px;height:16px;"></i>
                         </button>
@@ -437,97 +500,57 @@ async function previewVersion(key, versionNumber) {
                 <div style="flex:1;overflow-y:auto;padding:2rem;background:#f1f5f9;display:flex;justify-content:center;" id="preview-modal-body">
                     <div class="preview-loading" style="display:flex;flex-direction:column;gap:10px;align-items:center;">
                         <div class="spinner"></div>
-                        <span style="font-size:0.85rem;color:#64748b;font-weight:600;">Rendering document tokens…</span>
+                        <span style="font-size:0.85rem;color:#64748b;font-weight:600;">Rendering document…</span>
                     </div>
                 </div>
             </div>
         </div>`;
     document.body.appendChild(previewContainer);
     if (window.renderLucideIcons) window.renderLucideIcons(previewContainer);
-
-    // Fetch preview from API or fallback locally
-    try {
-        const body = versionNumber ? { versionNumber } : {};
-        const res = await fetch(`${API}/document-templates/${key}/preview`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        const json = await res.json();
-        if (!json.success) throw new Error(json.error);
-
-        renderPreviewContent(json.data);
-    } catch (err) {
-        console.warn('API preview notice (using client sample interpolation):', err.message);
-        renderPreviewContent(generateClientPreview(template, versionNumber));
-    }
 }
 
+function renderPreviewError(message) {
+    const modalBody = document.getElementById('preview-modal-body');
+    if (!modalBody) return;
+    modalBody.innerHTML = `<div style="max-width:520px;background:#fff;border:1px solid #fecaca;border-radius:12px;padding:1.5rem;color:#b91c1c;font-size:0.9rem;"><strong>Could not render the document.</strong><br>${escapeHtmlTpl(message)}</div>`;
+}
+
+/** data: { renderedHtml, versionNumber, effectiveFrom, companyName?, sha256?, docId? } */
 function renderPreviewContent(data) {
     const modalBody = document.getElementById('preview-modal-body');
     if (!modalBody) return;
+    const companyName = data.companyName || data.samplePayload?.company?.name || 'Company Document';
 
     modalBody.innerHTML = `
         <div style="width:100%;max-width:800px;background:#ffffff;border:1px solid var(--border);border-radius:8px;padding:3.5rem 4rem;box-shadow:0 10px 25px rgba(0,0,0,0.06);position:relative;color:#1e293b;font-size:0.92rem;line-height:1.8;" class="preview-frame" id="printable-preview-frame">
-            <!-- Simulated Official Header -->
-            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #2563eb;padding-bottom:1.5rem;margin-bottom:2rem;">
+            <!-- Official Header -->
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:2px solid #2563eb;padding-bottom:1.5rem;margin-bottom:2rem;">
                 <div>
-                    <h1 style="font-size:1.4rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:-0.5px;">KYLRX TECHNOLOGIES</h1>
-                    <p style="font-size:0.75rem;color:#64748b;margin:2px 0 0 0;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Enterprise Workforce Operations · Verified Issuance</p>
+                    <h1 style="font-size:1.4rem;font-weight:800;color:#0f172a;margin:0;letter-spacing:-0.5px;text-transform:uppercase;">${escapeHtmlTpl(companyName)}</h1>
+                    <p style="font-size:0.75rem;color:#64748b;margin:2px 0 0 0;text-transform:uppercase;letter-spacing:1px;font-weight:700;">${data.docId ? `Document ${escapeHtmlTpl(data.docId)}` : 'Preview · Sample Values'}</p>
                 </div>
                 <div style="text-align:right;font-size:0.75rem;color:#64748b;">
-                    <div>Version: <strong>${data.versionNumber || 'v1.0'}</strong></div>
-                    <div>Effective: <strong>${new Date(data.effectiveFrom || Date.now()).toLocaleDateString('en-IN')}</strong></div>
-                    <div style="color:#059669;font-weight:700;display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:2px;">
-                        <i data-lucide="shield-check" style="width:13px;height:13px;"></i> Sealed &amp; Verified
-                    </div>
+                    <div>Version: <strong>${escapeHtmlTpl(data.versionNumber || 'v1.0')}</strong></div>
+                    <div>${data.generatedAt ? 'Generated' : 'Effective'}: <strong>${new Date(data.generatedAt || data.effectiveFrom || Date.now()).toLocaleDateString('en-IN')}</strong></div>
+                    ${data.sha256 ? `<div style="color:#059669;font-weight:700;display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:2px;">
+                        <i data-lucide="shield-check" style="width:13px;height:13px;"></i> Sealed (SHA-256)
+                    </div>` : ''}
                 </div>
             </div>
 
             <!-- Interpolated Document Body -->
             <div style="min-height:350px;">
-                ${data.renderedHtml || '<p>No content available.</p>'}
+                ${safeDocHtml(data.renderedHtml) || '<p>No content available.</p>'}
             </div>
 
-            <!-- Official Footer & Stamp -->
-            <div style="margin-top:3.5rem;border-top:1px solid #e2e8f0;padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:#94a3b8;">
-                <div>This is an immutable digitally-generated document processed by Kylrx AI Document Engine.</div>
-                <div style="font-family:monospace;font-size:0.7rem;background:#f8fafc;padding:3px 8px;border-radius:4px;border:1px solid #e2e8f0;">
-                    SHA-256 Verified
-                </div>
+            <!-- Footer -->
+            <div style="margin-top:3.5rem;border-top:1px solid #e2e8f0;padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:0.75rem;color:#94a3b8;">
+                <div>${data.docId ? 'Generated by the Kylrx AI Document Engine and stored in Firebase.' : 'Preview only — not saved. Generate the document to issue it.'}</div>
+                ${data.sha256 ? `<div style="font-family:monospace;font-size:0.7rem;background:#f8fafc;padding:3px 8px;border-radius:4px;border:1px solid #e2e8f0;" title="${escapeHtmlTpl(data.sha256)}">SHA-256 ${escapeHtmlTpl(data.sha256.slice(0, 16))}…</div>` : ''}
             </div>
         </div>`;
 
     if (window.renderLucideIcons) window.renderLucideIcons(modalBody);
-}
-
-function generateClientPreview(template, versionNumber) {
-    const ver = (template.versions || []).find(v => v.versionNumber === versionNumber) ||
-                (template.versions || []).find(v => v.status === 'approved') ||
-                template.versions?.[0] || { versionNumber: 'v1.0', effectiveFrom: new Date().toISOString() };
-
-    const mappings = ver.fieldMappings || template.fieldMappings || [];
-    let html = ver.initialBody || template.initialBody || `
-        <div style="line-height:1.8;">
-            <p>Date: <strong>${new Date().toLocaleDateString('en-IN')}</strong></p>
-            <p>Dear <strong>Rahul Deshmukh</strong>,</p>
-            <p>This is the official simulated preview of <strong>${template.name}</strong>.</p>
-            <p>All token interpolation keys and approval constraints have been validated.</p>
-            <p>Sincerely,<br><strong>Kylrx AI Enterprise Workforce Suite</strong></p>
-        </div>`;
-
-    mappings.forEach(m => {
-        const regex = new RegExp(m.token.replace(/[{}]/g, '\\$&'), 'g');
-        html = html.replace(regex, m.sample || '—');
-    });
-
-    return {
-        templateKey: template.key,
-        versionNumber: ver.versionNumber,
-        status: ver.status || 'approved',
-        effectiveFrom: ver.effectiveFrom,
-        renderedHtml: html
-    };
 }
 
 function printPreviewDoc() {
@@ -570,46 +593,36 @@ function copyPreviewHtml() {
    APPROVE VERSION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 async function approveVersion(templateKey, versionNumber) {
-    if (!confirm(`Approve version '${versionNumber}' of template '${templateKey}'?`)) return;
-
+    if (!confirm(`Approve version '${versionNumber}'? It becomes the active version used to generate documents.`)) return;
     try {
-        const res = await fetch(`${API}/document-templates/${templateKey}/versions/${versionNumber}/approve`, {
+        await apiCall(`/document-templates/${encodeURIComponent(templateKey)}/versions/${encodeURIComponent(versionNumber)}/approve`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ approvedBy: 'HR Director', approvalRemarks: 'Approved via Admin Portal' })
+            body: { approvalRemarks: 'Approved via Admin Portal' }
         });
-        const json = await res.json();
-        if (!json.success) throw new Error(json.error);
+        showToast('success', `Version '${versionNumber}' approved and saved to Firebase.`);
+        await loadTemplates();
+        if (currentTemplate && currentTemplate.key === templateKey) openTemplateDetail(templateKey);
     } catch (err) {
-        console.warn('API approve notice (updating locally):', err.message);
+        showToast('error', 'Approval failed: ' + err.message);
     }
-
-    // Update locally
-    const t = allTemplates.find(x => x.key === templateKey);
-    if (t && t.versions) {
-        t.versions.forEach(v => {
-            if (v.versionNumber === versionNumber) {
-                v.status = 'approved';
-                v.approvedBy = 'HR Director';
-            }
-        });
-    }
-
-    showToast('success', `Version '${versionNumber}' approved successfully!`);
-    renderStats(allTemplates);
-    renderTemplateGrid(allTemplates);
-    openTemplateDetail(templateKey);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    GENERATE DOCUMENT MODAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let aiPeopleCache = null;
+async function loadAiPeople() {
+    if (!aiPeopleCache) aiPeopleCache = (await apiCall('/document-templates/ai/people')).data || [];
+    return aiPeopleCache;
+}
+
 function quickGenerate(templateKey) {
     const template = allTemplates.find(t => t.key === templateKey) || currentTemplate;
     if (!template) return showToast('error', 'Template not found.');
 
-    const approvedVer = template.versions?.find(v => v.status === 'approved') || template.versions?.[0];
-    const fieldMappings = approvedVer?.fieldMappings || template.fieldMappings || [];
+    const approvedVer = template.versions?.find(v => v.isActive && v.status === 'approved') || template.versions?.find(v => v.status === 'approved');
+    if (!approvedVer) return showToast('error', 'This template has no approved version yet. Approve a version first.');
+    const fieldMappings = approvedVer.fieldMappings || template.fieldMappings || [];
     const modalId = 'gen-modal-wrapper';
     document.getElementById(modalId)?.remove();
 
@@ -625,8 +638,8 @@ function quickGenerate(templateKey) {
                             <i data-lucide="file-plus" style="width:20px;height:20px;"></i>
                         </div>
                         <div>
-                            <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;">Generate — ${template.name}</h2>
-                            <p style="font-size:0.75rem;color:var(--text-muted);margin:2px 0 0 0;">Version ${approvedVer?.versionNumber || 'v1.0'} · ${fieldMappings.length} token fields</p>
+                            <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;">Generate — ${escapeHtmlTpl(template.name)}</h2>
+                            <p style="font-size:0.75rem;color:var(--text-muted);margin:2px 0 0 0;">Version ${escapeHtmlTpl(approvedVer.versionNumber)} · ${fieldMappings.length} token fields</p>
                         </div>
                     </div>
                     <button onclick="document.getElementById('${modalId}').remove()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer;">
@@ -636,20 +649,34 @@ function quickGenerate(templateKey) {
 
                 <!-- Form Fields -->
                 <div style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;" id="gen-modal-fields-container">
+                    <!-- AI Fill -->
+                    <div style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid #ddd6fe;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;font-weight:800;color:#5b21b6;">
+                            <i data-lucide="sparkles" style="width:16px;height:16px;"></i> AI Fill from employee record
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <select id="gen-ai-person" style="flex:1;background:#fff;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;padding:8px 10px;font-family:inherit;">
+                                <option value="">Loading people…</option>
+                            </select>
+                            <button class="btn btn-primary btn-sm" id="gen-ai-fill-btn" onclick="aiFillGenerate('${templateKey}')" style="background:#7c3aed;border-color:#7c3aed;">Fill</button>
+                        </div>
+                        <div id="gen-ai-result" style="font-size:0.75rem;color:#5b21b6;"></div>
+                    </div>
+
                     <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px 16px;font-size:0.82rem;color:#1e40af;display:flex;align-items:center;gap:10px;">
                         <i data-lucide="info" style="width:18px;height:18px;flex-shrink:0;"></i>
-                        <span>Input values for recipient token fields. Empty inputs will use the provided sample placeholders.</span>
+                        <span>Fill in the recipient's details. Fields marked * are required; an empty field prints as [token] in the document.</span>
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="gen-fields">
                         ${fieldMappings.map(f => `
                         <div>
                             <label style="font-size:0.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">
-                                ${f.label} ${f.required ? '<span style="color:#ef4444;">*</span>' : ''}
+                                ${escapeHtmlTpl(f.label)} ${f.required ? '<span style="color:#ef4444;">*</span>' : ''}
                             </label>
-                            <input type="text" placeholder="${f.sample || 'Enter value…'}"
-                                data-token="${f.token}"
-                                value="${f.sample || ''}"
+                            <input type="text" placeholder="e.g. ${escapeHtmlTpl(f.sample || 'value')}"
+                                data-token="${escapeHtmlTpl(f.token)}" data-required="${f.required ? '1' : ''}" data-label="${escapeHtmlTpl(f.label)}"
+                                value=""
                                 style="width:100%;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;color:#0f172a;font-size:0.85rem;padding:9px 12px;font-family:inherit;outline:none;transition:all 0.2s;"
                                 onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.12)'"
                                 onblur="this.style.borderColor='#cbd5e1';this.style.boxShadow='none'" />
@@ -659,7 +686,7 @@ function quickGenerate(templateKey) {
                     <div>
                         <label style="font-size:0.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:5px;">Caller Authorization Module</label>
                         <select id="gen-module" style="width:100%;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;color:#0f172a;font-size:0.85rem;padding:10px 12px;font-family:inherit;outline:none;">
-                            ${(template.permittedModules || ['hr_admin']).map(m => `<option value="${m}">${MODULE_LABELS[m]?.label || m}</option>`).join('')}
+                            ${(template.permittedModules || ['hr_admin']).map(m => `<option value="${escapeHtmlTpl(m)}">${escapeHtmlTpl(MODULE_LABELS[m]?.label || m)}</option>`).join('')}
                         </select>
                     </div>
                 </div>
@@ -667,14 +694,49 @@ function quickGenerate(templateKey) {
                 <!-- Footer -->
                 <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:#f8fafc;">
                     <button class="btn btn-secondary" onclick="document.getElementById('${modalId}').remove()">Cancel</button>
-                    <button class="btn btn-primary" onclick="submitGenerateDoc('${templateKey}')">
-                        <i data-lucide="file-check"></i> Generate &amp; Dispatch
+                    <button class="btn btn-primary" id="gen-submit-btn" onclick="submitGenerateDoc('${templateKey}')">
+                        <i data-lucide="file-check"></i> Generate &amp; Save
                     </button>
                 </div>
             </div>
         </div>`;
     document.body.appendChild(modal);
     if (window.renderLucideIcons) window.renderLucideIcons(modal);
+
+    loadAiPeople().then(people => {
+        const select = document.getElementById('gen-ai-person');
+        if (!select) return;
+        select.innerHTML = '<option value="">Choose an employee…</option>' + people.map(p =>
+            `<option value="${escapeHtmlTpl(p.id)}">${escapeHtmlTpl(p.name)}${p.department ? ' · ' + escapeHtmlTpl(p.department) : ''}${p.email ? ' · ' + escapeHtmlTpl(p.email) : ''}${p.exited ? ' (exited)' : ''}</option>`
+        ).join('');
+    }).catch(err => {
+        const select = document.getElementById('gen-ai-person');
+        if (select) select.innerHTML = `<option value="">Could not load people: ${escapeHtmlTpl(err.message)}</option>`;
+    });
+}
+
+async function aiFillGenerate(templateKey) {
+    const employeeId = document.getElementById('gen-ai-person')?.value;
+    const out = document.getElementById('gen-ai-result');
+    if (!employeeId) return showToast('error', 'Choose an employee to fill from.');
+    const btn = document.getElementById('gen-ai-fill-btn');
+    btn.disabled = true;
+    out.textContent = 'Reading the employee record…';
+    try {
+        const { data } = await apiCall('/document-templates/ai/autofill', { method: 'POST', body: { templateKey, employeeId } });
+        document.querySelectorAll('#gen-fields input[data-token]').forEach(input => {
+            const value = data.values[input.getAttribute('data-token')];
+            if (value !== undefined) {
+                input.value = value;
+                input.style.background = '#f5f3ff';
+            }
+        });
+        out.innerHTML = `Filled <strong>${data.filled.length}</strong> field(s) from the record.${data.missing.length ? ` Still to fill: ${escapeHtmlTpl(data.missing.join(', '))}.` : ''}`;
+    } catch (err) {
+        out.textContent = 'AI Fill failed: ' + err.message;
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 function openGenerateModal() {
@@ -689,17 +751,16 @@ async function submitGenerateDoc(templateKey) {
     const inputs = modalWrapper.querySelectorAll('input[data-token]');
     const callerModule = modalWrapper.querySelector('#gen-module')?.value || 'hr_admin';
 
-    // Build dataContext
+    // Required fields must be filled
+    const missing = [...inputs].filter(i => i.dataset.required && !i.value.trim()).map(i => i.dataset.label);
+    if (missing.length) return showToast('error', `Please fill: ${missing.join(', ')}`);
+
+    // Build dataContext ({{employee.name}} -> { employee: { name } }); empty fields are left out
     const dataContext = {};
-    let recipientName = 'Rahul Deshmukh';
-
     inputs.forEach(input => {
-        const rawToken = input.getAttribute('data-token') || '';
-        const token = rawToken.replace(/[{}]/g, '').trim();
-        const value = input.value.trim() || input.placeholder;
-        if (token.includes('name')) recipientName = value;
-
-        const parts = token.split('.');
+        const value = input.value.trim();
+        if (!value) return;
+        const parts = (input.getAttribute('data-token') || '').replace(/[{}]/g, '').trim().split('.');
         let curr = dataContext;
         for (let i = 0; i < parts.length - 1; i++) {
             curr[parts[i]] = curr[parts[i]] || {};
@@ -708,62 +769,22 @@ async function submitGenerateDoc(templateKey) {
         curr[parts[parts.length - 1]] = value;
     });
 
-    const template = allTemplates.find(t => t.key === templateKey);
-
+    const btn = document.getElementById('gen-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Generating…';
     try {
-        const res = await fetch(`${API}/document-templates/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                templateKey,
-                dataContext,
-                callerModule,
-                actor: 'Super Administrator'
-            })
+        const json = await apiCall('/document-templates/generate', { method: 'POST', body: { templateKey, dataContext, callerModule } });
+        modalWrapper.remove();
+        showToast('success', `Document '${json.data.docId}' generated for ${json.data.recipientName} and saved to Firebase.`, 'View Doc', () => {
+            viewGeneratedDoc(json.data.docId);
         });
-
-        if (res.status === 403) {
-            showToast('error', `Access Denied: Caller module '${callerModule}' is not permitted for this template.`);
-            return;
-        }
-
-        const json = await res.json();
-        if (json.success && json.data) {
-            modalWrapper.remove();
-            showToast('success', `Document '${json.data.docId}' generated for ${json.data.recipientName}!`, 'View Doc', () => {
-                viewGeneratedDoc(json.data.docId);
-            });
-            fetchGeneratedDocCount();
-            return;
-        }
+        fetchGeneratedDocCount();
     } catch (err) {
-        console.warn('API generate notice (creating client-side sealed document):', err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="file-check"></i> Generate &amp; Save';
+        if (window.renderLucideIcons) window.renderLucideIcons(btn);
+        showToast('error', 'Generation failed: ' + err.message);
     }
-
-    // Client fallback document generation
-    const randomHex = Math.random().toString(16).substring(2, 10);
-    const mockDoc = {
-        docId: `DOC-${templateKey.toUpperCase().substring(0, 5)}-${Math.floor(1000 + Math.random() * 9000)}`,
-        templateKey,
-        templateName: template?.name || templateKey,
-        versionNumber: template?.versions?.[0]?.versionNumber || 'v1.0',
-        recipientName,
-        generatedBy: 'Super Administrator',
-        callerModule,
-        status: 'generated',
-        sha256: `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852${randomHex}`,
-        generatedAt: new Date().toISOString(),
-        renderedHtml: `<p>Official dispatch generated for <strong>${recipientName}</strong> via <strong>${callerModule}</strong>.</p>`
-    };
-
-    generatedDocsList.unshift(mockDoc);
-    modalWrapper.remove();
-    showToast('success', `Document '${mockDoc.docId}' generated successfully!`, 'View Doc', () => {
-        viewGeneratedDoc(mockDoc.docId);
-    });
-
-    const statGen = document.getElementById('stat-generated');
-    if (statGen) statGen.textContent = String((parseInt(statGen.textContent) || 0) + 1);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -777,21 +798,12 @@ async function loadGeneratedDocs() {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);"><div class="spinner" style="margin:0 auto 8px;"></div>Loading documents archive…</td></tr>';
 
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3500);
-        const res = await fetch(`${API}/document-templates/generated`, { signal: controller.signal });
-        clearTimeout(timer);
-        if (res.ok) {
-            const json = await res.json();
-            if (json.success && Array.isArray(json.data)) {
-                generatedDocsList = json.data;
-            }
-        }
+        const json = await apiCall('/document-templates/generated');
+        generatedDocsList = Array.isArray(json.data) ? json.data : [];
+        renderGeneratedDocsTable(generatedDocsList);
     } catch (err) {
-        console.debug('Backend generated docs notice (using local cache):', err.message);
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:#b91c1c;">Could not load the archive: ${escapeHtmlTpl(err.message)}</td></tr>`;
     }
-
-    renderGeneratedDocsTable(generatedDocsList);
 }
 
 function renderGeneratedDocsTable(docs) {
@@ -804,7 +816,7 @@ function renderGeneratedDocsTable(docs) {
                 <td colspan="9" style="text-align:center;padding:48px 20px;color:var(--text-muted);">
                     <i data-lucide="archive" style="width:36px;height:36px;margin:0 auto 10px;display:block;opacity:0.4;"></i>
                     <strong style="display:block;font-size:0.95rem;color:#334155;margin-bottom:4px;">No Generated Documents Yet</strong>
-                    <span style="font-size:0.82rem;">Click "+ Generate Document" above to dispatch your first verified document.</span>
+                    <span style="font-size:0.82rem;">Click "+ Generate Document" above to issue your first document.</span>
                 </td>
             </tr>`;
         if (window.renderLucideIcons) window.renderLucideIcons(tbody);
@@ -813,20 +825,20 @@ function renderGeneratedDocsTable(docs) {
 
     tbody.innerHTML = docs.map(doc => `
         <tr>
-            <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--primary);">${doc.docId}</td>
-            <td style="font-weight:700;color:#0f172a;">${doc.templateName || doc.templateKey}</td>
-            <td style="font-weight:600;color:#334155;">${doc.recipientName || '—'}</td>
-            <td><span class="tag tag-blue" style="font-size:10px;">${doc.versionNumber || 'v1.0'}</span></td>
-            <td style="color:var(--text-secondary);font-size:12px;">${doc.generatedBy || 'System'}</td>
+            <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--primary);">${escapeHtmlTpl(doc.docId)}</td>
+            <td style="font-weight:700;color:#0f172a;">${escapeHtmlTpl(doc.templateName || doc.templateKey)}</td>
+            <td style="font-weight:600;color:#334155;">${escapeHtmlTpl(doc.recipientName || '—')}</td>
+            <td><span class="tag tag-blue" style="font-size:10px;">${escapeHtmlTpl(doc.versionNumber || 'v1.0')}</span></td>
+            <td style="color:var(--text-secondary);font-size:12px;">${escapeHtmlTpl(doc.generatedBy || 'System')}</td>
             <td><span class="status-badge generated"><i data-lucide="check-circle" style="width:12px;height:12px;"></i> Generated</span></td>
             <td>
-                <span class="hash-text" title="${doc.sha256}" style="cursor:pointer;" onclick="navigator.clipboard.writeText('${doc.sha256}');showToast('info','SHA-256 hash copied to clipboard!');">
-                    ${doc.sha256?.substring(0, 10)}… <i data-lucide="copy" style="width:10px;height:10px;margin-left:2px;"></i>
+                <span class="hash-text" title="${escapeHtmlTpl(doc.sha256)}" style="cursor:pointer;" data-copy-hash="${escapeHtmlTpl(doc.sha256)}">
+                    ${escapeHtmlTpl(doc.sha256?.substring(0, 10))}… <i data-lucide="copy" style="width:10px;height:10px;margin-left:2px;"></i>
                 </span>
             </td>
             <td style="color:var(--text-muted);font-size:12px;">${new Date(doc.generatedAt || Date.now()).toLocaleString('en-IN')}</td>
             <td>
-                <button class="btn btn-secondary btn-sm" onclick="viewGeneratedDoc('${doc.docId}')" style="padding:4px 10px;font-size:11px;">
+                <button class="btn btn-secondary btn-sm" data-view-doc="${escapeHtmlTpl(doc.docId)}" style="padding:4px 10px;font-size:11px;">
                     <i data-lucide="eye" style="width:12px;height:12px;"></i> View
                 </button>
             </td>
@@ -835,9 +847,17 @@ function renderGeneratedDocsTable(docs) {
     if (window.renderLucideIcons) window.renderLucideIcons(tbody);
 }
 
+// Archive actions (ids are read from data attributes, not built into inline code)
+document.addEventListener('click', (e) => {
+    const view = e.target.closest('[data-view-doc]');
+    if (view) return viewGeneratedDoc(view.dataset.viewDoc);
+    const hash = e.target.closest('[data-copy-hash]');
+    if (hash) navigator.clipboard.writeText(hash.dataset.copyHash).then(() => showToast('info', 'SHA-256 hash copied to clipboard!'));
+});
+
 function filterGeneratedDocs() {
     const q = (document.getElementById('search-generated-input')?.value || '').toLowerCase();
-    const filtered = (generatedDocsList || []).filter(d => 
+    const filtered = (generatedDocsList || []).filter(d =>
         (d.docId && d.docId.toLowerCase().includes(q)) ||
         (d.recipientName && d.recipientName.toLowerCase().includes(q)) ||
         (d.templateName && d.templateName.toLowerCase().includes(q)) ||
@@ -847,59 +867,185 @@ function filterGeneratedDocs() {
     renderGeneratedDocsTable(filtered);
 }
 
-function viewGeneratedDoc(docId) {
-    const doc = (generatedDocsList || []).find(d => d.docId === docId);
-    if (!doc) return showToast('error', 'Document not found.');
-
-    previewTemplate(doc.templateKey);
+/** Shows the document exactly as it was generated and saved */
+async function viewGeneratedDoc(docId) {
+    openDocumentModal({ title: `Document ${docId}`, subtitle: 'As generated and stored in Firebase' });
+    try {
+        const { data } = await apiCall(`/document-templates/generated/${encodeURIComponent(docId)}`);
+        const titleEl = document.querySelector('#preview-modal-wrapper h2');
+        if (titleEl) titleEl.textContent = `${data.templateName || data.templateKey} — ${data.recipientName || ''}`;
+        renderPreviewContent(data);
+    } catch (err) {
+        renderPreviewError(err.message);
+    }
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   NEW VERSION DRAFT MODAL
+   NEW VERSION DRAFT MODAL (with AI Draft & AI Review)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function openNewVersionModal(templateKey) {
-    const template = allTemplates.find(t => t.key === templateKey);
-    if (!template) return;
+/** Next minor version in the same style as the existing ones ("1.0.0" -> "1.1.0", "v1.2" -> "v1.3") */
+function nextVersionNumber(versions) {
+    const list = (versions || []).map(v => String(v.versionNumber || ''));
+    if (!list.length) return '1.1.0';
+    const parse = (s) => s.replace(/^v/, '').split('.').map(n => parseInt(n, 10) || 0);
+    const latest = [...list].sort((a, b) => {
+        const x = parse(a), y = parse(b);
+        return (y[0] - x[0]) || ((y[1] || 0) - (x[1] || 0)) || ((y[2] || 0) - (x[2] || 0));
+    })[0];
+    const [major, minor = 0] = parse(latest);
+    const parts = latest.replace(/^v/, '').split('.').length;
+    return `${latest.startsWith('v') ? 'v' : ''}${[major, minor + 1, 0].slice(0, Math.max(parts, 2)).join('.')}`;
+}
+
+async function openNewVersionModal(templateKey) {
+    let template = currentTemplate && currentTemplate.key === templateKey ? currentTemplate : null;
+    try {
+        if (!template) template = (await apiCall(`/document-templates/${encodeURIComponent(templateKey)}`)).data;
+    } catch (err) {
+        return showToast('error', 'Could not open template: ' + err.message);
+    }
+    const base = template.versions?.find(v => v.isActive && v.status === 'approved') || template.versions?.[template.versions.length - 1];
 
     const modalId = 'version-draft-modal';
     document.getElementById(modalId)?.remove();
-
-    const currentVer = template.versions?.[template.versions.length - 1]?.versionNumber || 'v1.0';
-    const nextVer = 'v' + (parseFloat(currentVer.replace('v', '')) + 0.1).toFixed(1);
 
     const modal = document.createElement('div');
     modal.id = modalId;
     modal.innerHTML = `
         <div style="position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.parentElement.remove()">
-            <div style="background:#ffffff;border:1px solid var(--border);border-radius:20px;width:90vw;max-width:560px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+            <div style="background:#ffffff;border:1px solid var(--border);border-radius:20px;width:94vw;max-width:820px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
                 <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#f8fafc;">
-                    <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;">Create Draft Version — ${template.name}</h2>
+                    <div>
+                        <h2 style="font-size:1.1rem;font-weight:800;color:#0f172a;margin:0;">Create Draft Version — ${escapeHtmlTpl(template.name)}</h2>
+                        <p style="font-size:0.75rem;color:var(--text-muted);margin:2px 0 0 0;">Starts from ${escapeHtmlTpl(base?.versionNumber || 'the current version')}. Drafts must be approved before they are used.</p>
+                    </div>
                     <button onclick="document.getElementById('${modalId}').remove()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer;">
                         <i data-lucide="x" style="width:16px;height:16px;"></i>
                     </button>
                 </div>
-                <div style="padding:24px;display:flex;flex-direction:column;gap:14px;">
-                    <div>
-                        <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Version Number</label>
-                        <input type="text" id="draft-ver-num" value="${nextVer}" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;">
+                    <!-- AI Draft -->
+                    <div style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid #ddd6fe;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                            <span style="display:flex;align-items:center;gap:8px;font-size:0.8rem;font-weight:800;color:#5b21b6;"><i data-lucide="sparkles" style="width:16px;height:16px;"></i> AI Draft</span>
+                            <span id="draft-ai-mode" style="font-size:0.68rem;font-weight:700;color:#6d28d9;"></span>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="draft-ai-instruction" placeholder="e.g. Add a 6-month probation clause, 90 days notice and a confidentiality clause" style="flex:1;padding:9px 12px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                            <button class="btn btn-primary btn-sm" id="draft-ai-btn" onclick="aiDraftVersion('${templateKey}')" style="background:#7c3aed;border-color:#7c3aed;">Draft</button>
+                        </div>
+                        <div id="draft-ai-result" style="font-size:0.75rem;color:#5b21b6;"></div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:12px;">
+                        <div>
+                            <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Version Number</label>
+                            <input type="text" id="draft-ver-num" value="${escapeHtmlTpl(nextVersionNumber(template.versions))}" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Effective From</label>
+                            <input type="date" id="draft-effective-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Change Notes</label>
+                            <input type="text" id="draft-change-notes" placeholder="e.g. Updated compensation clauses per FY27 policies" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                        </div>
                     </div>
                     <div>
-                        <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Change Notes</label>
-                        <input type="text" id="draft-change-notes" placeholder="e.g. Updated compensation clauses per FY27 policies" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
-                    </div>
-                    <div>
-                        <label style="font-size:0.75rem;font-weight:700;color:#475569;display:block;margin-bottom:4px;">Effective From</label>
-                        <input type="date" id="draft-effective-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.85rem;outline:none;" />
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <label style="font-size:0.75rem;font-weight:700;color:#475569;">Template Body (HTML with {{tokens}})</label>
+                            <button class="btn btn-secondary btn-sm" onclick="aiReviewDraft('${templateKey}')" style="padding:3px 10px;font-size:0.72rem;"><i data-lucide="sparkles" style="width:12px;height:12px;"></i> AI Review</button>
+                        </div>
+                        <textarea id="draft-body" rows="14" spellcheck="false" style="width:100%;padding:12px 14px;border:1px solid #cbd5e1;border-radius:10px;font-size:0.8rem;font-family:ui-monospace,Consolas,monospace;line-height:1.5;outline:none;resize:vertical;">${escapeHtmlTpl(base?.templateBody || '')}</textarea>
+                        <div id="draft-review" style="margin-top:8px;"></div>
                     </div>
                 </div>
                 <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:#f8fafc;">
                     <button class="btn btn-secondary" onclick="document.getElementById('${modalId}').remove()">Cancel</button>
-                    <button class="btn btn-primary" onclick="submitDraftVersion('${templateKey}')">Create Draft</button>
+                    <button class="btn btn-primary" id="draft-submit-btn" onclick="submitDraftVersion('${templateKey}')">Save Draft</button>
                 </div>
             </div>
         </div>`;
     document.body.appendChild(modal);
     if (window.renderLucideIcons) window.renderLucideIcons(modal);
+
+    apiCall('/document-templates/ai/status').then(({ data }) => {
+        const mode = document.getElementById('draft-ai-mode');
+        if (mode) mode.textContent = data.aiConfigured ? 'AI model connected' : 'Standard clauses (no AI key configured)';
+    }).catch(() => {});
+}
+
+async function aiDraftVersion(templateKey) {
+    const instruction = document.getElementById('draft-ai-instruction')?.value.trim();
+    const out = document.getElementById('draft-ai-result');
+    if (!instruction) return showToast('error', 'Describe what to change first.');
+    const btn = document.getElementById('draft-ai-btn');
+    btn.disabled = true;
+    out.textContent = 'Drafting…';
+    try {
+        const { data } = await apiCall('/document-templates/ai/draft', { method: 'POST', body: { templateKey, instruction } });
+        document.getElementById('draft-body').value = data.templateBody;
+        const notes = document.getElementById('draft-change-notes');
+        if (notes && !notes.value.trim()) notes.value = data.changeNotes;
+        out.innerHTML = `${escapeHtmlTpl(data.changeNotes)} Review the body below, then Save Draft.`;
+        renderAiReview(document.getElementById('draft-review'), data.review);
+    } catch (err) {
+        out.textContent = err.message;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function aiReviewDraft(templateKey) {
+    const box = document.getElementById('draft-review');
+    box.innerHTML = '<span style="font-size:0.75rem;color:#64748b;">Reviewing…</span>';
+    try {
+        const { data } = await apiCall('/document-templates/ai/review', { method: 'POST', body: { templateKey, templateBody: document.getElementById('draft-body').value } });
+        renderAiReview(box, data);
+    } catch (err) {
+        box.innerHTML = `<span style="font-size:0.75rem;color:#b91c1c;">Review failed: ${escapeHtmlTpl(err.message)}</span>`;
+    }
+}
+
+/** AI Review of a saved version, shown in a small window */
+async function aiReviewVersion(templateKey, versionNumber) {
+    const modalId = 'ai-review-modal';
+    document.getElementById(modalId)?.remove();
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.innerHTML = `
+        <div style="position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.parentElement.remove()">
+            <div style="background:#fff;border-radius:18px;width:92vw;max-width:560px;max-height:85vh;overflow-y:auto;padding:20px 22px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h2 style="font-size:1.05rem;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:8px;"><i data-lucide="sparkles" style="width:18px;height:18px;color:#7c3aed;"></i> AI Review — ${escapeHtmlTpl(versionNumber)}</h2>
+                    <button onclick="document.getElementById('${modalId}').remove()" style="background:#f1f5f9;border:1px solid var(--border);border-radius:10px;width:32px;height:32px;cursor:pointer;color:#64748b;">✕</button>
+                </div>
+                <div id="ai-review-body"><span style="font-size:0.8rem;color:#64748b;">Reviewing…</span></div>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    if (window.renderLucideIcons) window.renderLucideIcons(modal);
+    try {
+        const { data } = await apiCall('/document-templates/ai/review', { method: 'POST', body: { templateKey, versionNumber } });
+        renderAiReview(document.getElementById('ai-review-body'), data);
+    } catch (err) {
+        document.getElementById('ai-review-body').innerHTML = `<span style="font-size:0.8rem;color:#b91c1c;">Review failed: ${escapeHtmlTpl(err.message)}</span>`;
+    }
+}
+
+function renderAiReview(container, review) {
+    if (!container || !review) return;
+    const color = review.score >= 85 ? '#059669' : review.score >= 60 ? '#d97706' : '#dc2626';
+    const sev = { critical: ['#fef2f2', '#b91c1c'], high: ['#fff7ed', '#c2410c'], medium: ['#fffbeb', '#a16207'], low: ['#f8fafc', '#475569'] };
+    container.innerHTML = `
+        <div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="font-size:1.4rem;font-weight:800;color:${color};">${review.score}<span style="font-size:0.75rem;color:#94a3b8;">/100</span></div>
+                <div style="font-size:0.75rem;color:#64748b;">${review.issues.length ? `${review.issues.length} issue(s) to fix` : 'No blocking issues found'} · ${review.source === 'openai' ? 'rules + AI model' : 'rule-based checks'}</div>
+            </div>
+            ${review.issues.map(i => `<div style="font-size:0.78rem;padding:6px 10px;border-radius:8px;background:${sev[i.severity][0]};color:${sev[i.severity][1]};"><strong>${escapeHtmlTpl(i.severity.toUpperCase())}</strong> · ${escapeHtmlTpl(i.message)}</div>`).join('')}
+            ${review.suggestions.length ? `<div style="font-size:0.72rem;font-weight:800;color:#5b21b6;margin-top:4px;">SUGGESTIONS</div>${review.suggestions.map(s => `<div style="font-size:0.78rem;color:#334155;">• ${escapeHtmlTpl(s)}</div>`).join('')}` : ''}
+        </div>`;
 }
 
 async function submitDraftVersion(templateKey) {
@@ -909,38 +1055,28 @@ async function submitDraftVersion(templateKey) {
     const versionNumber = modal.querySelector('#draft-ver-num')?.value.trim();
     const changeNotes = modal.querySelector('#draft-change-notes')?.value.trim() || 'Updated version draft';
     const effectiveFrom = modal.querySelector('#draft-effective-date')?.value || new Date().toISOString();
+    const templateBody = modal.querySelector('#draft-body')?.value || '';
 
     if (!versionNumber) return showToast('error', 'Please enter a version number.');
+    if (!templateBody.trim()) return showToast('error', 'The template body cannot be empty.');
 
+    const btn = document.getElementById('draft-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
     try {
-        const res = await fetch(`${API}/document-templates/${templateKey}/versions`, {
+        const json = await apiCall(`/document-templates/${encodeURIComponent(templateKey)}/versions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ versionNumber, changeNotes, effectiveFrom, createdBy: 'HR Admin' })
+            body: { versionNumber, changeNotes, effectiveFrom, templateBody }
         });
-        const json = await res.json();
-        if (!json.success) throw new Error(json.error);
+        modal.remove();
+        showToast('success', `Draft '${json.data.versionNumber}' saved to Firebase. Approve it to make it active.`);
+        await loadTemplates();
+        openTemplateDetail(templateKey);
     } catch (err) {
-        console.warn('API version draft notice (saving locally):', err.message);
+        btn.disabled = false;
+        btn.textContent = 'Save Draft';
+        showToast('error', 'Could not save the draft: ' + err.message);
     }
-
-    const t = allTemplates.find(x => x.key === templateKey);
-    if (t) {
-        t.versions = t.versions || [];
-        t.versions.push({
-            versionNumber,
-            status: 'draft',
-            changeNotes,
-            effectiveFrom,
-            createdBy: 'HR Admin'
-        });
-    }
-
-    modal.remove();
-    showToast('success', `Draft version '${versionNumber}' created!`);
-    renderStats(allTemplates);
-    renderTemplateGrid(allTemplates);
-    openTemplateDetail(templateKey);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1044,225 +1180,9 @@ document.addEventListener('keydown', e => {
         document.getElementById('preview-modal-wrapper')?.remove();
         document.getElementById('gen-modal-wrapper')?.remove();
         document.getElementById('version-draft-modal')?.remove();
+        document.getElementById('ai-review-modal')?.remove();
     }
 });
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   STANDARD TEMPLATES SEED (OFFLINE / INITIAL RENDER)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-function getStandardTemplatesSeed() {
-    return [
-        {
-            key: 'offer_letter',
-            name: 'Offer Letter',
-            description: 'Formal employment offer extended to prospective candidates outlining compensation and terms.',
-            category: 'Onboarding',
-            permittedModules: ['onboarding', 'hr_admin'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'HR Admin' }],
-            fieldMappings: [
-                { token: '{{candidate.name}}', label: 'Candidate Full Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{job.title}}', label: 'Offered Designation', required: true, sample: 'Senior Full Stack Engineer' },
-                { token: '{{job.department}}', label: 'Department', required: true, sample: 'Engineering' },
-                { token: '{{job.location}}', label: 'Work Location', required: true, sample: 'Bengaluru, India' },
-                { token: '{{compensation.annualCtc}}', label: 'Annual CTC (INR)', required: true, sample: '₹ 28,50,000' },
-                { token: '{{offer.joiningDate}}', label: 'Expected Joining Date', required: true, sample: '2026-10-15' },
-                { token: '{{company.name}}', label: 'Company Entity', required: true, sample: 'Kylrx Technologies Private Limited' },
-                { token: '{{signatory.name}}', label: 'Authorized Signatory', required: true, sample: 'Swati Khandelwal, VP of HR' }
-            ],
-            initialBody: `
-                <p>Date: <strong>2026-09-17</strong></p>
-                <p>Dear <strong>{{candidate.name}}</strong>,</p>
-                <p>We are delighted to extend an offer of employment for the position of <strong>{{job.title}}</strong> in our <strong>{{job.department}}</strong> team located in {{job.location}}.</p>
-                <p>Your Total Annual Cost to Company (CTC) will be <strong>{{compensation.annualCtc}}</strong> per annum. Your anticipated commencement of service is <strong>{{offer.joiningDate}}</strong>.</p>
-                <p>Please review and sign this offer letter confirming your acceptance of terms.</p>
-                <div style="margin-top:40px;display:flex;justify-content:space-between;">
-                    <div><p>Sincerely,</p><p><strong>{{signatory.name}}</strong><br>{{company.name}}</p></div>
-                    <div><p>Accepted By:</p><p><strong>{{candidate.name}}</strong><br>Date: _____________</p></div>
-                </div>`
-        },
-        {
-            key: 'appointment_letter',
-            name: 'Appointment Letter',
-            description: 'Legally binding appointment contract issued upon Day 1 joining confirmation.',
-            category: 'Onboarding',
-            permittedModules: ['onboarding', 'hr_admin'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'HR Admin' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Employee Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{employee.code}}', label: 'Employee Code', required: true, sample: 'EMP-1048' },
-                { token: '{{employee.designation}}', label: 'Designation', required: true, sample: 'Senior Full Stack Engineer' },
-                { token: '{{employee.joiningDate}}', label: 'Effective Date', required: true, sample: '2026-10-15' },
-                { token: '{{probation.periodMonths}}', label: 'Probation Duration', required: true, sample: '6 Months' },
-                { token: '{{company.name}}', label: 'Company Entity', required: true, sample: 'Kylrx Technologies Private Limited' }
-            ],
-            initialBody: `
-                <p>Employee Code: <strong>{{employee.code}}</strong></p>
-                <p>Dear <strong>{{employee.name}}</strong>,</p>
-                <p>With reference to your acceptance of our offer, we are pleased to appoint you as <strong>{{employee.designation}}</strong> effective from <strong>{{employee.joiningDate}}</strong>.</p>
-                <p>You will undergo a probation period of <strong>{{probation.periodMonths}}</strong> during which your performance will be evaluated.</p>`
-        },
-        {
-            key: 'nda_agreement',
-            name: 'Non-Disclosure Agreement',
-            description: 'Mutual non-disclosure and intellectual property assignment agreement.',
-            category: 'Onboarding',
-            permittedModules: ['onboarding', 'hr_admin'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'Legal Dept' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Recipient Full Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{company.name}}', label: 'Company Entity', required: true, sample: 'Kylrx Technologies Private Limited' },
-                { token: '{{agreement.effectiveDate}}', label: 'Effective Date', required: true, sample: '2026-10-15' }
-            ],
-            initialBody: `
-                <p>This Non-Disclosure and IP Assignment Agreement is entered into on <strong>{{agreement.effectiveDate}}</strong> by and between <strong>{{company.name}}</strong> and <strong>{{employee.name}}</strong>.</p>
-                <p>The Recipient agrees to maintain strict confidentiality regarding all proprietary technology, code, and confidential business documents.</p>`
-        },
-        {
-            key: 'probation_confirmation',
-            name: 'Probation Confirmation',
-            description: 'Formal confirmation of employment upon successful completion of probation assessment.',
-            category: 'Employee Lifecycle',
-            permittedModules: ['hr_admin', 'pms'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'HR Admin' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Employee Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{confirmation.date}}', label: 'Confirmation Date', required: true, sample: '2026-07-01' },
-                { token: '{{employee.designation}}', label: 'Designation', required: true, sample: 'Senior Full Stack Engineer' }
-            ],
-            initialBody: `
-                <p>Dear <strong>{{employee.name}}</strong>,</p>
-                <p>We are pleased to inform you that upon successful completion of your probation period, your employment as <strong>{{employee.designation}}</strong> is hereby confirmed effective from <strong>{{confirmation.date}}</strong>.</p>`
-        },
-        {
-            key: 'appraisal_letter',
-            name: 'Annual Appraisal Letter',
-            description: 'Year-end performance appraisal letter detailing revised CTC, bonus, and rating.',
-            category: 'Compensation',
-            permittedModules: ['pms', 'hr_admin'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'PMS Lead' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Employee Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{performance.rating}}', label: 'Performance Rating', required: true, sample: 'Exceeds Expectations (4.8/5)' },
-                { token: '{{compensation.revisedCtc}}', label: 'Revised Annual CTC', required: true, sample: '₹ 32,50,000' },
-                { token: '{{compensation.effectiveFrom}}', label: 'Effective Date', required: true, sample: '2026-04-01' }
-            ],
-            initialBody: `
-                <p>Dear <strong>{{employee.name}}</strong>,</p>
-                <p>Congratulations on your exceptional contribution during the fiscal performance cycle. Your achieved performance rating is <strong>{{performance.rating}}</strong>.</p>
-                <p>We are pleased to announce that your annual compensation has been revised to <strong>{{compensation.revisedCtc}}</strong> effective from <strong>{{compensation.effectiveFrom}}</strong>.</p>`
-        },
-        {
-            key: 'promotion_letter',
-            name: 'Promotion Letter',
-            description: 'Formal role promotion notification celebrating career advancement and new responsibilities.',
-            category: 'Employee Lifecycle',
-            permittedModules: ['hr_admin', 'pms'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'HR Admin' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Employee Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{promotion.newTitle}}', label: 'New Designation', required: true, sample: 'Lead Full Stack Architect' },
-                { token: '{{promotion.effectiveDate}}', label: 'Effective Date', required: true, sample: '2026-04-01' }
-            ],
-            initialBody: `
-                <p>Dear <strong>{{employee.name}}</strong>,</p>
-                <p>In recognition of your exceptional leadership and technical mastery, we are delighted to promote you to <strong>{{promotion.newTitle}}</strong> effective from <strong>{{promotion.effectiveDate}}</strong>.</p>`
-        },
-        {
-            key: 'payslip',
-            name: 'Monthly Payslip',
-            description: 'Itemized salary statement reflecting gross earnings, statutory deductions, and net pay.',
-            category: 'Payroll',
-            permittedModules: ['payroll'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'Finance Dept' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Employee Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{employee.code}}', label: 'Employee Code', required: true, sample: 'EMP-1048' },
-                { token: '{{payroll.month}}', label: 'Payroll Month', required: true, sample: 'September 2026' },
-                { token: '{{payroll.grossPay}}', label: 'Gross Earnings', required: true, sample: '₹ 2,70,833' },
-                { token: '{{payroll.totalDeductions}}', label: 'Total Deductions', required: true, sample: '₹ 38,400' },
-                { token: '{{payroll.netPay}}', label: 'Net Take-Home Pay', required: true, sample: '₹ 2,32,433' }
-            ],
-            initialBody: `
-                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px;margin-bottom:20px;">
-                    <div style="display:flex;justify-content:space-between;border-bottom:1px solid #e2e8f0;padding-bottom:10px;margin-bottom:12px;">
-                        <div><strong>${'{{employee.name}}'}</strong> (Code: ${'{{employee.code}}'})</div>
-                        <div>Month: <strong>${'{{payroll.month}}'}</strong></div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                        <div>
-                            <h4 style="margin:0 0 8px 0;color:#059669;">Earnings</h4>
-                            <p>Gross Pay: <strong>${'{{payroll.grossPay}}'}</strong></p>
-                        </div>
-                        <div>
-                            <h4 style="margin:0 0 8px 0;color:#ef4444;">Deductions</h4>
-                            <p>Total Deductions: <strong>${'{{payroll.totalDeductions}}'}</strong></p>
-                        </div>
-                    </div>
-                    <div style="margin-top:15px;padding-top:12px;border-top:2px solid #2563eb;font-size:1.1rem;display:flex;justify-content:space-between;">
-                        <span>Net Take-Home Amount:</span>
-                        <span style="color:#2563eb;font-weight:800;">${'{{payroll.netPay}}'}</span>
-                    </div>
-                </div>`
-        },
-        {
-            key: 'relieving_letter',
-            name: 'Relieving Letter',
-            description: 'Official clearance and exit relieving confirmation issued upon last working day.',
-            category: 'Exit',
-            permittedModules: ['exit', 'hr_admin'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'Exit Ops' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Employee Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{exit.lastWorkingDay}}', label: 'Last Working Day', required: true, sample: '2026-09-30' },
-                { token: '{{employee.designation}}', label: 'Designation', required: true, sample: 'Senior Full Stack Engineer' }
-            ],
-            initialBody: `
-                <p>Dear <strong>{{employee.name}}</strong>,</p>
-                <p>This has reference to your resignation letter. You are hereby relieved from your services as <strong>{{employee.designation}}</strong> with effect from the close of business hours on <strong>{{exit.lastWorkingDay}}</strong>.</p>
-                <p>We confirm that all company assets and clearance obligations have been resolved satisfactorily.</p>`
-        },
-        {
-            key: 'experience_letter',
-            name: 'Experience Certificate',
-            description: 'Comprehensive employment tenure and conduct verification letter.',
-            category: 'Exit',
-            permittedModules: ['exit', 'hr_admin'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'HR Admin' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Employee Full Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{tenure.startDate}}', label: 'Tenure Start Date', required: true, sample: '2023-05-15' },
-                { token: '{{tenure.endDate}}', label: 'Tenure End Date', required: true, sample: '2026-09-30' },
-                { token: '{{employee.designation}}', label: 'Final Role', required: true, sample: 'Senior Full Stack Engineer' }
-            ],
-            initialBody: `
-                <p><strong>TO WHOMSOEVER IT MAY CONCERN</strong></p>
-                <p>This is to certify that <strong>{{employee.name}}</strong> was employed with Kylrx Technologies from <strong>{{tenure.startDate}}</strong> to <strong>{{tenure.endDate}}</strong>, holding the final designation of <strong>{{employee.designation}}</strong>.</p>
-                <p>During their tenure, we found their conduct to be professional and their performance exemplary. We wish them success in all future endeavors.</p>`
-        },
-        {
-            key: 'fnf_statement',
-            name: 'Full & Final Statement',
-            description: 'Comprehensive settlement statement computing gratuity, leave encashment, and net dues.',
-            category: 'Exit',
-            permittedModules: ['exit', 'payroll'],
-            versions: [{ versionNumber: 'v1.0', status: 'approved', effectiveFrom: '2026-01-01', createdBy: 'Payroll Lead' }],
-            fieldMappings: [
-                { token: '{{employee.name}}', label: 'Employee Name', required: true, sample: 'Rahul Deshmukh' },
-                { token: '{{fnf.netPayable}}', label: 'Net Payable Settlement', required: true, sample: '₹ 80,700' },
-                { token: '{{fnf.settlementDate}}', label: 'Settlement Date', required: true, sample: '2026-10-05' }
-            ],
-            initialBody: `
-                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px;">
-                    <h3 style="margin:0 0 10px 0;color:#0f172a;">Full and Final Settlement Calculation</h3>
-                    <p>Employee: <strong>{{employee.name}}</strong> | Date: <strong>{{fnf.settlementDate}}</strong></p>
-                    <div style="margin-top:15px;padding-top:10px;border-top:2px solid #2563eb;display:flex;justify-content:space-between;font-size:1.1rem;">
-                        <span>Net Payable Full &amp; Final Settlement:</span>
-                        <span style="color:#2563eb;font-weight:800;">{{fnf.netPayable}}</span>
-                    </div>
-                </div>`
-        }
-    ];
-}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    CUSTOMISABLE MODULE TEMPLATES CONTROLLER (PRD §1.2)
@@ -1272,14 +1192,12 @@ let currentAdminTemplateId = null;
 
 async function loadAdminCustomTemplates() {
     try {
-        const res = await fetch(`${API}/custom-templates`);
-        if (res.ok) {
-            const json = await res.json();
-            adminCustomTemplates = json.data || [];
-            renderAdminCustomTemplates(adminCustomTemplates);
-        }
+        const json = await apiCall('/custom-templates');
+        adminCustomTemplates = json.data || [];
+        filterAdminCustomTemplates();
     } catch (err) {
-        console.warn('Error fetching custom templates:', err.message);
+        const grid = document.getElementById('admin-custom-template-grid');
+        if (grid) grid.innerHTML = `<div style="grid-column:1/-1;padding:2rem;text-align:center;color:#b91c1c;">Could not load module templates: ${escapeHtmlTpl(err.message)}</div>`;
     }
 }
 
@@ -1335,10 +1253,10 @@ function renderAdminCustomTemplates(templates) {
                 <div>
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                         <span class="tag tag-purple" style="text-transform: uppercase; font-size: 0.7rem; font-weight: 800;">
-                            ${tpl.module.toUpperCase()}
+                            ${escapeHtmlTpl(String(tpl.module).toUpperCase())}
                         </span>
                         <span class="badge ${isDraft ? 'badge-draft' : 'badge-approved'}" style="font-size: 0.7rem;">
-                            ${tpl.status.toUpperCase()} (${tpl.version})
+                            ${escapeHtmlTpl(String(tpl.status).toUpperCase())} (${escapeHtmlTpl(tpl.version)})
                         </span>
                     </div>
 
@@ -1488,10 +1406,9 @@ async function submitCreateModuleTemplate(e) {
     }));
 
     try {
-        const res = await fetch(`${API}/custom-templates`, {
+        await apiCall('/custom-templates', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            body: {
                 name,
                 module,
                 category,
@@ -1499,15 +1416,12 @@ async function submitCreateModuleTemplate(e) {
                 instructions,
                 permittedFields,
                 lockedFields: lockedKeys,
-                status: isDraft ? 'draft' : 'published',
-                actor: { name: 'Super Admin', role: 'super_admin' }
-            })
+                status: isDraft ? 'draft' : 'published'
+            }
         });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error);
 
         document.getElementById('create-module-template-modal')?.remove();
-        showToast('success', `Template "${name}" created successfully!`);
+        showToast('success', `Template "${name}" created and saved to Firebase.`);
         await loadAdminCustomTemplates();
     } catch (err) {
         showToast('error', 'Error creating template: ' + err.message);
@@ -1558,7 +1472,7 @@ function openAdminCustomizeTemplateModal(id) {
                                         ${isLocked ? 'LOCKED' : 'PERMITTED'}
                                     </span>
                                 </div>
-                                <input type="text" class="admin-cust-val" data-key="${f.fieldKey}" value="${escapeHtmlTpl(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? '#f1f5f9' : 'white'}; outline: none;" />
+                                <input type="text" class="admin-cust-val" data-key="${escapeHtmlTpl(f.fieldKey)}" value="${escapeHtmlTpl(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? '#f1f5f9' : 'white'}; outline: none;" />
                             </div>
                         `;
                     }).join('')}
@@ -1584,13 +1498,7 @@ async function previewAdminCustomTemplate(id) {
     });
 
     try {
-        const res = await fetch(`${API}/custom-templates/${encodeURIComponent(tplId)}/preview`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ customFieldValues: customValues })
-        });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error);
+        const json = await apiCall(`/custom-templates/${encodeURIComponent(tplId)}/preview`, { method: 'POST', body: { customFieldValues: customValues } });
 
         const previewModal = document.createElement('div');
         previewModal.className = 'modal-backdrop';
@@ -1604,7 +1512,7 @@ async function previewAdminCustomTemplate(id) {
                     </div>
                     <button class="btn-ghost" onclick="document.getElementById('admin-preview-render-modal').remove()"><i data-lucide="x"></i></button>
                 </div>
-                <div style="margin-bottom: 1.5rem;">${json.data.previewHtml}</div>
+                <div style="margin-bottom: 1.5rem;">${safeDocHtml(json.data.previewHtml)}</div>
                 <div style="display: flex; gap: 10px;">
                     <button class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('admin-preview-render-modal').remove()">Close Preview</button>
                 </div>
@@ -1634,22 +1542,14 @@ async function saveAdminCustomizedTemplate(id) {
     }));
 
     try {
-        const res = await fetch(`${API}/custom-templates/${encodeURIComponent(tplId)}`, {
+        await apiCall(`/custom-templates/${encodeURIComponent(tplId)}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                instructions,
-                permittedFields: updatedPermittedFields,
-                status,
-                actor: { name: 'Super Admin', role: 'super_admin' }
-            })
+            body: { instructions, permittedFields: updatedPermittedFields, status }
         });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error);
 
         document.getElementById('admin-customize-template-modal')?.remove();
         document.getElementById('admin-preview-render-modal')?.remove();
-        showToast('success', 'Template customizations saved successfully!');
+        showToast('success', 'Template changes saved to Firebase.');
         await loadAdminCustomTemplates();
     } catch (err) {
         showToast('error', 'Save error: ' + err.message);
@@ -1659,15 +1559,9 @@ async function saveAdminCustomizedTemplate(id) {
 async function publishAdminTemplate(id) {
     if (!confirm('Publish this draft template for use across permitted modules?')) return;
     try {
-        const res = await fetch(`${API}/custom-templates/${encodeURIComponent(id)}/publish`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ actor: { name: 'Super Admin', role: 'super_admin' } })
-        });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error);
+        await apiCall(`/custom-templates/${encodeURIComponent(id)}/publish`, { method: 'POST', body: {} });
 
-        showToast('success', 'Template published successfully!');
+        showToast('success', 'Template published and saved to Firebase.');
         await loadAdminCustomTemplates();
     } catch (err) {
         showToast('error', 'Publish failed: ' + err.message);
@@ -1765,19 +1659,13 @@ async function saveAdminTemplatePermissions(id) {
     if (document.getElementById('admModPMS')?.checked) permittedModules.push('pms');
 
     try {
-        const res = await fetch(`${API}/custom-templates/${encodeURIComponent(tplId)}/permissions`, {
+        await apiCall(`/custom-templates/${encodeURIComponent(tplId)}/permissions`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                permissions: { permittedRoles, permittedModules },
-                actor: { name: 'Super Admin', role: 'super_admin' }
-            })
+            body: { permissions: { permittedRoles, permittedModules } }
         });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error);
 
         document.getElementById('admin-permissions-modal')?.remove();
-        showToast('success', 'Template permissions updated successfully!');
+        showToast('success', 'Template permissions saved to Firebase.');
         await loadAdminCustomTemplates();
     } catch (err) {
         showToast('error', 'Error updating permissions: ' + err.message);

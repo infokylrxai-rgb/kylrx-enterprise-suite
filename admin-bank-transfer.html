@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+  <script src="lucide.min.js" crossorigin="anonymous"></script>
 
   <!-- Session Guard -->
   <script>
@@ -532,12 +532,6 @@
     import { collection, getDocs, setDoc, doc, serverTimestamp, addDoc } from "./firebase-config.js";
     import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
-    // ─────────────────────────────────────────────
-    // EMAIL API CONFIGURATION
-    // ─────────────────────────────────────────────
-    const EMAIL_API_KEY = "6f8d75dc-500b-4eb1-b0db-6e6b4e7235db";
-    const SENDER_EMAIL = "payroll@kylrxai.com";
-
     // Initialise Lucide icons
     if (window.lucide) lucide.createIcons();
 
@@ -782,28 +776,28 @@
         const selectedOpt = recipientSelect.options[recipientSelect.selectedIndex];
         const employeeEmail = selectedOpt ? (selectedOpt.dataset.email || '') : '';
 
-        if (payload.emailMessage && employeeEmail && EMAIL_API_KEY && EMAIL_API_KEY !== 'YOUR_SMTPJS_SECURE_TOKEN_HERE') {
+        if (payload.emailMessage && employeeEmail) {
           try {
-            console.log(`[EMAIL] Dispatching payment notification to ${employeeEmail} via Web3Forms...`);
-            const response = await fetch("https://api.web3forms.com/submit", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-              },
+            console.log(`[EMAIL] Dispatching payment notification to ${employeeEmail}...`);
+            const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+            const response = await fetch('/api/email/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
               body: JSON.stringify({
-                access_key: EMAIL_API_KEY,
-                name: "Kylrx AI Payroll Gate",
-                email: SENDER_EMAIL,
+                to: employeeEmail,
                 subject: "Kylrx AI - Payout Process Initiated",
-                message: `Dear ${recipientSelect.options[recipientSelect.selectedIndex].text},\n\nWe are pleased to inform you that a bank transfer payout has been initiated successfully.\n\n${payload.emailMessage}`
+                text: `Dear ${recipientSelect.options[recipientSelect.selectedIndex].text},
+
+We are pleased to inform you that a bank transfer payout has been initiated successfully.
+
+${payload.emailMessage}`
               })
             });
             const result = await response.json();
             if (result.success) {
               console.log(`[EMAIL] Successfully sent notification to ${employeeEmail}.`);
             } else {
-              console.warn('[EMAIL] Dispatch failed:', result.message);
+              console.warn('[EMAIL] Dispatch failed:', result.error);
             }
           } catch (mailErr) {
             console.warn('[EMAIL] Dispatch failed:', mailErr);
@@ -1085,102 +1079,12 @@
     import { db, onSnapshot, registerListener } from "./firebase-config.js";
     import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
-    const DEFAULT_APPS = [
-        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
-        { name: "DATADOG", url: "https://app.datadoghq.com" }
-    ];
 
-    async function initAdminApps() {
-        const appsRef = doc(db, "system_configs", "admin_custom_apps");
-        onSnapshot(appsRef, async (snapshot) => {
-            let apps = [];
-            if (snapshot.exists()) {
-                apps = snapshot.data().customApps || [];
-            } else {
-                try {
-                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
-                    apps = DEFAULT_APPS;
-                } catch(e) {}
-            }
-            renderAppsUI(apps);
-        });
-    }
 
-    function renderAppsUI(apps) {
-        const list = document.getElementById('customAppsList');
-        if (list) {
-            list.innerHTML = apps.map((app) => `
-                <div class="nav-item" style="position: relative;">
-                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
-                        <i data-lucide="external-link"></i>
-                        <span>${app.name}</span>
-                    </a>
-                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
-                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
 
-        const registryList = document.getElementById('registryAppsList');
-        if (registryList) {
-            registryList.innerHTML = apps.map((app) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
-                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
-                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
-                    </div>
-                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
-                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-        if(window.lucide) lucide.createIcons();
-    }
 
-    window.openAppRegistryModal = () => {
-        const modal = document.getElementById('customAppsModal');
-        if (modal) modal.style.display = 'flex';
-        if(window.lucide) lucide.createIcons();
-    };
 
-    window.addCustomApp = async () => {
-        const urlInput = document.getElementById('appUrlInput');
-        const nameInput = document.getElementById('appNameInput');
-        if (!urlInput) return;
-        
-        const url = urlInput.value.trim();
-        const customName = nameInput ? nameInput.value.trim() : '';
-        if (!url) return;
 
-        try {
-            let cleanUrl = url;
-            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
-            const urlObj = new URL(cleanUrl);
-            const domain = urlObj.hostname.replace('www.', '');
-            const appName = customName || domain.split('.')[0].toUpperCase();
-
-            const appsRef = doc(db, "system_configs", "admin_custom_apps");
-            await setDoc(appsRef, {
-                customApps: arrayUnion({ name: appName, url: cleanUrl })
-            }, { merge: true });
-
-            urlInput.value = '';
-            if (nameInput) nameInput.value = '';
-        } catch (e) {
-            alert("Invalid URL structure.");
-        }
-    };
-
-    window.removeAppFromServer = async (url, name) => {
-        const appsRef = doc(db, "system_configs", "admin_custom_apps");
-        await setDoc(appsRef, {
-            customApps: arrayRemove({ name: name, url: url })
-        }, { merge: true });
-    };
-
-    initAdminApps();
 </script>
 <script type="module" src="./admin-sidebar-sync.js"></script>
 </body>

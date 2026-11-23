@@ -7,7 +7,7 @@
     <title>My Documents | HRFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
             --primary: #ec4899;
@@ -206,20 +206,20 @@
                 <div class="nav-item"><a href="employee-dashboard.html" class="nav-link" onclick="event.preventDefault(); navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
                 <div class="nav-item"><a href="employee-appraisal.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-appraisal.html');"><i data-lucide="target"></i><span>Performance (PMS)</span></a></div>
                 <div class="nav-item"><a href="employee-leave.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 
                 <div class="nav-label">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
             </nav>
 
             <div class="profile-mini">
                 <div class="avatar" id="userInitial">JD</div>
                 <div class="profile-info">
-                    <div class="profile-name" id="userNameDisplay">John Doe</div>
+                    <div class="profile-name" id="userNameDisplay">Employee</div>
                     <div class="profile-role" id="userRoleDisplay">Employee</div>
                 </div>
                 <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
@@ -277,7 +277,8 @@
     </div>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, orderBy, getDocs, doc, onSnapshot, registerListener } from "./firebase-config.js";
+        import { auth, db, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, whereMyOrg, orderBy, getDocs, doc, onSnapshot, registerListener } from "./firebase-config.js";
+        import { loadIdentity } from "./notification-actions.js";
         import { downloadPayslipFromDoc } from "./payslip-pdf-service.js";
 
         lucide.createIcons();
@@ -297,7 +298,7 @@
                     pill.style.color = '#059669';
                     if (dot) dot.style.background = '#10b981';
                     text.textContent = 'Firebase Backend Online';
-                    text.title = `Project: ${status.projectId || 'kylrxai'} • Service: ${status.service || 'Firebase Admin'}`;
+                    text.title = `Project: ${status.projectId || window.FIREBASE_PROJECT_ID || ''} • Service: ${status.service || 'Firebase Admin'}`;
                 } else {
                     pill.style.background = '#fefce8';
                     pill.style.borderColor = '#fef08a';
@@ -314,7 +315,7 @@
         function hydrateProfileUI(user) {
             if (!user) return;
             const name = user.displayName || user.name || user.fullName || 'Employee';
-            const role = user.designation || user.role || 'Cybersecurity Specialist';
+            const role = user.designation || user.role || 'Employee';
             const parts = name.trim().split(/\s+/).filter(Boolean);
             const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (parts[0] ? parts[0].slice(0, 2).toUpperCase() : 'JD');
 
@@ -327,18 +328,10 @@
         }
 
         let payrollDocs = [];
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlId = urlParams.get('id');
-        let currentUid = urlId || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
-
-        // 1. Immediate Synchronous Profile Hydration (Eliminates "-- --" hang)
-        let defaultName = 'John Doe';
-        if (currentUid === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2' || urlId === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2') {
-            defaultName = 'Marry Doe';
-        } else if (localStorage.getItem('userName')) {
-            defaultName = localStorage.getItem('userName');
-        }
-        let defaultRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
+        // Display hints from the last visit; the uid and organization come only from the verified session below
+        let currentUid = '';
+        let defaultName = localStorage.getItem('userName') || 'Employee';
+        let defaultRole = localStorage.getItem('userRole') || 'Employee';
 
         let currentProfile = {
             uid: currentUid,
@@ -346,7 +339,7 @@
             displayName: defaultName,
             role: defaultRole,
             designation: defaultRole,
-            department: localStorage.getItem('userDept') || 'Cybersecurity'
+            department: localStorage.getItem('userDept') || 'General'
         };
 
         hydrateProfileUI(currentProfile);
@@ -356,19 +349,13 @@
             const grid = document.getElementById('docGrid');
             const badge = document.getElementById('docCountBadge');
             try {
-                let snap;
-                try {
-                    snap = await getDocs(query(
-                        collection(db, 'payroll_documents'),
-                        where('employeeId', '==', uid),
-                        orderBy('createdAt', 'desc')
-                    ));
-                } catch {
-                    snap = await getDocs(query(
-                        collection(db, 'payroll_documents'),
-                        where('employeeId', '==', uid)
-                    ));
-                }
+                // Only this employee's documents in their own organization (the rules require both)
+                const snap = await getDocs(query(
+                    collection(db, 'payroll_documents'),
+                    whereMyOrg(),
+                    where('employeeId', '==', uid),
+                    orderBy('createdAt', 'desc')
+                ));
                 payrollDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
                     .filter(d => d.docType === 'Payslip' || d.docType === 'Invoice')
                     .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
@@ -396,9 +383,19 @@
             }
         }
 
-        onAuthStateChanged(auth, (user) => {
-            const activeUid = user?.uid || urlId || localStorage.getItem('employee_uid') || 'demo_emp';
-            if (user && user.displayName && defaultName === 'John Doe') {
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) return;
+            let me;
+            try {
+                me = await loadIdentity();
+            } catch (err) {
+                console.warn('[Payslips] Could not resolve the signed-in organization:', err.message);
+                document.getElementById('docGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#ef4444;padding:2rem;">Could not verify your account. Please sign in again.</div>';
+                return;
+            }
+            const activeUid = me.uid;
+            currentUid = activeUid;
+            if (user.displayName && defaultName === 'Employee') {
                 defaultName = user.displayName;
                 currentProfile.name = user.displayName;
                 currentProfile.displayName = user.displayName;

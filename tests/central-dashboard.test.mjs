@@ -1,12 +1,36 @@
+import './helpers/isolate-firebase.mjs';
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
+import jwt from 'jsonwebtoken';
 import automationEngine from '../services/automation-engine.js';
+import http from 'node:http';
+import admin from 'firebase-admin';
+import { before, after } from 'node:test';
+
+// Starts the app on a free port with the in-memory store; refuses to run against a real Firebase app.
+let server;
+let baseUrl;
+before(async () => {
+  const { default: serverModule } = await import('../server.js');
+  assert.equal(admin.apps.length, 0, 'a real Firebase app is initialised; the test must run on the in-memory store');
+  await serverModule.dynamicRoutesLoaded;
+  server = http.createServer(serverModule.app);
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  baseUrl = `http://127.0.0.1:${server.address().port}`;
+});
+after(async () => {
+  server?.closeAllConnections?.();
+  if (server) await new Promise((resolve) => server.close(resolve));
+});
+
+// verifyToken needs a real identity: the role comes from a signed token, not from ?role=
+const asRole = (role) => ({ headers: { Authorization: `Bearer ${jwt.sign({ id: `test_${role}`, role, orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai' }, process.env.JWT_SECRET)}` } });
 
 describe('Admin Central Dashboard (Command Center) Suite', () => {
 
     test('1. Overview API aggregates all 11 prompt widgets with live data', async () => {
-        const res = await fetch('http://localhost:3000/api/central-dashboard/overview?role=super_admin');
+        const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
         assert.strictEqual(res.status, 200);
 
         const body = await res.json();
@@ -28,7 +52,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
     });
 
     test('2. Attendance & Workforce live metrics are properly computed', async () => {
-        const res = await fetch('http://localhost:3000/api/central-dashboard/overview');
+        const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
         const body = await res.json();
         const { attendance, workforce } = body.data;
 
@@ -40,7 +64,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
     });
 
     test('3. Payroll, Exit, PMS, and Policy compliance metrics are accurately generated', async () => {
-        const res = await fetch('http://localhost:3000/api/central-dashboard/overview');
+        const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
         const body = await res.json();
         const { payroll, exit, pms, policy } = body.data;
 
@@ -53,7 +77,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
     });
 
     test('4. Organization Structure Tree is hierarchical, acyclic, and contains direct reports', async () => {
-        const res = await fetch('http://localhost:3000/api/central-dashboard/org-structure');
+        const res = await fetch(`${baseUrl}/api/central-dashboard/org-structure`, asRole('super_admin'));
         assert.strictEqual(res.status, 200);
 
         const body = await res.json();
@@ -72,12 +96,12 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
 
     test('5. Role-based Permission Gating applies appropriate widget access', async () => {
         // Test Super Admin permissions (All 11 widgets)
-        const superRes = await fetch('http://localhost:3000/api/central-dashboard/overview?role=super_admin');
+        const superRes = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
         const superBody = await superRes.json();
         assert.strictEqual(superBody.allowedWidgets.length, 11, 'Super Admin must have access to all 11 widgets');
 
         // Test Manager permissions (Restricted subset)
-        const mgrRes = await fetch('http://localhost:3000/api/central-dashboard/overview?role=manager');
+        const mgrRes = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('manager'));
         const mgrBody = await mgrRes.json();
         assert.ok(mgrBody.allowedWidgets.length < 11, 'Manager should have restricted widget permissions');
         assert.ok(!mgrBody.allowedWidgets.includes('payroll'), 'Manager should not have permission to view payroll');
@@ -87,13 +111,13 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
     });
 
     test('6. Resolving an Approval records immutable audit entry in Common Automation Engine', async () => {
-        const initRes = await fetch('http://localhost:3000/api/central-dashboard/overview');
+        const initRes = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
         const initBody = await initRes.json();
         const targetId = initBody.data.approvals[0]?.id || 'APP-SALARY-410';
 
-        const res = await fetch(`http://localhost:3000/api/central-dashboard/approvals/${targetId}/action`, {
+        const res = await fetch(`${baseUrl}/api/central-dashboard/approvals/${targetId}/action`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...asRole('super_admin').headers },
             body: JSON.stringify({ decision: 'approved', remarks: 'Salary revision signed off by HR Admin' })
         });
 
@@ -103,7 +127,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
         assert.ok(body.message.includes('approved'));
 
         // Verify that the server's Common Automation Engine recorded the audit log in overview
-        const resOverview = await fetch('http://localhost:3000/api/central-dashboard/overview');
+        const resOverview = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
         const overviewBody = await resOverview.json();
         const logs = overviewBody.data.recentAutomationActivity;
         
@@ -113,7 +137,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
     });
 
     test('7. Critical Alerts stream mirrors Alert Builder threshold monitors', async () => {
-        const res = await fetch('http://localhost:3000/api/central-dashboard/overview');
+        const res = await fetch(`${baseUrl}/api/central-dashboard/overview`, asRole('super_admin'));
         const body = await res.json();
         const alerts = body.data.criticalAlerts;
 
@@ -125,7 +149,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
     });
 
     test('8. HTML & UI Verification: admin-central-dashboard.html has all 11 widget IDs and customization drawer', () => {
-        const html = fs.readFileSync('c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/admin-central-dashboard.html', 'utf-8');
+        const html = fs.readFileSync(new URL('../admin-central-dashboard.html', import.meta.url), 'utf-8');
 
         // Verify all 11 widget elements
         assert.ok(html.includes('id="widget-attendance"'));
@@ -156,7 +180,7 @@ describe('Admin Central Dashboard (Command Center) Suite', () => {
         ];
 
         for (const p of pages) {
-            const content = fs.readFileSync(`c:/Users/user/Desktop/kylrx-application/kylrx-enterprise-suite-main/${p}`, 'utf-8');
+            const content = fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf-8');
             assert.ok(
                 content.includes('admin-central-dashboard.html'),
                 `Page ${p} must contain a navigation link to admin-central-dashboard.html`

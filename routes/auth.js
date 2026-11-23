@@ -1,18 +1,49 @@
 const express = require('express');
 const router = express.Router();
 const { register, registerOrganization, login, refreshToken, unlockAccount, verifyMfa, resendMfa } = require('../controllers/authController');
+const { demoLogin } = require('../controllers/demoController');
 
 // Rate limiting specifically for Auth
 const rateLimit = require('express-rate-limit');
+const WINDOW_MS = 15 * 60 * 1000; // 15 mins
+
+// Signup and organization registration: 10 per IP per window, shared by the two routes
 const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 mins
-    max: 10, // Max 10 attempts
+    windowMs: WINDOW_MS,
+    max: 10,
     message: { success: false, error: 'Too many authentication attempts, please try again later' }
 });
 
+// Login counts failed attempts only (a response >= 400); successful logins use no budget.
+// Per IP: 50, because an office shares one address and mistyped passwords are normal.
+// Per account: 10 per email (case-insensitive), which also covers emails that have no account.
+// Both counters live in this process's memory (shortcut: use a shared store when running several servers).
+const loginIpLimiter = rateLimit({
+    windowMs: WINDOW_MS,
+    max: 50,
+    skipSuccessfulRequests: true,
+    message: { success: false, error: 'Too many failed login attempts from this network, please try again later' }
+});
+const loginAccountLimiter = rateLimit({
+    windowMs: WINDOW_MS,
+    max: 10,
+    skipSuccessfulRequests: true,
+    skip: (req) => !(req.body && req.body.email),
+    keyGenerator: (req) => String(req.body.email).trim().toLowerCase(),
+    message: { success: false, error: 'Too many failed login attempts for this account, please try again later' }
+});
+
+// Demo login: 20 per IP per window (every use is also logged by the controller)
+const demoLimiter = rateLimit({
+    windowMs: WINDOW_MS,
+    max: 20,
+    message: { success: false, error: 'Too many demo logins, please try again later' }
+});
+
+router.post('/demo-login', demoLimiter, demoLogin);
 router.post('/signup', authLimiter, register);
 router.post('/register-organization', authLimiter, registerOrganization);
-router.post('/login', authLimiter, login);
+router.post('/login', loginIpLimiter, loginAccountLimiter, login);
 router.post('/refresh-token', refreshToken);
 router.post('/verify-mfa', verifyMfa);
 router.post('/verify-otp', verifyMfa);

@@ -154,7 +154,8 @@ describe('PRD Section 11: Alert Monitor Interface & Safe AI Simulation Sandbox S
         assert.ok(typeof clientAlertRegistry.loadSimPreset === 'function');
 
         const clientTriggers = clientAlertRegistry.getAllTriggers();
-        assert.strictEqual(clientTriggers.length, 6);
+        // 2c57a36 added the two policy triggers on purpose (EVT_POLICY_ACKNOWLEDGEMENT_OVERDUE, EVT_POLICY_NEW_VERSION_ISSUED)
+        assert.strictEqual(clientTriggers.length, 8);
         assert.ok(clientAlertRegistry.getTriggerByKey('EVT_PROBATION_EXPIRY'));
     });
 
@@ -199,7 +200,12 @@ describe('PRD Section 11: Alert Monitor Interface & Safe AI Simulation Sandbox S
         const rules = fs.readFileSync(rulesPath, 'utf8');
 
         assert.ok(rules.includes('match /alert_trigger_registry/{triggerId}'), 'firestore.rules must match alert_trigger_registry collection');
-        assert.ok(rules.includes('allow read: if signedIn()'), 'Read rule must be enabled for signed-in users');
-        assert.ok(rules.includes('allow write: if canAccessAdmin() || isStaff()'), 'Write rule must require admin or staff privileges');
+        // Rules now split writes and tie every operation to the caller's organization
+        const body = rules.match(/match \/alert_trigger_registry\/\{triggerId\} \{([^}]*)\}/)[1];
+        assert.ok(body.includes('allow read: if tenantRead();'), 'Read rule must be limited to the caller organization');
+        assert.match(rules, /function tenantRead\(\) \{\s*return signedIn\(\)/, 'tenantRead must require a signed-in user');
+        for (const op of ['create', 'update', 'delete']) {
+            assert.match(body, new RegExp(`allow ${op}: if isStaff\\(\\) && tenant`), `${op} rule must require staff privileges and the same organization`);
+        }
     });
 });

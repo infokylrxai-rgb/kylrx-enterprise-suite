@@ -2,6 +2,22 @@ const express = require('express');
 const router = express.Router();
 const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
+// Decoupled Payroll Controller (PRD Section 4)
+const payrollControllerEarly = require('../controllers/payroll-controller');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PROVIDER WEBHOOK — REGISTERED BEFORE verifyToken ON PURPOSE.
+// Cashfree calls this server-to-server and cannot present a user JWT, so a token
+// gate here would silently drop every payout callback. It is NOT unauthenticated:
+// the handler verifies Cashfree's HMAC-SHA256 signature over the raw body and
+// rejects anything unsigned or forged (see handleCashfreeWebhook).
+// ─────────────────────────────────────────────────────────────────────────────
+router.post(
+    '/disburse/webhook/cashfree',
+    express.raw({ type: '*/*' }),
+    payrollControllerEarly.handleCashfreeWebhook
+);
+
 router.use(verifyToken);
 
 // Administrative payroll routes require Admin/HR roles; employee document reads are gated by req.user.id
@@ -69,13 +85,13 @@ router.post('/documents/export-register-pdf', payrollController.exportRegisterPd
 router.get('/documents/vault', payrollController.getVaultDocuments);
 
 // ─────────────────────────────────────────────
-// 2. DECOUPLED DECENTRO DISBURSEMENT ROUTES
+// 2. DECOUPLED CASHFREE DISBURSEMENT ROUTES
 // ─────────────────────────────────────────────
 router.post('/disburse/create-batch', payrollController.createDisbursementBatch);
 router.post('/disburse/batch/:batchId/approve', payrollController.approveDisbursementBatch);
 router.post('/disburse/batch/:batchId/execute', payrollController.executeDisbursementBatch);
 router.get('/disburse/batch/:batchId/status', payrollController.getDisbursementBatchStatus);
-router.post('/disburse/webhook/decentro', payrollController.handleDecentroWebhook);
+router.post('/disburse/batch/:batchId/reconcile', payrollController.reconcileDisbursementBatch);
 
 
 /**
@@ -84,9 +100,6 @@ router.post('/disburse/webhook/decentro', payrollController.handleDecentroWebhoo
  */
 router.get('/documents/:docId/download-url', async (req, res) => {
     try {
-        if (!admin || !admin.apps || admin.apps.length === 0) {
-            return res.status(503).json({ success: false, error: 'Firebase Admin not configured' });
-        }
         const { docId } = req.params;
         const { employeeId } = req.query;
 
@@ -99,21 +112,33 @@ router.get('/documents/:docId/download-url', async (req, res) => {
             return res.status(403).json({ success: false, error: 'Unauthorized: Employees may only download their own payslips' });
         }
 
+        if (!admin || !admin.apps || admin.apps.length === 0) {
+            return res.status(503).json({ success: false, error: 'Firebase Admin not configured' });
+        }
+
         const docSnap = await db.collection('payroll_documents').doc(docId).get();
         if (!docSnap.exists) {
             return res.status(404).json({ success: false, error: 'Payroll document not found' });
         }
 
         const data = docSnap.data();
+        // Another organization's payslip does not exist for the caller (the Admin SDK bypasses the rules)
+        if (!req.user.orgId || data.orgId !== req.user.orgId) {
+            return res.status(404).json({ success: false, error: 'Payroll document not found' });
+        }
         if (data.employeeId !== employeeId) {
             return res.status(403).json({ success: false, error: 'Not authorized for this document' });
         }
 
-        if (data.storageUrl) {
+        // A short-lived signed URL for a file inside the caller's organization folder (storage.rules layout)
+        if (data.storagePath) {
+            if (!String(data.storagePath).startsWith(`orgs/${req.user.orgId}/`)) {
+                return res.status(404).json({ success: false, error: 'Payroll document not found' });
+            }
+        } else if (data.storageUrl) {
+            // Older documents only kept a long-lived download URL
             return res.json({ success: true, url: data.storageUrl, source: 'firestore' });
-        }
-
-        if (!data.storagePath) {
+        } else {
             return res.status(404).json({ success: false, error: 'No PDF file attached to this document' });
         }
 

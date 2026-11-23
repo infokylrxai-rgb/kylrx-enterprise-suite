@@ -11,11 +11,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="quick-actions.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <script>
         window.navigateTo = (page) => {
             const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id') || localStorage.getItem('employee_uid') || '';
+            const id = urlParams.get('id') || window.__kylrxUid || '';
             const sep = page.includes('?') ? '&' : '?';
             if (id) {
                 window.location.href = `${page}${sep}id=${encodeURIComponent(id)}`;
@@ -29,7 +29,7 @@
         };
 
         window.handleTaskClick = (title) => {
-            const empId = new URLSearchParams(window.location.search).get('id') || localStorage.getItem('employee_uid') || 'demo_emp';
+            const empId = new URLSearchParams(window.location.search).get('id') || window.__kylrxUid || '';
             if (title === 'Bank Verification') {
                 window.navigateTo('employee-bank-task.html');
             } else if (title === 'IT Security Policy') {
@@ -438,7 +438,7 @@
                         <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center;"><i data-lucide="user" size="20"></i></div>
                         <div>
                             <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">My Manager</div>
-                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">Nandan.B</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">Your manager</div>
                         </div>
                     </div>
 
@@ -446,7 +446,7 @@
                         <div class="channel-icon" style="width: 40px; height: 40px; border-radius: 12px; background: #dcfce7; color: #10b981; display: flex; align-items: center; justify-content: center;"><i data-lucide="users" size="20"></i></div>
                         <div>
                             <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">Team Group</div>
-                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;" id="deptLabelMsg">Cybersecurity</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;" id="deptLabelMsg">General</div>
                         </div>
                     </div>
 
@@ -834,7 +834,8 @@
     <script src="quick-actions-controller.js"></script>
     <script type="module">
         import { attendanceEngine } from "./attendance-engine.js";
-        import { auth, db, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, orderBy, limit, doc, setDoc, arrayUnion, arrayRemove, registerListener } from "./firebase-config.js";
+        import { auth, db, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, getDoc, getDocs, onSnapshot, addDoc, updateDoc, serverTimestamp, orderBy, limit, doc, setDoc, arrayUnion, arrayRemove, registerListener, tenantReady, whereMyOrg } from "./firebase-config.js";
+        import { loadIdentity } from "./notification-actions.js";
 
         lucide.createIcons();
         if (window.QuickActionsController) {
@@ -870,7 +871,7 @@
                     pill.style.color = '#059669';
                     if (dot) dot.style.background = '#10b981';
                     text.textContent = 'Firebase Backend Online';
-                    text.title = `Project: ${status.projectId || 'kylrxai'} • Service: ${status.service || 'Firebase Admin'}`;
+                    text.title = `Project: ${status.projectId || window.FIREBASE_PROJECT_ID || ''} • Service: ${status.service || 'Firebase Admin'}`;
                 } else {
                     pill.style.background = '#fefce8';
                     pill.style.borderColor = '#fef08a';
@@ -915,7 +916,7 @@
         };
 
         window.handleTaskClick = (title) => {
-            const empId = new URLSearchParams(window.location.search).get('id') || 'demo_emp';
+            const empId = new URLSearchParams(window.location.search).get('id') || window.__kylrxUid || '';
             if (title === 'Bank Verification') {
                 window.location.href = `employee-bank-task.html?id=${empId}`;
             } else if (title === 'IT Security Policy') {
@@ -936,6 +937,7 @@
             try {
                 const q = query(
                     collection(db, 'attendance'),
+                    whereMyOrg(),
                     where('userId', '==', uid)
                 );
                 const pastSnaps = await getDocs(q);
@@ -957,13 +959,13 @@
         const centerId = urlParams.get('id');
 
         // Immediate Synchronous Profile Hydration (Eliminates "-- --" avatar hang)
-        const cachedUid = urlParams.get('id') || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
-        const cachedName = localStorage.getItem('userName') || (cachedUid === 'demo_emp' ? 'John Doe' : 'Employee');
-        const cachedRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
-        const cachedDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'Cybersecurity';
+        // Display hints from the last visit; the uid and organization come only from the verified session
+        const cachedName = localStorage.getItem('userName') || 'Employee';
+        const cachedRole = localStorage.getItem('userRole') || 'Employee';
+        const cachedDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'General';
 
         currentUser = {
-            uid: cachedUid,
+            uid: '',
             name: cachedName,
             displayName: cachedName,
             role: cachedRole,
@@ -978,11 +980,24 @@
         syncBackendStatus();
 
         onAuthStateChanged(auth, async (user) => {
-            const activeUid = user ? user.uid : (localStorage.getItem('employee_uid') || 'demo_emp');
-            
-            if (activeUid && activeUid !== 'demo_emp') {
+            // No signed-in user: bounce to the landing page. Previously this just returned,
+            // which left the dashboard shell rendered for an unauthenticated visitor —
+            // every other portal dashboard redirects, so this one now matches.
+            if (!user) { window.location.href = 'index.html'; return; }
+            let me;
+            try {
+                me = await loadIdentity();
+            } catch (err) {
+                console.warn('[Dashboard] Could not resolve the signed-in organization:', err.message);
+                return;
+            }
+            const activeUid = me.uid;
+            window.__kylrxUid = activeUid;
+            currentUser = { ...currentUser, uid: activeUid };
+
+            {
                 const userDocRef = doc(db, 'users', activeUid);
-                
+
                 // Live Dashboard & Profile Sync with resilient fallback
                 onSnapshot(userDocRef, (snap) => {
                     if (snap && snap.exists && snap.exists()) {
@@ -990,29 +1005,29 @@
                         const fullData = { uid: activeUid, ...data };
                         currentUser = fullData;
                         loadDashboardData(fullData);
-                        
+
                         // Check if yesterday was a short workday (<4h) to mandate 8h today
                         checkPreviousDayMandate(activeUid);
-                        
+
                         // Hydrate Leave
                         const balances = data.leaveBalances || { paid: 12, sick: 4, comp: 2 };
                         const total = (balances.paid || 0) + (balances.sick || 0) + (balances.comp || 0);
                         const leaveBalEl = document.getElementById('dashboardLeaveBal');
                         if (leaveBalEl) leaveBalEl.textContent = total;
-                        
+
                         // Hydrate Team
                         const dept = data.departmentName || data.department || cachedDept;
                         const deptBadge = document.getElementById('deptBadge');
                         if (deptBadge) deptBadge.textContent = dept;
                         loadTeamMembers(dept);
-                        
+
                         syncNotifications(activeUid);
                         syncMessagesCount(activeUid);
                         initApps();
                     } else {
                         // User doc not seeded yet in Firestore, maintain hydrated data
                         loadDashboardData(currentUser);
-                        loadTeamMembers(currentUser.department || 'Cybersecurity');
+                        loadTeamMembers(currentUser.department || 'General');
                         syncNotifications(activeUid);
                         syncMessagesCount(activeUid);
                         initApps();
@@ -1020,28 +1035,9 @@
                 }, (err) => {
                     console.warn("User snapshot listener note:", err?.message || err);
                     loadDashboardData(currentUser);
-                    loadTeamMembers(currentUser.department || 'Cybersecurity');
+                    loadTeamMembers(currentUser.department || 'General');
                     initApps();
                 });
-            } else {
-                // Authoritative Demo Fallback
-                const demoData = {
-                    uid: 'demo_emp',
-                    name: localStorage.getItem('userName') || 'John Doe',
-                    displayName: localStorage.getItem('userName') || 'John Doe',
-                    role: localStorage.getItem('userRole') || 'Cybersecurity Specialist',
-                    designation: localStorage.getItem('userRole') || 'Cybersecurity Specialist',
-                    department: localStorage.getItem('userDept') || 'Cybersecurity'
-                };
-                currentUser = demoData;
-                loadDashboardData(demoData);
-                
-                const deptBadge = document.getElementById('deptBadge');
-                if (deptBadge) deptBadge.textContent = demoData.department;
-                loadTeamMembers(demoData.department);
-                syncNotifications(demoData.uid);
-                syncMessagesCount(demoData.uid);
-                initApps();
             }
 
             if (centerId) {
@@ -1110,8 +1106,8 @@
         async function loadDashboardData(user) {
             if (!user) return;
             const userName = user.displayName || user.name || user.fullName || 'Employee';
-            const userRole = user.designation || user.role || 'Cybersecurity Specialist';
-            const userDept = user.department || user.departmentName || 'Cybersecurity';
+            const userRole = user.designation || user.role || 'Employee';
+            const userDept = user.department || user.departmentName || 'General';
             
             const greetEl = document.getElementById('greeting');
             if (greetEl && !window.commandCenterLoaded) {
@@ -1162,13 +1158,15 @@
 
             // Live Upcoming Holidays — streamed from admin 'holidays' collection
             const holidayList = document.getElementById('holidayList');
-            if (holidayList) {
+            if (holidayList && await tenantReady) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 const todayStr = today.toISOString().split('T')[0];
 
+                await tenantReady;
                 const holidayQuery = query(
                     collection(db, 'holidays'),
+                    whereMyOrg(),
                     where('date', '>=', todayStr),
                     orderBy('date', 'asc'),
                     limit(5)
@@ -1208,8 +1206,8 @@
             }
 
             // Resume Punch State
-            const uid = user.uid || user.id || localStorage.getItem('employee_uid') || 'demo_emp';
-            const punchStatus = await attendanceEngine.getTodayPunchStatus(uid);
+            const uid = user.uid || user.id || '';
+            const punchStatus = uid ? await attendanceEngine.getTodayPunchStatus(uid) : null;
             if (punchStatus && punchStatus.punchIn) {
                 const punchInTime = punchStatus.punchIn.toDate ? punchStatus.punchIn.toDate().getTime() : (punchStatus.punchIn.seconds ? punchStatus.punchIn.seconds * 1000 : punchStatus.punchIn);
                 const punchOutTime = punchStatus.punchOut ? (punchStatus.punchOut.toDate ? punchStatus.punchOut.toDate().getTime() : (punchStatus.punchOut.seconds ? punchStatus.punchOut.seconds * 1000 : punchStatus.punchOut)) : 0;
@@ -1239,7 +1237,8 @@
             const teamListEl = document.getElementById('teamList');
             
             try {
-                const q = query(collection(db, 'users'), where('department', '==', dept));
+                await tenantReady;
+                const q = query(collection(db, 'users'), whereMyOrg(), where('department', '==', dept));
                 const snap = await getDocs(q);
                 
                 if (snap.empty) {
@@ -1374,7 +1373,7 @@
         let breakStartTime;
 
         punchBtn.onclick = async () => {
-            const uid = currentUser ? currentUser.uid : (localStorage.getItem('hr_user_id') || 'demo_user');
+            const uid = currentUser ? currentUser.uid : '';
             
             isPunchedIn = !isPunchedIn;
             if (isPunchedIn) {
@@ -1425,7 +1424,7 @@
         };
         
         breakBtn.onclick = async () => {
-            const uid = currentUser ? currentUser.uid : (localStorage.getItem('hr_user_id') || 'demo_user');
+            const uid = currentUser ? currentUser.uid : '';
             isOnBreak = !isOnBreak;
             
             if (isOnBreak) {
@@ -1650,7 +1649,7 @@
             const msg = input.value.trim();
             if (!msg) return;
 
-            const uid = currentUser ? currentUser.uid : localStorage.getItem('employee_uid') || 'demo_emp';
+            const uid = currentUser ? currentUser.uid : '';
             const senderName = currentUser ? (currentUser.displayName || currentUser.name || currentUser.fullName || 'Employee') : 'Employee';
             const chatId = buildChatId();
             if (!chatId) { input.value = ''; return; }
@@ -1684,7 +1683,7 @@
 
                 // Detect Mentions
                 if (msg.includes('@')) {
-                    const snap = await getDocs(collection(db, 'users'));
+                    const snap = await getDocs(query(collection(db, 'users'), whereMyOrg()));
                     const allUsers = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     const mentionedUsers = allUsers.filter(u => u.name && msg.includes(`@${u.name}`));
                     for (const mu of mentionedUsers) {
@@ -1770,6 +1769,7 @@
 
             const q = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('chatId', '==', chatId),
                 limit(60)
             );
@@ -1790,7 +1790,7 @@
                 }
 
                 msgs.forEach(m => {
-                    const uid = currentUser ? currentUser.uid : 'demo_emp';
+                    const uid = currentUser ? currentUser.uid : '';
                     const isMe = m.senderId === uid;
                     const ts = m.timestamp?.toDate ? m.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                     const div = document.createElement('div');
@@ -1832,6 +1832,7 @@
             if (!badge) return;
             const q = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('receiverId', '==', uid),
                 where('read', '==', false)
             );
@@ -1864,7 +1865,7 @@
 
         window.initApps = async () => {
             if (appsListener) appsListener();
-            const userId = currentUser ? currentUser.uid : 'demo_emp';
+            const userId = currentUser ? currentUser.uid : '';
             const appsRef = doc(db, "employee_apps", userId);
 
             // Listen for real-time updates from Firestore
@@ -1921,7 +1922,7 @@
                 const domain = urlObj.hostname.replace('www.', '');
                 const appName = domain.split('.')[0].toUpperCase();
 
-                const userId = currentUser ? currentUser.uid : 'demo_emp';
+                const userId = currentUser ? currentUser.uid : '';
                 const appsRef = doc(db, "employee_apps", userId);
 
                 await setDoc(appsRef, {
@@ -1935,7 +1936,7 @@
         };
 
         window.removeAppFromServer = async (url, name) => {
-            const userId = currentUser ? currentUser.uid : 'demo_emp';
+            const userId = currentUser ? currentUser.uid : '';
             const appsRef = doc(db, "employee_apps", userId);
             await setDoc(appsRef, {
                 apps: arrayRemove({ name: name, url: url })

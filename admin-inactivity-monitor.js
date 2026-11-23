@@ -1,433 +1,380 @@
-import { db } from "./firebase-config.js";
-import { collection, query, where, getDocs, doc, updateDoc, serverTimestamp, addDoc, orderBy, limit, getDoc, setDoc } from "./firebase-config.js";
+// Sign-in session: adds the login token to this page's /api calls
+import "./firebase-config.js";
 
-// Configuration (will be fetched dynamically from Firestore)
-let THRESHOLD_SUSPEND_HOURS = 3;
-let THRESHOLD_TRASH_DAYS = 3;
-let autoEmailReminders = true;
-let managerEscalations = true;
+/**
+ * Employee Inactivity Radar.
+ *
+ * Everything comes from the backend (/api/inactivity), limited to this organization:
+ * invited people who have not signed in, their status (Pending / Suspended / Trash), the
+ * automation rules and log, and AI risk insights. Changes respond only after Firebase
+ * confirmed them; saves are not sent while Firebase refuses writes.
+ */
+
+const API = '/api/inactivity';
+let overview = null;
+let currentFilter = 'all';
+
+const esc = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const icons = () => { if (window.lucide) lucide.createIcons(); };
+const toast = (msg, isError = false) => (window.showToast ? window.showToast(msg, isError) : console.log(msg));
+
+let writeStatusCache = { at: 0, value: null };
+async function getWriteStatus() {
+    if (writeStatusCache.value && Date.now() - writeStatusCache.at < 60000) return writeStatusCache.value;
+    try {
+        const json = await (await fetch('/api/firestore/write-status')).json();
+        writeStatusCache = { at: Date.now(), value: { accepting: json.accepting !== false, localTestDatabase: json.localTestDatabase === true } };
+    } catch (_) {
+        writeStatusCache = { at: Date.now(), value: { accepting: true, localTestDatabase: false } };
+    }
+    return writeStatusCache.value;
+}
+
+async function api(path, { method = 'GET', body } = {}) {
+    if (method !== 'GET' && !(await getWriteStatus()).accepting) {
+        throw new Error('Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Nothing was changed.');
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 45000);
+    try {
+        const res = await fetch(`${API}${path}`, {
+            method,
+            headers: body ? { 'Content-Type': 'application/json' } : { Accept: 'application/json' },
+            body: body ? JSON.stringify(body) : undefined,
+            signal: controller.signal
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || json.success === false) throw new Error(json.message || json.error || `Request failed (HTTP ${res.status})`);
+        return json.data;
+    } catch (err) {
+        if (err.name === 'AbortError') throw new Error('The server did not respond in time. Please try again.');
+        throw err;
+    } finally {
+        clearTimeout(timer);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.lucide) lucide.createIcons();
-    startMonitor();
-    
+    icons();
+    showSaveNotice();
+    refreshDashboard();
+    setupRulesModal();
+    api('/ai/status').then(d => {
+        const el = document.getElementById('aiModeLabel');
+        if (el) el.textContent = d.aiConfigured ? '· AI model connected' : '· rule-based (no AI key configured)';
+    }).catch(() => {});
+
     document.getElementById('runSimulation')?.addEventListener('click', runManualSync);
-    document.getElementById('filterAll')?.addEventListener('click', () => refreshDashboard('all'));
-    document.getElementById('filterSuspended')?.addEventListener('click', () => refreshDashboard('suspended'));
+    document.getElementById('filterAll')?.addEventListener('click', () => { currentFilter = 'all'; renderAll(); });
+    document.getElementById('filterSuspended')?.addEventListener('click', () => { currentFilter = 'suspended'; renderAll(); });
+    setInterval(() => { if (!document.hidden) refreshDashboard(); }, 60000);
 });
 
-async function startMonitor() {
-    console.log("[INACTIVITY] Monitoring engine active...");
-    await loadAutomationRules();
-    await refreshDashboard();
-    await loadLiveLogs();
-    setupRulesModal();
+async function showSaveNotice() {
+    const status = await getWriteStatus();
+    if (status.accepting && !status.localTestDatabase) return;
+    const header = document.querySelector('.main-content > header');
+    if (!header || document.getElementById('inactivitySaveNotice')) return;
+    const notice = document.createElement('div');
+    notice.id = 'inactivitySaveNotice';
+    notice.style.cssText = 'margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;'
+        + (status.localTestDatabase ? 'background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;' : 'background:#fffbeb;color:#92400e;border:1px solid #fde68a;');
+    notice.textContent = status.localTestDatabase
+        ? 'Local test database: changes on this page go to the local copy of your Firebase data, not the live project.'
+        : 'Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). The radar is read-only until the quota resets.';
+    header.after(notice);
 }
 
-async function refreshDashboard(filter = 'all') {
-    // Fetch stats
-    const usersRef = collection(db, 'users');
-    
-    const pendingSnap = await getDocs(query(usersRef, where('onboardingStatus', 'in', ['Pending', 'Invitation Sent'])));
-    const suspendedSnap = await getDocs(query(usersRef, where('onboardingStatus', '==', 'Suspended')));
-    const trashSnap = await getDocs(query(usersRef, where('onboardingStatus', '==', 'Trash')));
-
-    document.getElementById('countPending').textContent = pendingSnap.size;
-    document.getElementById('countSuspended').textContent = suspendedSnap.size;
-    document.getElementById('countTrash').textContent = trashSnap.size;
-
-    const allActive = [...pendingSnap.docs, ...suspendedSnap.docs];
-    const filtered = filter === 'suspended' ? suspendedSnap.docs : allActive;
-
-    renderInactivityList(filtered);
-    renderTrashTable(trashSnap);
-    renderLogs(`Dashboard refreshed. Filter: ${filter}. Monitoring ${allActive.length} pipelines.`);
+async function refreshDashboard() {
+    try {
+        overview = await api('/overview');
+        renderAll();
+    } catch (err) {
+        const list = document.getElementById('inactivityList');
+        if (list) list.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #b91c1c;">Could not load the inactivity radar: ${esc(err.message)}</div>`;
+    }
 }
 
-function renderInactivityList(docs) {
+function fmtWait(hours) {
+    if (hours >= 48) return `${Math.floor(hours / 24)}d`;
+    if (hours >= 1) return `${Math.floor(hours)}h`;
+    return `${Math.max(1, Math.round(hours * 60))}m`;
+}
+
+function renderAll() {
+    if (!overview) return;
+    const { counts, rules, people, logs } = overview;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('countPending', counts.pending);
+    set('countSuspended', counts.suspended);
+    set('countTrash', counts.trash);
+    set('countUndelivered', counts.undelivered);
+    set('labelTrash', `In Trash (${rules.thresholdTrashDays}-Day Limit)`);
+    set('trashRetentionNote', `Profiles in this bin are purged ${rules.trashRetentionDays} days after they were trashed.`);
+    const danger = document.querySelector('.tvc-card.danger p.tvc-trend');
+    if (danger) danger.innerHTML = `<i data-lucide="clock"></i> ${esc(rules.thresholdSuspendHours)}hr threshold`;
+
+    const open = people.filter(p => p.status !== 'Trash');
+    const high = open.filter(p => p.risk.level === 'high').length;
+    set('aiInsightsSummary', open.length ? `${open.length} waiting · ${high} high risk · ${counts.responded} of ${counts.invited} invited have signed in` : `All ${counts.invited} invited people have signed in.`);
+
+    renderInactivityList(currentFilter === 'suspended' ? open.filter(p => p.status === 'Suspended') : open);
+    renderTrashTable(people.filter(p => p.status === 'Trash'));
+    renderLogs(logs);
+    icons();
+}
+
+function renderInactivityList(list) {
     const container = document.getElementById('inactivityList');
     if (!container) return;
-    container.innerHTML = '';
-
-    if (docs.length === 0) {
-        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">No critical inactivity detected.</div>';
+    if (!list.length) {
+        container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">${currentFilter === 'suspended' ? 'No suspended profiles.' : 'No critical inactivity detected — everyone invited has signed in.'}</div>`;
         return;
     }
-
-    docs.forEach(docSnap => {
-        const data = docSnap.data();
-        const inviteDate = data.invitationSentAt?.toDate() || new Date();
-        const diffHours = (new Date() - inviteDate) / (1000 * 60 * 60);
-        
-        const card = document.createElement('div');
-        card.className = 'profile-card';
-        card.innerHTML = `
+    const riskStyle = { high: 'background:#fef2f2;color:#b91c1c', medium: 'background:#fff7ed;color:#c2410c', low: 'background:#ecfdf5;color:#047857' };
+    container.innerHTML = list.map(p => {
+        const suspended = p.status === 'Suspended';
+        const untilSuspend = Math.max(0, overview.rules.thresholdSuspendHours - p.hoursSinceInvite);
+        return `
+        <div class="profile-card">
             <div class="profile-header">
-                <div class="profile-avatar">${data.name?.charAt(0) || 'U'}</div>
-                <span class="timer-badge" style="${data.onboardingStatus === 'Suspended' ? '' : 'background: #fff7ed; color: #f97316;'}">
-                    <i data-lucide="${data.onboardingStatus === 'Suspended' ? 'clock' : 'alert-triangle'}"></i> 
-                    ${Math.floor(diffHours)}h Overdue
+                <div class="profile-avatar">${esc(String(p.name || 'U').charAt(0).toUpperCase())}</div>
+                <span class="timer-badge" style="${suspended ? '' : 'background: #fff7ed; color: #f97316;'}">
+                    <i data-lucide="${suspended ? 'clock' : 'alert-triangle'}"></i> ${esc(fmtWait(p.hoursSinceInvite))} waiting
                 </span>
             </div>
-            <h4 style="font-weight: 800; margin-bottom: 4px;">${data.name || 'Anonymous'}</h4>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">${data.email || 'No email'} • ${data.department || 'General'}</p>
-            
-            <div style="background: #f8fafc; padding: 10px; border-radius: 12px; font-size: 0.75rem;">
-                <p><strong>Status:</strong> <span style="color: ${data.onboardingStatus === 'Suspended' ? 'var(--danger)' : 'var(--warning)'}; font-weight: 700;">${data.onboardingStatus}</span></p>
-                <p><strong>Last Action:</strong> Invitation Sent (${inviteDate.toLocaleDateString()})</p>
+            <h4 style="font-weight: 800; margin-bottom: 4px;">${esc(p.name)}</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">${esc(p.email || 'No email')} • ${esc(p.department || 'No department')}</p>
+            <div style="background: #f8fafc; padding: 10px; border-radius: 12px; font-size: 0.75rem; line-height: 1.6;">
+                <p><strong>Status:</strong> <span style="color: ${suspended ? 'var(--danger)' : 'var(--warning)'}; font-weight: 700;">${esc(p.status)}</span>${p.inviteDelivered ? '' : ' · <span style="color:#b91c1c;font-weight:700;">invite not delivered</span>'}</p>
+                <p><strong>Invited:</strong> ${esc(new Date(p.invitedAt).toLocaleString())}</p>
+                ${!suspended && p.inviteDelivered ? `<p><strong>Auto-suspend:</strong> ${untilSuspend > 0 ? `in ${esc(fmtWait(untilSuspend))}` : 'at next sync'}</p>` : ''}
+                ${p.joiningDate ? `<p><strong>Joining:</strong> ${esc(p.joiningDate)}</p>` : ''}
             </div>
-
-            <div class="action-btns">
-                <button class="btn btn-outline" style="font-size: 0.75rem;">Contact Dept</button>
-                <button class="btn btn-primary" style="font-size: 0.75rem;">Force Active</button>
+            <div style="margin-top: 10px; border: 1px solid #ddd6fe; background: #faf5ff; border-radius: 12px; padding: 8px 10px; font-size: 0.74rem; color: #4c1d95;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <strong>✨ AI risk</strong>
+                    <span class="timer-badge" style="${riskStyle[p.risk.level]}; font-size: 0.68rem;">${esc(p.risk.score)} · ${esc(p.risk.level)}</span>
+                </div>
+                <div><strong>Next:</strong> ${esc(p.risk.action.label)} — ${esc(p.risk.action.detail)}</div>
+                ${p.risk.reasons.length ? `<div style="color:#6b21a8;margin-top:3px;">${p.risk.reasons.map(esc).join(' ')}</div>` : ''}
             </div>
-        `;
-        container.appendChild(card);
-    });
-    if (window.lucide) lucide.createIcons();
+            <div class="action-btns" style="flex-wrap: wrap;">
+                <button class="btn btn-outline" style="font-size: 0.75rem;" data-act="nudge" data-id="${esc(p.id)}">✨ Nudge</button>
+                <button class="btn btn-outline" style="font-size: 0.75rem;" data-act="${p.inviteDelivered ? 'contact' : 'resend'}" data-id="${esc(p.id)}">${p.inviteDelivered ? 'Contact Dept' : 'Resend Invite'}</button>
+                <button class="btn btn-primary" style="font-size: 0.75rem;" data-act="active" data-id="${esc(p.id)}">Mark Active</button>
+            </div>
+        </div>`;
+    }).join('');
 }
 
-async function restoreUser(uid, name) {
-    console.log(`Restoring user ${name}...`);
-    try {
-        const userRef = doc(db, 'users', uid);
-        await updateDoc(userRef, {
-            onboardingStatus: 'Pending', // Back to active onboarding
-            trashedAt: null,
-            retentionExpiry: null,
-            restoredAt: serverTimestamp()
-        });
+function renderTrashTable(list) {
+    const tbody = document.getElementById('trashTableBody');
+    if (!tbody) return;
+    const head = `<tr style="text-align: left; font-size: 0.75rem; color: var(--text-muted);">
+        <th style="padding: 1rem 0;">NAME</th><th style="padding: 1rem 0;">REASON</th><th style="padding: 1rem 0;">REMAINING</th><th style="padding: 1rem 0; text-align: right;">ACTION</th></tr>`;
+    if (!list.length) {
+        tbody.innerHTML = head + '<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">Trash bin is currently empty.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = head + list.map(p => {
+        const daysLeft = p.retentionExpiry ? Math.max(0, Math.ceil((Date.parse(p.retentionExpiry) - Date.now()) / 86400000)) : '—';
+        return `<tr style="font-size: 0.85rem; border-top: 1px solid var(--border);">
+            <td style="padding: 1rem 0; font-weight: 700;">${esc(p.name)}<div style="font-size:0.72rem;color:var(--text-muted);font-weight:500;">${esc(p.email)}</div></td>
+            <td style="padding: 1rem 0;">No sign-in ${esc(fmtWait(p.hoursSinceInvite))} after invite</td>
+            <td style="padding: 1rem 0; color: var(--danger);">${esc(daysLeft)} day(s)</td>
+            <td style="padding: 1rem 0; text-align: right;"><span class="recover-btn" style="color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline;" data-act="restore" data-id="${esc(p.id)}">Restore</span></td>
+        </tr>`;
+    }).join('');
+}
 
-        await logAutomationEvent('RESTORED', uid, `Admin restored ${name} from Trash.`);
-        renderLogs(`SUCCESS: ${name} has been restored to Pending status.`);
+function renderLogs(logs) {
+    const container = document.getElementById('automationLogs');
+    if (!container) return;
+    container.innerHTML = logs.length
+        ? logs.map(l => `<div class="log-entry"><span class="log-timestamp">[${esc(new Date(l.timestamp).toLocaleString())}]</span> <span class="log-action">${esc(l.action)}</span>: ${esc(l.details)}${l.by ? ` <span style="color:var(--text-muted);">— ${esc(l.by)}</span>` : ''}</div>`).join('')
+        : '<div class="log-entry" style="color: var(--text-muted);">No automation activity yet. Click "Run Sync Now" to apply the rules.</div>';
+}
+
+function personOf(id) {
+    return (overview && overview.people.find(p => p.id === id)) || { name: id };
+}
+
+// Card and trash actions
+document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn) return;
+    const { act, id } = btn.dataset;
+    const person = personOf(id);
+    if (act === 'nudge') return openNudge(id);
+    btn.disabled = true;
+    try {
+        if (act === 'active') {
+            const reason = prompt(`Mark ${person.name} as active (removes them from the radar)?\nReason (e.g. "reached by phone, will sign in today"):`, 'Confirmed by administrator');
+            if (reason === null) return;
+            await api(`/people/${encodeURIComponent(id)}/mark-active`, { method: 'POST', body: { reason } });
+            toast(`${person.name} marked active and saved.`);
+        } else if (act === 'contact') {
+            const d = await api(`/people/${encodeURIComponent(id)}/contact-dept`, { method: 'POST', body: {} });
+            toast(`Notified ${d.notified.join(', ')} about ${person.name}.`);
+        } else if (act === 'resend') {
+            await api(`/people/${encodeURIComponent(id)}/resend`, { method: 'POST', body: {} });
+            toast(`Invitation resent to ${person.name}.`);
+        } else if (act === 'restore') {
+            await api(`/people/${encodeURIComponent(id)}/restore`, { method: 'POST', body: {} });
+            toast(`${person.name} restored; their response window restarts now.`);
+        }
         await refreshDashboard();
     } catch (err) {
-        console.error("Restore failed:", err);
+        toast(err.message, true);
+    } finally {
+        btn.disabled = false;
     }
-}
+});
 
-async function renderTrashTable(snap) {
-    const container = document.querySelector('.trash-section tbody') || document.querySelector('.trash-section table');
-    if (!container) return;
-
-    // Reset table
-    container.innerHTML = `
-        <tr style="text-align: left; font-size: 0.75rem; color: var(--text-muted);">
-            <th style="padding: 1rem 0;">NAME</th>
-            <th style="padding: 1rem 0;">REASON</th>
-            <th style="padding: 1rem 0;">REMAINING</th>
-            <th style="padding: 1rem 0; text-align: right;">ACTION</th>
-        </tr>
-    `;
-
-    snap.forEach(docSnap => {
-        const data = docSnap.data();
-        const expiry = data.retentionExpiry?.toDate() || new Date();
-        const daysLeft = Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24));
-
-        const tr = document.createElement('tr');
-        tr.style.fontSize = '0.85rem';
-        tr.style.borderTop = '1px solid var(--border)';
-        tr.innerHTML = `
-            <td style="padding: 1rem 0; font-weight: 700;">${data.name || 'Unknown'}</td>
-            <td style="padding: 1rem 0;">3-Day Inactivity</td>
-            <td style="padding: 1rem 0; color: var(--danger);">${daysLeft} Days</td>
-            <td style="padding: 1rem 0; text-align: right;">
-                <span class="recover-btn" style="color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline;" 
-                      onclick="window.restoreUserHandler('${docSnap.id}', '${data.name}')">Restore</span>
-            </td>
-        `;
-        container.appendChild(tr);
-    });
-
-    if (snap.empty) {
-        container.innerHTML += `<tr><td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-muted);">Trash bin is currently empty.</td></tr>`;
-    }
-}
-
-async function emptyTrash() {
-    const modalId = 'customEmptyTrashModal';
-    let modal = document.getElementById(modalId);
-    
-    if (!modal) {
-        const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
-        const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
-        const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
-        
-        modal = document.createElement('div');
-        modal.id = modalId;
-        modal.style.cssText = modalStyle;
-        modal.innerHTML = `
-            <div style="${contentStyle}">
-                <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Empty Trash</h3>
-                <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently delete all candidates in the trash? This action cannot be undone.</p>
-                <div style="display:flex; justify-content:flex-end; gap:12px;">
-                    <button id="customEmptyTrashCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
-                    <button id="customEmptyTrashConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Delete All</button>
-                </div>
+// AI Nudge window
+async function openNudge(id) {
+    document.getElementById('aiNudgeModal')?.remove();
+    const p = personOf(id);
+    const modal = document.createElement('div');
+    modal.id = 'aiNudgeModal';
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.45); backdrop-filter:blur(4px); z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px;';
+    modal.innerHTML = `
+        <div style="background:#fff; border-radius:20px; width:560px; max-width:100%; padding:22px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0; font-size:1.05rem; font-weight:800; color:#0f172a;">✨ AI reminder for ${esc(p.name)}</h3>
+                <button id="nudgeClose" style="background:#f1f5f9; border:none; border-radius:8px; width:30px; height:30px; cursor:pointer;">✕</button>
             </div>
-        `;
-        document.body.appendChild(modal);
-    }
-    
-    modal.style.display = 'flex';
-    
-    document.getElementById('customEmptyTrashCancel').onclick = () => {
-        modal.style.display = 'none';
-    };
-    
-    document.getElementById('customEmptyTrashConfirm').onclick = async () => {
-        modal.style.display = 'none';
-        showToast("Purging trash bin...");
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px; font-size:0.8rem;">
+                Tone <select id="nudgeTone" style="padding:6px 8px; border-radius:8px; border:1px solid var(--border);"><option value="friendly">Friendly</option><option value="formal">Formal</option></select>
+                <button id="nudgeRegenerate" class="btn btn-outline" style="font-size:0.75rem; padding:6px 10px;">Write again</button>
+            </div>
+            <input id="nudgeSubject" style="width:100%; padding:9px 11px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; margin-bottom:8px; box-sizing:border-box;" />
+            <textarea id="nudgeBody" rows="8" style="width:100%; padding:10px 11px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family:inherit; box-sizing:border-box;">Writing…</textarea>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin:8px 0;">Send it by WhatsApp, SMS or email${p.phone ? ` (${esc(p.phone)})` : ''}${p.email ? ` · ${esc(p.email)}` : ''}. Nothing is sent automatically.</div>
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <button id="nudgeCopy" class="btn btn-primary" style="font-size:0.8rem;">Copy message</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    const close = () => modal.remove();
+    modal.addEventListener('click', ev => { if (ev.target === modal) close(); });
+    modal.querySelector('#nudgeClose').onclick = close;
+    const write = async () => {
+        modal.querySelector('#nudgeBody').value = 'Writing…';
         try {
-            const q = query(collection(db, 'users'), where('onboardingStatus', '==', 'Trash'));
-            const snap = await getDocs(q);
-            
-            const deletePromises = snap.docs.map(userDoc => updateDoc(doc(db, 'users', userDoc.id), {
-                onboardingStatus: 'Deleted',
-                deletedAt: serverTimestamp()
-            }));
-            
-            await Promise.all(deletePromises);
-            showToast(`Successfully purged ${snap.size} profiles.`);
-            await refreshDashboard();
+            const d = await api(`/ai/nudge/${encodeURIComponent(id)}`, { method: 'POST', body: { tone: modal.querySelector('#nudgeTone').value } });
+            modal.querySelector('#nudgeSubject').value = d.subject;
+            modal.querySelector('#nudgeBody').value = d.body;
         } catch (err) {
-            console.error("Empty trash failed:", err);
-            showToast("Purge failed: " + err.message, true);
+            modal.querySelector('#nudgeBody').value = 'Could not write the reminder: ' + err.message;
         }
     };
+    modal.querySelector('#nudgeRegenerate').onclick = write;
+    modal.querySelector('#nudgeTone').onchange = write;
+    modal.querySelector('#nudgeCopy').onclick = async () => {
+        const text = `${modal.querySelector('#nudgeSubject').value}\n\n${modal.querySelector('#nudgeBody').value}`;
+        try { await navigator.clipboard.writeText(text); toast('Reminder copied — paste it into WhatsApp, SMS or email.'); } catch (_) { toast('Select the text and copy it manually.', true); }
+    };
+    write();
 }
 
-// Global handlers for HTML integration
-window.restoreUserHandler = restoreUser;
-window.emptyTrashHandler = emptyTrash;
+window.emptyTrashHandler = async function () {
+    const inTrash = overview ? overview.people.filter(p => p.status === 'Trash') : [];
+    if (!inTrash.length) return toast('Trash bin is already empty.');
+    if (!confirm(`Permanently purge ${inTrash.length} profile(s) from the trash? They will no longer appear on this radar.`)) return;
+    try {
+        const d = await api('/trash/empty', { method: 'POST', body: {} });
+        toast(`Purged ${d.purged} profile(s).`);
+        await refreshDashboard();
+    } catch (err) {
+        toast('Purge failed: ' + err.message, true);
+    }
+};
 
 async function runManualSync() {
     const btn = document.getElementById('runSimulation');
     btn.disabled = true;
     btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Syncing...';
-    if (window.lucide) lucide.createIcons();
-
-    renderLogs("MANUAL_SYNC: Triggering threshold analysis...");
-
+    icons();
     try {
-        const usersRef = collection(db, 'users');
-        const snap = await getDocs(query(usersRef, where('onboardingStatus', 'in', ['Pending', 'Invitation Sent'])));
-        
-        const now = new Date();
-        let suspendedCount = 0;
-        let trashedCount = 0;
-
-        for (const userDoc of snap.docs) {
-            const userData = userDoc.data();
-            const inviteDate = userData.invitationSentAt?.toDate() || new Date();
-            const diffHours = (now - inviteDate) / (1000 * 60 * 60);
-            const diffDays = diffHours / 24;
-
-            if (diffDays >= THRESHOLD_TRASH_DAYS) {
-                await moveUserToTrash(userDoc.id, userData.name);
-                trashedCount++;
-            } else if (diffHours >= THRESHOLD_SUSPEND_HOURS && userData.onboardingStatus !== 'Suspended') {
-                await suspendUser(userDoc.id, userData.name);
-                suspendedCount++;
-            }
-        }
-
-        renderLogs(`SYNC_COMPLETE: ${suspendedCount} Suspended, ${trashedCount} Trashed.`);
+        const d = await api('/sync', { method: 'POST', body: {} });
+        const parts = [`${d.suspended.length} suspended`, `${d.trashed.length} moved to trash`, `${d.purged.length} purged`];
+        toast(`Sync complete: ${parts.join(', ')}${d.skippedUndelivered.length ? `; ${d.skippedUndelivered.length} with undelivered invites left for resend` : ''}.`);
         await refreshDashboard();
     } catch (err) {
-        console.error("Sync failed:", err);
-        renderLogs("ERROR: Automation engine encountered a fault.");
+        toast('Sync failed: ' + err.message, true);
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="play"></i> Run Sync Now';
-        if (window.lucide) lucide.createIcons();
-    }
-}
-
-async function suspendUser(uid, name) {
-    const userRef = doc(db, 'users', uid);
-    await updateDoc(userRef, {
-        onboardingStatus: 'Suspended',
-        invitationToken: null, // Expire link
-        suspendedAt: serverTimestamp(),
-        inactivityAlert: true
-    });
-
-    await logAutomationEvent('SUSPENDED', uid, `3-hour inactivity limit hit for ${name}`);
-    renderLogs(`AUTOMATION: ${name} (ID: ${uid.substring(0,6)}) has been suspended.`);
-}
-
-async function moveUserToTrash(uid, name) {
-    const userRef = doc(db, 'users', uid);
-    await updateDoc(userRef, {
-        onboardingStatus: 'Trash',
-        trashedAt: serverTimestamp(),
-        retentionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 Days
-    });
-
-    await logAutomationEvent('TRASHED', uid, `3-day non-responsive threshold for ${name}`);
-    renderLogs(`AUTOMATION: ${name} (ID: ${uid.substring(0,6)}) moved to Candidate Trash.`);
-}
-
-async function logAutomationEvent(action, uid, details) {
-    await addDoc(collection(db, 'automation_logs'), {
-        action,
-        targetId: uid,
-        details,
-        timestamp: serverTimestamp()
-    });
-}
-
-async function loadLiveLogs() {
-    const container = document.getElementById('automationLogs');
-    if (!container) return;
-    
-    try {
-        const q = query(collection(db, 'automation_logs'), orderBy('timestamp', 'desc'), limit(10));
-        const snap = await getDocs(q);
-        
-        if (!snap.empty) {
-            container.innerHTML = '';
-            snap.forEach(doc => {
-                const data = doc.data();
-                const time = data.timestamp?.toDate().toLocaleTimeString() || '--:--';
-                const entry = document.createElement('div');
-                entry.className = 'log-entry';
-                entry.innerHTML = `<span class="log-timestamp">[${time}]</span> <span class="log-action">${data.action}</span>: ${data.details}`;
-                container.appendChild(entry);
-            });
-        }
-    } catch (err) {
-        console.error("Failed to load logs:", err);
-    }
-}
-
-function renderLogs(msg) {
-    const container = document.getElementById('automationLogs');
-    if (!container) return;
-    const time = new Date().toLocaleTimeString();
-    const entry = document.createElement('div');
-    entry.className = 'log-entry';
-    entry.style.borderLeft = '2px solid var(--primary)';
-    entry.innerHTML = `<span class="log-timestamp">[${time}]</span> ${msg}`;
-    container.prepend(entry);
-}
-
-async function loadAutomationRules() {
-    try {
-        const docRef = doc(db, 'system_configs', 'inactivity_rules');
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-            const data = snap.data();
-            THRESHOLD_SUSPEND_HOURS = Number(data.thresholdSuspendHours) || 3;
-            THRESHOLD_TRASH_DAYS = Number(data.thresholdTrashDays) || 3;
-            autoEmailReminders = data.emailReminders !== false;
-            managerEscalations = data.escalations !== false;
-            console.log(`[INACTIVITY] Rules loaded: Suspend = ${THRESHOLD_SUSPEND_HOURS}h, Trash = ${THRESHOLD_TRASH_DAYS}d`);
-        } else {
-            await setDoc(docRef, {
-                thresholdSuspendHours: 3,
-                thresholdTrashDays: 3,
-                emailReminders: true,
-                escalations: true,
-                updatedAt: serverTimestamp()
-            });
-            console.log("[INACTIVITY] Default rules seeded in Firestore system_configs.");
-        }
-        
-        const hoursInput = document.getElementById('ruleSuspendHours');
-        const daysInput = document.getElementById('ruleTrashDays');
-        const emailCheck = document.getElementById('ruleEmailReminders');
-        const escCheck = document.getElementById('ruleEscalations');
-        
-        if (hoursInput) hoursInput.value = THRESHOLD_SUSPEND_HOURS;
-        if (daysInput) daysInput.value = THRESHOLD_TRASH_DAYS;
-        if (emailCheck) emailCheck.checked = autoEmailReminders;
-        if (escCheck) escCheck.checked = managerEscalations;
-
-        const cardWarning = document.querySelector('.tvc-card.danger p.tvc-trend');
-        const cardTrash = document.querySelector('.tvc-card:nth-child(3) p.tvc-label');
-        if (cardWarning) cardWarning.innerHTML = `<i data-lucide="clock"></i> ${THRESHOLD_SUSPEND_HOURS}hr Threshold Hit`;
-        if (cardTrash) cardTrash.textContent = `In Trash (${THRESHOLD_TRASH_DAYS}-Day Limit)`;
-        if (window.lucide) lucide.createIcons();
-    } catch (err) {
-        console.error("Failed to load automation rules:", err);
+        icons();
     }
 }
 
 function setupRulesModal() {
     const modal = document.getElementById('automationRulesModal');
-    const btnOpen = document.getElementById('btnOpenRules');
-    const btnClose = document.getElementById('btnCloseRulesModal');
-    const btnCancel = document.getElementById('btnCancelRules');
-    const btnSave = document.getElementById('btnSaveRules');
-
     if (!modal) return;
+    const field = (id) => document.getElementById(id);
+    const closeModal = () => { modal.style.opacity = '0'; setTimeout(() => { modal.style.display = 'none'; }, 300); };
 
-    btnOpen?.addEventListener('click', () => {
-        document.getElementById('ruleSuspendHours').value = THRESHOLD_SUSPEND_HOURS;
-        document.getElementById('ruleTrashDays').value = THRESHOLD_TRASH_DAYS;
-        document.getElementById('ruleEmailReminders').checked = autoEmailReminders;
-        document.getElementById('ruleEscalations').checked = managerEscalations;
-
+    field('btnOpenRules')?.addEventListener('click', () => {
+        const r = overview ? overview.rules : { thresholdSuspendHours: 3, thresholdTrashDays: 2, trashRetentionDays: 30, emailReminders: true, escalations: true };
+        field('ruleSuspendHours').value = r.thresholdSuspendHours;
+        field('ruleTrashDays').value = r.thresholdTrashDays;
+        field('ruleRetentionDays').value = r.trashRetentionDays;
+        field('ruleEmailReminders').checked = r.emailReminders;
+        field('ruleEscalations').checked = r.escalations;
+        field('aiRulesAdviceResult').innerHTML = '';
         modal.style.display = 'flex';
-        setTimeout(() => modal.style.opacity = '1', 10);
+        setTimeout(() => { modal.style.opacity = '1'; }, 10);
+    });
+    field('btnCloseRulesModal')?.addEventListener('click', closeModal);
+    field('btnCancelRules')?.addEventListener('click', closeModal);
+
+    field('btnAiRulesAdvice')?.addEventListener('click', async () => {
+        const out = field('aiRulesAdviceResult');
+        out.textContent = 'Analysing response history…';
+        try {
+            const d = await api('/ai/rules-advice');
+            out.innerHTML = esc(d.message) + (d.suggestion
+                ? ` <button type="button" id="btnApplyAdvice" class="btn btn-outline" style="font-size:0.72rem; padding:4px 8px; margin-top:6px;">Use ${d.suggestion.thresholdSuspendHours}h / ${d.suggestion.thresholdTrashDays}d</button>`
+                : '');
+            field('btnApplyAdvice')?.addEventListener('click', () => {
+                field('ruleSuspendHours').value = d.suggestion.thresholdSuspendHours;
+                field('ruleTrashDays').value = d.suggestion.thresholdTrashDays;
+                toast('Suggested thresholds filled in — press Save Rules to apply.');
+            });
+        } catch (err) {
+            out.textContent = 'AI advice failed: ' + err.message;
+        }
     });
 
-    const closeModal = () => {
-        modal.style.opacity = '0';
-        setTimeout(() => modal.style.display = 'none', 300);
-    };
-
-    btnClose?.addEventListener('click', closeModal);
-    btnCancel?.addEventListener('click', closeModal);
-
-    btnSave?.addEventListener('click', async () => {
+    field('btnSaveRules')?.addEventListener('click', async () => {
+        const btnSave = field('btnSaveRules');
         btnSave.disabled = true;
         const oldLabel = btnSave.innerHTML;
         btnSave.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> Saving...';
-        if (window.lucide) lucide.createIcons();
-
-        const newHours = Number(document.getElementById('ruleSuspendHours').value) || 3;
-        const newDays = Number(document.getElementById('ruleTrashDays').value) || 3;
-        const newEmail = document.getElementById('ruleEmailReminders').checked;
-        const newEsc = document.getElementById('ruleEscalations').checked;
-
+        icons();
         try {
-            const docRef = doc(db, 'system_configs', 'inactivity_rules');
-            await setDoc(docRef, {
-                thresholdSuspendHours: newHours,
-                thresholdTrashDays: newDays,
-                emailReminders: newEmail,
-                escalations: newEsc,
-                updatedAt: serverTimestamp()
-            }, { merge: true });
-
-            THRESHOLD_SUSPEND_HOURS = newHours;
-            THRESHOLD_TRASH_DAYS = newDays;
-            autoEmailReminders = newEmail;
-            managerEscalations = newEsc;
-
-            await logAutomationEvent('RULE_UPDATE', 'system', `Updated rules: Suspend = ${newHours}h, Trash = ${newDays}d`);
-            showToast("Automation rules updated successfully.");
+            await api('/rules', {
+                method: 'PUT',
+                body: {
+                    thresholdSuspendHours: Number(field('ruleSuspendHours').value),
+                    thresholdTrashDays: Number(field('ruleTrashDays').value),
+                    trashRetentionDays: Number(field('ruleRetentionDays').value),
+                    emailReminders: field('ruleEmailReminders').checked,
+                    escalations: field('ruleEscalations').checked
+                }
+            });
+            toast('Automation rules saved to Firebase.');
             closeModal();
             await refreshDashboard();
-            await loadLiveLogs();
-            
-            // Re-render UI indicators to reflect updated values
-            const cardWarning = document.querySelector('.tvc-card.danger p.tvc-trend');
-            const cardTrash = document.querySelector('.tvc-card:nth-child(3) p.tvc-label');
-            if (cardWarning) cardWarning.innerHTML = `<i data-lucide="clock"></i> ${THRESHOLD_SUSPEND_HOURS}hr Threshold Hit`;
-            if (cardTrash) cardTrash.textContent = `In Trash (${THRESHOLD_TRASH_DAYS}-Day Limit)`;
-            if (window.lucide) lucide.createIcons();
         } catch (err) {
-            console.error("Save rules failed:", err);
-            showToast("Failed to save rules: " + err.message, true);
+            toast('Failed to save rules: ' + err.message, true);
         } finally {
             btnSave.disabled = false;
             btnSave.innerHTML = oldLabel;
-            if (window.lucide) lucide.createIcons();
+            icons();
         }
     });
 }

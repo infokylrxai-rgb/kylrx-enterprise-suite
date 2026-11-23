@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous">
+    <script src="lucide.min.js" crossorigin="anonymous">
         window.toggleAppsMenu = () => {
             const dropdown = document.getElementById('appsDropdown');
             const chevron = document.getElementById('appsChevron');
@@ -335,7 +335,7 @@
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
                 <div class="nav-item"><a href="employee-appraisal.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-appraisal.html');"><i data-lucide="target"></i><span>Performance (PMS)</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
@@ -357,7 +357,7 @@
                 
                 <div class="nav-label">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
                 
             </nav>
 
@@ -367,7 +367,7 @@
                     <div class="profile-name" id="userNameDisplay">--</div>
                     <div class="profile-role" id="userRoleDisplay">--</div>
                 </div>
-                <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                <button id="logoutBtn" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
                     <i data-lucide="log-out" size="18"></i>
                 </button>
             </div>
@@ -463,11 +463,11 @@
 
         // User Hydration
         onAuthStateChanged(auth, (user) => {
-            const activeUid = user ? user.uid : localStorage.getItem('employee_uid') || 'demo_emp';
-            if (activeUid === 'demo_emp') {
-                document.getElementById('userInitial').textContent = 'JD';
-                document.getElementById('userNameDisplay').textContent = 'John Doe';
-                document.getElementById('userRoleDisplay').textContent = 'Cybersecurity Specialist';
+            const activeUid = user ? user.uid : '';
+            if (!activeUid) {
+                document.getElementById('userInitial').textContent = 'EE';
+                document.getElementById('userNameDisplay').textContent = 'Employee';
+                document.getElementById('userRoleDisplay').textContent = 'Employee';
             } else {
                 import("./firebase-config.js").then(mod => {
                     const { doc, getDoc } = mod;

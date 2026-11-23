@@ -357,7 +357,7 @@ describe('🚀 Kylrx.ai Enterprise HRMS - Unified Bulk Ingestion Architecture Te
                 }
             ];
 
-            const result = await unifiedIngestionService.ingestJobRosterBatch(records, { dryRun: true });
+            const result = await unifiedIngestionService.ingestJobRosterBatch(records, { orgId: 'ORG_KYLRX_CORP', dryRun: true });
             assert.strictEqual(result.success, true);
             assert.strictEqual(result.successCount, 1);
 
@@ -396,7 +396,7 @@ describe('🚀 Kylrx.ai Enterprise HRMS - Unified Bulk Ingestion Architecture Te
                 }
             ];
 
-            const result = await unifiedIngestionService.ingestEmployeeFinanceBatch(finRecords, { dryRun: true });
+            const result = await unifiedIngestionService.ingestEmployeeFinanceBatch(finRecords, { orgId: 'ORG_KYLRX_CORP', dryRun: true });
             assert.strictEqual(result.success, true);
             assert.strictEqual(result.successCount, 1);
             assert.strictEqual(result.pennyDropTriggerCount, 1);

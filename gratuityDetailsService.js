@@ -154,6 +154,11 @@
     /**
      * Seeds in-memory ledger with default records.
      */
+    // No org for the caller: fail instead of reading another org's data
+    function missingOrg() {
+        throw new Error("No organization found for the signed-in user. Sign in again.");
+    }
+
     function seedDefaultRecords(orgId = 'ORG_KYLRX_01') {
         DEFAULT_GRATUITY_PROFILES.forEach(profile => {
             const key = `${orgId}_${profile.employeeId}`;
@@ -475,7 +480,7 @@
      */
     async function initiateDecentroGratuitySettlement(orgId, employeeId, settlementDetails = {}, bankingInfo = {}) {
         if (!employeeId) throw new Error("Missing mandatory 'employeeId'");
-        const finalOrgId = orgId || "ORG_KYLRX_01";
+        const finalOrgId = orgId || missingOrg();
 
         // Beneficiary Account Validation
         const accNumber = bankingInfo.accountNumber || bankingInfo.account_number || "987654321012";
@@ -539,6 +544,7 @@
                 }, { merge: true });
             } catch (err) {
                 console.warn("Firestore update skipped or failed, using local ledger:", err);
+                throw err;
             }
         }
 
@@ -559,7 +565,7 @@
      */
     async function saveGratuityDetails(orgId, employeeId, details) {
         if (!employeeId) throw new Error("Employee ID is required");
-        const finalOrgId = orgId || "ORG_KYLRX_01";
+        const finalOrgId = orgId || missingOrg();
         const key = `${finalOrgId}_${employeeId}`;
 
         const docData = {
@@ -581,6 +587,7 @@
                 }, { merge: true });
             } catch (err) {
                 console.warn("Firestore setDoc failed, retained in local cache:", err);
+                throw err;
             }
         }
 
@@ -592,7 +599,7 @@
      */
     async function getGratuityDetails(orgId, employeeId) {
         if (!employeeId) return null;
-        const finalOrgId = orgId || "ORG_KYLRX_01";
+        const finalOrgId = orgId || missingOrg();
         const key = `${finalOrgId}_${employeeId}`;
 
         // Check local cache first
@@ -622,7 +629,7 @@
      * Lists all Gratuity details documents for an organization.
      */
     async function listAllGratuityDetails(orgId) {
-        const finalOrgId = orgId || "ORG_KYLRX_01";
+        const finalOrgId = orgId || missingOrg();
         const results = [];
 
         if (typeof window !== 'undefined' && window.db) {
@@ -656,7 +663,7 @@
      */
     async function deleteGratuityDetails(orgId, employeeId) {
         if (!employeeId) return false;
-        const finalOrgId = orgId || "ORG_KYLRX_01";
+        const finalOrgId = orgId || missingOrg();
         const key = `${finalOrgId}_${employeeId}`;
 
         _localLedger.delete(key);
@@ -668,6 +675,7 @@
                 await deleteDoc(docRef);
             } catch (err) {
                 console.warn("Firestore deleteDoc failed:", err);
+                throw err;
             }
         }
 
@@ -678,7 +686,7 @@
      * Exports Gratuity statutory ledger string in standard hash-delimited format
      * for statutory audits & finance journals.
      */
-    function generateGratuityLedgerExport(profiles = [], orgId = 'ORG_KYLRX_01') {
+    function generateGratuityLedgerExport(profiles = [], orgId = missingOrg()) {
         const header = "Employee_ID#Date_Of_Joining#Date_Of_Exit#Continuous_Years#Completed_Years#Wages_Basis#Accrued_Gratuity#Eligibility_Status#Payment_Status#Payment_Date#Payment_Reference";
         const rows = profiles.map(p => {
             const wages = p.wages?.eligibleSalary || p.lastDrawnEligibleSalary || p.eligibleSalary || 0;

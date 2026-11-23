@@ -6,11 +6,13 @@ const automationEngine = require('../services/automation-engine');
 const eventBus = require('../services/event-bus');
 const logger = require('../utils/logger');
 const { db, rawCollection } = require('../config/firebase');
+const { firebaseProjectInfo } = require('../config/firebase');
 const { orgDocs, LEGACY_ORG_ID } = require('../config/tenant');
 const triggerRegistryService = require('../services/alert-trigger-registry-service');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 
 /**
  * Enterprise Alert Builder Route Handler
@@ -271,7 +273,7 @@ syncAlertRulesWithFirestore().catch(() => {});
  */
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 function ruleDocId(orgId, ruleId) {
@@ -357,7 +359,7 @@ async function syncAlertRulesWithFirestore() {
  * GET /api/alerts/firebase-status
  * Live Firebase backend connectivity & stats
  */
-router.get('/firebase-status', async (req, res) => {
+router.get('/firebase-status', authorize('Super Admin'), async (req, res) => {
     try {
         let rulesCount = 0;
         let breachesCount = 0;
@@ -379,9 +381,9 @@ router.get('/firebase-status', async (req, res) => {
             success: true,
             firebase: {
                 connected: isConnected,
-                projectId: 'kylrxai',
-                storageBucket: 'kylrxai.firebasestorage.app',
-                clientEmail: 'firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com',
+                projectId: firebaseProjectInfo().projectId,
+                storageBucket: firebaseProjectInfo().storageBucket,
+                clientEmail: firebaseProjectInfo().clientEmail,
                 collections: {
                     alert_rules: rulesCount,
                     alert_breaches: breachesCount,
@@ -400,7 +402,7 @@ router.get('/firebase-status', async (req, res) => {
  * POST /api/alerts/sync-firebase
  * Force synchronization of current alert rules and ping cloud Firestore
  */
-router.post('/sync-firebase', async (req, res) => {
+router.post('/sync-firebase', authorize('Super Admin'), async (req, res) => {
     try {
         if (!db || typeof db.collection !== 'function') {
             return res.status(503).json({ success: false, message: 'Firebase Admin SDK not initialized' });
@@ -449,7 +451,7 @@ router.post('/sync-firebase', async (req, res) => {
  * GET /api/alerts/rules
  * Fetch all configured alert monitoring rules
  */
-router.get('/rules', async (req, res) => {
+router.get('/rules', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const rules = await orgRules(orgOf(req));
         res.status(200).json({
@@ -467,7 +469,7 @@ router.get('/rules', async (req, res) => {
  * POST /api/alerts/rules
  * Create or update an alert monitoring rule (registers dynamically with AutomationEngine)
  */
-router.post('/rules', async (req, res) => {
+router.post('/rules', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const {
             name,
@@ -560,7 +562,7 @@ router.post('/rules', async (req, res) => {
  * PATCH /api/alerts/rules/:id/toggle
  * Toggle active/inactive state of an alert rule
  */
-router.patch('/rules/:id/toggle', async (req, res) => {
+router.patch('/rules/:id/toggle', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { id } = req.params;
         const orgId = orgOf(req);
@@ -590,7 +592,7 @@ router.patch('/rules/:id/toggle', async (req, res) => {
  * POST /api/alerts/test-fire
  * Simulate/Test-fire an alert through the underlying Common Automation Engine
  */
-router.post('/test-fire', async (req, res) => {
+router.post('/test-fire', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { ruleId, customPayload } = req.body;
         const orgId = orgOf(req);
@@ -731,7 +733,7 @@ router.post('/test-fire', async (req, res) => {
  * GET /api/alerts/stats
  * Overview dashboard metrics for Alert Builder
  */
-router.get('/stats', async (req, res) => {
+router.get('/stats', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const rules = await orgRules(orgOf(req));
         const activeCount = rules.filter(r => r.status === 'active').length;
@@ -766,7 +768,7 @@ router.get('/stats', async (req, res) => {
  * GET /api/alerts/triggers
  * Returns all technical triggers with human-readable descriptions and sample payloads
  */
-router.get('/triggers', (req, res) => {
+router.get('/triggers', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const triggers = triggerRegistryService.getAllTriggers();
         res.status(200).json({
@@ -785,7 +787,7 @@ router.get('/triggers', (req, res) => {
  * Sandboxed Dry-Run Guarantee: Executes evaluation rules without writing changes to Firestore,
  * mutating employee records, dispatching emails/SMS, or executing external webhooks.
  */
-router.post('/simulate', (req, res) => {
+router.post('/simulate', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const { eventKey, payload, options } = req.body;
         if (!eventKey) {

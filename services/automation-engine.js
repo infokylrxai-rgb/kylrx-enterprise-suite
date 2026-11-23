@@ -546,6 +546,8 @@ class AutomationEngine {
                     recipient_role: notificationData.recipientRole || null,
                     entity_id: eventData.entityId || null,
                     created_at: new Date().toISOString(),
+                    // the event's organization, so the notification is not left without an owner when no request context stamps it
+                    ...(eventData.orgId ? { orgId: eventData.orgId } : {}),
                     read: false
                 }).catch(() => {});
             } catch (e) {

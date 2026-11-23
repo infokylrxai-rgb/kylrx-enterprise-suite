@@ -1,6 +1,6 @@
 /**
  * Custom Analytics Builder Controller
- * Connects to /api/analytics & Google Cloud Firestore (kylrxai)
+ * Connects to /api/analytics & Google Cloud Firestore
  */
 import { db, auth, onSnapshot, collection, doc, setDoc, addDoc, deleteDoc, getDocs, serverTimestamp, registerListener } from "./firebase-config.js";
 
@@ -134,7 +134,7 @@ async function initFirebaseAnalyticsSync() {
         if (res.ok) {
             const data = await res.json();
             if (data.success && data.firebase) {
-                updateFirebaseBadge(true, data.firebase.projectId || 'kylrxai', 'Connected');
+                updateFirebaseBadge(true, data.firebase.projectId || window.FIREBASE_PROJECT_ID || '', 'Connected');
                 const colSpan = document.getElementById('fbModalCollections');
                 if (colSpan && data.firebase.collections) {
                     const c = data.firebase.collections;
@@ -143,7 +143,7 @@ async function initFirebaseAnalyticsSync() {
             }
         }
     } catch (e) {
-        updateFirebaseBadge(true, 'kylrxai', 'Connected (Client SDK)');
+        updateFirebaseBadge(true, window.FIREBASE_PROJECT_ID || '', 'Connected (Client SDK)');
     }
 
     // Real-time listeners on Firestore collections (employees, users, policies)
@@ -195,7 +195,7 @@ async function testFirebaseSync() {
         const res = await fetch(`${API_BASE}/sync-firebase`, { method: 'POST' });
         if (res.ok) {
             const data = await res.json();
-            alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities & employees\n• Project: kylrxai (Live)`);
+            alert(`🔥 Firebase Cloud Sync Ping Successful!\n\n${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities & employees\n• Project: ${window.FIREBASE_PROJECT_ID || 'not configured'} (Live)`);
         } else {
             alert('🔥 Firebase Client Sync Ping Successful! Active connection verified.');
         }
@@ -375,7 +375,7 @@ function renderPreviewResults(data) {
         : 'All Units';
 
     const sourceLabel = data.source === 'firebase_live' 
-        ? `🔥 Live Firestore (${data.cloudProject || 'kylrxai'}:${data.collection || query.dataSource})`
+        ? `🔥 Live Firestore (${data.cloudProject || window.FIREBASE_PROJECT_ID || ''}:${data.collection || query.dataSource})`
         : `⚡ Enterprise Baseline Model`;
 
     document.getElementById('chartPreviewSubtitle').textContent = 
@@ -387,7 +387,7 @@ function renderPreviewResults(data) {
             liveBadge.style.background = '#ecfdf5';
             liveBadge.style.color = '#047857';
             liveBadge.style.borderColor = '#a7f3d0';
-            liveBadge.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Firebase Cloud Live (${data.collection || 'kylrxai'})`;
+            liveBadge.innerHTML = `<span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Firebase Cloud Live (${data.collection || window.FIREBASE_PROJECT_ID || ''})`;
         } else {
             liveBadge.style.background = '#f8fafc';
             liveBadge.style.color = '#64748b';

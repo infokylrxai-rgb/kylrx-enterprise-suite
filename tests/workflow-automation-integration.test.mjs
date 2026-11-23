@@ -5,12 +5,15 @@ import path from 'node:path';
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
+// verifyToken needs a real identity: every request carries a signed Super Admin token for the original org
+const fetch = (url, opts = {}) => globalThis.fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_admin', role: 'Super Admin', orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai' }, process.env.JWT_SECRET)}`, ...opts.headers } });
 
 const workflowService = require(path.join(rootDir, 'services', 'workflow-builder-service.js'));
 const workflowRoutes = require(path.join(rootDir, 'routes', 'workflow-builder.js'));

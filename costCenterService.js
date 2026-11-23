@@ -163,13 +163,9 @@
      * Resolves default organization ID
      */
     function getDefaultOrgId() {
-        if (typeof window !== 'undefined' && window.state && window.state.orgId) {
-            return window.state.orgId;
-        }
-        if (typeof localStorage !== 'undefined') {
-            return localStorage.getItem('orgId') || 'org_kylrx';
-        }
-        return 'org_kylrx';
+        const orgId = (typeof globalThis.getActiveOrgId === 'function' ? globalThis.getActiveOrgId() : null);
+        if (!orgId) throw new Error('Your account has no organization');
+        return orgId;
     }
 
     /**
@@ -322,12 +318,12 @@
 
         // 2. Also save to local backend API if available
         try {
-            const token = (typeof localStorage !== 'undefined' && (
+            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser ? await window.auth.currentUser.getIdToken() : null) || (typeof localStorage !== 'undefined' && (
                 localStorage.getItem('authToken') || 
                 localStorage.getItem('hr_access_token') || 
                 localStorage.getItem('access_token') || 
                 localStorage.getItem('token')
-            )) || 'demo-static-token';
+            ));
 
             if (typeof fetch !== 'undefined') {
                 await fetch(`${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api/admin/cost-centers`, {

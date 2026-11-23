@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
 
     <style>
         :root {
@@ -346,6 +346,7 @@
                     <a href="#" class="snav-item" data-tab="tvc"><i data-lucide="tv"></i> TVC Config</a>
                     <a href="#" class="snav-item" data-tab="security"><i data-lucide="shield"></i> Security</a>
                     <a href="#" class="snav-item" data-tab="email"><i data-lucide="mail"></i> Email Config</a>
+                    <a href="#" class="snav-item" data-tab="integrations"><i data-lucide="plug"></i> Integrations</a>
                     <a href="#" class="snav-item" data-tab="onboarding_hr"><i data-lucide="user-plus"></i> Onboarding &amp; Roles</a>
                     <a href="#" class="snav-item" data-tab="bu_rules"><i data-lucide="layers"></i> BU & Employee Types (PRD §10)</a>
                     <a href="#" class="snav-item" data-tab="holiday_calendars"><i data-lucide="calendar"></i> Holiday Calendars (PRD §1 &amp; §16)</a>
@@ -1018,6 +1019,24 @@
         import { auth, onSnapshot, registerListener } from "./firebase-config.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
+        // "Refresh Status" on the Recruitment add-on card: read-only GET, never changes the subscription
+        window.toggleRecruitmentAddon = async () => {
+            const statusEl = document.getElementById('recruitment-addon-status-text');
+            const apiBase = typeof API_BASE !== 'undefined' ? API_BASE : (window.API_BASE || window.location.origin);
+            try {
+                const token = (auth.currentUser && await auth.currentUser.getIdToken()) || localStorage.getItem('token') || localStorage.getItem('kylrx_auth_token');
+                const res = await fetch(`${apiBase}/api/integrations/recruitment`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(typeof data.error === 'string' ? data.error : (data.error?.message || `HTTP ${res.status}`));
+                const enabled = data.integration && data.integration.enabled === true;
+                statusEl.textContent = enabled ? 'Active Integration' : 'Inactive Integration';
+                statusEl.style.color = enabled ? '#10b981' : '#ef4444';
+            } catch (err) {
+                statusEl.textContent = `Could not load status: ${err.message}`;
+                statusEl.style.color = '#ef4444';
+            }
+        };
+
         const currentRole = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
         const superAdminRoles = ['super_admin', 'superadmin', 'admin'];
         if (currentRole && !superAdminRoles.includes(currentRole)) {
@@ -1043,6 +1062,7 @@
                 
                 btn.classList.add('active');
                 document.getElementById(targetTab)?.classList.add('active');
+                history.replaceState(null, '', '#' + targetTab);
 
                 if (targetTab === 'bu_rules') {
                     if (window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.renderAdminConsole === 'function') {
@@ -1078,6 +1098,9 @@
                 }
             });
         });
+
+        // Restore the tab from the URL hash so a reload stays on the same tab
+        [...tabBtns].find(b => b.getAttribute('data-tab') === location.hash.slice(1))?.click();
 
         // Form Submit to Firestore
         document.querySelectorAll('.settingsForm').forEach(form => {
@@ -1687,102 +1710,12 @@
     import { db, onSnapshot, registerListener } from "./firebase-config.js";
     import { doc, setDoc, arrayUnion, arrayRemove } from "./firebase-config.js";
 
-    const DEFAULT_APPS = [
-        { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
-        { name: "DATADOG", url: "https://app.datadoghq.com" }
-    ];
 
-    async function initAdminApps() {
-        const appsRef = doc(db, "system_configs", "admin_custom_apps");
-        onSnapshot(appsRef, async (snapshot) => {
-            let apps = [];
-            if (snapshot.exists()) {
-                apps = snapshot.data().customApps || [];
-            } else {
-                try {
-                    await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
-                    apps = DEFAULT_APPS;
-                } catch(e) {}
-            }
-            renderAppsUI(apps);
-        });
-    }
 
-    function renderAppsUI(apps) {
-        const list = document.getElementById('customAppsList');
-        if (list) {
-            list.innerHTML = apps.map((app) => `
-                <div class="nav-item" style="position: relative;">
-                    <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
-                        <i data-lucide="external-link"></i>
-                        <span>${app.name}</span>
-                    </a>
-                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
-                        <i data-lucide="x" style="width: 12px; height: 12px;"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
 
-        const registryList = document.getElementById('registryAppsList');
-        if (registryList) {
-            registryList.innerHTML = apps.map((app) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
-                        <i data-lucide="external-link" style="width: 16px; height: 16px; color: #3b82f6; flex-shrink: 0;"></i>
-                        <span style="font-weight: 700; font-size: 0.8rem; color: #0f172a;">${app.name}</span>
-                    </div>
-                    <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
-                        <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-        if(window.lucide) lucide.createIcons();
-    }
 
-    window.openAppRegistryModal = () => {
-        const modal = document.getElementById('customAppsModal');
-        if (modal) modal.style.display = 'flex';
-        if(window.lucide) lucide.createIcons();
-    };
 
-    window.addCustomApp = async () => {
-        const urlInput = document.getElementById('appUrlInput');
-        const nameInput = document.getElementById('appNameInput');
-        if (!urlInput) return;
-        
-        const url = urlInput.value.trim();
-        const customName = nameInput ? nameInput.value.trim() : '';
-        if (!url) return;
 
-        try {
-            let cleanUrl = url;
-            if (!url.startsWith('http')) cleanUrl = 'https://' + url;
-            const urlObj = new URL(cleanUrl);
-            const domain = urlObj.hostname.replace('www.', '');
-            const appName = customName || domain.split('.')[0].toUpperCase();
-
-            const appsRef = doc(db, "system_configs", "admin_custom_apps");
-            await setDoc(appsRef, {
-                customApps: arrayUnion({ name: appName, url: cleanUrl })
-            }, { merge: true });
-
-            urlInput.value = '';
-            if (nameInput) nameInput.value = '';
-        } catch (e) {
-            alert("Invalid URL structure.");
-        }
-    };
-
-    window.removeAppFromServer = async (url, name) => {
-        const appsRef = doc(db, "system_configs", "admin_custom_apps");
-        await setDoc(appsRef, {
-            customApps: arrayRemove({ name: name, url: url })
-        }, { merge: true });
-    };
-
-    initAdminApps();
 </script>
 <script src="services/employee-type-parser.js"></script>
 <script src="services/employee-type-service.js"></script>

@@ -55,12 +55,15 @@ describe('Server Hardening & Security Configuration Suite', () => {
             assert.equal(resLoopback.status, 200);
             assert.equal(resLoopback.headers.get('access-control-allow-origin'), 'http://127.0.0.1:3000');
 
-            // Production allow-list origin
+            // A domain from the ALLOWED_ORIGINS allow-list
+            const origAllowed = process.env.ALLOWED_ORIGINS;
+            process.env.ALLOWED_ORIGINS = 'https://app.client.example';
             const resProdOrigin = await fetch(`${baseUrl}/api/health`, {
-                headers: { Origin: 'https://app.kylrxai.com' }
+                headers: { Origin: 'https://app.client.example' }
             });
+            if (origAllowed === undefined) delete process.env.ALLOWED_ORIGINS; else process.env.ALLOWED_ORIGINS = origAllowed;
             assert.equal(resProdOrigin.status, 200);
-            assert.equal(resProdOrigin.headers.get('access-control-allow-origin'), 'https://app.kylrxai.com');
+            assert.equal(resProdOrigin.headers.get('access-control-allow-origin'), 'https://app.client.example');
         } finally {
             process.env.NODE_ENV = origEnv;
         }
@@ -100,12 +103,26 @@ describe('Server Hardening & Security Configuration Suite', () => {
             });
             assert.equal(resLoopback.status, 403, '127.0.0.1 must be rejected by CORS in production');
 
-            // Official allow-list must still succeed in production
-            const resOfficial = await fetch(`${baseUrl}/api/health`, {
-                headers: { Origin: 'https://kylrxai.firebaseapp.com' }
-            });
-            assert.equal(resOfficial.status, 200);
-            assert.equal(resOfficial.headers.get('access-control-allow-origin'), 'https://kylrxai.firebaseapp.com');
+            // The allow-list comes from the environment: the project's Firebase Hosting domains plus ALLOWED_ORIGINS
+            const origProject = process.env.FIREBASE_PROJECT_ID;
+            const origAllowed = process.env.ALLOWED_ORIGINS;
+            process.env.FIREBASE_PROJECT_ID = 'client-project';
+            process.env.ALLOWED_ORIGINS = 'https://hr.client.example, https://portal.client.example/';
+            try {
+                for (const origin of ['https://client-project.firebaseapp.com', 'https://client-project.web.app', 'https://hr.client.example', 'https://portal.client.example']) {
+                    const res = await fetch(`${baseUrl}/api/health`, { headers: { Origin: origin } });
+                    assert.equal(res.status, 200, origin);
+                    assert.equal(res.headers.get('access-control-allow-origin'), origin);
+                }
+                // no project is wired in: the original project's domains are not allowed
+                for (const origin of ['https://kylrxai.firebaseapp.com', 'https://app.kylrxai.com', 'https://evil.example']) {
+                    const res = await fetch(`${baseUrl}/api/health`, { headers: { Origin: origin } });
+                    assert.equal(res.status, 403, origin);
+                }
+            } finally {
+                if (origProject === undefined) delete process.env.FIREBASE_PROJECT_ID; else process.env.FIREBASE_PROJECT_ID = origProject;
+                if (origAllowed === undefined) delete process.env.ALLOWED_ORIGINS; else process.env.ALLOWED_ORIGINS = origAllowed;
+            }
         } finally {
             process.env.NODE_ENV = origEnv;
         }

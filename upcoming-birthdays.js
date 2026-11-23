@@ -845,7 +845,7 @@ class UpcomingBirthdaysController {
             const senderName = localStorage.getItem('hrms_manager_name') || 
                                localStorage.getItem('userName') || 
                                (this.config.role === 'manager' ? (this.config.managerName || 'Department Manager') : 'Human Resources');
-            const senderId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'hr_admin_sender');
+            const senderId = auth.currentUser ? auth.currentUser.uid : '';
 
             // 1. Send push notification to recipient in Firestore
             await addDoc(collection(db, 'notifications'), {

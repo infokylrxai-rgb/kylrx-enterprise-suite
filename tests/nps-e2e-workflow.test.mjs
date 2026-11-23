@@ -41,6 +41,9 @@ import EventEmitter from 'node:events';
 import express from 'express';
 import npsRouter from '../routes/nps.mjs';
 import { globalCorporateNpsAutomationEngine } from '../services/corporate-nps-automation-engine.mjs';
+import jwt from 'jsonwebtoken';
+// verifyToken needs a real identity: every request in this file carries a signed Super Admin token
+const fetch = (url, opts = {}) => globalThis.fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_admin', role: 'Super Admin' }, process.env.JWT_SECRET)}`, ...opts.headers } });
 
 describe('🏛️ Column 3 Corporate NPS Automation Service - End-to-End Suite', () => {
   let app;

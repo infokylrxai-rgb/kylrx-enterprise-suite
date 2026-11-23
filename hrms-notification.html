@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <script>
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
@@ -371,6 +371,33 @@
     <script type="module">
         import { db, auth, onAuthStateChanged, collection, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, doc, updateDoc, arrayUnion, where, registerListener } from "./firebase-config.js";
 
+        import { loadIdentity, orgNotificationsQuery, setReadState, failureReason } from "./notification-actions.js";
+        import { isUnread as unreadFor, unreadCount, canMarkUnread, isHrmsNotification } from "./notification-read-state.js";
+
+        let me = null; // { uid, orgId, role } from the verified token
+
+        function showHrmsToast(message, isError = false) {
+            let el = document.getElementById('hrmsToast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'hrmsToast';
+                el.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:10px 18px; border-radius:10px; color:#fff; font-weight:600; font-size:0.85rem; z-index:10000; box-shadow:0 8px 24px rgba(0,0,0,0.2); max-width:90%;';
+                document.body.appendChild(el);
+            }
+            el.textContent = message;
+            el.style.background = isError ? '#991b1b' : '#1e293b';
+            el.style.display = 'block';
+            clearTimeout(el._hide);
+            el._hide = setTimeout(() => { el.style.display = 'none'; }, 3500);
+        }
+
+        function showHrmsError(message) {
+            console.warn('[HRMS notifications] Could not load:', message);
+            const box = document.querySelector('.card');
+            if (box) box.innerHTML = `<div style="text-align:center; padding:4rem 2rem; color:#991b1b;"><strong>Could not load notifications</strong><p style="font-size:0.85rem; margin-top:6px;">${String(message).replace(/[<>&]/g, '')}</p></div>`;
+            showHrmsToast('Could not load notifications: ' + message, true);
+        }
+
         function syncHeaderBadges(userId) {
             const msgBadge = document.getElementById('headerMsgBadge');
             const notifBadge = document.getElementById('headerNotifBadge');
@@ -389,30 +416,32 @@
                 }
             });
 
-            // 2. Listen for notifications targeted to HRMS
-            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
-            onSnapshot(notifQuery, (snap) => {
-                const unreadNotifs = snap.docs.filter(d => {
-                    const data = d.data();
-                    if (data.read) return false;
-                    const clearedBy = data.clearedBy || [];
-                    if (clearedBy.includes(userId)) return false;
-                    const tgt = (data.target || data.departmentId || '').toLowerCase();
-                    const type = (data.type || '').toLowerCase();
-                    return tgt === 'hrms' || type === 'employee_help' || type === 'employee_help_approved';
-                });
-
+            // 2. Listen for this organization's notifications targeted to HRMS
+            onSnapshot(orgNotificationsQuery(me, 60), (snap) => {
+                const mine = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(n => !(n.clearedBy || []).includes(userId) && isHrmsNotification(n));
+                const count = unreadCount(mine, userId);
                 if (notifBadge) {
-                    const count = unreadNotifs.length;
                     notifBadge.textContent = count > 9 ? '9+' : count;
                     notifBadge.style.display = count > 0 ? 'flex' : 'none';
                 }
-            });
+            }, () => {});
         }
 
-        onAuthStateChanged(auth, user => {
-            const currentUserId = user ? user.uid : (localStorage.getItem('hr_user_id') || 'hrms_demo');
-            syncHeaderBadges(currentUserId);
+        let hrmsStarted = false;
+        onAuthStateChanged(auth, async user => {
+            if (!user) { showHrmsError('You are signed out. Please sign in again.'); return; }
+            try {
+                me = await loadIdentity();
+                if (!hrmsStarted) {
+                    hrmsStarted = true;
+                    syncHeaderBadges(me.uid);
+                    startHrmsList();
+                }
+            } catch (err) {
+                showHrmsError(err.message);
+            }
         });
 
         if (window.lucide) lucide.createIcons();
@@ -426,19 +455,14 @@
 
         const notifContainer = document.querySelector('.card');
 
-        // Real-time notification listener — HRMS-scoped (includes employee help requests)
-        const q = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
-        onSnapshot(q, (snap) => {
-            const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'hrms_demo');
-            // Filter for HRMS notifications and employee help requests
+        // Real-time notification listener: this organization's HRMS notifications and employee help requests.
+        // Older notifications without an orgId belong to no organization and are shown to nobody.
+        function startHrmsList() {
+        onSnapshot(orgNotificationsQuery(me, 60), (snap) => {
+            const currentUserId = me.uid;
             const hrmsDocs = snap.docs.filter(d => {
                 const data = d.data();
-                const clearedBy = data.clearedBy || [];
-                if (clearedBy.includes(currentUserId)) return false;
-
-                const tgt = (data.target || data.departmentId || '').toLowerCase();
-                const type = (data.type || '').toLowerCase();
-                return tgt === 'hrms' || type === 'employee_help' || type === 'employee_help_approved';
+                return !(data.clearedBy || []).includes(currentUserId) && isHrmsNotification(data);
             });
 
             window.visibleNotifIds = hrmsDocs.map(d => d.id);
@@ -457,6 +481,8 @@
                 const priority = (data.priority || 'normal').toLowerCase();
                 const isHelpReq = data.type === 'employee_help' || data.type === 'employee_help_approved';
                 const helpStatus = data.status || 'pending';
+                const unread = unreadFor(data, currentUserId);
+                const legacyLocked = !unread && !canMarkUnread(data);
 
                 let icon, color, bg;
                 if (isHelpReq) {
@@ -482,8 +508,11 @@
                         <div class="notif-icon" style="background: ${bg}; color: ${color};"><i data-lucide="${icon}"></i></div>
                         <div class="notif-content">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                <div class="notif-title">${esc(data.title || (priority.toUpperCase() + ' ALERT'))}</div>
+                                <div class="notif-title">${unread ? '<span title="Unread" style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#2563eb; margin-right:6px;"></span>' : ''}${esc(data.title || (priority.toUpperCase() + ' ALERT'))}</div>
+                                <span style="display:flex; gap:4px;">
+                                <button onclick="hrmsToggleRead('${safeDocId}', ${unread})" title="${unread ? 'Mark as read' : (legacyLocked ? 'Read (older notification, cannot be marked unread)' : 'Mark as unread')}" ${legacyLocked ? 'disabled' : ''} style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i data-lucide="${unread ? 'check' : 'rotate-ccw'}" size="16"></i></button>
                                 <button onclick="deleteNotification('${safeDocId}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><i data-lucide="x" style="width:16px; height:16px;"></i></button>
+                                </span>
                             </div>
                             <div class="notif-desc">${esc(data.message || 'No details provided.')}</div>
                             ${isHelpReq && data.empEmail ? `
@@ -498,17 +527,34 @@
                 `;
             }).join('');
             if (window.lucide) lucide.createIcons();
-        });
+        }, (err) => showHrmsError(err.code === 'permission-denied'
+            ? 'Permission denied while reading notifications for your organization.'
+            : err.message));
+        }
 
-        // Mark HRMS help request as resolved
+        // Mark HRMS help request as resolved (and read, for me)
         window.resolveHelpRequest = async (notifId) => {
+            if (!me) { showHrmsToast('Sign in again to change notifications.', true); return; }
             try {
-                await updateDoc(doc(db, 'notifications', notifId), { status: 'resolved', read: true });
+                await updateDoc(doc(db, 'notifications', notifId), { status: 'resolved', resolvedBy: me.uid, readBy: arrayUnion(me.uid) });
+                showHrmsToast('Request marked as resolved');
             } catch (err) {
                 console.error('Failed to resolve request:', err);
+                showHrmsToast('Could not resolve the request: ' + failureReason(err), true);
             }
         };
 
+        // Mark one notification read (setAsRead = true) or unread for me; the list refreshes from the snapshot
+        window.hrmsToggleRead = async (id, setAsRead) => {
+            if (!me) { showHrmsToast('Sign in again to change notifications.', true); return; }
+            try {
+                await setReadState(id, me.uid, setAsRead);
+                showHrmsToast(setAsRead ? 'Marked as read' : 'Marked as unread');
+            } catch (err) {
+                console.error('Toggle read failed:', err);
+                showHrmsToast('Could not update the notification: ' + failureReason(err), true);
+            }
+        };
 
         window.setTheme = (theme, el) => {
             document.querySelectorAll('.btn-theme').forEach(b => b.classList.remove('active'));
@@ -592,11 +638,13 @@
             document.getElementById('customDelNotifConfirm').onclick = async () => {
                 modal.style.display = 'none';
                 try {
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'hrms_demo');
+                    if (!me) { showHrmsToast('Sign in again to change notifications.', true); return; }
+                    const currentUserId = me.uid;
                     await updateDoc(doc(db, 'notifications', id), {
                         clearedBy: arrayUnion(currentUserId)
                     });
-                } catch(e) { console.error('Error deleting:', e); }
+                    showHrmsToast('Notification cleared');
+                } catch(e) { console.error('Error deleting:', e); showHrmsToast('Could not clear the notification: ' + failureReason(e), true); }
             };
         };
 
@@ -608,13 +656,15 @@
             document.getElementById('customClearAllNotifConfirm').onclick = async () => {
                 modal.style.display = 'none';
                 try {
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : (localStorage.getItem('hr_user_id') || 'hrms_demo');
+                    if (!me) { showHrmsToast('Sign in again to change notifications.', true); return; }
+                    const currentUserId = me.uid;
                     const ids = window.visibleNotifIds || [];
                     const promises = ids.map(id => updateDoc(doc(db, 'notifications', id), {
                         clearedBy: arrayUnion(currentUserId)
                     }));
                     await Promise.all(promises);
-                } catch(e) { console.error('Error clearing all:', e); }
+                    showHrmsToast('All notifications cleared');
+                } catch(e) { console.error('Error clearing all:', e); showHrmsToast('Could not clear notifications: ' + failureReason(e), true); }
             };
         };
         if (window.self !== window.top) {

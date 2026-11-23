@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bank Verification | Kylrx AI Task</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
             --primary: #ec4899;
@@ -251,7 +251,10 @@
 
         lucide.createIcons();
 
-        const empId = new URLSearchParams(window.location.search).get('id') || 'demo_emp';
+        import { loadIdentity } from "./notification-actions.js";
+        // The user is the verified session (token), never ?id= or localStorage
+        const SESSION = await loadIdentity().catch(() => null);
+        const empId = SESSION ? SESSION.uid : '';
         const form = document.getElementById('bankForm');
         const statusLabel = document.getElementById('statusLabel');
         const rejectionMsg = document.getElementById('rejectionMsg');
@@ -366,6 +369,12 @@
 
         loadStatus();
     </script>
+  <!-- Login guard: no signed-in user goes to the login page -->
+  <script type="module">
+    import { auth } from "./firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+    onAuthStateChanged(auth, (user) => { if (!user) window.location.href = 'login.html'; });
+  </script>
 </body>
 </html>
 

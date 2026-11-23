@@ -25,7 +25,7 @@ export async function sendNotification(targetId, title, message, type = 'info', 
 }
 
 export function listenNotifications() {
-    const userId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('hr_user_id');
+    const userId = auth.currentUser ? auth.currentUser.uid : null;
     const userDept = localStorage.getItem('userDept'); // For manager department filtering
     const userRole = localStorage.getItem('userRole'); // 'manager' or 'employee'
 
@@ -119,7 +119,7 @@ export function listenNotifications() {
             if (window.lucide) { lucide.createIcons(); }
         }
     }, (err) => {
-        const userId = localStorage.getItem('hr_user_id');
+        const userId = auth.currentUser ? auth.currentUser.uid : null;
         if (!userId || !userId.startsWith('demo_')) {
             console.warn('Notification snapshot listener failed (likely missing index or permissions):', err.message);
         }
@@ -162,7 +162,7 @@ window.markAsRead = async (notifId) => {
 };
 
 window.markAllAsRead = async () => {
-    const userId = auth.currentUser ? auth.currentUser.uid : localStorage.getItem('hr_user_id');
+    const userId = auth.currentUser ? auth.currentUser.uid : null;
     const q = query(collection(db, 'notifications'), where('userId', '==', userId), where('read', '==', false));
     const snap = await getDocs(q);
     const batch = snap.docs.map(d => updateDoc(d.ref, { read: true }));

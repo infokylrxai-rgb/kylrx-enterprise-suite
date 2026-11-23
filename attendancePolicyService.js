@@ -136,13 +136,9 @@
      * Resolves default organization ID
      */
     function getDefaultOrgId() {
-        if (typeof window !== 'undefined' && window.state && window.state.orgId) {
-            return window.state.orgId;
-        }
-        if (typeof localStorage !== 'undefined') {
-            return localStorage.getItem('orgId') || 'org_kylrx';
-        }
-        return 'org_kylrx';
+        const orgId = (typeof globalThis.getActiveOrgId === 'function' ? globalThis.getActiveOrgId() : null);
+        if (!orgId) throw new Error('Your account has no organization');
+        return orgId;
     }
 
     /**
@@ -150,7 +146,7 @@
      * Target: organizations/{orgId}/attendance_policies/{attendancePolicyCode}
      */
     function getFirestorePath(arg1 = '', arg2 = '') {
-        let orgId = getDefaultOrgId();
+        let orgId = null;
         let policyCode = '';
 
         if (arg1 && arg2) {
@@ -172,7 +168,7 @@
             }
         }
 
-        const base = `organizations/${orgId}/attendance_policies`;
+        const base = `organizations/${orgId || getDefaultOrgId()}/attendance_policies`;
         if (!policyCode) return base;
         return `${base}/${String(policyCode).trim().toUpperCase()}`;
     }

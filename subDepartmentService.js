@@ -417,13 +417,9 @@
      * Resolves default organization ID
      */
     function getDefaultOrgId() {
-        if (typeof window !== 'undefined' && window.state && window.state.orgId) {
-            return window.state.orgId;
-        }
-        if (typeof localStorage !== 'undefined') {
-            return localStorage.getItem('orgId') || 'org_kylrx';
-        }
-        return 'org_kylrx';
+        const orgId = (typeof globalThis.getActiveOrgId === 'function' ? globalThis.getActiveOrgId() : null);
+        if (!orgId) throw new Error('Your account has no organization');
+        return orgId;
     }
 
     /**

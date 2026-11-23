@@ -1,4 +1,4 @@
-import { auth, db, onSnapshot, registerListener } from "./firebase-config.js";
+import { auth, db, onSnapshot, registerListener, tenantReady, getActiveOrgId } from "./firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { collection, getDocs, setDoc, doc, getDoc, runTransaction, serverTimestamp, updateDoc, query, where } from "./firebase-config.js";
 import { allocateAtomicEmployeeIds } from "./services/atomic-counter-service.js";
@@ -2387,7 +2387,7 @@ function setupEventListeners() {
         try {
             // Get current ID token from Firebase auth for API auth
             const rawToken = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('access_token');
-            const token = rawToken || 'demo-static-token';
+            const token = rawToken;
             const headers = { 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
@@ -2536,7 +2536,9 @@ function setupEventListeners() {
             } else {
                 // CREATE MODE (Draft / Email)
                 // 1. Allocate Sequential Gapless Employee ID via Atomic Counter Service
-                const orgId = localStorage.getItem('current_org_id') || localStorage.getItem('tenant_id') || 'org_kylrx';
+                await tenantReady;
+                const orgId = getActiveOrgId();
+                if (!orgId) throw new Error('Your account has no organization');
                 let allocatedEmployeeId = null;
 
                 try {
@@ -2676,7 +2678,8 @@ function setupEventListeners() {
                 // PRD Sections 1, 4 & 13: Persist Employee Finance & Statutory Record to organizations/{orgId}/employee_finance/{employeeId}
                 if (window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.saveEmployeeFinance === 'function') {
                     try {
-                        const orgId = localStorage.getItem('orgId') || 'org_kylrx';
+                        const orgId = getActiveOrgId();
+                        if (!orgId) throw new Error('Your account has no organization');
                         const holderName = data.financeAccountHolderName || data.name;
                         const bankName = data.financeBankName || 'HDFC Bank';
                         const branchName = data.financeBranchName || 'Koramangala, Bengaluru';
@@ -3230,7 +3233,7 @@ window.deleteEmployee = (id, name) => {
             confirmBtn.textContent = 'Deleting...';
             
             const rawToken = auth.currentUser ? await auth.currentUser.getIdToken() : localStorage.getItem('access_token');
-            const token = rawToken || 'demo-static-token';
+            const token = rawToken;
             
             try {
                 const response = await fetch(`${API_BASE_URL}/admin/employees/${id}`, {
@@ -3637,7 +3640,7 @@ function startAdminTimer() {
 async function syncAdminStatusToFirebase(status) {
     try {
         const { doc, setDoc, serverTimestamp } = await import("./firebase-config.js");
-        const userId = localStorage.getItem('hr_user_id') || 'admin_demo';
+        const userId = auth.currentUser ? auth.currentUser.uid : '';
         const today = new Date().toISOString().split('T')[0];
         // Import db dynamically or it's already in scope if we are careful, but better to be safe
         const { db } = await import("./firebase-config.js");

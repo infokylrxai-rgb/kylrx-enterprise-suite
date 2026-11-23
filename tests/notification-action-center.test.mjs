@@ -1,8 +1,30 @@
+import './helpers/isolate-firebase.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import http from 'node:http';
+import admin from 'firebase-admin';
+import { before, after } from 'node:test';
+import jwt from 'jsonwebtoken';
+
+// Starts the app on a free port with the in-memory store; refuses to run against a real Firebase app.
+let server;
+let baseUrl;
+before(async () => {
+  const { default: serverModule } = await import('../server.js');
+  assert.equal(admin.apps.length, 0, 'a real Firebase app is initialised; the test must run on the in-memory store');
+  await serverModule.dynamicRoutesLoaded;
+  server = http.createServer(serverModule.app);
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  baseUrl = `http://127.0.0.1:${server.address().port}`;
+});
+after(async () => {
+  server?.closeAllConnections?.();
+  if (server) await new Promise((resolve) => server.close(resolve));
+});
+const authed = (url, opts = {}) => fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_super_admin', role: 'Super Admin', orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai' }, process.env.JWT_SECRET)}`, ...(opts.headers || {}) } });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -151,10 +173,10 @@ test('Notification & Action Centre - Operational Lifecycle (Resolve, Remind, Esc
 });
 
 test('Notification & Action Centre - REST API Endpoints', async (t) => {
-    const BASE_URL = 'http://localhost:3000/api/notification-center';
+    const BASE_URL = `${baseUrl}/api/notification-center`;
 
     await t.test('GET /api/notification-center/summary returns 200 and schema', async () => {
-        const res = await fetch(`${BASE_URL}/summary`);
+        const res = await authed(`${BASE_URL}/summary`);
         assert.strictEqual(res.status, 200);
         const data = await res.json();
         assert.strictEqual(data.success, true);
@@ -163,7 +185,7 @@ test('Notification & Action Centre - REST API Endpoints', async (t) => {
     });
 
     await t.test('GET /api/notification-center/feed returns separated lists', async () => {
-        const res = await fetch(`${BASE_URL}/feed?type=all`);
+        const res = await authed(`${BASE_URL}/feed?type=all`);
         assert.strictEqual(res.status, 200);
         const data = await res.json();
         assert.strictEqual(data.success, true);
@@ -172,7 +194,7 @@ test('Notification & Action Centre - REST API Endpoints', async (t) => {
     });
 
     await t.test('POST /api/notification-center/actions/:id/resolve resolves item', async () => {
-        const res = await fetch(`${BASE_URL}/actions/ACT-EXIT-008/resolve`, {
+        const res = await authed(`${BASE_URL}/actions/ACT-EXIT-008/resolve`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ decision: 'approved', remarks: 'Clearance verified', actor: 'Finance Admin' })
@@ -184,7 +206,7 @@ test('Notification & Action Centre - REST API Endpoints', async (t) => {
     });
 
     await t.test('POST /api/notification-center/actions/:id/remind nudges assignee', async () => {
-        const res = await fetch(`${BASE_URL}/actions/ACT-PMS-004/remind`, {
+        const res = await authed(`${BASE_URL}/actions/ACT-PMS-004/remind`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ actor: 'PMS Coordinator' })
@@ -196,7 +218,7 @@ test('Notification & Action Centre - REST API Endpoints', async (t) => {
     });
 
     await t.test('POST /api/notification-center/actions/:id/escalate accelerates SLA', async () => {
-        const res = await fetch(`${BASE_URL}/actions/ACT-SYS-009/escalate`, {
+        const res = await authed(`${BASE_URL}/actions/ACT-SYS-009/escalate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

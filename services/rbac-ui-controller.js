@@ -85,7 +85,7 @@
     /**
      * Renders the complete RBAC Console inside the specified container
      */
-    function renderAdminConsole(containerId = 'settingsRbacContainer', orgId = 'org_kylrx') {
+    function renderAdminConsole(containerId = 'settingsRbacContainer', orgId = (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null)) {
         const container = document.getElementById(containerId);
         if (!container) return;
 

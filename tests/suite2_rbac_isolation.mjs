@@ -1,13 +1,14 @@
 import puppeteer from 'puppeteer';
 import assert from 'assert';
+import { CREDS } from './helpers/e2e-credentials.mjs';
 
 const BASE_URL = 'http://localhost:3000';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 
 const ROLES = {
   hrAdmin: {
-    email: 'Savitha.balraju@GMAIL.COM',
-    pass: 'SYSTEM-Hrms-Savitha@2026!',
+    email: CREDS.hrAdmin.email,
+    pass: CREDS.hrAdmin.pass,
     allowedPages: [
       'hrms-dashboard.html',
       'statutory-compliance.html',
@@ -26,8 +27,8 @@ const ROLES = {
     ]
   },
   employee: {
-    email: 'marry@gmail.com',
-    pass: 'UNIT-CYB-799-Employee-Marry@2026!',
+    email: CREDS.employee.email,
+    pass: CREDS.employee.pass,
     allowedPages: [
       'employee-dashboard.html',
       'employee-leave.html',
@@ -49,8 +50,8 @@ const ROLES = {
     ]
   },
   manager: {
-    email: 'john.doe@example.com',
-    pass: 'UNIT-CYB-802-Manager-John@2026!',
+    email: CREDS.manager.email,
+    pass: CREDS.manager.pass,
     allowedPages: [
       'manager-dashboard.html',
       'manager-calendar.html',
@@ -75,8 +76,8 @@ const ROLES = {
     ]
   },
   superAdmin: {
-    email: 'nandanb449@gmail.com',
-    pass: 'Nansav@04',
+    email: CREDS.superAdmin.email,
+    pass: CREDS.superAdmin.pass,
     allowedPages: [
       'admin-dashboard.html',
       'admin-settings.html',

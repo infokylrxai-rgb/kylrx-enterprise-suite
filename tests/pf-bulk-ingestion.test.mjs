@@ -28,6 +28,9 @@ import {
 } from '../services/pf-bulk-ingestion-service.mjs';
 
 import pfComplianceRouter from '../routes/pf-compliance.mjs';
+import jwt from 'jsonwebtoken';
+// verifyToken needs a real identity: every request in this file carries a signed Super Admin token
+const fetch = (url, opts = {}) => globalThis.fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_admin', role: 'Super Admin' }, process.env.JWT_SECRET)}`, ...opts.headers } });
 
 describe('🏛️ Employee PF Profile Subsystem: Domain Schema & Bulk Ingestion Tests', () => {
   let app;
@@ -439,7 +442,8 @@ describe('🏛️ Employee PF Profile Subsystem: Domain Schema & Bulk Ingestion 
       const json = await res.json();
       assert.equal(json.success, true);
       assert.equal(json.data.employee_id, 'API_EMP_1');
-      assert.equal(json.data.uan, '100123456789');
+      // UAN is masked in default API payloads (data-masking criterion); the raw value needs a signed privileged export
+      assert.equal(json.data.uan, '••••••••6789');
     });
 
     it('6.4 GET /api/v1/pf/rejections/:batch_id should retrieve staging rejections', async () => {

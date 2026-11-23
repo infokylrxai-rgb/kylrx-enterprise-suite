@@ -3,23 +3,26 @@
  * KYLRX.AI ENTERPRISE HRMS - PAYROLL DISBURSEMENT SERVICE
  * ============================================================================
  * Strict Separation of Concerns (PRD Section 4):
- * Manages payout calculations, Decentro payment batches, maker-checker
+ * Manages payout calculations, Cashfree payment batches, maker-checker
  * authorization, bank response reconciliation, and fund disbursement state transitions.
  *
  * CRITICAL ARCHITECTURAL BOUNDARY:
  * This service contains ZERO PDF, Excel, or document rendering logic.
  * It is completely decoupled from document generation pipelines.
  *
- * Decentro Fabric Integration:
- *  - Staging Gateway: https://staging.dashboard.decentro.tech/fabric
+ * Cashfree Payouts Integration:
+ *  - Provider adapter: services/payroll/cashfreePayoutProvider.js (v1 + v2)
  *  - Sourcing schema: 'Employee Finance Deatils' (Account_Holder_Name,
  *    Bank_Name, Account_Number, IFSC, Account_Type, Is_Primary)
  *  - 4-Eyes Maker-Checker authorization gate
- *  - Asynchronous webhook listener with idempotent Firestore reconciliation
+ *  - Deterministic transfer ids => a retry can never pay an employee twice
+ *  - Signed webhook listener with DURABLE (Firestore) idempotency
+ *  - Status polling fallback so a missed webhook never strands a payout
  * ============================================================================
  */
 
 const crypto = require('crypto');
+const { CashfreePayoutProvider, CashfreeApiError } = require('./cashfreePayoutProvider');
 
 // Optional Firebase Admin reference with safe fallback
 let admin, db;
@@ -41,10 +44,11 @@ class MakerCheckerViolationError extends Error {
   }
 }
 
-class DecentroApiError extends Error {
-  constructor(message, status = 502, details = {}) {
+/** Raised when a payout cannot proceed for a business reason (not a gateway fault). */
+class PayoutValidationError extends Error {
+  constructor(message, status = 400, details = {}) {
     super(message);
-    this.name = 'DecentroApiError';
+    this.name = 'PayoutValidationError';
     this.statusCode = status;
     this.details = details;
   }
@@ -70,16 +74,52 @@ async function safeDbGet(promise, timeoutMs = 800) {
 
 class PayrollDisbursementService {
   constructor(options = {}) {
+    // Production must never run on blank secrets (they would validate forged callbacks)
+    if (process.env.NODE_ENV === 'production') {
+      const missing = [['clientId', 'CASHFREE_CLIENT_ID'], ['clientSecret', 'CASHFREE_CLIENT_SECRET']]
+        .filter(([opt, env]) => !options[opt] && !process.env[env]).map(([, env]) => env);
+      if (missing.length) throw new Error(`Missing required environment variable(s) in production: ${missing.join(', ')}`);
+    }
     this.db = options.db !== undefined ? options.db : (process.env.NODE_ENV === 'test' ? null : db);
-    this.decentroBaseUrl = options.decentroBaseUrl || process.env.DECENTRO_BASE_URL || 'https://staging.dashboard.decentro.tech/fabric';
-    this.clientId = options.clientId || process.env.DECENTRO_CLIENT_ID || 'demo_decentro_client_id';
-    this.clientSecret = options.clientSecret || process.env.DECENTRO_CLIENT_SECRET || 'demo_decentro_client_secret';
-    this.moduleSecret = options.moduleSecret || process.env.DECENTRO_MODULE_SECRET || 'demo_decentro_module_secret';
-    this.providerSecret = options.providerSecret || process.env.DECENTRO_PROVIDER_SECRET || 'demo_decentro_provider_secret';
+
+    // Cashfree Payouts adapter (injectable so tests can supply a fake gateway)
+    this.provider = options.provider || new CashfreePayoutProvider({
+      apiVersion: options.apiVersion,
+      environment: options.environment,
+      baseUrl: options.baseUrl,
+      clientId: options.clientId,
+      clientSecret: options.clientSecret,
+      webhookSecret: options.webhookSecret,
+      fetch: options.fetch
+    });
+
+    // How many transfers to dispatch concurrently (keeps big payrolls fast without
+    // hammering the gateway or tripping rate limits).
+    this.concurrency = Number(options.concurrency || process.env.CASHFREE_CONCURRENCY || 5);
+    // Refuse to dispatch if the Cashfree balance cannot cover the batch.
+    this.enforceBalanceCheck = options.enforceBalanceCheck !== false;
+    // FAIL-SAFE: signature verification is ON everywhere by default. Keying it off
+    // NODE_ENV would silently disable it on any host where NODE_ENV is unset/mistyped,
+    // leaving a forged "SUCCESS" able to mark payroll paid. Opt out only, never opt in.
+    this.requireWebhookSignature = options.requireWebhookSignature !== undefined
+      ? options.requireWebhookSignature
+      : process.env.CASHFREE_WEBHOOK_INSECURE !== 'true';
 
     // In-memory ledger for tests / fallback when Firestore is mock or offline
     this._localBatches = new Map();
     this._processedWebhooks = new Set();
+  }
+
+  /** Deterministic, Cashfree-safe transfer id. Same batch+employee => same id => never double-paid. */
+  buildTransferId(batchId, record) {
+    const raw = `${batchId}-${record.employeeId || record.instructionId}`;
+    return raw.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
+  }
+
+  /** Cashfree beneficiary id derived from the employee (stable across payroll runs). */
+  buildBeneficiaryId(record) {
+    const raw = `EMP-${record.employeeId || record.instructionId}`;
+    return raw.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
   }
 
   /**
@@ -91,6 +131,10 @@ class PayrollDisbursementService {
       try {
         return await fn();
       } catch (err) {
+        // Only transient faults (network/timeout/429/5xx) are safe to retry. Retrying a
+        // business rejection just burns time, and retrying a non-idempotent call risks
+        // a double payment — the provider marks which errors are retryable.
+        if (err && err.retryable === false) throw err;
         attempt++;
         if (attempt >= maxRetries) throw err;
         const delay = baseDelayMs * Math.pow(factor, attempt - 1);
@@ -146,6 +190,7 @@ class PayrollDisbursementService {
     batchId = `DISB-${Date.now()}`,
     period = 'September 2026',
     makerId,
+    orgId = null,
     payoutChannel = 'IMPS', // IMPS, NEFT, RTGS
     employees = []
   }) {
@@ -166,6 +211,7 @@ class PayrollDisbursementService {
 
       return {
         instructionId: `INST-${batchId}-${idx + 1}`,
+        orgId,
         employeeId: emp.id || emp.employeeId || `EMP${String(idx + 1).padStart(4, '0')}`,
         employeeName: emp.name || emp.employeeName || 'Staff Member',
         amount: netPayable,
@@ -175,14 +221,19 @@ class PayrollDisbursementService {
         isBeneficiaryValid: finance.isValid,
         validationErrors: finance.errors,
         status: finance.isValid ? 'READY' : 'INVALID_BENEFICIARY',
-        decentroTxnId: null,
+        cashfreeTransferId: null,
+        providerReferenceId: null,
         utr: null,
+        failureReason: null,
         reconciledAt: null
       };
     });
 
     const batchRecord = {
       batchId,
+      // Tenant tag. routes/payroll.js lists batches with orgDocs(), which filters on
+      // orgId, so an untagged batch is invisible to the org that created it.
+      orgId,
       period,
       payoutChannel: payoutChannel.toUpperCase(),
       status: 'PENDING_APPROVAL',
@@ -206,9 +257,10 @@ class PayrollDisbursementService {
     // Store in Firestore and memory
     this._localBatches.set(batchId, batchRecord);
 
-    if (this.db && typeof this.db.collection === 'function') {
-      await safeDb(this.db.collection('disbursement_batches').doc(batchId).set(batchRecord));
-    }
+    // Persist BEFORE any money can move, and fail LOUDLY if we cannot. Records go to a
+    // subcollection: a single document would hit Firestore's 1 MiB cap at ~1340 staff,
+    // and the old code swallowed that rejection, disbursing a payroll it never recorded.
+    await this._persistBatch(batchRecord, records, { strict: true });
 
     return batchRecord;
   }
@@ -223,10 +275,7 @@ class PayrollDisbursementService {
     }
 
     let batch = this._localBatches.get(batchId);
-    if (!batch && this.db && typeof this.db.collection === 'function') {
-      const snap = await safeDbGet(this.db.collection('disbursement_batches').doc(batchId).get());
-      if (snap && snap.exists) batch = snap.data();
-    }
+    if (!batch) batch = await this._loadBatch(batchId);
 
     if (!batch) {
       throw new Error(`Disbursement batch ${batchId} not found.`);
@@ -256,7 +305,7 @@ class PayrollDisbursementService {
 
     if (this.db && typeof this.db.collection === 'function') {
       await safeDb(Promise.all([
-        this.db.collection('disbursement_batches').doc(batchId).set(batch, { merge: true }),
+        this.db.collection('disbursement_batches').doc(batchId).set(this._batchMeta(batch), { merge: true }),
         this.db.collection('audit_logs').add({
           action: 'DISBURSEMENT_BATCH_APPROVED',
           batchId,
@@ -277,15 +326,12 @@ class PayrollDisbursementService {
   }
 
   /**
-   * Dispatches Payout Batch to Decentro Fabric APIs.
+   * Dispatches Payout Batch to Cashfree Payouts.
    * Requires batch.status === 'APPROVED'.
    */
-  async executeDecentroPayoutBatch(batchId, options = {}) {
+  async executeCashfreePayoutBatch(batchId, options = {}) {
     let batch = this._localBatches.get(batchId);
-    if (!batch && this.db && typeof this.db.collection === 'function') {
-      const snap = await safeDbGet(this.db.collection('disbursement_batches').doc(batchId).get());
-      if (snap && snap.exists) batch = snap.data();
-    }
+    if (!batch) batch = await this._loadBatch(batchId);
 
     if (!batch) {
       throw new Error(`Disbursement batch ${batchId} not found.`);
@@ -299,155 +345,286 @@ class PayrollDisbursementService {
       );
     }
 
+    const validRecords = batch.records.filter(r => r.isBeneficiaryValid && r.amount > 0);
+    if (!validRecords.length) {
+      throw new PayoutValidationError(`Batch ${batchId} has no payable records with a valid beneficiary.`, 422, { batchId });
+    }
+
+    // Guard: never start a payroll run the Cashfree balance cannot cover. A part-paid
+    // payroll is the single most painful failure mode, so we stop before the first debit.
+    if (this.enforceBalanceCheck && options.skipBalanceCheck !== true) {
+      const required = validRecords.reduce((sum, r) => sum + Number(r.amount || 0), 0);
+      try {
+        const { availableBalance } = await this.provider.getBalance();
+        if (Number.isFinite(availableBalance) && availableBalance > 0 && availableBalance < required) {
+          throw new PayoutValidationError(
+            `Insufficient Cashfree balance: available ₹${availableBalance}, required ₹${required}. Fund the payout account and retry.`,
+            402, { batchId, availableBalance, required }
+          );
+        }
+      } catch (err) {
+        if (err instanceof PayoutValidationError) throw err;
+        // A balance hiccup, or an unconfigured fund source, must not block payroll.
+        console.warn(`[DISBURSE] Balance pre-check skipped: ${err.message}`);
+      }
+    }
+
     batch.status = 'DISBURSING';
     this._localBatches.set(batchId, batch);
 
-    const validRecords = batch.records.filter(r => r.isBeneficiaryValid && r.amount > 0);
     const executionResults = [];
 
-    // Trigger each payout via Decentro Fabric API with exponential backoff
-    for (const record of validRecords) {
-      const result = await this.executeWithRetry(async () => {
-        return await this._callDecentroPayoutApi(record, batch);
-      }, { maxRetries: 3, baseDelayMs: 200, factor: 2 });
+    // Dispatch with bounded concurrency. Each transfer is individually idempotent.
+    const queue = [...validRecords];
+    const runWorker = async () => {
+      while (queue.length) {
+        const record = queue.shift();
+        executionResults.push(await this._dispatchRecord(record, batch));
+      }
+    };
+    await Promise.all(
+      Array.from({ length: Math.max(1, Math.min(this.concurrency, queue.length)) }, runWorker)
+    );
 
-      record.decentroTxnId = result.decentroTxnId;
-      record.status = result.status; // 'PENDING' or 'SUCCESS'
-      record.utr = result.utr || null;
-      executionResults.push(result);
-    }
-
-    // Determine final batch status
-    const allSuccess = batch.records.every(r => r.status === 'SUCCESS');
-    batch.status = allSuccess ? 'DISBURSED' : 'DISBURSING';
+    batch.status = this._deriveBatchStatus(batch);
     batch.updatedAt = new Date().toISOString();
-
-    // Safe Firestore Batch Write (Chunked to max 400 operations)
-    await this._chunkedBatchSave(batch);
+    const persisted = await this._chunkedBatchSave(batch, validRecords);
 
     return {
       success: true,
+      persisted: persisted.ok,
+      persistError: persisted.error,
       batchId,
       status: batch.status,
       totalDispatched: executionResults.length,
-      gateway: 'Decentro Fabric (Staging)',
-      decentroBaseUrl: this.decentroBaseUrl,
+      succeeded: executionResults.filter(r => r.status === 'SUCCESS').length,
+      pending: executionResults.filter(r => r.status === 'PENDING').length,
+      failed: executionResults.filter(r => r.status === 'FAILURE').length,
+      gateway: `Cashfree Payouts (${this.provider.apiVersion}/${this.provider.environment})`,
       results: executionResults
     };
   }
 
   /**
-   * Internal Decentro Fabric API Connector
+   * Registers the beneficiary then fires ONE idempotent transfer.
+   * Retries only transient faults — a business rejection is never retried, and the
+   * deterministic transfer id means even a retried network timeout cannot double-pay.
    */
-  async _callDecentroPayoutApi(record, batch) {
-    const decentroTxnId = `DEC-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
-    const payload = {
-      reference_id: record.instructionId,
-      purpose_message: `Salary for ${batch.period}`,
-      transfer_type: record.channel, // IMPS / NEFT / RTGS
-      transfer_amount: record.amount,
-      beneficiary_details: {
-        payee_name: record.beneficiary.Account_Holder_Name,
-        account_number: record.beneficiary.Account_Number,
-        ifsc: record.beneficiary.IFSC,
-        account_type: record.beneficiary.Account_Type
-      }
-    };
+  async _dispatchRecord(record, batch) {
+    const transferId = this.buildTransferId(batch.batchId, record);
+    const beneficiaryId = this.buildBeneficiaryId(record);
+    record.cashfreeTransferId = transferId;
 
-    // Staging Endpoint: https://staging.dashboard.decentro.tech/fabric
-    const headers = {
-      'Content-Type': 'application/json',
-      'client_id': this.clientId,
-      'client_secret': this.clientSecret,
-      'module_secret': this.moduleSecret,
-      'provider_secret': this.providerSecret
-    };
+    try {
+      // ensureBeneficiary can resolve to a DIFFERENT id when the bank account is already
+      // registered at Cashfree, so always transfer against the id it hands back.
+      const beneResult = await this.executeWithRetry(() => this.provider.ensureBeneficiary({
+        beneficiaryId,
+        name: record.beneficiary.Account_Holder_Name,
+        accountNumber: record.beneficiary.Account_Number,
+        ifsc: record.beneficiary.IFSC
+      }));
+      const effectiveBeneficiaryId = (beneResult && beneResult.beneficiaryId) || beneficiaryId;
+      record.beneficiaryId = effectiveBeneficiaryId;
 
-    // In a live network environment with active keys:
-    // const res = await fetch(`${this.decentroBaseUrl}/v2/payments/transfer`, { method: 'POST', headers, body: JSON.stringify(payload) });
-    // In staging / test environment: mock instant simulated acceptance
-    return {
-      instructionId: record.instructionId,
-      decentroTxnId,
-      status: 'PENDING',
-      transferAmount: record.amount,
-      channel: record.channel,
-      dispatchedAt: new Date().toISOString()
-    };
+      const result = await this.executeWithRetry(() => this.provider.createTransfer({
+        transferId,
+        beneficiaryId: effectiveBeneficiaryId,
+        amount: record.amount,
+        mode: record.channel,
+        remarks: `Salary ${batch.period}`.slice(0, 60)
+      }));
+
+      record.status = result.status;                       // SUCCESS | PENDING | FAILURE | REVERSED
+      record.providerReferenceId = result.providerReferenceId || null;
+      record.utr = result.utr || null;
+      record.failureReason = result.status === 'FAILURE' ? (result.message || 'Rejected by gateway') : null;
+      record.dispatchedAt = new Date().toISOString();
+      return {
+        instructionId: record.instructionId,
+        employeeId: record.employeeId,
+        transferId,
+        status: record.status,
+        utr: record.utr,
+        amount: record.amount,
+        channel: record.channel
+      };
+    } catch (err) {
+      // Gateway/business failure for THIS employee must not abort the whole payroll.
+      record.status = 'FAILURE';
+      record.failureReason = err.message;
+      record.dispatchedAt = new Date().toISOString();
+      console.error(`[DISBURSE] Transfer ${transferId} failed: ${err.message}`);
+      return {
+        instructionId: record.instructionId,
+        employeeId: record.employeeId,
+        transferId,
+        status: 'FAILURE',
+        error: err.message,
+        amount: record.amount,
+        channel: record.channel
+      };
+    }
+  }
+
+  /** DISBURSED only when every record settled successfully. */
+  _deriveBatchStatus(batch) {
+    const records = batch.records.filter(r => r.isBeneficiaryValid && r.amount > 0);
+    if (!records.length) return batch.status;
+    if (records.every(r => r.status === 'SUCCESS')) return 'DISBURSED';
+    if (records.some(r => r.status === 'PENDING')) return 'DISBURSING';
+    if (records.some(r => r.status === 'SUCCESS')) return 'PARTIALLY_RECONCILED';
+    return 'FAILED';
   }
 
   /**
-   * Asynchronous Decentro Webhook Callback Listener
-   * Reconciles payment batches idempotently in Firestore.
+   * Polling fallback: if a webhook is dropped, this pulls the authoritative state from
+   * Cashfree so a payout can never sit "PENDING" forever. Safe to run on a schedule.
    */
-  async handleDecentroWebhook(webhookPayload = {}) {
-    const {
-      decentro_txn_id,
-      reference_id,
-      transaction_status,
-      bank_reference_number,
-      response_code,
-      message
-    } = webhookPayload;
+  async reconcilePendingTransfers(batchId) {
+    const batch = await this.getBatch(batchId);
+    if (!batch) throw new Error(`Disbursement batch ${batchId} not found.`);
 
-    if (!decentro_txn_id && !reference_id) {
-      throw new Error("Invalid webhook payload: missing decentro_txn_id or reference_id.");
-    }
-
-    const idempotencyKey = `${decentro_txn_id || reference_id}_${transaction_status}`;
-
-    // Idempotency check: prevent duplicate webhook processing
-    if (this._processedWebhooks.has(idempotencyKey)) {
-      return {
-        idempotent: true,
-        message: `Webhook ${idempotencyKey} has already been processed. Skipping state mutation.`
-      };
-    }
-
-    const normalizedStatus = (transaction_status || 'SUCCESS').toUpperCase(); // SUCCESS, PENDING, FAILURE
-    let reconciledRecord = null;
-    let matchedBatchId = null;
-
-    // Search in local batches or Firestore
-    for (const [bId, batch] of this._localBatches.entries()) {
-      const found = batch.records.find(r => r.decentroTxnId === decentro_txn_id || r.instructionId === reference_id);
-      if (found) {
-        found.status = normalizedStatus;
-        found.utr = bank_reference_number || found.utr || `UTR${Date.now()}`;
-        found.reconciledAt = new Date().toISOString();
-        found.webhookResponse = {
-          response_code: response_code || null,
-          message: message || null
-        };
-        reconciledRecord = found;
-        matchedBatchId = bId;
-
-        // Recalculate batch aggregated status
-        const completedCount = batch.records.filter(r => r.status === 'SUCCESS').length;
-        const failedCount = batch.records.filter(r => r.status === 'FAILURE').length;
-
-        if (completedCount === batch.records.length) {
-          batch.status = 'DISBURSED';
-        } else if (completedCount > 0 || failedCount > 0) {
-          batch.status = 'PARTIALLY_RECONCILED';
+    const pending = batch.records.filter(r => r.status === 'PENDING' && r.cashfreeTransferId);
+    const updated = [];
+    const dirty = [];
+    for (const record of pending) {
+      try {
+        const result = await this.provider.getTransferStatus(record.cashfreeTransferId);
+        if (result.status !== record.status) {
+          record.status = result.status;
+          record.utr = result.utr || record.utr;
+          record.providerReferenceId = result.providerReferenceId || record.providerReferenceId;
+          record.failureReason = result.status === 'FAILURE' ? (result.message || 'Rejected by gateway') : null;
+          record.reconciledAt = new Date().toISOString();
+          updated.push({ transferId: record.cashfreeTransferId, status: record.status, utr: record.utr });
+          dirty.push(record);
         }
-
-        batch.updatedAt = new Date().toISOString();
-        break;
+      } catch (err) {
+        console.warn(`[DISBURSE] Poll failed for ${record.cashfreeTransferId}: ${err.message}`);
       }
     }
 
-    this._processedWebhooks.add(idempotencyKey);
+    if (updated.length) {
+      batch.status = this._deriveBatchStatus(batch);
+      batch.updatedAt = new Date().toISOString();
+      this._localBatches.set(batchId, batch);
+      await this._chunkedBatchSave(batch, dirty);
+    }
+    return { batchId, checked: pending.length, updated: updated.length, changes: updated, status: batch.status };
+  }
 
-    // Persist to Firestore if available
-    if (matchedBatchId && this.db && typeof this.db.collection === 'function') {
-      const batch = this._localBatches.get(matchedBatchId);
-      await this._chunkedBatchSave(batch);
+  /**
+   * Durable idempotency. The previous in-memory Set forgot everything on restart and was
+   * not shared between instances, so a replayed webhook could re-apply after a deploy.
+   * Firestore makes the guard survive restarts and work across horizontally-scaled nodes.
+   */
+  async _alreadyProcessed(idempotencyKey) {
+    if (this._processedWebhooks.has(idempotencyKey)) return true;
+    if (this.db && typeof this.db.collection === 'function') {
+      const snap = await safeDbGet(this.db.collection('webhook_idempotency').doc(idempotencyKey).get());
+      if (snap && snap.exists) {
+        this._processedWebhooks.add(idempotencyKey);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  async _markProcessed(idempotencyKey, meta = {}) {
+    this._processedWebhooks.add(idempotencyKey);
+    if (this.db && typeof this.db.collection === 'function') {
+      await safeDb(this.db.collection('webhook_idempotency').doc(idempotencyKey).set({
+        ...meta, processedAt: new Date().toISOString()
+      }, { merge: true }));
+    }
+  }
+
+  /**
+   * Cashfree webhook listener.
+   *
+   * SECURITY: the signature is verified before any state changes. Without this an
+   * attacker could POST a forged "SUCCESS" and mark an unpaid payroll as disbursed.
+   * Pass the EXACT raw request body — re-serialised JSON will not match the HMAC.
+   */
+  async handleCashfreeWebhook({ rawBody, signature, timestamp, payload } = {}) {
+    const body = payload || (typeof rawBody === 'string' ? JSON.parse(rawBody || '{}') : (rawBody || {}));
+
+    if (this.requireWebhookSignature) {
+      const valid = this.provider.verifyWebhookSignature(
+        typeof rawBody === 'string' ? rawBody : JSON.stringify(body),
+        signature,
+        timestamp
+      );
+      if (!valid) {
+        throw new PayoutValidationError('Cashfree webhook rejected: invalid or missing signature.', 401);
+      }
+    }
+
+    const event = CashfreePayoutProvider.parseWebhook(body);
+    if (!event.transferId) {
+      throw new PayoutValidationError('Invalid webhook payload: missing transfer_id.', 400);
+    }
+
+    const idempotencyKey = `cashfree_${event.transferId}_${event.status}`;
+    if (await this._alreadyProcessed(idempotencyKey)) {
+      return { success: true, idempotent: true, message: `Webhook ${idempotencyKey} already processed.` };
+    }
+
+    let reconciledRecord = null;
+    let matchedBatchId = null;
+
+    const applyTo = (bId, batch) => {
+      const found = batch.records.find(r => r.cashfreeTransferId === event.transferId);
+      if (!found) return false;
+      // Never regress a settled payment back to PENDING on an out-of-order delivery.
+      const isTerminal = ['SUCCESS', 'FAILURE', 'REVERSED'].includes(found.status);
+      if (!(isTerminal && event.status === 'PENDING')) {
+        found.status = event.status;
+        found.utr = event.utr || found.utr;
+        found.providerReferenceId = event.providerReferenceId || found.providerReferenceId;
+        found.failureReason = event.status === 'FAILURE' ? (event.message || 'Rejected by gateway') : null;
+        found.reconciledAt = new Date().toISOString();
+        found.webhookResponse = { rawStatus: event.rawStatus, message: event.message || null };
+      }
+      batch.status = this._deriveBatchStatus(batch);
+      batch.updatedAt = new Date().toISOString();
+      reconciledRecord = found;
+      matchedBatchId = bId;
+      return true;
+    };
+
+    // Local ledger first, then Firestore (so a webhook still lands after a restart).
+    let hit = false;
+    for (const [bId, batch] of this._localBatches.entries()) {
+      if (applyTo(bId, batch)) { hit = true; break; }
+    }
+    if (!hit && this.db && typeof this.db.collection === 'function') {
+      const batchId = String(event.transferId).split('-').slice(0, -1).join('-');
+      const batch = await this._loadBatch(batchId);
+      if (batch) {
+        if (applyTo(batchId, batch)) {
+          this._localBatches.set(batchId, batch);
+          hit = true;
+        }
+      }
+    }
+
+    await this._markProcessed(idempotencyKey, { transferId: event.transferId, status: event.status, batchId: matchedBatchId });
+
+    if (matchedBatchId) {
+      // Only the reconciled record is rewritten; rewriting all of them would cost N
+      // writes per callback, i.e. N^2 writes per payroll run.
+      await this._chunkedBatchSave(this._localBatches.get(matchedBatchId), reconciledRecord ? [reconciledRecord] : []);
+    }
+    if (this.db && typeof this.db.collection === 'function') {
       await safeDb(this.db.collection('webhook_audit_logs').add({
-        gateway: 'Decentro Fabric',
-        decentroTxnId: decentro_txn_id,
-        referenceId: reference_id,
-        status: normalizedStatus,
+        gateway: 'Cashfree Payouts',
+        transferId: event.transferId,
+        providerReferenceId: event.providerReferenceId,
+        status: event.status,
+        rawStatus: event.rawStatus,
+        matched: Boolean(matchedBatchId),
         timestamp: new Date().toISOString()
       }));
     }
@@ -455,9 +632,10 @@ class PayrollDisbursementService {
     return {
       success: true,
       idempotent: false,
+      matched: Boolean(matchedBatchId),
       batchId: matchedBatchId,
-      decentroTxnId: decentro_txn_id,
-      reconciledStatus: normalizedStatus,
+      transferId: event.transferId,
+      reconciledStatus: event.status,
       reconciledRecord
     };
   }
@@ -465,12 +643,85 @@ class PayrollDisbursementService {
   /**
    * Safe Firestore Batch Writer (Chunked to maximum 400 operations per batch)
    */
-  async _chunkedBatchSave(batch) {
-    if (!this.db || typeof this.db.collection !== 'function') return;
+  /** Firestore doc ids may not contain "/" and must be non-empty. */
+  _recordDocId(record, idx) {
+    const raw = String(record.employeeId || record.instructionId || idx);
+    return raw.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 1500) || String(idx);
+  }
 
-    const CHUNK_SIZE = 400; // Well below 500 limit
+  /** The batch WITHOUT its records array - what actually lives in the parent document. */
+  _batchMeta(batch) {
+    const { records, ...meta } = batch;
+    return { ...meta, recordsInSubcollection: true };
+  }
+
+  /**
+   * Writes parent metadata plus the given records, chunked under Firestore's
+   * 500-operations-per-commit limit. Records live in a subcollection, so a batch is
+   * bounded by headcount, not by the 1 MiB document cap.
+   * Returns { ok, error }; with strict:true it throws instead of reporting.
+   */
+  async _persistBatch(batch, recordsToWrite = [], { strict = false } = {}) {
+    if (!this.db || typeof this.db.collection !== 'function') return { ok: true, error: null };
+
+    const CHUNK_SIZE = 400; // comfortably below the 500-operation commit limit
     const batchRef = this.db.collection('disbursement_batches').doc(batch.batchId);
-    await safeDb(batchRef.set(batch, { merge: true }));
+
+    try {
+      await batchRef.set(this._batchMeta(batch), { merge: true });
+
+      const records = recordsToWrite || [];
+      const canCommit = typeof this.db.batch === 'function';
+      for (let i = 0; i < records.length; i += CHUNK_SIZE) {
+        const slice = records.slice(i, i + CHUNK_SIZE);
+        if (canCommit) {
+          const writer = this.db.batch();
+          slice.forEach((rec, j) =>
+            writer.set(batchRef.collection('records').doc(this._recordDocId(rec, i + j)), rec));
+          await writer.commit();
+        } else {
+          for (let j = 0; j < slice.length; j++) {
+            await batchRef.collection('records').doc(this._recordDocId(slice[j], i + j)).set(slice[j]);
+          }
+        }
+      }
+      return { ok: true, error: null };
+    } catch (err) {
+      // A persist failure after money has moved must never be reported as success.
+      console.error('[DISBURSE_DB] FAILED to persist batch ' + batch.batchId + ': ' + err.message);
+      if (strict) throw new Error('Could not persist disbursement batch ' + batch.batchId + ': ' + err.message);
+      return { ok: false, error: err.message };
+    }
+  }
+
+  /** Reads a batch and reattaches its records, transparently handling legacy inline batches. */
+  async _loadBatch(batchId) {
+    if (!this.db || typeof this.db.collection !== 'function') return null;
+    const batchRef = this.db.collection('disbursement_batches').doc(batchId);
+    const snap = await safeDbGet(batchRef.get());
+    if (!snap || !snap.exists) return null;
+    const batch = snap.data();
+
+    // Legacy batches (written before records moved to a subcollection) keep them inline.
+    if (Array.isArray(batch.records) && batch.records.length) return batch;
+
+    const records = [];
+    try {
+      const sub = await batchRef.collection('records').get();
+      if (sub && Array.isArray(sub.docs)) sub.docs.forEach(d => records.push(d.data()));
+      else if (sub && typeof sub.forEach === 'function') sub.forEach(d => records.push(d.data()));
+    } catch (err) {
+      console.error('[DISBURSE_DB] Could not read records for ' + batchId + ': ' + err.message);
+    }
+    records.sort((a, b) => String(a.instructionId).localeCompare(String(b.instructionId), undefined, { numeric: true }));
+    batch.records = records;
+    return batch;
+  }
+
+  /** Saves batch metadata plus only the records that changed. */
+  async _chunkedBatchSave(batch, changedRecords = null) {
+    if (!batch) return { ok: true, error: null };
+    return this._persistBatch(batch, changedRecords === null ? (batch.records || []) : changedRecords);
   }
 
   /**
@@ -478,10 +729,7 @@ class PayrollDisbursementService {
    */
   async getBatch(batchId) {
     let batch = this._localBatches.get(batchId);
-    if (!batch && this.db && typeof this.db.collection === 'function') {
-      const snap = await safeDbGet(this.db.collection('disbursement_batches').doc(batchId).get());
-      if (snap && snap.exists) batch = snap.data();
-    }
+    if (!batch) batch = await this._loadBatch(batchId);
     return batch || null;
   }
 }
@@ -489,5 +737,6 @@ class PayrollDisbursementService {
 module.exports = {
   PayrollDisbursementService,
   MakerCheckerViolationError,
-  DecentroApiError
+  PayoutValidationError,
+  CashfreeApiError
 };

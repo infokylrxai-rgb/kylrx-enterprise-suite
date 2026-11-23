@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const logger = require('../utils/logger');
 const { db, rawCollection } = require('../config/firebase');
+const { firebaseProjectInfo } = require('../config/firebase');
 const { orgDocs } = require('../config/tenant');
 
 /**
@@ -452,7 +453,7 @@ async function fetchLiveFirebaseRecords(dataSource, orgId = null) {
                     records,
                     source: 'firebase_live',
                     collection: 'policies & policy_audit',
-                    cloudProject: 'kylrxai'
+                    cloudProject: firebaseProjectInfo().projectId
                 };
             }
         }
@@ -488,7 +489,7 @@ async function fetchLiveFirebaseRecords(dataSource, orgId = null) {
                     records,
                     source: 'firebase_live',
                     collection: 'users',
-                    cloudProject: 'kylrxai'
+                    cloudProject: firebaseProjectInfo().projectId
                 };
             }
         }
@@ -518,7 +519,7 @@ async function fetchLiveFirebaseRecords(dataSource, orgId = null) {
                     records,
                     source: 'firebase_live',
                     collection: 'attendance',
-                    cloudProject: 'kylrxai'
+                    cloudProject: firebaseProjectInfo().projectId
                 };
             }
         }
@@ -548,7 +549,7 @@ async function fetchLiveFirebaseRecords(dataSource, orgId = null) {
                     records,
                     source: 'firebase_live',
                     collection: 'payroll_runs',
-                    cloudProject: 'kylrxai'
+                    cloudProject: firebaseProjectInfo().projectId
                 };
             }
         }
@@ -598,7 +599,7 @@ async function fetchLiveFirebaseRecords(dataSource, orgId = null) {
                 };
             });
             if (records.length > 0) {
-                return { records, source: 'firebase_live', collection: 'performance_metrics & pms_tasks', cloudProject: 'kylrxai' };
+                return { records, source: 'firebase_live', collection: 'performance_metrics & pms_tasks', cloudProject: firebaseProjectInfo().projectId };
             }
         }
 
@@ -641,7 +642,7 @@ async function fetchLiveFirebaseRecords(dataSource, orgId = null) {
                 };
             });
             if (records.length > 0) {
-                return { records, source: 'firebase_live', collection: 'employees, users & gratuity_settlements', cloudProject: 'kylrxai' };
+                return { records, source: 'firebase_live', collection: 'employees, users & gratuity_settlements', cloudProject: firebaseProjectInfo().projectId };
             }
         }
     } catch (e) {
@@ -668,7 +669,7 @@ async function executeCustomQuery(queryConfig = {}) {
     let liveMetadata = {
         source: 'firebase_live',
         collection: dataSource,
-        cloudProject: 'kylrxai',
+        cloudProject: firebaseProjectInfo().projectId,
         status: 'Connected'
     };
 
@@ -681,7 +682,7 @@ async function executeCustomQuery(queryConfig = {}) {
                 liveMetadata = {
                     source: liveResult.source || 'firebase_live',
                     collection: liveResult.collection || dataSource,
-                    cloudProject: liveResult.cloudProject || 'kylrxai',
+                    cloudProject: liveResult.cloudProject || firebaseProjectInfo().projectId,
                     status: 'Live Cloud Firestore'
                 };
             } else if (orgId) {
@@ -838,7 +839,7 @@ async function executeCustomQuery(queryConfig = {}) {
     return {
         success: true,
         source: liveMetadata.source || 'firebase_live',
-        cloudProject: liveMetadata.cloudProject || 'kylrxai',
+        cloudProject: liveMetadata.cloudProject || firebaseProjectInfo().projectId,
         collection: liveMetadata.collection || dataSource,
         firebaseStatus: liveMetadata.status || 'Live Cloud Firestore',
         query: {

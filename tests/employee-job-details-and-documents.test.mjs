@@ -180,11 +180,13 @@ describe('PRD Section 13: Employee Job Details and Official Documents Subsystem'
     });
 
     describe('2. Firebase Storage & Firestore Security Rules', () => {
-        test('storage.rules contains employee document storage rules with path employees/{employeeId}/documents/{fileName}', () => {
+        test('storage.rules contains organization-scoped employee document rules at orgs/{orgId}/employees/{employeeId}/documents/{fileName}', () => {
             const storageRules = fs.readFileSync(path.join(rootDir, 'storage.rules'), 'utf-8');
-            assert.match(storageRules, /match\s+\/employees\/\{employeeId\}\/documents\/\{fileName\}/);
-            assert.match(storageRules, /ownsEmployeeRecord\(employeeId\)/);
-            assert.match(storageRules, /isStaff\(\)/);
+            assert.match(storageRules, /match\s+\/orgs\/\{orgId\}\/employees\/\{employeeId\}\/documents\/\{fileName\}/);
+            assert.match(storageRules, /inOrg\(orgId\) && \(ownsEmployeeRecord\(employeeId\) \|\| isStaff\(\)\)/);
+            assert.match(storageRules, /request\.auth\.token\.orgId == orgId/);
+            // the old, organization-less path no longer exists
+            assert.doesNotMatch(storageRules, /match\s+\/employees\/\{employeeId\}\/documents/);
         });
 
         test('firestore.rules protects employees collection and official documents', () => {

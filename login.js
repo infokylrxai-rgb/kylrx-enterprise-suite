@@ -10,8 +10,7 @@ async function getRedirectUrl(userData, role) {
     }
     const cleanRole = (role || '').toLowerCase().replace(/[\s_-]+/g, '');
     if (cleanRole === 'superadmin' || cleanRole === 'admin') {
-        const orgId = userData?.orgId || localStorage.getItem('orgId') || 'org_kylrx_ai';
-        localStorage.setItem('orgId', orgId);
+        if (userData?.orgId) localStorage.setItem('orgId', userData.orgId);
         localStorage.setItem('orgConfigured', 'true');
         return 'admin-dashboard.html';
     } else if (cleanRole === 'hradmin' || cleanRole === 'hrms' || cleanRole === 'hr') {
@@ -41,7 +40,6 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('errorMessage');
 const loginBtn = document.getElementById('loginBtn');
-const credentialsBtn = document.getElementById('credentialsBtn');
 
 // ===== Password Show/Hide Toggle =====
 document.querySelectorAll('.eye-btn').forEach(btn => {
@@ -62,101 +60,6 @@ document.querySelectorAll('.eye-btn').forEach(btn => {
         }
     });
 });
-
-// ═══════════ DEMO ROLES QUICK ACCESS MODAL ══════════════════════════════════
-const demoModal = document.getElementById('demoRolesModal');
-const closeDemoBtn = document.getElementById('closeDemoRolesBtn');
-const selectSuperAdmin = document.getElementById('selectSuperAdmin');
-const selectHrAdmin = document.getElementById('selectHrAdmin');
-const selectManager = document.getElementById('selectManager');
-const selectEmployee = document.getElementById('selectEmployee');
-
-if (credentialsBtn && demoModal) {
-    credentialsBtn.addEventListener('click', () => {
-        demoModal.style.display = 'flex';
-        if (window.lucide) lucide.createIcons();
-    });
-}
-if (closeDemoBtn && demoModal) {
-    closeDemoBtn.addEventListener('click', () => { demoModal.style.display = 'none'; });
-    demoModal.addEventListener('click', (e) => { if (e.target === demoModal) demoModal.style.display = 'none'; });
-}
-
-if (selectSuperAdmin) {
-    selectSuperAdmin.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'superadmin@kylrx.ai';
-        if (passwordInput) passwordInput.value = 'Kylrx#SuperAdmin2026!Secured';
-        demoModal.style.display = 'none';
-        loginBtn?.click();
-    });
-}
-
-if (selectHrAdmin) {
-    selectHrAdmin.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'hradmin@kylrx.ai';
-        if (passwordInput) passwordInput.value = 'Kylrx#HrAdmin2026!Secured';
-        demoModal.style.display = 'none';
-        loginBtn?.click();
-    });
-}
-
-if (selectManager) {
-    selectManager.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'john.doe@example.com';
-        if (passwordInput) passwordInput.value = 'UNIT-CYB-802-Manager-John@2026!';
-        demoModal.style.display = 'none';
-        loginBtn?.click();
-    });
-}
-
-if (selectEmployee) {
-    selectEmployee.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'marry@gmail.com';
-        if (passwordInput) passwordInput.value = 'UNIT-CYB-799-Employee-Marry@2026!';
-        demoModal.style.display = 'none';
-        loginBtn?.click();
-    });
-}
-
-// ═══════════ 1-CLICK ROLE DEMO BUTTONS ═══════════════════════════════════════
-const btnQuickSuperAdmin = document.getElementById('btnQuickSuperAdmin');
-const btnQuickHrAdmin = document.getElementById('btnQuickHrAdmin');
-const btnQuickManager = document.getElementById('btnQuickManager');
-const btnQuickEmployee = document.getElementById('btnQuickEmployee');
-
-if (btnQuickSuperAdmin) {
-    btnQuickSuperAdmin.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'superadmin@kylrx.ai';
-        if (passwordInput) passwordInput.value = 'Kylrx#SuperAdmin2026!Secured';
-        loginBtn?.click();
-    });
-}
-
-if (btnQuickHrAdmin) {
-    btnQuickHrAdmin.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'Savitha.balraju@GMAIL.COM';
-        if (passwordInput) passwordInput.value = 'SYSTEM-Hrms-Savitha@2026!';
-        localStorage.setItem('hrms_manager_name', 'Savitha Balraju');
-        localStorage.setItem('hrms_manager_role', 'Strategic Operations');
-        loginBtn?.click();
-    });
-}
-
-if (btnQuickManager) {
-    btnQuickManager.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'john.doe@example.com';
-        if (passwordInput) passwordInput.value = 'UNIT-CYB-802-Manager-John@2026!';
-        loginBtn?.click();
-    });
-}
-
-if (btnQuickEmployee) {
-    btnQuickEmployee.addEventListener('click', () => {
-        if (emailInput) emailInput.value = 'marry@gmail.com';
-        if (passwordInput) passwordInput.value = 'UNIT-CYB-799-Employee-Marry@2026!';
-        loginBtn?.click();
-    });
-}
 
 // ═══════════ FORGOT PASSWORD MODAL ═══════════════════════════════════════════
 (function setupForgotPassword() {
@@ -243,216 +146,49 @@ try {
     console.warn('Session storage pre-fill failed:', e);
 }
 
-loginForm?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const email = emailInput.value.trim();
-  const password = passwordInput.value.trim();
+// Everything after a verified Firebase sign-in: role from the token claims or profile, local cache, redirect.
+// Shared by the password form and (when demo mode is on) the demo sign-in in demo-login.js.
+async function finishSignIn(userCredential, email) {
   const cleanEmail = email.toLowerCase();
-  
-  const btnText = loginBtn.querySelector('span');
-  const originalText = btnText.textContent;
-  btnText.textContent = 'Authenticating...';
-  loginBtn.disabled = true;
-  errorMessage.style.display = 'none';
+  const btnText = loginBtn && loginBtn.querySelector('span');
+    const finalUid = userCredential.user.uid;
+    const token = userCredential.user.accessToken;
 
-  try {
-    let userData = null;
-    let finalUid = null;
-    let token = null;
-    let lastAuthError = null;
-
-    const isSuperAdminAccount = cleanEmail === 'superadmin@kylrx.ai' || cleanEmail === 'nandanb449@gmail.com' || cleanEmail === 'admin@kylrx.ai' || cleanEmail === 'admin@demo.com' || cleanEmail.includes('superadmin') || cleanEmail.includes('admin');
-    const isHrAccount = cleanEmail === 'savitha.balraju@gmail.com' || cleanEmail === 'hradmin@kylrx.ai' || cleanEmail === 'hrms@kylrx.ai' || cleanEmail.includes('hradmin') || cleanEmail.includes('hrms') || cleanEmail.includes('savitha');
-    const isManagerAccount = cleanEmail === 'john.doe@example.com' || cleanEmail === 'manager@kylrx.ai' || cleanEmail === 'manager' || cleanEmail.includes('manager');
-    const isEmployeeAccount = cleanEmail === 'marry@gmail.com' || cleanEmail === 'employee@kylrx.ai';
-
-    // Strategy 1: Firebase Authentication (direct attempt with entered credentials first)
+    // Server-assigned custom claims (set via the Admin SDK only) are the authoritative role
+    let claimRole = null;
+    let claimOrgId = null;
     try {
-      let userCredential;
+      const tokenResult = await userCredential.user.getIdTokenResult();
+      claimRole = tokenResult.claims.role || (tokenResult.claims.super_admin ? 'super_admin' : null);
+      claimOrgId = tokenResult.claims.orgId || null;
+    } catch (_) {}
+
+    // The role comes only from those claims or from the user's Firestore profile, never from the email text
+    let userData = null;
+    const userDoc = await getDoc(doc(db, "users", finalUid));
+    if (userDoc.exists()) {
+      userData = userDoc.data();
+      userData.uid = finalUid;
+    } else {
+      // Profile stored under another id (for example an employee record created by HR): find it by the signed-in email
       try {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-      } catch (firstErr) {
-        // Only allow fallback if the user is using designated demo credentials
-        const validDemoMap = {
-          'superadmin@kylrx.ai': 'Kylrx#SuperAdmin2026!Secured',
-          'hradmin@kylrx.ai': 'Kylrx#HrAdmin2026!Secured',
-          'savitha.balraju@gmail.com': 'SYSTEM-Hrms-Savitha@2026!',
-          'john.doe@example.com': 'UNIT-CYB-802-Manager-John@2026!',
-          'marry@gmail.com': 'UNIT-CYB-799-Employee-Marry@2026!',
-          'employee@kylrx.ai': 'UNIT-CYB-799-Employee-Marry@2026!'
-        };
-        if (validDemoMap[cleanEmail] && validDemoMap[cleanEmail] === password.trim()) {
-          userCredential = await signInWithEmailAndPassword(auth, cleanEmail, validDemoMap[cleanEmail]);
-        } else {
-          throw firstErr;
-        }
-      }
-      finalUid = userCredential.user.uid;
-      token = userCredential.user.accessToken;
-
-      // Server-assigned custom claims (set via the Admin SDK only) are the authoritative role
-      let claimRole = null;
-      let claimOrgId = null;
-      try {
-        const tokenResult = await userCredential.user.getIdTokenResult();
-        claimRole = tokenResult.claims.role || (tokenResult.claims.super_admin ? 'super_admin' : null);
-        claimOrgId = tokenResult.claims.orgId || null;
-      } catch (_) {}
-
-      const userDoc = await getDoc(doc(db, "users", finalUid));
-      if (userDoc.exists()) {
-        userData = userDoc.data();
-        userData.uid = finalUid;
-        if (claimRole) userData.role = claimRole;
-        if (claimOrgId && !userData.orgId) userData.orgId = claimOrgId;
-        // Check for EMP doc or query by email in users collection
-        try {
-          const empDoc = await getDoc(doc(db, "users", "EMP_1789151730443"));
-          if (empDoc.exists() && empDoc.data().email === cleanEmail) {
-            userData = empDoc.data();
-            userData.uid = finalUid;
-          }
-        } catch (_) {}
-
-        if (!userData) {
-          try {
-            const q = query(collection(db, "users"), where("email", "in", [cleanEmail, email]));
-            const querySnap = await getDocs(q);
-            if (!querySnap.empty) {
-              userData = querySnap.docs[0].data();
-              userData.uid = finalUid;
-            }
-          } catch (_) {}
-        }
-      }
-
-      if (!userData) {
-        const roleDetermined = isSuperAdminAccount ? 'SUPER_ADMIN' : (isHrAccount ? 'hrms' : (isManagerAccount ? 'manager' : 'employee'));
-        const deptDetermined = isSuperAdminAccount ? 'Executive' : (isHrAccount ? 'Human Resources' : (isManagerAccount ? 'Cybersecurity Manager' : 'Engineering'));
-        const namePart = email.split('@')[0].replace(/[._-]/g, ' ');
-        const formattedName = namePart.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'User';
-
-        userData = {
-          uid: finalUid,
-          email: email,
-          name: isSuperAdminAccount ? 'Nandan' : (isHrAccount ? 'Savitha' : (isManagerAccount ? 'John Doe' : (cleanEmail === 'marry@gmail.com' ? 'Marry Doe' : formattedName))),
-          role: roleDetermined,
-          department: deptDetermined,
-          departmentName: deptDetermined,
-          departmentCode: isManagerAccount ? 'UNIT-CYB-802' : '',
-          departmentId: isManagerAccount ? 'Yksv1DMH9pIeRhNxQ8E3' : '',
-          employeeId: isManagerAccount ? 'UNIT-CYB-802-SMCU' : ('EMP-' + Math.floor(1000 + Math.random() * 9000)),
-          status: 'Active'
-        };
-      }
-    } catch (authErr) {
-      lastAuthError = authErr;
-      if (authErr.code !== 'auth/invalid-credential' && authErr.code !== 'auth/user-not-found' && authErr.code !== 'auth/wrong-password') {
-        console.warn("Firebase Auth status:", authErr.code || authErr.message);
-      }
-    }
-
-    if (userData && isManagerAccount) {
-      userData.role = 'manager';
-      if (!userData.name) userData.name = 'John Doe';
-      if (!userData.departmentName) userData.departmentName = 'Cybersecurity Manager';
-      if (!userData.departmentCode) userData.departmentCode = 'UNIT-CYB-802';
-      if (!userData.departmentId) userData.departmentId = 'Yksv1DMH9pIeRhNxQ8E3';
-    }
-
-    // Strategy 2: Direct Firestore query by email (handles temporary passwords & custom credentials)
-    if (!userData) {
-      try {
-        const q = query(collection(db, 'users'), where('email', 'in', [cleanEmail, email, 'john.doe@example.com']));
+        const q = query(collection(db, "users"), where("email", "in", [cleanEmail, email]));
         const querySnap = await getDocs(q);
         if (!querySnap.empty) {
-          for (const d of querySnap.docs) {
-            const u = d.data();
-            const storedPw = u.password || u.tempPassword || u.temporary_password || u.temp_password;
-            if (storedPw && (storedPw === password || storedPw.trim() === password.trim())) {
-              userData = u;
-              finalUid = d.id;
-              break;
-            }
-          }
+          userData = querySnap.docs[0].data();
+          userData.uid = finalUid;
         }
-      } catch (dbErr) {
-        console.warn("Firestore credentials query:", dbErr.message);
-      }
+      } catch (_) {}
     }
-
-    // Strategy 3: Offline / Demo mode fallback ONLY for authorized passwords
-    const validAuthorizedPasswords = [
-      'Nansav@04',
-      'SYSTEM-Hrms-Savitha@2026!',
-      'UNIT-CYB-802-Manager-John@2026!',
-      'UNIT-CYB-799-Employee-Marry@2026!',
-      'Kylrx#SuperAdmin2026!Secured',
-      'Kylrx#HrAdmin2026!Secured',
-      'Kylrx#Employee2026!Secured'
-    ];
-    const passwordIsValidMasterOrDemo = validAuthorizedPasswords.includes(password.trim());
-
+    if (!userData && claimRole) userData = { uid: finalUid, email: email, name: email, status: 'Active' };
     if (!userData) {
-      if (passwordIsValidMasterOrDemo) {
-        if (isSuperAdminAccount) {
-          userData = {
-            uid: 'superadmin_' + Date.now(),
-            name: 'Nandan',
-            email: email || 'superadmin@kylrx.ai',
-            role: 'SUPER_ADMIN',
-            department: 'Executive',
-            departmentId: 'executive'
-          };
-          finalUid = userData.uid;
-        } else if (isHrAccount) {
-          userData = {
-            uid: 'EMP_1789286607504',
-            name: 'Savitha',
-            email: email || 'Savitha.balraju@GMAIL.COM',
-            role: 'hrms',
-            department: 'General',
-            departmentId: 'hrms'
-          };
-          finalUid = userData.uid;
-        } else if (isManagerAccount) {
-          userData = {
-            uid: 'EMP_1789151730443',
-            name: 'John Doe',
-            email: email || 'john.doe@example.com',
-            role: 'manager',
-            department: 'Cybersecurity Manager',
-            departmentName: 'Cybersecurity Manager',
-            departmentCode: 'UNIT-CYB-802',
-            departmentId: 'Yksv1DMH9pIeRhNxQ8E3',
-            employeeId: 'UNIT-CYB-802-SMCU',
-            status: 'Active'
-          };
-          finalUid = userData.uid;
-        } else if (cleanEmail === 'marry@gmail.com') {
-          userData = {
-            uid: 'EMP_1789230184645',
-            name: 'Marry Doe',
-            email: email,
-            role: 'employee',
-            department: 'Engineering',
-            departmentName: 'Engineering & Operations',
-            departmentId: 'engineering',
-            employeeId: 'EMP-7729',
-            status: 'Active'
-          };
-          finalUid = userData.uid;
-        }
-      }
-
-      if (!userData) {
-        if (lastAuthError) throw lastAuthError;
-        throw new Error("Invalid credentials. Please verify your password or use 'Forgot Password'.");
-      }
+      try { await signOut(auth); } catch (_) {}
+      throw new Error("Access Denied: no profile or role is assigned to this account. Please contact your administrator.");
     }
+    if (claimRole) userData.role = claimRole;
+    if (claimOrgId && !userData.orgId) userData.orgId = claimOrgId;
 
-    const role = (userData.role || (isManagerAccount ? 'manager' : 'employee')).toLowerCase();
+    const role = (userData.role || 'employee').toLowerCase();
     const dept = (userData.departmentId || userData.department || userData.departmentName || 'General').toLowerCase();
 
     console.log('✅ Login successful for:', email, 'Role:', role);
@@ -468,20 +204,40 @@ loginForm?.addEventListener('submit', async (e) => {
     if (userData.departmentName) localStorage.setItem('departmentName', userData.departmentName);
     if (userData.departmentCode) localStorage.setItem('departmentCode', userData.departmentCode);
     if (role === 'manager') {
-      localStorage.setItem('manager_name', userData.name || 'John Doe');
+      localStorage.setItem('manager_name', userData.name || email);
       localStorage.setItem('manager_email', userData.email || email);
-      localStorage.setItem('manager_dept', userData.departmentName || 'Cybersecurity Manager');
-      localStorage.setItem('manager_dept_code', userData.departmentCode || 'UNIT-CYB-802');
+      localStorage.setItem('manager_dept', userData.departmentName || '');
+      localStorage.setItem('manager_dept_code', userData.departmentCode || '');
     }
-    if (role === 'hrms' || role === 'hr_admin' || role === 'hr' || isHrAccount) {
-      localStorage.setItem('hrms_manager_name', 'Savitha Balraju');
+    if (role === 'hrms' || role === 'hr_admin' || role === 'hr') {
+      localStorage.setItem('hrms_manager_name', userData.name || email);
       localStorage.setItem('hrms_manager_role', 'Strategic Operations');
-      localStorage.setItem('hrms_name', 'Savitha Balraju');
+      localStorage.setItem('hrms_name', userData.name || email);
     }
 
     const redirectUrl = await getRedirectUrl(userData, role);
     if (btnText) btnText.textContent = 'Redirecting to your workspace...';
     window.location.href = redirectUrl;
+}
+window.kylrxFinishSignIn = finishSignIn;
+
+loginForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+  const cleanEmail = email.toLowerCase();
+  
+  const btnText = loginBtn.querySelector('span');
+  const originalText = btnText.textContent;
+  btnText.textContent = 'Authenticating...';
+  loginBtn.disabled = true;
+  errorMessage.style.display = 'none';
+
+  try {
+    // Firebase Authentication with the typed email and password is the only way in
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    await finishSignIn(userCredential, email);
 
   } catch (error) {
     if (error.message && error.message.includes('Access Denied')) {
@@ -625,7 +381,7 @@ if (googleLoginBtn) {
         // Save complete enterprise session credentials to localStorage
         localStorage.setItem('hr_logged_in', 'true');
         localStorage.setItem('hr_user_id', finalUid);
-        localStorage.setItem('hr_access_token', userAuth.accessToken || 'demo-static-token');
+        if (userAuth.accessToken) localStorage.setItem('hr_access_token', userAuth.accessToken);
         localStorage.setItem('userName', userData.name || userData.displayName || email);
         localStorage.setItem('userRole', role);
         localStorage.setItem('user_role', role);
@@ -636,20 +392,19 @@ if (googleLoginBtn) {
         if (userData.departmentName) localStorage.setItem('departmentName', userData.departmentName);
         if (userData.departmentCode) localStorage.setItem('departmentCode', userData.departmentCode);
 
-        const orgId = userData.orgId || localStorage.getItem('orgId') || 'org_kylrx_ai';
-        localStorage.setItem('orgId', orgId);
+        if (userData.orgId) localStorage.setItem('orgId', userData.orgId);
         localStorage.setItem('orgConfigured', 'true');
 
         if (role === 'manager' || isManagerAccount) {
-            localStorage.setItem('manager_name', userData.name || 'John Doe');
+            localStorage.setItem('manager_name', userData.name || email);
             localStorage.setItem('manager_email', userData.email || email);
-            localStorage.setItem('manager_dept', userData.departmentName || 'Cybersecurity Manager');
-            localStorage.setItem('manager_dept_code', userData.departmentCode || 'UNIT-CYB-802');
+            localStorage.setItem('manager_dept', userData.departmentName || '');
+            localStorage.setItem('manager_dept_code', userData.departmentCode || '');
         }
         if (role === 'hrms' || role === 'hr_admin' || role === 'hr' || isHrAccount) {
-            localStorage.setItem('hrms_manager_name', userData.name || 'Savitha Balraju');
+            localStorage.setItem('hrms_manager_name', userData.name || email);
             localStorage.setItem('hrms_manager_role', 'Strategic Operations');
-            localStorage.setItem('hrms_name', userData.name || 'Savitha Balraju');
+            localStorage.setItem('hrms_name', userData.name || email);
         }
 
         const redirectUrl = await getRedirectUrl(userData, role);

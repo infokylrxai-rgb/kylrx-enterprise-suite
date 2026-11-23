@@ -179,7 +179,7 @@ class PayrollEmailAccountService {
                 {
                     id: 'EMP-1001',
                     name: 'Alex Rivera',
-                    email: 'alex.rivera@kylrxai.com',
+                    email: 'alex.rivera@example.com',
                     role: 'employee',
                     department: 'Engineering',
                     managerId: 'MGR-2001',
@@ -221,7 +221,7 @@ class PayrollEmailAccountService {
                 {
                     id: 'MGR-2001',
                     name: 'David Sterling',
-                    email: 'david.sterling@kylrxai.com',
+                    email: 'david.sterling@example.com',
                     role: 'manager',
                     department: 'Engineering',
                     managerId: 'ADM-001',

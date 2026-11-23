@@ -24,7 +24,10 @@
 
 import crypto from 'node:crypto';
 
-// Default cryptographic signing key for privileged export jobs
+// Default cryptographic signing key for privileged export jobs (production must supply its own)
+if (process.env.NODE_ENV === 'production' && !process.env.KYLRX_EXPORT_SIGNING_KEY) {
+  throw new Error('Missing required environment variable in production: KYLRX_EXPORT_SIGNING_KEY');
+}
 const DEFAULT_EXPORT_SIGNING_SECRET = process.env.KYLRX_EXPORT_SIGNING_KEY || 'kylrx-enterprise-hmac-sha256-export-secret-key-2026';
 
 /* ============================================================================
@@ -304,7 +307,7 @@ export class MakerCheckerGuard {
         const batch = getBatch ? await getBatch(req) : req.batch;
         const checkerId = getCheckerId
           ? await getCheckerId(req)
-          : (req.user?.user_id || req.body?.checker_id || req.headers['x-user-id']);
+          : (req.user?.user_id || req.user?.id);
 
         MakerCheckerGuard.assertSeparationOfDuties({
           batch,

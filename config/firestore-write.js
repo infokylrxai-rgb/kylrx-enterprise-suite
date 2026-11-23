@@ -35,11 +35,14 @@ function isQuotaError(err) {
  * "writes are accepted".
  */
 async function writesRefusedByQuota() {
+    // Local test database (Firestore emulator): no quota applies
+    if (process.env.FIRESTORE_EMULATOR_HOST) return false;
     try {
         const { admin } = require('./firebase');
         if (!admin.apps.length) return false;
         const app = admin.app();
-        const projectId = app.options.projectId || (app.options.credential && app.options.credential.projectId) || 'kylrxai';
+        const projectId = app.options.projectId || (app.options.credential && app.options.credential.projectId);
+        if (!projectId) return false;
         const { access_token: token } = await app.options.credential.getAccessToken();
         const database = `projects/${projectId}/databases/(default)`;
         const res = await fetch(`https://firestore.googleapis.com/v1/${database}/documents:commit`, {
@@ -96,6 +99,7 @@ async function confirmedWrite(write) {
 /** Whether Firestore currently accepts writes (cached briefly; used by the browser before direct writes). */
 let statusCache = { at: 0, accepting: true };
 async function writeStatus() {
+    if (process.env.FIRESTORE_EMULATOR_HOST) return { accepting: true, localTestDatabase: true };
     if (Date.now() < unavailableUntil) return { accepting: false };
     if (Date.now() - statusCache.at > 30000) {
         const refused = await writesRefusedByQuota();

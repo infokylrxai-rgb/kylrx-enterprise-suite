@@ -45,14 +45,26 @@ service cloud.firestore {
       );
     }
 
+    // HR / admin roles (everything in isStaff except managers and super admins)
+    function isHrRole() {
+      return signedIn() && getRole() in [
+        'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR', 'hradmin', 'HR Admin', 'hr_admin'
+      ];
+    }
+
     function isStaff() {
       return signedIn() && (
         isSuperAdmin() ||
-        getRole() in [
-          'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR', 'hradmin', 'HR Admin',
-          'manager', 'Manager'
-        ]
+        isHrRole() ||
+        getRole() in ['manager', 'Manager']
       );
+    }
+
+    function isAdminRoleName(role) {
+      return role in [
+        'super_admin', 'SUPER_ADMIN', 'super admin', 'Super Admin', 'superadmin',
+        'admin', 'Admin'
+      ];
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -76,14 +88,18 @@ service cloud.firestore {
       return signedIn() && isStaff() && (isOrgConfigured(orgId) || !isSuperAdmin());
     }
 
+    // Missing linkedAuthUid / email must evaluate to "not the owner", not to a rule error
     function ownsEmployeeId(employeeId) {
       return signedIn() && (
         request.auth.uid == employeeId
         || (
           userExists(employeeId)
           && (
-            userDoc(employeeId).linkedAuthUid == request.auth.uid
-            || userDoc(employeeId).email == request.auth.token.email
+            userDoc(employeeId).get('linkedAuthUid', null) == request.auth.uid
+            || (
+              request.auth.token.get('email', null) != null
+              && userDoc(employeeId).get('email', null) == request.auth.token.get('email', null)
+            )
           )
         )
       );
@@ -106,6 +122,16 @@ service cloud.firestore {
     // Existing doc must be ours and orgId may not be changed
     function tenantUpdate() {
       return tenantRead() && request.resource.data.orgId == resource.data.orgId;
+    }
+
+    // Maker-checker ids; tolerate batches that never had a maker_checker map
+    // (reading a missing field makes the whole rule error, i.e. PERMISSION_DENIED)
+    function makerOf(d) {
+      return d.get('maker_checker', {}).get('maker_id', null);
+    }
+
+    function checkerOf(d) {
+      return d.get('maker_checker', {}).get('checker_id', null);
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -176,14 +202,32 @@ service cloud.firestore {
         allow write: if canAccessAdmin() && isSameTenant(orgId);
       }
 
+      // Approvals: only staff may create or decide; nobody but a super admin may act on
+      // a request they started themselves (no self-approval). Employees can read only.
+      function initiatorOf(d) {
+        return d.get('initiatorId', d.get('requesterId', null));
+      }
+
+      function startedByCaller(d) {
+        return initiatorOf(d) != null && ownsEmployeeId(initiatorOf(d));
+      }
+
+      function approvalWriteOk(d) {
+        return signedIn() && isSameTenant(orgId) && isStaff() && (isSuperAdmin() || !startedByCaller(d));
+      }
+
       match /workflow_instances/{instanceId} {
         allow read: if signedIn() && isSameTenant(orgId);
-        allow write: if signedIn() && isSameTenant(orgId);
+        allow create: if approvalWriteOk(request.resource.data);
+        allow update: if approvalWriteOk(resource.data) && approvalWriteOk(request.resource.data);
+        allow delete: if canAccessAdmin() && isSameTenant(orgId);
       }
 
       match /approval_tasks/{taskId} {
         allow read: if signedIn() && isSameTenant(orgId);
-        allow write: if signedIn() && isSameTenant(orgId);
+        allow create: if approvalWriteOk(request.resource.data);
+        allow update: if approvalWriteOk(resource.data) && approvalWriteOk(request.resource.data);
+        allow delete: if canAccessAdmin() && isSameTenant(orgId);
       }
 
       // Statutory Profiles (PRD §§ 1, 4, 11, & 13)
@@ -203,7 +247,9 @@ service cloud.firestore {
       }
 
       // Any other org-owned configuration (business_units, cost_centers, shifts,
-      // employee_types, employee_finance, sub_departments, ...): same org only
+      // employee_types, employee_finance, sub_departments, ...): readable by the org,
+      // writable only by super admins and HR/admin roles. Managers and employees are
+      // read-only here, so they cannot plant arbitrary data in the org tree.
       // (Explicitly matched subcollections above are excluded so this never loosens them.)
       function isExplicitSubCollection(name) {
         return name in [
@@ -216,7 +262,7 @@ service cloud.firestore {
 
       match /{subCollection}/{docId} {
         allow read: if signedIn() && isSameTenant(orgId) && !isExplicitSubCollection(subCollection);
-        allow write: if isStaff() && isSameTenant(orgId) && !isExplicitSubCollection(subCollection);
+        allow write: if (isSuperAdmin() || isHrRole()) && isSameTenant(orgId) && !isExplicitSubCollection(subCollection);
       }
     }
 
@@ -293,8 +339,8 @@ service cloud.firestore {
       allow create: if canAccessAdmin() && tenantCreate();
       // Maker cannot be Checker (4-Eye rule enforcement)
       allow update: if canAccessAdmin() && tenantUpdate() && (
-        !(request.resource.data.maker_checker.checker_id != null &&
-          request.resource.data.maker_checker.checker_id == resource.data.maker_checker.maker_id)
+        !(checkerOf(request.resource.data) != null &&
+          checkerOf(request.resource.data) == makerOf(resource.data))
       );
       allow delete: if canAccessAdmin() && tenantRead() && resource.data.status in ['DRAFT', 'VALIDATION_FAILED'];
 
@@ -366,16 +412,31 @@ service cloud.firestore {
     match /users/{userId} {
       // Own profile, or profiles in the same organization
       allow read: if signedIn() && (request.auth.uid == userId || tenantRead());
-      // Restrict create so a new doc cannot set role above 'Employee'
+      // Restrict create so a new doc cannot set role above 'Employee'.
+      // HR may onboard Employee-role users in their own org (hrms-dashboard, recruitment).
+      // A self-created profile may not name an org (it would join any tenant): orgId is
+      // either absent or equal to the one already in the caller's token.
       allow create: if signedIn() && (
         (canAccessAdmin() && tenantCreate()) || (
+          isHrRole() && tenantCreate() &&
+          request.resource.data.get('role', '') in ['Employee', 'employee'] &&
+          request.resource.data.get('super_admin', false) != true
+        ) || (
           request.auth.uid == userId &&
+          (!('orgId' in request.resource.data) || (getOrgId() != null && request.resource.data.orgId == getOrgId())) &&
           (!('role' in request.resource.data) || request.resource.data.role in ['Employee', 'employee']) &&
           (!('super_admin' in request.resource.data) || request.resource.data.super_admin != true)
         )
       );
-      // A user cannot modify role, orgId, linkedAuthUid, or super_admin on their own profile
+      // A user cannot modify role, orgId, linkedAuthUid, or super_admin on their own profile.
+      // HR can edit profiles of non-admin users in their org, but never privilege/credential fields.
       allow update: if (canAccessAdmin() && tenantUpdate()) || (
+        isHrRole() && tenantUpdate() &&
+        !isAdminRoleName(resource.data.get('role', '')) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'role', 'orgId', 'linkedAuthUid', 'super_admin', 'password', 'passwordHash', 'mfaSecret', 'mfaEnabled'
+        ])
+      ) || (
         signedIn() &&
         request.auth.uid == userId &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'orgId', 'linkedAuthUid', 'super_admin'])
@@ -450,7 +511,32 @@ service cloud.firestore {
       allow create: if tenantCreate();
     }
 
-    // Every other top-level collection (attendance, notifications, messages,
+    // Notifications: same organization only.
+    // A signed-in member may only ADD or REMOVE THEIR OWN uid in readBy / clearedBy (the per-user read
+    // and dismiss state). HR and managers may also resolve requests (status, resolvedBy/At) in their
+    // organization: resolvedBy, when set, must be their own uid, and they still only change those two
+    // arrays for themselves. Every other change, and
+    // deleting, is for super admins (and the Admin SDK on the server, which bypasses these rules).
+    function ownUidOnly(field) {
+      return request.resource.data.get(field, []).toSet().difference(resource.data.get(field, []).toSet()).hasOnly([request.auth.uid])
+        && resource.data.get(field, []).toSet().difference(request.resource.data.get(field, []).toSet()).hasOnly([request.auth.uid]);
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if tenantRead();
+      allow create: if tenantCreate();
+      allow update: if tenantUpdate() && (
+        canAccessAdmin()
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy', 'clearedBy'])
+            && ownUidOnly('readBy') && ownUidOnly('clearedBy'))
+        || (isStaff()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'read', 'resolvedBy', 'resolvedAt', 'readBy', 'clearedBy']) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['resolvedBy']) || request.resource.data.resolvedBy == request.auth.uid)
+            && ownUidOnly('readBy') && ownUidOnly('clearedBy'))
+      );
+      allow delete: if canAccessAdmin() && tenantRead();
+    }
+
+    // Every other top-level collection (attendance, messages,
     // payroll_profiles, holidays, ...): same organization only. Collections with
     // an explicit rule above are excluded so this fallback never loosens them.
     match /{collection}/{document} {
@@ -466,7 +552,7 @@ service cloud.firestore {
         'payroll_documents', 'statutory_policy_configs', 'payroll_runs', 'payment_batches',
         'compliance_returns', 'statutory_exceptions', 'bank_files', 'bank_reconciliations',
         'disbursement_logs', 'candidates', 'recruitment_events', 'users',
-        'bu_employee_type_rules', 'alert_trigger_registry', 'workflows', 'employees', 'audit_logs'
+        'bu_employee_type_rules', 'alert_trigger_registry', 'workflows', 'employees', 'audit_logs', 'notifications'
       ];
     }
   }

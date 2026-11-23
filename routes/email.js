@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { sendEmail } = require('../utils/email');
 const { runReminderJob } = require('../utils/reminder-scheduler');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
@@ -17,7 +17,7 @@ try {
  * Trigger manual scheduler check.
  * POST /api/email/run-reminder-check
  */
-router.post('/run-reminder-check', async (req, res) => {
+router.post('/run-reminder-check', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const result = await runReminderJob();
         return res.json(result);
@@ -50,7 +50,7 @@ router.post('/send', async (req, res) => {
  * Trigger bulk reminder emails for Hold Candidates.
  * POST /api/email/trigger-bulk-reminders
  */
-router.post('/trigger-bulk-reminders', async (req, res) => {
+router.post('/trigger-bulk-reminders', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { candidateIds, reminderMessage } = req.body;
         if (!candidateIds || !Array.isArray(candidateIds) || candidateIds.length === 0) {
@@ -130,7 +130,7 @@ router.post('/trigger-bulk-reminders', async (req, res) => {
  * POST /api/email/test
  * Body: { to: "user@example.com" }
  */
-router.post('/test', async (req, res) => {
+router.post('/test', authorize('Super Admin'), async (req, res) => {
     try {
         const { to } = req.body;
         if (!to) {
@@ -138,7 +138,10 @@ router.post('/test', async (req, res) => {
         }
 
         const senderName = process.env.EMAIL_SENDER_NAME || 'Kylrx AI HRMS';
-        const fromEmail = process.env.SMTP_USER || process.env.EMAIL_FROM || 'noreply@kylrxai.com';
+        const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER;
+        if (!fromEmail) {
+            return res.status(503).json({ success: false, error: 'Email sender is not configured: set EMAIL_FROM (or SMTP_USER).' });
+        }
 
         const html = `
             <div style="font-family: 'Outfit', sans-serif; max-width: 580px; margin: 0 auto; padding: 32px; border: 1px solid #e2e8f0; border-radius: 20px; background: #ffffff;">

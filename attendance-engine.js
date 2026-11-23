@@ -8,7 +8,9 @@ import {
     serverTimestamp,
     doc,
     setDoc,
-    getDoc
+    getDoc,
+    tenantReady,
+    whereMyOrg
 } from "./firebase-config.js";
 import { calculateAttendanceProductivity } from "./pms-service.js";
 
@@ -26,14 +28,16 @@ class AttendanceEngine {
 
     async isTodayHoliday() {
         const todayStr = new Date().toISOString().split('T')[0];
-        const q = query(this.holidayColl, where("date", "==", todayStr));
+        await tenantReady;
+        const q = query(this.holidayColl, whereMyOrg(), where("date", "==", todayStr));
         const snap = await getDocs(q);
         return !snap.empty;
     }
 
     async getUpcomingHolidays() {
         const todayStr = new Date().toISOString().split('T')[0];
-        const snap = await getDocs(this.holidayColl);
+        await tenantReady;
+        const snap = await getDocs(query(this.holidayColl, whereMyOrg()));
         return snap.docs
             .map(d => d.data())
             .filter(h => h.date >= todayStr)
@@ -101,7 +105,8 @@ class AttendanceEngine {
 
                     // 1. Check if yesterday was a short workday (<4h) or if there's a 3-day short streak
                     let mandated8Hours = false;
-                    const q = query(this.attendanceColl, where("userId", "==", userId));
+                    await tenantReady;
+                    const q = query(this.attendanceColl, whereMyOrg(), where("userId", "==", userId));
                     const pastSnaps = await getDocs(q);
                     const pastRecords = pastSnaps.docs.map(d => d.data()).sort((a, b) => b.date.localeCompare(a.date));
 

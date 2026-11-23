@@ -3,19 +3,21 @@ const router = express.Router();
 const { confirmedWrite } = require('../config/firestore-write');
 const analyticsEngine = require('../services/custom-analytics-engine');
 const logger = require('../utils/logger');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 const crypto = require('crypto');
 const { rawCollection } = require('../config/firebase');
-const { orgDocs, ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
+const { firebaseProjectInfo } = require('../config/firebase');
+const { orgDocs, ownerOrgId } = require('../config/tenant');
 
 router.use(verifyToken);
+router.use(requireOrg);
 
 /* Saved dashboards live in Firestore 'analytics_dashboards' per organization; the built-in
  * dashboards are read-only templates shown to every organization. */
 const DASHBOARD_COLLECTION = 'analytics_dashboards';
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 
@@ -42,7 +44,7 @@ async function findDashboard(orgId, id) {
  */
 
 // GET /api/analytics/sources - List all 6 supported data sources and their schemas
-router.get('/sources', (req, res) => {
+router.get('/sources', authorize(ADMIN_HR_ROLES), (req, res) => {
     try {
         const sources = Object.values(analyticsEngine.DATA_SOURCES);
         res.status(200).json({
@@ -57,7 +59,7 @@ router.get('/sources', (req, res) => {
 });
 
 // GET /api/analytics/firebase-status - Check connection with Firebase Admin & Cloud Firestore
-router.get('/firebase-status', async (req, res) => {
+router.get('/firebase-status', authorize('Super Admin'), async (req, res) => {
     try {
         const { db } = require('../config/firebase');
         let employeesCount = 0;
@@ -79,9 +81,9 @@ router.get('/firebase-status', async (req, res) => {
             success: true,
             firebase: {
                 connected: true,
-                projectId: 'kylrxai',
+                projectId: firebaseProjectInfo().projectId,
                 environment: 'Google Cloud Firestore Production',
-                clientEmail: 'firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com',
+                clientEmail: firebaseProjectInfo().clientEmail,
                 collections: {
                     employees: employeesCount,
                     analytics_dashboards: dashboardsCount,
@@ -98,7 +100,7 @@ router.get('/firebase-status', async (req, res) => {
 });
 
 // POST /api/analytics/sync-firebase - Send sync ping to Firebase Firestore activities
-router.post('/sync-firebase', async (req, res) => {
+router.post('/sync-firebase', authorize('Super Admin'), async (req, res) => {
     try {
         const { db } = require('../config/firebase');
         const pingDoc = {
@@ -128,7 +130,7 @@ router.post('/sync-firebase', async (req, res) => {
 });
 
 // POST /api/analytics/query - Execute an ad-hoc custom analytical query
-router.post('/query', async (req, res) => {
+router.post('/query', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { dataSource, metric, filters, grouping, chartType, useLiveFirebase = true } = req.body;
         if (!dataSource) {
@@ -153,7 +155,7 @@ router.post('/query', async (req, res) => {
 });
 
 // GET /api/analytics/dashboards - This organization's saved dashboards plus built-in templates
-router.get('/dashboards', async (req, res) => {
+router.get('/dashboards', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const dashboards = await orgDashboards(orgOf(req));
         res.status(200).json({ success: true, count: dashboards.length, dashboards });
@@ -164,7 +166,7 @@ router.get('/dashboards', async (req, res) => {
 });
 
 // POST /api/analytics/dashboards - Create or update a dashboard (saved to Firestore for this organization)
-router.post('/dashboards', async (req, res) => {
+router.post('/dashboards', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const { id, title, description, category, widgets } = req.body || {};
         if (!title) {
@@ -205,7 +207,7 @@ router.post('/dashboards', async (req, res) => {
 });
 
 // GET /api/analytics/dashboards/:id - Dashboard with widgets executed on this organization's data
-router.get('/dashboards/:id', async (req, res) => {
+router.get('/dashboards/:id', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const orgId = orgOf(req);
         const dash = await findDashboard(orgId, req.params.id);
@@ -221,7 +223,7 @@ router.get('/dashboards/:id', async (req, res) => {
 });
 
 // DELETE /api/analytics/dashboards/:id - Remove one of this organization's saved dashboards
-router.delete('/dashboards/:id', async (req, res) => {
+router.delete('/dashboards/:id', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const dash = await findDashboard(orgOf(req), req.params.id);
         if (!dash) {

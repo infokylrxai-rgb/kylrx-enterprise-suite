@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <style>
         /* Custom Alert Styles */
         .custom-alert-overlay {
@@ -420,7 +420,7 @@
                     <span class="dept-code text-[10px] font-mono font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0" id="sideDeptCode">UNIT-CYB-802</span>
                 </div>
                 <div class="flex items-center justify-between mt-1">
-                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">John Doe</span></p>
+                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">Your manager</span></p>
                     <span class="dept-status-badge">Active</span>
                 </div>
             </div>
@@ -483,7 +483,7 @@
                 <div class="profile-mini" style="margin-top: 6px;">
                     <div class="avatar" id="userInitial">JD</div>
                     <div class="profile-info">
-                        <div class="profile-name" id="userNameDisplay">John Doe</div>
+                        <div class="profile-name" id="userNameDisplay">Employee</div>
                         <div class="profile-role" id="userRoleDisplay">Cybersecurity Manager</div>
                     </div>
                 </div>
@@ -1085,7 +1085,7 @@
             // Initialize Apps after auth state is completely resolved
             initApps();
 
-            const activeUserId = user ? user.uid : localStorage.getItem('hr_user_id') || 'manager_demo';
+            const activeUserId = user ? user.uid : window.__kylrxUid || '';
             managerAttendanceService.restoreManagerSession(activeUserId);
         });
 
@@ -2025,7 +2025,7 @@ window.viewTeam = async (id) => {
                 alert('Please enter a valid score between 0 and 100.');
                 return;
             }
-            const managerId = auth.currentUser?.uid || localStorage.getItem('hr_user_id') || 'manager';
+            const managerId = auth.currentUser?.uid || window.__kylrxUid || '';
             const approveBtn = scoreEl.closest('div[style*="gap"]')?.querySelector('button');
             try {
                 if(approveBtn) { approveBtn.textContent = 'Saving...'; approveBtn.disabled = true; }
@@ -2067,7 +2067,7 @@ window.viewTeam = async (id) => {
             reviews: [],
             teamMembers: [],
             currentFilter: 'all',
-            currentManagerId: localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'MANAGER-DEFAULT',
+            currentManagerId: window.__kylrxUid || window.__kylrxUid || '',
             currentManagerName: localStorage.getItem('userName') || 'Department Manager'
         };
 

@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
+    <script src="assets/vendor/chart.umd.js"></script>
     <style>
         :root {
             --bg-base: #f8fafc;
@@ -711,7 +711,6 @@
         import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
         import { doc, setDoc, collection, serverTimestamp, arrayUnion, arrayRemove } from "./firebase-config.js";
         import { signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-        import { getAllAttendanceLogs } from "./attendance-service.js";
 
         lucide.createIcons();
         const configSidebar = document.getElementById('configSidebar');
@@ -872,60 +871,101 @@
         // regardless of attendance status.
         // Also fires under-hours manager alerts for < 4h shifts.
         // ============================================================
-        const _state = { users: [], activity: {}, attendance: {}, adminSessions: [] };
+        const _state = { users: [], activity: {}, attendance: {}, adminSessions: [], error: null };
         const _alertedUsers = new Set(); // prevent duplicate alerts per session
 
-        function initTelemetry() {
+        // The monitor reads one organization-scoped API instead of listening to whole Firestore
+        // collections: the server takes the organization from the verified token, so another
+        // organization's employees can never reach this page. (firebase-config.js adds the token.)
+        const TELEMETRY_POLL_MS = 10000;
+        const TELEMETRY_TIMEOUT_MS = 8000;
+
+        // AI and payroll panels: computed from this organization's data, otherwise an honest
+        // empty state or the real error. Nothing here may stay on "Loading..." (see loadTelemetry).
+        function renderPanels() {
+            const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+            const bar = (id, pct, color) => {
+                const el = document.getElementById(id);
+                if (el) { el.style.width = pct + '%'; el.style.background = color; }
+            };
+
+            if (_state.error) {
+                set('burnoutVal', 'Unavailable'); bar('burnoutBar', 0, 'var(--success)');
+                set('riskVal', 'Unavailable'); bar('riskBar', 0, 'var(--success)');
+                set('predictionText', `Could not load workforce data: ${_state.error}`);
+                set('finPayroll', 'Unavailable');
+                set('finBurn', 'Unavailable');
+                return;
+            }
+
+            const people = Object.values(_state.activity);
+            if (people.length === 0) {
+                set('burnoutVal', 'No data yet'); bar('burnoutBar', 0, 'var(--success)');
+                set('riskVal', 'No data yet'); bar('riskBar', 0, 'var(--success)');
+                set('predictionText', 'No workforce telemetry yet. Insights appear once employees are active.');
+            } else {
+                const restless = people.filter(a => (a.tabSwitchCount || 0) > 5).length;
+                const burnout = Math.round((restless / people.length) * 100);
+                set('burnoutVal', burnout + '%');
+                bar('burnoutBar', burnout, burnout > 60 ? 'var(--danger)' : 'var(--warning)');
+
+                const flagged = people.filter(a => a.isAnomaly || (typeof a.aiProductivityScore === 'number' && a.aiProductivityScore < 30)).length;
+                const risk = Math.min(100, flagged * 25);
+                set('riskVal', risk > 50 ? 'Critical' : (risk > 20 ? 'Elevated' : 'Low'));
+                bar('riskBar', Math.max(10, risk), risk > 50 ? 'var(--danger)' : (risk > 20 ? 'var(--warning)' : 'var(--success)'));
+                set('predictionText', `${flagged} of ${people.length} active people are flagged for low productivity or unusual activity.`);
+            }
+
+            // Salaries are annual; the monthly figure is their sum divided by 12
+            const salaries = _state.users.map(u => Number(u.salary)).filter(n => Number.isFinite(n) && n > 0);
+            set('finPayroll', salaries.length ? '₹' + Math.round(salaries.reduce((a, b) => a + b, 0) / 12).toLocaleString('en-IN') : 'No payroll data yet');
+            // There is no per-organization budget to compare against yet
+            set('finBurn', 'No budget set yet');
+        }
+
+        async function loadTelemetry() {
             const today = new Date().toISOString().split('T')[0];
+            try {
+                const res = await fetch('/api/workforce-monitor', { signal: AbortSignal.timeout(TELEMETRY_TIMEOUT_MS) });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) throw new Error(data.message || data.error || `HTTP ${res.status}`);
 
-            // Listener 1 – All users (employees + managers, excluding admins)
-            onSnapshot(collection(db, 'users'), snap => {
-                _state.users = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-                    .filter(u => (u.role || '').toLowerCase() !== 'admin');
-                renderGrid();
-            });
+                _state.users = data.users;
 
-            // Listener 2 – Live activity status
-            onSnapshot(collection(db, 'activityStatus'), snap => {
                 _state.activity = {};
-                snap.docs.forEach(d => { _state.activity[d.id] = d.data(); });
-                renderGrid();
-                if (typeof checkFocusScores === 'function') checkFocusScores();
-            });
+                data.activity.forEach(a => { _state.activity[a.id] = a; });
 
-            // Listener 3 – Today's attendance records
-            onSnapshot(collection(db, 'attendance'), snap => {
                 _state.attendance = {};
-                snap.docs.forEach(d => {
-                    if (d.id.includes(today)) {
-                        const empId = d.id.split('_')[0];
-                        _state.attendance[empId] = { id: d.id, ...d.data() };
-                    }
+                data.attendance.forEach(a => {
+                    if (String(a.id).includes(today)) _state.attendance[a.userId || a.id.split('_')[0]] = a;
                 });
-                renderGrid();
-                checkUnderHours();  // ← trigger alert check on every attendance update
-                if (typeof checkFocusScores === 'function') checkFocusScores();
-            });
 
-            // Periodically refresh the grid to update live shift durations (since new Date() needs to be recalculated)
-            setInterval(renderGrid, 60000);
-
-            // Listener 4 – Today's admin / manager sessions
-            onSnapshot(collection(db, 'admin_sessions'), snap => {
-                const sessions = snap.docs
-                    .filter(d => d.id.includes(today))
-                    .map(d => ({ id: d.id, ...d.data() }));
-                
                 const deduped = {};
-                sessions.forEach(s => {
-                    const key = s.name || s.id;
-                    if (!deduped[key] || s.status === 'Active') {
-                        deduped[key] = s;
-                    }
+                data.adminSessions.forEach(sess => {
+                    const key = sess.name || sess.id;
+                    if (!deduped[key] || sess.status === 'Active') deduped[key] = sess;
                 });
                 _state.adminSessions = Object.values(deduped);
+
+                _state.error = null;
+                renderPanels();
                 renderGrid();
-            });
+                checkUnderHours();  // alert check on every attendance refresh
+                if (typeof checkFocusScores === 'function') checkFocusScores();
+            } catch (err) {
+                console.error('[WORKFORCE MONITOR] Could not load telemetry:', err);
+                _state.error = err.name === 'TimeoutError' ? `the server did not answer within ${TELEMETRY_TIMEOUT_MS / 1000} seconds` : err.message;
+                renderPanels();
+                const grid = document.getElementById('telemetryGrid');
+                if (grid) grid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; padding: 2rem; color: var(--danger);">Could not load the workforce monitor: ${String(_state.error).replace(/[<>&]/g, '')}</div>`;
+            }
+        }
+
+        function initTelemetry() {
+            loadTelemetry();
+            setInterval(loadTelemetry, TELEMETRY_POLL_MS);
+            // Refresh the grid so live shift durations (computed from the clock) keep moving
+            setInterval(renderGrid, 60000);
         }
 
         let currentTeleView = 'grid';
@@ -1676,8 +1716,10 @@
             setTimeout(() => modal.style.opacity = '1', 10);
             
             try {
-                const logs = await getAllAttendanceLogs();
-                const userLogs = logs.filter(l => l.userId === userId || l.employeeId === userId);
+                const logRes = await fetch(`/api/workforce-monitor/attendance/${encodeURIComponent(userId)}`);
+                const logData = await logRes.json().catch(() => ({}));
+                if (!logRes.ok || !logData.success) throw new Error(logData.error || logData.message || `HTTP ${logRes.status}`);
+                const userLogs = logData.logs;
                 
                 const dailyHours = [0, 0, 0, 0, 0, 0, 0];
                 
@@ -1761,68 +1803,9 @@
         };
 
         // --- Custom Apps Registry ---
-        const DEFAULT_APPS = [
-            { name: "AWS CONSOLE", url: "https://console.aws.amazon.com" },
-            { name: "DATADOG", url: "https://app.datadoghq.com" }
-        ];
 
-        async function initAdminApps() {
-            const appsRef = doc(db, "system_configs", "admin_custom_apps");
-            onSnapshot(appsRef, async (snapshot) => {
-                let apps = [];
-                if (snapshot.exists()) {
-                    apps = snapshot.data().customApps || [];
-                } else {
-                    try {
-                        await setDoc(appsRef, { customApps: DEFAULT_APPS, customAppsInitialized: true }, { merge: true });
-                        apps = DEFAULT_APPS;
-                    } catch(e) {}
-                }
-                renderAppsUI(apps);
-            });
-        }
 
-        function renderAppsUI(apps) {
-            const list = document.getElementById('customAppsList');
-            if (list) {
-                list.innerHTML = apps.map((app) => `
-                    <div class="nav-item" style="position: relative;">
-                        <a href="${app.url}" target="_blank" class="nav-link" style="padding-right: 32px;">
-                            <i data-lucide="external-link"></i>
-                            <span>${app.name}</span>
-                        </a>
-                        <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--danger); opacity: 0.5; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;" title="Remove App Mapping">
-                            <i data-lucide="x" style="width: 12px; height: 12px;"></i>
-                        </button>
-                    </div>
-                `).join('');
-            }
 
-            const registryList = document.getElementById('registryAppsList');
-            if (registryList) {
-                registryList.innerHTML = apps.map((app) => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-base); border: 1px solid var(--surface-border); border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px;">
-                        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80%;">
-                            <i data-lucide="external-link" style="width: 16px; height: 16px; color: var(--primary); flex-shrink: 0;"></i>
-                            <span style="font-weight: 700; font-size: 0.8rem;">${app.name}</span>
-                        </div>
-                        <button onclick="removeAppFromServer('${app.url}', '${app.name}')" style="background: none; border: none; color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; flex-shrink: 0;" title="Delete Mapping">
-                            <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-                        </button>
-                    </div>
-                `).join('');
-            }
-            if(window.lucide) lucide.createIcons();
-        }
-
-        window.openAppRegistryModal = () => {
-            const modal = document.getElementById('customAppsModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                setTimeout(() => modal.style.opacity = '1', 10);
-            }
-            if(window.lucide) lucide.createIcons();
-        };
 
         window.closeAppRegistryModal = () => {
             const modal = document.getElementById('customAppsModal');
@@ -1832,42 +1815,8 @@
             }
         };
 
-        window.addCustomApp = async () => {
-            const urlInput = document.getElementById('appUrlInput');
-            const nameInput = document.getElementById('appNameInput');
-            if (!urlInput) return;
-            
-            const url = urlInput.value.trim();
-            const customName = nameInput ? nameInput.value.trim() : '';
-            if (!url) return;
 
-            try {
-                let cleanUrl = url;
-                if (!url.startsWith('http')) cleanUrl = 'https://' + url;
-                const urlObj = new URL(cleanUrl);
-                const domain = urlObj.hostname.replace('www.', '');
-                const appName = customName || domain.split('.')[0].toUpperCase();
 
-                const appsRef = doc(db, "system_configs", "admin_custom_apps");
-                await setDoc(appsRef, {
-                    customApps: arrayUnion({ name: appName, url: cleanUrl })
-                }, { merge: true });
-
-                urlInput.value = '';
-                if (nameInput) nameInput.value = '';
-            } catch (e) {
-                alert("Invalid URL structure.");
-            }
-        };
-
-        window.removeAppFromServer = async (url, name) => {
-            const appsRef = doc(db, "system_configs", "admin_custom_apps");
-            await setDoc(appsRef, {
-                customApps: arrayRemove({ name: name, url: url })
-            }, { merge: true });
-        };
-
-        initAdminApps();
 
         document.getElementById('btnCloseProductivity')?.addEventListener('click', () => {
             const modal = document.getElementById('productivityModal');

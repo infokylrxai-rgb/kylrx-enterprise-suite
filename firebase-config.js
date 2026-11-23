@@ -1,5 +1,6 @@
 // @ts-ignore
 import { initializeApp, setLogLevel } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { firebaseWebConfig, isFirebaseWebConfigSet } from "./firebase-web-config.js";
 // @ts-ignore
 import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 // @ts-ignore
@@ -73,12 +74,11 @@ function isCoopOrPopupMessage(...args) {
     }
     return String(a || '');
   }).join(' ');
+  // Only Chromium's exact WebGPU warning is hidden here (same message config.js filters)
   return text.includes('Cross-Origin-Opener-Policy') || 
          text.includes('window.closed') || 
          text.includes('window.close') ||
-         text.includes('powerPreference') ||
-         text.includes('requestAdapter') ||
-         text.includes('369219127');
+         /powerPreference option is currently ignored when calling requestAdapter/.test(text);
 }
 
 function isPermissionOrQuotaMessage(...args) {
@@ -121,21 +121,31 @@ console.warn = function (...args) {
   _origConsoleWarn.apply(console, args);
 };
 
-// Your web app's Firebase configuration
+// The web app config lives in firebase-web-config.js (the one place to change the project)
+if (!isFirebaseWebConfigSet()) {
+  _origConsoleError.call(console, '[Firebase] firebase-web-config.js still has CHANGE_ME values: paste your Firebase web app config there.');
+}
 const firebaseConfig = {
-  apiKey: "AIzaSyBQCO1FI1mPsWxsTvInyLlwIQVFGnUBlco",
+  ...firebaseWebConfig,
   // On HTTPS the Kylrx server proxies /__/auth to Firebase and is its own authDomain (needed for
   // redirect sign-in). The Firebase SDK always opens https://<authDomain>/__/auth/handler, so on
-  // plain-http local development the default firebaseapp.com domain (popup sign-in) is used.
+  // plain-http local development the project's own authDomain (popup sign-in) is used.
   authDomain: (typeof window !== 'undefined' && window.location.protocol === 'https:' && window.location.host)
     ? window.location.host
-    : "kylrxai.firebaseapp.com",
-  projectId: "kylrxai",
-  storageBucket: "kylrxai.firebasestorage.app",
-  messagingSenderId: "483232913511",
-  appId: "1:483232913511:web:769faab820b2eead141cc2",
-  measurementId: "G-3F6VW2MEJG"
+    : firebaseWebConfig.authDomain
 };
+
+// Pages show the configured project, never a hard-coded one: labels marked data-firebase-project /
+// data-firebase-bucket are filled here, and scripts read window.FIREBASE_PROJECT_ID
+if (typeof window !== 'undefined') {
+  window.FIREBASE_PROJECT_ID = firebaseWebConfig.projectId;
+  const fillProjectLabels = () => {
+    document.querySelectorAll('[data-firebase-project]').forEach(el => { el.textContent = firebaseWebConfig.projectId; });
+    document.querySelectorAll('[data-firebase-bucket]').forEach(el => { el.textContent = firebaseWebConfig.storageBucket; });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fillProjectLabels);
+  else fillProjectLabels();
+}
 
 // Resilient Firebase initialization with InPrivate / Private-mode graceful degradation
 // Long-polling fallback enabled via experimentalAutoDetectLongPolling: true
@@ -173,6 +183,7 @@ try {
 }
 if (typeof window !== 'undefined') {
   window.db = db;
+  window.auth = auth;
 }
 const storage = getStorage(app);
 
@@ -217,13 +228,16 @@ const GLOBAL_COLLECTIONS = new Set(['organizations', 'system_config']);
 // (scripts/migrate-tenant-orgid.js). Until then existing documents have no orgId, so
 // filtering would hide them; new documents are stamped with orgId either way.
 const TENANT_READ_SCOPING = false;
+// The active organization comes only from the verified token claims (or the server-written profile),
+// resolved by tenantReady; it is never read from localStorage.
 let activeOrgId = null;
-try { activeOrgId = localStorage.getItem('orgId') || null; } catch (_) {}
 
 const tenantReady = new Promise((resolve) => {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       activeOrgId = null;
+      localStorage.removeItem('orgId'); // the cache must not outlive the session
+      window.__kylrxUid = null;
       resolve(null);
       return;
     }
@@ -235,15 +249,25 @@ const tenantReady = new Promise((resolve) => {
         orgId = profile.exists() ? (profile.data().orgId || null) : null;
       }
       activeOrgId = orgId;
+      window.__kylrxUid = user.uid; // the verified uid, for pages and scripts that build links
       if (orgId) localStorage.setItem('orgId', orgId);
     } catch (_) {}
     resolve(activeOrgId);
   });
 });
 
+// where('orgId', '==', <the signed-in user's organization>) for reads of tenant collections. Call it after
+// tenantReady; it throws while the organization is unknown, so a query can never run unscoped.
+function whereMyOrg() {
+  if (!activeOrgId) throw new Error('No organization found for the signed-in user.');
+  return where('orgId', '==', activeOrgId);
+}
+
 function getActiveOrgId() {
   return activeOrgId;
 }
+// for classic scripts (services/*.js) that cannot import this module
+if (typeof window !== 'undefined') window.getActiveOrgId = getActiveOrgId;
 
 // "users/abc" -> "users"; queries expose their path through the SDK's internal _query
 function topLevelCollectionOf(target) {
@@ -291,6 +315,25 @@ function belongsToOtherTenant(ref, snap) {
   return !!owner && owner !== activeOrgId;
 }
 
+// "users", "organizations/o1/roles" ... for log lines and UI error state
+function describeTarget(target) {
+  try {
+    if (target && typeof target.path === 'string') return target.path;
+    const p = target && target._query && target._query.path;
+    return p && typeof p.canonicalString === 'function' ? p.canonicalString() : 'unknown';
+  } catch (_) { return 'unknown'; }
+}
+
+// A permission-denied read must never look like "no data": log it past the console filters and
+// tell the UI (window event 'firestore-permission-denied', and snapshot.permissionDenied / .error)
+function reportPermissionDenied(target, err) {
+  const name = describeTarget(target);
+  _origConsoleError.call(console, `[Firestore] permission-denied reading "${name}": ${err?.message || err}`);
+  try {
+    window.dispatchEvent(new CustomEvent('firestore-permission-denied', { detail: { target: name, error: err } }));
+  } catch (_) {}
+}
+
 // Quota-safe wrappers to ensure the application never crashes when quota is reached
 const getDocs = async (rawTarget) => {
   await tenantReady;
@@ -301,12 +344,13 @@ const getDocs = async (rawTarget) => {
     return await rawGetDocs(q);
   } catch (err) {
     const isPermission = err?.code === 'permission-denied' || String(err?.message || err).includes('Missing or insufficient permissions');
+    if (isPermission) reportPermissionDenied(q, err);
     if (isQuotaError(err) || isPermission) {
       try {
         const cacheRes = await getDocsFromCache(q);
-        if (cacheRes && (!cacheRes.empty || isPermission)) return cacheRes;
+        if (cacheRes && !cacheRes.empty) return cacheRes;
       } catch (_) {}
-      return { empty: true, docs: [], size: 0, forEach: () => {} };
+      return { empty: true, docs: [], size: 0, forEach: () => {}, permissionDenied: isPermission, error: isPermission ? err : undefined };
     }
     throw err;
   }
@@ -693,7 +737,7 @@ export {
   onAuthStateChanged, signOut, signInWithEmailAndPassword,
   doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, runTransaction, writeBatch, arrayUnion, arrayRemove, collection, query, where, getDocs, orderBy, limit, deleteField,
   registerListener, detachAllListeners, showReconnectingStatus, hideReconnectingStatus,
-  getActiveOrgId, tenantReady
+  getActiveOrgId, tenantReady, whereMyOrg
 };
 
 // Everything else from the Firestore SDK (Timestamp, increment, ...), so pages import Firestore

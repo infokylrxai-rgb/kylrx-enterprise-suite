@@ -27,7 +27,7 @@
 
         if (!window.lucide) {
             const fallbackScript = document.createElement('script');
-            fallbackScript.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            fallbackScript.src = 'lucide.min.js';
             fallbackScript.crossOrigin = 'anonymous';
             fallbackScript.onload = () => { renderLucideIcons(); };
             document.head.appendChild(fallbackScript);
@@ -2401,32 +2401,17 @@
                                 applyHrAdminUiState(user, claims);
                             }
                         } catch (err) {
-                            console.warn("Notice checking user claims:", err.message);
-                            applySuperAdminUiState(user, { role: 'SUPER_ADMIN' });
+                            console.warn("Could not verify user claims:", err.message);
+                            window.location.href = 'login.html';
                         }
                     } else {
-                        // User not yet signed in on client: Attempt seamless auto-login for Super Admin credential
-                        console.log("⚡ No active Firebase Auth session. Auto-authenticating Super Admin credential (superadmin@kylrx.ai)...");
-                        try {
-                            const cred = await signInWithEmailAndPassword(auth, 'superadmin@kylrx.ai', 'Kylrx#SuperAdmin2026!Secured');
-                            currentAuthUser = cred.user;
-                            currentTokenResult = await cred.user.getIdTokenResult(true);
-                            const claims = currentTokenResult?.claims || {};
-                            applySuperAdminUiState(cred.user, claims);
-                            console.log("✅ Super Admin auto-authentication successful.");
-                        } catch (loginErr) {
-                            console.warn("Auto-authentication notice (offline/demo fallback active):", loginErr.message);
-                            // Standalone/Offline resilient fallback
-                            applySuperAdminUiState({ email: 'superadmin@kylrx.ai', uid: '8fwMU8mRCKfmxDwruxz0GTiZFyE3' }, {
-                                role: 'SUPER_ADMIN',
-                                permissions: ['all', 'manage_payroll', 'approve_batches', 'override_validations', 'view_unmasked_pii']
-                            });
-                        }
+                        // No session: send the visitor to the login page
+                        window.location.href = 'login.html';
                     }
                 });
             } catch (err) {
                 console.error("Auth guard initialization error:", err);
-                applySuperAdminUiState({ email: 'superadmin@kylrx.ai', uid: '8fwMU8mRCKfmxDwruxz0GTiZFyE3' }, { role: 'SUPER_ADMIN' });
+                window.location.href = 'login.html';
             }
         }
 
@@ -2440,8 +2425,8 @@
         window.submitSuperAdminLogin = async function() {
             const emailInput = document.getElementById('loginEmailInput');
             const passInput = document.getElementById('loginPasswordInput');
-            const email = emailInput ? emailInput.value.trim() : 'superadmin@kylrx.ai';
-            const pass = passInput ? passInput.value : 'Kylrx#SuperAdmin2026!Secured';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const pass = passInput ? passInput.value : '';
 
             window.showToast("Authenticating with Firebase Auth...");
             try {

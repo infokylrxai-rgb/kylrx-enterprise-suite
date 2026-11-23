@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const automationEngine = require('./automation-engine');
 const logger = require('../utils/logger');
 const { admin, db, rawCollection } = require('../config/firebase');
+const { firebaseProjectInfo } = require('../config/firebase');
 const { orgDocs, ownerOrgId, currentTenant } = require('../config/tenant');
 
 /**
@@ -736,7 +737,7 @@ class NotificationActionCenterService {
                 await db.collection(collectionName).doc(docId).set({
                     ...data,
                     syncedToFirebase: true,
-                    firebaseProject: 'kylrxai',
+                    firebaseProject: firebaseProjectInfo().projectId,
                     lastSyncAt: new Date().toISOString()
                 }, { merge: true });
             }
@@ -746,7 +747,7 @@ class NotificationActionCenterService {
     }
 
     /**
-     * Synchronize zero state to Firebase Firestore (kylrxai)
+     * Synchronize zero state to Firebase Firestore
      */
     async syncZeroStateToFirebase() {
         try {
@@ -767,13 +768,13 @@ class NotificationActionCenterService {
                     documents: 0,
                     system: 0,
                     connectedToFirebase: true,
-                    firebaseProject: 'kylrxai',
+                    firebaseProject: firebaseProjectInfo().projectId,
                     status: 'all_zeroed',
                     syncedAt: new Date().toISOString()
                 }, { merge: true });
             }
-            logger.info('[NotificationActionCenterService] Zero state synchronized with Firebase Firestore kylrxai');
-            return { success: true, connectedToFirebase: true, firebaseProject: 'kylrxai' };
+            logger.info('[NotificationActionCenterService] Zero state synchronized with Firebase Firestore');
+            return { success: true, connectedToFirebase: true, firebaseProject: firebaseProjectInfo().projectId };
         } catch (err) {
             logger.warn('[NotificationActionCenterService] Firebase syncZeroState fallback:', err.message);
             return { success: true, connectedToFirebase: false, fallback: true };

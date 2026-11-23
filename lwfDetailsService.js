@@ -224,6 +224,11 @@
     /**
      * Seeds in-memory ledger with default records.
      */
+    // No org for the caller: fail instead of reading another org's data
+    function missingOrg() {
+        throw new Error("No organization found for the signed-in user. Sign in again.");
+    }
+
     function seedDefaultRecords(orgId = 'ORG_KYLRX_01') {
         DEFAULT_LWF_PROFILES.forEach(profile => {
             const key = `${orgId}_${profile.employeeId}`;
@@ -341,9 +346,9 @@
      * Retrieves an Employee Labour Welfare Fund Profile.
      * First queries Cloud Firestore; falls back to in-memory ledger.
      */
-    async function getEmployeeLwfDetails(orgId = 'ORG_KYLRX_01', employeeId) {
+    async function getEmployeeLwfDetails(orgId = missingOrg(), employeeId) {
         if (!employeeId) return null;
-        const tenant = orgId || 'ORG_KYLRX_01';
+        const tenant = orgId || missingOrg();
         const key = `${tenant}_${employeeId}`;
 
         // 1. Try Cloud Firestore if runtime db is available
@@ -380,9 +385,9 @@
      * Persists an Employee Labour Welfare Fund Profile into Cloud Firestore & local cache.
      * Path: organizations/{orgId}/employee_lwf_details/{employeeId}
      */
-    async function saveEmployeeLwfDetails(orgId = 'ORG_KYLRX_01', employeeId, lwfData = {}) {
+    async function saveEmployeeLwfDetails(orgId = missingOrg(), employeeId, lwfData = {}) {
         if (!employeeId) throw new Error("Employee ID is required to save LWF details.");
-        const tenant = orgId || 'ORG_KYLRX_01';
+        const tenant = orgId || missingOrg();
         const key = `${tenant}_${employeeId}`;
 
         const stateName = lwfData.state || "Karnataka";
@@ -422,6 +427,7 @@
                 await window.setDoc(docRef, payload, { merge: true });
             } catch (err) {
                 console.warn(`[KylrxLwfDetailsService] Firestore write failed for ${employeeId}, keeping local state.`, err);
+                throw err;
             }
         }
 
@@ -431,8 +437,8 @@
     /**
      * Lists all LWF profiles for a tenant.
      */
-    async function listAllLwfDetails(orgId = 'ORG_KYLRX_01') {
-        const tenant = orgId || 'ORG_KYLRX_01';
+    async function listAllLwfDetails(orgId = missingOrg()) {
+        const tenant = orgId || missingOrg();
         const results = [];
 
         if (typeof window !== 'undefined' && window.db && typeof window.collection === 'function' && typeof window.getDocs === 'function') {
@@ -822,7 +828,7 @@
     /**
      * Converts a list of parsed sheet rows to Firestore batch documents and executes commit.
      */
-    async function commitBatchLwfDetails(orgId = 'ORG_KYLRX_01', firestoreDocs = []) {
+    async function commitBatchLwfDetails(orgId = missingOrg(), firestoreDocs = []) {
         let committedCount = 0;
         const errors = [];
 

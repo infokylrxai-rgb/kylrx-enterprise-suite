@@ -1,5 +1,6 @@
 import { storage } from "./firebase-config.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
+import { orgStoragePath } from "./storage-paths.js";
 
 let pdfLibsPromise = null;
 
@@ -138,7 +139,7 @@ export async function generatePayslipPdfBlob(employee, period) {
 
 export async function uploadPayslipPdf(employeeId, period, blob) {
     const { key } = parsePeriod(period);
-    const storagePath = `payroll/payslips/${employeeId}/${key}.pdf`;
+    const storagePath = await orgStoragePath("payroll", "payslips", employeeId, `${key}.pdf`);
     const storageRef = ref(storage, storagePath);
     await uploadBytes(storageRef, blob, { contentType: "application/pdf" });
     const storageUrl = await getDownloadURL(storageRef);

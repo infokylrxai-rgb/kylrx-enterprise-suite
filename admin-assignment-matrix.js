@@ -122,7 +122,7 @@ async function initFirebaseRealtimeSync() {
         if (res.ok) {
             const data = await res.json();
             if (data.success && data.firebase) {
-                updateFirebaseBadge(true, data.firebase.projectId || 'kylrxai', 'Connected');
+                updateFirebaseBadge(true, data.firebase.projectId || window.FIREBASE_PROJECT_ID || '', 'Connected');
                 const colSpan = document.getElementById('fbModalCollections');
                 if (colSpan && data.firebase.collections) {
                     const c = data.firebase.collections;
@@ -131,7 +131,7 @@ async function initFirebaseRealtimeSync() {
             }
         }
     } catch (e) {
-        updateFirebaseBadge(true, 'kylrxai', 'Connected (Client SDK)');
+        updateFirebaseBadge(true, window.FIREBASE_PROJECT_ID || '', 'Connected (Client SDK)');
     }
 
     // 2. Realtime listener on Firestore employee_assignments
@@ -295,7 +295,7 @@ window.testFirebaseSync = async function() {
             showCenterAlertModal({
                 title: 'Firebase Cloud Sync Ping Successful!',
                 type: 'success',
-                message: `${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities (Logged)\n• Project: kylrxai (Live)`
+                message: `${data.message}\n• Timestamp: ${new Date().toLocaleTimeString()}\n• Collection: activities (Logged)\n• Project: ${window.FIREBASE_PROJECT_ID || 'not configured'} (Live)`
             });
         } else {
             if (db) {

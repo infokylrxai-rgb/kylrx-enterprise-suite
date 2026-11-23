@@ -18,7 +18,7 @@
         window.renderLucideIcons = renderLucideIcons;
         if (!window.lucide) {
             const s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+            s.src = 'lucide.min.js';
             s.onload = renderLucideIcons;
             document.head.appendChild(s);
         } else {
@@ -3460,5 +3460,11 @@
     </div>
 
 <script type="module" src="./admin-sidebar-sync.js"></script>
+  <!-- Login guard: no signed-in user goes to the login page -->
+  <script type="module">
+    import { auth } from "./firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+    onAuthStateChanged(auth, (user) => { if (!user) window.location.href = 'login.html'; });
+  </script>
 </body>
 </html>

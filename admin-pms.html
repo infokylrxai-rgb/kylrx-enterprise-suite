@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="admin-dashboard.css">
     <link rel="stylesheet" href="sidebar-lock.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <style>
         .pms-grid {
             display: grid;
@@ -2525,5 +2525,11 @@
         loadCyclesList();
     </script>
     <script type="module" src="./admin-sidebar-sync.js"></script>
+  <!-- Login guard: no signed-in user goes to the login page -->
+  <script type="module">
+    import { auth } from "./firebase-config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+    onAuthStateChanged(auth, (user) => { if (!user) window.location.href = 'login.html'; });
+  </script>
 </body>
 </html>

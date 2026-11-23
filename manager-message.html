@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <script>
         (() => {
             const centerId = new URLSearchParams(window.location.search).get('id');
@@ -501,7 +501,7 @@
                     <span class="dept-code text-[10px] font-mono font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0" id="sideDeptCode">UNIT-CYB-802</span>
                 </div>
                 <div class="flex items-center justify-between mt-1">
-                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">John Doe</span></p>
+                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">Your manager</span></p>
                     <span class="dept-status-badge">Active</span>
                 </div>
             </div>
@@ -562,7 +562,7 @@
                 <div class="profile-mini" style="margin-top: 6px;">
                     <div class="avatar" id="userInitial">JD</div>
                     <div class="profile-info">
-                        <div class="profile-name" id="userNameDisplay">John Doe</div>
+                        <div class="profile-name" id="userNameDisplay">Employee</div>
                         <div class="profile-role" id="userRoleDisplay">Cybersecurity Manager</div>
                     </div>
                 </div>
@@ -731,6 +731,9 @@
     </div>
     <script type="module">
         import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, getDoc, updateDoc, deleteDoc, arrayUnion, registerListener } from "./firebase-config.js";
+        import { tenantReady, whereMyOrg } from "./firebase-config.js";
+        import { watchNotificationBadge } from "./notification-actions.js";
+        import { isManagerNotification } from "./notification-read-state.js";
 
         // UI State
         let currentContactId = null;
@@ -858,7 +861,7 @@
         let teams = [];
         let selectedUserIds = new Set();
         // Start with localStorage fallback; will be replaced by real Auth UID below
-        let currentUserId = localStorage.getItem('hr_user_id') || localStorage.getItem('adminUid') || 'ADMIN_GLOBAL';
+        let currentUserId = ''; // the verified uid, set when sign-in resolves
 
         function syncHeaderBadges(userId) {
             const msgBadge = document.getElementById('headerMsgBadge');
@@ -871,6 +874,7 @@
             
             const msgQuery = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('receiverId', '==', msgTargetId),
                 where('read', '==', false)
             );
@@ -882,38 +886,10 @@
                 }
             });
 
-            // 2. Listen for notifications targeted to this manager
-            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
-            onSnapshot(notifQuery, (snap) => {
-                const currentUid = userId.toLowerCase();
-                const currentHrUserId = (localStorage.getItem('hr_user_id') || '').toLowerCase();
-                const centerId = (new URLSearchParams(window.location.search).get('id') || '').toLowerCase();
-                const userDept = (localStorage.getItem('userDept') || '').toLowerCase();
-
-                const unreadNotifs = snap.docs.filter(d => {
-                    const data = d.data();
-                    if (data.read) return false;
-                    const clearedBy = data.clearedBy || [];
-                    if (clearedBy.includes(userId)) return false;
-                    const tgt = (data.target || data.departmentId || '').toLowerCase();
-                    const type = (data.type || '').toLowerCase();
-
-                    return tgt === 'manager' || 
-                           type === 'employee_help' || 
-                           tgt === 'general' || 
-                           (!tgt) || 
-                           (currentUid && tgt === currentUid) ||
-                           (currentHrUserId && tgt === currentHrUserId) ||
-                           (centerId && tgt === centerId) ||
-                           (userDept && tgt === userDept);
-                });
-
-                if (notifBadge) {
-                    const count = unreadNotifs.length;
-                    notifBadge.textContent = count > 9 ? '9+' : count;
-                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
-                }
-            });
+            // 2. Manager notifications of my organization, unread by my readBy
+            const centerId = new URLSearchParams(window.location.search).get('id') || '';
+            const dept = localStorage.getItem('userDept') || '';
+            watchNotificationBadge(notifBadge, (n, me) => isManagerNotification(n, { uid: me.uid, centerId, dept })).catch(() => {});
         }
 
         // Resolve real Firebase Auth UID so chatId matches across dashboards
@@ -923,6 +899,7 @@
                 localStorage.setItem('hr_user_id', user.uid);
                 localStorage.setItem('adminUid', user.uid);
             }
+            await tenantReady;
             syncHeaderBadges(currentUserId);
 
             // Dynamic Sidebar Hydration
@@ -988,7 +965,7 @@
             let deptMap = {};
 
             // Real-time Departments (Command Centers)
-            onSnapshot(collection(db, 'command_centers'), (snap) => {
+            onSnapshot(query(collection(db, 'command_centers'), whereMyOrg()), (snap) => {
                 const deptList = document.getElementById('deptListContainer');
                 if (deptList) deptList.innerHTML = '';
                 
@@ -1015,7 +992,7 @@
             });
 
             // Real-time Users
-            onSnapshot(collection(db, 'users'), (snap) => {
+            onSnapshot(query(collection(db, 'users'), whereMyOrg()), (snap) => {
                 const rawUsers = snap.docs.map(doc => {
                     const u = doc.data();
                     return {
@@ -1042,7 +1019,7 @@
             });
 
             // Real-time Teams
-            onSnapshot(collection(db, 'department_teams'), (snap) => {
+            onSnapshot(query(collection(db, 'department_teams'), whereMyOrg()), (snap) => {
                 const rawTeams = snap.docs.map(doc => {
                     const t = doc.data();
                     const deptId = t.departmentId || 'Cross-Functional';
@@ -1085,6 +1062,7 @@
             // Query by chatId
             const q = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('chatId', '==', chatId),
                 limit(100)
             );
@@ -1276,7 +1254,8 @@
         });
 
         // Initialize
-        setupRealtimeDirectory();
+        // The directory starts once the signed-in user's organization is known
+        tenantReady.then(() => setupRealtimeDirectory());
 
         // AI Correction Implementation (OpenAI GPT API)
         document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
@@ -1681,7 +1660,7 @@
             document.getElementById('customClearAllConfirm').onclick = async () => {
                 modal.style.display = 'none';
                 try {
-                    const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
+                    const q = query(collection(db, 'messages'), whereMyOrg(), where('chatId', '==', chatId));
                     const snap = await getDocs(q);
                     const updatePromises = snap.docs.map(d => updateDoc(doc(db, 'messages', d.id), {
                         clearedBy: arrayUnion(currentUserId)

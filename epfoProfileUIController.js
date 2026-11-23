@@ -8,7 +8,7 @@
  * 
  * 1. Live Verification Pills: Aadhaar KYC, PAN KYC, and Bank KYC status.
  * 2. Current vs. Previous Member ID and UAN Lineage display.
- * 3. "Verify via Decentro/EPFO" action trigger with live asynchronous handshake.
+ * 3. "Verify via Cashfree/EPFO" action trigger with live asynchronous handshake.
  * 
  * @version 1.0.0
  * @author Principal Fintech & Statutory Payroll Architect
@@ -71,7 +71,7 @@
         const estId = pfDetails.epfoEstablishmentId || 'KN/BNG/0012345/000';
         const pfDoj = pfDetails.dateOfPFJoining || pfDetails.dateOfPfJoining || employeeInfo.joiningDate || '—';
         const pfDoe = pfDetails.dateOfPFExit || pfDetails.dateOfPfExit || 'Active / On-roll';
-        const source = verification.officialSource || 'Decentro Fabric';
+        const source = verification.officialSource || 'Cashfree Payouts';
 
         const isEps = pfDetails.isEpsApplicable !== false;
         const isEdli = pfDetails.isEdliApplicable !== false;
@@ -86,7 +86,7 @@
                     </div>
                     <div>
                         <h4 style="margin: 0; font-size: 0.98rem; font-weight: 800; letter-spacing: -0.01em; color: #ffffff;">EPFO &amp; Statutory KYC Master Profile</h4>
-                        <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: rgba(255, 255, 255, 0.85);">PRD §§ 1, 4, 11 &amp; 13 • 19-Column Schema &amp; Decentro Fabric Gate</p>
+                        <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: rgba(255, 255, 255, 0.85);">PRD §§ 1, 4, 11 &amp; 13 • 19-Column Schema &amp; Cashfree Payouts Gate</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -245,7 +245,8 @@
                 const pan = (panInput ? panInput.value.trim() : '') || 'ABCDE1234F';
                 const aadhaarLast4 = (aadhaarInput ? aadhaarInput.value.trim() : '') || '9021';
 
-                const orgId = options.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+                const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
+                if (!orgId) { window.showCustomAlert ? window.showCustomAlert('Organization Missing', 'No organization found for the signed-in user. Sign in again.', 'error') : alert('No organization found for the signed-in user. Sign in again.'); return; }
                 const empId = currentEmployeeId || (document.getElementById('editEmpId') ? document.getElementById('editEmpId').value : 'EMP0001');
 
                 const btnText = container.querySelector('#epfoVerifyBtnText');
@@ -377,7 +378,7 @@
         }
 
         const epfoDisplaySource = container.querySelector('#epfoDisplaySource');
-        if (epfoDisplaySource) epfoDisplaySource.textContent = verification.officialSource || 'Decentro Fabric';
+        if (epfoDisplaySource) epfoDisplaySource.textContent = verification.officialSource || 'Cashfree Payouts';
 
         const epfoDisplayCurrentUan = container.querySelector('#epfoDisplayCurrentUan');
         if (epfoDisplayCurrentUan && profile.uan) epfoDisplayCurrentUan.textContent = profile.uan;
@@ -393,30 +394,17 @@
 
         if (!container) return;
 
-        const orgId = options.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let pfDetails = null;
 
         if (window.KylrxPfDetailsService && typeof window.KylrxPfDetailsService.getEmployeePfDetails === 'function') {
             pfDetails = await window.KylrxPfDetailsService.getEmployeePfDetails(orgId, employeeId);
         }
 
-        if (!pfDetails && window.KylrxPfDetailsService) {
-            pfDetails = window.KylrxPfDetailsService.DEFAULT_PF_PROFILES.find(p => p.employeeId === employeeId) || {
-                employeeId,
-                organizationId: orgId,
-                isPfApplicable: true,
-                uan: options.uan || "100904829102",
-                currentMemberId: options.pfMemberId || "KNBNG00123450000010023",
-                previousUan: null,
-                previousMemberId: null,
-                epfoEstablishmentId: "KN/BNG/0012345/000",
-                dateOfPfJoining: options.joiningDate || "2026-01-15",
-                isEpsApplicable: true,
-                isEdliApplicable: true,
-                kyc: { overallStatus: "VERIFIED", aadhaarKyc: "VERIFIED", panKyc: "VERIFIED", bankKyc: "VERIFIED" },
-                uanStatus: "ACTIVE",
-                verification: { status: "SUCCESS", officialSource: "Decentro Fabric" }
-            };
+        if (!pfDetails) {
+            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            return;
         }
 
         container.innerHTML = renderCardHtml(pfDetails, options);

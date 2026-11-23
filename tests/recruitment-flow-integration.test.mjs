@@ -1,3 +1,4 @@
+import './helpers/isolate-firebase.mjs';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,6 +10,27 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
 import recruitmentIntegrationService from '../services/recruitment-integration-service.js';
+import http from 'node:http';
+import admin from 'firebase-admin';
+import { before, after } from 'node:test';
+import jwt from 'jsonwebtoken';
+
+// Starts the app on a free port with the in-memory store; refuses to run against a real Firebase app.
+let server;
+let baseUrl;
+before(async () => {
+  const { default: serverModule } = await import('../server.js');
+  assert.equal(admin.apps.length, 0, 'a real Firebase app is initialised; the test must run on the in-memory store');
+  await serverModule.dynamicRoutesLoaded;
+  server = http.createServer(serverModule.app);
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  baseUrl = `http://127.0.0.1:${server.address().port}`;
+});
+after(async () => {
+  server?.closeAllConnections?.();
+  if (server) await new Promise((resolve) => server.close(resolve));
+});
+const authed = (url, opts = {}) => fetch(url, { ...opts, headers: { Authorization: `Bearer ${jwt.sign({ id: 'test_super_admin', role: 'Super Admin', orgId: process.env.DEV_DEFAULT_ORG_ID || 'org_kylrx_ai' }, process.env.JWT_SECRET)}`, ...(opts.headers || {}) } });
 
 describe('19. Recruitment Flow & ATS Integration Suite', () => {
 
@@ -93,7 +115,7 @@ describe('19. Recruitment Flow & ATS Integration Suite', () => {
 
     // 5. REST API verification
     it('5. REST API exposes /api/integrations/recruitment and /api/integrations/plans', async () => {
-        const res = await fetch('http://localhost:3000/api/integrations/recruitment');
+        const res = await authed(`${baseUrl}/api/integrations/recruitment`);
         assert.equal(res.status, 200);
         const json = await res.json();
         assert.equal(json.success, true);
@@ -101,7 +123,7 @@ describe('19. Recruitment Flow & ATS Integration Suite', () => {
         assert.equal(json.integration.annualPrice, 10000);
         assert.equal(json.integration.includedInGeneralHRMS, false);
 
-        const plansRes = await fetch('http://localhost:3000/api/integrations/plans');
+        const plansRes = await authed(`${baseUrl}/api/integrations/plans`);
         assert.equal(plansRes.status, 200);
         const plansJson = await plansRes.json();
         assert.equal(plansJson.success, true);

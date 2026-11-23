@@ -239,7 +239,8 @@
         if (verifyBtn) {
             verifyBtn.onclick = async function (e) {
                 e.preventDefault();
-                const orgId = options.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+                const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
+                if (!orgId) { window.showCustomAlert ? window.showCustomAlert('Organization Missing', 'No organization found for the signed-in user. Sign in again.', 'error') : alert('No organization found for the signed-in user. Sign in again.'); return; }
                 const btnText = container.querySelector('#esicVerifyBtnText');
                 const btnIcon = container.querySelector('#esicVerifyIcon');
 
@@ -385,36 +386,17 @@
 
         if (!container) return;
 
-        const orgId = options.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let esicDetails = null;
 
         if (window.KylrxEsicDetailsService && typeof window.KylrxEsicDetailsService.getEmployeeEsicDetails === 'function') {
             esicDetails = await window.KylrxEsicDetailsService.getEmployeeEsicDetails(orgId, employeeId);
         }
 
-        if (!esicDetails && window.KylrxEsicDetailsService) {
-            esicDetails = window.KylrxEsicDetailsService.DEFAULT_ESIC_PROFILES.find(p => p.employeeId === employeeId) || {
-                employeeId,
-                organizationId: orgId,
-                isEsicApplicable: true,
-                ipNumber: options.esiNumber || "3100482910",
-                esicEmployerCode: "53000123450000001",
-                dateOfEsicJoining: options.joiningDate || "2026-01-15",
-                dateOfEsicExit: null,
-                insuredPersonStatus: "ACTIVE",
-                aadhaarSeeding: "VERIFIED",
-                familyDependentDetails: "SUBMITTED",
-                dispensaryBranch: "ESIC Dispensary Indiranagar, BLR",
-                contributionState: "Karnataka",
-                isInsuranceNumberVerified: true,
-                verification: {
-                    officialSource: "Decentro Fabric",
-                    verificationMethod: "API",
-                    verificationReference: "DEC_ESIC_VERIF_8829102",
-                    lastVerified: "2026-10-05T10:30:00Z",
-                    lastSynced: "2026-10-05T10:30:00Z"
-                }
-            };
+        if (!esicDetails) {
+            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            return;
         }
 
         container.innerHTML = renderCardHtml(esicDetails, options);

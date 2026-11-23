@@ -462,7 +462,7 @@
                 await docRef.set(firestoreDoc, { merge: true });
             } else {
                 // Modular SDK
-                const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+                const fb = await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
                 if (fb && fb.db && fb.doc && fb.setDoc) {
                     const docRef = fb.doc(fb.db, 'organizations', cleanOrgId, 'employee_finance', cleanEmpId);
                     await fb.setDoc(docRef, firestoreDoc, { merge: true });
@@ -508,7 +508,7 @@
                     return data;
                 }
             } else {
-                const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+                const fb = await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
                 if (fb && fb.db && fb.doc && fb.getDoc) {
                     const docRef = fb.doc(fb.db, 'organizations', cleanOrgId, 'employee_finance', cleanEmpId);
                     const snap = await fb.getDoc(docRef);
@@ -559,7 +559,7 @@
             if (typeof window !== 'undefined' && window.db) {
                 await window.db.collection('organizations').doc(cleanOrgId).collection('employee_finance').doc(cleanEmpId).delete();
             } else {
-                const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+                const fb = await import('../firebase-config.js').catch(() => null) || (typeof window !== 'undefined' && window.KylrxFirebase) || null;
                 if (fb && fb.db && fb.doc && fb.deleteDoc) {
                     const docRef = fb.doc(fb.db, 'organizations', cleanOrgId, 'employee_finance', cleanEmpId);
                     await fb.deleteDoc(docRef);
@@ -656,7 +656,7 @@
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const orgId = options.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         const list = Array.from(_localLedger.values()).filter((v, idx, arr) => arr.findIndex(t => t.employeeId === v.employeeId) === idx);
 
         container.innerHTML = `

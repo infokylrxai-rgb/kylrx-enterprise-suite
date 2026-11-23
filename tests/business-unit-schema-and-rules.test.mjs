@@ -21,8 +21,11 @@ const buParser = parserModule.exports;
 const controllerPath = path.join(rootDir, 'services', 'business-unit-controller.js');
 const controllerContent = fs.readFileSync(controllerPath, 'utf8');
 const controllerModule = { exports: {} };
-const controllerFn = new Function('module', 'exports', 'require', controllerContent);
-controllerFn(controllerModule, controllerModule.exports, () => ({}));
+// the controller takes the organization from the signed-in session; this stub is that session (no database, so nothing is persisted)
+const sessionWindow = { KylrxFirebase: { getActiveOrgId: () => 'org_test' } };
+const inertDocument = { readyState: 'loading', addEventListener() {} };
+const controllerFn = new Function('module', 'exports', 'require', 'window', 'document', controllerContent);
+controllerFn(controllerModule, controllerModule.exports, () => ({}), sessionWindow, inertDocument);
 const buController = controllerModule.exports;
 
 // Load backend BuEmployeeTypeRulesService

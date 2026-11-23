@@ -26,7 +26,7 @@
 
     let _currentFilterState = 'ALL';
     let _searchQuery = '';
-    let _activeOrgId = 'org_default';
+    let _activeOrgId = null;
 
     function getService() {
         return window.KylrxStatutoryComplianceService || (typeof require !== 'undefined' ? require('../statutoryComplianceService.js') : null);
@@ -39,10 +39,14 @@
     /**
      * Renders the complete Statutory & Compliance console into the specified target element
      */
-    function renderAdminConsole(containerId = 'settingsStatutoryRulesContainer', orgId = 'org_default') {
-        _activeOrgId = orgId || localStorage.getItem('orgId') || 'org_default';
+    function renderAdminConsole(containerId = 'settingsStatutoryRulesContainer', orgId) {
+        _activeOrgId = orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         const container = typeof containerId === 'string' ? document.getElementById(containerId) : containerId;
         if (!container) return;
+        if (!_activeOrgId) {
+            container.innerHTML = `<div style="padding: 2rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>`;
+            return;
+        }
 
         const svc = getService();
         if (!svc) {

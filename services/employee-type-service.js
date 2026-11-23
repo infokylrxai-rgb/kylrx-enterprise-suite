@@ -127,10 +127,10 @@
         if (typeof window !== 'undefined') {
             if (window.currentOrgId) return window.currentOrgId;
             if (window.currentUser && window.currentUser.orgId) return window.currentUser.orgId;
-            const stored = localStorage.getItem('kylrx_org_id') || localStorage.getItem('current_org_id');
-            if (stored) return stored;
+            if (typeof window.getActiveOrgId === 'function' && window.getActiveOrgId()) return window.getActiveOrgId();
         }
-        return 'org_default';
+        if (typeof globalThis.getActiveOrgId === 'function' && globalThis.getActiveOrgId()) return globalThis.getActiveOrgId();
+        throw new Error('Your account has no organization');
     }
 
     /**
@@ -558,7 +558,7 @@
         };
 
         try {
-            const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) ||
+            const fb = await import('../firebase-config.js').catch(() => null) ||
                        (typeof window !== 'undefined' && window.KylrxFirebase) || null;
 
             if (fb && fb.db && fb.doc && fb.setDoc) {
@@ -604,7 +604,7 @@
         delete cleanUpdates.createdAt;
 
         try {
-            const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) ||
+            const fb = await import('../firebase-config.js').catch(() => null) ||
                        (typeof window !== 'undefined' && window.KylrxFirebase) || null;
 
             if (fb && fb.db && fb.doc && fb.updateDoc) {
@@ -649,7 +649,7 @@
         const code = String(categoryCode || '').trim().toUpperCase();
 
         try {
-            const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) ||
+            const fb = await import('../firebase-config.js').catch(() => null) ||
                        (typeof window !== 'undefined' && window.KylrxFirebase) || null;
 
             if (fb && fb.db && fb.doc && fb.deleteDoc) {
@@ -679,7 +679,7 @@
         const code = String(categoryCode || '').trim().toUpperCase();
 
         try {
-            const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) ||
+            const fb = await import('../firebase-config.js').catch(() => null) ||
                        (typeof window !== 'undefined' && window.KylrxFirebase) || null;
 
             if (fb && fb.db && fb.doc && fb.getDoc) {
@@ -708,7 +708,7 @@
         const resolvedOrg = resolveOrgId(orgId);
 
         try {
-            const fb = await import('./firebase-config.js').catch(() => null) || await import('../firebase-config.js').catch(() => null) ||
+            const fb = await import('../firebase-config.js').catch(() => null) ||
                        (typeof window !== 'undefined' && window.KylrxFirebase) || null;
 
             if (fb && fb.db && fb.collection && fb.getDocs) {

@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <script>
         window.toggleAppsMenu = () => {
             const dropdown = document.getElementById('appsDropdown');
@@ -337,7 +337,7 @@
                 <div class="nav-item"><a href="employee-dashboard.html" class="nav-link" onclick="event.preventDefault(); navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
                 <div class="nav-item"><a href="employee-appraisal.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-appraisal.html');"><i data-lucide="target"></i><span>Performance (PMS)</span></a></div>
                 <div class="nav-item"><a href="employee-leave.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link active" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
@@ -359,7 +359,7 @@
                 
                 <div class="nav-label">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
                 
             </nav>
 
@@ -459,6 +459,8 @@
 
     <script type="module">
         import { auth, db, doc, onAuthStateChanged, checkBackendFirebaseStatus, collection, query, where, getDoc, getDocs, onSnapshot, updateDoc, limit, deleteDoc, arrayUnion, addDoc, serverTimestamp, registerListener } from "./firebase-config.js";
+        import { loadIdentity, orgNotificationsQuery, setReadState, markAllRead, failureReason } from "./notification-actions.js";
+        import { isUnread as unreadFor, unreadCount, canMarkUnread, withReadState, isTargetedTo } from "./notification-read-state.js";
 
         lucide.createIcons();
 
@@ -488,7 +490,7 @@
                     pill.style.color = '#059669';
                     if (dot) dot.style.background = '#10b981';
                     text.textContent = 'Firebase Backend Online';
-                    text.title = `Project: ${status.projectId || 'kylrxai'} • Service: ${status.service || 'Firebase Admin'}`;
+                    text.title = `Project: ${status.projectId || window.FIREBASE_PROJECT_ID || ''} • Service: ${status.service || 'Firebase Admin'}`;
                 } else {
                     pill.style.background = '#fefce8';
                     pill.style.borderColor = '#fef08a';
@@ -551,7 +553,7 @@
         function hydrateProfileUI(user) {
             if (!user) return;
             const name = user.displayName || user.name || user.fullName || 'Employee';
-            const role = user.designation || user.role || 'Cybersecurity Specialist';
+            const role = user.designation || user.role || 'Employee';
             const parts = name.trim().split(/\s+/).filter(Boolean);
             const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : (parts[0] ? parts[0].slice(0, 2).toUpperCase() : 'JD');
 
@@ -570,32 +572,13 @@
         let isInitialLoad = true;
 
         const urlParams = new URLSearchParams(window.location.search);
-        const urlId = urlParams.get('id');
-        let currentUid = urlId || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
-
-        // 1. Immediate Synchronous Profile Hydration (Prevents "-- --" hang on load)
-        let defaultName = 'John Doe';
-        if (currentUid === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2' || urlId === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2') {
-            defaultName = 'Marry Doe';
-        } else if (localStorage.getItem('userName')) {
-            defaultName = localStorage.getItem('userName');
-        }
-        let defaultRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
-        let defaultDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'Cybersecurity';
-
-        // Auto-normalize Marry's account so it matches directory records
-        if (currentUid.startsWith('EMP_MARRY_') || (defaultName && defaultName.toLowerCase().includes('marry')) || localStorage.getItem('userEmail') === 'marry@gmail.com') {
-            currentUid = 'EMP_1789230184645';
-            defaultName = 'Marry Doe';
-            defaultRole = 'Cybersecurity Employee';
-            localStorage.setItem('employee_uid', 'EMP_1789230184645');
-            localStorage.setItem('hr_user_id', 'EMP_1789230184645');
-            localStorage.setItem('userName', 'Marry Doe');
-            localStorage.setItem('userRole', 'Cybersecurity Employee');
-        }
+        // Display hints from the last visit; the uid and organization come only from the verified session
+        let defaultName = localStorage.getItem('userName') || 'Employee';
+        const defaultRole = localStorage.getItem('userRole') || 'Employee';
+        const defaultDept = localStorage.getItem('userDept') || localStorage.getItem('departmentName') || 'General';
 
         currentUser = {
-            uid: currentUid,
+            uid: '',
             name: defaultName,
             displayName: defaultName,
             role: defaultRole,
@@ -606,124 +589,80 @@
         hydrateProfileUI(currentUser);
         syncBackendStatus();
 
-        // Layer 1: 0ms Immediate Local Storage Hydration
-        hydrateFromLocalStorage();
+        let me = null; // { uid, orgId, role } from the verified token
 
-        // Helper: Build candidate IDs for employee matching
-        function getCandidateUids() {
-            const uid = currentUser?.uid || 'demo_emp';
-            const candidates = [uid];
-            if (uid === 'EMP_1789230184645' || (currentUser?.name && currentUser.name.toLowerCase().includes('marry'))) {
-                candidates.push('EMP_1789230184645', 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2', 'demo_emp');
+        // Small toast (success or error) so no action ever fails silently
+        function showToast(message, isError = false) {
+            let el = document.getElementById('notifToast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'notifToast';
+                el.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:10px 18px; border-radius:10px; color:#fff; font-weight:600; font-size:0.85rem; z-index:10000; box-shadow:0 8px 24px rgba(0,0,0,0.2); max-width:90%;';
+                document.body.appendChild(el);
             }
-            return Array.from(new Set(candidates));
+            el.textContent = message;
+            el.style.background = isError ? '#991b1b' : '#1e293b';
+            el.style.display = 'block';
+            clearTimeout(el._hide);
+            el._hide = setTimeout(() => { el.style.display = 'none'; }, 3500);
         }
 
-        function hydrateFromLocalStorage() {
-            try {
-                const cached = localStorage.getItem('cached_employee_notifications');
-                if (cached) {
-                    const list = JSON.parse(cached);
-                    if (Array.isArray(list) && list.length > 0) {
-                        notifsList = list;
-                        renderNotificationsUI();
-                    }
-                }
-            } catch (_) {}
-        }
-
-        // Layer 2: Fast Backend Firebase REST Fetch
-        async function fetchFromBackend() {
-            try {
-                const uid = currentUser?.uid || 'demo_emp';
-                const role = currentUser?.role || 'employee';
-                const dept = currentUser?.department || '';
-                const res = await fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications?uid=${encodeURIComponent(uid)}&role=${encodeURIComponent(role)}&department=${encodeURIComponent(dept)}`);
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json && json.success && Array.isArray(json.data)) {
-                        handleNewNotifications(json.data);
-                    }
-                }
-            } catch (err) {
-                console.warn('[Notifications] Backend fetch notice:', err.message);
+        function showFeedError(message) {
+            console.warn('[Notifications] Could not load notifications:', message);
+            notifsList = [];
+            const feedEl = document.getElementById('notificationsFeed');
+            if (feedEl) {
+                const safe = String(message).replace(/[<>&]/g, '');
+                feedEl.innerHTML = `<div style="text-align:center; color:#991b1b; padding:4rem 2rem;"><p style="font-weight:700;">Could not load notifications</p><p style="font-size:0.85rem; margin-top:4px;">${safe}</p></div>`;
             }
+            showToast('Could not load notifications: ' + message, true);
         }
 
-        // Layer 3: Realtime Firebase Firestore OnSnapshot Stream
+        // My organization's notifications that are addressed to me, my role or everyone, and that I have not cleared.
+        // Older notifications without an orgId belong to no organization and are shown to nobody.
         function setupRealtimeFirestoreListener() {
             try {
-                const candUids = getCandidateUids();
-                const q = query(collection(db, 'notifications'), limit(80));
-                onSnapshot(q, (snap) => {
+                onSnapshot(orgNotificationsQuery(me, 80), (snap) => {
                     const items = [];
                     snap.docs.forEach(docSnap => {
                         const d = docSnap.data();
                         const cleared = d.clearedBy || [];
-                        if (cleared.some(c => candUids.includes(c))) return;
+                        if (cleared.includes(me.uid) || !isTargetedTo(d, me)) return;
 
-                        const target = (d.target || '').toLowerCase();
-                        const r = (d.recipient_role || d.targetRole || d.role || '').toLowerCase();
-                        const targetUid = d.targetUid || d.userId || d.target;
+                        const text = d.message || d.text || d.desc || 'No details provided.';
+                        let timestamp = new Date().toISOString();
+                        if (d.timestamp?.toDate) timestamp = d.timestamp.toDate().toISOString();
+                        else if (d.created_at) timestamp = d.created_at;
+                        else if (d.timestamp?.seconds) timestamp = new Date(d.timestamp.seconds * 1000).toISOString();
 
-                        const isGlobal = target === 'employee' || target === 'all' || target === 'global' || target === 'all-employees' || r === 'employee';
-                        const isDirect = candUids.some(c => targetUid === c || d.target === c || d.userId === c);
-
-                        if (isGlobal || isDirect) {
-                            const title = d.title || (d.priority ? `${d.priority.toUpperCase()} ALERT` : 'System Notification');
-                            const text = d.message || d.text || d.desc || 'No details provided.';
-                            let timestamp = new Date().toISOString();
-                            if (d.timestamp?.toDate) timestamp = d.timestamp.toDate().toISOString();
-                            else if (d.created_at) timestamp = d.created_at;
-                            else if (d.timestamp?.seconds) timestamp = new Date(d.timestamp.seconds * 1000).toISOString();
-
-                            items.push({
-                                id: docSnap.id,
-                                title,
-                                text,
-                                message: text,
-                                timestamp,
-                                read: d.read === true,
-                                priority: (d.priority || 'normal').toLowerCase(),
-                                target: d.target,
-                                category: d.category || d.type || 'system',
-                                clearedBy: cleared
-                            });
-                        }
+                        items.push({
+                            id: docSnap.id,
+                            title: d.title || (d.priority ? `${d.priority.toUpperCase()} ALERT` : 'System Notification'),
+                            text,
+                            message: text,
+                            timestamp,
+                            read: d.read === true, // the old shared flag; per-user state is readBy
+                            readBy: d.readBy || [],
+                            priority: (d.priority || 'normal').toLowerCase(),
+                            target: d.target,
+                            category: d.category || d.type || 'system',
+                            clearedBy: cleared
+                        });
                     });
-
                     handleNewNotifications(items);
-                }, (err) => {
-                    console.warn('[Notifications] Real-time Firestore notice:', err.message);
-                });
+                }, (err) => showFeedError(err.code === 'permission-denied'
+                    ? 'Permission denied while reading notifications for your organization.'
+                    : err.message));
             } catch (e) {
-                console.warn('[Notifications] Listener setup bypassed:', e.message);
+                showFeedError(e.message);
             }
         }
 
-        function handleNewNotifications(newItems) {
-            if (!newItems || newItems.length === 0) return;
+        function handleNewNotifications(items) {
+            const sorted = [...items].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            notifsList = sorted;
 
-            const map = new Map();
-            notifsList.forEach(n => map.set(n.id, n));
-            newItems.forEach(n => {
-                const existing = map.get(n.id);
-                if (existing) {
-                    map.set(n.id, { ...existing, ...n });
-                } else {
-                    map.set(n.id, n);
-                }
-            });
-
-            const merged = Array.from(map.values());
-            merged.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            notifsList = merged;
-
-            try {
-                localStorage.setItem('cached_employee_notifications', JSON.stringify(notifsList.slice(0, 100)));
-            } catch (_) {}
-
-            const currentUnreads = new Set(notifsList.filter(n => !n.read).map(n => n.id));
+            const currentUnreads = new Set(notifsList.filter(n => unreadFor(n, me.uid)).map(n => n.id));
             if (!isInitialLoad) {
                 const hasBrandNew = Array.from(currentUnreads).some(id => !previousUnreadIds.has(id));
                 if (hasBrandNew) {
@@ -749,15 +688,15 @@
             const unreadBadge = document.getElementById('unreadBadge');
             if (!feedEl) return;
 
-            const unreadCount = notifsList.filter(n => !n.read).length;
+            const unread = me ? unreadCount(notifsList, me.uid) : 0;
             if (unreadBadge) {
-                unreadBadge.textContent = `${unreadCount} unread`;
-                unreadBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+                unreadBadge.textContent = `${unread} unread`;
+                unreadBadge.style.display = unread > 0 ? 'inline-block' : 'none';
             }
 
             let filtered = notifsList;
             if (currentFilter === 'unread') {
-                filtered = notifsList.filter(n => !n.read);
+                filtered = notifsList.filter(n => unreadFor(n, me.uid));
             } else if (currentFilter === 'urgent') {
                 filtered = notifsList.filter(n => n.priority === 'high' || n.priority === 'critical' || (n.title && (n.title.toLowerCase().includes('urgent') || n.title.toLowerCase().includes('critical') || n.title.toLowerCase().includes('warning'))));
             } else if (currentFilter === 'policy') {
@@ -788,7 +727,8 @@
                     }
                 } catch (_) {}
 
-                const isRead = n.read || false;
+                const isRead = !unreadFor(n, me ? me.uid : null);
+                const legacyLocked = isRead && !canMarkUnread(n);
                 const priority = (n.priority || 'normal').toLowerCase();
 
                 let icon = 'bell';
@@ -822,13 +762,16 @@
 
                 const safeId = esc(n.id || '');
                 return `
-                    <div class="notif-item ${isRead ? 'read' : ''}" data-id="${safeId}" onclick="toggleMarkAsRead('${safeId}', ${isRead})">
+                    <div class="notif-item ${isRead ? 'read' : ''}" data-id="${safeId}" onclick="${isRead ? '' : `toggleMarkAsRead('${safeId}', true)`}">
                         <div class="notif-icon" style="background: ${iconBg}; color: ${iconColor};">
                             <i data-lucide="${icon}"></i>
                         </div>
                         <div class="notif-content">
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div class="notif-title">${esc(n.title || 'Notification')}</div>
+                                <button onclick="event.stopPropagation(); toggleMarkAsRead('${safeId}', ${!isRead})" title="${!isRead ? 'Mark as read' : (legacyLocked ? 'Read (older notification, cannot be marked unread)' : 'Mark as unread')}" ${legacyLocked ? 'disabled' : ''} style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
+                                    <i data-lucide="${!isRead ? 'check' : 'rotate-ccw'}" style="width:16px; height:16px;"></i>
+                                </button>
                                 <button onclick="event.stopPropagation(); deleteNotification('${safeId}')" title="Clear notification" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
                                     <i data-lucide="x" style="width:16px; height:16px;"></i>
                                 </button>
@@ -848,43 +791,43 @@
             if (window.lucide) lucide.createIcons();
         }
 
-        window.toggleMarkAsRead = async (id, isRead) => {
-            if (isRead) return;
-            // Optimistic DOM update
-            const item = notifsList.find(n => n.id === id);
-            if (item) item.read = true;
-            renderNotificationsUI();
-
-            // Asynchronous backend & Firestore sync
-            fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications/read/${id}`, { method: 'POST' }).catch(() => {});
+        // Mark one notification read (setAsRead = true) or unread (false) for me
+        window.toggleMarkAsRead = async (id, setAsRead) => {
+            const previous = notifsList.find(n => n.id === id);
+            if (!previous || !me) { showToast('Sign in again to change notifications.', true); return; }
+            if (!setAsRead && !canMarkUnread(previous)) {
+                showToast('This older notification was marked read for everyone and cannot be marked unread.', true);
+                return;
+            }
+            const show = (list) => { notifsList = list; renderNotificationsUI(); };
+            show(notifsList.map(n => n.id === id ? withReadState(n, me.uid, setAsRead) : n));
             try {
-                const targetRef = doc(db, 'notifications', id);
-                await updateDoc(targetRef, { read: true });
-            } catch (_) {}
+                await setReadState(id, me.uid, setAsRead);
+                showToast(setAsRead ? 'Marked as read' : 'Marked as unread');
+            } catch (e) {
+                console.error('Mark read failed:', e);
+                show(notifsList.map(n => n.id === id ? previous : n));
+                showToast('Could not update the notification: ' + failureReason(e), true);
+            }
         };
 
         window.markAllNotificationsAsRead = async () => {
-            const unreads = notifsList.filter(n => !n.read);
-            if (unreads.length === 0) return;
+            if (!me) { showToast('Sign in again to change notifications.', true); return; }
+            const unread = notifsList.filter(n => unreadFor(n, me.uid));
+            if (unread.length === 0) return;
 
-            // Optimistic DOM update
-            notifsList.forEach(n => n.read = true);
+            const before = notifsList;
+            notifsList = notifsList.map(n => unreadFor(n, me.uid) ? withReadState(n, me.uid, true) : n);
             renderNotificationsUI();
-
-            // Asynchronous backend & Firestore sync
-            const candUids = getCandidateUids();
-            fetch('${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications/read-all', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ uid: candUids[0] })
-            }).catch(() => {});
-
             try {
-                for (const n of unreads) {
-                    updateDoc(doc(db, 'notifications', n.id), { read: true }).catch(() => {});
-                }
-                showStatusModal('Success', 'All notifications have been marked as read.', 'success');
-            } catch (_) {}
+                await markAllRead(unread.map(n => n.id), me.uid);
+                showToast(`Marked ${unread.length} notification${unread.length === 1 ? '' : 's'} as read`);
+            } catch (e) {
+                console.error('Mark all read failed:', e);
+                notifsList = before;
+                renderNotificationsUI();
+                showToast('Could not mark all as read: ' + failureReason(e), true);
+            }
         };
 
         const ensureNotifModals = () => {
@@ -931,24 +874,19 @@
             document.getElementById('customDelNotifCancel').onclick = () => { modal.style.display = 'none'; };
             document.getElementById('customDelNotifConfirm').onclick = async () => {
                 modal.style.display = 'none';
-                // Optimistic removal from DOM
+                if (!me) { showToast('Sign in again to change notifications.', true); return; }
+                const before = notifsList;
                 notifsList = notifsList.filter(n => n.id !== id);
                 renderNotificationsUI();
-
-                const candUids = getCandidateUids();
-                const currentUid = candUids[0];
-
-                fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications/clear/${id}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uid: currentUid })
-                }).catch(() => {});
-
                 try {
-                    await updateDoc(doc(db, 'notifications', id), {
-                        clearedBy: arrayUnion(currentUid)
-                    });
-                } catch(e) {}
+                    await updateDoc(doc(db, 'notifications', id), { clearedBy: arrayUnion(me.uid) });
+                    showToast('Notification cleared');
+                } catch (e) {
+                    console.error('Clear failed:', e);
+                    notifsList = before;
+                    renderNotificationsUI();
+                    showToast('Could not clear the notification: ' + failureReason(e), true);
+                }
             };
         };
 
@@ -959,25 +897,20 @@
             document.getElementById('customClearAllNotifCancel').onclick = () => { modal.style.display = 'none'; };
             document.getElementById('customClearAllNotifConfirm').onclick = async () => {
                 modal.style.display = 'none';
+                if (!me) { showToast('Sign in again to change notifications.', true); return; }
+                const before = notifsList;
                 const ids = notifsList.map(n => n.id);
                 notifsList = [];
                 renderNotificationsUI();
-
-                const candUids = getCandidateUids();
-                const currentUid = candUids[0];
-
-                fetch('${typeof API_BASE !== "undefined" ? API_BASE : (window.API_BASE || window.location.origin)}/api/notifications/clear-all', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ uid: currentUid })
-                }).catch(() => {});
-
                 try {
-                    const promises = ids.map(id => updateDoc(doc(db, 'notifications', id), {
-                        clearedBy: arrayUnion(currentUid)
-                    }));
-                    await Promise.all(promises);
-                } catch(e) {}
+                    await Promise.all(ids.map(id => updateDoc(doc(db, 'notifications', id), { clearedBy: arrayUnion(me.uid) })));
+                    showToast('All notifications cleared');
+                } catch (e) {
+                    console.error('Clear all failed:', e);
+                    notifsList = before;
+                    renderNotificationsUI();
+                    showToast('Could not clear all notifications: ' + failureReason(e), true);
+                }
             };
         };
 
@@ -994,13 +927,17 @@
             }
         };
 
-        // Bootstrap synchronization
-        fetchFromBackend();
-        setupRealtimeFirestoreListener();
-
-        // 3-second background polling
-        if (window._notifPoll) clearInterval(window._notifPoll);
-        window._notifPoll = setInterval(fetchFromBackend, 3000);
+        // Start once the signed-in user (and their organization) is known from the verified session
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { showFeedError('You are signed out. Please sign in again.'); return; }
+            if (me) return;
+            try {
+                me = await loadIdentity();
+                setupRealtimeFirestoreListener();
+            } catch (err) {
+                showFeedError(err.message);
+            }
+        });
 
         // Command center branding
         async function loadCommandCenterConfig() {
@@ -1025,7 +962,7 @@
         onAuthStateChanged(auth, async (user) => {
             loadCommandCenterConfig();
             if (user) {
-                if (user.displayName && defaultName === 'John Doe') {
+                if (user.displayName && defaultName === 'Employee') {
                     defaultName = user.displayName;
                     currentUser.name = user.displayName;
                     currentUser.displayName = user.displayName;

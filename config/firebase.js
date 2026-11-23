@@ -1,6 +1,9 @@
 const admin = require("firebase-admin");
 require('dotenv').config();
 
+// The Firebase project comes only from the environment (see .env.example and README.md):
+//   FIREBASE_PROJECT_ID, FIREBASE_STORAGE_BUCKET, and the service account in
+//   FIREBASE_SERVICE_ACCOUNT (raw or base64 JSON) or FIREBASE_SERVICE_ACCOUNT_PATH (key file).
 let serviceAccount;
 
 if (process.env.FIREBASE_SERVICE_ACCOUNT) {
@@ -24,13 +27,39 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
   } catch (error) {
     console.error("Failed to load FIREBASE_SERVICE_ACCOUNT_PATH key file:", error.message);
   }
-} else {
-  // Check optional local file fallback if explicitly present
-  try {
-    serviceAccount = require("./serviceAccountKey.json");
-  } catch (error) {
-    // Expected when relying exclusively on host environment variables
+}
+
+// Tests never talk to a real project: with NODE_ENV=test the service account is ignored unless a Firestore
+// emulator is in use (FIRESTORE_EMULATOR_HOST). A .env with real credentials therefore cannot be reached by a test run.
+if (process.env.NODE_ENV === 'test' && !process.env.FIRESTORE_EMULATOR_HOST) {
+  serviceAccount = undefined;
+}
+
+const projectId = process.env.FIREBASE_PROJECT_ID || '';
+const storageBucket = process.env.FIREBASE_STORAGE_BUCKET || '';
+
+// Production never falls back to anything: fail at startup and say exactly what is missing
+if (process.env.NODE_ENV === 'production') {
+  const missing = [];
+  if (!projectId) missing.push('FIREBASE_PROJECT_ID');
+  if (!storageBucket) missing.push('FIREBASE_STORAGE_BUCKET');
+  if (!serviceAccount) missing.push('FIREBASE_SERVICE_ACCOUNT or FIREBASE_SERVICE_ACCOUNT_PATH (a readable service account key)');
+  if (missing.length) {
+    throw new Error(`Firebase credentials are required in production. Missing or unreadable: ${missing.join(', ')}.`);
   }
+  if (serviceAccount.project_id && serviceAccount.project_id !== projectId) {
+    throw new Error(`FIREBASE_PROJECT_ID (${projectId}) does not match the service account's project (${serviceAccount.project_id}).`);
+  }
+}
+
+/** The configured project for status endpoints and labels; never a hard-coded project */
+function firebaseProjectInfo() {
+  return {
+    configured: Boolean(serviceAccount),
+    projectId: projectId || (serviceAccount && serviceAccount.project_id) || null,
+    storageBucket: storageBucket || null,
+    clientEmail: (serviceAccount && serviceAccount.client_email) || null
+  };
 }
 
 let db;
@@ -41,7 +70,8 @@ if (serviceAccount) {
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "kylrxai.firebasestorage.app"
+      projectId: projectId || serviceAccount.project_id,
+      ...(storageBucket ? { storageBucket } : {})
     });
     console.log("Firebase Admin SDK initialized successfully!");
   }
@@ -53,9 +83,29 @@ if (serviceAccount) {
   rawCollection = require('./tenant').installTenantScoping(db);
   messaging = admin.messaging();
 } else {
-  console.log("Firebase Backend: Active in local connected development mode (kylrxai).");
+  console.log("Firebase Backend: Active in local in-memory mode (no Firebase service account configured).");
   
   const _firestoreStore = new Map();
+
+  // update()/set({merge}) with FieldValue.delete() removes the field (top-level fields only)
+  const { FieldValue } = require('firebase-admin/firestore');
+  const isDeleteSentinel = (v) => Boolean(v) && typeof v.isEqual === 'function' && v.isEqual(FieldValue.delete());
+  // arrayUnion / arrayRemove apply to the stored array, as in Firestore
+  const arrayTransform = (v) => v && Array.isArray(v.elements) && /^Array(Union|Remove)Transform$/.test(v.constructor && v.constructor.name) ? v.constructor.name : null;
+  function mergeFields(existing, data) {
+    const merged = { ...existing, ...data };
+    for (const key of Object.keys(data)) {
+      if (isDeleteSentinel(data[key])) { delete merged[key]; continue; }
+      const kind = arrayTransform(data[key]);
+      if (!kind) continue;
+      const current = Array.isArray(existing[key]) ? existing[key] : [];
+      const items = data[key].elements;
+      merged[key] = kind === 'ArrayUnionTransform'
+        ? [...current, ...items.filter(x => !current.includes(x))]
+        : current.filter(x => !items.includes(x));
+    }
+    return merged;
+  }
 
   function getCollectionData(name) {
     if (!_firestoreStore.has(name)) {
@@ -138,7 +188,8 @@ if (serviceAccount) {
         const docs = items.map(d => ({
           id: d.id,
           exists: true,
-          data: () => d
+          data: () => d,
+          get: (field) => d[field]
         }));
         return {
           empty: docs.length === 0,
@@ -149,26 +200,28 @@ if (serviceAccount) {
       },
       doc: function(docId) {
         return {
+          collection: (sub) => createQuery(`${collectionName}/${docId}/${sub}`),
           get: async function() {
             const colMap = getCollectionData(collectionName);
             const data = colMap.get(docId);
             return {
               id: docId,
               exists: Boolean(data),
-              data: () => data || null
+              data: () => data || null,
+              get: (field) => (data ? data[field] : undefined)
             };
           },
           set: async function(data, opts = {}) {
             const colMap = getCollectionData(collectionName);
             const existing = colMap.get(docId) || {};
-            const merged = opts.merge ? { ...existing, ...data, id: docId } : { ...data, id: docId };
+            const merged = opts.merge ? { ...mergeFields(existing, data), id: docId } : { ...data, id: docId };
             colMap.set(docId, merged);
             return { id: docId };
           },
           update: async function(data) {
             const colMap = getCollectionData(collectionName);
             const existing = colMap.get(docId) || { id: docId };
-            colMap.set(docId, { ...existing, ...data });
+            colMap.set(docId, mergeFields(existing, data));
             return { id: docId };
           },
           delete: async function() {
@@ -193,6 +246,21 @@ if (serviceAccount) {
     }
   };
 
+  // Write batches exist only in test mode. Elsewhere this store is not a database, so a batch must
+  // fail visibly instead of confirming a save that only went to memory.
+  if (process.env.NODE_ENV === 'test') {
+    db.batch = () => {
+      const ops = [];
+      const batch = {
+        set: (ref, data, opts) => { ops.push(() => ref.set(data, opts)); return batch; },
+        update: (ref, data) => { ops.push(() => ref.update(data)); return batch; },
+        delete: (ref) => { ops.push(() => ref.delete()); return batch; },
+        commit: async () => { for (const op of ops) await op(); return ops.map(() => ({})); } // shortcut: not atomic, test only
+      };
+      return batch;
+    };
+  }
+
   admin.firestore = function() {
     return db;
   };
@@ -215,5 +283,17 @@ if (serviceAccount) {
 }
 
 // rawCollection(name) bypasses tenant scoping; only for authentication-time lookups
-module.exports = { admin, db, messaging, rawCollection: rawCollection || ((name) => db.collection(name)) };
+// Firebase Auth for server code that mints tokens. Without a service account (in-memory mode) only tests get a
+// stand-in, because a real custom token cannot be made without the Admin SDK.
+function getAuth() {
+  if (serviceAccount) return admin.auth();
+  return {
+    createCustomToken: async (uid, claims) => {
+      if (process.env.NODE_ENV !== 'test') throw new Error('Firebase Admin is not configured: custom tokens need a service account.');
+      return `test-custom-token:${uid}:${JSON.stringify(claims)}`;
+    }
+  };
+}
+
+module.exports = { admin, db, messaging, getAuth, rawCollection: rawCollection || ((name) => db.collection(name)), firebaseProjectInfo };
 

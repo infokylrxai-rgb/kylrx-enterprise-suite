@@ -4,10 +4,12 @@ const { confirmedWrite } = require('../config/firestore-write');
 const crypto = require('crypto');
 const logger = require('../utils/logger');
 const { db, rawCollection } = require('../config/firebase');
-const { orgDocs, ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { firebaseProjectInfo } = require('../config/firebase');
+const { orgDocs, ownerOrgId } = require('../config/tenant');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 
 /**
  * Enterprise Asset Management Hub
@@ -25,7 +27,7 @@ const ADMIN_ONLY = authorize(ADMIN_HR_ROLES);
 const STATUSES = ['In Stock', 'Allocated', 'Repair', 'Missing', 'Return Initiated', 'Retired'];
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 function actorOf(req) {
@@ -78,10 +80,10 @@ function sendError(res, error, context) {
 }
 
 // GET /api/assets - This organization's inventory
-router.get('/', async (req, res) => {
+router.get('/', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const data = await orgAssets(orgOf(req));
-        res.status(200).json({ success: true, count: data.length, data, source: 'firebase-admin', projectId: 'kylrxai' });
+        res.status(200).json({ success: true, count: data.length, data, source: 'firebase-admin', projectId: firebaseProjectInfo().projectId });
     } catch (error) {
         logger.error('[ASSET] Error listing assets:', error);
         res.status(500).json({ success: false, message: 'Could not load assets from Firebase.' });
@@ -89,7 +91,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/assets/stats - Counts for this organization
-router.get('/stats', async (req, res) => {
+router.get('/stats', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const assets = await orgAssets(orgOf(req));
         res.status(200).json({
@@ -129,7 +131,7 @@ router.get('/employees', ADMIN_ONLY, async (req, res) => {
 });
 
 // GET /api/assets/logs - Latest audit entries for this organization
-router.get('/logs', async (req, res) => {
+router.get('/logs', authorize(ADMIN_HR_ROLES), async (req, res) => {
     try {
         const data = (await orgDocs(rawCollection, 'asset_audit_logs', orgOf(req)))
             .map(l => ({ ...l, timestamp: toIso(l.timestamp) }))

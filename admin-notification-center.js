@@ -6,7 +6,7 @@
  * Covers all 11 enterprise facets:
  * Critical, Due Today, Upcoming, Approvals, Attendance, Payroll, PMS, Policy, Exit, Documents, System
  * 
- * Integrates directly with Google Cloud Firebase Firestore (kylrxai)
+ * Integrates directly with Google Cloud Firebase Firestore
  * Supports real-time zero synchronization and telemetry monitoring.
  */
 
@@ -322,7 +322,7 @@ async function initApp() {
 }
 
 /**
- * Direct Google Cloud Firebase Firestore Connection (kylrxai)
+ * Direct Google Cloud Firebase Firestore Connection
  */
 async function initFirebaseConnection() {
     const fbBadge = document.getElementById('firebase-status-badge');
@@ -341,10 +341,10 @@ async function initFirebaseConnection() {
         if (fbBadge) {
             fbBadge.innerHTML = `
                 <span class="live-pulse-dot" style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
-                <span>Firebase: Connected (kylrxai) • ${isZeroed ? 'Slate Zeroed' : 'Telemetry Live'}</span>
+                <span>Firebase: Connected • ${isZeroed ? 'Slate Zeroed' : 'Telemetry Live'}</span>
             `;
             fbBadge.style.display = 'inline-flex';
-            fbBadge.title = 'Directly connected to Google Cloud Firebase Firestore (kylrxai)';
+            fbBadge.title = 'Directly connected to Google Cloud Firebase Firestore';
         }
 
         // KPI counts and the feed come from /api/notification-center (the caller's organization
@@ -355,13 +355,21 @@ async function initFirebaseConnection() {
         const notifBadge = document.getElementById('headerNotifBadge');
         if (notifBadge) {
             try {
-                const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(20));
-                onSnapshot(notifQuery, (snap) => {
-                    const unread = snap.docs.filter(d => !d.data().read).length;
+                // The bell counts what is unread FOR ME in my organization, addressed to me, my role or everyone
+                const { loadIdentity, orgNotificationsQuery } = await import('./notification-actions.js');
+                const { unreadCount, isTargetedTo } = await import('./notification-read-state.js');
+                const identity = await loadIdentity();
+                onSnapshot(orgNotificationsQuery(identity, 50), (snap) => {
+                    const mine = snap.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .filter(n => !(n.clearedBy || []).includes(identity.uid) && isTargetedTo(n, identity));
+                    const unread = unreadCount(mine, identity.uid);
                     notifBadge.textContent = unread > 9 ? '9+' : unread;
                     notifBadge.style.display = unread > 0 ? 'flex' : 'none';
                 }, () => {});
-            } catch (e) {}
+            } catch (e) {
+                console.warn('[NotificationCenter] Bell badge unavailable:', e.message);
+            }
         }
 
         // Real-time listener for Header Message Badge
@@ -377,13 +385,13 @@ async function initFirebaseConnection() {
             } catch (e) {}
         }
 
-        console.log('⚡ [NotificationCenter] Real-time Firebase backend connection established (kylrxai)');
+        console.log('⚡ [NotificationCenter] Real-time Firebase backend connection established');
     } catch (err) {
         console.warn('[NotificationCenter] Direct Firebase SDK note, using REST/cached fallback:', err.message);
         if (fbBadge) {
             fbBadge.innerHTML = `
                 <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
-                <span>Firebase: Connected (kylrxai) • ${isZeroed ? 'Slate Zeroed' : 'Synced'}</span>
+                <span>Firebase: Connected • ${isZeroed ? 'Slate Zeroed' : 'Synced'}</span>
             `;
             fbBadge.style.display = 'inline-flex';
         }
@@ -407,7 +415,7 @@ function getZeroSummary() {
         documents: 0,
         system: 0,
         connectedToFirebase: true,
-        firebaseProject: 'kylrxai'
+        firebaseProject: window.FIREBASE_PROJECT_ID || ''
     };
 }
 
@@ -449,7 +457,7 @@ function computeFallbackSummary() {
         documents,
         system,
         connectedToFirebase: true,
-        firebaseProject: 'kylrxai'
+        firebaseProject: window.FIREBASE_PROJECT_ID || ''
     };
 }
 
@@ -654,7 +662,7 @@ function renderActionableList(container) {
                 </h3>
                 <p style="margin:0; color:#64748b; font-size:0.85rem; max-width:520px; line-height:1.5;">
                     ${isZeroed 
-                        ? 'All attendance breaches, payroll holds, exit clearances, and document sign-offs are cleared across all 11 enterprise facets. Operational slate is 100% clean & synchronized with Firebase (kylrxai)!' 
+                        ? 'All attendance breaches, payroll holds, exit clearances, and document sign-offs are cleared across all 11 enterprise facets. Operational slate is 100% clean & synchronized with Firebase!' 
                         : 'No pending items matching the selected facet or search criteria. Try selecting another filter or facet.'}
                 </p>
             </div>
@@ -764,7 +772,7 @@ function renderInformationList(container) {
                 </h3>
                 <p style="margin:0; color:#64748b; font-size:0.85rem; max-width:520px; line-height:1.5;">
                     ${isZeroed
-                        ? 'All organizational circulars, statutory alerts, and system notices are up-to-date and acknowledged. Live synced with Firebase (kylrxai).'
+                        ? 'All organizational circulars, statutory alerts, and system notices are up-to-date and acknowledged. Live synced with Firebase.'
                         : 'No informational broadcasts found matching your current filter.'}
                 </p>
             </div>
@@ -1129,7 +1137,7 @@ async function zeroAllNotices() {
     if (fbBadge) {
         fbBadge.innerHTML = `
             <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
-            <span>Firebase: Connected (kylrxai) • Slate Zeroed</span>
+            <span>Firebase: Connected • Slate Zeroed</span>
         `;
     }
 
@@ -1153,7 +1161,7 @@ async function restoreDefaultFeed() {
     if (fbBadge) {
         fbBadge.innerHTML = `
             <span style="width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 0 2px rgba(16,185,129,0.3); display:inline-block;"></span>
-            <span>Firebase: Connected (kylrxai) • Telemetry Live</span>
+            <span>Firebase: Connected • Telemetry Live</span>
         `;
     }
 

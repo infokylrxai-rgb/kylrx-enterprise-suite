@@ -12,11 +12,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="quick-actions.css">
     <link rel="stylesheet" href="upcoming-birthdays.css">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <script src="manager-portal-guard.js"></script>
     <script>
         (function() {
-            const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true' || localStorage.getItem('employee_uid');
+            const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
             const role = (localStorage.getItem('userRole') || localStorage.getItem('user_role') || '').toLowerCase();
             const allowed = ['manager', 'hr_admin', 'hradmin', 'hrms', 'super_admin', 'superadmin', 'admin'];
             if (!isLoggedIn || (role && !allowed.includes(role))) {
@@ -416,7 +416,7 @@
                     <span class="dept-code text-[10px] font-mono font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0" id="sideDeptCode">UNIT-CYB-802</span>
                 </div>
                 <div class="flex items-center justify-between mt-1">
-                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">John Doe</span></p>
+                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">Your manager</span></p>
                     <span class="dept-status-badge">Active</span>
                 </div>
             </div>
@@ -478,7 +478,7 @@
                 <div class="profile-mini" style="margin-top: 6px;">
                     <div class="avatar" id="userInitial">JD</div>
                     <div class="profile-info">
-                        <div class="profile-name" id="userNameDisplay">John Doe</div>
+                        <div class="profile-name" id="userNameDisplay">Employee</div>
                         <div class="profile-role" id="userRoleDisplay">Cybersecurity Manager</div>
                     </div>
                 </div>
@@ -488,8 +488,8 @@
         <main class="main-content">
             <header class="header">
                 <div>
-                    <h1 id="welcomeTitle">Welcome, John Doe</h1>
-                    <p class="sub-header">Department Manager: <strong id="mgrHeaderName" style="color: var(--text-main);">John Doe</strong> • Real-time operational intelligence & department oversight</p>
+                    <h1 id="welcomeTitle">Welcome, Manager</h1>
+                    <p class="sub-header">Department Manager: <strong id="mgrHeaderName" style="color: var(--text-main);">Manager</strong> • Real-time operational intelligence & department oversight</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <!-- Firebase Backend Status Pill -->
@@ -728,7 +728,7 @@
     </div>
 
     <script type="module">
-        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, checkBackendFirebaseStatus, registerListener } from "./firebase-config.js";
+        import { db, auth, onAuthStateChanged, signOut, doc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, getDoc, onSnapshot, arrayUnion, arrayRemove, collection, query, where, getDocs, checkBackendFirebaseStatus, registerListener, tenantReady, whereMyOrg } from "./firebase-config.js";
         import { getPendingReviews, scorePerformance } from "./pms-service.js";
         import { managerAttendanceService } from "./manager-attendance-service.js";
         import { upcomingBirthdays } from "./upcoming-birthdays.js";
@@ -745,9 +745,9 @@
         };
 
         window.updateManagerProfileUI = function(name, role) {
-            const finalName = name || 'John Doe';
-            const finalRole = role || 'Cybersecurity Manager';
-            const initials = finalName.split(' ').filter(Boolean).map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'JD';
+            const finalName = name || 'Manager';
+            const finalRole = role || 'Department Manager';
+            const initials = finalName.split(' ').filter(Boolean).map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'M';
             
             const userInitial = document.getElementById('userInitial');
             const userNameDisplay = document.getElementById('userNameDisplay');
@@ -767,12 +767,12 @@
 
         // Synchronous immediate hydration
         const paramId = new URLSearchParams(window.location.search).get('id');
-        const initialMgrName = (paramId === 'Yksv1DMH9pIeRhNxQ8E3' || !paramId) ? 'John Doe' : (localStorage.getItem('userName') || localStorage.getItem('manager_name') || 'John Doe');
-        const initialMgrRole = (paramId === 'Yksv1DMH9pIeRhNxQ8E3' || !paramId) ? 'Cybersecurity Manager' : (localStorage.getItem('userRole') || 'Department Manager');
+        const initialMgrName = localStorage.getItem('userName') || localStorage.getItem('manager_name') || 'Manager';
+        const initialMgrRole = localStorage.getItem('userRole') || 'Department Manager';
         window.updateManagerProfileUI(initialMgrName, initialMgrRole);
 
         // Initialize Upcoming Birthdays Widget for Manager (Scoped to permitted department)
-        const initialUnitIds = ['Yksv1DMH9pIeRhNxQ8E3', 'cybersecurity', 'unit-cyb-802', 'unit-cyb-799', 'cybersecurity manager'];
+        const initialUnitIds = [paramId, localStorage.getItem('departmentId'), localStorage.getItem('departmentCode')].filter(Boolean);
         upcomingBirthdays.init({
             containerId: 'upcomingBirthdaysContainer',
             role: 'manager',
@@ -970,7 +970,7 @@
             // Initialize Apps after auth state is completely resolved
             initApps();
 
-            const activeUserId = user ? user.uid : localStorage.getItem('hr_user_id') || 'manager_demo';
+            const activeUserId = user ? user.uid : window.__kylrxUid || '';
             managerAttendanceService.restoreManagerSession(activeUserId);
         });
 
@@ -1030,7 +1030,7 @@
 
             if (window.UpcomingBirthdaysInstance) {
                 window.UpcomingBirthdaysInstance.setManagerScope(
-                    currentUnitId || 'manager_demo',
+                    currentUnitId || '',
                     config.managerName || initialMgrName,
                     window.currentUnitIds
                 );
@@ -1042,12 +1042,12 @@
             // Dynamically resolve manager for this command center from Firestore
             (async () => {
                 try {
-                    const qMgr = query(collection(db, 'users'), where('role', '==', 'manager'));
+                    await tenantReady;
+                    const qMgr = query(collection(db, 'users'), whereMyOrg(), where('role', '==', 'manager'));
                     const snapMgr = await getDocs(qMgr);
                     const matchingMgr = snapMgr.docs.map(d => d.data()).find(u => 
                         u.departmentId === centerId || 
-                        u.departmentId === config.id ||
-                        (centerId === 'Yksv1DMH9pIeRhNxQ8E3' && u.name === 'John Doe')
+                        u.departmentId === config.id
                     );
                     if (matchingMgr) {
                         window.updateManagerProfileUI(matchingMgr.name, matchingMgr.departmentName || matchingMgr.role || `${config.name} Manager`);
@@ -1061,7 +1061,7 @@
 
             const welcomeSub = document.querySelector('.header .sub-header');
             if (welcomeSub) {
-                const curMgr = document.getElementById('userNameDisplay')?.textContent || 'John Doe';
+                const curMgr = document.getElementById('userNameDisplay')?.textContent || 'Manager';
                 welcomeSub.innerHTML = `Department Manager: <strong id="mgrHeaderName" style="color: var(--text-main);">${curMgr}</strong> • Real-time operational intelligence & department oversight`;
             }
             if (deptIcon) {
@@ -1911,7 +1911,7 @@
                 alert('Please enter a valid score between 0 and 100.');
                 return;
             }
-            const managerId = auth.currentUser?.uid || localStorage.getItem('hr_user_id') || 'manager';
+            const managerId = auth.currentUser?.uid || window.__kylrxUid || '';
             const approveBtn = scoreEl.closest('div[style*="gap"]')?.querySelector('button');
             try {
                 if(approveBtn) { approveBtn.textContent = 'Saving...'; approveBtn.disabled = true; }

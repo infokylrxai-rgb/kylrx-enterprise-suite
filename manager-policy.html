@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Policy Center | HRFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
             --primary: #3b82f6;
@@ -202,7 +202,7 @@
                     <span class="dept-code text-[10px] font-mono font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded flex-shrink-0" id="sideDeptCode">UNIT-CYB-802</span>
                 </div>
                 <div class="flex items-center justify-between mt-1">
-                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">John Doe</span></p>
+                    <p class="text-xs text-slate-500 m-0">Manager: <span class="font-medium text-blue-600" id="sideDeptManager">Your manager</span></p>
                     <span class="dept-status-badge">Active</span>
                 </div>
             </div>
@@ -263,7 +263,7 @@
                 <div class="profile-mini" style="margin-top: 6px;">
                     <div class="avatar" id="userInitial">JD</div>
                     <div class="profile-info">
-                        <div class="profile-name" id="userNameDisplay">John Doe</div>
+                        <div class="profile-name" id="userNameDisplay">Employee</div>
                         <div class="profile-role" id="userRoleDisplay">Cybersecurity Manager</div>
                     </div>
                 </div>
@@ -380,7 +380,10 @@
         })();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const empId = urlParams.get('id') || 'demo_emp';
+        import { loadIdentity } from "./notification-actions.js";
+        // The user is the verified session (token), never ?id= or localStorage
+        const SESSION = await loadIdentity().catch(() => null);
+        const empId = SESSION ? SESSION.uid : '';
         const requestedPolicy = urlParams.get('policy');
 
         window.logout = async () => {

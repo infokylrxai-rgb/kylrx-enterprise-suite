@@ -4,10 +4,12 @@ const { confirmedWrite } = require('../config/firestore-write');
 const crypto = require('crypto');
 const logger = require('../utils/logger');
 const { db, rawCollection } = require('../config/firebase');
-const { orgDocs, ownerOrgId, LEGACY_ORG_ID } = require('../config/tenant');
-const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
+const { firebaseProjectInfo } = require('../config/firebase');
+const { orgDocs, ownerOrgId } = require('../config/tenant');
+const { verifyToken, authorize, ADMIN_HR_ROLES, requireOrg } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
+router.use(requireOrg);
 router.use(authorize(ADMIN_HR_ROLES));
 
 /**
@@ -25,7 +27,7 @@ router.use(authorize(ADMIN_HR_ROLES));
 const OVERDUE_AFTER_MS = 3 * 86400000;
 
 function orgOf(req) {
-    return req.tenantOrgId || (req.user && req.user.orgId) || LEGACY_ORG_ID;
+    return req.user && req.user.orgId;
 }
 
 function actorOf(req) {
@@ -78,7 +80,7 @@ function sendError(res, error, context) {
 router.get('/', async (req, res) => {
     try {
         const data = await orgPolicies(orgOf(req));
-        res.status(200).json({ success: true, count: data.length, data, source: 'firebase-admin', projectId: 'kylrxai' });
+        res.status(200).json({ success: true, count: data.length, data, source: 'firebase-admin', projectId: firebaseProjectInfo().projectId });
     } catch (error) {
         logger.error('[POLICY] Error listing policies:', error);
         res.status(500).json({ success: false, message: 'Could not load policies from Firebase.' });

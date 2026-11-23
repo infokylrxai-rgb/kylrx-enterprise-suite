@@ -261,13 +261,17 @@
         if (progressBar) progressBar.style.width = '20%';
 
         const docId = `doc_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-        const storagePath = `employees/${employeeId}/documents/${file.name}`;
+        let storagePath = '';
 
         let downloadUrl = '';
 
         try {
-            // Attempt Firebase Storage Upload via Web SDK
-            try {
+            // Under orgs/{orgId}/ (storage.rules); the file name becomes one safe path segment
+            const { orgStoragePath } = await import('./storage-paths.js');
+            storagePath = await orgStoragePath('employees', employeeId, 'documents', `${docId}_${file.name}`);
+
+            // Firebase Storage upload; a failure stops here and is shown to the user
+            {
                 const fbConfig = await import('./firebase-config.js');
                 const fbStorage = await import('https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js');
                 if (fbConfig.storage && fbStorage.ref && fbStorage.uploadBytesResumable) {
@@ -288,14 +292,10 @@
                         );
                     });
                 }
-            } catch (storageErr) {
-                console.warn('[Firebase Storage] Direct upload notice (using secure local object URL fallback):', storageErr.message);
-                downloadUrl = URL.createObjectURL(file);
             }
 
-            if (!downloadUrl) {
-                downloadUrl = URL.createObjectURL(file);
-            }
+            // No local blob: URL "fallback": it looked saved but nobody else could open it
+            if (!downloadUrl) throw new Error('Firebase Storage is not available, so the file was not saved.');
 
             if (progressBar) progressBar.style.width = '100%';
 
@@ -326,10 +326,10 @@
 
             // Dual-save to backend API
             try {
-                const token = localStorage.getItem('access_token') || 'demo-token';
+                const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser) ? await window.auth.currentUser.getIdToken() : localStorage.getItem('access_token');
                 await fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (typeof window !== "undefined" && window.API_BASE ? window.API_BASE : (typeof window !== "undefined" && window.location ? window.location.origin : ""))}/api/admin/employees/${employeeId}/documents`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
                     body: JSON.stringify(docRecord)
                 });
             } catch (_) {}
@@ -436,10 +436,10 @@
 
         // Backend API
         try {
-            const token = localStorage.getItem('access_token') || 'demo-token';
+            const token = (typeof window !== 'undefined' && window.auth && window.auth.currentUser) ? await window.auth.currentUser.getIdToken() : localStorage.getItem('access_token');
             await fetch(`${typeof API_BASE !== "undefined" ? API_BASE : (typeof window !== "undefined" && window.API_BASE ? window.API_BASE : (typeof window !== "undefined" && window.location ? window.location.origin : ""))}/api/admin/employees/${employeeId}/documents/${docId}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
         } catch (_) {}
 
@@ -584,7 +584,7 @@
                     uan: form.uan ? form.uan.value : (statutory.uan || emp.uan),
                     pfMemberId: form.pfMemberId ? form.pfMemberId.value : (statutory.pfMemberId || emp.pfMemberId),
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null)
                 });
             }
 
@@ -593,7 +593,7 @@
                 window.KylrxEsicProfileUIController.mountEsicCard('esicStatutoryDrawerContainer', id, {
                     esiNumber: form.esicIp ? form.esicIp.value : (statutory.esicIpNumber || emp.esicIp),
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null)
                 });
             }
 
@@ -602,7 +602,7 @@
                 window.KylrxPtProfileUIController.mountPtCard('ptStatutoryDrawerContainer', id, {
                     state: form.workState ? form.workState.value : (statutory.ptState || emp.state || 'Karnataka'),
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null)
                 });
             }
 
@@ -611,7 +611,7 @@
                 window.KylrxLwfProfileUIController.mountLwfCard('lwfStatutoryDrawerContainer', id, {
                     state: form.workState ? form.workState.value : (statutory.lwfState || emp.state || 'Karnataka'),
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null)
                 });
             }
 
@@ -621,7 +621,7 @@
                     joiningDate: form.joiningDate ? form.joiningDate.value : emp.joiningDate,
                     basicPay: Number(form.basicSalary ? form.basicSalary.value : (emp.basicSalary || emp.basicPay || 50000)),
                     daPay: Number(form.daSalary ? form.daSalary.value : (emp.daSalary || 0)),
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null)
                 });
             }
 
@@ -633,15 +633,15 @@
                     basicPay: Number(form.basicSalary ? form.basicSalary.value : (emp.basicSalary || emp.basicPay || 60000)),
                     daPay: Number(form.daSalary ? form.daSalary.value : (emp.daSalary || 0)),
                     name: emp.name || emp.fullName || '',
-                    orgId: localStorage.getItem('orgId') || 'ORG_KYLRX_01'
+                    orgId: (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null)
                 });
             }
 
-            // PRD Sections 1, 4 & 13: Core Banking & Decentro Fabric Integration
+            // PRD Sections 1, 4 & 13: Core Banking & Cashfree Payouts Integration
             let finRec = null;
-            if (id && window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.getEmployeeFinance === 'function') {
+            if (id && (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null) && window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.getEmployeeFinance === 'function') {
                 try {
-                    finRec = await window.KylrxEmployeeFinanceService.getEmployeeFinance(localStorage.getItem('orgId') || 'org_kylrx', id);
+                    finRec = await window.KylrxEmployeeFinanceService.getEmployeeFinance((typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null), id);
                 } catch (_) {}
             }
             const banking = finRec?.banking || emp.banking || {};
@@ -818,11 +818,11 @@
      * PRD Sections 1 & 4: Populate Salary Structure & Revision Timeline
      */
     async function populateSalaryStructureView(empId, emp) {
-        const orgId = localStorage.getItem('orgId') || 'org_kylrx';
+        const orgId = (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
         let structure = null;
         let timeline = [];
 
-        if (empId && window.KylrxSalaryStructureService) {
+        if (empId && orgId && window.KylrxSalaryStructureService) {
             try {
                 structure = await window.KylrxSalaryStructureService.getSalaryStructure(orgId, empId);
                 timeline = await window.KylrxSalaryStructureService.getRevisionTimeline(orgId, empId);
@@ -1050,9 +1050,9 @@
                         if (benIdDisplay) benIdDisplay.textContent = res.decentroBeneficiaryId;
                         const decBadge = document.getElementById('decentroVerificationBadge');
                         if (decBadge) decBadge.textContent = 'VERIFIED';
-                        alert(`Decentro Fabric Penny Drop Successful!\n\nBeneficiary ID: ${res.decentroBeneficiaryId}\nAccount Holder: ${res.accountHolderName}\nIFSC: ${res.ifsc}\nGateway: ${res.gateway}\nStatus: VERIFIED`);
+                        alert(`Cashfree Penny Drop Successful!\n\nBeneficiary ID: ${res.decentroBeneficiaryId}\nAccount Holder: ${res.accountHolderName}\nIFSC: ${res.ifsc}\nGateway: ${res.gateway}\nStatus: VERIFIED`);
                     } else {
-                        alert(`Decentro Verification Failed:\n${res.error}`);
+                        alert(`Cashfree Verification Failed:\n${res.error}`);
                     }
                 }
 

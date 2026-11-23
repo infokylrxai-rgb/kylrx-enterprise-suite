@@ -1,24 +1,24 @@
 import fs from 'fs';
 import assert from 'assert';
 
-console.log('=== VERIFYING ADMIN AND HRMS TWO-WAY INTERLINKING & PAYROLL ADMIN ISOLATION ===');
+console.log('=== VERIFYING ADMIN AND HRMS PORTAL ISOLATION (NO ADMIN-HRMS INTERLINK) & PAYROLL ADMIN ISOLATION ===');
 
 // 1. Check admin-sidebar-sync.js
 assert.ok(fs.existsSync('admin-sidebar-sync.js'), 'admin-sidebar-sync.js must exist');
 const adminSync = fs.readFileSync('admin-sidebar-sync.js', 'utf8');
-assert.ok(adminSync.includes('hrms-dashboard.html'), 'admin-sidebar-sync.js must interlink to hrms-dashboard.html');
-assert.ok(adminSync.includes('HRMS Strategic Hub'), 'admin-sidebar-sync.js must mention HRMS Strategic Hub');
-assert.ok(adminSync.includes('admin-payroll'), 'admin-sidebar-sync.js must protect admin-payroll pages from HRMS injection');
-console.log('✓ admin-sidebar-sync.js: Interlink logic and payroll protection verified.');
+// The two-way interlink was removed on purpose in aa5f982 ("Admin portal is fully isolated"): the portals stay separate
+assert.ok(!adminSync.includes('hrms-dashboard.html'), 'admin-sidebar-sync.js must not inject a link to hrms-dashboard.html');
+assert.ok(!adminSync.includes('HRMS Strategic Hub'), 'admin-sidebar-sync.js must not inject the HRMS Strategic Hub entry');
+console.log('✓ admin-sidebar-sync.js: no HRMS links injected (portal isolation) verified.');
 
 // 2. Check hrms-sidebar-sync.js
 assert.ok(fs.existsSync('hrms-sidebar-sync.js'), 'hrms-sidebar-sync.js must exist');
 const hrmsSync = fs.readFileSync('hrms-sidebar-sync.js', 'utf8');
-assert.ok(hrmsSync.includes('admin-dashboard.html'), 'hrms-sidebar-sync.js must interlink to admin-dashboard.html');
-assert.ok(hrmsSync.includes('ensureEnterpriseInterlink'), 'hrms-sidebar-sync.js must define ensureEnterpriseInterlink');
-console.log('✓ hrms-sidebar-sync.js: Enterprise Admin interlink logic verified.');
+assert.ok(!hrmsSync.includes('admin-dashboard.html'), 'hrms-sidebar-sync.js must not link to admin-dashboard.html');
+assert.ok(!hrmsSync.includes('ensureEnterpriseInterlink'), 'hrms-sidebar-sync.js must not define the removed ensureEnterpriseInterlink');
+console.log('✓ hrms-sidebar-sync.js: no Admin interlink (portal isolation) verified.');
 
-// 3. Check Core Admin HTML files contain interlinks to HRMS
+// 3. Check Core Admin HTML files do not link to the HRMS dashboard
 const coreAdminFiles = [
     'admin-dashboard.html',
     'admin-central-dashboard.html',
@@ -35,8 +35,8 @@ const coreAdminFiles = [
 coreAdminFiles.forEach(file => {
     assert.ok(fs.existsSync(file), `${file} must exist`);
     const content = fs.readFileSync(file, 'utf8');
-    assert.ok(content.includes('hrms-dashboard.html'), `${file} must link to hrms-dashboard.html`);
-    console.log(`✓ ${file}: HRMS interlink verified.`);
+    assert.ok(!content.includes('href="hrms-dashboard.html"'), `${file} must not link to hrms-dashboard.html`);
+    console.log(`✓ ${file}: no HRMS link verified.`);
 });
 
 // 4. Verify admin-payroll-documents.html has ZERO navigation to HRMS pages and contains full tabs

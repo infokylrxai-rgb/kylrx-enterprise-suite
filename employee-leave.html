@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leave Management | HRFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <style>
         :root {
             --primary: #ec4899;
@@ -141,20 +141,20 @@
                 <div class="nav-item"><a href="employee-dashboard.html" class="nav-link" onclick="event.preventDefault(); navigateToDashboard()"><i data-lucide="layout"></i><span>Dashboard</span></a></div>
                 <div class="nav-item"><a href="employee-appraisal.html" class="nav-link" onclick="event.preventDefault(); navigateTo('employee-appraisal.html');"><i data-lucide="target"></i><span>Performance (PMS)</span></a></div>
                 <div class="nav-item"><a href="employee-leave.html" class="nav-link active" onclick="event.preventDefault(); navigateTo('employee-leave.html')"><i data-lucide="calendar"></i><span>Leave & Holidays</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-attendance-log.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="clock"></i><span>Attendance Log</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-docs.html')"><i data-lucide="file-text"></i><span>My Documents</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-message.html')"><i data-lucide="message-square"></i><span>Messages</span></a></div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-notifications.html')"><i data-lucide="bell"></i><span>Notifications</span></a></div>
                 
                 <div class="nav-label">RESOURCES</div>
                 <div class="nav-item"><a href="#" class="nav-link" onclick="navigateTo('employee-policy.html')"><i data-lucide="book-open"></i><span>Policies</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||localStorage.getItem('employee_uid')||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
+                <div class="nav-item"><a href="#" class="nav-link" onclick="window.location.href='employee-assets.html?id='+(new URLSearchParams(window.location.search).get('id')||window.__kylrxUid||'')"><i data-lucide="monitor"></i><span>My Assets</span></a></div>
             </nav>
 
             <div class="profile-mini">
                 <div class="avatar" id="userInitial">JD</div>
                 <div class="profile-info">
-                    <div class="profile-name" id="userNameDisplay">John Doe</div>
+                    <div class="profile-name" id="userNameDisplay">Employee</div>
                     <div class="profile-role" id="userRoleDisplay">Employee</div>
                 </div>
                 <button onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
@@ -316,7 +316,7 @@
                     pill.style.color = '#059669';
                     if (dot) dot.style.background = '#10b981';
                     text.textContent = 'Firebase Backend Online';
-                    text.title = `Project: ${status.projectId || 'kylrxai'} • Service: ${status.service || 'Firebase Admin'}`;
+                    text.title = `Project: ${status.projectId || window.FIREBASE_PROJECT_ID || ''} • Service: ${status.service || 'Firebase Admin'}`;
                 } else {
                     pill.style.background = '#fefce8';
                     pill.style.borderColor = '#fef08a';
@@ -366,18 +366,10 @@
             if (roleEl) roleEl.textContent = role;
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlId = urlParams.get('id');
-        let currentUid = urlId || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
-
-        // 1. Immediate Synchronous Profile Hydration
-        let defaultName = 'John Doe';
-        if (currentUid === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2' || urlId === 'ZnaGIFv88QRD8AD4xTJOJ1KZinE2') {
-            defaultName = 'Marry Doe';
-        } else if (localStorage.getItem('userName')) {
-            defaultName = localStorage.getItem('userName');
-        }
-        let defaultRole = localStorage.getItem('userRole') || 'Cybersecurity Specialist';
+        // Display hints from the last visit; the uid comes only from the verified session (set below once signed in)
+        let currentUid = '';
+        let defaultName = localStorage.getItem('userName') || 'Employee';
+        let defaultRole = localStorage.getItem('userRole') || 'Employee';
 
         let currentProfile = {
             uid: currentUid,
@@ -391,7 +383,7 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUid = user.uid;
-                if (user.displayName && defaultName === 'John Doe') {
+                if (user.displayName && defaultName === 'Employee') {
                     defaultName = user.displayName;
                     currentProfile.name = user.displayName;
                     hydrateProfileUI(currentProfile);

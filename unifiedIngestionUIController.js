@@ -404,9 +404,11 @@
         }
 
         try {
+            const activeOrgId = typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null;
+            if (!activeOrgId) throw new Error('Your account has no organization');
             const result = await service.dispatchUnifiedIngestion(templateType, validRows, {
                 actorId: localStorage.getItem('user_id') || 'SUPER_ADMIN',
-                orgId: localStorage.getItem('tenant_id') || 'ORG_KYLRX_CORP',
+                orgId: activeOrgId,
                 onProgress: (current, total) => {
                     if (btnConfirm) {
                         btnConfirm.innerHTML = `<i data-lucide="loader-2" style="width: 16px; height: 16px;"></i> Ingesting ${current}/${total}...`;

@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebase');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
 // 1. Add Employee Data
-router.post('/employees', async (req, res) => {
+router.post('/employees', authorize(ADMIN_HR_ROLES), async (req, res) => {
   try {
     const employeeData = req.body;
     if (!employeeData.email || !employeeData.name) {
@@ -193,7 +193,7 @@ router.get('/attendance/shifts', async (req, res) => {
   }
 });
 
-router.post('/attendance/shifts', async (req, res) => {
+router.post('/attendance/shifts', authorize(ADMIN_HR_ROLES), async (req, res) => {
   try {
     const { name, time } = req.body;
     if (!name || !time) {
@@ -210,7 +210,7 @@ router.post('/attendance/shifts', async (req, res) => {
   }
 });
 
-router.delete('/attendance/shifts/:id', async (req, res) => {
+router.delete('/attendance/shifts/:id', authorize(ADMIN_HR_ROLES), async (req, res) => {
   try {
     const { id } = req.params;
     await db.collection('shifts').doc(id).delete();
@@ -295,7 +295,7 @@ router.post('/add', async (req, res) => {
 });
 
 // 6. Workforce Stats
-router.get('/stats', async (req, res) => {
+router.get('/stats', authorize(ADMIN_HR_ROLES, 'Manager'), async (req, res) => {
     try {
         const empSnap = await db.collection('users').where('role', '==', 'employee').get();
         const attendSnap = await db.collection('attendance').where('date', '==', new Date().toISOString().split('T')[0]).get();

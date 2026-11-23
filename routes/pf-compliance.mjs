@@ -66,7 +66,19 @@ const { verifyToken, authorize, ADMIN_HR_ROLES } = require('../middleware/authMi
 
 const router = express.Router();
 router.use(verifyToken);
-router.use(authorize(ADMIN_HR_ROLES));
+router.use(authorize(ADMIN_HR_ROLES, 'compliance_officer'));
+
+// Compliance privilege comes only from the verified identity (req.user, set by verifyToken from the
+// token / users doc), never from headers or query strings. Anything not listed here is masked.
+const PAYROLL_PRIVILEGED = new Set(['superadmin', 'admin', 'hrpayroll', 'payrolladmin']);
+const COMPLIANCE_OFFICER = 'complianceofficer';
+function complianceRole(req) {
+  const raw = req.user && req.user.role;
+  const key = String(raw || '').toLowerCase().replace(/[s_-]+/g, '');
+  if (PAYROLL_PRIVILEGED.has(key)) return 'PAYROLL_ADMIN';
+  if (key === COMPLIANCE_OFFICER) return 'COMPLIANCE_OFFICER';
+  return raw || null;
+}
 
 /**
  * POST /calculate
@@ -187,7 +199,7 @@ router.post('/upload-master', (req, res) => {
  * Query committed Employee PF profiles (masked for non-privileged users)
  */
 router.get('/profiles', (req, res) => {
-  const userRole = req.headers['x-user-role'] || req.query.user_role || req.query.role || req.user?.role || 'PAYROLL_ADMIN';
+  const userRole = complianceRole(req);
   const rawProfiles = globalPfBulkIngestionService.getProfiles(req.query);
   const profiles = PfSecurityAuditService.serializePfProfiles(rawProfiles, userRole);
   return res.status(200).json({
@@ -206,7 +218,7 @@ router.get('/profiles', (req, res) => {
  * Retrieve single Employee PF profile by employee_id (masked for non-privileged users)
  */
 router.get('/profiles/:id', (req, res) => {
-  const userRole = req.headers['x-user-role'] || req.query.user_role || req.query.role || req.user?.role || 'PAYROLL_ADMIN';
+  const userRole = complianceRole(req);
   const profile = globalPfBulkIngestionService.getProfileById(req.params.id);
   if (!profile) {
     return res.status(404).json({
@@ -330,7 +342,7 @@ router.post('/exceptions/:id/resolve', (req, res) => {
  * Restricted strictly to privileged compliance roles (PAYROLL_ADMIN, COMPLIANCE_OFFICER)
  */
 router.get('/export/:batch_id', (req, res) => {
-  const userRole = req.headers['x-user-role'] || req.query.user_role || req.query.role || req.user?.role || 'EMPLOYEE';
+  const userRole = complianceRole(req);
 
   try {
     PfSecurityAuditService.assertPrivilegedAccess(userRole, 'download raw ECR export file');
@@ -809,13 +821,14 @@ router.get('/ledgers/:batch_id', (req, res) => {
 router.post('/audit/record', (req, res) => {
   try {
     const payload = req.body || {};
-    const actorRole = req.headers['x-user-role'] || req.query.role || req.user?.role;
-    const actorId = req.headers['x-user-id'] || req.body?.actor_id || 'system_service';
+    // Who did it is taken from the verified identity; a client cannot claim another actor or role
+    const actorRole = complianceRole(req);
+    const actorId = req.user?.id || 'system_service';
 
     const event = globalPfSecurityAuditService.recordAuditEvent({
       ...payload,
       actor_id: actorId,
-      actor_role: payload.actor_role || actorRole,
+      actor_role: actorRole,
     });
 
     return res.status(200).json({

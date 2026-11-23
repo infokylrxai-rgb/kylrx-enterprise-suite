@@ -40,7 +40,7 @@
 
     if (!window.lucide) {
       const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js';
+      s.src = 'lucide.min.js';
       s.crossOrigin = 'anonymous';
       s.onload = () => { renderLucideIcons(); };
       document.head.appendChild(s);
@@ -707,8 +707,8 @@
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">
               <i class="fa-solid fa-award mr-1 text-purple-600"></i> Blueprint Column 2 Active
             </span>
-            <span id="firebaseGratLiveBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-pointer hover:bg-emerald-100 transition shadow-sm" title="Connected to Google Cloud Firebase Firestore (kylrxai)">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Firebase: Connected (kylrxai)
+            <span id="firebaseGratLiveBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-pointer hover:bg-emerald-100 transition shadow-sm" title="Connected to Google Cloud Firebase Firestore">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Firebase: Connected
             </span>
             <span class="text-xs text-slate-400 font-mono">Gratuity Provisioning &amp; Settlement Engine v4.0</span>
           </div>
@@ -1935,7 +1935,7 @@
         <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 flex items-center justify-between">
           <div class="flex items-center space-x-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-            <span class="font-bold">Google Cloud Firestore (kylrxai) Live</span>
+            <span class="font-bold">Google Cloud Firestore Live</span>
           </div>
           <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">CONNECTED</span>
         </div>
@@ -1943,11 +1943,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Target Project</span>
-            <span class="font-bold text-slate-800 font-mono text-xs">kylrxai</span>
+            <span class="font-bold text-slate-800 font-mono text-xs" data-firebase-project>—</span>
           </div>
           <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Service Account</span>
-            <span class="font-mono text-slate-700 text-[10px] truncate block" title="firebase-adminsdk-fbsvc@kylrxai.iam.gserviceaccount.com">firebase-adminsdk...</span>
+            <span class="font-mono text-slate-700 text-[10px] truncate block" title="the server's service account">firebase-adminsdk...</span>
           </div>
         </div>
 
@@ -2188,7 +2188,7 @@
           const liveBadge = document.getElementById('firebaseGratLiveBadge');
           if (liveBadge) {
             liveBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-pointer shadow-sm';
-            liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Firebase: kylrxai (Connected)`;
+            liveBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Firebase: Connected`;
           }
           const syncPill = document.getElementById('firebaseGratSyncPill');
           if (syncPill) {
@@ -2218,91 +2218,13 @@
           }
         }, () => {});
 
-        // Automatically synchronize clean 0-exceptions compliance state into Firebase once per session
-        if (!sessionStorage.getItem('statutory_staged_zero')) {
-          syncCleanStatutoryStateToFirebase();
-          sessionStorage.setItem('statutory_staged_zero', 'true');
-        }
-
       } catch (err) {
         console.warn("Firebase Statutory init warning:", err.message);
         updateFirebaseConnectionStatus(false);
       }
     }
 
-    // Seed / Synchronize Clean 0-Issues State into Firebase Firestore
-    async function syncCleanStatutoryStateToFirebase() {
-      try {
-        const timestamp = serverTimestamp();
-        
-        // 1. Stage Clean Payroll Run (0 Employees, 0 Amount, 0 Exceptions)
-        await setDoc(doc(db, 'payroll_runs', 'PR_2026_09_ZERO'), {
-          payroll_run_id: 'PR_2026_09_ZERO',
-          period: '2026-09',
-          status: 'FINALIZED',
-          total_exceptions: 0,
-          compliance_status: 'CLEAN',
-          employee_count: 0,
-          total_amount: 0,
-          finalized_at: new Date().toISOString(),
-          timestamp
-        }, { merge: true });
-
-        // 2. Stage ESIC Batch (0 Covered, 0 Wages, 0 Challan, 0 Exceptions)
-        await setDoc(doc(db, 'esic_compliance_batches', 'BATCH_ESIC_2026_09'), {
-          batch_id: 'BATCH_ESIC_2026_09',
-          period: '2026-09',
-          status: 'VALIDATED',
-          covered_count: 0,
-          total_wages: 0,
-          total_challan: 0,
-          exceptions_count: 0,
-          timestamp
-        }, { merge: true });
-
-        // 3. Stage Gratuity Settlement with verified statutory calculations
-        await setDoc(doc(db, 'gratuity_settlements', 'GRAT_LIVE_BATCH_01'), {
-          batch_id: 'GRAT_LIVE_BATCH_01',
-          scheme: 'STATUTORY_GRATUITY',
-          total_gratuity_amount: 0,
-          eligible_count: 0,
-          flagged_count: 0,
-          maker_id: 'HR_COMPLIANCE_MAKER',
-          checker_id: null,
-          status: 'PROVISIONED',
-          timestamp
-        }, { merge: true });
-
-        // 4. Stage NPS Batch (0 Subscribers, 0 Contribution, 0 Exceptions)
-        await setDoc(doc(db, 'nps_compliance_batches', 'NPS_LIVE_BATCH_01'), {
-          batch_id: 'NPS_LIVE_BATCH_01',
-          period: '2026-09',
-          status: 'VALIDATED',
-          subscribers_count: 0,
-          total_contribution: 0,
-          exceptions_count: 0,
-          timestamp
-        }, { merge: true });
-
-        // 5. Clean / Resolve statutory_exceptions with safe query limit
-        try {
-          const qExc = query(collection(db, 'statutory_exceptions'), where('is_resolved', '==', false), limit(5));
-          const excSnap = await getDocs(qExc);
-          for (const docSnap of excSnap.docs) {
-            await updateDoc(doc(db, 'statutory_exceptions', docSnap.id), {
-              is_resolved: true,
-              status: 'RESOLVED',
-              resolved_at: timestamp
-            });
-          }
-        } catch (_) {}
-
-        updateFirebaseConnectionStatus(true, "Connected to Firebase Backend");
-      } catch (fsErr) {
-        // Silent catch: offline local cache active
-      }
-    }
-    // Auto-authenticate Super Admin session to connect to Firebase with full privileges
+    // No session: send the visitor to the login page
     async function initClientAuthGuard() {
       try {
         onAuthStateChanged(auth, async (user) => {
@@ -2311,17 +2233,7 @@
             updateFirebaseConnectionStatus(true, `Connected: ${user.email}`);
             initFirebaseStatutorySync();
           } else {
-            console.log("⚡ Auto-authenticating Super Admin credential (superadmin@kylrx.ai)...");
-            try {
-              const cred = await signInWithEmailAndPassword(auth, 'superadmin@kylrx.ai', 'Kylrx#SuperAdmin2026!Secured');
-              console.log("✅ Super Admin authenticated successfully:", cred.user.email);
-              updateFirebaseConnectionStatus(true, `Connected: ${cred.user.email}`);
-              initFirebaseStatutorySync();
-            } catch (err) {
-              console.warn("Auth notice:", err.message);
-              updateFirebaseConnectionStatus(true, "Connected to Firebase Backend");
-              initFirebaseStatutorySync();
-            }
+            window.location.href = 'login.html';
           }
         });
       } catch (err) {
@@ -2809,8 +2721,7 @@
     document.getElementById('btnRunValidation').addEventListener('click', async () => {
       renderDashboard();
       applyZeroBaselineToAllSections();
-      await syncCleanStatutoryStateToFirebase();
-      showToast('Baseline reset to 0: Zero liabilities and 0 exceptions (Synced to Firebase).', 'success');
+      showToast('Baseline reset to 0: Zero liabilities and 0 exceptions.', 'success');
     });
 
     // Initialize Dashboard on load
@@ -3740,7 +3651,7 @@
         const badge = document.getElementById('firebaseGratLiveBadge');
         if (badge) {
           badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-pointer shadow-sm';
-          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span> Firebase: kylrxai (Synced)`;
+          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span> Firebase: Synced`;
         }
 
         const pill = document.getElementById('firebaseGratSyncPill');

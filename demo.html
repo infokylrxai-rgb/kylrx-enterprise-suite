@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+  <script src="lucide.min.js" crossorigin="anonymous"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
   
   <style>
@@ -491,27 +491,6 @@
           <span>Feature Walkthrough Video</span>
         </div>
         <div class="video-wrapper" id="videoWrapper">
-          <video src="HRMS.mp4" controls></video>
-          <video src="admin(signup and login page).mp4" controls></video>
-          <video src="admin(dashboardbuilder.html).mp4" controls></video>
-          <video src="add employee,manger and hrms in admin portal.mp4" controls></video>
-          <video src="admin-policy-center.mp4" controls></video>
-          <video src="admin(Enterprise leave).mp4" controls></video>
-          <video src="admin(Enterprise exit command).mp4" controls></video>
-          <video src="message and notification.mp4" controls></video>
-          <video src="Onboarding(Flow Designer).mp4" controls></video>
-          <video src="TVC.mp4" controls></video>
-          <video src="apps.mp4" controls></video>
-          <video src="Attendance Log.mp4" controls></video>
-          <video src="AttendanceLog.mp4" controls></video>
-          <video src="Manger-Document.mp4" controls></video>
-          <video src="team management.mp4" controls></video>
-          <video src="DepartmentalAnalytics.mp4" controls></video>
-          <video src="Security.mp4" controls></video>
-          <video src="PolicyCenter.mp4" controls></video>
-          <video src="RulesEmployees.mp4" controls></video>
-          <video src="Leave and TimeOff.mp4" controls></video>
-          <video src="Document EMployee.mp4" controls></video>
         </div>
       </div>
     </div>
@@ -575,11 +554,13 @@
   </div>
 
   <script>
+    const VIDEO_BASE = 'assets/videos/';
     const ROLES = {
       admin: {
         title: "Super Admin Sandbox",
         desc: "Access the full executive command center. Oversee system settings, view analytics, manage departments, policy documents, global users, and full compliance settlements.",
         videos: [
+          "HRMS.mp4",
           "admin(signup and login page).mp4",
           "admin(dashboardbuilder.html).mp4",
           "add employee,manger and hrms in admin portal.mp4",
@@ -671,7 +652,7 @@
       // Update video element
       const wrapper = document.getElementById('videoWrapper');
       if (roleData.videos && roleData.videos.length > 0) {
-        wrapper.innerHTML = roleData.videos.map(v => `<video src="${v}" controls></video>`).join('');
+        wrapper.innerHTML = roleData.videos.map(v => `<video src="${VIDEO_BASE + encodeURIComponent(v)}" controls preload="metadata" onerror="this.replaceWith(Object.assign(document.createElement('div'), { className: 'no-video-placeholder', textContent: 'Video not available' }))"></video>`).join('');
       } else {
         wrapper.innerHTML = `
           <div class="no-video-placeholder">
@@ -686,6 +667,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      switchRole(activeRole);
       if (window.lucide) {
         lucide.createIcons();
       }

@@ -2,6 +2,7 @@ const { admin, db } = require('../config/firebase');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const logger = require('../utils/logger');
+const { RESERVED_ORG_IDS } = require('../config/tenant');
 const otpVerificationService = require('../services/otp-verification-service');
 
 // Security Configurations
@@ -81,10 +82,6 @@ exports.register = async (req, res, next) => {
 // Customer / CEO signup: creates the Auth user, Super Admin profile, organization and
 // employee ID counter with the Admin SDK, since Firestore rules block these client writes.
 exports.registerOrganization = async (req, res, next) => {
-    if (!admin.apps.length) {
-        return res.status(503).json({ success: false, error: 'Firebase Admin SDK is not configured on the server' });
-    }
-
     const { fullName, email, password, organization = {} } = req.body || {};
     const officialEmail = String(email || '').trim().toLowerCase();
     const name = String(fullName || '').trim();
@@ -100,6 +97,14 @@ exports.registerOrganization = async (req, res, next) => {
 
     const orgSlug = (displayName || legalName).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
     const orgId = `org_${orgSlug}`;
+
+    // Default/fallback tenants own legacy data and dev defaults; nobody may register as one
+    if (RESERVED_ORG_IDS.has(orgId)) {
+        return res.status(409).json({ success: false, error: `The organization name "${displayName || legalName}" is reserved. Please choose another name.` });
+    }
+    if (!admin.apps.length) {
+        return res.status(503).json({ success: false, error: 'Firebase Admin SDK is not configured on the server' });
+    }
     const orgRef = db.collection('organizations').doc(orgId);
 
     let uid;

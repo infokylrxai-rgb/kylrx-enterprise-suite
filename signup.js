@@ -20,7 +20,8 @@
  * @author Senior Frontend & Firebase Developer
  */
 
-import { auth, storage } from "./firebase-config.js";
+import { auth, storage, db, doc, updateDoc } from "./firebase-config.js";
+import { buildOrgPath, safeExtension } from "./storage-paths.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-storage.js";
 
@@ -82,6 +83,7 @@ const websiteInput = document.getElementById('website');
 const officialPhoneInput = document.getElementById('officialPhone');
 const logoUrlInput = document.getElementById('logoUrl');
 const logoFileInput = document.getElementById('logoFileInput');
+let pendingLogoFile = null; // uploaded after signup, once the organization exists
 const logoUploadStatus = document.getElementById('logoUploadStatus');
 
 // Step 3: Address Elements
@@ -547,21 +549,15 @@ function setupLogoUpload() {
                 if (window.lucide) lucide.createIcons();
             }
 
-            try {
-                const storageRef = ref(storage, `organization_logos/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`);
-                await uploadBytes(storageRef, file);
-                const downloadUrl = await getDownloadURL(storageRef);
-
-                logoUrlInput.value = downloadUrl;
-                if (logoUploadStatus) {
-                    logoUploadStatus.innerHTML = `<span style="color: #16a34a; font-weight: 600;">✓ Logo uploaded successfully (${file.name})</span>`;
-                }
-            } catch (err) {
-                console.warn("Firebase Storage logo upload failed, setting local reference:", err.message);
-                if (logoUploadStatus) {
-                    logoUploadStatus.innerHTML = `<span style="color: #d97706;">Direct URL input active (Storage fallback)</span>`;
-                }
+            // The logo can only be stored once the organization exists (orgs/{orgId}/branding/, storage.rules),
+            // so it is kept here and uploaded right after the account is created
+            if (!/^image\/(png|jpeg|webp)$/.test(file.type) || file.size >= 2 * 1024 * 1024) {
+                pendingLogoFile = null;
+                if (logoUploadStatus) logoUploadStatus.textContent = 'Use a PNG, JPEG or WebP image under 2 MB.';
+                return;
             }
+            pendingLogoFile = file;
+            if (logoUploadStatus) logoUploadStatus.textContent = `✓ ${file.name} will be uploaded when your account is created.`;
         });
     }
 }
@@ -707,6 +703,19 @@ async function executeRegistrationAndOrganizationSetup() {
         // Sign in so the session carries the new super_admin custom claims
         await signInWithEmailAndPassword(auth, officialEmail, password);
         console.log(`✅ Signed in as ${officialEmail}`);
+
+        if (pendingLogoFile) {
+            try {
+                await auth.currentUser.getIdToken(true); // the token must carry the new orgId claim
+                const logoPath = buildOrgPath(orgId, 'branding', `logo_${Date.now()}.${safeExtension(pendingLogoFile.name, 'png')}`);
+                const logoRef = ref(storage, logoPath);
+                await uploadBytes(logoRef, pendingLogoFile, { contentType: pendingLogoFile.type });
+                const uploadedLogoUrl = await getDownloadURL(logoRef);
+                await updateDoc(doc(db, 'organizations', orgId), { logoUrl: uploadedLogoUrl, Logo_URL: uploadedLogoUrl, logoPath });
+            } catch (logoErr) {
+                console.warn('[Signup] The logo could not be uploaded; the default logo is used:', logoErr.message);
+            }
+        }
 
         // Step 5: Start a fresh session - drop everything left over from any previous
         // user/org (tokens, cached widgets, demo data) before writing the new session

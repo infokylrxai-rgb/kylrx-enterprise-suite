@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <script>
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         const userRole = (localStorage.getItem('userRole') || '').toLowerCase();
@@ -509,6 +509,9 @@
     </div>
     <script type="module">
         import { auth, db, onAuthStateChanged, collection, query, onSnapshot, addDoc, serverTimestamp, orderBy, where, getDocs, limit, doc, updateDoc, arrayUnion, registerListener } from "./firebase-config.js";
+        import { tenantReady, whereMyOrg } from "./firebase-config.js";
+        import { watchNotificationBadge } from "./notification-actions.js";
+        import { isHrmsNotification } from "./notification-read-state.js";
 
         // UI State
         let currentContactId = null;
@@ -595,7 +598,7 @@
         let teams = [];
         let selectedUserIds = new Set();
         // Start with localStorage fallback; will be replaced by real Auth UID below
-        let currentUserId = localStorage.getItem('hr_user_id') || localStorage.getItem('adminUid') || 'ADMIN_GLOBAL';
+        let currentUserId = ''; // the verified uid, set when sign-in resolves
 
         function syncHeaderBadges(userId) {
             const msgBadge = document.getElementById('headerMsgBadge');
@@ -604,6 +607,7 @@
             // 1. Listen for unread messages (admin/hrms reads hr_support receiverId)
             const msgQuery = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('receiverId', '==', 'hr_support'),
                 where('read', '==', false)
             );
@@ -615,24 +619,8 @@
                 }
             });
 
-            // 2. Listen for notifications
-            const notifQuery = query(collection(db, 'notifications'), orderBy('timestamp', 'desc'), limit(60));
-            onSnapshot(notifQuery, (snap) => {
-                const unreadNotifs = snap.docs.filter(d => {
-                    const data = d.data();
-                    if (data.read) return false;
-                    const clearedBy = data.clearedBy || [];
-                    if (clearedBy.includes(userId)) return false;
-                    const tgt = (data.target || data.departmentId || '').toLowerCase();
-                    const type = (data.type || '').toLowerCase();
-                    return tgt === 'hrms' || type === 'employee_help' || type === 'employee_help_approved';
-                });
-                if (notifBadge) {
-                    const count = unreadNotifs.length;
-                    notifBadge.textContent = count > 9 ? '9+' : count;
-                    notifBadge.style.display = count > 0 ? 'flex' : 'none';
-                }
-            });
+            // 2. HRMS notifications of my organization, unread by my readBy
+            watchNotificationBadge(notifBadge, isHrmsNotification).catch(() => {});
         }
 
         // Resolve real Firebase Auth UID so chatId matches across dashboards
@@ -642,7 +630,7 @@
                 localStorage.setItem('hr_user_id', user.uid);
                 localStorage.setItem('adminUid', user.uid);
             }
-            syncHeaderBadges(currentUserId);
+            tenantReady.then(() => syncHeaderBadges(currentUserId));
         });
 
 
@@ -650,7 +638,7 @@
             let deptMap = {};
 
             // Real-time Departments (Command Centers)
-            onSnapshot(collection(db, 'command_centers'), (snap) => {
+            onSnapshot(query(collection(db, 'command_centers'), whereMyOrg()), (snap) => {
                 const deptList = document.getElementById('deptListContainer');
                 if (deptList) deptList.innerHTML = '';
                 
@@ -677,7 +665,7 @@
             });
 
             // Real-time Users
-            onSnapshot(collection(db, 'users'), (snap) => {
+            onSnapshot(query(collection(db, 'users'), whereMyOrg()), (snap) => {
                 const rawUsers = snap.docs.map(doc => {
                     const u = doc.data();
                     return {
@@ -704,7 +692,7 @@
             });
 
             // Real-time Teams
-            onSnapshot(collection(db, 'department_teams'), (snap) => {
+            onSnapshot(query(collection(db, 'department_teams'), whereMyOrg()), (snap) => {
                 const rawTeams = snap.docs.map(doc => {
                     const t = doc.data();
                     const deptId = t.departmentId || 'Cross-Functional';
@@ -744,6 +732,7 @@
             // Query by chatId — works without composite index, matches employee schema
             const q = query(
                 collection(db, 'messages'),
+                whereMyOrg(),
                 where('chatId', '==', chatId),
                 limit(100)
             );
@@ -932,7 +921,8 @@
         });
 
         // Initialize
-        setupRealtimeDirectory();
+        // The directory starts once the signed-in user's organization is known
+        tenantReady.then(() => setupRealtimeDirectory());
 
         // AI Correction Implementation (OpenAI GPT API)
         document.getElementById('aiCorrectBtn').addEventListener('click', async () => {
@@ -1316,7 +1306,7 @@
             document.getElementById('customClearAllConfirm').onclick = async () => {
                 modal.style.display = 'none';
                 try {
-                    const q = query(collection(db, 'messages'), where('chatId', '==', chatId));
+                    const q = query(collection(db, 'messages'), whereMyOrg(), where('chatId', '==', chatId));
                     const snap = await getDocs(q);
                     const updatePromises = snap.docs.map(d => updateDoc(doc(db, 'messages', d.id), {
                         clearedBy: arrayUnion(currentUserId)

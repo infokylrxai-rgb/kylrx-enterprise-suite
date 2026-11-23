@@ -120,6 +120,11 @@
     /**
      * Seeds in-memory ledger with default records.
      */
+    // No org for the caller: fail instead of reading another org's data
+    function missingOrg() {
+        throw new Error("No organization found for the signed-in user. Sign in again.");
+    }
+
     function seedDefaultRecords(orgId = 'ORG_KYLRX_01') {
         DEFAULT_PF_PROFILES.forEach(profile => {
             const key = `${orgId}_${profile.employeeId}`;
@@ -237,7 +242,7 @@
             throw new Error("Employee ID is required for EPFO KYC verification.");
         }
 
-        const effectiveOrgId = orgId || 'ORG_KYLRX_01';
+        const effectiveOrgId = orgId || missingOrg();
         let currentProfile = await getEmployeePfDetails(effectiveOrgId, employeeId);
 
         if (!currentProfile) {
@@ -529,6 +534,7 @@
                 }, { merge: true });
             } catch (err) {
                 console.warn("[KylrxPfDetailsService] Firestore direct set failed, stored in-memory:", err);
+                throw err;
             }
         }
 
@@ -541,7 +547,7 @@
     async function getEmployeePfDetails(orgId, employeeId) {
         if (!orgId || !employeeId) return null;
 
-        const effectiveOrgId = orgId || 'ORG_KYLRX_01';
+        const effectiveOrgId = orgId || missingOrg();
         const key = `${effectiveOrgId}_${employeeId}`;
 
         // 1. Check in-memory ledger first
@@ -572,7 +578,7 @@
      * Lists all employee EPFO statutory profiles for an organization.
      */
     async function listEmployeePfDetails(orgId) {
-        const effectiveOrgId = orgId || 'ORG_KYLRX_01';
+        const effectiveOrgId = orgId || missingOrg();
         const results = [];
 
         // In-memory records matching orgId
@@ -618,6 +624,7 @@
                 await deleteDoc(docRef);
             } catch (e) {
                 console.warn("[KylrxPfDetailsService] Firestore delete fallback:", e);
+                throw e;
             }
         }
         return true;

@@ -25,7 +25,7 @@
  * @author Senior Frontend & Firebase Developer
  */
 
-import { auth, db } from "./firebase-config.js";
+import { auth, db, getActiveOrgId } from "./firebase-config.js";
 import { 
     doc, 
     getDoc, 
@@ -61,7 +61,7 @@ export const ORGANIZATION_ATTRIBUTES = [
 
 // Controller State
 const state = {
-    orgId: localStorage.getItem('orgId') || 'org_kylrx',
+    orgId: null, // set from the verified organization by the auth watcher
     isConfigured: false,
     parsedOrgData: null,
     parsedBuData: null,
@@ -358,15 +358,23 @@ const compStatutoryDisplay = document.getElementById('compStatutoryDisplay');
 
 const logoutBtn = document.getElementById('logoutBtn');
 
+// No org for the signed-in user: show an error and stop the calling action instead of using another org's data
+function missingOrg() {
+    window.showCustomAlert("Organization Missing", "No organization found for the signed-in user. Sign in again.", "error");
+    throw new Error("No organization found for the signed-in user. Sign in again.");
+}
+
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', async () => {
     setupAuthWatcher();
-    setupNavigationTabs();
+    const showTab = setupNavigationTabs();
     setupInAppDownload();
     setupManualForm();
     setupFileUpload();
     setupLogout();
     await checkExistingOrganizationStatus();
+    // Restore the tab from the URL hash so a reload stays on the same tab
+    if (showTab && location.hash) showTab(location.hash.slice(1));
 });
 
 /**
@@ -474,640 +482,48 @@ function populateManualFormWithExistingData(data) {
  * Switcher between Tab A (Manual Form), Tab B (Bulk Upload), Tab C (Business Units), and Tab D (Cost Centers)
  */
 function setupNavigationTabs() {
-    if (tabManual && tabBulk) {
-        tabManual.onclick = () => {
-            tabManual.classList.add('active');
-            tabBulk.classList.remove('active');
-            if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-            if (tabCostCenters) tabCostCenters.classList.remove('active');
-            if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-            if (tabShifts) tabShifts.classList.remove('active');
-            if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-            manualView.style.display = 'block';
-            uploadView.style.display = 'none';
-            if (buManagementView) buManagementView.style.display = 'none';
-            if (ccManagementView) ccManagementView.style.display = 'none';
-            if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-            if (shiftManagementView) shiftManagementView.style.display = 'none';
-            if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-            if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-            if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-            if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-        };
+    if (!(tabManual && tabBulk)) return null;
 
-        tabBulk.onclick = () => {
-            tabBulk.classList.add('active');
-            tabManual.classList.remove('active');
-            if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-            if (tabCostCenters) tabCostCenters.classList.remove('active');
-            if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-            if (tabShifts) tabShifts.classList.remove('active');
-            if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-            if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-            if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-            uploadView.style.display = 'block';
-            manualView.style.display = 'none';
-            if (buManagementView) buManagementView.style.display = 'none';
-            if (ccManagementView) ccManagementView.style.display = 'none';
-            if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-            if (shiftManagementView) shiftManagementView.style.display = 'none';
-            if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-            if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-            if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-        };
+    // [tab button, panel, optional render hook]; showTab hides every panel and clears every tab first
+    const TABS = {
+        manual: [tabManual, manualView],
+        bulk: [tabBulk, uploadView],
+        businessUnits: [tabBusinessUnits, buManagementView, () => window.KylrxBuRules && typeof window.KylrxBuRules.renderAdminRulesTable === 'function' && window.KylrxBuRules.renderAdminRulesTable('onboardingBuTableContainer')],
+        costCenters: [tabCostCenters, ccManagementView, () => window.KylrxCostCenterService && typeof window.KylrxCostCenterService.renderAdminConsole === 'function' && window.KylrxCostCenterService.renderAdminConsole('onboardingCcTableContainer')],
+        subDepartments: [tabSubDepartments, subDeptManagementView, () => window.KylrxSubDepartmentService && typeof window.KylrxSubDepartmentService.renderAdminConsole === 'function' && window.KylrxSubDepartmentService.renderAdminConsole('onboardingSubDeptTableContainer')],
+        shifts: [tabShifts, shiftManagementView, () => window.KylrxShiftCalculationService && typeof window.KylrxShiftCalculationService.renderAdminConsole === 'function' && window.KylrxShiftCalculationService.renderAdminConsole('onboardingShiftTableContainer')],
+        attendancePolicies: [tabAttendancePolicies, attendancePolicyManagementView, () => window.KylrxAttendancePolicyService && typeof window.KylrxAttendancePolicyService.renderAdminConsole === 'function' && window.KylrxAttendancePolicyService.renderAdminConsole('onboardingAttendancePolicyTableContainer')],
+        employeeTypes: [tabEmployeeTypes, employeeTypeManagementView, () => window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.renderAdminConsole === 'function' && window.KylrxEmployeeTypeService.renderAdminConsole('onboardingEmployeeTypeTableContainer')],
+        employeeFinance: [tabEmployeeFinance, employeeFinanceManagementView, () => window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.renderFinanceConsole === 'function' && window.KylrxEmployeeFinanceService.renderFinanceConsole('onboardingEmployeeFinanceTableContainer')],
+        epfoMaster: [tabEpfoMaster, epfoMasterManagementView, () => renderOnboardingEpfoMasterTable()],
+        esicMaster: [tabEsicMaster, esicMasterManagementView, () => renderOnboardingEsicMasterTable()],
+        ptMaster: [tabPtMaster, ptMasterManagementView, () => renderOnboardingPtMasterTable()],
+        lwfMaster: [tabLwfMaster, lwfMasterManagementView, () => renderOnboardingLwfMasterTable()],
+        npsMaster: [tabNpsMaster, npsMasterManagementView, () => renderOnboardingNpsMasterTable()],
+        gratuityMaster: [tabGratuityMaster, gratuityMasterManagementView, () => renderOnboardingGratuityMasterTable()],
+        salaryStructure: [tabSalaryStructure, salaryStructureManagementView, () => window.KylrxSalaryStructureService && typeof window.KylrxSalaryStructureService.renderSalaryConsole === 'function' && window.KylrxSalaryStructureService.renderSalaryConsole('onboardingSalaryStructureTableContainer')],
+        holidayCalendar: [tabHolidayCalendar, holidayCalendarManagementView, () => window.KylrxHolidayCalendarService && typeof window.KylrxHolidayCalendarService.renderAdminHolidayConsole === 'function' && window.KylrxHolidayCalendarService.renderAdminHolidayConsole('onboardingHolidayCalendarTableContainer')],
+        statutoryCompliance: [tabStatutoryCompliance, statutoryComplianceManagementView, () => window.KylrxStatutoryComplianceUIController && typeof window.KylrxStatutoryComplianceUIController.renderAdminConsole === 'function' && window.KylrxStatutoryComplianceUIController.renderAdminConsole('onboardingStatutoryComplianceTableContainer', state.orgId)],
+        payrollComponents: [tabPayrollComponents, payrollComponentsManagementView, () => window.KylrxPayrollComponentsUIController && typeof window.KylrxPayrollComponentsUIController.renderAdminConsole === 'function' && window.KylrxPayrollComponentsUIController.renderAdminConsole('onboardingPayrollComponentsTableContainer', state.orgId)]
+    };
 
-        if (tabBusinessUnits) {
-            tabBusinessUnits.onclick = () => {
-                tabBusinessUnits.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (buManagementView) buManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-
-                if (window.KylrxBuRules && typeof window.KylrxBuRules.renderAdminRulesTable === 'function') {
-                    window.KylrxBuRules.renderAdminRulesTable('onboardingBuTableContainer');
-                }
-            };
+    function showTab(key) {
+        if (!TABS[key] || !TABS[key][0]) return;
+        for (const [tab, view] of Object.values(TABS)) {
+            if (tab) tab.classList.remove('active');
+            if (view) view.style.display = 'none';
         }
-
-        if (tabCostCenters) {
-            tabCostCenters.onclick = () => {
-                tabCostCenters.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (ccManagementView) ccManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-
-                if (window.KylrxCostCenterService && typeof window.KylrxCostCenterService.renderAdminConsole === 'function') {
-                    window.KylrxCostCenterService.renderAdminConsole('onboardingCcTableContainer');
-                }
-            };
-        }
-
-        if (tabSubDepartments) {
-            tabSubDepartments.onclick = () => {
-                tabSubDepartments.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (subDeptManagementView) subDeptManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-
-                if (window.KylrxSubDepartmentService && typeof window.KylrxSubDepartmentService.renderAdminConsole === 'function') {
-                    window.KylrxSubDepartmentService.renderAdminConsole('onboardingSubDeptTableContainer');
-                }
-            };
-        }
-
-        if (tabShifts) {
-            tabShifts.onclick = () => {
-                tabShifts.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (shiftManagementView) shiftManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-
-                if (window.KylrxShiftCalculationService && typeof window.KylrxShiftCalculationService.renderAdminConsole === 'function') {
-                    window.KylrxShiftCalculationService.renderAdminConsole('onboardingShiftTableContainer');
-                }
-            };
-        }
-
-        if (tabAttendancePolicies) {
-            tabAttendancePolicies.onclick = () => {
-                tabAttendancePolicies.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-
-                if (window.KylrxAttendancePolicyService && typeof window.KylrxAttendancePolicyService.renderAdminConsole === 'function') {
-                    window.KylrxAttendancePolicyService.renderAdminConsole('onboardingAttendancePolicyTableContainer');
-                }
-            };
-        }
-
-        if (tabEmployeeTypes) {
-            tabEmployeeTypes.onclick = () => {
-                tabEmployeeTypes.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-
-                if (window.KylrxEmployeeTypeService && typeof window.KylrxEmployeeTypeService.renderAdminConsole === 'function') {
-                    window.KylrxEmployeeTypeService.renderAdminConsole('onboardingEmployeeTypeTableContainer');
-                }
-            };
-        }
-
-        if (tabEmployeeFinance) {
-            tabEmployeeFinance.onclick = () => {
-                tabEmployeeFinance.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-
-                if (window.KylrxEmployeeFinanceService && typeof window.KylrxEmployeeFinanceService.renderFinanceConsole === 'function') {
-                    window.KylrxEmployeeFinanceService.renderFinanceConsole('onboardingEmployeeFinanceTableContainer');
-                }
-            };
-        }
-
-        if (tabEpfoMaster) {
-            tabEpfoMaster.onclick = () => {
-                tabEpfoMaster.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabEsicMaster) tabEsicMaster.classList.remove('active');
-                if (tabPtMaster) tabPtMaster.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-                if (tabStatutoryCompliance) tabStatutoryCompliance.classList.remove('active');
-                if (tabPayrollComponents) tabPayrollComponents.classList.remove('active');
-
-                if (epfoMasterManagementView) epfoMasterManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (esicMasterManagementView) esicMasterManagementView.style.display = 'none';
-                if (ptMasterManagementView) ptMasterManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-                if (statutoryComplianceManagementView) statutoryComplianceManagementView.style.display = 'none';
-                if (payrollComponentsManagementView) payrollComponentsManagementView.style.display = 'none';
-
-                renderOnboardingEpfoMasterTable();
-            };
-        }
-
-        if (tabEsicMaster) {
-            tabEsicMaster.onclick = () => {
-                tabEsicMaster.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabEpfoMaster) tabEpfoMaster.classList.remove('active');
-                if (tabPtMaster) tabPtMaster.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-                if (tabStatutoryCompliance) tabStatutoryCompliance.classList.remove('active');
-                if (tabPayrollComponents) tabPayrollComponents.classList.remove('active');
-
-                if (esicMasterManagementView) esicMasterManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (epfoMasterManagementView) epfoMasterManagementView.style.display = 'none';
-                if (ptMasterManagementView) ptMasterManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-                if (statutoryComplianceManagementView) statutoryComplianceManagementView.style.display = 'none';
-                if (payrollComponentsManagementView) payrollComponentsManagementView.style.display = 'none';
-
-                renderOnboardingEsicMasterTable();
-            };
-        }
-
-        if (tabPtMaster) {
-            tabPtMaster.onclick = () => {
-                tabPtMaster.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabEpfoMaster) tabEpfoMaster.classList.remove('active');
-                if (tabEsicMaster) tabEsicMaster.classList.remove('active');
-                if (tabLwfMaster) tabLwfMaster.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-                if (tabStatutoryCompliance) tabStatutoryCompliance.classList.remove('active');
-                if (tabPayrollComponents) tabPayrollComponents.classList.remove('active');
-
-                if (ptMasterManagementView) ptMasterManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (epfoMasterManagementView) epfoMasterManagementView.style.display = 'none';
-                if (esicMasterManagementView) esicMasterManagementView.style.display = 'none';
-                if (lwfMasterManagementView) lwfMasterManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-                if (statutoryComplianceManagementView) statutoryComplianceManagementView.style.display = 'none';
-                if (payrollComponentsManagementView) payrollComponentsManagementView.style.display = 'none';
-
-                renderOnboardingPtMasterTable();
-            };
-        }
-
-        if (tabLwfMaster) {
-            tabLwfMaster.onclick = () => {
-                tabLwfMaster.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabEpfoMaster) tabEpfoMaster.classList.remove('active');
-                if (tabEsicMaster) tabEsicMaster.classList.remove('active');
-                if (tabPtMaster) tabPtMaster.classList.remove('active');
-                if (tabNpsMaster) tabNpsMaster.classList.remove('active');
-                if (tabGratuityMaster) tabGratuityMaster.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-                if (tabStatutoryCompliance) tabStatutoryCompliance.classList.remove('active');
-                if (tabPayrollComponents) tabPayrollComponents.classList.remove('active');
-
-                if (lwfMasterManagementView) lwfMasterManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (epfoMasterManagementView) epfoMasterManagementView.style.display = 'none';
-                if (esicMasterManagementView) esicMasterManagementView.style.display = 'none';
-                if (ptMasterManagementView) ptMasterManagementView.style.display = 'none';
-                if (npsMasterManagementView) npsMasterManagementView.style.display = 'none';
-                if (gratuityMasterManagementView) gratuityMasterManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-                if (statutoryComplianceManagementView) statutoryComplianceManagementView.style.display = 'none';
-                if (payrollComponentsManagementView) payrollComponentsManagementView.style.display = 'none';
-
-                renderOnboardingLwfMasterTable();
-            };
-        }
-
-        if (tabNpsMaster) {
-            tabNpsMaster.onclick = () => {
-                tabNpsMaster.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabEpfoMaster) tabEpfoMaster.classList.remove('active');
-                if (tabEsicMaster) tabEsicMaster.classList.remove('active');
-                if (tabPtMaster) tabPtMaster.classList.remove('active');
-                if (tabLwfMaster) tabLwfMaster.classList.remove('active');
-                if (tabGratuityMaster) tabGratuityMaster.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-                if (tabStatutoryCompliance) tabStatutoryCompliance.classList.remove('active');
-                if (tabPayrollComponents) tabPayrollComponents.classList.remove('active');
-
-                if (npsMasterManagementView) npsMasterManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (epfoMasterManagementView) epfoMasterManagementView.style.display = 'none';
-                if (esicMasterManagementView) esicMasterManagementView.style.display = 'none';
-                if (ptMasterManagementView) ptMasterManagementView.style.display = 'none';
-                if (lwfMasterManagementView) lwfMasterManagementView.style.display = 'none';
-                if (gratuityMasterManagementView) gratuityMasterManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-                if (statutoryComplianceManagementView) statutoryComplianceManagementView.style.display = 'none';
-                if (payrollComponentsManagementView) payrollComponentsManagementView.style.display = 'none';
-
-                renderOnboardingNpsMasterTable();
-            };
-        }
-
-        if (tabGratuityMaster) {
-            tabGratuityMaster.onclick = () => {
-                tabGratuityMaster.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabEpfoMaster) tabEpfoMaster.classList.remove('active');
-                if (tabEsicMaster) tabEsicMaster.classList.remove('active');
-                if (tabPtMaster) tabPtMaster.classList.remove('active');
-                if (tabLwfMaster) tabLwfMaster.classList.remove('active');
-                if (tabNpsMaster) tabNpsMaster.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-                if (tabStatutoryCompliance) tabStatutoryCompliance.classList.remove('active');
-                if (tabPayrollComponents) tabPayrollComponents.classList.remove('active');
-
-                if (gratuityMasterManagementView) gratuityMasterManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (epfoMasterManagementView) epfoMasterManagementView.style.display = 'none';
-                if (esicMasterManagementView) esicMasterManagementView.style.display = 'none';
-                if (ptMasterManagementView) ptMasterManagementView.style.display = 'none';
-                if (lwfMasterManagementView) lwfMasterManagementView.style.display = 'none';
-                if (npsMasterManagementView) npsMasterManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-                if (statutoryComplianceManagementView) statutoryComplianceManagementView.style.display = 'none';
-                if (payrollComponentsManagementView) payrollComponentsManagementView.style.display = 'none';
-
-                renderOnboardingGratuityMasterTable();
-            };
-        }
-
-        if (tabSalaryStructure) {
-            tabSalaryStructure.onclick = () => {
-                tabSalaryStructure.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabEpfoMaster) tabEpfoMaster.classList.remove('active');
-                if (tabEsicMaster) tabEsicMaster.classList.remove('active');
-                if (tabPtMaster) tabPtMaster.classList.remove('active');
-                if (tabLwfMaster) tabLwfMaster.classList.remove('active');
-                if (tabNpsMaster) tabNpsMaster.classList.remove('active');
-                if (tabGratuityMaster) tabGratuityMaster.classList.remove('active');
-
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-
-                if (window.KylrxSalaryStructureService && typeof window.KylrxSalaryStructureService.renderSalaryConsole === 'function') {
-                    window.KylrxSalaryStructureService.renderSalaryConsole('onboardingSalaryStructureTableContainer');
-                }
-            };
-        }
-
-        if (tabHolidayCalendar) {
-            tabHolidayCalendar.onclick = () => {
-                tabHolidayCalendar.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-
-                if (window.KylrxHolidayCalendarService && typeof window.KylrxHolidayCalendarService.renderAdminHolidayConsole === 'function') {
-                    window.KylrxHolidayCalendarService.renderAdminHolidayConsole('onboardingHolidayCalendarTableContainer');
-                }
-            };
-        }
-
-        if (tabStatutoryCompliance) {
-            tabStatutoryCompliance.onclick = () => {
-                tabStatutoryCompliance.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-
-                if (statutoryComplianceManagementView) statutoryComplianceManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-
-                if (window.KylrxStatutoryComplianceUIController && typeof window.KylrxStatutoryComplianceUIController.renderAdminConsole === 'function') {
-                    window.KylrxStatutoryComplianceUIController.renderAdminConsole('onboardingStatutoryComplianceTableContainer', state.orgId);
-                }
-            };
-        }
-
-        if (tabPayrollComponents) {
-            tabPayrollComponents.onclick = () => {
-                tabPayrollComponents.classList.add('active');
-                tabManual.classList.remove('active');
-                tabBulk.classList.remove('active');
-                if (tabBusinessUnits) tabBusinessUnits.classList.remove('active');
-                if (tabCostCenters) tabCostCenters.classList.remove('active');
-                if (tabSubDepartments) tabSubDepartments.classList.remove('active');
-                if (tabShifts) tabShifts.classList.remove('active');
-                if (tabAttendancePolicies) tabAttendancePolicies.classList.remove('active');
-                if (tabEmployeeTypes) tabEmployeeTypes.classList.remove('active');
-                if (tabEmployeeFinance) tabEmployeeFinance.classList.remove('active');
-                if (tabSalaryStructure) tabSalaryStructure.classList.remove('active');
-                if (tabHolidayCalendar) tabHolidayCalendar.classList.remove('active');
-                if (tabStatutoryCompliance) tabStatutoryCompliance.classList.remove('active');
-
-                if (payrollComponentsManagementView) payrollComponentsManagementView.style.display = 'block';
-                manualView.style.display = 'none';
-                uploadView.style.display = 'none';
-                if (buManagementView) buManagementView.style.display = 'none';
-                if (ccManagementView) ccManagementView.style.display = 'none';
-                if (subDeptManagementView) subDeptManagementView.style.display = 'none';
-                if (shiftManagementView) shiftManagementView.style.display = 'none';
-                if (attendancePolicyManagementView) attendancePolicyManagementView.style.display = 'none';
-                if (employeeTypeManagementView) employeeTypeManagementView.style.display = 'none';
-                if (employeeFinanceManagementView) employeeFinanceManagementView.style.display = 'none';
-                if (salaryStructureManagementView) salaryStructureManagementView.style.display = 'none';
-                if (holidayCalendarManagementView) holidayCalendarManagementView.style.display = 'none';
-                if (statutoryComplianceManagementView) statutoryComplianceManagementView.style.display = 'none';
-
-                if (window.KylrxPayrollComponentsUIController && typeof window.KylrxPayrollComponentsUIController.renderAdminConsole === 'function') {
-                    window.KylrxPayrollComponentsUIController.renderAdminConsole('onboardingPayrollComponentsTableContainer', state.orgId);
-                }
-            };
-        }
+        const [tab, view, render] = TABS[key];
+        tab.classList.add('active');
+        if (view) view.style.display = 'block';
+        if (render) render();
+        history.replaceState(null, "", "#" + key);
     }
+
+    for (const [key, [tab]] of Object.entries(TABS)) {
+        if (tab) tab.onclick = () => showTab(key);
+    }
+    return showTab;
 }
 
 /**
@@ -2689,7 +2105,7 @@ function renderParsedBuPreview(fileName, sheetName, records, errors = []) {
  * Path: organizations/{orgId}/business_units/{businessUnitCode}
  */
 async function executeBusinessUnitIngest(buDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${buDocs.length} Business Units into organizations/${orgId}/business_units...`);
 
     let ingestedCount = 0;
@@ -2708,20 +2124,6 @@ async function executeBusinessUnitIngest(buDocs) {
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             }, { merge: true });
-
-            // Also dual-sync to bu_employee_type_rules
-            const ruleId = `rule_${bu.businessUnitCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-            const ruleRef = doc(db, "bu_employee_type_rules", ruleId);
-            await setDoc(ruleRef, {
-                ruleId,
-                businessUnitCode: bu.businessUnitCode,
-                businessUnitName: bu.businessUnitName,
-                headEmployeeId: bu.headEmployeeId || '',
-                headEmployeeName: bu.headEmployeeName || '',
-                isActive: bu.isActive !== false,
-                allowedEmployeeTypes: Array.isArray(bu.allowedEmployeeTypes) ? bu.allowedEmployeeTypes : ['FULL_TIME', 'CONTRACT'],
-                updatedAt: serverTimestamp()
-            }, { merge: true }).catch(() => {});
 
             // Update in-memory rules
             if (window.KylrxBuRules && typeof window.KylrxBuRules.saveRule === 'function') {
@@ -2931,7 +2333,7 @@ function renderParsedCcPreview(fileName, sheetName, records, errors = []) {
  * Path: organizations/{orgId}/cost_centers/{costCenterCode}
  */
 async function executeCostCenterIngest(ccDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${ccDocs.length} Cost Centers into organizations/${orgId}/cost_centers...`);
 
     let ingestedCount = 0;
@@ -3232,7 +2634,7 @@ function renderParsedSubDeptPreview(fileName, sheetName, records, errors = []) {
  * Path: organizations/{orgId}/sub_departments/{subDepartmentCode}
  */
 async function executeSubDepartmentIngest(subDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${subDocs.length} Sub-Departments into organizations/${orgId}/sub_departments...`);
 
     let ingestedCount = 0;
@@ -3528,7 +2930,7 @@ function renderParsedShiftPreview(fileName, sheetName, records, errors = []) {
  * Path: organizations/{orgId}/shifts/{shiftCode}
  */
 async function executeShiftIngest(shiftDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${shiftDocs.length} Shift schedules into organizations/${orgId}/shifts...`);
 
     let ingestedCount = 0;
@@ -3956,7 +3358,7 @@ function renderParsedEmployeeTypePreview(fileName, sheetName, records, errors = 
  * Path: organizations/{orgId}/employee_types/{categoryCode}
  */
 async function executeEmployeeTypeIngest(typeDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${typeDocs.length} Employee Types into organizations/${orgId}/employee_types...`);
 
     let ingestedCount = 0;
@@ -4014,7 +3416,7 @@ async function executeEmployeeTypeIngest(typeDocs) {
  */
 async function extract17EmployeeFinanceAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     
     // Attempt to query active employees for Foreign Key validation
     try {
@@ -4126,10 +3528,10 @@ function renderParsedEmployeeFinancePreview(fileName, sheetName, records, errors
 /**
  * Commits parsed Employee Finance records to Cloud Firestore:
  * Path: organizations/{orgId}/employee_finance/{employeeId}
- * Links primary accounts to Decentro Fabric Payout Registry
+ * Links primary accounts to Cashfree Payout Registry
  */
 async function executeEmployeeFinanceIngest(financeDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${financeDocs.length} Employee Finance records into organizations/${orgId}/employee_finance...`);
 
     let ingestedCount = 0;
@@ -4158,7 +3560,7 @@ async function executeEmployeeFinanceIngest(financeDocs) {
     } else {
         window.showCustomAlert(
             "Employee Finance Ingested",
-            `Successfully ingested all ${ingestedCount} Employee Finance & Statutory records into Cloud Firestore under organizations/${orgId}/employee_finance matching PRD Sections 1, 4 & 13! Decentro Fabric payout registry initialized.`,
+            `Successfully ingested all ${ingestedCount} Employee Finance & Statutory records into Cloud Firestore under organizations/${orgId}/employee_finance matching PRD Sections 1, 4 & 13! Cashfree payout registry initialized.`,
             "success"
         );
     }
@@ -4179,7 +3581,7 @@ async function executeEmployeeFinanceIngest(financeDocs) {
  */
 async function extract19EpfoMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -4286,7 +3688,7 @@ function renderParsedEpfoMasterPreview(fileName, sheetName, records, errors = []
  * Path: organizations/{orgId}/employee_pf_details/{employeeId}
  */
 async function executeEpfoMasterIngest(epfoDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${epfoDocs.length} EPFO Statutory Master records into organizations/${orgId}/employee_pf_details...`);
 
     let ingestedCount = 0;
@@ -4336,7 +3738,7 @@ async function renderOnboardingEpfoMasterTable() {
     const container = document.getElementById('onboardingEpfoMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxPfDetailsService && typeof window.KylrxPfDetailsService.listEmployeePfDetails === 'function') {
@@ -4345,10 +3747,6 @@ async function renderOnboardingEpfoMasterTable() {
         } catch (e) {
             console.warn("Could not list EPFO profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxPfDetailsService) {
-        records = window.KylrxPfDetailsService.DEFAULT_PF_PROFILES;
     }
 
     container.innerHTML = `
@@ -4404,7 +3802,7 @@ async function renderOnboardingEpfoMasterTable() {
                                         ${escapeHtml(r.kyc?.overallStatus || 'PENDING')}
                                     </span>
                                 </td>
-                                <td style="font-size: 0.74rem; color: #64748b;">${escapeHtml(r.verification?.officialSource || 'Decentro Fabric')}</td>
+                                <td style="font-size: 0.74rem; color: #64748b;">${escapeHtml(r.verification?.officialSource || 'Cashfree Payouts')}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -4421,7 +3819,7 @@ async function renderOnboardingEpfoMasterTable() {
  */
 async function extract18EsicMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -4527,7 +3925,7 @@ function renderParsedEsicMasterPreview(fileName, sheetName, records, errors = []
  * Path: organizations/{orgId}/employee_esic_details/{employeeId}
  */
 async function executeEsicMasterIngest(esicDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${esicDocs.length} ESIC Statutory Master records into organizations/${orgId}/employee_esic_details...`);
 
     let ingestedCount = 0;
@@ -4577,7 +3975,7 @@ async function renderOnboardingEsicMasterTable() {
     const container = document.getElementById('onboardingEsicMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxEsicDetailsService && typeof window.KylrxEsicDetailsService.listAllEsicDetails === 'function') {
@@ -4586,10 +3984,6 @@ async function renderOnboardingEsicMasterTable() {
         } catch (e) {
             console.warn("Could not list ESIC profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxEsicDetailsService) {
-        records = window.KylrxEsicDetailsService.DEFAULT_ESIC_PROFILES || [];
     }
 
     container.innerHTML = `
@@ -4674,7 +4068,7 @@ async function renderOnboardingEsicMasterTable() {
  */
 async function extract10PtMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -4774,7 +4168,7 @@ function renderParsedPtMasterPreview(fileName, sheetName, records, errors = []) 
  * Path: organizations/{orgId}/employee_pt_details/{employeeId}
  */
 async function executePtMasterIngest(ptDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${ptDocs.length} PT Statutory Master records into organizations/${orgId}/employee_pt_details...`);
 
     let ingestedCount = 0;
@@ -4824,7 +4218,7 @@ async function renderOnboardingPtMasterTable() {
     const container = document.getElementById('onboardingPtMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxPtDetailsService && typeof window.KylrxPtDetailsService.listAllPtDetails === 'function') {
@@ -4833,10 +4227,6 @@ async function renderOnboardingPtMasterTable() {
         } catch (e) {
             console.warn("Could not list PT profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxPtDetailsService) {
-        records = window.KylrxPtDetailsService.DEFAULT_PT_PROFILES || [];
     }
 
     container.innerHTML = `
@@ -4911,7 +4301,7 @@ async function renderOnboardingPtMasterTable() {
  */
 async function extract10LwfMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -5002,7 +4392,7 @@ function renderParsedLwfMasterPreview(fileName, sheetName, records, errors = [])
  * Path: organizations/{orgId}/employee_lwf_details/{employeeId}
  */
 async function executeLwfMasterIngest(lwfDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${lwfDocs.length} LWF Statutory Master records into organizations/${orgId}/employee_lwf_details...`);
 
     let ingestedCount = 0;
@@ -5052,7 +4442,7 @@ async function renderOnboardingLwfMasterTable() {
     const container = document.getElementById('onboardingLwfMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxLwfDetailsService && typeof window.KylrxLwfDetailsService.listAllLwfDetails === 'function') {
@@ -5061,10 +4451,6 @@ async function renderOnboardingLwfMasterTable() {
         } catch (e) {
             console.warn("Could not list LWF profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxLwfDetailsService) {
-        records = window.KylrxLwfDetailsService.DEFAULT_LWF_PROFILES || [];
     }
 
     container.innerHTML = `
@@ -5137,7 +4523,7 @@ async function renderOnboardingLwfMasterTable() {
  */
 async function extract22NpsMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -5242,7 +4628,7 @@ function renderParsedNpsMasterPreview(fileName, sheetName, records, errors = [])
  * Path: organizations/{orgId}/employee_nps_details/{employeeId}
  */
 async function executeNpsMasterIngest(npsDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${npsDocs.length} NPS Statutory Master records into organizations/${orgId}/employee_nps_details...`);
 
     let ingestedCount = 0;
@@ -5292,7 +4678,7 @@ async function renderOnboardingNpsMasterTable() {
     const container = document.getElementById('onboardingNpsMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxNpsDetailsService && typeof window.KylrxNpsDetailsService.listAllNpsDetails === 'function') {
@@ -5301,10 +4687,6 @@ async function renderOnboardingNpsMasterTable() {
         } catch (e) {
             console.warn("Could not list NPS profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxNpsDetailsService) {
-        records = window.KylrxNpsDetailsService.DEFAULT_NPS_PROFILES || [];
     }
 
     container.innerHTML = `
@@ -5394,7 +4776,7 @@ async function renderOnboardingNpsMasterTable() {
  */
 async function extract18GratuityMasterAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -5522,7 +4904,7 @@ function renderParsedGratuityMasterPreview(fileName, sheetName, records, errors 
  * Path: organizations/{orgId}/employee_gratuity_details/{employeeId}
  */
 async function executeGratuityMasterIngest(gratuityDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${gratuityDocs.length} Gratuity Statutory Master records into organizations/${orgId}/employee_gratuity_details...`);
 
     let ingestedCount = 0;
@@ -5572,7 +4954,7 @@ async function renderOnboardingGratuityMasterTable() {
     const container = document.getElementById('onboardingGratuityMasterTableContainer');
     if (!container) return;
 
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'ORG_KYLRX_01';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     let records = [];
 
     if (window.KylrxGratuityDetailsService && typeof window.KylrxGratuityDetailsService.listAllGratuityDetails === 'function') {
@@ -5581,10 +4963,6 @@ async function renderOnboardingGratuityMasterTable() {
         } catch (e) {
             console.warn("Could not list Gratuity profiles:", e);
         }
-    }
-
-    if (records.length === 0 && window.KylrxGratuityDetailsService) {
-        records = window.KylrxGratuityDetailsService.DEFAULT_GRATUITY_PROFILES || [];
     }
 
     const totalVested = records.filter(r => r.eligibilityStatus === 'VESTED' || r.eligibilityStatus === 'ELIGIBLE').length;
@@ -5704,7 +5082,7 @@ async function renderOnboardingGratuityMasterTable() {
 async function extract9SalaryStructureAttributesFromSheetRows(rows) {
     let existingEmployeeIds = null;
     let existingComponentCodes = null;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const empSnap = await getDocs(collection(db, "organizations", orgId, "employees"));
@@ -5837,7 +5215,7 @@ function renderParsedSalaryStructurePreview(fileName, sheetName, records, firest
  * PRD Sections 1 & 4 dynamic compensation versioning
  */
 async function executeSalaryStructureIngest(salaryDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${salaryDocs.length} Salary Structure revisions into organizations/${orgId}/salary_structures...`);
 
     let ingestedCount = 0;
@@ -5888,7 +5266,7 @@ async function executeSalaryStructureIngest(salaryDocs) {
  * Path: organizations/{orgId}/attendance_policies/{attendancePolicyCode}
  */
 async function executePolicyIngest(policyDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${policyDocs.length} Attendance Policies into organizations/${orgId}/attendance_policies...`);
 
     let ingestedCount = 0;
@@ -6070,7 +5448,7 @@ function renderParsedAttributesPreview(fileName, sheetName, data) {
  * 4. Redirect Super Admin to main administrative dashboard (admin-dashboard.html).
  */
 async function executeOrganizationSetup(attributes21, sourceMethod) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     console.log(`🚀 Executing Organization Setup via [${sourceMethod}] for orgId: "${orgId}"...`);
 
@@ -6266,7 +5644,7 @@ function escapeHtml(str) {
  */
 async function extract9HolidayCalendarAttributesFromSheetRows(rows) {
     let existingLocationCodes = new Set();
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     try {
         const locationsSnap = await getDocs(collection(db, "organizations", orgId, "locations"));
@@ -6388,7 +5766,7 @@ function renderParsedHolidayCalendarPreview(fileName, sheetName, records, firest
  * Path: organizations/{orgId}/holiday_calendars/{calendarCode}/holidays/{holidayId}
  */
 async function executeHolidayCalendarIngest(holidayDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${holidayDocs.length} Holiday closures into organizations/${orgId}/holiday_calendars...`);
 
     let ingestedCount = 0;
@@ -6449,7 +5827,7 @@ async function executeHolidayCalendarIngest(holidayDocs) {
  * 11. Active (Boolean)
  */
 async function extract11StatutoryComplianceAttributesFromSheetRows(rows) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     if (window.KylrxStatutoryComplianceParser && typeof window.KylrxStatutoryComplianceParser.parseStatutoryComplianceSheet === 'function') {
         return window.KylrxStatutoryComplianceParser.parseStatutoryComplianceSheet(rows, { orgId });
     }
@@ -6522,7 +5900,7 @@ function renderParsedStatutoryCompliancePreview(fileName, sheetName, records, fi
  * Path: organizations/{orgId}/statutory_rules/{complianceCode}
  */
 async function executeStatutoryComplianceIngest(statutoryDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${statutoryDocs.length} Statutory Compliance policies into organizations/${orgId}/statutory_rules...`);
 
     let ingestedCount = 0;
@@ -6732,7 +6110,7 @@ function renderParsedRolePermissionPreview(fileName, sheetName, records, firesto
  * - User Overrides: organizations/{orgId}/user_permission_overrides/{employeeId}
  */
 async function executeRolePermissionIngest(roleDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${roleDocs.length} Role & Permission Override documents into organizations/${orgId}...`);
 
     let rolesIngested = 0;
@@ -6961,7 +6339,7 @@ function renderParsedWorkflowRulesPreview(fileName, sheetName, records, workflow
  * Path: organizations/{orgId}/workflows/{workflowCode}
  */
 async function executeWorkflowRulesIngest(workflowDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${workflowDocs.length} Workflow Chain documents into organizations/${orgId}/workflows/...`);
 
     let ingestedCount = 0;
@@ -7022,7 +6400,7 @@ async function executeWorkflowRulesIngest(workflowDocs) {
  */
 async function extract13PayrollComponentAttributesFromSheetRows(rawRows) {
     const parser = window.KylrxPayrollComponentsParser || window.payrollComponentsParser;
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
 
     if (parser && typeof parser.parsePayrollComponents === 'function') {
         const parsed = parser.parsePayrollComponents(rawRows, { orgId });
@@ -7208,7 +6586,7 @@ function renderParsedPayrollComponentPreview(fileName, sheetName, records, fires
  * Path: organizations/{orgId}/payroll_components/{componentCode}
  */
 async function executePayrollComponentIngest(componentDocs) {
-    const orgId = state.orgId || localStorage.getItem('orgId') || 'org_kylrx';
+    const orgId = state.orgId || getActiveOrgId() || missingOrg();
     console.log(`🚀 Ingesting ${componentDocs.length} Payroll Component documents into organizations/${orgId}/payroll_components/...`);
 
     let ingestedCount = 0;

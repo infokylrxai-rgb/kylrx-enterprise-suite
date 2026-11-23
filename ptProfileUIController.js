@@ -220,7 +220,8 @@
         if (recalcBtn) {
             recalcBtn.onclick = async function (e) {
                 e.preventDefault();
-                const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+                const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
+                if (!orgId) { window.showCustomAlert ? window.showCustomAlert('Organization Missing', 'No organization found for the signed-in user. Sign in again.', 'error') : alert('No organization found for the signed-in user. Sign in again.'); return; }
                 const btnText = container.querySelector('#ptRecalcBtnText');
                 const btnIcon = container.querySelector('#ptRecalcIcon');
 
@@ -301,7 +302,8 @@
 
         if (!container) return;
 
-        const orgId = options.orgId || (typeof localStorage !== 'undefined' ? localStorage.getItem('orgId') : null) || 'ORG_KYLRX_01';
+        const orgId = options.orgId || (typeof window !== 'undefined' && window.getActiveOrgId ? window.getActiveOrgId() : null);
+        if (!orgId) { container.innerHTML = '<div style="padding: 1rem; color: #ef4444;">No organization found for the signed-in user. Sign in again.</div>'; return; }
         let ptDetails = null;
 
         let service = (typeof window !== 'undefined' && window.KylrxPtDetailsService) ? window.KylrxPtDetailsService : null;
@@ -317,25 +319,12 @@
             } catch (e) {}
         }
 
-        if (!ptDetails && service && Array.isArray(service.DEFAULT_PT_PROFILES)) {
-            ptDetails = service.DEFAULT_PT_PROFILES.find(p => p.employeeId === employeeId);
+        if (!ptDetails) {
+            container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No details added yet</div>';
+            return;
         }
 
-        if (!ptDetails) {
-            ptDetails = {
-                employeeId,
-                organizationId: orgId,
-                isPtApplicable: options.isPtApplicable !== false,
-                state: options.state || "Karnataka",
-                ptRegistrationNo: options.ptRegistrationNo || "PTRC1234567K",
-                ptSlab: options.ptSlab || "KA_DEFAULT",
-                monthlyDeduction: options.monthlyDeduction !== undefined ? options.monthlyDeduction : 200.00,
-                effectiveFrom: options.effectiveFrom || options.joiningDate || "2026-01-01",
-                effectiveTo: options.effectiveTo || null,
-                isActive: options.isActive !== false,
-                overrides: { isManualOverride: false, exemptReason: null }
-            };
-        } else if (options && Object.keys(options).length > 0) {
+        if (options && Object.keys(options).length > 0) {
             if (options.state) ptDetails.state = options.state;
             if (options.ptRegistrationNo) ptDetails.ptRegistrationNo = options.ptRegistrationNo;
             if (options.ptSlab) ptDetails.ptSlab = options.ptSlab;

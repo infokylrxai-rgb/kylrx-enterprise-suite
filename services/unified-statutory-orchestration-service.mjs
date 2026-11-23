@@ -100,6 +100,8 @@ export class UnifiedStatutoryOrchestrator {
 
     /** @type {Map<string, object>} Execution manifests keyed by orchestration_id or source_payroll_id */
     this.executionManifests = new Map();
+    /** @type {Set<string>} Payroll run ids currently being orchestrated from the Firestore listener */
+    this.orchestrationsInFlight = new Set();
 
     if (this.firestoreDb) {
       this.attachPayrollRunsListener(this.firestoreDb);
@@ -123,10 +125,20 @@ export class UnifiedStatutoryOrchestrator {
         payrollRunsRef.where('status', '==', 'FINALIZED').onSnapshot(
           (snapshot) => {
             snapshot.docChanges().forEach(async (change) => {
-              if (change.type === 'added' || change.type === 'modified') {
-                const payrollRunData = change.doc.data();
-                const runId = change.doc.id || payrollRunData.payroll_run_id || payrollRunData.run_id;
+              if (change.type !== 'added' && change.type !== 'modified') return;
+              const payrollRunData = change.doc.data();
+              const runId = change.doc.id || payrollRunData.payroll_run_id || payrollRunData.run_id;
+              // orchestratePayrollRun rewrites this same document with an orchestration_id, which
+              // fires this listener again. Only runs that were never orchestrated are processed;
+              // otherwise the listener loops forever and exhausts the Firestore write quota.
+              if (payrollRunData.orchestration_id || this.orchestrationsInFlight.has(runId)) return;
+              this.orchestrationsInFlight.add(runId);
+              try {
                 await this.orchestratePayrollRun({ ...payrollRunData, payroll_run_id: runId });
+              } catch (err) {
+                console.warn(`[UnifiedStatutoryOrchestrator] Orchestration failed for ${runId}:`, err.message);
+              } finally {
+                this.orchestrationsInFlight.delete(runId);
               }
             });
           },

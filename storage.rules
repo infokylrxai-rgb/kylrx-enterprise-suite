@@ -2,6 +2,14 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
+    // Every file lives under orgs/{orgId}/... and is reachable only by members of that organization.
+    // The organization comes ONLY from the verified token's orgId custom claim (set by the server).
+    function inOrg(orgId) {
+      return request.auth != null
+        && request.auth.token.orgId is string
+        && request.auth.token.orgId == orgId;
+    }
+
     function userData(uid) {
       return firestore.get(/databases/(default)/documents/users/$(uid)).data;
     }
@@ -10,13 +18,28 @@ service firebase.storage {
       return firestore.exists(/databases/(default)/documents/users/$(uid));
     }
 
+    // Same role names as firestore.rules (claims first, then the server-written profile)
+    function isStaffRole(role) {
+      return role in [
+        'super_admin', 'SUPER_ADMIN', 'super admin', 'Super Admin', 'superadmin',
+        'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR', 'hradmin', 'HR Admin', 'hr_admin', 'hr_payroll',
+        'manager', 'Manager'
+      ];
+    }
+
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.super_admin == true
+        || ('role' in request.auth.token && request.auth.token.role in ['super_admin', 'SUPER_ADMIN', 'Super Admin', 'superadmin'])
+      );
+    }
+
     function isStaff() {
-      return request.auth != null
-        && userExists(request.auth.uid)
-        && userData(request.auth.uid).role in [
-          'admin', 'Admin', 'hrms', 'HRMS', 'hr', 'HR',
-          'super admin', 'manager', 'Manager'
-        ];
+      return request.auth != null && (
+        isSuperAdmin()
+        || ('role' in request.auth.token && isStaffRole(request.auth.token.role))
+        || (userExists(request.auth.uid) && isStaffRole(userData(request.auth.uid).role))
+      );
     }
 
     function ownsEmployeeRecord(employeeId) {
@@ -32,21 +55,47 @@ service firebase.storage {
       );
     }
 
-    // Payslip PDFs — employees read own folder; HR uploads
-    match /payroll/payslips/{employeeId}/{fileName} {
-      allow read: if ownsEmployeeRecord(employeeId) || isStaff();
-      allow write: if isStaff();
+    // Upload limits: size in MB and the content types each folder accepts
+    function sizeUnder(mb) {
+      return request.resource.size < mb * 1024 * 1024;
+    }
+    function isPdf() {
+      return request.resource.contentType == 'application/pdf';
+    }
+    function isDocument() {
+      return request.resource.contentType.matches('application/pdf|image/(png|jpeg|webp)|application/msword|application/vnd[.]openxmlformats-officedocument[.]wordprocessingml[.]document');
+    }
+    // SVG is excluded on purpose: it can carry script
+    function isRasterImage() {
+      return request.resource.contentType.matches('image/(png|jpeg|webp)');
     }
 
-    // Recruitment resumes — HR only
-    match /recruitment/resumes/{fileName} {
-      allow read, write: if isStaff();
+    // Payslip PDFs: the employee reads their own; staff of the organization read and upload
+    match /orgs/{orgId}/payroll/payslips/{employeeId}/{fileName} {
+      allow read: if inOrg(orgId) && (ownsEmployeeRecord(employeeId) || isStaff());
+      allow create, update: if inOrg(orgId) && isStaff() && isPdf() && sizeUnder(5);
+      allow delete: if inOrg(orgId) && isStaff();
     }
 
-    // PRD Section 13: Official Employee Documents (Offer Letter, NDA, Aadhaar, PAN, Bank Proof, etc.)
-    match /employees/{employeeId}/documents/{fileName} {
-      allow read: if ownsEmployeeRecord(employeeId) || isStaff();
-      allow write: if isStaff();
+    // Recruitment resumes: staff of the organization only
+    match /orgs/{orgId}/recruitment/resumes/{fileName} {
+      allow read: if inOrg(orgId) && isStaff();
+      allow create, update: if inOrg(orgId) && isStaff() && isDocument() && sizeUnder(10);
+      allow delete: if inOrg(orgId) && isStaff();
+    }
+
+    // PRD Section 13: official employee documents (offer letter, NDA, Aadhaar, PAN, bank proof, ...)
+    match /orgs/{orgId}/employees/{employeeId}/documents/{fileName} {
+      allow read: if inOrg(orgId) && (ownsEmployeeRecord(employeeId) || isStaff());
+      allow create, update: if inOrg(orgId) && isStaff() && isDocument() && sizeUnder(10);
+      allow delete: if inOrg(orgId) && isStaff();
+    }
+
+    // Organization logo: uploaded by the organization's super admin after signup
+    match /orgs/{orgId}/branding/{fileName} {
+      allow read: if inOrg(orgId);
+      allow create, update: if inOrg(orgId) && isSuperAdmin() && isRasterImage() && sizeUnder(2);
+      allow delete: if inOrg(orgId) && isSuperAdmin();
     }
 
     // Deny all other storage paths by default

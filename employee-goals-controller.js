@@ -356,7 +356,7 @@
     function detectCurrentUser() {
         try {
             const storedName = localStorage.getItem('employee_name') || document.getElementById('userNameDisplay')?.textContent;
-            const storedId = localStorage.getItem('employee_uid') || new URLSearchParams(window.location.search).get('id');
+            const storedId = (typeof window !== 'undefined' ? window.__kylrxUid : null) || '';
             const storedRole = localStorage.getItem('employee_role') || document.getElementById('userRoleDisplay')?.textContent;
             if (storedName && storedName !== '--') state.actor.name = storedName.trim();
             if (storedId) state.actor.id = storedId.trim();

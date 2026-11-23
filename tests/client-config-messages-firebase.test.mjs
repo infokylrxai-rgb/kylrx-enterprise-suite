@@ -121,6 +121,14 @@ describe('Client Config, Firestore Messages, and Firebase Production Credentials
                             },
                             delete: async () => {
                                 inMemoryMessages.delete(docId);
+                            },
+                            update: async (data) => {
+                                const current = inMemoryMessages.get(docId) || {};
+                                const next = { ...current };
+                                for (const [k, v] of Object.entries(data)) {
+                                    next[k] = v && Array.isArray(v.elements) ? [...new Set([...(current[k] || []), ...v.elements])] : v;
+                                }
+                                inMemoryMessages.set(docId, next);
                             }
                         }),
                         get: async () => {
@@ -137,24 +145,28 @@ describe('Client Config, Firestore Messages, and Firebase Production Credentials
                                 forEach: (cb) => docs.forEach(cb)
                             };
                         },
-                        where: (field, op, val) => ({
-                            get: async () => {
-                                const matched = Array.from(inMemoryMessages.entries())
-                                    .filter(([_, d]) => d[field] === val)
-                                    .map(([id, d]) => ({
-                                        id,
-                                        data: () => d,
-                                        ref: {
-                                            delete: async () => inMemoryMessages.delete(id)
-                                        }
-                                    }));
-                                return {
-                                    empty: matched.length === 0,
-                                    docs: matched,
-                                    forEach: (cb) => matched.forEach(cb)
-                                };
-                            }
-                        })
+                        where: function where(field, op, val, filters = []) {
+                            const all = [...filters, [field, val]];
+                            return {
+                                where: (f, o, v) => where(f, o, v, all),
+                                get: async () => {
+                                    const matched = Array.from(inMemoryMessages.entries())
+                                        .filter(([_, d]) => all.every(([f, v]) => d[f] === v))
+                                        .map(([id, d]) => ({
+                                            id,
+                                            data: () => d,
+                                            ref: {
+                                                delete: async () => inMemoryMessages.delete(id)
+                                            }
+                                        }));
+                                    return {
+                                        empty: matched.length === 0,
+                                        docs: matched,
+                                        forEach: (cb) => matched.forEach(cb)
+                                    };
+                                }
+                            };
+                        }
                     };
                 }
                 return origCollection ? origCollection.apply(this, arguments) : null;
@@ -164,6 +176,7 @@ describe('Client Config, Firestore Messages, and Firebase Production Credentials
                 const ops = [];
                 return {
                     set: (docRef, data) => ops.push(() => docRef.set(data)),
+                    update: (docRef, data) => ops.push(() => docRef.update(data)),
                     delete: (docRef) => ops.push(() => docRef.delete()),
                     commit: async () => {
                         for (const op of ops) await op();
@@ -180,10 +193,12 @@ describe('Client Config, Firestore Messages, and Firebase Production Credentials
         const testChatId = `chat_test_${Date.now()}`;
         const testRecipientId = `usr_recip_${Date.now()}`;
         const testSenderId = `usr_sender_${Date.now()}`;
+        const caller = { id: testSenderId, role: 'Employee', orgId: 'org_messages_test' };
         let createdMsgId;
 
         it('sendMessage writes directly to Firestore messages collection', async () => {
             const req = {
+                user: caller,
                 body: {
                     chatId: testChatId,
                     recipientId: testRecipientId,
@@ -210,10 +225,12 @@ describe('Client Config, Firestore Messages, and Firebase Production Credentials
             assert.ok(docSnap.exists);
             assert.equal(docSnap.data().text, 'Hello from Firestore Messages!');
             assert.equal(docSnap.data().chatId, testChatId);
+            assert.equal(docSnap.data().orgId, caller.orgId);
         });
 
         it('getThreadMessages reads from Firestore messages collection', async () => {
             const req = {
+                user: caller,
                 params: { chatId: testChatId }
             };
             let statusRes = 200;
@@ -235,6 +252,7 @@ describe('Client Config, Firestore Messages, and Firebase Production Credentials
             const recipA = `recip_a_${Date.now()}`;
             const recipB = `recip_b_${Date.now()}`;
             const req = {
+                user: { ...caller, role: 'HRMS' },
                 body: {
                     recipientIds: [recipA, recipB],
                     text: 'Broadcast announcement via Firestore'
@@ -257,10 +275,12 @@ describe('Client Config, Firestore Messages, and Firebase Production Credentials
             const docs = snap.docs.map(d => d.data());
             assert.ok(docs.some(d => d.receiverId === recipA));
             assert.ok(docs.some(d => d.receiverId === recipB));
+            assert.ok(docs.every(d => d.orgId === caller.orgId));
         });
 
-        it('clearChat removes messages for chatId from Firestore', async () => {
+        it('clearChat hides the chat for the caller without deleting it for everyone', async () => {
             const req = {
+                user: caller,
                 params: { chatId: testChatId }
             };
             let jsonRes = null;
@@ -273,7 +293,8 @@ describe('Client Config, Firestore Messages, and Firebase Production Credentials
             assert.equal(jsonRes.success, true);
 
             const docSnap = await firebaseConfig.db.collection('messages').doc(createdMsgId).get();
-            assert.equal(docSnap.exists, false, 'Message must be deleted after clearChat');
+            assert.ok(docSnap.exists, 'the message is kept for the other participant');
+            assert.deepEqual(docSnap.data().clearedBy, [caller.id]);
         });
     });
 

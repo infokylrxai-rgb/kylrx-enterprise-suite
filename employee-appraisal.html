@@ -10,11 +10,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.321.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="lucide.min.js" crossorigin="anonymous"></script>
     <script>
         window.navigateTo = (page) => {
             const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id') || localStorage.getItem('employee_uid') || '';
+            const id = urlParams.get('id') || window.__kylrxUid || '';
             const sep = page.includes('?') ? '&' : '?';
             if (id) {
                 window.location.href = `${page}${sep}id=${encodeURIComponent(id)}`;
@@ -646,7 +646,7 @@
             <div class="profile-mini">
                 <div class="avatar" id="userInitial">MD</div>
                 <div class="profile-info">
-                    <div class="profile-name" id="userNameDisplay">Marry Doe</div>
+                    <div class="profile-name" id="userNameDisplay">Employee</div>
                     <div class="profile-role" id="userRoleDisplay">Employee</div>
                 </div>
                 <button id="logoutBtn" onclick="handleLogout()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s;" title="Logout">
@@ -938,12 +938,15 @@
         lucide.createIcons();
 
         const urlParams = new URLSearchParams(window.location.search);
-        const empId = urlParams.get('id') || localStorage.getItem('employee_uid') || localStorage.getItem('hr_user_id') || 'demo_emp';
+        import { loadIdentity } from "./notification-actions.js";
+        // The user is the verified session (token), never ?id= or localStorage
+        const SESSION = await loadIdentity().catch(() => null);
+        const empId = SESSION ? SESSION.uid : '';
         let cycle = urlParams.get('cycle') || 'Q2-2026';
 
         // 1. Profile Hydration
         function hydrateProfile() {
-            const cachedName = localStorage.getItem('userName') || 'Marry Doe';
+            const cachedName = localStorage.getItem('userName') || 'Employee';
             const cachedRole = localStorage.getItem('userRole') || 'Employee';
             const nameEl = document.getElementById('userNameDisplay');
             const roleEl = document.getElementById('userRoleDisplay');
@@ -957,7 +960,7 @@
             }
 
             // Sync from Firestore if available
-            if (empId && empId !== 'demo_emp' && db) {
+            if (empId && db) {
                 getDoc(doc(db, 'users', empId)).then(snap => {
                     if (snap.exists()) {
                         const u = snap.data();
@@ -985,7 +988,7 @@
             },
             {
                 id: 'task_seed_2',
-                title: 'Decentro Fabric Banking Payout Integration',
+                title: 'Cashfree Payouts Banking Integration',
                 description: 'Decouple payroll document service from bank disbursement pipeline with 4-Eyes Maker-Checker authorization.',
                 status: 'completed',
                 reviewStatus: 'under_review',
