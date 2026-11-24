@@ -288,8 +288,8 @@ async function seedFirestoreDocuments(db, userRecord, options) {
     updated_at: admin.firestore.FieldValue.serverTimestamp(),
     ...(orgSnap.exists ? {} : { created_at: admin.firestore.FieldValue.serverTimestamp() })
   }, { merge: true });
-  console.log(`🏢 Seeded/Updated tenant organization: organizations/org_kylrx (orgConfigured: true)`);
-  results.push({ collection: 'organizations', docId: 'org_kylrx', existed: orgSnap.exists });
+  console.log(`🏢 Seeded/Updated tenant organization: organizations/${resolvedOrgId} (orgConfigured: true)`);
+  results.push({ collection: 'organizations', docId: resolvedOrgId, existed: orgSnap.exists });
 
   return results;
 }
