@@ -103,9 +103,31 @@ const isAllowedOrigin = (origin) => {
     return allowed.includes(origin);
 };
 
-app.use(cors({
+/**
+ * An Origin equal to the host being requested is same-origin by definition and can never be a
+ * cross-site caller, so it is always allowed - independently of ALLOWED_ORIGINS.
+ *
+ * Without this the app rejects its OWN assets. ES modules and fetch() send an Origin header even
+ * same-origin, so when ALLOWED_ORIGINS did not list the host the app was actually served from
+ * (deployed at kylrxai-app.onrender.com while ALLOWED_ORIGINS named the future custom domain),
+ * every module script got 403 "Not allowed by CORS". The login page still returned 200 with all
+ * its markup, so curl and health checks looked perfect while no one could sign in.
+ *
+ * Hosts are compared without the scheme: behind a proxy req.protocol is http unless trust proxy
+ * is configured, while the browser sends an https Origin.
+ */
+const isSameHostOrigin = (origin, req) => {
+    if (!origin || !req || !req.headers || !req.headers.host) return false;
+    try {
+        return new URL(origin).host.toLowerCase() === String(req.headers.host).toLowerCase();
+    } catch (_) {
+        return false;
+    }
+};
+
+app.use(cors((req, done) => done(null, {
     origin: function(origin, callback) {
-        if (!origin || isAllowedOrigin(origin)) {
+        if (!origin || isAllowedOrigin(origin) || isSameHostOrigin(origin, req)) {
             return callback(null, true);
         }
         const corsError = new Error('Not allowed by CORS');
@@ -115,7 +137,7 @@ app.use(cors({
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true
-}));
+})));
 
 // Security Middlewares
 // 2. Set Security HTTP Headers with Dev-Friendly CSP
