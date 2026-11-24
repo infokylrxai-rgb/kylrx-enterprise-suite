@@ -258,7 +258,13 @@ exports.createEmployee = async (req, res, next) => {
 
         res.status(201).json({
             status: 'success',
-            message: send_email_now ? 'Employee created and invite dispatched' : 'Employee saved to dashboard successfully',
+            // Email dispatch is best-effort and its failure is swallowed above, so the message
+            // must not claim an invite was sent when email_warning says it was not: an admin who
+            // reads "invite dispatched" will not hand the temporary password over, and the new
+            // employee is left with an account they were never told about.
+            message: !send_email_now ? 'Employee saved to dashboard successfully'
+                : (emailError ? 'Employee created, but the invite could not be emailed - share the temporary password manually'
+                               : 'Employee created and invite dispatched'),
             data: { 
                 uid: userRecord.uid,
                 employeeId, 

@@ -50,6 +50,13 @@ const admin = require('firebase-admin');
 // ============================================================================
 
 const DEFAULT_SUPERADMIN_EMAIL = 'superadmin@kylrx.ai';
+// --org only ever set a display NAME while the tenant key stayed hardcoded, so every
+// super-admin landed in org_kylrx whatever was passed. In a multi-tenant product that
+// silently provisions the customer's admin into the wrong tenant, where they see no data.
+const DEFAULT_SUPERADMIN_ORG_ID = 'org_kylrx';
+// Set from --org-id before any write. Module-level so the claims template, the profile
+// documents and the organization document can never disagree about the tenant.
+let resolvedOrgId = DEFAULT_SUPERADMIN_ORG_ID;
 const DEFAULT_SUPERADMIN_DISPLAY_NAME = 'Super Admin';
 const DEFAULT_ORGANIZATION = 'Kylrx Technologies Pvt. Ltd.';
 const DEFAULT_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'Kylrx#SuperAdmin2026!Secured';
@@ -65,7 +72,7 @@ const SUPERADMIN_PERMISSIONS = [
 const SUPERADMIN_CUSTOM_CLAIMS = {
   role: 'SUPER_ADMIN',
   super_admin: true,
-  orgId: 'org_kylrx',
+  orgId: DEFAULT_SUPERADMIN_ORG_ID,
   permissions: SUPERADMIN_PERMISSIONS,
 };
 
@@ -125,6 +132,7 @@ function parseCliArgs() {
     password: DEFAULT_PASSWORD,
     displayName: DEFAULT_SUPERADMIN_DISPLAY_NAME,
     organization: DEFAULT_ORGANIZATION,
+    orgId: DEFAULT_SUPERADMIN_ORG_ID,
     verifyOnly: false,
     dryRun: false,
   };
@@ -136,6 +144,8 @@ function parseCliArgs() {
       options.email = arg.split('=')[1];
     } else if (arg.startsWith('--display-name=')) {
       options.displayName = arg.split('=')[1];
+    } else if (arg.startsWith('--org-id=')) {
+      options.orgId = arg.split('=')[1];
     } else if (arg.startsWith('--org=')) {
       options.organization = arg.split('=')[1];
     } else if (arg === '--verify-only') {
@@ -243,7 +253,7 @@ async function seedFirestoreDocuments(db, userRecord, options) {
       displayName: displayName || userRecord.displayName || 'Super Admin',
       role: 'SUPER_ADMIN',
       organization,
-      orgId: 'org_kylrx',
+      orgId: resolvedOrgId,
       permissions: SUPERADMIN_PERMISSIONS,
       is_active: true,
       updated_at: admin.firestore.FieldValue.serverTimestamp(),
@@ -267,10 +277,10 @@ async function seedFirestoreDocuments(db, userRecord, options) {
   }
 
   // Also seed tenant organization document with orgConfigured: true
-  const orgRef = db.collection('organizations').doc('org_kylrx');
+  const orgRef = db.collection('organizations').doc(resolvedOrgId);
   const orgSnap = await orgRef.get();
   await orgRef.set({
-    orgId: 'org_kylrx',
+    orgId: resolvedOrgId,
     name: organization,
     creatorUid: uid,
     creatorEmail: email,
@@ -278,8 +288,8 @@ async function seedFirestoreDocuments(db, userRecord, options) {
     updated_at: admin.firestore.FieldValue.serverTimestamp(),
     ...(orgSnap.exists ? {} : { created_at: admin.firestore.FieldValue.serverTimestamp() })
   }, { merge: true });
-  console.log(`🏢 Seeded/Updated tenant organization: organizations/org_kylrx (orgConfigured: true)`);
-  results.push({ collection: 'organizations', docId: 'org_kylrx', existed: orgSnap.exists });
+  console.log(`🏢 Seeded/Updated tenant organization: organizations/${resolvedOrgId} (orgConfigured: true)`);
+  results.push({ collection: 'organizations', docId: resolvedOrgId, existed: orgSnap.exists });
 
   return results;
 }
@@ -335,12 +345,19 @@ async function verifySuperAdmin(auth, db, email) {
 async function provisionSuperAdmin(customOptions = {}) {
   const options = { ...parseCliArgs(), ...customOptions };
 
+  // Resolve the tenant once, before anything is written, and keep the claims template in
+  // step with it: a mismatch between the token's orgId and the profile's orgId would leave
+  // the admin authenticated but unable to see their own organization's data.
+  resolvedOrgId = options.orgId || DEFAULT_SUPERADMIN_ORG_ID;
+  SUPERADMIN_CUSTOM_CLAIMS.orgId = resolvedOrgId;
+
   console.log(`==============================================================`);
   console.log(`🔥 KYLRX AI - FIREBASE SUPER ADMIN PROVISIONING WORKFLOW`);
   console.log(`==============================================================`);
   console.log(`Target User        : ${options.email}`);
   console.log(`Display Name       : ${options.displayName}`);
   console.log(`Organization       : ${options.organization}`);
+  console.log(`Organization ID    : ${resolvedOrgId}`);
   console.log(`Role               : SUPER_ADMIN`);
   console.log(`Permissions        : [ ${SUPERADMIN_PERMISSIONS.join(', ')} ]`);
   console.log(`Timestamp (Local)  : ${new Date().toISOString()}`);
