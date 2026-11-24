@@ -110,16 +110,32 @@ class PayrollDisbursementService {
     this._processedWebhooks = new Set();
   }
 
+  /**
+   * Cashfree accepts only letters, numbers, underscore, pipe and dot in these ids - a hyphen
+   * is refused outright ("beneficiary_id : should contain only letters, numbers, underscore,
+   * pipe and dot"), which failed every single payout because the ids were built with hyphens.
+   *
+   * Disallowed characters are REPLACED, never dropped: deleting them collapsed "A-1" and "A1"
+   * onto the same id, and these ids decide who gets paid and which transfers are considered
+   * the same. For the same reason an over-long id keeps a hash of the original rather than
+   * being truncated blindly, so two employees with a long shared prefix cannot collide.
+   * The mapping stays deterministic, so a retry still produces the same id and cannot double-pay.
+   */
+  _safeProviderId(raw, max = 40) {
+    const safe = String(raw).replace(/[^A-Za-z0-9_.|]/g, '_');
+    if (safe.length <= max) return safe;
+    const digest = crypto.createHash('sha256').update(String(raw)).digest('hex').slice(0, 8);
+    return safe.slice(0, max - 9) + '_' + digest;
+  }
+
   /** Deterministic, Cashfree-safe transfer id. Same batch+employee => same id => never double-paid. */
   buildTransferId(batchId, record) {
-    const raw = `${batchId}-${record.employeeId || record.instructionId}`;
-    return raw.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
+    return this._safeProviderId(`${batchId}_${record.employeeId || record.instructionId}`);
   }
 
   /** Cashfree beneficiary id derived from the employee (stable across payroll runs). */
   buildBeneficiaryId(record) {
-    const raw = `EMP-${record.employeeId || record.instructionId}`;
-    return raw.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40);
+    return this._safeProviderId(`EMP_${record.employeeId || record.instructionId}`);
   }
 
   /**
@@ -415,6 +431,16 @@ class PayrollDisbursementService {
     const beneficiaryId = this.buildBeneficiaryId(record);
     record.cashfreeTransferId = transferId;
 
+    // A webhook arriving on a cold instance only knows the transfer id. Recovering the batch
+    // id by splitting that string is guesswork - the separator also occurs inside both halves,
+    // and sanitising for the gateway's charset rewrites it further. Record the mapping instead.
+    if (this.db && typeof this.db.collection === 'function') {
+      await safeDb(this.db.collection('cashfree_transfer_index').doc(transferId).set({
+        transferId, batchId: batch.batchId, employeeId: record.employeeId,
+        orgId: batch.orgId || null, createdAt: new Date().toISOString()
+      }));
+    }
+
     try {
       // ensureBeneficiary can resolve to a DIFFERENT id when the bank account is already
       // registered at Cashfree, so always transfer against the id it hands back.
@@ -610,7 +636,11 @@ class PayrollDisbursementService {
       if (applyTo(bId, batch)) { hit = true; break; }
     }
     if (!hit && this.db && typeof this.db.collection === 'function') {
-      const batchId = String(event.transferId).split('-').slice(0, -1).join('-');
+      let batchId = null;
+      const idx = await safeDbGet(this.db.collection('cashfree_transfer_index').doc(String(event.transferId)).get());
+      if (idx && idx.exists) batchId = (idx.data() || {}).batchId || null;
+      // Transfers dispatched before the index existed: fall back to the old derivation.
+      if (!batchId) batchId = String(event.transferId).split('-').slice(0, -1).join('-');
       const batch = await this._loadBatch(batchId);
       if (batch) {
         if (applyTo(batchId, batch)) {
