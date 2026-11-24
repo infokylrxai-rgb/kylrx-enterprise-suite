@@ -56,8 +56,17 @@ const sendEmail = async ({ to, subject, text, html }) => {
     if (process.env.RESEND_API_KEY) {
         console.log(`[Email] Dispatching via Resend API to ${recipients}: ${subject}`);
         const resend = new Resend(process.env.RESEND_API_KEY);
+        // EMAIL_FROM is documented in .env.example and listed by check-env, but this path
+        // hardcoded Resend's shared test domain, so every message went out as
+        // onboarding@resend.dev whatever was configured. That domain is for testing: it
+        // cannot carry your branding and Resend limits who it may deliver to, so onboarding
+        // invites would look wrong or never arrive. Fall back to it only when nothing is set.
+        const resendSenderName = process.env.EMAIL_SENDER_NAME || 'Kylrx HRFlow';
+        const fromAddress = process.env.EMAIL_FROM
+            ? resendSenderName + ' <' + process.env.EMAIL_FROM + '>'
+            : 'HRFlow <onboarding@resend.dev>';
         const { data, error } = await resend.emails.send({
-            from: 'HRFlow <onboarding@resend.dev>',
+            from: fromAddress,
             to: Array.isArray(to) ? to : [to],
             subject,
             text: plainText,
