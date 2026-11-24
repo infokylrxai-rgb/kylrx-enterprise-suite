@@ -226,7 +226,12 @@ exports.createEmployee = async (req, res, next) => {
             email,
             phone: phone || '',
             address: req.body.address || '',
-            tempPassword: finalPassword, // Storing for admin visibility
+            // The temporary password is deliberately NOT stored. users/{uid} is readable by
+            // every signed-in member of the same organisation (firestore.rules: allow read if
+            // request.auth.uid == userId || tenantRead()), so persisting it put one employee's
+            // working credential in front of all their colleagues. It is returned once in this
+            // response for the admin who is creating the account; to re-issue it later, use
+            // POST /employees/:id/trigger-invite, which mints a fresh one.
             departmentId: departmentId || '',
             departmentName: deptName,
             departmentCode: deptCode,
@@ -245,15 +250,22 @@ exports.createEmployee = async (req, res, next) => {
             invite_status: inviteStatus
         };
 
+        // This is the ONLY persistence of the employee: the Auth account alone carries no role,
+        // no organisation and no profile. A 2s cap here meant an ordinary slow write produced an
+        // account that could sign in but was invisible to HR and unscoped to any tenant - while
+        // the response still said 201 and the invite had already gone out. The cap is now 15s and
+        // a failure is reported rather than logged and forgotten.
+        let profileError = null;
         try {
             const setPromise = db.collection('users').doc(userRecord.uid).set({
                 ...employeeData,
                 createdAt: admin.firestore.FieldValue.serverTimestamp()
             });
-            const setRace = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore write timeout')), 2000));
+            const setRace = new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore write timeout')), 15000));
             await Promise.race([setPromise, setRace]);
         } catch (fsErr) {
-            console.warn('[AdminController] Firestore write notice (proceeding):', fsErr.message);
+            profileError = fsErr.message;
+            console.error('[AdminController] FAILED to save employee profile for ' + userRecord.uid + ':', fsErr.message);
         }
 
         res.status(201).json({
@@ -262,7 +274,10 @@ exports.createEmployee = async (req, res, next) => {
             // must not claim an invite was sent when email_warning says it was not: an admin who
             // reads "invite dispatched" will not hand the temporary password over, and the new
             // employee is left with an account they were never told about.
-            message: !send_email_now ? 'Employee saved to dashboard successfully'
+            profile_warning: profileError || undefined,
+            message: profileError
+                ? 'Account created but the employee profile could not be saved - the user can sign in but has no role or organisation. Retry, or delete the account and create it again.'
+                : !send_email_now ? 'Employee saved to dashboard successfully'
                 : (emailError ? 'Employee created, but the invite could not be emailed - share the temporary password manually'
                                : 'Employee created and invite dispatched'),
             data: { 
@@ -300,6 +315,12 @@ exports.triggerEmailInvite = async (req, res, next) => {
         if (!userDoc.exists) return res.status(404).json({ success: false, message: 'User not found' });
         
         const data = userDoc.data();
+        // Re-issue a NEW temporary password instead of reading a stored one. The old code sent
+        // `data.tempPassword || data.password || 'TemporaryPass@2026!'`, so once the password was
+        // no longer persisted it would confidently email a hardcoded literal that is not the
+        // user's password at all, locking them out. Minting one needs no secret at rest.
+        const reissuedPassword = generateSecurePassword(data.name || 'User');
+        await admin.auth().updateUser(id, { password: reissuedPassword });
         const role = data.role || 'employee';
         const roleTitle = (role === 'manager') ? 'Manager' : (role === 'hrms' ? 'HRMS Administrator' : (role === 'superadmin' ? 'Super Admin' : (role === 'hradmin' ? 'HR Admin' : 'Employee')));
         const portalPage = 'login.html';
@@ -323,7 +344,7 @@ exports.triggerEmailInvite = async (req, res, next) => {
                         <p style="margin: 6px 0;"><strong>Employee ID:</strong> <code>${data.employeeId || id}</code></p>
                         <p style="margin: 6px 0;"><strong>Official Email:</strong> ${data.email}</p>
                         <p style="margin: 6px 0;"><strong>Role:</strong> ${roleTitle}</p>
-                        <p style="margin: 6px 0;"><strong>Temporary Password:</strong> <code style="background-color: #e2e8f0; color: #0f172a; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: monospace;">${data.tempPassword || data.password || 'TemporaryPass@2026!'}</code></p>
+                        <p style="margin: 6px 0;"><strong>Temporary Password:</strong> <code style="background-color: #e2e8f0; color: #0f172a; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-family: monospace;">${reissuedPassword}</code></p>
                     </div>
 
                     <div style="text-align: center; margin: 24px 0;">
