@@ -296,10 +296,10 @@ describe('Kylrx.ai Payroll Management & Cashfree Payouts Integration (PRD §4)',
       assert.strictEqual(provider.calls.beneficiaries.length, 2);
       // Transfer ids are deterministic (batch + employee), which is what makes retries safe
       const ids = provider.calls.transfers.map(t => t.transferId).sort();
-      assert.deepStrictEqual(ids, ['BATCH_CF_DISPATCH-EMP_101', 'BATCH_CF_DISPATCH-EMP_102']);
+      assert.deepStrictEqual(ids, ['BATCH_CF_DISPATCH_EMP_101', 'BATCH_CF_DISPATCH_EMP_102']);
 
       const updated = await disbService.getBatch('BATCH_CF_DISPATCH');
-      assert.strictEqual(updated.records[0].cashfreeTransferId, 'BATCH_CF_DISPATCH-EMP_101');
+      assert.strictEqual(updated.records[0].cashfreeTransferId, 'BATCH_CF_DISPATCH_EMP_101');
       assert.strictEqual(updated.status, 'DISBURSING');
     });
 
@@ -431,7 +431,7 @@ describe('Kylrx.ai Payroll Management & Cashfree Payouts Integration (PRD §4)',
 
     it('5.1 Verified webhook reconciles to SUCCESS, assigns UTR, and a replay is idempotent', async () => {
       const svc = await seedDispatched('BATCH_WEBHOOK_TEST');
-      const transferId = 'BATCH_WEBHOOK_TEST-EMP_WH_1';
+      const transferId = 'BATCH_WEBHOOK_TEST_EMP_WH_1';
       const rawBody = bodyFor(transferId, 'SUCCESS', 'UTR_CF_99887766');
       const timestamp = '1700000000';
       const signature = crypto.createHmac('sha256', SECRET).update(timestamp + rawBody).digest('base64');
@@ -450,7 +450,7 @@ describe('Kylrx.ai Payroll Management & Cashfree Payouts Integration (PRD §4)',
 
     it('5.2 REJECTS a forged or unsigned webhook (a fake SUCCESS cannot mark payroll paid)', async () => {
       const svc = await seedDispatched('BATCH_WEBHOOK_FORGED');
-      const transferId = 'BATCH_WEBHOOK_FORGED-EMP_WH_1';
+      const transferId = 'BATCH_WEBHOOK_FORGED_EMP_WH_1';
       const rawBody = bodyFor(transferId, 'SUCCESS', 'UTR_FAKE');
 
       await assert.rejects(
@@ -467,7 +467,7 @@ describe('Kylrx.ai Payroll Management & Cashfree Payouts Integration (PRD §4)',
 
     it('5.3 A late PENDING delivery never regresses an already-settled payment', async () => {
       const svc = await seedDispatched('BATCH_WEBHOOK_ORDER');
-      const transferId = 'BATCH_WEBHOOK_ORDER-EMP_WH_1';
+      const transferId = 'BATCH_WEBHOOK_ORDER_EMP_WH_1';
       const sign = (raw, ts) => crypto.createHmac('sha256', SECRET).update(ts + raw).digest('base64');
 
       const okBody = bodyFor(transferId, 'SUCCESS', 'UTR_FINAL');
