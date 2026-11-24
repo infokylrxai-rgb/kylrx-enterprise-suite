@@ -1,8 +1,7 @@
 import puppeteer from 'puppeteer';
 import assert from 'assert';
-import { CREDS } from './helpers/e2e-credentials.mjs';
+import { CREDS, BASE_URL } from './helpers/e2e-credentials.mjs';
 
-const BASE_URL = 'http://localhost:3000';
 const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 
 const ROLES = {
