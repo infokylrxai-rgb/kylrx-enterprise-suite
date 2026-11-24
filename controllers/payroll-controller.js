@@ -265,6 +265,38 @@ async function getDisbursementBatchStatus(req, res) {
  * The route mounts a raw body parser so the HMAC is computed over the EXACT bytes
  * Cashfree signed — re-serialised JSON would not match.
  */
+/**
+ * GET /api/payroll/disburse/outbound-ip  (admin only)
+ *
+ * Cashfree Payouts uses an IP allow-list as its second factor, so payouts fail with
+ * "IP not whitelisted" until the address this server egresses from is allowed. A PaaS
+ * publishes a RANGE (Render shows /24 blocks) while Cashfree accepts individual
+ * addresses, so the range alone is not enough - and 74.220.52.0 is a network address,
+ * not a host, so entering the block without its suffix allow-lists nothing.
+ *
+ * This reports the address an outbound call actually leaves from, which is the value to
+ * paste into the gateway. It is also the first thing to re-check if payouts start
+ * failing after a platform migration or a region change.
+ */
+async function getOutboundIp(req, res) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const r = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+    if (!r.ok) throw new Error('lookup service returned HTTP ' + r.status);
+    const { ip } = await r.json();
+    return res.json({
+      success: true,
+      outboundIp: ip,
+      note: 'Allow-list this exact address in Cashfree > Payouts > Developers > Two-Factor Authentication. A PaaS can egress from more than one address, so re-check if payouts fail later.'
+    });
+  } catch (error) {
+    return res.status(502).json({ success: false, error: 'Could not determine the outbound IP: ' + error.message });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function handleCashfreeWebhook(req, res) {
   try {
     const signature = req.get('x-webhook-signature') || req.get('x-cf-signature');
@@ -285,6 +317,7 @@ async function handleCashfreeWebhook(req, res) {
 module.exports = {
   documentService,
   disbursementService,
+  getOutboundIp,
   // Document Controllers
   generatePayslip,
   generateBatch,

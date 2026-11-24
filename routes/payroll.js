@@ -98,6 +98,8 @@ router.post('/disburse/create-batch', payrollController.createDisbursementBatch)
 router.post('/disburse/batch/:batchId/approve', payrollController.approveDisbursementBatch);
 router.post('/disburse/batch/:batchId/execute', payrollController.executeDisbursementBatch);
 router.get('/disburse/batch/:batchId/status', payrollController.getDisbursementBatchStatus);
+// Which address this server egresses from - the value Cashfree's IP allow-list needs.
+router.get('/disburse/outbound-ip', payrollController.getOutboundIp);
 router.post('/disburse/batch/:batchId/reconcile', payrollController.reconcileDisbursementBatch);
 
 
