@@ -32,6 +32,12 @@ const sendEmail = async ({ to, subject, text, html }) => {
             // Google shows app passwords in four-character groups; pasting them verbatim is normal.
             pass: process.env.SMTP_PASS.replace(/\s+/g, '')
         };
+        // Resolve over IPv4. Container platforms commonly have no IPv6 egress, and nodemailer
+        // follows the AAAA record first: on Render this failed with
+        //   connect ENETUNREACH 2404:6800:4003:c04::6c:465
+        // which reads like a credentials or firewall problem rather than a missing route.
+        // SMTP_FAMILY=0 restores the default resolution order if a host ever needs IPv6.
+        const family = process.env.SMTP_FAMILY === undefined ? 4 : Number(process.env.SMTP_FAMILY);
         const transporter = nodemailer.createTransport(
             process.env.SMTP_HOST
                 ? {
@@ -39,9 +45,19 @@ const sendEmail = async ({ to, subject, text, html }) => {
                     port: Number(process.env.SMTP_PORT || 587),
                     // 465 is implicit TLS; 587 upgrades via STARTTLS.
                     secure: String(process.env.SMTP_SECURE || (Number(process.env.SMTP_PORT) === 465)) === 'true',
+                    family,
                     auth: smtpAuth
                 }
-                : { service: 'gmail', auth: smtpAuth }
+                : {
+                    // Gmail on 587 + STARTTLS rather than the service default of 465: the
+                    // submission port is the one least likely to be blocked outbound.
+                    host: 'smtp.gmail.com',
+                    port: 587,
+                    secure: false,
+                    requireTLS: true,
+                    family,
+                    auth: smtpAuth
+                }
         );
 
         const senderName = process.env.EMAIL_SENDER_NAME || 'Kylrx HRFlow';

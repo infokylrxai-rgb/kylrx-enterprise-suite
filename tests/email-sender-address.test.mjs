@@ -50,7 +50,10 @@ describe('SMTP transport is not locked to Gmail', () => {
   });
 
   it('still defaults to Gmail when SMTP_HOST is absent', () => {
-    assert.match(src, /service:\s*'gmail'/, 'the Gmail default must remain for existing setups');
+    // Match the configured host, not the word 'gmail': this assertion previously passed
+    // against the phrase service:'gmail' inside an explanatory comment, so it would have
+    // kept passing with no Gmail transport in the file at all.
+    assert.match(src, /host:\s*'smtp\.gmail\.com'/, 'the Gmail default must remain for existing setups');
   });
 
   it('defaults the port to 587 and derives TLS from it', () => {
@@ -68,5 +71,28 @@ describe('SMTP transport is not locked to Gmail', () => {
       !/createTransport\(\{\s*service:\s*'gmail'/.test(src),
       'transport is hardcoded to Gmail again - other providers would authenticate against Google'
     );
+  });
+});
+
+describe('SMTP works where there is no IPv6 egress', () => {
+  it('resolves over IPv4 by default', () => {
+    // Render has no IPv6 route: nodemailer followed smtp.gmail.com's AAAA record and failed
+    // with "connect ENETUNREACH 2404:6800:4003:c04::6c:465", which looks like a credentials
+    // or firewall problem rather than a missing route.
+    assert.match(src, /const family = process\.env\.SMTP_FAMILY === undefined \? 4 : Number\(process\.env\.SMTP_FAMILY\)/);
+  });
+
+  it('passes the family to both transports', () => {
+    assert.ok((src.match(/\n\s+family,/g) || []).length >= 2, 'both the custom-host and Gmail transports must set family');
+  });
+
+  it('lets a host opt back into default resolution', () => {
+    assert.match(src, /SMTP_FAMILY/);
+  });
+
+  it('uses Gmail submission port 587 with STARTTLS, not implicit TLS on 465', () => {
+    assert.match(src, /host:\s*'smtp\.gmail\.com'/);
+    assert.match(src, /port:\s*587/);
+    assert.match(src, /requireTLS:\s*true/);
   });
 });
