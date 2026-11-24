@@ -59,7 +59,31 @@ const DEFAULT_SUPERADMIN_ORG_ID = 'org_kylrx';
 let resolvedOrgId = DEFAULT_SUPERADMIN_ORG_ID;
 const DEFAULT_SUPERADMIN_DISPLAY_NAME = 'Super Admin';
 const DEFAULT_ORGANIZATION = 'Kylrx Technologies Pvt. Ltd.';
-const DEFAULT_PASSWORD = process.env.SUPERADMIN_PASSWORD || 'Kylrx#SuperAdmin2026!Secured';
+/**
+ * A committed literal is not a password. The previous default shipped in this file, so every
+ * super-admin provisioned without --password shared one credential that anyone with repository
+ * access could read - on an account holding 'all', manage_payroll, approve_batches and
+ * view_unmasked_pii over real salary and bank data. The repository's scripts/ directory was
+ * also briefly served publicly by a static mirror of this repo.
+ *
+ * There is now no default. A password is generated per run and printed once, unless one is
+ * supplied explicitly via --password or SUPERADMIN_PASSWORD.
+ */
+function generatePassword() {
+  const crypto = require('crypto');
+  // Ambiguous characters (O/0, l/1/I) are left out so the value can be read aloud or retyped.
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghijkmnpqrstuvwxyz';
+  const digit = '23456789';
+  const symbol = '!@#$%^&*-_=+';
+  const pick = (set, n) => Array.from({ length: n }, () => set[crypto.randomInt(set.length)]).join('');
+  const body = pick(upper, 4) + pick(lower, 8) + pick(digit, 4) + pick(symbol, 3) + pick(upper + lower + digit, 9);
+  // Shuffle so the character classes are not in predictable positions.
+  return body.split('').sort(() => crypto.randomInt(3) - 1).join('');
+}
+
+const GENERATED_PASSWORD = generatePassword();
+const DEFAULT_PASSWORD = process.env.SUPERADMIN_PASSWORD || GENERATED_PASSWORD;
 
 const SUPERADMIN_PERMISSIONS = [
   'all',
@@ -358,6 +382,11 @@ async function provisionSuperAdmin(customOptions = {}) {
   console.log(`Display Name       : ${options.displayName}`);
   console.log(`Organization       : ${options.organization}`);
   console.log(`Organization ID    : ${resolvedOrgId}`);
+  if (options.password === GENERATED_PASSWORD) {
+    console.log(`Password           : ${GENERATED_PASSWORD}   <-- generated, shown ONCE`);
+  } else {
+    console.log(`Password           : (supplied explicitly)`);
+  }
   console.log(`Role               : SUPER_ADMIN`);
   console.log(`Permissions        : [ ${SUPERADMIN_PERMISSIONS.join(', ')} ]`);
   console.log(`Timestamp (Local)  : ${new Date().toISOString()}`);
