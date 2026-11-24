@@ -24,7 +24,16 @@ describe('Global Route Authentication & RBAC Enforcement Suite', () => {
         // demo mode (config/demo.js): public by design; POST is a 404 unless KYLRX_DEMO_MODE, see demo-login.test.mjs
         'POST /api/auth/demo-login',
         'GET /api/public-config',
-        'GET /api/health'
+        'GET /api/health',
+        // Cashfree calls this server-to-server and cannot present a user JWT, so a token gate
+        // would silently drop every payout callback. It is NOT unauthenticated: a payload that
+        // names a transfer is refused unless it carries a valid HMAC-SHA256 signature over the
+        // raw body. GET/HEAD and an empty POST answer 200 only so the gateway can verify the URL
+        // before registering it - Cashfree reported 'the provided url could not be reached' while
+        // these returned 401. Both halves are asserted in tests/webhook-reachability-probe.test.mjs.
+        'POST /api/payroll/disburse/webhook/cashfree',
+        'GET /api/payroll/disburse/webhook/cashfree',
+        'HEAD /api/payroll/disburse/webhook/cashfree'
     ]);
 
     before(async () => {

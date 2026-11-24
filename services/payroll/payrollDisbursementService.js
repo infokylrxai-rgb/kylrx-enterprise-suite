@@ -550,6 +550,17 @@ class PayrollDisbursementService {
   async handleCashfreeWebhook({ rawBody, signature, timestamp, payload } = {}) {
     const body = payload || (typeof rawBody === 'string' ? JSON.parse(rawBody || '{}') : (rawBody || {}));
 
+    const event = CashfreePayoutProvider.parseWebhook(body);
+
+    // A gateway verifies a webhook URL by pinging it and requiring a 2xx. That ping carries
+    // no signature and names no transfer, and answering 401 made Cashfree report the URL as
+    // unreachable and refuse to register it. A payload that names no transfer cannot change
+    // anything, so it is acknowledged and discarded. Anything that DOES name a transfer still
+    // requires a valid signature below, so this cannot be used to forge a payment.
+    if (!event.transferId && !signature) {
+      return { success: true, probe: true, matched: false, message: 'Webhook endpoint reachable; no transfer in payload.' };
+    }
+
     if (this.requireWebhookSignature) {
       const valid = this.provider.verifyWebhookSignature(
         typeof rawBody === 'string' ? rawBody : JSON.stringify(body),
@@ -561,7 +572,6 @@ class PayrollDisbursementService {
       }
     }
 
-    const event = CashfreePayoutProvider.parseWebhook(body);
     if (!event.transferId) {
       throw new PayoutValidationError('Invalid webhook payload: missing transfer_id.', 400);
     }
