@@ -1,5 +1,4 @@
 import puppeteer from 'puppeteer';
-import http from 'http';
 import assert from 'assert';
 import { CREDS, BASE_URL } from './helpers/e2e-credentials.mjs';
 
@@ -14,18 +13,18 @@ function record(id, title, status, details = '') {
   console.log(`${icon} [${id}] ${title}: ${normStatus} ${details ? '(' + details + ')' : ''}`);
 }
 
-// Helper to make HTTP requests
-function makeRequest(path, options = {}) {
-  return new Promise((resolve, reject) => {
-    const req = http.request(`${BASE_URL}${path}`, options, (res) => {
-      let data = '';
-      res.on('data', (chunk) => data += chunk);
-      res.on('end', () => resolve({ statusCode: res.statusCode, headers: res.headers, body: data }));
-    });
-    req.on('error', reject);
-    if (options.body) req.write(options.body);
-    req.end();
+// Uses global fetch: node:http throws 'Protocol "https:" not supported' as soon as the suite
+// is pointed at a deployed host, which silently skipped the header and API-access audits.
+async function makeRequest(path, options = {}) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: options.method || 'GET',
+    headers: options.headers || {},
+    body: options.body,
+    redirect: 'manual'
   });
+  const body = await res.text();
+  const headers = Object.fromEntries([...res.headers.entries()]);
+  return { statusCode: res.status, headers, body };
 }
 
 async function runSecurityAudit() {
@@ -130,15 +129,17 @@ async function runSecurityAudit() {
     // 6. Plaintext Passwords Inspection
     console.log('\n--- 6. Sensitive Data Storage & Exposure Audit ---');
     const storedKeys = await page.evaluate(() => Object.keys(localStorage));
-    const sensitiveInStorage = await page.evaluate(() => {
+    // CREDS is a Node value; referencing it inside evaluate() threw ReferenceError in the
+    // browser and aborted the rest of the audit. Pass the secrets in explicitly.
+    const sensitiveInStorage = await page.evaluate((secrets) => {
       for (const k of Object.keys(localStorage)) {
         const val = localStorage.getItem(k) || '';
-        if (k.toLowerCase().includes('pass') || val.includes(CREDS.manager.pass) || val.includes(CREDS.superAdmin.pass)) {
+        if (k.toLowerCase().includes('pass') || secrets.some(sec => sec && val.includes(sec))) {
           return true;
         }
       }
       return false;
-    });
+    }, [CREDS.manager.pass, CREDS.superAdmin.pass, CREDS.hrAdmin.pass, CREDS.employee.pass]);
     record('SEC-STOR-01', 'Passwords Completely Excluded from Browser localStorage', !sensitiveInStorage, `Keys: ${storedKeys.join(', ')}`);
 
     // 7. Session Invalidation on Logout

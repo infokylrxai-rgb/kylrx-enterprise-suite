@@ -18,6 +18,13 @@ router.post(
     payrollControllerEarly.handleCashfreeWebhook
 );
 
+// Gateways check the URL with a GET/HEAD before saving it. Without this the request falls
+// through to verifyToken, answers 401, and the gateway reports the endpoint unreachable.
+// It reveals nothing and changes nothing: real events arrive as signed POSTs.
+router.get('/disburse/webhook/cashfree', (req, res) =>
+    res.status(200).json({ success: true, probe: true, message: 'Cashfree payout webhook endpoint is live. Events must be POSTed with a valid signature.' }));
+router.head('/disburse/webhook/cashfree', (req, res) => res.sendStatus(200));
+
 router.use(verifyToken);
 
 // Administrative payroll routes require Admin/HR roles; employee document reads are gated by req.user.id
