@@ -100,6 +100,8 @@ router.post('/disburse/batch/:batchId/execute', payrollController.executeDisburs
 router.get('/disburse/batch/:batchId/status', payrollController.getDisbursementBatchStatus);
 // Which address this server egresses from - the value Cashfree's IP allow-list needs.
 router.get('/disburse/outbound-ip', payrollController.getOutboundIp);
+// Money-safe production readiness check: which environment, do the keys auth, is the IP allow-listed.
+router.get('/disburse/preflight', payrollController.getDisbursementPreflight);
 router.post('/disburse/batch/:batchId/reconcile', payrollController.reconcileDisbursementBatch);
 
 

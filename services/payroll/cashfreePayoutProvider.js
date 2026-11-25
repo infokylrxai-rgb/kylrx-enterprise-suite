@@ -264,6 +264,23 @@ class CashfreePayoutProvider {
   }
 
   /** Throws a non-retryable BALANCE_NOT_CONFIGURED when no fund source id is set. */
+  /**
+   * Read-only reachability + auth probe. Lists transfers (GET), which authenticates and triggers
+   * Cashfree's IP allow-list check without creating, moving or changing anything. Lets the
+   * disbursement preflight verify production credentials before any real payout is attempted.
+   */
+  async verifyConnectivity() {
+    try {
+      const headers = await this._authHeaders();
+      const path = this.apiVersion === 'v2' ? ENDPOINTS.v2.transfer : ENDPOINTS.v1.balance;
+      await this._request(path, { method: 'GET', headers, query: { limit: 1 } });
+      return { ok: true, status: 200, message: null };
+    } catch (err) {
+      const resp = (err.details && err.details.response) || {};
+      return { ok: false, status: err.statusCode || null, message: String(resp.message || err.message || 'unknown error') };
+    }
+  }
+
   async getBalance() {
     this.assertConfigured();
     if (this.apiVersion === 'v2' && !this.paymentInstrumentId) {
