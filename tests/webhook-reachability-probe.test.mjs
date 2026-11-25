@@ -64,15 +64,25 @@ describe('the probe path cannot be used to forge a payment', () => {
     assert.notEqual(res.status, 200, 'a signature was presented, so it must be verified');
   });
 
-  it('ACCEPTS a correctly signed transfer event', async () => {
+  /**
+   * Each organisation now pays from its own gateway, so there is no server-wide secret a
+   * callback could be checked against: the tenant is found from cashfree_transfer_index,
+   * written when the transfer was dispatched, and the signature is verified with THAT
+   * tenant's secret. A transfer this server never dispatched therefore has no secret to
+   * verify against and cannot be accepted, however well-formed its signature looks -
+   * accepting it would mean falling back to the platform's own secret, which is exactly
+   * how a forged callback for an invented transfer would get in.
+   *
+   * The accepted path, where the transfer IS indexed, is covered in
+   * tests/webhook-per-org-verification.test.mjs.
+   */
+  it('refuses a signed event for a transfer this server never dispatched', async () => {
     const ts = String(Date.now());
     const body = JSON.stringify({ type: 'TRANSFER_SUCCESS',
       data: { transfer: { transfer_id: 'REAL-1', status: 'SUCCESS', utr: 'UTR123', cf_transfer_id: 'CF1' } } });
     const sig = crypto.createHmac('sha256', process.env.CASHFREE_WEBHOOK_SECRET).update(ts + body).digest('base64');
     const res = await post(body, { 'x-webhook-signature': sig, 'x-webhook-timestamp': ts });
-    assert.equal(res.status, 200, await res.clone().text());
-    const json = await res.json();
-    assert.equal(json.success, true);
-    assert.notEqual(json.probe, true, 'a real signed event must not be treated as a probe');
+    assert.equal(res.status, 401, await res.clone().text());
+    assert.match((await res.json()).error, /unrecognised transfer/);
   });
 });
