@@ -35,6 +35,13 @@ function reset() {
 
 const makeRef = (collection, id) => ({
   id, path: collection + '/' + id,
+  // The controller reads users/<uid> to tell a provisioned account from a bare login.
+  async get() {
+    const seeded = (S.docs[collection] || []).find(r => r.id === id);
+    const written = S.written[collection + '/' + id];
+    const data = (seeded || written) ? Object.assign({}, seeded ? seeded.data : {}, written || {}) : null;
+    return { exists: Boolean(data), data: () => data };
+  },
   async set(data, opts) {
     S.written[collection + '/' + id] = Object.assign({}, S.written[collection + '/' + id] || {}, data);
     if (data && data.supersededByUid) S.retired.push(collection + '/' + id);
@@ -61,7 +68,7 @@ const mockAdmin = {
     async getUserByEmail(email) {
       const uid = S.authByEmail[email];
       if (!uid) { const e = new Error('not found'); e.code = 'auth/user-not-found'; throw e; }
-      return { uid, email };
+      return { uid, email, customClaims: S.claims[uid] || {} };
     },
     async getUser(uid) { const u = S.authByUid[uid]; if (!u) throw new Error('no user'); return u; },
     async createUser({ email, password, displayName }) {
@@ -114,13 +121,69 @@ describe('provisioning logins', () => {
     assert.deepEqual(S.sent, ['a@c.com']);
   });
 
-  it('is idempotent: someone who already has a login is skipped', async () => {
+  it('is idempotent: someone already provisioned is skipped', async () => {
     S.docs.users.push({ id: 'u1', data: { email: 'has@c.com', role: 'employee', orgId: 'org_customer' } });
     S.authByEmail['has@c.com'] = 'existing-uid';
+    // Fully provisioned: a login AND claims AND a profile at the uid.
+    S.claims['existing-uid'] = { role: 'employee', orgId: 'org_customer', departmentId: '' };
+    S.docs.users.push({ id: 'existing-uid', data: { email: 'has@c.com', role: 'employee', orgId: 'org_customer' } });
     const res = await call();
     assert.equal(res.body.created, 0);
     assert.equal(res.body.skipped, 1);
+    assert.equal(res.body.repaired, 0);
     assert.equal(S.created.length, 0, 'must not create a second account');
+  });
+
+  /**
+   * A login can exist without ever having been provisioned - enabled by hand in the Firebase
+   * console, or left behind by a run that failed after creating the account. That person signs
+   * in successfully and then sees nothing, because authMiddleware and the Firestore rules both
+   * resolve the tenant from claims or users/<uid> and there are neither. Skipping them on the
+   * grounds that they "already have a login" means re-running never repairs it.
+   */
+  it('repairs a login that has no organization instead of skipping it', async () => {
+    S.docs.users.push({ id: 'u1', data: { email: 'orphan@c.com', role: 'hr', orgId: 'org_customer', departmentId: 'HR' } });
+    S.authByEmail['orphan@c.com'] = 'orphan-uid';   // a login, but no claims and no profile
+    const res = await call();
+    assert.equal(res.body.created, 0, 'must not create a second account');
+    assert.equal(res.body.repaired, 1);
+    assert.equal(S.created.length, 0);
+    assert.deepEqual(S.claims['orphan-uid'], { role: 'hr', orgId: 'org_customer', departmentId: 'HR' });
+    assert.equal(S.written['users/orphan-uid'].orgId, 'org_customer');
+  });
+
+  it('a repaired account is left alone on the next run', async () => {
+    S.docs.users.push({ id: 'u1', data: { email: 'orphan@c.com', role: 'hr', orgId: 'org_customer', departmentId: 'HR' } });
+    S.authByEmail['orphan@c.com'] = 'orphan-uid';
+    await call();
+    const second = await call();
+    assert.equal(second.body.repaired, 0);
+    assert.equal(second.body.skipped, 1);
+  });
+
+  /**
+   * The repair path must never be a way to take over an account. Listing someone else's email
+   * on our roster would otherwise rewrite their claims and move them into our tenant.
+   */
+  it('refuses an email that belongs to another organization', async () => {
+    S.docs.users.push({ id: 'u1', data: { email: 'theirs@other.com', role: 'employee', orgId: 'org_customer' } });
+    S.authByEmail['theirs@other.com'] = 'their-uid';
+    S.claims['their-uid'] = { role: 'employee', orgId: 'org_other' };
+    const res = await call();
+    assert.equal(res.body.created, 0);
+    assert.equal(res.body.repaired, 0);
+    assert.equal(res.body.failed, 1);
+    assert.deepEqual(S.claims['their-uid'], { role: 'employee', orgId: 'org_other' }, 'their claims must be untouched');
+    assert.equal(S.written['users/their-uid'], undefined, 'their profile must be untouched');
+  });
+
+  it('retires every duplicate row, not just the first', async () => {
+    S.docs.users.push({ id: 'u_dup', data: { email: 'dup@c.com', role: 'employee', orgId: 'org_customer' } });
+    S.docs.employees.push({ id: 'e_dup', data: { email: 'dup@c.com', role: 'employee', orgId: 'org_customer' } });
+    const res = await call();
+    assert.equal(res.body.created, 1, 'one person, one account');
+    assert.ok(S.retired.includes('users/u_dup'), 'users row retired');
+    assert.ok(S.retired.includes('employees/e_dup'), 'employees row retired');
   });
 
   it('never touches another organization', async () => {
