@@ -139,32 +139,26 @@ describe('payout runs on the organisation\'s own gateway', () => {
     await assert.rejects(() => factory.getServiceForOrg(''), /organization is required/i);
   });
 
-  /** The escape hatch is off unless deliberately set, and it is the only way to share. */
-  describe('the shared-account escape hatch', () => {
-    it('is off by default', () => {
-      assert.equal(factory.sharedAccountAllowed(), false);
+  /**
+   * There is no escape hatch any more, and no server-wide credential to fall back TO:
+   * the provider no longer reads CASHFREE_CLIENT_ID or CASHFREE_CLIENT_SECRET from the
+   * environment at all. These assert that the shared path is gone rather than merely
+   * switched off, because a flag someone can set is a flag someone will set.
+   * That the real provider ignores the environment is asserted in
+   * tests/payout-no-env-credentials.test.mjs, which does not mock it.
+   */
+  describe('the shared account path no longer exists', () => {
+    it('exposes no way to enable a shared account', () => {
+      assert.equal(factory.sharedAccountAllowed, undefined, 'the toggle is gone, not defaulted to false');
     });
 
-    it('only falls back to the platform account when explicitly enabled', async () => {
+    it('refuses an unconnected organisation even with the old flag set', async () => {
       process.env.KYLRX_ALLOW_SHARED_PAYOUT_ACCOUNT = 'true';
-      await factory.getServiceForOrg('org_unconnected');
-      assert.equal(BUILT.length, 1);
-      assert.equal(BUILT[0].clientId, 'KYLRX_PLATFORM_CLIENT', 'the platform account, logged as a warning');
+      await assert.rejects(() => factory.getServiceForOrg('org_unconnected'), /No payment account is connected/);
+      assert.equal(BUILT.length, 0, 'no gateway built, platform or otherwise');
+      delete process.env.KYLRX_ALLOW_SHARED_PAYOUT_ACCOUNT;
     });
 
-    it('is not enabled by a value that merely looks truthy', async () => {
-      for (const v of ['1', 'yes', 'TRUE ', 'on']) {
-        process.env.KYLRX_ALLOW_SHARED_PAYOUT_ACCOUNT = v;
-        if (v.trim().toLowerCase() === 'true') continue;
-        await assert.rejects(() => factory.getServiceForOrg('org_unconnected'), /No payment account is connected/);
-      }
-    });
-
-    it('never applies to an organisation that HAS its own account', async () => {
-      process.env.KYLRX_ALLOW_SHARED_PAYOUT_ACCOUNT = 'true';
-      await creds.saveCredentials('org_bosco', BOSCO);
-      await factory.getServiceForOrg('org_bosco');
-      assert.equal(BUILT[0].clientId, 'BOSCO_OWN_CLIENT', 'own account always wins over the fallback');
-    });
   });
+
 });

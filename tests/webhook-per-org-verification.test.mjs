@@ -50,7 +50,7 @@ require.cache[factoryPath] = { id: factoryPath, filename: factoryPath, loaded: t
       }
     };
   },
-  invalidate() {}, sharedAccountAllowed: () => false,
+  invalidate() {},
   PayoutAccountNotConnectedError: class extends Error {}
 }};
 
