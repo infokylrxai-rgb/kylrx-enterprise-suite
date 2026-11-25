@@ -147,10 +147,21 @@ service cloud.firestore {
       allow create: if false;
       allow delete: if false; // Organization root docs cannot be deleted by client
 
+      // The organisation's own payment-gateway credentials. Closed to every client,
+      // including that organisation's own super admin: the parent document is readable by
+      // any member of the tenant (allow read above), so anything sensitive kept there
+      // would be fetchable by any employee. Only the Admin SDK, which bypasses rules,
+      // reads or writes this - see services/payroll/orgPayoutCredentials.js. The secret
+      // is also encrypted at rest, so this is the second of two locks, not the only one.
+      match /secure/{docId} {
+        allow read: if false;
+        allow write: if false;
+      }
+
       // Sequential Distributed Counter: Read-only to staff, mutated only by transactional Cloud Functions
       match /counters/{counterId} {
         allow read: if signedIn() && isSameTenant(orgId) && isStaff();
-        allow write: if false; 
+        allow write: if false;
       }
 
       // Audit logs: Append-only via backend Cloud Functions

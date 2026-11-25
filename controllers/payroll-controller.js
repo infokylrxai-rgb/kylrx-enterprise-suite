@@ -17,7 +17,11 @@ const { PayrollDisbursementService, MakerCheckerViolationError } = require('../s
 
 // Instantiate singleton services
 const documentService = new PayrollDocumentService();
+// Kept for the paths that do not touch a gateway: batch creation, approval and reads all
+// work on Firestore only. Anything that actually moves money goes through
+// getServiceForOrg instead, which binds to that organisation's own Cashfree account.
 const disbursementService = new PayrollDisbursementService();
+const { getServiceForOrg } = require('../services/payroll/payoutServiceFactory');
 
 // ============================================================================
 // 1. PAYROLL DOCUMENT MANAGEMENT CONTROLLERS (/api/payroll/documents/*)
@@ -212,9 +216,17 @@ async function executeDisbursementBatch(req, res) {
     const { batchId } = req.params;
     // orgId comes from the verified token, never the body, so it cannot be spoofed to reach
     // another tenant's batch.
-    const result = await disbursementService.executeCashfreePayoutBatch(batchId, { ...req.body, orgId: req.user?.orgId || null });
+    const orgId = req.user?.orgId || null;
+    // The money leaves THIS organisation's own gateway. getServiceForOrg refuses when none
+    // is connected rather than falling back to the platform account, so one company's
+    // payroll can never be charged to another's balance.
+    const service = await getServiceForOrg(orgId);
+    const result = await service.executeCashfreePayoutBatch(batchId, { ...req.body, orgId });
     return res.status(200).json(result);
   } catch (error) {
+    if (error.code === 'payout_account_not_connected') {
+      return res.status(409).json({ success: false, error: error.message, code: error.code });
+    }
     if (error instanceof MakerCheckerViolationError || error.name === 'MakerCheckerViolationError') {
       return res.status(403).json({
         success: false,
@@ -239,9 +251,17 @@ async function executeDisbursementBatch(req, res) {
 async function reconcileDisbursementBatch(req, res) {
   try {
     const { batchId } = req.params;
-    const result = await disbursementService.reconcilePendingTransfers(batchId, req.user?.orgId || null);
+    const orgId = req.user?.orgId || null;
+    // Reconciliation reads transfer status from the gateway, so it has to ask the same
+    // account the transfers were dispatched from - the platform's keys would report
+    // nothing, or worse, another tenant's transfers.
+    const service = await getServiceForOrg(orgId);
+    const result = await service.reconcilePendingTransfers(batchId, orgId);
     return res.status(200).json({ success: true, ...result });
   } catch (error) {
+    if (error.code === 'payout_account_not_connected') {
+      return res.status(409).json({ success: false, error: error.message, code: error.code });
+    }
     console.error('[PAYROLL_CTRL] Reconcile error:', error);
     // A refusal carries its own status: a batch belonging to another organisation is reported
     // as 404, and returning 500 for it would both misreport a client error as a server fault
@@ -327,7 +347,19 @@ async function getOutboundIp(req, res) {
  * real payout.
  */
 async function getDisbursementPreflight(req, res) {
-  const p = disbursementService.provider;
+  // Report on the gateway this organisation would actually pay from, not the platform's.
+  // A preflight against the wrong account is worse than none: it would report "ready"
+  // while the organisation has nothing connected.
+  let service;
+  try {
+    service = await getServiceForOrg(req.user?.orgId || null);
+  } catch (err) {
+    if (err.code === 'payout_account_not_connected') {
+      return res.status(409).json({ success: false, error: err.message, code: err.code, connected: false });
+    }
+    return res.status(err.statusCode || 500).json({ success: false, error: err.message });
+  }
+  const p = service.provider;
   let host = '';
   try { host = new URL(p.baseUrl).host; } catch (_) { host = String(p.baseUrl || ''); }
   const out = {
