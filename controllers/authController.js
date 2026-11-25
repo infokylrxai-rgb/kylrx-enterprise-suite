@@ -543,3 +543,178 @@ exports.unlockAccount = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * POST /api/auth/link-google
+ *
+ * Completes a Google sign-in. The browser authenticates with Google, then calls this with the
+ * resulting Firebase ID token; the server decides whether that person may enter and, if so, gives
+ * their Google identity the role and organisation it needs.
+ *
+ * It exists because Google sign-in alone leaves a user the backend cannot place. A Google account
+ * arrives with no custom claims, and firestore.rules only lets a user create their OWN profile when
+ * the role is 'Employee' and the orgId already matches their token - so the client's attempt to
+ * write users/{googleUid} is denied for everyone else, silently. The result was a person who
+ * appeared signed in while req.user.orgId was undefined and every tenant-scoped read was refused:
+ * logged in, and able to see nothing.
+ *
+ * Two rules keep it safe:
+ *   - The role and orgId are read from the EXISTING record only, never from the request body, so
+ *     this cannot be used to grant anyone a role they were not already given.
+ *   - A Google account with no matching record is deleted rather than left behind, so strangers
+ *     who click the button do not accumulate as orphan Auth users. The deletion is deliberately
+ *     narrow: see the guards below.
+ */
+exports.linkGoogleAccount = async (req, res) => {
+    const authHeader = String(req.headers.authorization || '');
+    const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+    if (!idToken) {
+        return res.status(401).json({ success: false, error: 'Missing Google ID token.' });
+    }
+
+    let decoded;
+    try {
+        decoded = await admin.auth().verifyIdToken(idToken);
+    } catch (err) {
+        return res.status(401).json({ success: false, error: 'Invalid or expired Google sign-in token.' });
+    }
+
+    const uid = decoded.uid;
+    const email = String(decoded.email || '').toLowerCase().trim();
+    if (!email) {
+        return res.status(400).json({ success: false, error: 'Google account has no email address.' });
+    }
+
+    // Resolve the canonical record. lookupFailed is tracked separately from "not found": a
+    // Firestore outage must never be mistaken for an unknown person, because the not-found branch
+    // deletes the account.
+    let record = null;
+    let recordRef = null;
+    let lookupFailed = false;
+
+    try {
+        const byUid = await db.collection('users').doc(uid).get();
+        if (byUid.exists) { record = byUid.data(); recordRef = byUid.ref; }
+    } catch (err) {
+        lookupFailed = true;
+        logger.warn(`[linkGoogle] users/${uid} lookup failed: ${err.message}`);
+    }
+
+    for (const collection of ['users', 'employees']) {
+        if (record || lookupFailed) break;
+        try {
+            const snap = await db.collection(collection).where('email', '==', email).limit(1).get();
+            if (!snap.empty) { record = snap.docs[0].data(); recordRef = snap.docs[0].ref; }
+        } catch (err) {
+            lookupFailed = true;
+            logger.warn(`[linkGoogle] ${collection} lookup for ${email} failed: ${err.message}`);
+        }
+    }
+
+    if (lookupFailed) {
+        // Never delete on a lookup we could not complete.
+        return res.status(503).json({ success: false, error: 'Could not verify your account right now. Please try again.' });
+    }
+
+    if (!record) {
+        await deleteUnprovisionedGoogleUser(uid);
+        return res.status(403).json({
+            success: false,
+            error: `No Kylrx account exists for ${email}. Sign in with the email your company registered, or ask your administrator to add you.`
+        });
+    }
+
+    const role = record.role || 'employee';
+    const orgId = record.orgId || null;
+    if (!orgId) {
+        logger.warn(`[linkGoogle] record for ${email} has no orgId; refusing to link an unscoped identity`);
+        return res.status(409).json({
+            success: false,
+            error: 'Your account is not attached to an organization yet. Please contact your administrator.'
+        });
+    }
+
+    // Claims are what the API middleware and the security rules read, so they are the part that
+    // actually lets this person see their own data.
+    try {
+        const existing = (await admin.auth().getUser(uid)).customClaims || {};
+        await admin.auth().setCustomUserClaims(uid, { ...existing, role, orgId });
+    } catch (err) {
+        logger.error(`[linkGoogle] could not set claims for ${uid}: ${err.message}`);
+        return res.status(500).json({ success: false, error: 'Could not complete sign-in. Please try again.' });
+    }
+
+    // The profile must live at the signed-in uid: authMiddleware reads users/{uid} and the rules
+    // fall back to userDoc(request.auth.uid).orgId. Written with the Admin SDK, which is not bound
+    // by the self-create restriction that was silently blocking the browser.
+    const canonicalIsElsewhere = recordRef && recordRef.id !== uid;
+    try {
+        await db.collection('users').doc(uid).set({
+            ...record,
+            uid,
+            email,
+            role,
+            orgId,
+            googleLinked: true,
+            ...(canonicalIsElsewhere ? { migratedFrom: recordRef.path } : {}),
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+    } catch (err) {
+        logger.error(`[linkGoogle] could not write users/${uid}: ${err.message}`);
+        return res.status(500).json({ success: false, error: 'Could not complete sign-in. Please try again.' });
+    }
+
+    // Retire the source record so one person does not end up as two. Only a record with no Auth
+    // account of its own is retired - that is an onboarding placeholder. If it has its own login it
+    // is a real separate account and is left completely alone.
+    if (canonicalIsElsewhere) {
+        try {
+            await admin.auth().getUser(recordRef.id);
+        } catch (_) {
+            try {
+                await recordRef.set({ supersededByUid: uid, active: false, updatedAt: new Date().toISOString() }, { merge: true });
+            } catch (err) {
+                logger.warn(`[linkGoogle] could not retire ${recordRef.path}: ${err.message}`);
+            }
+        }
+    }
+
+    // Only presentational fields: the browser must not receive anything it could replay as
+    // authority. Role and orgId are already fixed in the token's claims above.
+    const profile = {
+        name: record.name || record.displayName || '',
+        departmentId: record.departmentId || '',
+        departmentName: record.departmentName || record.department || '',
+        departmentCode: record.departmentCode || '',
+        status: record.status || 'Active'
+    };
+
+    return res.json({ success: true, uid, role, orgId, profile, migrated: Boolean(canonicalIsElsewhere) });
+};
+
+/**
+ * Removes a Google account that has no Kylrx record, so clicking "Sign in with Google" does not
+ * leave an Auth user behind. Narrow on purpose - it will not touch an account that looks
+ * established, because the cost of deleting a real person's login far exceeds the cost of leaving
+ * one stray record.
+ */
+async function deleteUnprovisionedGoogleUser(uid) {
+    try {
+        const user = await admin.auth().getUser(uid);
+
+        const providers = (user.providerData || []).map(p => p.providerId);
+        const onlyGoogle = providers.length === 1 && providers[0] === 'google.com';
+        const hasClaims = user.customClaims && Object.keys(user.customClaims).length > 0;
+        const createdAt = Date.parse(user.metadata && user.metadata.creationTime) || 0;
+        const justCreated = createdAt > 0 && (Date.now() - createdAt) < 10 * 60 * 1000;
+
+        if (onlyGoogle && !hasClaims && justCreated) {
+            await admin.auth().deleteUser(uid);
+            logger.info(`[linkGoogle] removed unprovisioned Google account ${uid}`);
+        } else {
+            logger.warn(`[linkGoogle] left ${uid} in place (onlyGoogle=${onlyGoogle} hasClaims=${Boolean(hasClaims)} justCreated=${justCreated})`);
+        }
+    } catch (err) {
+        logger.warn(`[linkGoogle] cleanup skipped for ${uid}: ${err.message}`);
+    }
+}

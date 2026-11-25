@@ -297,80 +297,37 @@ const googleLoginBtn = document.getElementById('googleLoginBtn');
 if (googleLoginBtn) {
     async function processGoogleLoginUser(userAuth) {
         const email = userAuth.email || '';
-        const cleanEmail = email.toLowerCase().trim();
-        let userData = null;
 
-        // 1. Try direct getDoc from Firestore by Google Auth UID
+        // The SERVER decides whether this Google identity may enter, and attaches its role and
+        // organisation. This cannot be done in the browser: firestore.rules only lets a user
+        // create their own profile as an 'Employee' in an org their token already names, so the
+        // write was silently denied for everyone else and the person ended up signed in with no
+        // orgId and no claims - able to open a dashboard and read nothing from it.
+        let link;
         try {
-            const userDoc = await getDoc(doc(db, "users", userAuth.uid));
-            if (userDoc.exists()) {
-                userData = userDoc.data();
-                userData.uid = userAuth.uid;
+            const idToken = await userAuth.getIdToken();
+            const resp = await fetch('/api/auth/link-google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken }
+            });
+            link = await resp.json().catch(() => ({}));
+            if (!resp.ok || !link.success) {
+                try { await signOut(auth); } catch (_) {}
+                throw new Error(link.error || 'Google sign-in could not be completed.');
             }
         } catch (err) {
-            console.warn('Direct getDoc failed:', err);
-        }
-
-        // 2. Try query users collection by email (checking cleanEmail, email, upperCase)
-        if (!userData && cleanEmail) {
-            try {
-                const emailVariants = Array.from(new Set([cleanEmail, email, email.toUpperCase()])).filter(Boolean);
-                const q = query(collection(db, 'users'), where('email', 'in', emailVariants));
-                const querySnap = await getDocs(q);
-                if (!querySnap.empty) {
-                    userData = querySnap.docs[0].data();
-                    userData.uid = querySnap.docs[0].id;
-                }
-            } catch (err) {
-                console.warn('Firestore users query failed:', err);
-            }
-        }
-
-        // 3. Try query employees collection by email if not found in users
-        if (!userData && cleanEmail) {
-            try {
-                const emailVariants = Array.from(new Set([cleanEmail, email, email.toUpperCase()])).filter(Boolean);
-                const empQ = query(collection(db, 'employees'), where('email', 'in', emailVariants));
-                const empSnap = await getDocs(empQ);
-                if (!empSnap.empty) {
-                    const empData = empSnap.docs[0].data();
-                    userData = {
-                        uid: empSnap.docs[0].id,
-                        ...empData,
-                        role: empData.role || 'employee'
-                    };
-                }
-            } catch (_) {}
-        }
-
-        // 4. Only people who already have a Kylrx account may sign in with Google. Unknown Google
-        //    accounts used to be auto-provisioned with a role guessed from the email address
-        //    (anything containing "admin" became SUPER_ADMIN), letting anyone into the app.
-        if (!userData) {
             try { await signOut(auth); } catch (_) {}
-            throw new Error(`No Kylrx account exists for ${email}. Sign in with the email your company registered, or ask your administrator to add you.`);
+            throw err;
         }
 
-        // Server-assigned custom claims (set via the Admin SDK only) are the authoritative role
-        try {
-            const claims = (await userAuth.getIdTokenResult()).claims || {};
-            const claimRole = claims.role || (claims.super_admin || claims.superadmin ? 'super_admin' : null);
-            if (claimRole) userData.role = claimRole;
-            if (claims.orgId && !userData.orgId) userData.orgId = claims.orgId;
-        } catch (_) {}
+        // Claims were just written server-side; refresh so this session actually carries them.
+        try { await userAuth.getIdToken(true); } catch (_) {}
 
+        const userData = Object.assign({}, link.profile || {}, {
+            uid: link.uid, role: link.role, orgId: link.orgId, email
+        });
         const isManagerAccount = /manager/i.test(userData.role || '');
         const isHrAccount = /^(hrms|hr|hr_admin|hradmin)$/i.test(userData.role || '');
-
-        // Record the Google link without blocking sign-in (a write can take up to 20s to fail
-        // while the Firestore quota is exhausted)
-        setDoc(doc(db, "users", userAuth.uid), {
-            ...userData,
-            uid: userData.uid || userAuth.uid,
-            googleLinked: true,
-            photoURL: userAuth.photoURL || userData.photoURL || '',
-            updatedAt: serverTimestamp()
-        }, { merge: true }).catch(err => console.warn('Google link metadata not saved:', err.message));
 
         const role = (userData.role || (isManagerAccount ? 'manager' : 'employee')).toLowerCase();
         const dept = (userData.departmentId || userData.department || userData.departmentName || 'General').toLowerCase();

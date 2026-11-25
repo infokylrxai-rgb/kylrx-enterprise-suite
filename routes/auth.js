@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, registerOrganization, login, refreshToken, unlockAccount, verifyMfa, resendMfa } = require('../controllers/authController');
+const { register, registerOrganization, login, refreshToken, unlockAccount, verifyMfa, resendMfa, linkGoogleAccount } = require('../controllers/authController');
 const { demoLogin } = require('../controllers/demoController');
 
 // Rate limiting specifically for Auth
@@ -44,6 +44,9 @@ router.post('/demo-login', demoLimiter, demoLogin);
 router.post('/signup', authLimiter, register);
 router.post('/register-organization', authLimiter, registerOrganization);
 router.post('/login', loginIpLimiter, loginAccountLimiter, login);
+// Completes a Google sign-in: the server decides who may enter and attaches role + orgId.
+// Authenticates from the Firebase ID token in the Authorization header, not a session.
+router.post('/link-google', loginIpLimiter, linkGoogleAccount);
 router.post('/refresh-token', refreshToken);
 router.post('/verify-mfa', verifyMfa);
 router.post('/verify-otp', verifyMfa);
