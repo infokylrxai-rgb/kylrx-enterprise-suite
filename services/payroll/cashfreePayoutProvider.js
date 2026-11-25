@@ -277,7 +277,20 @@ class CashfreePayoutProvider {
       return { ok: true, status: 200, message: null };
     } catch (err) {
       const resp = (err.details && err.details.response) || {};
-      return { ok: false, status: err.statusCode || null, message: String(resp.message || err.message || 'unknown error') };
+      const status = err.statusCode || null;
+      const message = String(resp.message || err.message || 'unknown error');
+
+      // What this probe is really asking is "do these credentials authenticate from this
+      // server's IP". Cashfree answers that before it validates parameters: a bad key is
+      // 401, a blocked IP is 403. Any other 4xx means we got past both and were turned
+      // back on the shape of the request - v2 GET /transfers, for instance, insists on a
+      // transfer_id, which a connectivity check has no reason to have. Treating that as a
+      // failure told people with perfectly good keys that their gateway was unreachable.
+      if (status && status >= 400 && status < 500 && status !== 401 && status !== 403) {
+        return { ok: true, status, message: null, viaParameterError: message };
+      }
+
+      return { ok: false, status, message };
     }
   }
 
