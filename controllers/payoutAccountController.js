@@ -13,6 +13,7 @@ const {
   saveCredentials, loadCredentials, getStatus, clearCredentials, PayoutCredentialError
 } = require('../services/payroll/orgPayoutCredentials');
 const { CashfreePayoutProvider } = require('../services/payroll/cashfreePayoutProvider');
+const { invalidate } = require('../services/payroll/payoutServiceFactory');
 const { isVaultConfigured } = require('../utils/secretVault');
 const logger = require('../utils/logger');
 
@@ -110,6 +111,9 @@ exports.savePayoutAccount = async (req, res) => {
       uid: req.user && req.user.uid,
       email: req.user && req.user.email
     });
+    // Drop any cached gateway so the new keys take effect on the very next payout,
+    // rather than whenever the cache happens to expire.
+    invalidate(orgId);
     logger.info(`[PAYOUT-ACCOUNT] ${orgId} connected a payout account (by ${(req.user && req.user.email) || 'unknown'})`);
     return res.json({ success: true, message: 'Payment account connected.', ...status });
   } catch (err) {
@@ -123,6 +127,7 @@ exports.deletePayoutAccount = async (req, res) => {
   if (!orgId) return;
   try {
     await clearCredentials(orgId);
+    invalidate(orgId);
     logger.info(`[PAYOUT-ACCOUNT] ${orgId} disconnected its payout account (by ${(req.user && req.user.email) || 'unknown'})`);
     return res.json({ success: true, connected: false, message: 'Payment account disconnected.' });
   } catch (err) {
