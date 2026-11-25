@@ -285,7 +285,7 @@ class PayrollDisbursementService {
    * 4-Eyes Maker-Checker Authorization Gate
    * Requires checkerId !== makerId
    */
-  async approveDisbursementBatch(batchId, checkerId, notes = 'Approved for banking transfer') {
+  async approveDisbursementBatch(batchId, checkerId, notes = 'Approved for banking transfer', orgId = null) {
     if (!checkerId) {
       throw new MakerCheckerViolationError("Checker ID is required for 4-Eyes authorization.");
     }
@@ -296,6 +296,7 @@ class PayrollDisbursementService {
     if (!batch) {
       throw new Error(`Disbursement batch ${batchId} not found.`);
     }
+    this._assertBatchAccess(batch, orgId);
 
     if (batch.status === 'APPROVED' || batch.status === 'DISBURSED') {
       return { success: true, message: `Batch ${batchId} is already approved.`, batch };
@@ -352,6 +353,7 @@ class PayrollDisbursementService {
     if (!batch) {
       throw new Error(`Disbursement batch ${batchId} not found.`);
     }
+    this._assertBatchAccess(batch, options.orgId);
 
     // Enforce 4-Eyes approval check before payout execution
     if (batch.status !== 'APPROVED') {
@@ -507,9 +509,10 @@ class PayrollDisbursementService {
    * Polling fallback: if a webhook is dropped, this pulls the authoritative state from
    * Cashfree so a payout can never sit "PENDING" forever. Safe to run on a schedule.
    */
-  async reconcilePendingTransfers(batchId) {
+  async reconcilePendingTransfers(batchId, orgId = null) {
     const batch = await this.getBatch(batchId);
     if (!batch) throw new Error(`Disbursement batch ${batchId} not found.`);
+    this._assertBatchAccess(batch, orgId);
 
     const pending = batch.records.filter(r => r.status === 'PENDING' && r.cashfreeTransferId);
     const updated = [];
@@ -683,6 +686,24 @@ class PayrollDisbursementService {
   /**
    * Safe Firestore Batch Writer (Chunked to maximum 400 operations per batch)
    */
+  /**
+   * Refuses a batch that belongs to another organisation.
+   *
+   * Approve, execute, status and reconcile all take a batchId straight from the URL. Without this
+   * an administrator of one tenant could approve, run, read or reconcile another tenant's payroll
+   * - defeating four-eyes across tenants, exposing employee names, amounts and bank details, and
+   * moving somebody else's money. It only went unnoticed because there was one organisation.
+   *
+   * Answers "not found" rather than "forbidden", so batch ids cannot be probed for existence.
+   */
+  _assertBatchAccess(batch, orgId) {
+    if (!orgId) return;                       // internal callers (scripts, tests) opt out explicitly
+    if ((batch && batch.orgId) === orgId) return;
+    throw new PayoutValidationError(`Disbursement batch ${batch && batch.batchId} not found.`, 404, {
+      batchId: batch && batch.batchId
+    });
+  }
+
   /** Firestore doc ids may not contain "/" and must be non-empty. */
   _recordDocId(record, idx) {
     const raw = String(record.employeeId || record.instructionId || idx);
@@ -767,9 +788,10 @@ class PayrollDisbursementService {
   /**
    * Retrieves batch details by ID
    */
-  async getBatch(batchId) {
+  async getBatch(batchId, orgId = null) {
     let batch = this._localBatches.get(batchId);
     if (!batch) batch = await this._loadBatch(batchId);
+    if (batch) this._assertBatchAccess(batch, orgId);
     return batch || null;
   }
 }
