@@ -22,6 +22,12 @@ const documentService = new PayrollDocumentService();
 // getServiceForOrg instead, which binds to that organisation's own Cashfree account.
 const disbursementService = new PayrollDisbursementService();
 const { getServiceForOrg } = require('../services/payroll/payoutServiceFactory');
+const { resolveOrgFromWebhook } = require('../services/payroll/webhookOrgResolver');
+// Used only to read cashfree_transfer_index when resolving which tenant a callback is
+// for. Tolerant of an unconfigured Admin SDK: the resolver treats a missing db as
+// "cannot resolve", which the webhook handler answers with a retryable 503.
+let webhookDb = null;
+try { ({ db: webhookDb } = require('../config/firebase')); } catch (_) { webhookDb = null; }
 
 // ============================================================================
 // 1. PAYROLL DOCUMENT MANAGEMENT CONTROLLERS (/api/payroll/documents/*)
@@ -397,9 +403,45 @@ async function handleCashfreeWebhook(req, res) {
     const rawBody = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : (req.rawBody || null);
     const payload = rawBody ? undefined : req.body;
 
-    const result = await disbursementService.handleCashfreeWebhook({ rawBody, signature, timestamp, payload });
+    // Every tenant pays from its own gateway, so there is no longer one secret this
+    // callback could be verified against. Cashfree posts all tenants to the same URL, so
+    // the organisation has to be worked out from the transfer id BEFORE the signature can
+    // be checked. The resolver reads only that id and trusts the index this server wrote
+    // at dispatch, never anything else in the unverified body.
+    let parsed = payload;
+    if (parsed === undefined) {
+      try { parsed = JSON.parse(rawBody || '{}'); } catch (_) { parsed = {}; }
+    }
+    const { transferId, orgId, lookupFailed } = await resolveOrgFromWebhook(webhookDb, parsed);
+
+    // Cashfree registers a webhook URL by pinging it and requiring a 2xx. That ping names
+    // no transfer and carries no signature; answering anything else makes Cashfree report
+    // the URL as unreachable. It cannot change anything, so acknowledge and discard.
+    if (!transferId && !signature) {
+      return res.status(200).json({ success: true, probe: true, matched: false, message: 'Webhook endpoint reachable; no transfer in payload.' });
+    }
+
+    if (lookupFailed) {
+      // Honest 503: Cashfree retries these, where a 4xx would make it give up on a real
+      // callback and strand the payout as PENDING until someone reconciles by hand.
+      return res.status(503).json({ success: false, error: 'Could not resolve the organization for this transfer; please retry.' });
+    }
+
+    // An unknown transfer id resolves to no organisation, so there is no secret to verify
+    // against. Refusing here is the point: falling back to the platform's secret would let
+    // a forged callback for an invented transfer be accepted.
+    if (!orgId) {
+      return res.status(401).json({ success: false, error: 'Cashfree webhook rejected: unrecognised transfer.' });
+    }
+
+    const service = await getServiceForOrg(orgId);
+    const result = await service.handleCashfreeWebhook({ rawBody, signature, timestamp, payload });
     return res.status(200).json(result);
   } catch (error) {
+    if (error.code === 'payout_account_not_connected') {
+      // The transfer exists but that tenant has since disconnected: retryable, not forged.
+      return res.status(503).json({ success: false, error: error.message, code: error.code });
+    }
     // 401 for a rejected signature so forged callbacks are visible in logs/monitoring.
     const status = error.name === 'PayoutValidationError' ? (error.statusCode || 400) : 400;
     console.error('[PAYROLL_CTRL] Cashfree webhook handling error:', error.message);

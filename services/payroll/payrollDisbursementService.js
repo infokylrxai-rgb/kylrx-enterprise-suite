@@ -436,11 +436,21 @@ class PayrollDisbursementService {
     // A webhook arriving on a cold instance only knows the transfer id. Recovering the batch
     // id by splitting that string is guesswork - the separator also occurs inside both halves,
     // and sanitising for the gateway's charset rewrites it further. Record the mapping instead.
+    // This mapping is no longer only a convenience. With every tenant on its own gateway,
+    // it is how an incoming callback is attributed to an organisation, and therefore which
+    // secret its signature is checked against. If it is missing, that tenant's callbacks
+    // for this transfer are refused and the payout waits for reconcilePendingTransfers to
+    // pick it up - correct, but slow and invisible. So a failure here is reported loudly
+    // rather than left as a routine non-blocking notice.
     if (this.db && typeof this.db.collection === 'function') {
-      await safeDb(this.db.collection('cashfree_transfer_index').doc(transferId).set({
-        transferId, batchId: batch.batchId, employeeId: record.employeeId,
-        orgId: batch.orgId || null, createdAt: new Date().toISOString()
-      }));
+      try {
+        await this.db.collection('cashfree_transfer_index').doc(transferId).set({
+          transferId, batchId: batch.batchId, employeeId: record.employeeId,
+          orgId: batch.orgId || null, createdAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error(`[DISBURSE] Could not index transfer ${transferId} for ${batch.orgId || 'unknown org'}: ${err.message}. Its webhook will be refused and the payout will settle via reconciliation instead.`);
+      }
     }
 
     try {
