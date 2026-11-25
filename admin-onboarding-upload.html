@@ -540,6 +540,13 @@
                     <a href="assets/Templates.xlsx" download="Templates.xlsx" class="btn btn-outline" id="btnDownloadTemplate" title="Direct In-App Download (Never distributed via email)">
                         <i data-lucide="download"></i> Download Templates.xlsx
                     </a>
+                    <!-- Uploading the workbook creates employee RECORDS; it cannot create logins,
+                         because a browser may not make a Firebase Auth account for someone else.
+                         This asks the server to issue one to everyone still missing it. -->
+                    <button type="button" class="btn btn-primary" id="btnIssueLogins"
+                            title="Create a login and send an invite to every employee who does not have one yet">
+                        <i data-lucide="key-round"></i> Issue Logins &amp; Invites
+                    </button>
                 </div>
             </header>
 
@@ -2813,6 +2820,58 @@
 
 </script>
 <script type="module" src="./admin-sidebar-sync.js"></script>
+<script type="module">
+    // Issues logins for employees who have a record but no way to sign in. Safe to press twice:
+    // the endpoint skips anyone who already has one.
+    const btn = document.getElementById('btnIssueLogins');
+    if (btn) {
+        const authHeader = async () => {
+            let token = null;
+            try { token = localStorage.getItem('hr_access_token'); } catch (_) {}
+            if (!token) {
+                try {
+                    const { auth } = await import('./firebase-config.js');
+                    if (auth && auth.currentUser) token = await auth.currentUser.getIdToken();
+                } catch (_) {}
+            }
+            return token ? { Authorization: 'Bearer ' + token } : {};
+        };
+        btn.addEventListener('click', async () => {
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.textContent = 'Issuing logins...';
+            try {
+                const res = await fetch('/api/admin/employees/provision-logins', {
+                    method: 'POST',
+                    headers: Object.assign({ 'Content-Type': 'application/json' }, await authHeader()),
+                    body: '{}'
+                });
+                const out = await res.json().catch(() => ({}));
+                if (!res.ok || !out.success) throw new Error(out.error || ('Request failed (HTTP ' + res.status + ')'));
+
+                const failures = (out.results || []).filter(r => r.status === 'failed');
+                const notEmailed = (out.results || []).filter(r => r.invite === 'not sent');
+                let msg = out.created + ' login(s) created, ' + out.skipped + ' already had one';
+                if (out.failed) msg += ', ' + out.failed + ' failed';
+                if (out.truncated) msg += ' (more remain - press again)';
+                if (notEmailed.length) {
+                    // The accounts exist either way; say so rather than implying nothing happened.
+                    msg += '. ' + notEmailed.length + ' invite(s) could not be emailed - share those passwords manually.';
+                }
+                if (failures.length) msg += '
+
+Failed: ' + failures.map(f => f.email + ' (' + f.error + ')').join(', ');
+                alert(msg);
+            } catch (err) {
+                alert('Could not issue logins: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = original;
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+    }
+</script>
 </body>
 
 
