@@ -15,6 +15,10 @@ process.env.FIREBASE_SERVICE_ACCOUNT_PATH = '';
 process.env.GOOGLE_APPLICATION_CREDENTIALS = '';
 
 const require = createRequire(import.meta.url);
+
+// These exercise the registration endpoints themselves, so they opt in to the feature that is
+// now off by default in production (config/signup.js: KYLRX_ALLOW_PUBLIC_SIGNUP).
+process.env.KYLRX_ALLOW_PUBLIC_SIGNUP = 'true';
 let server;
 let baseUrl;
 

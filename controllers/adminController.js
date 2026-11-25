@@ -2819,3 +2819,158 @@ exports.evaluateOvertime = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * POST /api/admin/employees/provision-logins
+ *
+ * Gives a login to employee records that do not have one.
+ *
+ * Every path that creates employees in the UI - the 27-sheet Bulk Onboarding workbook, the
+ * provisionEmployees callable, app.js - writes Firestore documents only. A browser cannot create
+ * a Firebase Auth account for somebody else, so the people in those records had no password, no
+ * invite and no way in: HR could upload a whole company, see the org chart, and not one of those
+ * staff could sign in. The one endpoint that does create a login, POST /api/admin/employees, is
+ * per-person and was wired to no button.
+ *
+ * This closes the gap for records regardless of how they arrived, rather than patching one
+ * importer. It is idempotent: anyone who already has a login is skipped, so it is safe to re-run
+ * after a partial failure or a second upload.
+ *
+ * Scope and authority: records are taken from the CALLER'S organisation only (req.user.orgId,
+ * never a value from the request), and each role comes from the record, so this cannot reach
+ * another tenant or invent a role nobody assigned.
+ */
+exports.provisionEmployeeLogins = async (req, res) => {
+    const orgId = req.user && req.user.orgId;
+    if (!orgId) {
+        return res.status(400).json({ success: false, error: 'No organization on your account; cannot provision logins.' });
+    }
+    if (!admin.apps.length || !db || typeof db.collection !== 'function') {
+        return res.status(503).json({ success: false, error: 'Firebase Admin SDK is not configured on the server' });
+    }
+
+    // Optional narrowing; without it every record in the organisation is considered.
+    const onlyEmails = Array.isArray(req.body && req.body.emails)
+        ? new Set(req.body.emails.map(e => String(e).toLowerCase().trim()).filter(Boolean))
+        : null;
+
+    // Bounded so one call cannot run past the request timeout on a large import.
+    const MAX_PER_CALL = Number(req.body && req.body.limit) || 200;
+
+    // Collect candidates from both collections, de-duplicated by email: the same person can
+    // appear as a users row and an employees row.
+    const candidates = new Map();
+    for (const collection of ['users', 'employees']) {
+        let snap;
+        try {
+            snap = await db.collection(collection).where('orgId', '==', orgId).get();
+        } catch (err) {
+            return res.status(503).json({ success: false, error: `Could not read ${collection}: ${err.message}` });
+        }
+        snap.forEach(docSnap => {
+            const data = docSnap.data() || {};
+            const email = String(data.email || '').toLowerCase().trim();
+            if (!email) return;
+            if (onlyEmails && !onlyEmails.has(email)) return;
+            if (!candidates.has(email)) candidates.set(email, { email, data, ref: docSnap.ref });
+        });
+    }
+
+    const appUrl = process.env.APP_URL || '';
+    const results = [];
+    let created = 0, skipped = 0, failed = 0;
+
+    for (const candidate of [...candidates.values()].slice(0, MAX_PER_CALL)) {
+        const { email, data, ref } = candidate;
+        try {
+            // Already has a login: leave it completely alone. This is what makes re-running safe.
+            try {
+                const existing = await admin.auth().getUserByEmail(email);
+                results.push({ email, status: 'skipped', reason: 'already has a login', uid: existing.uid });
+                skipped++;
+                continue;
+            } catch (err) {
+                if (err.code !== 'auth/user-not-found') throw err;
+            }
+
+            const role = data.role || 'employee';
+            const password = generateSecurePassword(data.name || 'User');
+            const userRecord = await admin.auth().createUser({
+                email,
+                password,
+                displayName: data.name || data.displayName || email,
+                emailVerified: false
+            });
+
+            // Claims are what authMiddleware and the Firestore rules read; without them the person
+            // signs in and every tenant-scoped read is refused.
+            await admin.auth().setCustomUserClaims(userRecord.uid, { role, orgId, departmentId: data.departmentId || '' });
+
+            // The profile has to live at the Auth uid for the same reason.
+            await db.collection('users').doc(userRecord.uid).set({
+                ...data,
+                uid: userRecord.uid,
+                email,
+                role,
+                orgId,
+                status: data.status || 'Active',
+                must_change_password: true,
+                invite_status: 'pending',
+                ...(ref.id !== userRecord.uid ? { migratedFrom: ref.path } : {}),
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+
+            // Retire the placeholder so one person is not two records. Only the record we just
+            // replaced, and only when it is not itself an Auth uid.
+            if (ref.id !== userRecord.uid) {
+                let placeholder = true;
+                try { await admin.auth().getUser(ref.id); placeholder = false; } catch (_) {}
+                if (placeholder) {
+                    await ref.set({ supersededByUid: userRecord.uid, active: false, updatedAt: new Date().toISOString() }, { merge: true });
+                }
+            }
+
+            // Best effort: the account exists either way, and the response carries the password so
+            // an administrator can pass it on when email is unavailable.
+            let emailError = null;
+            try {
+                await sendEmail({
+                    to: email,
+                    subject: 'Your Kylrx account is ready',
+                    html: `<div style="font-family:system-ui,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:16px;color:#0f172a">
+                        <h2 style="margin:0 0 12px">Welcome to Kylrx</h2>
+                        <p style="margin:0 0 16px">An account has been created for you. Please sign in and change your password straight away.</p>
+                        <p style="margin:6px 0"><strong>Sign in:</strong> <a href="${appUrl}">${appUrl}</a></p>
+                        <p style="margin:6px 0"><strong>Email:</strong> ${email}</p>
+                        <p style="margin:6px 0"><strong>Temporary password:</strong> <code style="background:#e2e8f0;padding:4px 8px;border-radius:6px;font-weight:700">${password}</code></p>
+                        <p style="margin:16px 0 0;color:#64748b;font-size:13px">If you were not expecting this, please contact your HR administrator.</p>
+                    </div>`
+                });
+                await db.collection('users').doc(userRecord.uid).set({ invite_status: 'sent' }, { merge: true });
+            } catch (err) {
+                emailError = err.message;
+            }
+
+            results.push({
+                email, status: 'created', uid: userRecord.uid, role,
+                tempPassword: password,
+                invite: emailError ? 'not sent' : 'sent',
+                ...(emailError ? { email_warning: emailError } : {})
+            });
+            created++;
+        } catch (err) {
+            results.push({ email, status: 'failed', error: err.message });
+            failed++;
+        }
+    }
+
+    return res.json({
+        success: true,
+        orgId,
+        considered: candidates.size,
+        processed: results.length,
+        created, skipped, failed,
+        truncated: candidates.size > MAX_PER_CALL,
+        results
+    });
+};

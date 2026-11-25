@@ -297,6 +297,47 @@ async function getOutboundIp(req, res) {
   }
 }
 
+/**
+ * GET /api/payroll/disburse/preflight  (admin only)
+ *
+ * Money-safe production readiness check. Reports which Cashfree environment the server is
+ * actually using and whether the credentials authenticate and the server's IP is allow-listed -
+ * using read-only calls (balance, or a transfer listing), so it moves and changes nothing. The
+ * single most important thing to run after switching to production keys, before funding or any
+ * real payout.
+ */
+async function getDisbursementPreflight(req, res) {
+  const p = disbursementService.provider;
+  let host = '';
+  try { host = new URL(p.baseUrl).host; } catch (_) { host = String(p.baseUrl || ''); }
+  const out = {
+    environment: p.environment,
+    apiVersion: p.apiVersion,
+    baseUrlHost: host,
+    isProduction: p.environment === 'production'
+  };
+  try {
+    const { availableBalance } = await p.getBalance();
+    out.authenticated = true;
+    out.ipWhitelisted = true;
+    out.availableBalance = availableBalance;
+  } catch (err) {
+    const msg = (err.details && err.details.response && err.details.response.message) || err.message || '';
+    if (err.notConfigured) {
+      const c = await p.verifyConnectivity();
+      out.authenticated = c.ok;
+      out.ipWhitelisted = c.ok ? true : (/ip/i.test(c.message) ? false : null);
+      out.fundSource = 'not configured — set CASHFREE_PAYMENT_INSTRUMENT_ID to enable the balance guard';
+      if (!c.ok) out.error = c.message;
+    } else {
+      out.authenticated = false;
+      out.ipWhitelisted = /ip.*(whitelist|allow)/i.test(msg) ? false : null;
+      out.error = msg;
+    }
+  }
+  return res.json({ success: true, cashfree: out });
+}
+
 async function handleCashfreeWebhook(req, res) {
   try {
     const signature = req.get('x-webhook-signature') || req.get('x-cf-signature');
@@ -318,6 +359,7 @@ module.exports = {
   documentService,
   disbursementService,
   getOutboundIp,
+  getDisbursementPreflight,
   // Document Controllers
   generatePayslip,
   generateBatch,

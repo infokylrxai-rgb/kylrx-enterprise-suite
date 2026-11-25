@@ -23,6 +23,10 @@ router.post("/sync-database", adminController.syncDatabase);
 router.post("/departments", validateDepartment, adminController.createDepartment);
 router.post("/employees", validateEmployee, adminController.createEmployee);
 router.post("/employees/:id/trigger-invite", adminController.triggerEmailInvite);
+// Gives a login to employee records that do not have one. Every UI path that creates
+// employees writes Firestore documents only, so without this those people cannot sign in.
+// Idempotent: anyone who already has a login is skipped.
+router.post("/employees/provision-logins", adminController.provisionEmployeeLogins);
 router.put("/employees/:id", adminController.updateEmployee);
 router.delete("/employees/:id", adminController.deleteEmployee);
 router.post("/managers", validateEmployee, adminController.createManager);
