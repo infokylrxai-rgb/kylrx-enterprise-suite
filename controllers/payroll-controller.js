@@ -192,6 +192,12 @@ async function approveDisbursementBatch(req, res) {
       });
     }
     console.error('[PAYROLL_CTRL] Batch approval error:', error);
+    // A refusal carries its own status: a batch belonging to another organisation is reported
+    // as 404, and returning 500 for it would both misreport a client error as a server fault
+    // and set monitoring alight on every probe.
+    if (error.name === 'PayoutValidationError') {
+      return res.status(error.statusCode || 400).json({ success: false, error: error.message });
+    }
     return res.status(500).json({ success: false, error: error.message });
   }
 }
@@ -237,6 +243,12 @@ async function reconcileDisbursementBatch(req, res) {
     return res.status(200).json({ success: true, ...result });
   } catch (error) {
     console.error('[PAYROLL_CTRL] Reconcile error:', error);
+    // A refusal carries its own status: a batch belonging to another organisation is reported
+    // as 404, and returning 500 for it would both misreport a client error as a server fault
+    // and set monitoring alight on every probe.
+    if (error.name === 'PayoutValidationError') {
+      return res.status(error.statusCode || 400).json({ success: false, error: error.message });
+    }
     return res.status(500).json({ success: false, error: error.message });
   }
 }
@@ -255,6 +267,12 @@ async function getDisbursementBatchStatus(req, res) {
     return res.status(200).json({ success: true, batch });
   } catch (error) {
     console.error('[PAYROLL_CTRL] Batch status error:', error);
+    // A refusal carries its own status: a batch belonging to another organisation is reported
+    // as 404, and returning 500 for it would both misreport a client error as a server fault
+    // and set monitoring alight on every probe.
+    if (error.name === 'PayoutValidationError') {
+      return res.status(error.statusCode || 400).json({ success: false, error: error.message });
+    }
     return res.status(500).json({ success: false, error: error.message });
   }
 }

@@ -19,7 +19,10 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 const tracked = execFileSync('git', ['ls-files', '*.js', '*.mjs', '*.cjs'], { cwd: root, encoding: 'utf8' })
-  .split('\n').map(s => s.trim()).filter(Boolean);
+  .split('\n').map(s => s.trim()).filter(Boolean)
+  // git still lists a file that has been deleted but not yet committed. There is nothing to
+  // scan in a file on its way out, and reading it throws ENOENT and fails the whole sweep.
+  .filter(rel => fs.existsSync(path.join(root, rel)));
 
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 
