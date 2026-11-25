@@ -180,7 +180,7 @@ async function approveDisbursementBatch(req, res) {
       });
     }
 
-    const result = await disbursementService.approveDisbursementBatch(batchId, checkerId, notes);
+    const result = await disbursementService.approveDisbursementBatch(batchId, checkerId, notes, req.user?.orgId || null);
     return res.status(200).json(result);
   } catch (error) {
     if (error instanceof MakerCheckerViolationError || error.name === 'MakerCheckerViolationError') {
@@ -204,7 +204,9 @@ async function approveDisbursementBatch(req, res) {
 async function executeDisbursementBatch(req, res) {
   try {
     const { batchId } = req.params;
-    const result = await disbursementService.executeCashfreePayoutBatch(batchId, req.body);
+    // orgId comes from the verified token, never the body, so it cannot be spoofed to reach
+    // another tenant's batch.
+    const result = await disbursementService.executeCashfreePayoutBatch(batchId, { ...req.body, orgId: req.user?.orgId || null });
     return res.status(200).json(result);
   } catch (error) {
     if (error instanceof MakerCheckerViolationError || error.name === 'MakerCheckerViolationError') {
@@ -231,7 +233,7 @@ async function executeDisbursementBatch(req, res) {
 async function reconcileDisbursementBatch(req, res) {
   try {
     const { batchId } = req.params;
-    const result = await disbursementService.reconcilePendingTransfers(batchId);
+    const result = await disbursementService.reconcilePendingTransfers(batchId, req.user?.orgId || null);
     return res.status(200).json({ success: true, ...result });
   } catch (error) {
     console.error('[PAYROLL_CTRL] Reconcile error:', error);
@@ -246,7 +248,7 @@ async function reconcileDisbursementBatch(req, res) {
 async function getDisbursementBatchStatus(req, res) {
   try {
     const { batchId } = req.params;
-    const batch = await disbursementService.getBatch(batchId);
+    const batch = await disbursementService.getBatch(batchId, req.user?.orgId || null);
     if (!batch) {
       return res.status(404).json({ success: false, error: `Batch ${batchId} not found.` });
     }
