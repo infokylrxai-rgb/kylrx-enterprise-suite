@@ -43,7 +43,7 @@ require.cache[fb] = { id: fb, filename: fb, loaded: true, exports: { db: mockDb,
 const creds = require('../services/payroll/orgPayoutCredentials.js');
 const vault = require('../utils/secretVault.js');
 
-const SECRET = 'cfsk_ma_prod_1a2b3c4d5e6f7g8h9i0j';
+const SECRET = 'not-a-real-secret-sample-value-01';
 const INPUT = { clientId: 'CF_CLIENT_BOSCO_001', clientSecret: SECRET, environment: 'PRODUCTION' };
 
 beforeEach(() => STORE.clear());
@@ -61,7 +61,7 @@ describe('per-organisation payout credentials', () => {
     await creds.saveCredentials('org_bosco', INPUT);
     const raw = JSON.stringify(STORE.get('organizations/org_bosco/secure/payout'));
     assert.ok(!raw.includes(SECRET), 'the stored document must not contain the plaintext');
-    assert.ok(!raw.includes('cfsk_ma_prod'), 'not even a recognisable prefix');
+    assert.ok(!raw.includes('not-a-real-secret'), 'not even a recognisable prefix');
   });
 
   it('stores it where no client can read it', async () => {
@@ -109,11 +109,11 @@ describe('per-organisation payout credentials', () => {
 
   it('replacing credentials does not leave the old secret behind', async () => {
     await creds.saveCredentials('org_bosco', INPUT);
-    await creds.saveCredentials('org_bosco', { ...INPUT, clientSecret: 'cfsk_ma_prod_REPLACEMENT_999' });
+    await creds.saveCredentials('org_bosco', { ...INPUT, clientSecret: 'not-a-real-secret-replacement-02' });
     const raw = JSON.stringify(STORE.get('organizations/org_bosco/secure/payout'));
     assert.ok(!raw.includes(SECRET), 'the superseded secret must not survive the overwrite');
     const loaded = await creds.loadCredentials('org_bosco');
-    assert.equal(loaded.clientSecret, 'cfsk_ma_prod_REPLACEMENT_999');
+    assert.equal(loaded.clientSecret, 'not-a-real-secret-replacement-02');
   });
 
   it('falls back to the client secret for webhook signing only when none was given', async () => {

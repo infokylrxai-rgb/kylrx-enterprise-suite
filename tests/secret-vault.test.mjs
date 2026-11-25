@@ -18,7 +18,7 @@ const KEY_B = Buffer.alloc(32, 2).toString('base64');
 const envA = { KYLRX_ENCRYPTION_KEY: KEY_A };
 const envB = { KYLRX_ENCRYPTION_KEY: KEY_B };
 
-const SECRET = 'cfsk_ma_prod_8f2b91c4e77a4d13b6social05e2a9';
+const SECRET = 'not-a-real-secret-sample-value-05';
 
 describe('secret vault', () => {
   it('round-trips a secret for the organisation it was encrypted for', () => {
@@ -29,7 +29,7 @@ describe('secret vault', () => {
   it('never stores the secret readable', () => {
     const blob = vault.encryptSecret(SECRET, 'org_bosco', envA);
     assert.ok(!blob.includes(SECRET), 'ciphertext must not contain the plaintext');
-    assert.ok(!blob.includes('cfsk_ma_prod'), 'not even a recognisable prefix');
+    assert.ok(!blob.includes('not-a-real-secret'), 'not even a recognisable prefix');
     assert.ok(vault.isEncrypted(blob));
   });
 
@@ -101,7 +101,7 @@ describe('secret vault', () => {
   it('masks a secret for display without revealing it', () => {
     const masked = vault.maskSecret(SECRET);
     assert.ok(masked.endsWith(SECRET.slice(-4)));
-    assert.ok(!masked.includes('cfsk'));
+    assert.ok(!masked.includes('not-a-real'));
     assert.equal(vault.maskSecret(''), '');
   });
 

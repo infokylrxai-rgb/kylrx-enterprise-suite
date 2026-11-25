@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Account | Kylrx AI Admin</title>
+<style>
+  :root {
+    --bg: #f8fafc; --card: #ffffff; --ink: #0f172a; --muted: #64748b;
+    --line: #e2e8f0; --brand: #2563eb; --ok: #15803d; --okbg: #f0fdf4;
+    --warn: #b45309; --warnbg: #fffbeb; --bad: #b91c1c; --badbg: #fef2f2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 32px 16px; background: var(--bg); color: var(--ink);
+         font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+          padding: 24px; margin-bottom: 16px; }
+  label { display: block; font-weight: 600; font-size: 14px; margin: 16px 0 6px; }
+  input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+                  border-radius: 9px; font-size: 15px; font-family: inherit; background: #fff; color: var(--ink); }
+  input:focus, select:focus { outline: 2px solid var(--brand); outline-offset: 1px; border-color: var(--brand); }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 5px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  button { padding: 10px 18px; border-radius: 9px; font-size: 15px; font-weight: 600;
+           border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; font-family: inherit; }
+  button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+  button.danger { color: var(--bad); border-color: #fecaca; }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  .status { display: flex; gap: 10px; align-items: flex-start; padding: 13px 15px;
+            border-radius: 10px; font-size: 14px; margin-bottom: 18px; }
+  .status.ok   { background: var(--okbg);   color: var(--ok);   border: 1px solid #bbf7d0; }
+  .status.warn { background: var(--warnbg); color: var(--warn); border: 1px solid #fde68a; }
+  .status.bad  { background: var(--badbg);  color: var(--bad);  border: 1px solid #fecaca; }
+  .meta { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line);
+          margin-top: 18px; padding-top: 14px; }
+  .meta div { margin: 3px 0; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 5px; font-size: 13px; }
+  ol { padding-left: 20px; } ol li { margin: 7px 0; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Payment account</h1>
+  <p class="sub">Connect your company's own Cashfree Payouts account. Salaries are paid from your balance, and Kylrx never holds your money.</p>
+
+  <div id="banner" class="status warn">Loading…</div>
+
+  <div class="card">
+    <strong>Before you start</strong>
+    <ol>
+      <li>Open a <b>Cashfree Payouts</b> account in your company's name and complete their KYC.</li>
+      <li>In the Cashfree dashboard, generate a <b>Client ID</b> and <b>Client Secret</b>.</li>
+      <li>Add this server's IP address to Cashfree's allow-list — <span id="egress">checking…</span></li>
+      <li>Paste the keys below and press <b>Test connection</b> before saving.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <label for="environment">Environment</label>
+    <select id="environment">
+      <option value="PRODUCTION">Production — real money</option>
+      <option value="TEST">Test — sandbox only</option>
+    </select>
+
+    <label for="clientId">Client ID</label>
+    <input id="clientId" autocomplete="off" spellcheck="false" placeholder="e.g. CF1234567890ABCDEF">
+
+    <label for="clientSecret">Client Secret</label>
+    <input id="clientSecret" type="password" autocomplete="new-password" spellcheck="false" placeholder="Paste your secret">
+    <div class="hint">Stored encrypted. It is never shown again after saving — re-enter it to change it.</div>
+
+    <label for="webhookSecret">Webhook secret <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+    <input id="webhookSecret" type="password" autocomplete="new-password" spellcheck="false" placeholder="Only if you configured a separate one">
+    <div class="hint">Leave blank and your Client Secret is used to verify Cashfree's callbacks.</div>
+
+    <div class="row">
+      <button id="btnTest">Test connection</button>
+      <button id="btnSave" class="primary">Save &amp; connect</button>
+      <button id="btnDisconnect" class="danger hidden">Disconnect</button>
+    </div>
+
+    <div id="meta" class="meta hidden"></div>
+  </div>
+
+</div>
+
+<script type="module">
+// Same token resolution the other admin pages use: the stored access token first, then
+// the live Firebase session.
+async function authHeader() {
+  let token = null;
+  try { token = localStorage.getItem('hr_access_token'); } catch (_) {}
+  if (!token) {
+    try {
+      const { auth } = await import('./firebase-config.js');
+      if (auth && auth.currentUser) token = await auth.currentUser.getIdToken();
+    } catch (_) {}
+  }
+  return token ? { Authorization: 'Bearer ' + token } : {};
+}
+
+async function api(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: Object.assign({ 'Content-Type': 'application/json' }, await authHeader(), options.headers || {})
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || ('Request failed (HTTP ' + res.status + ')'));
+  return body;
+}
+
+const $ = (id) => document.getElementById(id);
+const banner = $('banner');
+const show = (kind, text) => { banner.className = 'status ' + kind; banner.textContent = text; };
+
+function busy(on, which) {
+  for (const id of ['btnTest', 'btnSave', 'btnDisconnect']) $(id).disabled = on;
+  if (which) $(which).textContent = on ? 'Working…' : ({
+    btnTest: 'Test connection', btnSave: 'Save & connect', btnDisconnect: 'Disconnect'
+  })[which];
+}
+
+function render(status) {
+  const connected = Boolean(status.connected);
+  $('btnDisconnect').classList.toggle('hidden', !connected);
+  $('meta').classList.toggle('hidden', !connected);
+
+  if (!status.vaultReady) {
+    show('bad', 'This server cannot store credentials securely yet. Ask your Kylrx administrator to set KYLRX_ENCRYPTION_KEY.');
+    for (const id of ['btnTest', 'btnSave']) $(id).disabled = true;
+    return;
+  }
+
+  if (connected) {
+    show('ok', 'Connected to Cashfree (' + status.environment + '). Payroll is paid from your own account.');
+    $('clientId').value = status.clientId || '';
+    $('clientSecret').placeholder = status.secretHint || 'Stored securely';
+    if (status.environment) $('environment').value = status.environment;
+    $('meta').innerHTML =
+      '<div><b>Client ID</b> ' + (status.clientId || '—') + '</div>' +
+      '<div><b>Secret</b> ' + (status.secretHint || '—') + ' (stored encrypted)</div>' +
+      '<div><b>Webhook secret</b> ' + (status.hasSeparateWebhookSecret ? 'separate value stored' : 'using the client secret') + '</div>' +
+      '<div><b>Connected by</b> ' + (status.updatedByEmail || '—') + '</div>' +
+      '<div><b>Last updated</b> ' + (status.updatedAt ? new Date(status.updatedAt).toLocaleString() : '—') + '</div>';
+  } else {
+    show('warn', 'No payment account connected. Payroll cannot be disbursed until you connect one.');
+  }
+}
+
+function readForm() {
+  return {
+    clientId: $('clientId').value.trim(),
+    clientSecret: $('clientSecret').value.trim(),
+    webhookSecret: $('webhookSecret').value.trim(),
+    environment: $('environment').value
+  };
+}
+
+$('btnTest').addEventListener('click', async () => {
+  busy(true, 'btnTest');
+  try {
+    const form = readForm();
+    // With no secret typed, the server tests whatever is already stored.
+    const body = form.clientSecret ? form : {};
+    const out = await api('/api/payroll/payout-account/test', { method: 'POST', body: JSON.stringify(body) });
+    show(out.connected ? 'ok' : 'bad', out.message);
+  } catch (err) {
+    show('bad', err.message);
+  } finally { busy(false, 'btnTest'); }
+});
+
+$('btnSave').addEventListener('click', async () => {
+  const form = readForm();
+  if (!form.clientId || !form.clientSecret) {
+    return show('bad', 'Enter both the Client ID and the Client Secret.');
+  }
+  if (form.environment === 'PRODUCTION' &&
+      !confirm('Connect a PRODUCTION Cashfree account?\n\nReal salary payments will be made from this account.')) return;
+
+  busy(true, 'btnSave');
+  try {
+    const out = await api('/api/payroll/payout-account', { method: 'POST', body: JSON.stringify(form) });
+    $('clientSecret').value = '';
+    $('webhookSecret').value = '';
+    render(Object.assign({ vaultReady: true }, out));
+    show('ok', 'Payment account connected.');
+  } catch (err) {
+    show('bad', err.message);
+  } finally { busy(false, 'btnSave'); }
+});
+
+$('btnDisconnect').addEventListener('click', async () => {
+  if (!confirm('Disconnect this payment account?\n\nPayroll cannot be disbursed until an account is connected again.')) return;
+  busy(true, 'btnDisconnect');
+  try {
+    await api('/api/payroll/payout-account', { method: 'DELETE' });
+    $('clientId').value = ''; $('clientSecret').value = ''; $('webhookSecret').value = '';
+    $('clientSecret').placeholder = 'Paste your secret';
+    render({ connected: false, vaultReady: true });
+  } catch (err) {
+    show('bad', err.message);
+  } finally { busy(false, 'btnDisconnect'); }
+});
+
+(async function init() {
+  try {
+    render(await api('/api/payroll/payout-account'));
+  } catch (err) {
+    show('bad', err.message);
+  }
+  // Best effort: the address Cashfree's allow-list needs.
+  try {
+    const res = await api('/api/payroll/disburse/outbound-ip');
+    const ip = res && (res.outboundIp || res.ip);
+    $('egress').innerHTML = ip ? '<code>' + ip + '</code>' : 'ask your Kylrx administrator for the server IP.';
+  } catch (_) {
+    $('egress').textContent = 'ask your Kylrx administrator for the server IP.';
+  }
+})();
+</script>
+</body>
+</html>

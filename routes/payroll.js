@@ -98,6 +98,19 @@ router.post('/disburse/create-batch', payrollController.createDisbursementBatch)
 router.post('/disburse/batch/:batchId/approve', payrollController.approveDisbursementBatch);
 router.post('/disburse/batch/:batchId/execute', payrollController.executeDisbursementBatch);
 router.get('/disburse/batch/:batchId/status', payrollController.getDisbursementBatchStatus);
+// ── The organisation's own payment gateway ──────────────────────────────────
+// Deliberately narrower than ADMIN_HR_ROLES: these routes decide which account a
+// company's salaries are paid from, so an HR or payroll clerk must not reach them.
+// Super Admin only, on top of the verifyToken + role gate applied above.
+const payoutAccountController = require('../controllers/payoutAccountController');
+const superAdminOnly = authorize('Super Admin', 'super_admin', 'SUPER_ADMIN', 'Admin');
+
+router.get('/payout-account', superAdminOnly, payoutAccountController.getPayoutAccount);
+router.post('/payout-account', superAdminOnly, payoutAccountController.savePayoutAccount);
+// Read-only connectivity check; never moves money, so it is safe to call with unsaved keys.
+router.post('/payout-account/test', superAdminOnly, payoutAccountController.testPayoutAccount);
+router.delete('/payout-account', superAdminOnly, payoutAccountController.deletePayoutAccount);
+
 // Which address this server egresses from - the value Cashfree's IP allow-list needs.
 router.get('/disburse/outbound-ip', payrollController.getOutboundIp);
 // Money-safe production readiness check: which environment, do the keys auth, is the IP allow-listed.
