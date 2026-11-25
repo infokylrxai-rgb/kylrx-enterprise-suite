@@ -2872,28 +2872,93 @@ exports.provisionEmployeeLogins = async (req, res) => {
             const email = String(data.email || '').toLowerCase().trim();
             if (!email) return;
             if (onlyEmails && !onlyEmails.has(email)) return;
-            if (!candidates.has(email)) candidates.set(email, { email, data, ref: docSnap.ref });
+            // Keep EVERY record for this person, not just the first. Someone listed in both
+            // collections has two placeholder rows, and retiring only one leaves the other
+            // live and unlinked on the roster.
+            if (!candidates.has(email)) candidates.set(email, { email, data, refs: [docSnap.ref] });
+            else candidates.get(email).refs.push(docSnap.ref);
         });
     }
 
     const appUrl = process.env.APP_URL || '';
     const results = [];
-    let created = 0, skipped = 0, failed = 0;
+    let created = 0, skipped = 0, failed = 0, repaired = 0;
+
+    // Retire the stand-in records so one person is not several rows. Only rows that are not
+    // themselves an Auth uid, and never the row we just wrote the profile to.
+    const retirePlaceholders = async (refs, uid) => {
+        for (const placeholderRef of refs) {
+            if (placeholderRef.id === uid) continue;
+            let isPlaceholder = true;
+            try { await admin.auth().getUser(placeholderRef.id); isPlaceholder = false; } catch (_) {}
+            if (isPlaceholder) {
+                await placeholderRef.set(
+                    { supersededByUid: uid, active: false, updatedAt: new Date().toISOString() },
+                    { merge: true }
+                );
+            }
+        }
+    };
 
     for (const candidate of [...candidates.values()].slice(0, MAX_PER_CALL)) {
-        const { email, data, ref } = candidate;
+        const { email, data, refs } = candidate;
+        const ref = refs[0];
         try {
-            // Already has a login: leave it completely alone. This is what makes re-running safe.
+            const role = data.role || 'employee';
+
+            // "Has a login" and "is provisioned" are different things. An account can exist in
+            // Firebase Auth with no claims and no profile - created by hand in the console, or
+            // left behind by a run that failed partway. That person signs in successfully and
+            // then sees nothing, and a blanket skip means re-running never repairs them.
+            let existing = null;
             try {
-                const existing = await admin.auth().getUserByEmail(email);
-                results.push({ email, status: 'skipped', reason: 'already has a login', uid: existing.uid });
-                skipped++;
-                continue;
+                existing = await admin.auth().getUserByEmail(email);
             } catch (err) {
                 if (err.code !== 'auth/user-not-found') throw err;
             }
 
-            const role = data.role || 'employee';
+            if (existing) {
+                const claims = existing.customClaims || {};
+                const profileSnap = await db.collection('users').doc(existing.uid).get();
+                const profile = profileSnap.exists ? (profileSnap.data() || {}) : null;
+                const existingOrg = claims.orgId || (profile && profile.orgId) || null;
+
+                // Someone else's tenant: never adopt them, and never overwrite their claims.
+                if (existingOrg && existingOrg !== orgId) {
+                    results.push({ email, status: 'failed', error: 'this email already belongs to another organization' });
+                    failed++;
+                    continue;
+                }
+
+                // Properly provisioned already: leave completely alone.
+                if (existingOrg === orgId && profile) {
+                    results.push({ email, status: 'skipped', reason: 'already has a login', uid: existing.uid });
+                    skipped++;
+                    continue;
+                }
+
+                // Repair in place. Claims and profile only - the password is never touched, so
+                // an account somebody is already using keeps working.
+                await admin.auth().setCustomUserClaims(existing.uid, { role, orgId, departmentId: data.departmentId || '' });
+                await db.collection('users').doc(existing.uid).set({
+                    ...data,
+                    uid: existing.uid,
+                    email,
+                    role,
+                    orgId,
+                    status: data.status || 'Active',
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                await retirePlaceholders(refs, existing.uid);
+
+                results.push({
+                    email, status: 'repaired', uid: existing.uid, role,
+                    reason: 'had a login but no organization; claims and profile restored'
+                });
+                repaired++;
+                continue;
+            }
+
             const password = generateSecurePassword(data.name || 'User');
             const userRecord = await admin.auth().createUser({
                 email,
@@ -2920,15 +2985,7 @@ exports.provisionEmployeeLogins = async (req, res) => {
                 updatedAt: new Date().toISOString()
             }, { merge: true });
 
-            // Retire the placeholder so one person is not two records. Only the record we just
-            // replaced, and only when it is not itself an Auth uid.
-            if (ref.id !== userRecord.uid) {
-                let placeholder = true;
-                try { await admin.auth().getUser(ref.id); placeholder = false; } catch (_) {}
-                if (placeholder) {
-                    await ref.set({ supersededByUid: userRecord.uid, active: false, updatedAt: new Date().toISOString() }, { merge: true });
-                }
-            }
+            await retirePlaceholders(refs, userRecord.uid);
 
             // Best effort: the account exists either way, and the response carries the password so
             // an administrator can pass it on when email is unavailable.
@@ -2969,7 +3026,7 @@ exports.provisionEmployeeLogins = async (req, res) => {
         orgId,
         considered: candidates.size,
         processed: results.length,
-        created, skipped, failed,
+        created, skipped, failed, repaired,
         truncated: candidates.size > MAX_PER_CALL,
         results
     });
