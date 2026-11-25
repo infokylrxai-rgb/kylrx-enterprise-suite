@@ -15,6 +15,9 @@ import { createRequire } from 'node:module';
 process.env.NODE_ENV = 'test';
 const require = createRequire(import.meta.url);
 const { PayrollDisbursementService } = require('../services/payroll/payrollDisbursementService.js');
+const fsMod = require('node:fs');
+const { fileURLToPath } = require('node:url');
+const CONTROLLER_SRC = fsMod.readFileSync(fileURLToPath(new URL('../controllers/payroll-controller.js', import.meta.url)), 'utf8');
 
 const OWNER = 'org_alpha';
 const OTHER = 'org_beta';
@@ -101,4 +104,21 @@ describe('the owning tenant is unaffected', () => {
     const err = await refused(() => svc.getBatch(legacy, OWNER));
     assert.ok(err, 'an untagged batch must not be readable by an arbitrary org');
   });
+});
+
+/**
+ * The refusal must also arrive with the right status. The service raises a 404-carrying
+ * PayoutValidationError, but three of the four handlers fell through to a generic 500 - which
+ * reports a client error as a server fault and would light up monitoring on every probe.
+ */
+describe('the refusal is reported as 404, not 500', () => {
+  for (const fn of ['getDisbursementBatchStatus', 'approveDisbursementBatch', 'reconcileDisbursementBatch', 'executeDisbursementBatch']) {
+    it(fn + ' honours the error status', () => {
+      const start = CONTROLLER_SRC.indexOf('async function ' + fn + '(');
+      assert.ok(start > -1, fn + ' not found');
+      const body = CONTROLLER_SRC.slice(start, start + 2200);
+      assert.ok(body.includes('PayoutValidationError') && body.includes('error.statusCode'),
+        fn + ' would report a cross-tenant refusal as a server error');
+    });
+  }
 });
