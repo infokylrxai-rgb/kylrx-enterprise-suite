@@ -14,6 +14,10 @@ process.env.GOOGLE_APPLICATION_CREDENTIALS = '';
 process.env.DEV_DEFAULT_ORG_ID = 'org_custom_default';
 
 const require = createRequire(import.meta.url);
+
+// These exercise the registration endpoints themselves, so they opt in to the feature that is
+// now off by default in production (config/signup.js: KYLRX_ALLOW_PUBLIC_SIGNUP).
+process.env.KYLRX_ALLOW_PUBLIC_SIGNUP = 'true';
 let server;
 let baseUrl;
 let createUserCalls;

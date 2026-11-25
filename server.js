@@ -288,6 +288,11 @@ const STATIC_BLOCKED_SECRETS = new RegExp(
     String.raw`(^|/)(service[-_]?account|[^/]*-adminsdk-[^/]*|credentials?|secrets?|[^/]*private[^/]*key[^/]*)[^/]*.json$`
     + String.raw`|.(pem|key|p12|pfx|crt|cer|der|jks|keystore|ppk)$`, 'i');
 
+// The signup page and its script are served only while public signup is enabled. Leaving the
+// form reachable after closing the API just produces a form that fails on submit.
+const { publicSignupEnabled } = require('./config/signup');
+app.get(['/signup.html', '/signup.js'], (req, res, next) => (publicSignupEnabled() ? next() : res.sendStatus(404)));
+
 // The static root is the repo folder: never serve server code, rules, data, logs or secrets.
 // services/ is blocked except the files browser pages import. reports/ stays public because
 // tvc-dashboard.html links to its CSV downloads.
@@ -320,6 +325,7 @@ app.use(express.static(__dirname));
 const { publicConfig } = require('./controllers/demoController');
 app.get('/api/public-config', publicConfig);
 require('./config/demo').logDemoModeStatus(logger);
+require('./config/signup').logSignupModeStatus(logger);
 app.use("/api/auth", authRoutes);
 app.use("/api/data", dataRoutes);
 app.use("/api/notifications", notificationRoutes);

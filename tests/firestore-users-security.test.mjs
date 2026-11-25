@@ -5,6 +5,10 @@ import http from 'node:http';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
+
+// These exercise the registration endpoints themselves, so they opt in to the feature that is
+// now off by default in production (config/signup.js: KYLRX_ALLOW_PUBLIC_SIGNUP).
+process.env.KYLRX_ALLOW_PUBLIC_SIGNUP = 'true';
 const { app, dynamicRoutesLoaded } = require('../server.js');
 const { db } = require('../config/firebase.js');
 
