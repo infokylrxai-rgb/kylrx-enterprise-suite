@@ -30,6 +30,9 @@ const ASSIGNABLE_ROLES = [
   { value: 'manager',    label: 'Reporting Manager' },
   { value: 'hr_admin',   label: 'HR Admin' },
   { value: 'hr_payroll', label: 'Payroll Specialist' },
+  // View-only. Reaches every admin screen but is refused on anything that changes
+  // something, enforced per request in authorize() and per read in firestore.rules.
+  { value: 'auditor',    label: 'Auditor (view only)' },
   { value: 'super_admin', label: 'Super Admin' }
 ];
 const ASSIGNABLE = new Set(ASSIGNABLE_ROLES.map(r => r.value));
