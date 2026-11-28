@@ -42,7 +42,7 @@
         /* Sidebar */
         .sidebar {background: var(--sidebar-bg);
             border-right: 1px solid var(--border);
-            padding: 2.5rem 1.5rem;
+            padding: 2rem 1.5rem;
             position: fixed;
             top: 0;
             left: 0;
@@ -62,13 +62,13 @@
         .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
         .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary-soft); }
 
-        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; text-decoration: none; color: var(--text-main); }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; text-decoration: none; color: var(--text-main); }
         .logo-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
         .logo-text { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; }
 
-        .nav-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin: 2rem 0 1rem 0.5rem; opacity: 0.8; }
+        .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.15em; margin: 2rem 0 1rem 0.5rem; opacity: 0.8; }
         .nav-link {
-            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.9rem; border-radius: 14px; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 4px;
+            display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.875rem; border-radius: 14px; transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); margin-bottom: 4px;
         }
         .nav-link:hover, .nav-link.active { background: var(--primary-light); color: var(--primary); transform: translateX(4px); }
 
@@ -78,12 +78,12 @@
         .main-content { 
             margin-left: var(--sidebar-width); 
             flex: 1; 
-            padding: 3rem; 
+            padding: 2rem; 
             max-width: calc(100vw - var(--sidebar-width));
         }
 
-        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3.5rem; }
-        h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; color: #1e293b; margin-bottom: 8px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+        h1 { font-size: 2.25rem; font-weight: 800; letter-spacing: -1.5px; color: #1e293b; margin-bottom: 8px; }
 
         .approval-card {
             background: white;
@@ -110,7 +110,7 @@
         }
 
         .emp-meta { display: flex; align-items: center; gap: 16px; }
-        .emp-avatar { width: 52px; height: 52px; border-radius: 16px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+        .emp-avatar { width: 52px; height: 52px; border-radius: 16px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
         
         .card-body { padding: 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
         .data-point label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
@@ -141,7 +141,7 @@
             padding: 12px 24px;
             border-radius: 16px;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
@@ -163,7 +163,7 @@
             z-index: 2000; display: none; align-items: center; justify-content: center;
         }
         .modal {
-            background: white; width: 500px; border-radius: 32px; padding: 2.5rem;
+            background: white; width: 100%; max-width: 500px; border-radius: 32px; padding: 2rem;
             border: 1px solid var(--border); box-shadow: var(--shadow-lg);
             animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -270,7 +270,7 @@
 
             <div id="approvalsList">
                 <!-- Dynamic cards -->
-                <div style="text-align: center; padding: 5rem; color: var(--text-muted);">
+                <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
                     <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem;"></i>
                     <p>Fetching verification requests...</p>
                 </div>
@@ -295,12 +295,12 @@
 
     <!-- Centered Confirmation Modal -->
     <div id="confirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+        <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
             <div style="width: 64px; height: 64px; background: #eff6ff; color: #3b82f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i data-lucide="check-square" size="32"></i>
             </div>
             <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="confirmModalTitle">Approve Bank Details</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="confirmModalDesc">Are you sure you want to approve these bank details? This will sync to payroll.</p>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6;" id="confirmModalDesc">Are you sure you want to approve these bank details? This will sync to payroll.</p>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
                 <button class="btn btn-primary" style="flex: 1; background: #10b981; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmModalBtn">Approve</button>
@@ -310,12 +310,12 @@
 
     <!-- Centered Custom Alert Modal -->
     <div id="alertModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 7000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+        <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
             <div id="alertModalIconBg" style="width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i id="alertModalIcon" data-lucide="info" size="32"></i>
             </div>
             <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="alertModalTitle">Notification</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="alertModalDesc">Description</p>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6;" id="alertModalDesc">Description</p>
             <button class="btn btn-primary" style="width: 100%; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('alertModal').style.display='none'">Dismiss</button>
         </div>
     </div>
@@ -339,7 +339,7 @@
             onSnapshot(q, (snapshot) => {
                 if (snapshot.empty) {
                     list.innerHTML = `
-                        <div style="text-align: center; padding: 5rem; background: white; border-radius: 32px; border: 1px dashed var(--border);">
+                        <div style="text-align: center; padding: 2rem; background: white; border-radius: 32px; border: 1px dashed var(--border);">
                             <i data-lucide="check-circle" size="48" style="color: var(--success); margin-bottom: 1rem; opacity: 0.5;"></i>
                             <h3 style="font-weight: 800;">Queue is Empty</h3>
                             <p style="color: var(--text-muted);">All employee bank details have been verified.</p>
@@ -484,7 +484,7 @@
             #customAppsModal .modal {
                 background: #ffffff !important;
                 color: #0f172a !important;
-                padding: 2.5rem;
+                padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
@@ -529,7 +529,7 @@
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
-                font-size: 0.85rem;
+                font-size: 0.875rem;
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
@@ -551,7 +551,7 @@
                 transition: 0.2s;
                 text-align: center;
                 width: 100%;
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {

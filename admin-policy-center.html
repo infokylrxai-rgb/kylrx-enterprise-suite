@@ -46,7 +46,7 @@
         .progress-fill { height: 100%; background: var(--primary); }
 
         .assignment-badge {
-            padding: 4px 10px; border-radius: 100px; font-size: 0.65rem; font-weight: 800;
+            padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800;
             background: var(--bg-soft); color: var(--text-muted); text-transform: uppercase;
         }
 
@@ -74,7 +74,7 @@
         }
         .modal-overlay.active { display: flex; opacity: 1; }
         .modal-card {
-            background: white; width: 500px; border-radius: 32px; padding: 2.5rem;
+            background: white; width: 100%; max-width: 500px; border-radius: 32px; padding: 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             transform: translateY(20px); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -84,7 +84,7 @@
         .toast-notification {
             position: fixed; top: 2rem; left: 50%; transform: translateX(-50%) translateY(-20px);
             background: #10b981; color: white; padding: 1rem 2rem; border-radius: 100px;
-            font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 12px;
+            font-weight: 700; font-size: 0.875rem; display: flex; align-items: center; gap: 12px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             z-index: 4000; opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -184,7 +184,7 @@
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <h1>Enterprise Policy Center</h1>
                         <!-- Firebase Backend Status Badge -->
-                        <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.78rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
+                        <div class="firebase-status-badge" id="firebaseLiveBadge" onclick="toggleFirebaseDetailsModal()" style="cursor: pointer; display: flex; align-items: center; gap: 7px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 20px; padding: 5px 12px; font-size: 0.8rem; font-weight: 700; color: #065f46; transition: all 0.2s;" title="Click to inspect live Firebase connection">
                             <span class="pulse-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);"></span>
                             <span id="firebaseStatusText">Firebase: Connected</span>
                         </div>
@@ -209,7 +209,7 @@
                         </div>
 
                         <div class="policy-list">
-                            <p style="text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.85rem;">No active policy rollouts detected.</p>
+                            <p style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.875rem;">No active policy rollouts detected.</p>
                         </div>
                     </div>
 
@@ -245,12 +245,12 @@
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Compliance Pulse</h3>
                         <div style="display: flex; flex-direction: column; gap: 1rem;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.85rem; font-weight: 600;">Overall Compliance</span>
+                                <span style="font-size: 0.875rem; font-weight: 600;">Overall Compliance</span>
                                 <span style="font-size: 1.25rem; font-weight: 800; background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.15));" id="complianceRate">--%</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.85rem; font-weight: 600;">Overdue (SLA)</span>
-                                <span style="font-size: 0.85rem; font-weight: 800; color: #ef4444;" id="overdueCount">12 Emp</span>
+                                <span style="font-size: 0.875rem; font-weight: 600;">Overdue (SLA)</span>
+                                <span style="font-size: 0.875rem; font-weight: 800; color: #ef4444;" id="overdueCount">12 Emp</span>
                             </div>
                         </div>
                         <div style="margin-top: 1.5rem; padding: 1rem; background: #fff1f2; border-radius: 12px; border: 1px solid #fecaca; display: flex; gap: 10px; align-items: start;">
@@ -269,8 +269,8 @@
             <div style="background: #fef2f2; color: #ef4444; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; font-size: 1.5rem;">
                 <i data-lucide="alert-triangle" style="width: 28px; height: 28px; color: #ef4444;"></i>
             </div>
-            <h3 style="font-weight: 800; font-size: 1.3rem; margin-bottom: 0.5rem; color: #1e293b;">Retire Policy?</h3>
-            <p id="policyDeleteMsg" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to permanently delete this policy? All signature records and active requirements will be revoked.</p>
+            <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 0.5rem; color: #1e293b;">Retire Policy?</h3>
+            <p id="policyDeleteMsg" style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 2rem;">Are you sure you want to permanently delete this policy? All signature records and active requirements will be revoked.</p>
             
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; justify-content: center;" onclick="togglePolicyDeleteModal(false)">Cancel</button>
@@ -291,7 +291,7 @@
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
                 <div>
                     <h2 style="font-weight: 800; font-size: 1.5rem;">Audit Intelligence Hub</h2>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">Comprehensive organizational compliance logs</p>
+                    <p style="font-size: 0.875rem; color: var(--text-muted);">Comprehensive organizational compliance logs</p>
                 </div>
                 <button class="action-icon" onclick="toggleAuditModal(false)"><i data-lucide="x"></i></button>
             </div>
@@ -319,16 +319,16 @@
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
                 <div>
                     <h2 style="font-weight: 800; font-size: 1.5rem;">Policy Version History</h2>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">Audit organizational mandate iterations</p>
+                    <p style="font-size: 0.875rem; color: var(--text-muted);">Audit organizational mandate iterations</p>
                 </div>
                 <button class="action-icon" onclick="toggleVersionModal(false)"><i data-lucide="x"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 1rem;" id="versionList">
                 <!-- Versions injected here -->
-                <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
                     <i data-lucide="clock" size="32" style="margin-bottom: 1rem; opacity: 0.5;"></i>
-                    <p style="font-size: 0.85rem;">No previous versions archived.</p>
+                    <p style="font-size: 0.875rem;">No previous versions archived.</p>
                 </div>
             </div>
         </div>
@@ -339,7 +339,7 @@
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
                 <div>
                     <h2 style="font-weight: 800; font-size: 1.5rem;">Compliance Builder</h2>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">Create entity-specific governance plans</p>
+                    <p style="font-size: 0.875rem; color: var(--text-muted);">Create entity-specific governance plans</p>
                 </div>
                 <button class="action-icon" onclick="toggleCustomModal(false)"><i data-lucide="x"></i></button>
             </div>
@@ -377,7 +377,7 @@
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
                 <div>
                     <h2 style="font-weight: 800; font-size: 1.5rem;">Selective Routing</h2>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">Target specific business units</p>
+                    <p style="font-size: 0.875rem; color: var(--text-muted);">Target specific business units</p>
                 </div>
                 <button class="action-icon" onclick="toggleDeptModal(false)"><i data-lucide="x"></i></button>
             </div>
@@ -403,7 +403,7 @@
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
                 <div>
                     <h2 style="font-weight: 800; font-size: 1.5rem;">Deployment Wizard</h2>
-                    <p style="font-size: 0.85rem; color: var(--text-muted);">Configure organizational policy rollout</p>
+                    <p style="font-size: 0.875rem; color: var(--text-muted);">Configure organizational policy rollout</p>
                 </div>
                 <button class="action-icon" onclick="toggleModal(false)"><i data-lucide="x"></i></button>
             </div>
@@ -533,9 +533,9 @@
                 const versions = await getVersionHistory();
                 if (!versions || versions.length === 0) {
                     list.innerHTML = `
-                        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
                             <i data-lucide="clock" size="32" style="margin-bottom: 1rem; opacity: 0.5;"></i>
-                            <p style="font-size: 0.85rem;">No previous versions archived.</p>
+                            <p style="font-size: 0.875rem;">No previous versions archived.</p>
                         </div>
                     `;
                     if (window.lucide) lucide.createIcons();
@@ -547,12 +547,12 @@
                     return `
                         <div style="padding: 1.25rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 16px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <h4 style="font-weight: 800; font-size: 0.9rem;">${data.title}</h4>
+                                <h4 style="font-weight: 800; font-size: 0.875rem;">${data.title}</h4>
                                 <p style="font-size: 0.75rem; color: var(--text-muted);">v${data.version || '1.0'} • ${data.category || 'General'}</p>
                             </div>
                             <div style="text-align: right;">
                                 <p style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">${date}</p>
-                                <p style="font-size: 0.65rem; color: var(--text-muted);">Archived</p>
+                                <p style="font-size: 0.7rem; color: var(--text-muted);">Archived</p>
                             </div>
                         </div>
                     `;
@@ -560,7 +560,7 @@
                 if (window.lucide) lucide.createIcons();
             } catch (err) {
                 console.error("Error fetching versions:", err);
-                list.innerHTML = `<p style="text-align:center; color:#ef4444; padding:2rem;">Failed to retrieve version history.</p>`;
+                list.innerHTML = `<p style="text-align:center; color:#ef4444; padding: 2rem;">Failed to retrieve version history.</p>`;
             }
         }
 
@@ -846,7 +846,7 @@
                 : lastPolicies;
 
             if (!policies || policies.length === 0) {
-                list.innerHTML = `<p style="text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.85rem;">${policyFilter === 'in_progress' && lastPolicies.length ? 'All policies are fully signed.' : 'No active policy rollouts detected.'}</p>`;
+                list.innerHTML = `<p style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.875rem;">${policyFilter === 'in_progress' && lastPolicies.length ? 'All policies are fully signed.' : 'No active policy rollouts detected.'}</p>`;
                 return;
             }
 
@@ -861,7 +861,7 @@
                 item.innerHTML = `
                     <div class="type-icon"><i data-lucide="${icon}" size="16"></i></div>
                     <div style="flex: 1; min-width: 0; padding-right: 12px;">
-                        <h4 style="font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeText(policy.title)}</h4>
+                        <h4 style="font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeText(policy.title)}</h4>
                         <p style="font-size: 0.7rem; color: var(--text-muted);">v${escapeText(policy.version || '1.0')} • ${escapeText(policy.category || 'General')}</p>
                     </div>
                     <div class="rollout-stat" style="min-width: 110px;">
@@ -904,7 +904,7 @@
                     item.innerHTML = `
                         <i data-lucide="${auditStyle(log.type).icon}" size="14" style="color: ${auditStyle(log.type).color};"></i>
                         <div style="flex: 1;"><strong>${escapeText(log.employeeName || 'Staff')}</strong> ${escapeText(log.action)}</div>
-                        <span style="color: var(--text-muted); font-size: 0.6rem;">${escapeText(log.timeAgo || 'Recent')}</span>
+                        <span style="color: var(--text-muted); font-size: 0.7rem;">${escapeText(log.timeAgo || 'Recent')}</span>
                     `;
                     list.appendChild(item);
                 });
@@ -942,12 +942,12 @@
                         <i data-lucide="${auditStyle(log.type).icon}" size="16" style="color: ${auditStyle(log.type).color};"></i>
                     </div>
                     <div style="flex: 1;">
-                        <h4 style="font-size: 0.9rem; font-weight: 700;">${escapeText(log.employeeName || 'Staff')}</h4>
+                        <h4 style="font-size: 0.875rem; font-weight: 700;">${escapeText(log.employeeName || 'Staff')}</h4>
                         <p style="font-size: 0.75rem; color: var(--text-muted);">${escapeText(log.action)}</p>
                     </div>
                     <div style="text-align: right;">
                         <p style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted);">${escapeText(log.timeAgo || 'Recently')}</p>
-                        <span style="font-size: 0.6rem; color: var(--text-muted); opacity: 0.5;">ID: ${escapeText((log.id || '').slice(0,8))}</span>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.5;">ID: ${escapeText((log.id || '').slice(0,8))}</span>
                     </div>
                 `;
                 list.appendChild(item);
@@ -1056,16 +1056,16 @@
                         <i data-lucide="shield-check" size="20"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">Firebase Backend Connection</h3>
+                        <h3 style="margin: 0; font-size: 1.125rem; font-weight: 800; color: #ffffff;">Firebase Backend Connection</h3>
                         <p style="margin: 2px 0 0 0; font-size: 0.75rem; opacity: 0.9; color: #dcfce7;">Live Google Cloud Firestore & Firebase Admin SDK</p>
                     </div>
                 </div>
-                <button onclick="toggleFirebaseDetailsModal()" style="background: none; border: none; color: #ffffff; cursor: pointer; font-size: 1.2rem;">✕</button>
+                <button onclick="toggleFirebaseDetailsModal()" style="background: none; border: none; color: #ffffff; cursor: pointer; font-size: 1.25rem;">✕</button>
             </div>
             
             <div class="modal-body" style="padding: 1.5rem;">
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem;">
-                    <div style="display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; font-size: 0.82rem;">
+                    <div style="display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; font-size: 0.8rem;">
                         <span style="color: #64748b; font-weight: 700;">Project ID:</span>
                         <span style="font-weight: 800; color: #0f172a; font-family: monospace;" id="fbModalProject" data-firebase-project>—</span>
 
@@ -1090,7 +1090,7 @@
                 </div>
 
                 <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 10px 14px; border-radius: 4px; margin-bottom: 1.25rem;">
-                    <p style="margin: 0; font-size: 0.76rem; color: #1e40af; line-height: 1.4;">
+                    <p style="margin: 0; font-size: 0.75rem; color: #1e40af; line-height: 1.4;">
                         ⚡ <strong>Realtime Cloud Sync:</strong> All policy rollouts, signatures, acknowledgements, and assignment engine state stream live with Google Cloud Firestore.
                     </p>
                 </div>
@@ -1123,7 +1123,7 @@
             #customAppsModal .modal {
                 background: #ffffff !important;
                 color: #0f172a !important;
-                padding: 2.5rem;
+                padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
@@ -1168,7 +1168,7 @@
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
-                font-size: 0.85rem;
+                font-size: 0.875rem;
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
@@ -1190,7 +1190,7 @@
                 transition: 0.2s;
                 text-align: center;
                 width: 100%;
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {

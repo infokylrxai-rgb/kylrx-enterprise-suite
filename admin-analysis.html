@@ -27,7 +27,7 @@
             box-shadow: var(--shadow-sm);
         }
         .stat-card h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 800; letter-spacing: 0.05em; }
-        .stat-val { font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem; }
+        .stat-val { font-size: 1.875rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem; }
         .stat-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
         .trend-up { color: #10b981; }
         .trend-down { color: #ef4444; }
@@ -45,7 +45,7 @@
             box-shadow: var(--shadow-md);
         }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .chart-title { font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .chart-title { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
         .chart-icon { color: var(--primary); width: 20px; height: 20px; }
 
         @media print {
@@ -149,7 +149,7 @@
             <header class="header">
                 <div>
                     <h1>Enterprise Analytics</h1>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Advanced organizational intelligence & productivity insights</p>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; font-weight: 500;">Advanced organizational intelligence & productivity insights</p>
                 </div>
                 <div class="btn-group">
                     <button class="btn" id="btnChatFeedback" title="Send Analytics Broadcast"><i data-lucide="message-square"></i></button>
@@ -211,7 +211,7 @@
                     <div style="position: relative; width: 100%; height: 260px; display: flex; align-items: center; justify-content: center;">
                         <canvas id="payrollChart"></canvas>
                         <div id="payrollCenterOverlay" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center;">
-                            <span id="payrollCenterAmount" style="font-size: 1.3rem; font-weight: 800; color: #0f172a; line-height: 1.2;">₹0</span>
+                            <span id="payrollCenterAmount" style="font-size: 1.25rem; font-weight: 800; color: #0f172a; line-height: 1.2;">₹0</span>
                             <span id="payrollCenterSubtitle" style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Loading…</span>
                         </div>
                     </div>
@@ -226,7 +226,7 @@
                     <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px dashed var(--border);">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                             <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Prediction Horizon</span>
-                            <span id="sliderVal" style="font-size: 0.85rem; font-weight: 800; color: var(--primary);">3 Months</span>
+                            <span id="sliderVal" style="font-size: 0.875rem; font-weight: 800; color: var(--primary);">3 Months</span>
                         </div>
                         <input type="range" id="horizonSlider" min="1" max="12" value="3" style="width: 100%; cursor: pointer; accent-color: var(--primary);">
                     </div>
@@ -236,7 +236,7 @@
             <!-- Audit Trail for Hierarchy Governance -->
             <div class="card" style="margin-top: 2rem; padding: 2rem; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-md);">
                 <div class="chart-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                    <div class="chart-title" style="font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+                    <div class="chart-title" style="font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
                         <i data-lucide="history" class="chart-icon" style="color: var(--primary);"></i> 
                         <span>Manager Governance Audit Trail</span>
                     </div>
@@ -280,13 +280,13 @@
 
     <!-- Broadcast / Message Modal -->
     <div id="broadcastModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
-        <div style="background:white; padding:2.5rem; border-radius:24px; width:480px; max-width:90%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
+        <div style="background:white; padding: 2rem; border-radius:24px; width: 100%; max-width: min(480px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="megaphone" style="width: 20px; height: 20px;"></i>
                     </div>
-                    <h3 style="font-weight:800; font-size:1.2rem; margin: 0; color: #1e293b;">Analytics Broadcast</h3>
+                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: #1e293b;">Analytics Broadcast</h3>
                 </div>
                 <button id="btnCloseBroadcastModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding: 4px; display: flex; align-items: center;"><i data-lucide="x"></i></button>
             </div>
@@ -295,14 +295,14 @@
             
             <div style="display:flex; flex-direction:column; gap:16px;">
                 <div>
-                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Message Text</label>
-                    <textarea id="broadcastText" rows="4" maxlength="1000" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 500; resize: none;" placeholder="e.g., Weekly average productivity reached 87%. Great job team!"></textarea>
+                    <label style="font-size: 0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Message Text</label>
+                    <textarea id="broadcastText" rows="4" maxlength="1000" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size: 0.875rem; font-family: inherit; font-weight: 500; resize: none;" placeholder="e.g., Weekly average productivity reached 87%. Great job team!"></textarea>
                     <div id="broadcastNotice" style="display:none; margin-top: 8px; font-size: 0.75rem; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 10px;"></div>
                 </div>
                 
                 <div>
-                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Target Audience</label>
-                    <select id="broadcastTarget" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600; background: white; cursor: pointer;">
+                    <label style="font-size: 0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Target Audience</label>
+                    <select id="broadcastTarget" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size: 0.875rem; font-family: inherit; font-weight: 600; background: white; cursor: pointer;">
                         <option value="all">All Employees</option>
                         <option value="manager">Managers Only</option>
                         <option value="hrms">HR team only</option>
@@ -375,7 +375,7 @@
                 if (badge) badge.innerHTML = '<span style="color:#ef4444;">Not connected</span>';
                 showToast(`Could not load analytics: ${err.message}`, true);
                 const tbody = document.getElementById('auditTrailList');
-                if (tbody && !data) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--danger);">Could not load the audit trail: ${esc(err.message)}</td></tr>`;
+                if (tbody && !data) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding: 2rem;color:var(--danger);">Could not load the audit trail: ${esc(err.message)}</td></tr>`;
             }
             if (window.lucide) lucide.createIcons();
         }
@@ -489,7 +489,7 @@
             const tbody = document.getElementById('auditTrailList');
             if (!tbody) return;
             if (!data.audit.length) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--text-muted);">No manager or department changes recorded.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding: 2rem;color:var(--text-muted);">No manager or department changes recorded.</td></tr>';
                 return;
             }
             const color = (s) => s === 'Approved' || s === 'Completed' ? 'var(--success)' : s === 'Rejected' ? 'var(--danger)' : 'var(--warning)';
@@ -499,7 +499,7 @@
                     <tr style="border-bottom: 1px solid var(--border);">
                         <td style="padding: 12px; font-weight: 700; color: var(--text-main);">${esc(c.employeeName)}</td>
                         <td style="padding: 12px;">
-                            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${esc(c.currentDepartment)} → ${esc(c.newDepartment)}</div>
+                            <div style="font-size: 0.875rem; font-weight: 600; color: var(--text-main);">${esc(c.currentDepartment)} → ${esc(c.newDepartment)}</div>
                             <div style="font-size: 0.75rem; color: var(--text-muted);">${esc(c.currentManagerName)} → ${esc(c.newManagerName)}</div>
                         </td>
                         <td style="padding: 12px;"><span style="font-size: 0.75rem; font-weight: 800; color: ${color(c.status)};">${esc(c.status)}</span></td>
@@ -624,7 +624,7 @@
             #customAppsModal .modal {
                 background: #ffffff !important;
                 color: #0f172a !important;
-                padding: 2.5rem;
+                padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
@@ -669,7 +669,7 @@
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
-                font-size: 0.85rem;
+                font-size: 0.875rem;
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
@@ -691,7 +691,7 @@
                 transition: 0.2s;
                 text-align: center;
                 width: 100%;
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {

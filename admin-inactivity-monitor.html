@@ -16,7 +16,7 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 1.5rem;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
         }
 
         .tvc-card {
@@ -32,7 +32,7 @@
         .tvc-card.warning { border-left: 4px solid var(--warning); }
 
         .tvc-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .tvc-value { font-size: 2rem; font-weight: 800; margin: 0.5rem 0; color: var(--text-main); }
+        .tvc-value { font-size: 1.875rem; font-weight: 800; margin: 0.5rem 0; color: var(--text-main); }
         .tvc-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
         
         .automation-log-panel {
@@ -41,7 +41,7 @@
             color: var(--text-muted);
             padding: 1.5rem;
             font-family: 'Monaco', 'Courier New', monospace;
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             height: 300px;
             overflow-y: auto;
             margin-bottom: 2rem;
@@ -57,14 +57,14 @@
         /* Toasts */
         .toast-notification {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            background: white; border-radius: 20px; padding: 1.5rem 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
             display: none; align-items: center; gap: 12px; z-index: 5000;
             border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .toast-notification.active { display: flex; }
         .toast-notification i { color: #10b981; width: 24px; height: 24px; }
-        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 1rem; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 
         /* Heartbeat */
@@ -114,7 +114,7 @@
         }
 
         .trash-section {
-            margin-top: 4rem;
+            margin-top: 2rem;
             padding: 2rem;
             background: #f8fafc;
             border-radius: 24px;
@@ -290,15 +290,15 @@
                 </div>
             </div>
 
-            <h3 style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase;">Automation Engine Live Logs</h3>
+            <h3 style="font-size: 0.875rem; font-weight: 800; color: var(--text-muted); margin-bottom: 1.5rem; text-transform: uppercase;">Automation Engine Live Logs</h3>
             <div class="automation-log-panel" id="automationLogs">
                 <div class="log-entry" style="color: var(--text-muted);">Loading automation log from Firebase…</div>
             </div>
             <div id="aiInsightsPanel" style="background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid #ddd6fe; border-radius: 16px; padding: 14px 18px; margin: 2rem 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
                     <div>
-                        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 800; color: #5b21b6;"><i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> AI Inactivity Insights <span id="aiModeLabel" style="font-size: 0.68rem; font-weight: 700; color: #7c3aed;"></span></div>
-                        <p style="font-size: 0.78rem; color: #6d28d9; margin: 2px 0 0 0;">Each person below is ranked by AI non-response risk with the next best action. Use ✨ Nudge for a personal reminder.</p>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 800; color: #5b21b6;"><i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> AI Inactivity Insights <span id="aiModeLabel" style="font-size: 0.7rem; font-weight: 700; color: #7c3aed;"></span></div>
+                        <p style="font-size: 0.8rem; color: #6d28d9; margin: 2px 0 0 0;">Each person below is ranked by AI non-response risk with the next best action. Use ✨ Nudge for a personal reminder.</p>
                     </div>
                     <div id="aiInsightsSummary" style="font-size: 0.8rem; font-weight: 700; color: #4c1d95;"></div>
                 </div>
@@ -313,13 +313,13 @@
             </div>
 
             <div class="inactivity-list" id="inactivityList">
-                <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">Loading from Firebase…</div>
+                <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">Loading from Firebase…</div>
             </div>
             <div class="trash-section">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h3 style="font-weight: 800;"><i data-lucide="trash-2" style="vertical-align: middle;"></i> Candidate Trash Bin</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-muted);" id="trashRetentionNote">Profiles in this bin are purged after the retention period.</p>
+                        <p style="font-size: 0.875rem; color: var(--text-muted);" id="trashRetentionNote">Profiles in this bin are purged after the retention period.</p>
                     </div>
                     <button class="btn btn-outline" onclick="window.emptyTrashHandler()" style="border-color: var(--danger); color: var(--danger);">Empty Trash</button>
                 </div>
@@ -335,13 +335,13 @@
 
     <!-- Automation Rules Modal -->
     <div id="automationRulesModal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
-        <div style="background:white; padding:2.5rem; border-radius:24px; width:480px; max-width:90%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
+        <div style="background:white; padding: 2rem; border-radius:24px; width: 100%; max-width: min(480px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
                     </div>
-                    <h3 style="font-weight:800; font-size:1.2rem; margin: 0; color: #1e293b;">Automation Rules</h3>
+                    <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: #1e293b;">Automation Rules</h3>
                 </div>
                 <button id="btnCloseRulesModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding: 4px; display: flex; align-items: center;"><i data-lucide="x"></i></button>
             </div>
@@ -350,20 +350,20 @@
             
             <div style="display:flex; flex-direction:column; gap:16px;">
                 <div>
-                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Inactivity Threshold (Hours)</label>
-                    <input type="number" id="ruleSuspendHours" min="1" max="168" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;" placeholder="3">
-                    <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">Time before a pending invitation is marked Suspended.</span>
+                    <label style="font-size: 0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Inactivity Threshold (Hours)</label>
+                    <input type="number" id="ruleSuspendHours" min="1" max="168" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size: 0.875rem; font-family: inherit; font-weight: 600;" placeholder="3">
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 4px;">Time before a pending invitation is marked Suspended.</span>
                 </div>
                 
                 <div>
-                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Non-Responsive Threshold (Days)</label>
-                    <input type="number" id="ruleTrashDays" min="1" max="30" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;" placeholder="3">
-                    <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">Suspension time before moving to candidate trash.</span>
+                    <label style="font-size: 0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Non-Responsive Threshold (Days)</label>
+                    <input type="number" id="ruleTrashDays" min="1" max="30" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size: 0.875rem; font-family: inherit; font-weight: 600;" placeholder="3">
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 4px;">Suspension time before moving to candidate trash.</span>
                 </div>
                 <div>
-                    <label style="font-size:0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Trash Retention (Days)</label>
-                    <input type="number" id="ruleRetentionDays" min="1" max="365" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:0.85rem; font-family: inherit; font-weight: 600;">
-                    <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px;">How long trashed profiles are kept before they are purged.</span>
+                    <label style="font-size: 0.75rem; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:block; text-transform: uppercase; letter-spacing: 0.5px;">Trash Retention (Days)</label>
+                    <input type="number" id="ruleRetentionDays" min="1" max="365" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size: 0.875rem; font-family: inherit; font-weight: 600;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-top: 4px;">How long trashed profiles are kept before they are purged.</span>
                 </div>
                 <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 10px 12px;">
                     <button type="button" id="btnAiRulesAdvice" class="btn btn-outline" style="font-size: 0.75rem; color: #6d28d9; border-color: #c4b5fd;"><i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> AI: suggest thresholds from our response history</button>
@@ -373,7 +373,7 @@
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: 8px;">
                     <div>
                         <span style="font-size: 0.8rem; font-weight: 700; display: block; color: #1e293b;">Email Reminders</span>
-                        <span style="font-size: 0.65rem; color: var(--text-muted);">Send automated email reminders before link expiry.</span>
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">Send automated email reminders before link expiry.</span>
                     </div>
                     <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
                         <input type="checkbox" id="ruleEmailReminders" checked style="opacity: 0; width: 0; height: 0;">
@@ -384,7 +384,7 @@
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0;">
                     <div>
                         <span style="font-size: 0.8rem; font-weight: 700; display: block; color: #1e293b;">Manager Escalations</span>
-                        <span style="font-size: 0.65rem; color: var(--text-muted);">Route warning logs to target manager dashboard.</span>
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">Route warning logs to target manager dashboard.</span>
                     </div>
                     <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px;">
                         <input type="checkbox" id="ruleEscalations" checked style="opacity: 0; width: 0; height: 0;">
@@ -434,7 +434,7 @@
             #customAppsModal .modal {
                 background: #ffffff !important;
                 color: #0f172a !important;
-                padding: 2.5rem;
+                padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
@@ -479,7 +479,7 @@
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
-                font-size: 0.85rem;
+                font-size: 0.875rem;
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
@@ -501,7 +501,7 @@
                 transition: 0.2s;
                 text-align: center;
                 width: 100%;
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {

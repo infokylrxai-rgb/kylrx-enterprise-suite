@@ -36,7 +36,7 @@
 
         .log-row:hover { border-color: var(--primary-soft); background: white; }
 
-        .time-badge { font-weight: 800; font-size: 0.9rem; color: var(--primary); }
+        .time-badge { font-weight: 800; font-size: 0.875rem; color: var(--primary); }
 
         .status-badge {
             padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; text-align: center;
@@ -65,12 +65,12 @@
             position: fixed;
             top: 0;
             right: -360px;
-            width: 360px;
+            width: 100%; max-width: 360px;
             height: 100vh;
             background: white;
             box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
             z-index: 2000;
-            padding: 2.5rem;
+            padding: 2rem;
             transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
@@ -83,14 +83,14 @@
         /* Toasts */
         .toast-notification {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            background: white; border-radius: 20px; padding: 1.5rem 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
             display: none; align-items: center; gap: 12px; z-index: 5000;
             border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .toast-notification.active { display: flex; }
         .toast-notification i { color: #10b981; width: 24px; height: 24px; }
-        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 1rem; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
     </style>
 </head>
@@ -196,7 +196,7 @@
                 <div class="welcome-text">
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <h1>Attendance Command Center</h1>
-                        <div id="firebaseConnectionBadge" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 100px; font-size: 0.72rem; font-weight: 800; color: #065f46;">
+                        <div id="firebaseConnectionBadge" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 100px; font-size: 0.7rem; font-weight: 800; color: #065f46;">
                             <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 6px #10b981;"></span>
                             <span id="firebaseStatusText">Firebase Live</span>
                         </div>
@@ -248,8 +248,8 @@
                         <div class="att-toolbar-info">
                             <h2>
                                 Super Admin Attendance Controls
-                                <span style="font-size: 0.68rem; font-weight: 800; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 100px;">PRD §16 COMPLIANT</span>
-                                <span style="font-size: 0.68rem; font-weight: 800; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 100px;">Templates.xlsx Certified</span>
+                                <span style="font-size: 0.7rem; font-weight: 800; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 100px;">PRD §16 COMPLIANT</span>
+                                <span style="font-size: 0.7rem; font-weight: 800; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 100px;">Templates.xlsx Certified</span>
                             </h2>
                             <p>Real-time Team Attendance Console • Manual Overrides &amp; Regularization • Shift &amp; Overtime Recalculation • SheetJS Excel Export</p>
                         </div>
@@ -270,7 +270,7 @@
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                     <div style="background: white; border: 1px solid var(--att-border); border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
                         <div>
-                            <p style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Present Today</p>
+                            <p style="font-size: 0.7rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Present Today</p>
                             <h3 id="attKpiPresentCount" style="font-size: 1.5rem; font-weight: 800; color: #059669; margin: 2px 0 0 0;">0</h3>
                         </div>
                         <div style="width: 38px; height: 38px; border-radius: 10px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; color: #059669;">
@@ -279,7 +279,7 @@
                     </div>
                     <div style="background: white; border: 1px solid var(--att-border); border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
                         <div>
-                            <p style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Late Arrivals</p>
+                            <p style="font-size: 0.7rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Late Arrivals</p>
                             <h3 id="attKpiLateCount" style="font-size: 1.5rem; font-weight: 800; color: #d97706; margin: 2px 0 0 0;">0</h3>
                         </div>
                         <div style="width: 38px; height: 38px; border-radius: 10px; background: #fffbeb; display: flex; align-items: center; justify-content: center; color: #d97706;">
@@ -288,7 +288,7 @@
                     </div>
                     <div style="background: white; border: 1px solid var(--att-border); border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
                         <div>
-                            <p style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Absences</p>
+                            <p style="font-size: 0.7rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Absences</p>
                             <h3 id="attKpiAbsentCount" style="font-size: 1.5rem; font-weight: 800; color: #dc2626; margin: 2px 0 0 0;">0</h3>
                         </div>
                         <div style="width: 38px; height: 38px; border-radius: 10px; background: #fef2f2; display: flex; align-items: center; justify-content: center; color: #dc2626;">
@@ -297,7 +297,7 @@
                     </div>
                     <div style="background: white; border: 1px solid var(--att-border); border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
                         <div>
-                            <p style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Regularizations Pending</p>
+                            <p style="font-size: 0.7rem; font-weight: 700; color: var(--att-text-muted); text-transform: uppercase; margin: 0;">Regularizations Pending</p>
                             <h3 id="attKpiRegPendingCount" style="font-size: 1.5rem; font-weight: 800; color: #2563eb; margin: 2px 0 0 0;">0</h3>
                         </div>
                         <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb;">
@@ -322,12 +322,12 @@
                         
                         <div id="attCustomDateInputs" style="display: none; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <label style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted);">From:</label>
-                                <input type="date" id="attFilterStartDate" style="padding: 6px 10px; border: 1px solid var(--att-border); border-radius: 8px; font-size: 0.78rem;">
+                                <label style="font-size: 0.7rem; font-weight: 700; color: var(--att-text-muted);">From:</label>
+                                <input type="date" id="attFilterStartDate" style="padding: 6px 10px; border: 1px solid var(--att-border); border-radius: 8px; font-size: 0.8rem;">
                             </div>
                             <div style="display: flex; align-items: center; gap: 6px;">
-                                <label style="font-size: 0.72rem; font-weight: 700; color: var(--att-text-muted);">To:</label>
-                                <input type="date" id="attFilterEndDate" style="padding: 6px 10px; border: 1px solid var(--att-border); border-radius: 8px; font-size: 0.78rem;">
+                                <label style="font-size: 0.7rem; font-weight: 700; color: var(--att-text-muted);">To:</label>
+                                <input type="date" id="attFilterEndDate" style="padding: 6px 10px; border: 1px solid var(--att-border); border-radius: 8px; font-size: 0.8rem;">
                             </div>
                         </div>
                     </div>
@@ -396,10 +396,10 @@
                         <div class="att-console-title">
                             <i data-lucide="table" style="color: var(--att-primary); width: 18px; height: 18px;"></i>
                             <h3>Organization-Wide Attendance Console</h3>
-                            <span id="attConsoleTotalCount" style="font-size: 0.72rem; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 100px;">0 Records</span>
+                            <span id="attConsoleTotalCount" style="font-size: 0.7rem; font-weight: 800; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 100px;">0 Records</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; color: #059669; font-weight: 700;">
+                            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; color: #059669; font-weight: 700;">
                                 <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
                                 Live Syncing: attendance_records
                             </span>
@@ -422,7 +422,7 @@
                             </thead>
                             <tbody id="attConsoleTableBody">
                                 <tr>
-                                    <td colspan="8" style="text-align: center; padding: 3rem; color: var(--att-text-muted);">
+                                    <td colspan="8" style="text-align: center; padding: 2rem; color: var(--att-text-muted);">
                                         Syncing attendance console from Cloud Firestore...
                                     </td>
                                 </tr>
@@ -443,8 +443,8 @@
                                 <i data-lucide="user-cog" style="width: 20px; height: 20px;"></i>
                             </div>
                             <div>
-                                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--att-text-main);">Record Attendance / Manual Adjustment</h3>
-                                <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: var(--att-text-muted);">Override punch logs or regularize swipes under PRD §16 rules</p>
+                                <h3 style="margin: 0; font-size: 1.125rem; font-weight: 800; color: var(--att-text-main);">Record Attendance / Manual Adjustment</h3>
+                                <p style="margin: 2px 0 0 0; font-size: 0.7rem; color: var(--att-text-muted);">Override punch logs or regularize swipes under PRD §16 rules</p>
                             </div>
                         </div>
                         <button id="btnCloseManualAttModal" style="background: none; border: none; cursor: pointer; color: var(--att-text-muted); padding: 4px;">
@@ -542,10 +542,10 @@
                     <div class="timeline-card">
                         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                             <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn-tab active" id="tabTimeline" style="background: none; border: none; font-size: 0.95rem; font-weight: 800; color: var(--primary); border-bottom: 3px solid var(--primary); padding: 0.5rem 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;">
+                                <button class="btn-tab active" id="tabTimeline" style="background: none; border: none; font-size: 1rem; font-weight: 800; color: var(--primary); border-bottom: 3px solid var(--primary); padding: 0.5rem 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="activity" style="width: 16px; height: 16px;"></i>Timeline
                                 </button>
-                                <button class="btn-tab" id="tabSheet" style="background: none; border: none; font-size: 0.95rem; font-weight: 800; color: var(--text-muted); padding: 0.5rem 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;">
+                                <button class="btn-tab" id="tabSheet" style="background: none; border: none; font-size: 1rem; font-weight: 800; color: var(--text-muted); padding: 0.5rem 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;">
                                     <i data-lucide="grid" style="width: 16px; height: 16px;"></i>Attendance Sheet
                                 </button>
                             </div>
@@ -571,7 +571,7 @@
                         </div>
 
                         <div class="attendance-timeline" id="attendanceTimeline">
-                            <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                            <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
                                 <i data-lucide="loader" class="animate-spin" style="width: 24px; height: 24px; margin-bottom: 8px;"></i>
                                 <p>Syncing attendance logs from Firebase...</p>
                             </div>
@@ -587,14 +587,14 @@
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                             <div>
-                                <h3 style="font-weight: 800; margin: 0; font-size: 1.1rem;">Regularization Queue</h3>
+                                <h3 style="font-weight: 800; margin: 0; font-size: 1.125rem;">Regularization Queue</h3>
                                 <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Real-time Firestore stream</p>
                             </div>
                             <span id="queueBadgeCount" style="padding: 3px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 800; background: #eff6ff; color: var(--primary);">0 Pending</span>
                         </div>
                         
                         <div id="regularizationQueueContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
+                            <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.875rem;">
                                 <i data-lucide="loader" class="animate-spin" style="margin-bottom: 8px;"></i>
                                 <p>Syncing regularization queue...</p>
                             </div>
@@ -609,7 +609,7 @@
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.5rem; margin-top: 2rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                             <div>
-                                <h3 style="font-weight: 800; margin: 0; font-size: 1.1rem;">Shift Settings</h3>
+                                <h3 style="font-weight: 800; margin: 0; font-size: 1.125rem;">Shift Settings</h3>
                                 <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Workforce schedules</p>
                             </div>
                             <button class="btn btn-outline" id="btnManageShifts" style="padding: 4px 10px; font-size: 0.75rem;">Manage</button>
@@ -636,7 +636,7 @@
             <!-- Widgets will be dynamically rendered by admin-app.js -->
             <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
                 <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem;"></i>
-                <p style="font-size: 0.85rem;">Loading components...</p>
+                <p style="font-size: 0.875rem;">Loading components...</p>
             </div>
         </div>
 
@@ -649,18 +649,18 @@
 
     <!-- Shift Management Modal -->
     <div id="shiftModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s;">
-        <div style="background:white; padding:2rem; border-radius:16px; width:400px; max-width:90%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                <h3 style="font-weight:800; font-size:1.2rem;">Manage Shifts</h3>
+        <div style="background:white; padding: 2rem; border-radius:16px; width: 100%; max-width: min(400px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                <h3 style="font-weight:800; font-size: 1.25rem;">Manage Shifts</h3>
                 <button id="btnCloseShiftModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted);"><i data-lucide="x"></i></button>
             </div>
             
-            <div id="modalShiftList" style="display:flex; flex-direction:column; gap:10px; margin-bottom:2rem; max-height:200px; overflow-y:auto; padding-right:8px;"></div>
+            <div id="modalShiftList" style="display:flex; flex-direction:column; gap:10px; margin-bottom: 2rem; max-height:200px; overflow-y:auto; padding-right:8px;"></div>
             
-            <div style="background:#f8fafc; padding:1.25rem; border-radius:12px; border:1px solid var(--border);">
-                <h4 style="font-size:0.85rem; font-weight:700; margin-bottom:1rem; color:var(--text-main);">Add New Shift</h4>
-                <input type="text" id="newShiftName" placeholder="Shift Name (e.g., Night Shift)" style="width:100%; padding:10px 12px; margin-bottom:10px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
-                <input type="text" id="newShiftTime" placeholder="Time (e.g., 22:00 - 06:00)" style="width:100%; padding:10px 12px; margin-bottom:12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+            <div style="background:#f8fafc; padding: 1.25rem; border-radius:12px; border:1px solid var(--border);">
+                <h4 style="font-size: 0.875rem; font-weight:700; margin-bottom: 1rem; color:var(--text-main);">Add New Shift</h4>
+                <input type="text" id="newShiftName" placeholder="Shift Name (e.g., Night Shift)" style="width:100%; padding:10px 12px; margin-bottom:10px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit;">
+                <input type="text" id="newShiftTime" placeholder="Time (e.g., 22:00 - 06:00)" style="width:100%; padding:10px 12px; margin-bottom:12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit;">
                 <button id="btnSaveNewShift" class="btn btn-primary" style="width:100%; justify-content:center;">Add Shift</button>
             </div>
         </div>
@@ -668,16 +668,16 @@
 
     <!-- Filters Modal -->
     <div id="filterModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s;">
-        <div style="background:white; padding:2rem; border-radius:16px; width:400px; max-width:90%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                <h3 style="font-weight:800; font-size:1.2rem;">Filter Timeline</h3>
+        <div style="background:white; padding: 2rem; border-radius:16px; width: 100%; max-width: min(400px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                <h3 style="font-weight:800; font-size: 1.25rem;">Filter Timeline</h3>
                 <button id="btnCloseFilterModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted);"><i data-lucide="x"></i></button>
             </div>
             
-            <div style="display:flex; flex-direction:column; gap:15px; margin-bottom:2rem;">
+            <div style="display:flex; flex-direction:column; gap:15px; margin-bottom: 2rem;">
                 <div>
-                    <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:5px; display:block;">Status</label>
-                    <select id="filterStatus" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem;">
+                    <label style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:5px; display:block;">Status</label>
+                    <select id="filterStatus" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem;">
                         <option value="All">All Statuses</option>
                         <option value="On-Time">On-Time</option>
                         <option value="Late">Late</option>
@@ -685,8 +685,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:5px; display:block;">Type</label>
-                    <select id="filterType" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem;">
+                    <label style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:5px; display:block;">Type</label>
+                    <select id="filterType" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem;">
                         <option value="All">All Types</option>
                         <option value="Office">Office</option>
                         <option value="WFH">WFH</option>
@@ -694,8 +694,8 @@
                     </select>
                 </div>
                 <div>
-                    <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:5px; display:block;">Time Period</label>
-                    <select id="filterPeriod" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem;">
+                    <label style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:5px; display:block;">Time Period</label>
+                    <select id="filterPeriod" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem;">
                         <option value="today" selected>Today</option>
                         <option value="week">This Week (7 Days)</option>
                         <option value="month">This Month</option>
@@ -705,12 +705,12 @@
                     </select>
                     <div id="customDateRangeContainer" style="display:none; gap:10px; margin-top:10px;">
                         <div style="flex:1;">
-                            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted); margin-bottom:3px; display:block;">Start Date</label>
-                            <input type="date" id="filterStartDate" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; font-family:inherit; background: white;">
+                            <label style="font-size: 0.7rem; font-weight:700; color:var(--text-muted); margin-bottom:3px; display:block;">Start Date</label>
+                            <input type="date" id="filterStartDate" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size: 0.8rem; font-family:inherit; background: white;">
                         </div>
                         <div style="flex:1;">
-                            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted); margin-bottom:3px; display:block;">End Date</label>
-                            <input type="date" id="filterEndDate" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; font-family:inherit; background: white;">
+                            <label style="font-size: 0.7rem; font-weight:700; color:var(--text-muted); margin-bottom:3px; display:block;">End Date</label>
+                            <input type="date" id="filterEndDate" style="width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px; font-size: 0.8rem; font-family:inherit; background: white;">
                         </div>
                     </div>
                 </div>
@@ -725,23 +725,23 @@
 
     <!-- View All Regularizations Modal -->
     <div id="allRegModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s;">
-        <div style="background:white; padding:2rem; border-radius:20px; width:740px; max-width:92%; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:1rem;">
+        <div style="background:white; padding: 2rem; border-radius:20px; width: 100%; max-width: min(740px, 92%); max-height:88vh; display:flex; flex-direction:column; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; border-bottom:1px solid var(--border); padding-bottom: 1rem;">
                 <div>
-                    <h3 style="font-weight:800; font-size:1.3rem; margin:0;">Regularization Audit & Requests</h3>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Live records from Firebase Firestore collection <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">attendance_regularizations</code></p>
+                    <h3 style="font-weight:800; font-size: 1.25rem; margin:0;">Regularization Audit & Requests</h3>
+                    <p style="font-size: 0.75rem; color:var(--text-muted); margin-top:2px;">Live records from Firebase Firestore collection <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px;">attendance_regularizations</code></p>
                 </div>
                 <button id="btnCloseAllRegModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:6px; border-radius:8px;"><i data-lucide="x"></i></button>
             </div>
 
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:1rem; flex-wrap:wrap;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom: 1rem; flex-wrap:wrap;">
                 <div style="display:flex; gap:6px;" id="regTabGroup">
-                    <button class="btn-filter-reg active" data-tab="All" style="padding:6px 14px; border-radius:8px; border:1px solid var(--primary); background:var(--primary); color:white; font-size:0.75rem; font-weight:700; cursor:pointer;">All</button>
-                    <button class="btn-filter-reg" data-tab="Pending" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size:0.75rem; font-weight:700; cursor:pointer;">Pending</button>
-                    <button class="btn-filter-reg" data-tab="Approved" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size:0.75rem; font-weight:700; cursor:pointer;">Approved</button>
-                    <button class="btn-filter-reg" data-tab="Rejected" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size:0.75rem; font-weight:700; cursor:pointer;">Rejected</button>
+                    <button class="btn-filter-reg active" data-tab="All" style="padding:6px 14px; border-radius:8px; border:1px solid var(--primary); background:var(--primary); color:white; font-size: 0.75rem; font-weight:700; cursor:pointer;">All</button>
+                    <button class="btn-filter-reg" data-tab="Pending" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size: 0.75rem; font-weight:700; cursor:pointer;">Pending</button>
+                    <button class="btn-filter-reg" data-tab="Approved" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size: 0.75rem; font-weight:700; cursor:pointer;">Approved</button>
+                    <button class="btn-filter-reg" data-tab="Rejected" style="padding:6px 14px; border-radius:8px; border:1px solid var(--border); background:white; color:var(--text-muted); font-size: 0.75rem; font-weight:700; cursor:pointer;">Rejected</button>
                 </div>
-                <input type="text" id="regModalSearch" placeholder="Search employee or reason..." style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.8rem; font-family:inherit; min-width:220px;">
+                <input type="text" id="regModalSearch" placeholder="Search employee or reason..." style="padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.8rem; font-family:inherit; min-width:220px;">
             </div>
 
             <div id="allRegListContainer" style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:10px; padding-right:6px;">
@@ -752,30 +752,30 @@
 
     <!-- Raise Regularization Modal -->
     <div id="raiseRegModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s;">
-        <div style="background:white; padding:2rem; border-radius:20px; width:480px; max-width:92%; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+        <div style="background:white; padding: 2rem; border-radius:20px; width: 100%; max-width: min(480px, 92%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.25rem;">
                 <div>
-                    <h3 style="font-weight:800; font-size:1.2rem; margin:0;">New Regularization Request</h3>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Submit punch correction directly to backend Firebase</p>
+                    <h3 style="font-weight:800; font-size: 1.25rem; margin:0;">New Regularization Request</h3>
+                    <p style="font-size: 0.75rem; color:var(--text-muted); margin-top:2px;">Submit punch correction directly to backend Firebase</p>
                 </div>
                 <button id="btnCloseRaiseRegModal" style="background:none; border:none; cursor:pointer; color:var(--text-muted);"><i data-lucide="x"></i></button>
             </div>
 
             <form id="raiseRegForm" style="display:flex; flex-direction:column; gap:12px;">
                 <div>
-                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Employee</label>
-                    <select id="regEmployeeSelect" required style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; background:white;">
+                    <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Employee</label>
+                    <select id="regEmployeeSelect" required style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; background:white;">
                         <option value="">Loading workforce...</option>
                     </select>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <div>
-                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Date</label>
-                        <input type="date" id="regDate" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+                        <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Date</label>
+                        <input type="date" id="regDate" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit;">
                     </div>
                     <div>
-                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Correction Type</label>
-                        <select id="regType" required style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; background:white;">
+                        <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Correction Type</label>
+                        <select id="regType" required style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; background:white;">
                             <option value="Missing Punch Regularization">Missing Punch</option>
                             <option value="Late Login Regularization">Late Login</option>
                             <option value="Short Hours Correction">Short Hours Correction</option>
@@ -785,17 +785,17 @@
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                     <div>
-                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Corrected Clock-In</label>
-                        <input type="text" id="regInTime" value="09:00 AM" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+                        <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Corrected Clock-In</label>
+                        <input type="text" id="regInTime" value="09:00 AM" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit;">
                     </div>
                     <div>
-                        <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Corrected Clock-Out</label>
-                        <input type="text" id="regOutTime" value="06:00 PM" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+                        <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Corrected Clock-Out</label>
+                        <input type="text" id="regOutTime" value="06:00 PM" required style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit;">
                     </div>
                 </div>
                 <div>
-                    <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Reason / Explanation</label>
-                    <textarea id="regReason" rows="3" required placeholder="Reason for missing/late punch..." style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; resize:none;"></textarea>
+                    <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Reason / Explanation</label>
+                    <textarea id="regReason" rows="3" required placeholder="Reason for missing/late punch..." style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; resize:none;"></textarea>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:4px;">
                     <i data-lucide="send"></i> Submit to Firebase
@@ -806,10 +806,10 @@
 
     <!-- Reject Reason Prompt Modal -->
     <div id="rejectModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.2s;">
-        <div style="background:white; padding:1.75rem; border-radius:16px; width:400px; max-width:90%; box-shadow:0 20px 25px -5px rgba(0,0,0,0.25);">
-            <h3 style="font-weight:800; font-size:1.1rem; color:#b91c1c; margin-bottom:8px;">Reject Regularization</h3>
-            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Specify why this regularization request is being rejected:</p>
-            <textarea id="rejectReasonInput" rows="3" placeholder="e.g., Ineligible date / Exceeded monthly regularization quota" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit; resize:none; margin-bottom:1rem;"></textarea>
+        <div style="background:white; padding: 1.5rem; border-radius:16px; width: 100%; max-width: min(400px, 90%); box-shadow:0 20px 25px -5px rgba(0,0,0,0.25);">
+            <h3 style="font-weight:800; font-size: 1.125rem; color:#b91c1c; margin-bottom:8px;">Reject Regularization</h3>
+            <p style="font-size: 0.8rem; color:var(--text-muted); margin-bottom: 1rem;">Specify why this regularization request is being rejected:</p>
+            <textarea id="rejectReasonInput" rows="3" placeholder="e.g., Ineligible date / Exceeded monthly regularization quota" style="width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; resize:none; margin-bottom: 1rem;"></textarea>
             <div style="display:flex; gap:10px; justify-content:flex-end;">
                 <button id="btnCancelReject" class="btn btn-outline" style="padding:8px 16px;">Cancel</button>
                 <button id="btnConfirmReject" class="btn btn-primary" style="background:#ef4444; border-color:#ef4444; padding:8px 16px;">Reject Request</button>
@@ -905,10 +905,10 @@
 
             if (!logs || logs.length === 0) {
                 timelineContainer.innerHTML = `
-                    <div style="text-align:center; padding:3rem 1.5rem; color:var(--text-muted);">
+                    <div style="text-align:center; padding: 2rem 1.5rem; color:var(--text-muted);">
                         <i data-lucide="clock" style="width:36px; height:36px; margin:0 auto 12px; opacity:0.4;"></i>
-                        <p style="font-weight:700; font-size:0.95rem; margin-bottom:4px;">No Attendance Punches Found</p>
-                        <p style="font-size:0.8rem;">No punches recorded for the selected filter (${esc(currentFilters.period)}). Change filters or select 'All-Time'.</p>
+                        <p style="font-weight:700; font-size: 1rem; margin-bottom:4px;">No Attendance Punches Found</p>
+                        <p style="font-size: 0.8rem;">No punches recorded for the selected filter (${esc(currentFilters.period)}). Change filters or select 'All-Time'.</p>
                     </div>
                 `;
                 if (window.lucide) lucide.createIcons();
@@ -935,9 +935,9 @@
                     <span class="time-badge" style="color: var(--text-muted);">${outStr}</span>
                     <div>
                         <div style="display:flex; align-items:center; gap:8px;">
-                            <h4 style="font-size: 0.9rem; font-weight: 700; margin:0;">${esc(log.userName || log.name || 'Employee')}</h4>
-                            ${log.regularized ? '<span style="font-size:0.62rem; font-weight:800; background:#ecfdf5; color:#059669; padding:2px 6px; border-radius:6px; border:1px solid #a7f3d0;">REGULARIZED</span>' : ''}
-                            ${log.isManualOverride ? '<span style="font-size:0.62rem; font-weight:800; background:#eff6ff; color:#2563eb; padding:2px 6px; border-radius:6px; border:1px solid #bfdbfe;">ADJUSTED</span>' : ''}
+                            <h4 style="font-size: 0.875rem; font-weight: 700; margin:0;">${esc(log.userName || log.name || 'Employee')}</h4>
+                            ${log.regularized ? '<span style="font-size: 0.7rem; font-weight:800; background:#ecfdf5; color:#059669; padding:2px 6px; border-radius:6px; border:1px solid #a7f3d0;">REGULARIZED</span>' : ''}
+                            ${log.isManualOverride ? '<span style="font-size: 0.7rem; font-weight:800; background:#eff6ff; color:#2563eb; padding:2px 6px; border-radius:6px; border:1px solid #bfdbfe;">ADJUSTED</span>' : ''}
                         </div>
                         <p style="font-size: 0.75rem; color: var(--text-muted); margin-top:2px;">${esc(log.department || 'General')} • ${esc(log.type || 'Office')} • ${esc(log.date || '')}</p>
                     </div>
@@ -963,7 +963,7 @@
 
             if (!requests || requests.length === 0) {
                 queueContainer.innerHTML = `
-                    <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                    <div style="text-align: center; padding: 2rem 1rem; color: var(--text-muted); font-size: 0.875rem;">
                         <i data-lucide="check-circle-2" style="width: 28px; height: 28px; margin: 0 auto 8px; color: #10b981;"></i>
                         <p style="font-weight: 700; margin-bottom: 2px;">Queue is Clear</p>
                         <p style="font-size: 0.75rem;">No pending attendance regularizations in Firebase.</p>
@@ -982,10 +982,10 @@
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
-                            <h4 style="font-size: 0.85rem; font-weight: 700; margin:0;">${esc(req.employeeName || 'Employee')}</h4>
+                            <h4 style="font-size: 0.875rem; font-weight: 700; margin:0;">${esc(req.employeeName || 'Employee')}</h4>
                             <p style="font-size: 0.7rem; color: var(--text-muted); margin-top:2px;">${esc(req.date)} • ${esc(req.type)}</p>
                         </div>
-                        <span class="badge" style="background: ${isBreach ? '#fef2f2' : 'var(--bg-soft)'}; color: ${isBreach ? '#ef4444' : 'var(--text-muted)'}; font-size: 0.6rem; font-weight:800; padding:3px 6px; border-radius:6px; border:1px solid ${isBreach ? '#fecaca' : 'var(--border)'};">
+                        <span class="badge" style="background: ${isBreach ? '#fef2f2' : 'var(--bg-soft)'}; color: ${isBreach ? '#ef4444' : 'var(--text-muted)'}; font-size: 0.7rem; font-weight:800; padding:3px 6px; border-radius:6px; border:1px solid ${isBreach ? '#fecaca' : 'var(--border)'};">
                             ${isBreach ? 'SLA BREACH (>48h)' : 'Pending'}
                         </span>
                     </div>
@@ -1047,10 +1047,10 @@
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding:3rem; color:var(--text-muted);">
+                    <div style="text-align:center; padding: 2rem; color:var(--text-muted);">
                         <i data-lucide="search" style="width:32px; height:32px; margin:0 auto 8px; opacity:0.4;"></i>
                         <p style="font-weight:700;">No records found</p>
-                        <p style="font-size:0.75rem;">No regularizations matching "${esc(activeRegModalTab)}" criteria.</p>
+                        <p style="font-size: 0.75rem;">No regularizations matching "${esc(activeRegModalTab)}" criteria.</p>
                     </div>
                 `;
                 if (window.lucide) lucide.createIcons();
@@ -1060,7 +1060,7 @@
             container.innerHTML = '';
             filtered.forEach(req => {
                 const item = document.createElement('div');
-                item.style = "background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:1rem; display:flex; flex-direction:column; gap:8px;";
+                item.style = "background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding: 1rem; display:flex; flex-direction:column; gap:8px;";
                 
                 let statusBg = '#eff6ff';
                 let statusColor = 'var(--primary)';
@@ -1071,27 +1071,27 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
                         <div>
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <h4 style="font-size:0.9rem; font-weight:700; margin:0;">${esc(req.employeeName || 'Employee')}</h4>
-                                <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">${esc(req.department || 'General')}</span>
+                                <h4 style="font-size: 0.875rem; font-weight:700; margin:0;">${esc(req.employeeName || 'Employee')}</h4>
+                                <span style="font-size: 0.7rem; color:var(--text-muted); font-weight:600;">${esc(req.department || 'General')}</span>
                             </div>
-                            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                            <p style="font-size: 0.75rem; color:var(--text-muted); margin-top:2px;">
                                 <strong>Date:</strong> ${esc(req.date)} • <strong>Type:</strong> ${esc(req.type)}
                             </p>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            ${req.isAfterThreshold && req.status === 'Pending' ? '<span style="font-size:0.62rem; font-weight:800; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; padding:2px 6px; border-radius:6px;">SLA BREACH</span>' : ''}
-                            <span style="font-size:0.7rem; font-weight:800; background:${statusBg}; color:${statusColor}; padding:3px 8px; border-radius:6px;">${esc(req.status || 'Pending')}</span>
+                            ${req.isAfterThreshold && req.status === 'Pending' ? '<span style="font-size: 0.7rem; font-weight:800; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; padding:2px 6px; border-radius:6px;">SLA BREACH</span>' : ''}
+                            <span style="font-size: 0.7rem; font-weight:800; background:${statusBg}; color:${statusColor}; padding:3px 8px; border-radius:6px;">${esc(req.status || 'Pending')}</span>
                         </div>
                     </div>
-                    <div style="font-size:0.78rem; background:white; padding:8px 12px; border-radius:8px; border:1px solid var(--border); color:var(--text-main);">
+                    <div style="font-size: 0.8rem; background:white; padding:8px 12px; border-radius:8px; border:1px solid var(--border); color:var(--text-main);">
                         "${esc(req.reason || 'No explanation')}"
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.7rem; color:var(--text-muted);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size: 0.7rem; color:var(--text-muted);">
                         <span>Requested Time: <strong>${esc(req.correctedTime || '--:--')}</strong> to <strong>${esc(req.correctedPunchOut || '--:--')}</strong></span>
                         ${req.status === 'Pending' ? `
                             <div style="display:flex; gap:6px;">
-                                <button class="btn btn-outline btn-reject-modal" data-id="${esc(req.id)}" style="padding:4px 10px; font-size:0.7rem; color:#ef4444;">Reject</button>
-                                <button class="btn btn-primary btn-approve-modal" data-id="${esc(req.id)}" style="padding:4px 10px; font-size:0.7rem;">Approve</button>
+                                <button class="btn btn-outline btn-reject-modal" data-id="${esc(req.id)}" style="padding:4px 10px; font-size: 0.7rem; color:#ef4444;">Reject</button>
+                                <button class="btn btn-primary btn-approve-modal" data-id="${esc(req.id)}" style="padding:4px 10px; font-size: 0.7rem;">Approve</button>
                             </div>
                         ` : `
                             <span>${req.status === 'Approved' ? 'Approved by ' + esc(employeeName(req.approverId) || 'Admin') : 'Rejection: ' + esc(req.rejectionComment || 'Rejected')}</span>
@@ -1139,14 +1139,14 @@
             shifts.forEach(shift => {
                 mainHtml += `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border);">
-                        <span style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${esc(shift.name)}</span>
+                        <span style="font-size: 0.875rem; font-weight: 700; color:var(--text-main);">${esc(shift.name)}</span>
                         <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; font-family: monospace;">${esc(shift.time)}</span>
                     </div>
                 `;
                 modalHtml += `
                     <div style="display: flex; justify-content: space-between; align-items: center; background:#f8fafc; padding:12px; border-radius:10px; border:1px solid var(--border);">
                         <div>
-                            <div style="font-size: 0.85rem; font-weight: 700; color:var(--text-main);">${esc(shift.name)}</div>
+                            <div style="font-size: 0.875rem; font-weight: 700; color:var(--text-main);">${esc(shift.name)}</div>
                             <div style="font-size: 0.75rem; color: var(--text-muted);">${esc(shift.time)}${shift.isDefault ? ' · built-in' : ''}</div>
                         </div>
                         ${shift.isDefault ? '' : `
@@ -1157,9 +1157,9 @@
                 `;
             });
 
-            container.innerHTML = mainHtml || '<p style="text-align:center; color:var(--text-muted); font-size:0.8rem;">No shifts loaded.</p>';
+            container.innerHTML = mainHtml || '<p style="text-align:center; color:var(--text-muted); font-size: 0.8rem;">No shifts loaded.</p>';
             if (modalContainer) {
-                modalContainer.innerHTML = modalHtml || '<p style="text-align:center; color:var(--text-muted); font-size:0.8rem;">No custom shifts configured.</p>';
+                modalContainer.innerHTML = modalHtml || '<p style="text-align:center; color:var(--text-muted); font-size: 0.8rem;">No custom shifts configured.</p>';
             }
             if (window.lucide) lucide.createIcons();
 
@@ -1230,7 +1230,7 @@
             if (!container) return;
 
             container.innerHTML = `
-                <div style="padding: 3rem; text-align: center; color: var(--text-muted);">
+                <div style="padding: 2rem; text-align: center; color: var(--text-muted);">
                     <i data-lucide="loader" class="animate-spin" style="margin-bottom: 1rem; width: 32px; height: 32px;"></i>
                     <p style="font-weight: 700;">Generating Attendance Sheet from Firebase...</p>
                 </div>
@@ -1292,22 +1292,22 @@
                         const dStr = d.getDate();
                         const wName = d.toLocaleDateString('en-US', { weekday: 'short' }).substring(0, 2);
                         html += `<th style="padding: 12px 6px; text-align: center; font-weight: 800; color: var(--text-main); min-width: 44px; border-left: 1px solid #f1f5f9;">
-                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">${wName}</div>
-                            <div style="font-size: 0.85rem; margin-top: 2px;">${dStr}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">${wName}</div>
+                            <div style="font-size: 0.875rem; margin-top: 2px;">${dStr}</div>
                         </th>`;
                     });
                 }
                 html += `</tr></thead><tbody>`;
 
                 if (employees.length === 0) {
-                    html += `<tr><td colspan="${dates.length + 1}" style="padding: 3rem; text-align: center; color: var(--text-muted);">No employees found in directory.</td></tr>`;
+                    html += `<tr><td colspan="${dates.length + 1}" style="padding: 2rem; text-align: center; color: var(--text-muted);">No employees found in directory.</td></tr>`;
                 } else {
                     employees.forEach(emp => {
                         const empUid = emp.uid || emp.id;
                         html += `<tr style="border-bottom: 1px solid #f1f5f9;">`;
                         html += `<td style="padding: 12px 16px; font-weight: 700; color: var(--text-main); position: sticky; left: 0; background: white; z-index: 9; border-right: 1px solid var(--border); box-shadow: 4px 0 8px -4px rgba(0,0,0,0.05);">
                             <div>${esc(emp.name || 'Employee')}</div>
-                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-top: 2px;">${esc(emp.department || 'General')}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-top: 2px;">${esc(emp.department || 'General')}</div>
                         </td>`;
 
                         if (scale === 'yearly') {
@@ -1367,7 +1367,7 @@
                                 } else if (isHol) {
                                     cellHtml = `<div class="sheet-cell-badge" style="background: #fef9c3; color: #ca8a04; border: 1.5px solid #eab308;" title="Public Holiday">H</div>`;
                                 } else if (isWknd) {
-                                    cellHtml = `<div class="sheet-cell-badge" style="background: #f1f5f9; color: #94a3b8; border: 1.5px solid #e2e8f0; font-size: 0.65rem;" title="Weekly Off">OFF</div>`;
+                                    cellHtml = `<div class="sheet-cell-badge" style="background: #f1f5f9; color: #94a3b8; border: 1.5px solid #e2e8f0; font-size: 0.7rem;" title="Weekly Off">OFF</div>`;
                                 } else {
                                     cellHtml = `<div class="sheet-cell-badge" style="background: #fef2f2; color: #ef4444; border: 1.5px solid #fecaca;" title="Absent">A</div>`;
                                 }
@@ -1383,7 +1383,7 @@
                 container.innerHTML = html;
             } catch (err) {
                 console.error("[ATTENDANCE] Sheet generator error:", err);
-                container.innerHTML = `<div style="padding:3rem; text-align:center; color:var(--danger);">Error generating sheet: ${esc(err.message)}</div>`;
+                container.innerHTML = `<div style="padding: 2rem; text-align:center; color:var(--danger);">Error generating sheet: ${esc(err.message)}</div>`;
             }
         }
 
@@ -1486,7 +1486,7 @@
             if (!notice) {
                 notice = document.createElement('div');
                 notice.id = 'attSaveNotice';
-                notice.style.cssText = 'margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;';
+                notice.style.cssText = 'margin: 0 0 1.25rem; padding: 12px 16px; border-radius: 12px; font-size: 0.875rem; font-weight: 600;';
                 const header = document.querySelector('.main-content > header');
                 if (header) header.after(notice); else document.querySelector('.main-content')?.prepend(notice);
             }
@@ -1823,7 +1823,7 @@
             #customAppsModal .modal {
                 background: #ffffff !important;
                 color: #0f172a !important;
-                padding: 2.5rem;
+                padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
@@ -1868,7 +1868,7 @@
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
-                font-size: 0.85rem;
+                font-size: 0.875rem;
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
@@ -1890,7 +1890,7 @@
                 transition: 0.2s;
                 text-align: center;
                 width: 100%;
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {
