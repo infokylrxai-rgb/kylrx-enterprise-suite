@@ -660,7 +660,7 @@
                         Choose an action and recipients in <strong>Tab 1 (Trigger Configuration)</strong>, then start the job to follow its batches here.
                     </p>
                     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="switchToTab('trigger')" style="background: white; border: 1.5px solid var(--k-border); color: var(--k-text); padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+                        <button onclick="switchToTab('trigger')" style="background: var(--k-surface); border: 1.5px solid var(--k-border); color: var(--k-text); padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
                             👈 Go to Trigger Configuration
                         </button>
                     </div>
@@ -803,7 +803,7 @@
                 }
 
                 return `
-                    <div style="background: white; border: 1.5px solid ${bFail > 0 ? 'var(--k-danger-border)' : 'var(--k-border)'}; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="background: var(--k-surface); border: 1.5px solid ${bFail > 0 ? 'var(--k-danger-border)' : 'var(--k-border)'}; border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
                                 <span style="font-size: 0.72rem; font-weight: 800; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 6px;">
@@ -1043,7 +1043,7 @@
             const hashSnippet = l.integrityHash ? l.integrityHash.slice(0, 16) + '...' : 'SHA-256';
 
             return `
-                <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px;">
+                <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <span style="font-size: 0.75rem; font-weight: 800; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 6px;">${escapeHtml(l.action)}</span>
@@ -1406,7 +1406,7 @@
                                           'background: #fef3c7; color: #b45309; border: 1px solid #fde68a;';
 
                         return `
-                            <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                            <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
                                 <div>
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                         <span style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; ${badgeColor}">${c.status}</span>

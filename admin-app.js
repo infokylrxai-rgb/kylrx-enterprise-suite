@@ -460,7 +460,7 @@ function populateWidgetContent(id) {
                         return `
                         <div style="background: var(--bg-soft); padding: 1.5rem; border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1rem; transition: 0.3s; cursor: pointer;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
                             <div style="display: flex; align-items: center; gap: 15px;">
-                                <div style="width: 44px; height: 44px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid var(--border);">
+                                <div style="width: 44px; height: 44px; background: var(--k-surface); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid var(--border);">
                                     <i data-lucide="${icon}"></i>
                                 </div>
                                 <div>
@@ -1587,7 +1587,7 @@ function renderEmployeeCards(employees) {
         const roleLabel = (emp.role || 'employee').toLowerCase() === 'hradmin' ? 'HR ADMIN' : (emp.role || 'employee').toUpperCase();
 
         return `
-            <div class="employee-card" style="background: white; border: 1px solid var(--border); border-radius: 18px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease; ${isTrashed ? 'opacity: 0.65; background: rgba(239, 68, 68, 0.02);' : ''}" onmouseenter="this.style.boxShadow='var(--shadow-md)'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.boxShadow='var(--shadow-sm)'; this.style.transform='none';">
+            <div class="employee-card" style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem; box-shadow: var(--shadow-sm); transition: transform 0.2s ease, box-shadow 0.2s ease; ${isTrashed ? 'opacity: 0.65; background: rgba(239, 68, 68, 0.02);' : ''}" onmouseenter="this.style.boxShadow='var(--shadow-md)'; this.style.transform='translateY(-2px)';" onmouseleave="this.style.boxShadow='var(--shadow-sm)'; this.style.transform='none';">
                 
                 <!-- Card Header -->
                 <div>

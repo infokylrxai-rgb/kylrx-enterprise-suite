@@ -143,12 +143,12 @@
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; position: relative; }
         .header-right { display: flex; align-items: center; gap: 1.5rem; }
         .header-actions { display: flex; gap: 0.75rem; }
-        .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: white; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; position: relative; }
+        .icon-btn { width: 44px; height: 44px; border-radius: 14px; background: var(--k-surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; transition: 0.3s; position: relative; }
         .icon-btn:hover { background: var(--bg); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .icon-badge { position: absolute; top: -4px; right: -4px; width: 18px; height: 18px; background: var(--k-danger); color: white; border-radius: 50%; font-size: 0.7rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
 
         /* Notification Dropdown */
-        .notif-dropdown { position: absolute; top: 100%; right: 0; width: 100%; max-width: 320px; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 100; margin-top: 12px; animation: dropdownFade 0.3s ease; }
+        .notif-dropdown { position: absolute; top: 100%; right: 0; width: 100%; max-width: 320px; background: var(--k-surface); border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 100; margin-top: 12px; animation: dropdownFade 0.3s ease; }
         .notif-dropdown.active { display: flex; }
         .notif-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .notif-title { font-size: 0.875rem; font-weight: 800; color: var(--text-main); }
@@ -237,7 +237,7 @@
         /* Task List */
         .task-item { display: flex; align-items: center; gap: 16px; padding: 1rem; background: var(--bg); border-radius: 14px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
         .task-item:hover { border-color: var(--primary); transform: translateX(4px); }
-        .task-icon { width: 40px; height: 40px; border-radius: 10px; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+        .task-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--k-surface); color: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
         .task-content { flex: 1; }
         .task-name { font-size: 0.875rem; font-weight: 700; margin-bottom: 2px; }
         .task-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
@@ -246,7 +246,7 @@
         /* Quick Actions */
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .action-card {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             padding: 1.5rem;
             border-radius: 16px;
@@ -271,7 +271,7 @@
         }
         .modal-overlay-status.active { display: flex; }
         .status-modal {
-            background: white; padding: 2rem; border-radius: 32px;
+            background: var(--k-surface); padding: 2rem; border-radius: 32px;
             width: 90%; max-width: 400px; text-align: center;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
             border: 1px solid var(--border); transform: scale(0.9);
@@ -362,7 +362,7 @@
 <body>
     <!-- Onboarding Flow Modal Overlay -->
     <div id="onboardingModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div style="background: white; width: 90%; max-width: 1200px; height: 85vh; border-radius: 24px; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+        <div style="background: var(--k-surface); width: 90%; max-width: 1200px; height: 85vh; border-radius: 24px; display: grid; grid-template-columns: 2fr 1fr; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
             
             <!-- Document View Area -->
             <div style="background: var(--k-subtle); padding: 2rem; display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100%; max-height: 100%; overflow: hidden;">
@@ -373,7 +373,7 @@
                     </div>
                 </div>
                 
-                <div style="flex: 1; background: white; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+                <div style="flex: 1; background: var(--k-surface); border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
                     <i data-lucide="file-text" style="width: 64px; height: 64px; color: var(--primary); margin-bottom: 1rem;"></i>
                     <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;" id="obDocTitle">Employee_Handbook_2026.pdf</h3>
                     <p style="color: var(--text-muted); max-width: 400px; font-size: 0.875rem; margin-bottom: 2rem;">Please review the company policies, benefits, and IT compliance guidelines thoroughly. Acknowledge once completed.</p>
@@ -382,7 +382,7 @@
             </div>
 
             <!-- Chat Request Area -->
-            <div style="background: white; display: flex; flex-direction: column; position: relative; height: 100%; max-height: 100%; overflow: hidden;">
+            <div style="background: var(--k-surface); display: flex; flex-direction: column; position: relative; height: 100%; max-height: 100%; overflow: hidden;">
                 <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--primary-light);">
                     <h3 style="font-size: 1.125rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="message-square"></i> Support Chat
@@ -404,7 +404,7 @@
                     <i data-lucide="arrow-down" size="18"></i>
                 </button>
 
-                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: white;">
+                <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: var(--k-surface);">
                     <div style="display: flex; gap: 8px; margin-bottom: 12px;">
                         <button style="flex: 1; background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'What is the leave policy?'; sendObChat();">Ask AI</button>
                         <button style="flex: 1; background: #fdf2f8; color: #ec4899; border: 1px solid #fbcfe8; padding: 6px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer;" onclick="document.getElementById('chatInputOb').value = 'Connect to HR please.'; sendObChat();">Request HR</button>
@@ -421,11 +421,11 @@
 
     <!-- HR Message Hub Modal (Dual Pane Refactor) -->
     <div id="hrMessageModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
-        <div style="background: white; width: 95%; max-width: 900px; height: 650px; border-radius: 32px; display: flex; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalFadeIn 0.3s ease;">
+        <div style="background: var(--k-surface); width: 95%; max-width: 900px; height: 650px; border-radius: 32px; display: flex; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border); animation: modalFadeIn 0.3s ease;">
             
             <!-- Left Pane: Communication Channels -->
             <div style="width: 280px; background: var(--k-subtle); border-right: 1px solid var(--border); display: flex; flex-direction: column;">
-                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: white;">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--k-surface);">
                     <h2 style="font-size: 1.125rem; font-weight: 800; color: var(--text-main);">Messages</h2>
                     <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Organizational Sync</p>
                 </div>
@@ -463,7 +463,7 @@
             </div>
 
             <!-- Right Pane: Active Messaging Suite -->
-            <div style="flex: 1; display: flex; flex-direction: column; background: white; position: relative;">
+            <div style="flex: 1; display: flex; flex-direction: column; background: var(--k-surface); position: relative;">
                 <!-- Header -->
                 <div style="padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -478,7 +478,7 @@
 
                 <!-- Chat Area -->
                 <div style="flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; background: var(--bg); scroll-behavior: smooth;" id="hrChatArea" onscroll="window.handleChatScrollHr && window.handleChatScrollHr()">
-                    <div style="align-self: flex-start; background: white; padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid var(--border); max-width: 85%; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div style="align-self: flex-start; background: var(--k-surface); padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px; font-size: 0.875rem; border: 1px solid var(--border); max-width: 85%; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                         <div style="font-size: 0.7rem; font-weight: 800; color: var(--primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">SYSTEM ASSISTANT</div>
                         Hello! I'm your HR assistant. How can I help you today?
                     </div>
@@ -492,7 +492,7 @@
                 </button>
 
                 <!-- Input Area -->
-                <div style="padding: 1.5rem 2rem; border-top: 1px solid var(--border); background: white;">
+                <div style="padding: 1.5rem 2rem; border-top: 1px solid var(--border); background: var(--k-surface);">
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <input type="file" id="msgAttachmentInput" style="display: none;" onchange="handleMessageAttachment(this)">
                         <button onclick="document.getElementById('msgAttachmentInput').click()" style="background: var(--bg); border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted);"><i data-lucide="plus" size="20"></i></button>
@@ -1788,7 +1788,7 @@
                 area.innerHTML = '';
 
                 if (msgs.length === 0) {
-                    area.innerHTML = '<div style="align-self:flex-start;background:white;padding:12px 16px;border-radius:16px;border-bottom-left-radius:4px;font-size: 0.875rem;border:1px solid var(--border);max-width:85%;">'
+                    area.innerHTML = '<div style="align-self:flex-start;background:var(--k-surface);padding:12px 16px;border-radius:16px;border-bottom-left-radius:4px;font-size: 0.875rem;border:1px solid var(--border);max-width:85%;">'
                         + '<div style="font-size: 0.7rem;font-weight:800;color:var(--primary);margin-bottom:4px;text-transform:uppercase;">SYSTEM ASSISTANT</div>'
                         + 'Hello! I\'m your HR assistant. How can I help you today?</div>';
                     return;

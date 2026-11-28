@@ -307,7 +307,7 @@
 
         if (state.filteredGoals.length === 0) {
             container.innerHTML = `
-                <div style="grid-column: 1 / -1; background: white; border: 1.5px dashed var(--border, var(--k-border)); border-radius: 20px; padding: 3rem 1.5rem; text-align: center;">
+                <div style="grid-column: 1 / -1; background: var(--k-surface); border: 1.5px dashed var(--border, var(--k-border)); border-radius: 20px; padding: 3rem 1.5rem; text-align: center;">
                     <div style="width: 54px; height: 54px; border-radius: 16px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                         <i data-lucide="target" style="width: 28px; height: 28px;"></i>
                     </div>
@@ -415,7 +415,7 @@
 
                         <!-- Milestones Checklist (PRD 1.1 Measure) -->
                         ${milestones.length > 0 ? `
-                            <div style="margin-bottom: 14px; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: white;">
+                            <div style="margin-bottom: 14px; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: var(--k-surface);">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                     <span style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--k-muted);">
                                         Milestones Checklist (${completedMilestones}/${milestones.length})
@@ -442,7 +442,7 @@
 
                     <!-- Manage Actions Bar (PRD 1.1 Manage: edited, paused, completed, archived, history) -->
                     <div style="display: flex; gap: 6px; border-top: 1px solid var(--border); padding-top: 12px; flex-wrap: wrap;">
-                        <button onclick="window.openEditGoalModal('${goal.id}')" class="btn-ghost" title="Edit Goal Details" style="flex: 1; min-width: 60px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <button onclick="window.openEditGoalModal('${goal.id}')" class="btn-ghost" title="Edit Goal Details" style="flex: 1; min-width: 60px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.75rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; justify-content: center; gap: 4px;">
                             <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
                             <span>Edit</span>
                         </button>
@@ -467,11 +467,11 @@
                         ` : ''}
 
                         ${goal.status !== 'archived' ? `
-                            <button onclick="window.executeGoalAction('${goal.id}', 'archive')" class="btn-ghost" title="Archive Goal" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: white; color: var(--k-muted); display: flex; align-items: center; justify-content: center;">
+                            <button onclick="window.executeGoalAction('${goal.id}', 'archive')" class="btn-ghost" title="Archive Goal" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); color: var(--k-muted); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="archive" style="width: 14px; height: 14px;"></i>
                             </button>
                         ` : `
-                            <button onclick="window.executeGoalAction('${goal.id}', 'resume')" class="btn-ghost" title="Restore Goal" style="flex: 1; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: white; font-size: 0.75rem; font-weight: 700; color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <button onclick="window.executeGoalAction('${goal.id}', 'resume')" class="btn-ghost" title="Restore Goal" style="flex: 1; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.75rem; font-weight: 700; color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; gap: 4px;">
                                 <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
                                 <span>Restore</span>
                             </button>
@@ -536,7 +536,7 @@
 
         if (state.filteredTemplates.length === 0) {
             container.innerHTML = `
-                <div style="grid-column: 1 / -1; background: white; border: 1.5px dashed var(--border, var(--k-border)); border-radius: 20px; padding: 3rem 1.5rem; text-align: center;">
+                <div style="grid-column: 1 / -1; background: var(--k-surface); border: 1.5px dashed var(--border, var(--k-border)); border-radius: 20px; padding: 3rem 1.5rem; text-align: center;">
                     <div style="width: 54px; height: 54px; border-radius: 16px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                         <i data-lucide="layout-template" style="width: 28px; height: 28px;"></i>
                     </div>
@@ -628,11 +628,11 @@
                                 🔒 Retained for History — Unavailable for New Records
                             </div>
                             <div style="display: flex; gap: 6px;">
-                                <button onclick="window.openTemplateVersionHistoryModal('${tpl.id}')" class="btn-ghost" title="View Version Snapshots" style="flex: 1; border: 1px solid var(--border); background: white; padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <button onclick="window.openTemplateVersionHistoryModal('${tpl.id}')" class="btn-ghost" title="View Version Snapshots" style="flex: 1; border: 1px solid var(--border); background: var(--k-surface); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; justify-content: center; gap: 4px;">
                                     <i data-lucide="git-branch" style="width: 14px; height: 14px;"></i>
                                     <span>Version History (${tpl.versions?.length || 1})</span>
                                 </button>
-                                <button onclick="window.openTemplatePreviewModal('${tpl.id}')" class="btn-ghost" title="Live Preview" style="border: 1px solid var(--border); background: white; padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2);">
+                                <button onclick="window.openTemplatePreviewModal('${tpl.id}')" class="btn-ghost" title="Live Preview" style="border: 1px solid var(--border); background: var(--k-surface); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2);">
                                     Preview
                                 </button>
                             </div>
@@ -642,7 +642,7 @@
                                     <i data-lucide="play" style="width: 14px; height: 14px;"></i>
                                     <span>Use Template</span>
                                 </button>
-                                <button onclick="window.openTemplatePreviewModal('${tpl.id}')" class="btn-ghost" title="Live Preview" style="border: 1px solid var(--border); background: white; padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; gap: 4px;">
+                                <button onclick="window.openTemplatePreviewModal('${tpl.id}')" class="btn-ghost" title="Live Preview" style="border: 1px solid var(--border); background: var(--k-surface); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: flex; align-items: center; gap: 4px;">
                                     <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
                                     <span>Preview</span>
                                 </button>
@@ -1225,7 +1225,7 @@
                             Actor: <strong>${escapeHtml(entry.actor?.name || 'Manager')}</strong> (${escapeHtml(entry.actor?.role || 'Department Lead')})
                         </div>
                         ${entry.notes ? `
-                            <div style="font-size: 0.75rem; color: var(--k-text-2); background: white; border: 1px solid var(--k-border); border-radius: 8px; padding: 6px 10px; margin-top: 6px; font-style: italic;">
+                            <div style="font-size: 0.75rem; color: var(--k-text-2); background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 8px; padding: 6px 10px; margin-top: 6px; font-style: italic;">
                                 "${escapeHtml(entry.notes)}"
                             </div>
                         ` : ''}
@@ -1251,7 +1251,7 @@
         const filtered = state.templates.filter(t => moduleFilter === 'all' || t.module === moduleFilter);
 
         listContainer.innerHTML = filtered.map(t => `
-            <div style="background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: border-color 0.2s;">
+            <div style="background: var(--k-surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: border-color 0.2s;">
                 <div style="flex: 1;">
                     <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">
                         <span style="font-size: 0.65rem; font-weight: 800; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 6px;">${t.category}</span>
@@ -1387,7 +1387,7 @@
         fieldsContainer.innerHTML = (tpl.permittedFields || []).map(f => {
             const isLocked = !f.isPermittedToEdit || (tpl.lockedFields || []).includes(f.fieldKey);
             return `
-                <div style="background: ${isLocked ? 'var(--k-subtle)' : 'white'}; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px;">
+                <div style="background: ${isLocked ? 'var(--k-subtle)' : 'var(--k-surface)'}; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <span style="font-size: 0.82rem; font-weight: 800; color: var(--k-text);">${escapeHtml(f.label || f.fieldKey)}</span>
                         ${isLocked ? `
@@ -1400,7 +1400,7 @@
                             </span>
                         `}
                     </div>
-                    <input type="text" class="cust-field-val" data-key="${f.fieldKey}" value="${escapeHtml(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? 'var(--k-subtle)' : 'white'}; outline: none;">
+                    <input type="text" class="cust-field-val" data-key="${f.fieldKey}" value="${escapeHtml(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? 'var(--k-subtle)' : 'var(--k-surface)'}; outline: none;">
                     ${f.instructions ? `<div style="font-size: 0.7rem; color: var(--k-muted); margin-top: 4px;">${escapeHtml(f.instructions)}</div>` : ''}
                 </div>
             `;
@@ -1758,7 +1758,7 @@
                     <div style="background: ${isCurrent ? 'var(--k-accent-soft)' : 'var(--k-subtle)'}; border: 1.5px solid ${isCurrent ? 'var(--k-accent-border)' : 'var(--k-border)'}; border-radius: 14px; padding: 14px; position: relative;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-size: 0.85rem; font-weight: 800; color: var(--k-accent-text); background: white; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--k-accent-border);">
+                                <span style="font-size: 0.85rem; font-weight: 800; color: var(--k-accent-text); background: var(--k-surface); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--k-accent-border);">
                                     ${escapeHtml(ver.version)}
                                 </span>
                                 ${isCurrent ? '<span style="font-size: 0.65rem; font-weight: 800; background: var(--k-accent); color: white; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Active Current</span>' : ''}

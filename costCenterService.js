@@ -630,7 +630,7 @@
         const inactiveCount = costCenters.length - activeCount;
 
         container.innerHTML = `
-            <div style="background: white; border-radius: 16px; border: 1px solid var(--border, var(--k-border)); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="background: var(--k-surface); border-radius: 16px; border: 1px solid var(--border, var(--k-border)); padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0; display: flex; align-items: center; gap: 8px;">
@@ -753,7 +753,7 @@
         const current = isEdit ? getCostCenter(editCostCenterCode) : null;
 
         modal.innerHTML = `
-            <div style="background: white; width: 100%; max-width: 520px; border-radius: 20px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); position: relative;">
+            <div style="background: var(--k-surface); width: 100%; max-width: 520px; border-radius: 20px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem;">
                     <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="${isEdit ? 'edit' : 'plus-circle'}" style="color: var(--k-accent-text); width: 20px; height: 20px;"></i>

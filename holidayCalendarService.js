@@ -860,7 +860,7 @@
                         <button type="button" class="btn" id="btnAdminAddHoliday" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; background: #4f46e5; color: white; font-weight: 700; border: none; cursor: pointer; font-size: 0.85rem; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.25);">
                             + Add Holiday
                         </button>
-                        <button type="button" class="btn" id="btnAdminAddCalendar" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; background: white; color: var(--k-text); border: 1px solid var(--k-border); font-weight: 700; cursor: pointer; font-size: 0.85rem;">
+                        <button type="button" class="btn" id="btnAdminAddCalendar" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; background: var(--k-surface); color: var(--k-text); border: 1px solid var(--k-border); font-weight: 700; cursor: pointer; font-size: 0.85rem;">
                             + New Calendar
                         </button>
                     </div>
@@ -868,22 +868,22 @@
 
                 <!-- KPI Metric Cards -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Active Calendars</div>
                         <div style="font-size: 1.75rem; font-weight: 800; color: #4f46e5; margin-top: 4px;">${calendars.length}</div>
                         <div style="font-size: 0.72rem; color: var(--k-success-text); font-weight: 600; margin-top: 2px;">Multi-location sets mapped</div>
                     </div>
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Total Annual Holidays</div>
                         <div style="font-size: 1.75rem; font-weight: 800; color: var(--k-text); margin-top: 4px;">${totalHolidays}</div>
                         <div style="font-size: 0.72rem; color: var(--k-muted); font-weight: 600; margin-top: 2px;">Year ${activeCal.year || 2026} closures</div>
                     </div>
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Mandatory Closures</div>
                         <div style="font-size: 1.75rem; font-weight: 800; color: var(--k-success-text); margin-top: 4px;">${mandatoryCount}</div>
                         <div style="font-size: 0.72rem; color: var(--k-success-text); font-weight: 600; margin-top: 2px;">Compulsory paid leaves</div>
                     </div>
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Optional / Floating</div>
                         <div style="font-size: 1.75rem; font-weight: 800; color: var(--k-warning-text); margin-top: 4px;">${optionalCount}</div>
                         <div style="font-size: 0.72rem; color: var(--k-warning-text); font-weight: 600; margin-top: 2px;">Quota: 2 claims / year</div>
@@ -891,7 +891,7 @@
                 </div>
 
                 <!-- Calendar Selector & View Switcher Bar -->
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: white; padding: 1rem 1.25rem; border-radius: 16px; border: 1px solid var(--k-border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: var(--k-surface); padding: 1rem 1.25rem; border-radius: 16px; border: 1px solid var(--k-border);">
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <label style="font-size: 0.85rem; font-weight: 700; color: var(--k-text-2);">Active Calendar Set:</label>
                         <select id="calSetSelect" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--k-border); font-weight: 700; font-size: 0.85rem; outline: none; background: var(--k-subtle);">
@@ -918,7 +918,7 @@
 
                 <!-- Main Display Area (List View or Calendar View) -->
                 ${activeTab === 'list' ? `
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 18px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 18px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="overflow-x: auto;">
                             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                                 <thead>
@@ -976,7 +976,7 @@
                     </div>
                 ` : `
                     <!-- Annual Calendar View -->
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 18px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 18px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
                             ${[0,1,2,3,4,5,6,7,8,9,10,11].map(m => {
                                 const monthName = new Date(2026, m, 1).toLocaleString('default', { month: 'long' });
@@ -1093,7 +1093,7 @@
         overlay.style.cssText = "position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 99999; display: flex; align-items: center; justify-content: center;";
 
         overlay.innerHTML = `
-            <div style="background: white; border-radius: 20px; width: 440px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); font-family: inherit;">
+            <div style="background: var(--k-surface); border-radius: 20px; width: 440px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); font-family: inherit;">
                 <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0 0 1rem 0;">Add Annual Holiday</h3>
                 <form id="addHolidayInnerForm" style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
@@ -1132,7 +1132,7 @@
                         </label>
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem;">
-                        <button type="button" id="btnCancelHModal" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: white; font-weight: 700; cursor: pointer;">Cancel</button>
+                        <button type="button" id="btnCancelHModal" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; cursor: pointer;">Cancel</button>
                         <button type="submit" style="padding: 8px 18px; border-radius: 10px; border: none; background: #4f46e5; color: white; font-weight: 700; cursor: pointer;">Save Holiday</button>
                     </div>
                 </form>
@@ -1184,7 +1184,7 @@
         overlay.style.cssText = "position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 99999; display: flex; align-items: center; justify-content: center;";
 
         overlay.innerHTML = `
-            <div style="background: white; border-radius: 20px; width: 440px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); font-family: inherit;">
+            <div style="background: var(--k-surface); border-radius: 20px; width: 440px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); font-family: inherit;">
                 <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0 0 1rem 0;">Create Holiday Calendar</h3>
                 <form id="addCalendarInnerForm" style="display: flex; flex-direction: column; gap: 1rem;">
                     <div>
@@ -1206,7 +1206,7 @@
                         </div>
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem;">
-                        <button type="button" id="btnCancelCModal" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: white; font-weight: 700; cursor: pointer;">Cancel</button>
+                        <button type="button" id="btnCancelCModal" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; cursor: pointer;">Cancel</button>
                         <button type="submit" style="padding: 8px 18px; border-radius: 10px; border: none; background: #4f46e5; color: white; font-weight: 700; cursor: pointer;">Create Set</button>
                     </div>
                 </form>

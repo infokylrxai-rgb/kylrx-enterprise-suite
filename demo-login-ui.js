@@ -34,7 +34,7 @@ export const DEMO_ROLES_BUTTON_HTML = `            <button type="button" id="cre
 
 export const DEMO_MODAL_HTML = `  <!-- Demo Roles Selector Modal -->
   <div id="demoRolesModal" style="position:fixed; inset:0; background:rgba(15,23,42,0.5); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:9999; padding:1.5rem;">
-    <div style="background:white; padding:2rem; border-radius:24px; width:100%; max-width:440px; text-align:left; border:1px solid var(--k-accent-border); box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); position:relative;">
+    <div style="background:var(--k-surface); padding:2rem; border-radius:24px; width:100%; max-width:440px; text-align:left; border:1px solid var(--k-accent-border); box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); position:relative;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
         <div style="display:flex; align-items:center; gap:10px;">
           <div style="width:36px; height:36px; border-radius:10px; background:var(--k-accent-soft); color:var(--k-accent-text); display:flex; align-items:center; justify-content:center;">

@@ -26,7 +26,7 @@
             z-index: 9999;
         }
         .custom-alert-card {
-            background: white;
+            background: var(--k-surface);
             padding: 2rem;
             border-radius: 28px;
             width: 90%;
@@ -85,7 +85,7 @@
         }
 
         /* Sidebar */
-        .sidebar {background: white;
+        .sidebar {background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 2rem 1.5rem;
             display: flex;
@@ -120,7 +120,7 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
         }
         .dept-icon-box {
-            width: 60px; height: 60px; background: white; border-radius: 18px;
+            width: 60px; height: 60px; background: var(--k-surface); border-radius: 18px;
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 1.5rem; color: var(--primary);
             box-shadow: 0 8px 16px rgba(37, 99, 235, 0.1);
@@ -163,7 +163,7 @@
         }
 
         .card {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 2rem;
@@ -1158,7 +1158,7 @@
                 }
 
                 teamsList.innerHTML = teams.map(t => `
-                    <div style="background: white; border: 1.5px solid var(--k-border); border-radius: 16px; margin-bottom: 10px; position: relative; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: box-shadow 0.2s;">
+                    <div style="background: var(--k-surface); border: 1.5px solid var(--k-border); border-radius: 16px; margin-bottom: 10px; position: relative; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); transition: box-shadow 0.2s;">
                         <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--k-accent); border-radius: 4px 0 0 4px;"></div>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 12px 14px 20px;">
                             <div onclick="viewTeam('${t.id}')" style="flex: 1; cursor: pointer; min-width: 0;">
@@ -1560,7 +1560,7 @@ window.viewTeam = async (id) => {
                             </div>
                             <span style="background:var(--k-warning-soft); color:var(--k-warning-text); font-size: 0.7rem; font-weight:800; padding:4px 10px; border-radius:100px;">Pending</span>
                         </div>
-                        <p style="font-size: 0.8rem; color:var(--k-text-2); line-height:1.6; margin-bottom: 1rem; background:white; padding:10px 12px; border-radius:10px; border:1px solid var(--k-border);">${r.summary || r.tasks || 'No summary provided.'}</p>
+                        <p style="font-size: 0.8rem; color:var(--k-text-2); line-height:1.6; margin-bottom: 1rem; background:var(--k-surface); padding:10px 12px; border-radius:10px; border:1px solid var(--k-border);">${r.summary || r.tasks || 'No summary provided.'}</p>
                         <div style="display:flex; gap:8px; align-items:center;">
                             <input type="number" id="mgr-score-${r.id}" min="0" max="100" placeholder="0-100" style="width:80px; border:1px solid var(--k-border); border-radius:8px; padding:7px 10px; font-size: 0.8rem; outline:none; text-align:center;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
                             <input type="text" id="mgr-comment-${r.id}" placeholder="Add feedback..." style="flex:1; border:1px solid var(--k-border); border-radius:8px; padding:7px 10px; font-size: 0.8rem; outline:none;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
@@ -1681,7 +1681,7 @@ window.viewTeam = async (id) => {
 
     <!-- Manager EOD Audit Modal -->
     <div id="mgrEodAuditModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center;">
-        <div style="background:white; border-radius:28px; padding: 2rem; width:92%; max-width:620px; max-height:82vh; overflow-y:auto; box-shadow:0 25px 60px -10px rgba(0,0,0,0.3);">
+        <div style="background:var(--k-surface); border-radius:28px; padding: 2rem; width:92%; max-width:620px; max-height:82vh; overflow-y:auto; box-shadow:0 25px 60px -10px rgba(0,0,0,0.3);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
                 <div>
                     <h2 style="font-weight:800; font-size: 1.25rem; letter-spacing:-0.5px;">Team EOD Review</h2>

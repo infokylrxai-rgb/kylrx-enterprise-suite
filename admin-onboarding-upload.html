@@ -47,7 +47,7 @@
         .layout { display: flex; min-height: 100vh; }
 
         /* Full Admin Sidebar */
-        .sidebar {background: white;
+        .sidebar {background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 2rem 1.5rem;
             position: fixed;
@@ -86,7 +86,7 @@
         }
 
         .stat-card {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             padding: 1.5rem;
             border-radius: 20px;
@@ -97,7 +97,7 @@
         .stat-card p { font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; }
 
         .upload-zone {
-            background: white;
+            background: var(--k-surface);
             border: 2px dashed var(--border);
             border-radius: 32px;
             padding: 2rem 2rem;
@@ -119,7 +119,7 @@
         }
 
         .progress-tracker {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 24px;
             padding: 2rem;
@@ -154,7 +154,7 @@
             display: inline-flex; align-items: center; gap: 8px;
         }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
-        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline { background: var(--k-surface); border: 1px solid var(--border); color: var(--text-main); }
 
         /* Tab Button Styles */
         .tab-btn {
@@ -213,7 +213,7 @@
         }
         .form-group input:focus, .form-group select:focus {
             border-color: var(--primary);
-            background: white;
+            background: var(--k-surface);
         }
 
         /* Custom Alert Styles */
@@ -230,7 +230,7 @@
         }
 
         .custom-alert-card {
-            background: white;
+            background: var(--k-surface);
             padding: 2rem;
             border-radius: 24px;
             width: 90%;
@@ -379,7 +379,7 @@
 
         .form-group textarea:focus {
             border-color: var(--primary);
-            background: white;
+            background: var(--k-surface);
         }
 
         .form-group .input-hint {
@@ -539,13 +539,13 @@
                 <div>
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
                         <h1 style="margin: 0; font-size: 1.875rem;">Organization Setup & Structure</h1>
-                        <span class="badge-pending" id="statusBadge"><i data-lucide="shield-alert" style="width: 14px;"></i> Setup Required (orgConfigured: false)</span>
+                        <span class="badge-pending" id="statusBadge"><i data-lucide="shield-alert" style="width: 14px;"></i> Setup required</span>
                     </div>
                     <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0;">Configure your corporate legal identity and initialize continuous sequential employee ID provisioning.</p>
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
-                    <a href="assets/Templates.xlsx" download="Templates.xlsx" class="btn btn-outline" id="btnDownloadTemplate" title="Direct In-App Download (Never distributed via email)">
-                        <i data-lucide="download"></i> Download Templates.xlsx
+                    <a href="assets/Kylrx-Import-Template.xlsx" download="Kylrx-Import-Template.xlsx" class="btn btn-outline" id="btnDownloadTemplate" title="One sheet per kind of record, header rows only">
+                        <i data-lucide="download"></i> Download Template
                     </a>
                     <!-- Uploading the workbook creates employee RECORDS; it cannot create logins,
                          because a browser may not make a Firebase Auth account for someone else.
@@ -564,15 +564,15 @@
                         <i data-lucide="file-spreadsheet" style="width: 26px; height: 26px;"></i>
                     </div>
                     <div>
-                        <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-success-text); margin: 0 0 4px 0;">Official 27-Sheet Organization Template (Templates.xlsx)</h3>
+                        <h3 style="font-size: 1rem; font-weight: 800; color: var(--k-success-text); margin: 0 0 4px 0;">Start from the Kylrx import template</h3>
                         <p style="font-size: 0.8rem; color: var(--k-success-text); margin: 0; line-height: 1.45;">
-                            <strong>In-App Download Strictly Enforced:</strong> Per PRD security policies, the official template is served strictly in-app via direct browser download and is never distributed via external email or unauthenticated links.
+                            One sheet for each kind of record, with its header row. Fill in the sheets you need, leave the rest empty, and upload it on the Bulk File Upload tab. The Read Me sheet says what goes where.
                         </p>
                     </div>
                 </div>
                 <div style="flex-shrink: 0;">
-                    <a href="assets/Templates.xlsx" download="Templates.xlsx" class="btn btn-primary" id="btnDownloadBanner" style="background: var(--k-success); border-color: #15803d;">
-                        <i data-lucide="download"></i> In-App Download
+                    <a href="assets/Kylrx-Import-Template.xlsx" download="Kylrx-Import-Template.xlsx" class="btn btn-primary" id="btnDownloadBanner" style="background: var(--k-success); border-color: #15803d;">
+                        <i data-lucide="download"></i> Download Template
                     </a>
                 </div>
             </div>
@@ -586,9 +586,6 @@
                       <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; min-width: 92px;">Add data</span>
                       <button class="tab-btn active" id="tabManual"><i data-lucide="edit-3" style="width: 16px; height: 16px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i> Manual Data Entry Form</button>
                       <button class="tab-btn" id="tabBulk"><i data-lucide="upload-cloud" style="width: 16px; height: 16px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i> Bulk File Upload</button>
-                      <button class="tab-btn" id="tabUnifiedJobRoster"><i data-lucide="briefcase" style="width: 16px; height: 16px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i> Job &amp; Rosters</button>
-                      <button class="tab-btn" id="tabUnifiedEmployeeFinance"><i data-lucide="wallet" style="width: 16px; height: 16px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i> Finance &amp; Statutory IDs</button>
-                      <button class="tab-btn" id="tabUnifiedOrgCompliance"><i data-lucide="landmark" style="width: 16px; height: 16px; display: inline-block; vertical-align: text-bottom; margin-right: 4px;"></i> Org Statutory Registrations</button>
                   </div>
                   <div style="display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
                       <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; min-width: 92px;">Organisation</span>
@@ -792,15 +789,12 @@
                     </div>
 
                     <!-- Form Action Buttons -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--border); border-radius: 18px; padding: 1.25rem 2rem; box-shadow: var(--shadow);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: var(--k-surface); border: 1px solid var(--border); border-radius: 18px; padding: 1.25rem 2rem; box-shadow: var(--shadow);">
                         <div style="display: flex; gap: 10px;">
-                            <button type="button" class="btn btn-outline" id="btnFillDemoData" title="Auto-populate sample Kylrx 21 attributes for quick testing">
-                                <i data-lucide="sparkles" style="color: var(--primary);"></i> Fill Kylrx Demo Data
-                            </button>
                             <button type="button" class="btn btn-outline" id="btnManualClear">Clear Form</button>
                         </div>
                         <button type="submit" class="btn btn-primary" id="btnManualSubmit" style="font-size: 1rem; padding: 14px 28px;">
-                            <i data-lucide="check-circle-2"></i> Save Organization & Set orgConfigured: true
+                            <i data-lucide="check-circle-2"></i> Save Organization
                         </button>
                     </div>
                 </form>
@@ -812,17 +806,17 @@
                 <div class="upload-zone" id="dropZone">
                     <input type="file" id="fileInput" hidden accept=".xlsx, .xls, .csv">
                     <div class="icon-container"><i data-lucide="upload-cloud" size="36"></i></div>
-                    <h2 style="font-weight: 800; font-size: 1.5rem;">Drop Templates.xlsx or CSV Here</h2>
+                    <h2 style="font-weight: 800; font-size: 1.5rem;">Drop your completed template here</h2>
                     <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.875rem;">
-                        Upload the completed master workbook. The parser extracts the <strong>'Organization'</strong> sheet matching the 21 PRD attributes.
+                        Excel (.xlsx, .xls) or CSV. Every filled-in sheet is shown for review, and nothing is saved until you press its Ingest button.
                     </p>
                     <div style="margin-top: 1.5rem;">
-                        <span class="btn btn-outline" style="pointer-events: none;"><i data-lucide="folder-open"></i> Browse File from Device</span>
+                        <span class="btn btn-outline" style="pointer-events: none;"><i data-lucide="folder-open"></i> Choose File</span>
                     </div>
                 </div>
 
                 <!-- 21 Attributes Schema Checklist Card -->
-                <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h3 style="font-size: 1rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin: 0;">
                             <i data-lucide="list-checks" style="width: 18px; height: 18px; color: var(--primary);"></i>
@@ -860,7 +854,7 @@
                 </div>
 
                 <!-- Live Parse Results Preview Container -->
-                <div id="parseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="parseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid var(--k-accent-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
@@ -894,13 +888,13 @@
                     <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
                         <button type="button" class="btn btn-outline" id="btnCancelIngest">Discard & Re-upload</button>
                         <button type="button" class="btn btn-primary" id="btnConfirmIngest" style="font-size: 1rem; padding: 14px 28px;">
-                            <i data-lucide="lock"></i> Ingest 21 Attributes & Set orgConfigured: true
+                            <i data-lucide="lock"></i> Save Organization
                         </button>
                     </div>
                 </div>
 
                 <!-- Live Business Unit Parse Results Preview Container (PRD Section 1 & Section 10) -->
-                <div id="buParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-success-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="buParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid var(--k-success-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
@@ -953,7 +947,7 @@
                 </div>
 
                 <!-- Cost Center Ingestion Results (PRD Sections 1 & 13) -->
-                <div id="ccParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="ccParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid var(--k-accent-border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
@@ -1006,7 +1000,7 @@
                 </div>
 
                 <!-- Sub-Departments Ingestion Results (PRD Sections 1, 10 & 13) -->
-                <div id="subDeptParseResultsContainer" style="display: none; background: white; border: 1.5px solid #a855f7; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="subDeptParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #a855f7; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: #faf5ff; color: #7e22ce; display: flex; align-items: center; justify-content: center;">
@@ -1061,7 +1055,7 @@
                 </div>
 
                 <!-- Shifts & Week-offs Ingestion Results (PRD Sections 1, 13 & 16) -->
-                <div id="shiftParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="shiftParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
@@ -1127,7 +1121,7 @@
                 </div>
 
                 <!-- Attendance Rules & Policies Ingestion Results (PRD Sections 1, 15 & 16) -->
-                <div id="policyParseResultsContainer" style="display: none; background: white; border: 1.5px solid #10b981; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="policyParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #10b981; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
@@ -1192,7 +1186,7 @@
                 </div>
 
                 <!-- Live Employee Type Parse Results Preview Container (PRD Sections 1, 10, & 13) -->
-                <div id="employeeTypeParseResultsContainer" style="display: none; background: white; border: 1.5px solid #a78bfa; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="employeeTypeParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #a78bfa; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: #ede9fe; color: #6d28d9; display: flex; align-items: center; justify-content: center;">
@@ -1251,7 +1245,7 @@
                 </div>
 
                 <!-- Live Employee Finance Parse Results Preview Container (PRD Sections 1, 4, & 13) -->
-                <div id="employeeFinanceParseResultsContainer" style="display: none; background: white; border: 1.5px solid #10b981; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="employeeFinanceParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #10b981; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
@@ -1320,7 +1314,7 @@
                 </div>
 
                 <!-- Live EPFO Statutory Master Parse Results Preview Container (PRD Sections 1, 4, 11 & 13) -->
-                <div id="epfoMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid #4f46e5; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="epfoMasterParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #4f46e5; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center;">
@@ -1392,7 +1386,7 @@
                 </div>
 
                 <!-- Live ESIC Statutory Master Parse Results Preview Container (PRD Sections 1, 4, 11 & 13) -->
-                <div id="esicMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid #0284c7; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="esicMasterParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #0284c7; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: #e0f2fe; color: #0369a1; display: flex; align-items: center; justify-content: center;">
@@ -1463,7 +1457,7 @@
                 </div>
 
                 <!-- Live PT Statutory Master Parse Results Preview Container (PRD Sections 1, 4, 11 & 13) -->
-                <div id="ptMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid #059669; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="ptMasterParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #059669; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
@@ -1526,7 +1520,7 @@
                 </div>
 
                 <!-- Live LWF Statutory Master Parse Results Preview Container (PRD Sections 1, 4, 11 & 13) -->
-                <div id="lwfMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="lwfMasterParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
@@ -1589,7 +1583,7 @@
                 </div>
 
                 <!-- Live NPS Statutory Master Parse Results Preview Container (PRD Sections 1, 4, 11 & 13) -->
-                <div id="npsMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid #059669; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="npsMasterParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #059669; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
@@ -1665,7 +1659,7 @@
                 </div>
 
                 <!-- Live Gratuity Statutory Master Parse Results Preview Container (PRD Sections 1, 4, 11 & 13) -->
-                <div id="gratuityMasterParseResultsContainer" style="display: none; background: white; border: 1.5px solid #4338ca; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="gratuityMasterParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #4338ca; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: #e0e7ff; color: #3730a3; display: flex; align-items: center; justify-content: center;">
@@ -1739,7 +1733,7 @@
                 </div>
 
                 <!-- Live Salary Structure Parse Results Preview Container (PRD Sections 1 & 4) -->
-                <div id="salaryStructureParseResultsContainer" style="display: none; background: white; border: 1.5px solid #6366f1; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="salaryStructureParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #6366f1; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 38px; height: 38px; border-radius: 10px; background: #eef2ff; color: #4f46e5; display: flex; align-items: center; justify-content: center;">
@@ -1821,7 +1815,7 @@
                 </div>
 
                 <!-- Holiday Calendar Parse Results Preview (PRD Sections 1, 4, 15, & 16) -->
-                <div id="holidayCalendarParseResultsContainer" style="display: none; background: white; border: 1.5px solid #ec4899; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="holidayCalendarParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #ec4899; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 14px; background: #fdf2f8; color: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
@@ -1887,7 +1881,7 @@
                 </div>
 
                 <!-- Statutory Compliance Preview (PRD Sections 1, 4, 11, & 13) -->
-                <div id="statutoryComplianceParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="statutoryComplianceParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
@@ -1955,7 +1949,7 @@
                 </div>
 
                 <!-- Role Permissions & Employee Overrides Preview (PRD Sections 1, 14, 17, & 18) -->
-                <div id="rolePermissionParseResultsContainer" style="display: none; background: white; border: 1.5px solid #6366f1; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="rolePermissionParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #6366f1; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 14px; background: #eef2ff; color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
@@ -2026,7 +2020,7 @@
                 </div>
 
                 <!-- Multi-Step Workflow Rules Preview (PRD Sections 1, 9, 12, 14, & 18) -->
-                <div id="workflowRulesParseResultsContainer" style="display: none; background: white; border: 1.5px solid #0284c7; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="workflowRulesParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid #0284c7; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 14px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
@@ -2098,7 +2092,7 @@
                 </div>
 
                 <!-- Payroll Components Catalog Ingestion Preview (PRD Sections 1 & 4) -->
-                <div id="payrollComponentsParseResultsContainer" style="display: none; background: white; border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div id="payrollComponentsParseResultsContainer" style="display: none; background: var(--k-surface); border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="width: 44px; height: 44px; border-radius: 14px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
@@ -2170,7 +2164,7 @@
 
             <!-- TAB C: BUSINESS UNITS MANAGEMENT CONSOLE (PRD SECTION 1 & SECTION 10) -->
             <div id="buManagementView" style="display: none;">
-                <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -2186,7 +2180,7 @@
                             </div>
                         </div>
                         <div style="display: flex; gap: 10px;">
-                            <button type="button" class="btn btn-outline" onclick="window.KylrxBuRules && window.KylrxBuRules.openBuModal()" style="font-size: 0.875rem; border: 1.5px solid var(--border); background: white; cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            <button type="button" class="btn btn-outline" onclick="window.KylrxBuRules && window.KylrxBuRules.openBuModal()" style="font-size: 0.875rem; border: 1.5px solid var(--border); background: var(--k-surface); cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                                 <i data-lucide="plus-circle" style="color: var(--primary);"></i> Add Business Unit
                             </button>
                             <button type="button" class="btn btn-primary" onclick="window.KylrxBuRules && window.KylrxBuRules.saveAllRules()" style="font-size: 0.875rem; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
@@ -2313,297 +2307,6 @@
                 <div id="onboardingPayrollComponentsTableContainer"></div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- UNIFIED TEMPLATE 1: JOB & ROSTERS BULK INGESTION (PRD §§ 1, 3 & 4)       -->
-            <!-- ========================================================================= -->
-            <div id="unifiedJobRosterView" style="display: none;">
-                <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
-                                    <i data-lucide="briefcase" style="width: 22px; height: 22px;"></i>
-                                </div>
-                                <div>
-                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0;">Employee Job &amp; Roster Updates</h2>
-                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Streamline continuous updates across compensation, designations, and attendance shift rosters.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button type="button" class="btn btn-outline" id="btnDownloadJobRosterTemplate">
-                                <i data-lucide="download"></i> Download Template (.csv)
-                            </button>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">PRD §1 &amp; §3 Schema Checklist (Exact 11 Attributes):</span>
-                        <div style="margin-top: 6px;">
-                            <span class="schema-pill">1. Employee_ID (FK)</span>
-                            <span class="schema-pill">2. Organization_ID</span>
-                            <span class="schema-pill">3. Effective_Date</span>
-                            <span class="schema-pill">4. Department_Code</span>
-                            <span class="schema-pill">5. Designation_Title</span>
-                            <span class="schema-pill">6. Annual_CTC</span>
-                            <span class="schema-pill">7. Shift_Roster_Code</span>
-                            <span class="schema-pill">8. Week_Off_Pattern</span>
-                            <span class="schema-pill">9. Custom_Week_Off_Days</span>
-                            <span class="schema-pill">10. Reason_For_Update</span>
-                            <span class="schema-pill">11. Active</span>
-                        </div>
-                    </div>
-
-                    <!-- Drop Zone -->
-                    <div class="upload-zone" id="jobRosterDropZone" style="padding: 2rem 2rem; margin-bottom: 1.5rem;">
-                        <input type="file" id="jobRosterFileInput" hidden accept=".xlsx, .xls, .csv">
-                        <div class="icon-container"><i data-lucide="upload-cloud" size="32"></i></div>
-                        <h3 style="font-weight: 800; font-size: 1.25rem;">Drop Job &amp; Roster Spreadsheet Here</h3>
-                        <p style="color: var(--text-muted); margin-top: 6px; font-size: 0.875rem;">Supports Excel (.xlsx, .xls) and CSV with automated header synonym mapping.</p>
-                    </div>
-
-                    <!-- Preview Container -->
-                    <div id="jobRosterPreviewContainer" style="display: none; border: 1.5px solid var(--k-accent-border); border-radius: 20px; padding: 1.5rem; background: var(--k-surface); margin-top: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
-                                    <i data-lucide="check" style="width: 20px; height: 20px;"></i>
-                                </div>
-                                <div>
-                                    <h3 style="font-size: 1rem; font-weight: 800; margin: 0;" id="jobRosterFileName">Job &amp; Roster Parsed</h3>
-                                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="jobRosterMeta">Previewing extracted records</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
-                            <table class="preview-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 45px;">#</th>
-                                        <th style="width: 120px;">Employee ID</th>
-                                        <th>Department</th>
-                                        <th>Designation</th>
-                                        <th style="width: 130px;">Annual CTC</th>
-                                        <th style="width: 130px;">Shift Code</th>
-                                        <th>Week Off</th>
-                                        <th>Custom Days</th>
-                                        <th>Reason</th>
-                                        <th style="width: 100px; text-align: center;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="jobRosterTableBody"></tbody>
-                            </table>
-                        </div>
-
-                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
-                            <button type="button" class="btn btn-outline" onclick="document.getElementById('jobRosterPreviewContainer').style.display='none'">Discard Batch</button>
-                            <button type="button" class="btn btn-primary" id="btnConfirmJobRosterIngest" style="background: var(--k-accent); color: white;">
-                                <i data-lucide="database"></i> Ingest Job &amp; Rosters to Cloud Firestore
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================================================= -->
-            <!-- UNIFIED TEMPLATE 2: EMPLOYEE FINANCE & STATUTORY IDS BULK (PRD §§ 1 & 4)  -->
-            <!-- ========================================================================= -->
-            <div id="unifiedEmployeeFinanceView" style="display: none;">
-                <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
-                                    <i data-lucide="credit-card" style="width: 22px; height: 22px;"></i>
-                                </div>
-                                <div>
-                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0;">Employee Financial &amp; Statutory IDs</h2>
-                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Multi-collection disbursement across Bank details, EPFO (UAN), ESIC (IP), PAN, &amp; NPS (PRAN).</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button type="button" class="btn btn-outline" id="btnDownloadEmployeeFinanceTemplate">
-                                <i data-lucide="download"></i> Download Template (.csv)
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Cashfree Integration Callout -->
-                    <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 14px; padding: 12px 18px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i data-lucide="zap" style="color: var(--k-accent-text); width: 20px; height: 20px;"></i>
-                            <span style="font-size: 0.8rem; color: var(--k-text-2); font-weight: 600;">
-                                <strong>Cashfree Penny Drop Automation:</strong> Accounts marked <em>PENDING_VERIFICATION</em> automatically trigger real-time bank validation requests.
-                            </span>
-                        </div>
-                        <span style="font-size: 0.7rem; font-weight: 700; background: var(--k-accent-soft); color: var(--k-accent-text); padding: 3px 10px; border-radius: 9999px;">Cashfree Ready</span>
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Schema Checklist (Exact 12 Attributes):</span>
-                        <div style="margin-top: 6px;">
-                            <span class="schema-pill">1. Employee_ID (FK)</span>
-                            <span class="schema-pill">2. Organization_ID</span>
-                            <span class="schema-pill">3. Bank_Account_Number</span>
-                            <span class="schema-pill">4. Bank_IFSC_Code (11-char Regex)</span>
-                            <span class="schema-pill">5. Bank_Name</span>
-                            <span class="schema-pill">6. Account_Holder_Name</span>
-                            <span class="schema-pill">7. UAN (12 digits)</span>
-                            <span class="schema-pill">8. ESIC_IP_Number (10-17 digits)</span>
-                            <span class="schema-pill">9. PAN_Number (10-char Alphanumeric)</span>
-                            <span class="schema-pill">10. PRAN (12 digits)</span>
-                            <span class="schema-pill">11. Primary_Disbursement_Method</span>
-                            <span class="schema-pill">12. Verification_Status</span>
-                        </div>
-                    </div>
-
-                    <!-- Drop Zone -->
-                    <div class="upload-zone" id="employeeFinanceDropZone" style="padding: 2rem 2rem; margin-bottom: 1.5rem;">
-                        <input type="file" id="employeeFinanceFileInput" hidden accept=".xlsx, .xls, .csv">
-                        <div class="icon-container"><i data-lucide="upload-cloud" size="32"></i></div>
-                        <h3 style="font-weight: 800; font-size: 1.25rem;">Drop Employee Financial Compliance Spreadsheet Here</h3>
-                        <p style="color: var(--text-muted); margin-top: 6px; font-size: 0.875rem;">Validates IFSC, PAN, UAN, and ESIC codes before atomic sub-collection routing.</p>
-                    </div>
-
-                    <!-- Preview Container -->
-                    <div id="employeeFinancePreviewContainer" style="display: none; border: 1.5px solid var(--k-success-border); border-radius: 20px; padding: 1.5rem; background: var(--k-surface); margin-top: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
-                                    <i data-lucide="check" style="width: 20px; height: 20px;"></i>
-                                </div>
-                                <div>
-                                    <h3 style="font-size: 1rem; font-weight: 800; margin: 0;" id="employeeFinanceFileName">Financial Records Parsed</h3>
-                                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="employeeFinanceMeta">Previewing extracted records</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
-                            <table class="preview-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 45px;">#</th>
-                                        <th style="width: 120px;">Employee ID</th>
-                                        <th>Beneficiary &amp; Account</th>
-                                        <th>IFSC</th>
-                                        <th>PAN</th>
-                                        <th>UAN</th>
-                                        <th>ESIC IP</th>
-                                        <th>PRAN</th>
-                                        <th>Disbursement</th>
-                                        <th>Penny Drop</th>
-                                        <th style="width: 100px; text-align: center;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="employeeFinanceTableBody"></tbody>
-                            </table>
-                        </div>
-
-                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
-                            <button type="button" class="btn btn-outline" onclick="document.getElementById('employeeFinancePreviewContainer').style.display='none'">Discard Batch</button>
-                            <button type="button" class="btn btn-primary" id="btnConfirmEmployeeFinanceIngest" style="background: var(--k-success); color: white;">
-                                <i data-lucide="database"></i> Ingest Financial Details to Cloud Firestore
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ========================================================================= -->
-            <!-- UNIFIED TEMPLATE 3: ORG COMPLIANCE REGISTRATIONS BULK (PRD §§ 1 & 11)     -->
-            <!-- ========================================================================= -->
-            <div id="unifiedOrgComplianceView" style="display: none;">
-                <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-                                <div style="width: 40px; height: 40px; border-radius: 12px; background: #faf5ff; color: #7e22ce; display: flex; align-items: center; justify-content: center;">
-                                    <i data-lucide="landmark" style="width: 22px; height: 22px;"></i>
-                                </div>
-                                <div>
-                                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0;">Organization Statutory Registrations</h2>
-                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Configure corporate EPFO, ESIC, State PTRC/LWF registrations and auto-propagate to employees.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button type="button" class="btn btn-outline" id="btnDownloadOrgComplianceTemplate">
-                                <i data-lucide="download"></i> Download Template (.csv)
-                            </button>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #7e22ce; text-transform: uppercase;">PRD §1, §4, §11 &amp; §13 Schema Checklist (Exact 11 Attributes):</span>
-                        <div style="margin-top: 6px;">
-                            <span class="schema-pill">1. Organization_ID (PK)</span>
-                            <span class="schema-pill">2. Legal_Entity_Name</span>
-                            <span class="schema-pill">3. EPFO_Establishment_Code</span>
-                            <span class="schema-pill">4. ESIC_Employer_Code (17 digits)</span>
-                            <span class="schema-pill">5. State_PT_Registrations (PTRC List)</span>
-                            <span class="schema-pill">6. State_LWF_Registrations</span>
-                            <span class="schema-pill">7. NPS_CHO_ID</span>
-                            <span class="schema-pill">8. NPS_POP_SP_Reg_No</span>
-                            <span class="schema-pill">9. Authorized_Signatory_PAN</span>
-                            <span class="schema-pill">10. Effective_From</span>
-                            <span class="schema-pill">11. Active</span>
-                        </div>
-                    </div>
-
-                    <!-- Drop Zone -->
-                    <div class="upload-zone" id="orgComplianceDropZone" style="padding: 2rem 2rem; margin-bottom: 1.5rem;">
-                        <input type="file" id="orgComplianceFileInput" hidden accept=".xlsx, .xls, .csv">
-                        <div class="icon-container"><i data-lucide="upload-cloud" size="32"></i></div>
-                        <h3 style="font-weight: 800; font-size: 1.25rem;">Drop Organization Compliance Spreadsheet Here</h3>
-                        <p style="color: var(--text-muted); margin-top: 6px; font-size: 0.875rem;">Parses state PTRC/LWF delimiter mappings (e.g. KA:PTRC12345|MH:PTRC67890).</p>
-                    </div>
-
-                    <!-- Preview Container -->
-                    <div id="orgCompliancePreviewContainer" style="display: none; border: 1.5px solid #d8b4fe; border-radius: 20px; padding: 1.5rem; background: var(--k-surface); margin-top: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
-                                    <i data-lucide="check" style="width: 20px; height: 20px;"></i>
-                                </div>
-                                <div>
-                                    <h3 style="font-size: 1rem; font-weight: 800; margin: 0;" id="orgComplianceFileName">Compliance Records Parsed</h3>
-                                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;" id="orgComplianceMeta">Previewing extracted statutory profile</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px;">
-                            <table class="preview-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 45px;">#</th>
-                                        <th style="width: 140px;">Org ID</th>
-                                        <th>Legal Entity Name</th>
-                                        <th>EPFO Code</th>
-                                        <th>ESIC Code</th>
-                                        <th>State PT (PTRC)</th>
-                                        <th>State LWF</th>
-                                        <th>Signatory PAN</th>
-                                        <th>Effective From</th>
-                                        <th style="width: 100px; text-align: center;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="orgComplianceTableBody"></tbody>
-                            </table>
-                        </div>
-
-                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
-                            <button type="button" class="btn btn-outline" onclick="document.getElementById('orgCompliancePreviewContainer').style.display='none'">Discard Batch</button>
-                            <button type="button" class="btn btn-primary" id="btnConfirmOrgComplianceIngest" style="background: #7e22ce; color: white;">
-                                <i data-lucide="database"></i> Ingest Statutory Profile to Cloud Firestore
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
 
@@ -2620,10 +2323,6 @@
     <script src="services/employee-type-service.js"></script>
     <script src="services/employee-finance-parser.js"></script>
     <script src="services/employee-finance-service.js"></script>
-    <script src="jobRosterParser.js"></script>
-    <script src="orgComplianceParser.js"></script>
-    <script src="unifiedIngestionService.js"></script>
-    <script src="unifiedIngestionUIController.js"></script>
     <script src="pfDetailsParser.js"></script>
     <script src="pfDetailsService.js"></script>
     <script src="epfoProfileUIController.js"></script>
@@ -2662,9 +2361,6 @@
     <script type="module" src="admin-onboarding-upload.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            if (window.KylrxUnifiedIngestionUIController) {
-                window.KylrxUnifiedIngestionUIController.init();
-            }
             if (window.lucide) {
                 lucide.createIcons();
             }

@@ -425,7 +425,7 @@ class FeedbackServiceClass {
             skeletonHTML = `
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; width: 100%;" aria-busy="true">
                     ${Array.from({ length: count }).map(() => `
-                        <div style="background: white; border: 1px solid var(--k-border); border-radius: 14px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
                             <div style="width: 60%; display: flex; flex-direction: column; gap: 8px;">
                                 <div class="kylrx-skeleton-shimmer" style="width: 80%; height: 12px;"></div>
                                 <div class="kylrx-skeleton-shimmer" style="width: 50%; height: 28px;"></div>

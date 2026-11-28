@@ -573,7 +573,11 @@ test('PRD Sections 1, 4 & 13: Employee Finance & Statutory Details Module', asyn
         assert.ok(onboardingHtml.includes('id="employeeFinanceManagementView"'), 'Must have employeeFinanceManagementView');
         assert.ok(onboardingHtml.includes('id="employeeFinanceParseResultsContainer"'), 'Must have employeeFinanceParseResultsContainer');
         assert.ok(onboardingHtml.includes('id="parsedEmployeeFinanceTableBody"'), 'Must have parsedEmployeeFinanceTableBody');
-        assert.ok(onboardingHtml.includes('id="btnConfirmEmployeeFinanceIngest"'), 'Must have btnConfirmEmployeeFinanceIngest');
+        // The finance sheet's Ingest button in the Bulk File Upload panel. The id
+        // btnConfirmEmployeeFinanceIngest belonged to a duplicate "Finance & Statutory IDs"
+        // tab that wrote nothing while reporting success, and was removed.
+        assert.ok(onboardingHtml.includes('id="btnConfirmLegacyEmpFinanceIngest"'), 'Must have the finance Ingest button');
+        assert.ok(!onboardingHtml.includes('id="btnConfirmEmployeeFinanceIngest"'), 'the removed duplicate tab is back');
 
         // admin-onboarding-upload.js check
         const onboardingJsPath = path.join(rootDir, 'admin-onboarding-upload.js');

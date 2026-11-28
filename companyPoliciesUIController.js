@@ -95,7 +95,7 @@
 
                 <!-- Compliance Tracker Pulse Cards -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
                         <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Overall Compliance</span>
                         <div style="display: flex; align-items: baseline; gap: 8px;">
                             <span style="font-size: 1.75rem; font-weight: 900; color: ${pulse.compliancePercentage >= 80 ? 'var(--k-success-text)' : pulse.compliancePercentage >= 50 ? 'var(--k-warning-text)' : 'var(--k-danger-text)'};">${pulse.compliancePercentage}%</span>
@@ -106,7 +106,7 @@
                         </div>
                     </div>
 
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
                         <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Compliant Sign-offs</span>
                         <div style="display: flex; align-items: baseline; gap: 8px;">
                             <span style="font-size: 1.75rem; font-weight: 900; color: var(--k-success-text);">${pulse.totalCompliant}</span>
@@ -115,7 +115,7 @@
                         <span style="font-size: 0.72rem; color: var(--k-success-text);">Verified digital audit trail</span>
                     </div>
 
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
                         <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-warning-text); text-transform: uppercase;">Pending Signatures</span>
                         <div style="display: flex; align-items: baseline; gap: 8px;">
                             <span style="font-size: 1.75rem; font-weight: 900; color: var(--k-warning-text);">${pulse.totalPending}</span>
@@ -124,7 +124,7 @@
                         <span style="font-size: 0.72rem; color: var(--k-warning-text);">Turnaround SLA active</span>
                     </div>
 
-                    <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px;">
                         <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-danger-text); text-transform: uppercase;">Overdue Violations</span>
                         <div style="display: flex; align-items: baseline; gap: 8px;">
                             <span style="font-size: 1.75rem; font-weight: 900; color: var(--k-danger-text);">${pulse.totalOverdue}</span>
@@ -135,13 +135,13 @@
                 </div>
 
                 <!-- Filters & Search Toolbar -->
-                <div style="display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid var(--k-border); border-radius: 14px; padding: 0.75rem 1.25rem; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 0.75rem 1.25rem; gap: 1rem; flex-wrap: wrap;">
                     <div style="display: flex; gap: 6px; align-items: center;">
-                        <button class="pol-filter-btn ${currentFilter === 'ALL' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('ALL')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'ALL' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'ALL' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'ALL' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">All Types</button>
-                        <button class="pol-filter-btn ${currentFilter === 'Statutory' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Statutory')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Statutory' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Statutory' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'Statutory' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Statutory</button>
-                        <button class="pol-filter-btn ${currentFilter === 'Code_of_Conduct' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Code_of_Conduct')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Code of Conduct</button>
-                        <button class="pol-filter-btn ${currentFilter === 'IT_Security' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('IT_Security')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'IT_Security' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'IT_Security' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'IT_Security' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">IT Security</button>
-                        <button class="pol-filter-btn ${currentFilter === 'Operational' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Operational')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Operational' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Operational' ? 'var(--k-accent-soft)' : 'white'}; color: ${currentFilter === 'Operational' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Operational</button>
+                        <button class="pol-filter-btn ${currentFilter === 'ALL' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('ALL')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'ALL' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'ALL' ? 'var(--k-accent-soft)' : 'var(--k-surface)'}; color: ${currentFilter === 'ALL' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">All Types</button>
+                        <button class="pol-filter-btn ${currentFilter === 'Statutory' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Statutory')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Statutory' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Statutory' ? 'var(--k-accent-soft)' : 'var(--k-surface)'}; color: ${currentFilter === 'Statutory' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Statutory</button>
+                        <button class="pol-filter-btn ${currentFilter === 'Code_of_Conduct' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Code_of_Conduct')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent-soft)' : 'var(--k-surface)'}; color: ${currentFilter === 'Code_of_Conduct' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Code of Conduct</button>
+                        <button class="pol-filter-btn ${currentFilter === 'IT_Security' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('IT_Security')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'IT_Security' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'IT_Security' ? 'var(--k-accent-soft)' : 'var(--k-surface)'}; color: ${currentFilter === 'IT_Security' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">IT Security</button>
+                        <button class="pol-filter-btn ${currentFilter === 'Operational' ? 'active' : ''}" onclick="window.KylrxCompanyPoliciesUIController.setFilter('Operational')" style="padding: 6px 12px; border-radius: 8px; border: 1px solid ${currentFilter === 'Operational' ? 'var(--k-accent)' : 'var(--k-border)'}; background: ${currentFilter === 'Operational' ? 'var(--k-accent-soft)' : 'var(--k-surface)'}; color: ${currentFilter === 'Operational' ? 'var(--k-accent-text)' : 'var(--k-muted)'}; font-weight: 700; font-size: 0.78rem; cursor: pointer;">Operational</button>
                     </div>
                     <div style="flex: 1; max-width: 320px; position: relative;">
                         <input type="text" id="polSearchInput" placeholder="Search by policy code, name..." value="${searchQuery}" oninput="window.KylrxCompanyPoliciesUIController.handleSearch(this.value)" style="width: 100%; padding: 7px 12px 7px 32px; border-radius: 10px; border: 1px solid var(--k-border); font-size: 0.82rem; outline: none;">
@@ -150,7 +150,7 @@
                 </div>
 
                 <!-- Policies Table Card -->
-                <div style="background: white; border: 1px solid var(--k-border); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                     <div id="polTableWrapper" style="overflow-x: auto;">
                         ${renderPoliciesTable(pulse)}
                     </div>
@@ -187,7 +187,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
                                 <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Policy Type*</label>
-                                <select id="polEditType" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: white;">
+                                <select id="polEditType" required style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: var(--k-surface);">
                                     <option value="Statutory">Statutory</option>
                                     <option value="Operational">Operational</option>
                                     <option value="Code_of_Conduct">Code_of_Conduct</option>
@@ -204,7 +204,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
                                 <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Target Category</label>
-                                <select id="polEditCategory" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: white;">
+                                <select id="polEditCategory" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: var(--k-surface);">
                                     <option value="ALL">ALL (Entire Workforce)</option>
                                     <option value="CAT_FT_REG">CAT_FT_REG (Full-Time Regular)</option>
                                     <option value="CAT_FT_EXEC">CAT_FT_EXEC (Executive Leadership)</option>
@@ -214,7 +214,7 @@
                             </div>
                             <div>
                                 <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Target Location</label>
-                                <select id="polEditLocation" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: white;">
+                                <select id="polEditLocation" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--k-border); font-size: 0.85rem; margin-top: 4px; background: var(--k-surface);">
                                     <option value="ALL">ALL (All Branches / Hubs)</option>
                                     <option value="LOC-BLR">LOC-BLR (Bangalore Tech Park)</option>
                                     <option value="LOC-MUM">LOC-MUM (Mumbai Commercial Hub)</option>
@@ -250,7 +250,7 @@
                         </div>
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; border-top: 1px solid var(--k-border); padding-top: 1rem;">
-                            <button type="button" onclick="window.KylrxCompanyPoliciesUIController.closePolicyEditorModal()" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: white; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Cancel</button>
+                            <button type="button" onclick="window.KylrxCompanyPoliciesUIController.closePolicyEditorModal()" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; font-size: 0.82rem; cursor: pointer;">Cancel</button>
                             <button type="submit" style="padding: 8px 20px; border-radius: 10px; border: none; background: var(--k-accent); color: white; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Save Policy</button>
                         </div>
                     </form>

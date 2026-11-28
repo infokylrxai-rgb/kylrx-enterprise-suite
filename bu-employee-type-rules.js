@@ -223,7 +223,11 @@
 
     // In-memory cache of rules/business units
     const currentRules = new Map();
-    let activeEmployeesCache = [...CANONICAL_ACTIVE_EMPLOYEES];
+    // Starts empty. It used to start as CANONICAL_ACTIVE_EMPLOYEES and keep that list
+    // whenever an organisation had nobody yet, so a new customer's Business Unit Head
+    // picker offered seven invented people - and choosing one made a person who does not
+    // exist the head of a real business unit.
+    let activeEmployeesCache = [];
     let isInitialized = false;
 
     const NO_ORG_MESSAGE = 'Your account has no organization';
@@ -270,7 +274,9 @@
             });
         }
     }
-    initDefaultRules();
+    // initDefaultRules() is no longer run on load. It filled the list with five sample
+    // business units that stayed on screen for any organisation without its own, as if
+    // they were that organisation's. The samples stay exported as DEFAULT_BU_RULES.
 
     function resolveEmployeeName(empId) {
         if (!empId) return '';
@@ -325,8 +331,8 @@
                     console.warn('[BURules] Could not read the employees of this organization:', err.message);
                 }
 
-                // only this organization's people; the built-in demo list is used only when nobody was found
-                if (loaded.length > 0) activeEmployeesCache = loaded;
+                // only this organization's people, even when that is nobody yet
+                activeEmployeesCache = loaded;
             }
         } catch (err) {
             console.warn('[BURules] Employee list fetch notice:', err.message);
@@ -343,8 +349,9 @@
         try {
             const { fb, orgId } = await resolveOrg();
             const buSnap = await fb.getDocs(fb.collection(fb.db, 'organizations', orgId, 'business_units'));
+            // Cleared even when the organisation has none, so nothing left over is shown as theirs.
+            currentRules.clear();
             if (!buSnap.empty) {
-                currentRules.clear();
                 buSnap.forEach(docSnap => {
                     const data = docSnap.data();
                     const buCode = (data.businessUnitCode || docSnap.id).toUpperCase();
@@ -797,7 +804,7 @@
                     </span>
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn btn-outline" onclick="window.KylrxBuRules.openBuModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; border: 1.5px solid var(--k-border); background: white; cursor: pointer;">
+                    <button type="button" class="btn btn-outline" onclick="window.KylrxBuRules.openBuModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; border: 1.5px solid var(--k-border); background: var(--k-surface); cursor: pointer;">
                         <i class="fas fa-plus-circle" style="color: var(--k-accent-text);"></i> Add Business Unit
                     </button>
                     <button type="button" class="btn btn-primary" onclick="window.KylrxBuRules.saveAllRules()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; background: var(--k-accent); color: white; border: none; cursor: pointer;">
@@ -919,7 +926,7 @@
         `;
 
         modalDiv.innerHTML = `
-            <div class="modal" style="background: white; border-radius: 24px; padding: 2rem; max-width: 580px; width: 92%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid var(--k-border); position: relative;">
+            <div class="modal" style="background: var(--k-surface); border-radius: 24px; padding: 2rem; max-width: 580px; width: 92%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid var(--k-border); position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem; margin-bottom: 1.25rem;">
                     <div>
                         <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;" id="buModalTitle">Add Business Unit</h2>
@@ -963,7 +970,7 @@
                             3. BU Head (Head_Employee_ID)
                         </label>
                         <select id="buModalHeadSelect" 
-                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--k-border); font-size: 0.88rem; outline: none; background: white; box-sizing: border-box;"
+                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--k-border); font-size: 0.88rem; outline: none; background: var(--k-surface); box-sizing: border-box;"
                         >
                             <option value="">-- Select Active Employee as BU Head --</option>
                         </select>
@@ -976,7 +983,7 @@
                             4. Active Status (Active: Yes / No) *
                         </label>
                         <select id="buModalActive" 
-                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--k-border); font-size: 0.88rem; outline: none; background: white; box-sizing: border-box;"
+                            style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--k-border); font-size: 0.88rem; outline: none; background: var(--k-surface); box-sizing: border-box;"
                         >
                             <option value="true" selected>Yes - Active (Unit eligible in onboarding)</option>
                             <option value="false">No - Inactive (Blocked from new onboarding)</option>
@@ -1069,7 +1076,7 @@
         typesContainer.innerHTML = canonicalTypes.map(t => {
             const isChecked = allowedTypes.includes(t.code) || (t.code === 'CONTRACT' && allowedTypes.includes('CONTRACTOR'));
             return `
-                <label style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; background: ${isChecked ? 'var(--k-accent-soft)' : 'white'}; color: ${isChecked ? 'var(--k-accent-text)' : 'var(--k-muted)'}; border: 1.5px solid ${isChecked ? 'var(--k-accent-border)' : 'var(--k-border)'};">
+                <label style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; background: ${isChecked ? 'var(--k-accent-soft)' : 'var(--k-surface)'}; color: ${isChecked ? 'var(--k-accent-text)' : 'var(--k-muted)'}; border: 1.5px solid ${isChecked ? 'var(--k-accent-border)' : 'var(--k-border)'};">
                     <input type="checkbox" name="buModalTypeCheckbox" value="${t.code}" ${isChecked ? 'checked' : ''} 
                         onchange="this.parentElement.style.background = this.checked ? '#dbeafe' : 'white'; this.parentElement.style.color = this.checked ? '#1d4ed8' : '#64748b'; this.parentElement.style.borderColor = this.checked ? '#93c5fd' : '#cbd5e1';"
                     />
@@ -1250,6 +1257,8 @@
         BUSINESS_UNIT_ATTRIBUTES,
         CANONICAL_EMPLOYEE_TYPES,
         DEFAULT_BU_RULES,
+        // Tests only: load the samples as fixtures. The page never calls this.
+        loadSampleRulesForTesting: initDefaultRules,
         loadRulesFromFirestore,
         getLoadError,
         getAllRules,

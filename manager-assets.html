@@ -114,7 +114,7 @@
         /* Issue Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(8px); z-index: 9999; display: none; align-items: center; justify-content: center; }
         .modal-overlay.active { display: flex; }
-        .modal { background: white; border-radius: 28px; overflow: hidden; width: 90%; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--border); transform: scale(0.95); transition: 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+        .modal { background: var(--k-surface); border-radius: 28px; overflow: hidden; width: 90%; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--border); transform: scale(0.95); transition: 0.3s cubic-bezier(0.34,1.56,0.64,1); }
         .modal-overlay.active .modal { transform: scale(1); }
         .modal h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
         .modal p { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
@@ -134,7 +134,7 @@
     
         .layout { display: grid; grid-template-columns: var(--sidebar-width, 280px) 1fr; height: 100vh; overflow: hidden; }
         .sidebar {
-            background: white;
+            background: var(--k-surface);
             border-right: 1px solid var(--border);
             padding: 1rem 0.75rem;
             display: flex;
@@ -222,7 +222,7 @@
             gap: 8px;
             border: 1.5px solid var(--border);
             transition: all 0.2s ease;
-            background: white;
+            background: var(--k-surface);
             color: var(--text-muted);
             outline: none;
         }
@@ -244,7 +244,7 @@
 
         /* Goal Stats & Toolbar (PRD 1.1) */
         .goal-stat-card {
-            background: white;
+            background: var(--k-surface);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 1.25rem;
@@ -269,7 +269,7 @@
             font-weight: 700;
             cursor: pointer;
             border: 1px solid var(--border);
-            background: white;
+            background: var(--k-surface);
             color: var(--text-muted);
             transition: all 0.2s ease;
             white-space: nowrap;
@@ -296,7 +296,7 @@
             padding: 1.5rem;
         }
         .custom-alert-card {
-            background: white;
+            background: var(--k-surface);
             border-radius: 24px;
             padding: 2rem;
             width: 100%;
@@ -335,7 +335,7 @@
             color: var(--text-main);
         }
         .card {
-            background: white;
+            background: var(--k-surface);
             border-radius: 20px;
             padding: 1.5rem;
             border: 1px solid var(--border);
@@ -533,7 +533,7 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <button onclick="window.openTemplatePickerModal('goals')" style="background: white; color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <button onclick="window.openTemplatePickerModal('goals')" style="background: var(--k-surface); color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                             <i data-lucide="layout-template" style="width: 16px; height: 16px; color: var(--primary);"></i>
                             <span>Browse Goal Templates</span>
                         </button>
@@ -604,7 +604,7 @@
                     </div>
 
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                        <select id="goalCategoryFilter" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: white; color: var(--k-text-2);">
+                        <select id="goalCategoryFilter" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600; outline: none; background: var(--k-surface); color: var(--k-text-2);">
                             <option value="all">All Strategic Categories</option>
                             <option value="Cybersecurity & Compliance">Cybersecurity & Compliance</option>
                             <option value="Operational Excellence">Operational Excellence</option>
@@ -614,7 +614,7 @@
 
                         <div style="position: relative; min-width: 220px;">
                             <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--k-muted);"></i>
-                            <input type="text" id="goalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; outline: none; background: white;">
+                            <input type="text" id="goalSearchInput" placeholder="Search goals or outcomes..." style="width: 100%; padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--border); font-size: 0.8rem; outline: none; background: var(--k-surface);">
                         </div>
                     </div>
                 </div>
@@ -710,7 +710,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                             <div>
                                 <label style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted);">Method</label>
-                                <select id="goalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <select id="goalFormMethod" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                                     <option value="quantitative">Quantitative Target</option>
                                     <option value="milestone">Milestones-based</option>
                                     <option value="unit">Unit Reduction / SLA</option>
@@ -719,22 +719,22 @@
                             </div>
                             <div>
                                 <label style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted);">Target Value *</label>
-                                <input type="number" step="any" id="goalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <input type="number" step="any" id="goalFormTarget" value="100" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                             </div>
                             <div>
                                 <label style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted);">Unit (e.g. %, Minutes) *</label>
-                                <input type="text" id="goalFormUnit" value="% Compliance" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                                <input type="text" id="goalFormUnit" value="% Compliance" required style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                             </div>
                         </div>
 
                         <div>
                             <label style="font-size: 0.7rem; font-weight: 700; color: var(--k-muted);">Completion Criteria / Acceptance Rules</label>
-                            <input type="text" id="goalFormCriteria" placeholder="e.g. All 802 regional nodes pass automated vulnerability audit." style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.8rem; margin-top: 4px;">
+                            <input type="text" id="goalFormCriteria" placeholder="e.g. All 802 regional nodes pass automated vulnerability audit." style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--k-surface); font-size: 0.8rem; margin-top: 4px;">
                         </div>
                     </div>
 
                     <!-- Milestones Checklist Builder (PRD 1.1 Measure) -->
-                    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <label style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Key Milestones</label>
                             <button type="button" onclick="addMilestoneInputRow()" style="background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); border-radius: 8px; padding: 3px 10px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">

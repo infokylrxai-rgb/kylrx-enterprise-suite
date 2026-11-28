@@ -828,7 +828,7 @@
                 z-index: 99999; animation: fadeIn 0.2s ease;
             `;
             modal.innerHTML = `
-                <div style="background: white; border-radius: 24px; padding: 2rem; width: 92%; max-width: 650px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); max-height: 90vh; overflow-y: auto;">
+                <div style="background: var(--k-surface); border-radius: 24px; padding: 2rem; width: 92%; max-width: 650px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); border: 1px solid var(--k-border); max-height: 90vh; overflow-y: auto;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
@@ -913,7 +913,7 @@
                         </div>
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                            <button type="button" id="btnCancelPolicyModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid var(--k-border); background: white; font-weight: 700; cursor: pointer;">Cancel</button>
+                            <button type="button" id="btnCancelPolicyModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; cursor: pointer;">Cancel</button>
                             <button type="submit" id="btnSavePolicyModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: var(--k-accent); color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                 <i data-lucide="check"></i> Save Attendance Policy
                             </button>
@@ -1046,7 +1046,7 @@
         const totalCount = policies.length;
 
         container.innerHTML = `
-            <div style="background: white; border: 1px solid var(--k-border); border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+            <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 24px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 2rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--k-border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -1062,7 +1062,7 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-outline" id="btnAdminAddPolicy" style="font-size: 0.85rem; border: 1.5px solid var(--k-border); background: white; cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <button type="button" class="btn btn-outline" id="btnAdminAddPolicy" style="font-size: 0.85rem; border: 1.5px solid var(--k-border); background: var(--k-surface); cursor: pointer; padding: 10px 16px; border-radius: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                             <i data-lucide="plus-circle" style="color: var(--k-accent-text);"></i> Add Attendance Policy
                         </button>
                     </div>
@@ -1144,7 +1144,7 @@
                                         <td style="padding: 12px 16px; text-align: center;">${statusBadge}</td>
                                         <td style="padding: 12px 16px; text-align: right;">
                                             <div style="display: inline-flex; gap: 6px;">
-                                                <button onclick="window.KylrxAttendancePolicyService.openPolicyModal('${p.attendancePolicyCode}')" style="padding: 6px 10px; border: 1px solid var(--k-border); background: white; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">Edit</button>
+                                                <button onclick="window.KylrxAttendancePolicyService.openPolicyModal('${p.attendancePolicyCode}')" style="padding: 6px 10px; border: 1px solid var(--k-border); background: var(--k-surface); border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">Edit</button>
                                                 <button onclick="window.KylrxAttendancePolicyService.togglePolicyStatus('${p.attendancePolicyCode}').then(() => window.KylrxAttendancePolicyService.renderAdminConsole())" style="padding: 6px 10px; border: 1px solid ${p.isActive ? 'var(--k-danger-border)' : 'var(--k-success-border)'}; background: ${p.isActive ? '#fff1f2' : 'var(--k-success-soft)'}; color: ${p.isActive ? '#991b1b' : '#166534'}; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">${p.isActive ? 'Deactivate' : 'Activate'}</button>
                                             </div>
                                         </td>

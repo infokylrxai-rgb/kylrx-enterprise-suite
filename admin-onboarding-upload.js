@@ -26,11 +26,16 @@
  */
 
 import { auth, db, getActiveOrgId } from "./firebase-config.js";
-import { 
-    doc, 
-    getDoc, 
-    setDoc, 
-    serverTimestamp 
+// getDocs and collection were used ten times without being imported. Each use threw a
+// ReferenceError that a catch reported as "will fall back", so every check that an
+// uploaded Employee_ID belongs to a real employee was silently skipped.
+import {
+    doc,
+    getDoc,
+    getDocs,
+    collection,
+    setDoc,
+    serverTimestamp
 } from "./firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
@@ -108,19 +113,13 @@ const state = {
 const statusBadge = document.getElementById('statusBadge');
 const tabManual = document.getElementById('tabManual');
 const tabBulk = document.getElementById('tabBulk');
-// The three bulk tabs: buttons present in the markup, never looked up here, so they
-// could not be registered and clicking them did nothing.
 const tabStatutoryMasters = document.getElementById('tabStatutoryMasters');
 const statutoryMastersView = document.getElementById('statutoryMastersView');
-const tabUnifiedJobRoster = document.getElementById('tabUnifiedJobRoster');
-const tabUnifiedEmployeeFinance = document.getElementById('tabUnifiedEmployeeFinance');
-const tabUnifiedOrgCompliance = document.getElementById('tabUnifiedOrgCompliance');
 const tabBusinessUnits = document.getElementById('tabBusinessUnits');
 const manualView = document.getElementById('manualView');
 const uploadView = document.getElementById('uploadView');
 const buManagementView = document.getElementById('buManagementView');
 const manualOrgForm = document.getElementById('manualOrgForm');
-const btnFillDemoData = document.getElementById('btnFillDemoData');
 const btnManualClear = document.getElementById('btnManualClear');
 const btnManualSubmit = document.getElementById('btnManualSubmit');
 
@@ -321,6 +320,9 @@ const btnCancelStatutoryComplianceIngest = document.getElementById('btnCancelSta
 const btnConfirmStatutoryComplianceIngest = document.getElementById('btnConfirmStatutoryComplianceIngest');
 const statutoryTotalRowsDisplay = document.getElementById('statutoryTotalRowsDisplay');
 const statutoryTotalApplicableDisplay = document.getElementById('statutoryTotalApplicableDisplay');
+// Was used but never looked up: the ReferenceError stopped the whole upload at the
+// Statutory Compliance sheet, so the sheets after it were never read.
+const statutoryTotalStatesDisplay = document.getElementById('statutoryTotalStatesDisplay');
 const statutoryTotalDueRemindersDisplay = document.getElementById('statutoryTotalDueRemindersDisplay');
 
 // Role Permissions & Employee Overrides Elements (PRD Sections 1, 14, 17, & 18)
@@ -354,11 +356,6 @@ const wfModulesCoveredDisplay = document.getElementById('wfModulesCoveredDisplay
 const tabPayrollComponents = document.getElementById('tabPayrollComponents');
 const payrollComponentsManagementView = document.getElementById('payrollComponentsManagementView');
 
-// These three panels are fully present in the markup but were never looked up, so they
-// were never registered as tabs and clicking their buttons did nothing at all.
-const unifiedJobRosterView = document.getElementById('unifiedJobRosterView');
-const unifiedEmployeeFinanceView = document.getElementById('unifiedEmployeeFinanceView');
-const unifiedOrgComplianceView = document.getElementById('unifiedOrgComplianceView');
 const payrollComponentsParseResultsContainer = document.getElementById('payrollComponentsParseResultsContainer');
 const payrollComponentsParseResultTitle = document.getElementById('payrollComponentsParseResultTitle');
 const payrollComponentsParseResultMeta = document.getElementById('payrollComponentsParseResultMeta');
@@ -427,7 +424,7 @@ async function checkExistingOrganizationStatus() {
                 localStorage.setItem('orgConfigured', 'true');
                 if (statusBadge) {
                     statusBadge.className = 'badge-verified';
-                    statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization Configured (orgConfigured: true)';
+                    statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization configured';
                 }
                 populateManualFormWithExistingData(data);
                 console.log(`✅ Organization ${state.orgId} is configured:`, data);
@@ -442,7 +439,7 @@ async function checkExistingOrganizationStatus() {
         if (localStorage.getItem('orgConfigured') === 'true') {
             if (statusBadge) {
                 statusBadge.className = 'badge-verified';
-                statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization Configured (orgConfigured: true)';
+                statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization configured';
             }
         }
     }
@@ -453,7 +450,7 @@ function markPendingStatus() {
     state.isConfigured = false;
     if (statusBadge) {
         statusBadge.className = 'badge-pending';
-        statusBadge.innerHTML = '<i data-lucide="shield-alert" style="width: 14px;"></i> Setup Required (orgConfigured: false)';
+        statusBadge.innerHTML = '<i data-lucide="shield-alert" style="width: 14px;"></i> Setup required';
     }
 }
 
@@ -503,12 +500,6 @@ function setupNavigationTabs() {
     const TABS = {
         manual: [tabManual, manualView],
         bulk: [tabBulk, uploadView],
-        // Registered so the tabs open. The panels themselves are markup only - none of
-        // their controls has ever been wired - so each says so rather than presenting a
-        // file picker that silently does nothing.
-        unifiedJobRoster: [tabUnifiedJobRoster, unifiedJobRosterView, () => markBulkPanelUnavailable('jobRoster', 'Job & Rosters')],
-        unifiedEmployeeFinance: [tabUnifiedEmployeeFinance, unifiedEmployeeFinanceView, () => markBulkPanelUnavailable('employeeFinance', 'Finance & Statutory IDs')],
-        unifiedOrgCompliance: [tabUnifiedOrgCompliance, unifiedOrgComplianceView, () => markBulkPanelUnavailable('orgCompliance', 'Org Statutory Registrations')],
         businessUnits: [tabBusinessUnits, buManagementView, () => window.KylrxBuRules && typeof window.KylrxBuRules.renderAdminRulesTable === 'function' && window.KylrxBuRules.renderAdminRulesTable('onboardingBuTableContainer')],
         costCenters: [tabCostCenters, ccManagementView, () => window.KylrxCostCenterService && typeof window.KylrxCostCenterService.renderAdminConsole === 'function' && window.KylrxCostCenterService.renderAdminConsole('onboardingCcTableContainer')],
         subDepartments: [tabSubDepartments, subDeptManagementView, () => window.KylrxSubDepartmentService && typeof window.KylrxSubDepartmentService.renderAdminConsole === 'function' && window.KylrxSubDepartmentService.renderAdminConsole('onboardingSubDeptTableContainer')],
@@ -524,44 +515,6 @@ function setupNavigationTabs() {
         statutoryMasters: [tabStatutoryMasters, statutoryMastersView, () => showStatutoryMaster(currentStatutoryMaster)],
         payrollComponents: [tabPayrollComponents, payrollComponentsManagementView, () => window.KylrxPayrollComponentsUIController && typeof window.KylrxPayrollComponentsUIController.renderAdminConsole === 'function' && window.KylrxPayrollComponentsUIController.renderAdminConsole('onboardingPayrollComponentsTableContainer', state.orgId)]
     };
-
-    /**
-     * These three bulk panels were built as markup and never implemented: the template
-     * button, the drop zone, the file input and the ingest button exist in the HTML and
-     * are referenced nowhere in script. Opening the tab used to be impossible; now that
-     * it opens, a dead file picker would be worse than the dead tab, because a person
-     * would drop a file in and wait for something to happen.
-     *
-     * The controls are disabled and the panel says where to do the same work today.
-     */
-    function markBulkPanelUnavailable(prefix, label) {
-        const dropZone = document.getElementById(prefix + 'DropZone');
-        const fileInput = document.getElementById(prefix + 'FileInput');
-        const confirmBtn = document.getElementById('btnConfirm' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'Ingest');
-        const templateBtn = document.getElementById('btnDownload' + prefix.charAt(0).toUpperCase() + prefix.slice(1) + 'Template');
-
-        for (const el of [confirmBtn, templateBtn]) {
-            if (!el) continue;
-            el.disabled = true;
-            el.style.opacity = '0.5';
-            el.style.cursor = 'not-allowed';
-            el.title = label + ' bulk import is not available yet';
-        }
-        if (fileInput) fileInput.disabled = true;
-
-        if (dropZone && !dropZone.dataset.unavailableShown) {
-            dropZone.dataset.unavailableShown = 'true';
-            dropZone.style.opacity = '0.55';
-            dropZone.style.pointerEvents = 'none';
-            const note = document.createElement('div');
-            note.setAttribute('role', 'status');
-            note.style.cssText = 'margin: 0 0 1rem; padding: 0.75rem 1rem; border-radius: 12px;' +
-                'background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 0.875rem; font-weight: 600;';
-            note.textContent = label + ' bulk import is not built yet. Use the Bulk File Upload tab for the sheets it supports, ' +
-                'or the matching console tab to enter these records directly.';
-            dropZone.parentElement.insertBefore(note, dropZone);
-        }
-    }
 
     /*
      * The six statutory masters used to be six chips in the main bar, differing only by
@@ -636,12 +589,12 @@ function setupInAppDownload() {
     const triggerInAppDownload = (e) => {
         e.preventDefault();
         const link = document.createElement('a');
-        link.href = 'assets/Templates.xlsx';
-        link.download = 'Templates.xlsx';
+        link.href = 'assets/Kylrx-Import-Template.xlsx';
+        link.download = 'Kylrx-Import-Template.xlsx';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        console.log("📥 Direct in-app download initiated for official 27-sheet Templates.xlsx (Never distributed via email per PRD Section 1).");
+        
     };
 
     if (btnDownloadTemplate) btnDownloadTemplate.onclick = triggerInAppDownload;
@@ -652,41 +605,6 @@ function setupInAppDownload() {
  * Sets up Tab A: Manual Data Entry Form logic
  */
 function setupManualForm() {
-    // Fill sample demo data for rapid testing
-    if (btnFillDemoData) {
-        btnFillDemoData.onclick = () => {
-            const demoData = {
-                manualLegalName: "Kylrx Technologies Private Limited",
-                manualDisplayName: "Kylrx AI",
-                manualOrgType: "Private Limited",
-                manualIndustry: "Technology & HR Automation SaaS",
-                manualWebsite: "https://kylrx.ai",
-                manualOfficialEmail: "admin@kylrx.ai",
-                manualOfficialPhone: "+91 80 4123 4567",
-                manualCountry: "India",
-                manualState: "Karnataka",
-                manualCity: "Bengaluru",
-                manualPinCode: "560103",
-                manualRegisteredAddress: "Outer Ring Road, Bellandur, Bengaluru, Karnataka 560103",
-                manualCorporateAddress: "Floor 9, Tower C, Global Tech Park, Bellandur, Bengaluru, Karnataka 560103",
-                manualTimeZone: "Asia/Kolkata",
-                manualCurrency: "INR",
-                manualFyStart: "04-01",
-                manualPan: "AAACK1234F",
-                manualTan: "BLRK12345D",
-                manualCin: "U72200KA2026PTC123456",
-                manualGstin: "29AAACK1234F1Z5",
-                manualLogoUrl: "https://kylrx.ai/logo.jpg"
-            };
-
-            for (const [id, value] of Object.entries(demoData)) {
-                const el = document.getElementById(id);
-                if (el) el.value = value;
-            }
-            window.showCustomAlert("Demo Data Populated", "The exact 21 organization attributes have been auto-populated with Kylrx Enterprise defaults.", "success");
-        };
-    }
-
     if (btnManualClear) {
         btnManualClear.onclick = () => {
             if (manualOrgForm) manualOrgForm.reset();
@@ -754,7 +672,7 @@ async function processManualSubmission() {
         window.showCustomAlert("Setup Error", "Failed to save organization: " + err.message, "error");
         if (btnManualSubmit) {
             btnManualSubmit.disabled = false;
-            btnManualSubmit.innerHTML = '<i data-lucide="check-circle-2"></i> Save Organization & Set orgConfigured: true';
+            btnManualSubmit.innerHTML = '<i data-lucide="check-circle-2"></i> Save Organization';
             if (window.lucide) lucide.createIcons();
         }
     } finally {
@@ -803,11 +721,27 @@ function validateOrganizationAttributes(data) {
  */
 function setupFileUpload() {
     if (dropZone && fileInput) {
+        // A div is not reachable by keyboard; this makes the drop zone a real button.
+        dropZone.setAttribute('role', 'button');
+        dropZone.setAttribute('tabindex', '0');
+        dropZone.setAttribute('aria-label', 'Choose a spreadsheet to upload');
         dropZone.onclick = () => fileInput.click();
+        dropZone.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+        };
         fileInput.onchange = (e) => {
-            if (e.target.files && e.target.files[0]) {
-                handleUploadedFile(e.target.files[0]);
-            }
+            const file = e.target.files && e.target.files[0];
+            // Cleared at once so choosing the same file again - after correcting it, which
+            // is the usual next step - fires change. Otherwise the re-upload does nothing.
+            e.target.value = '';
+            if (file) handleUploadedFile(file);
+        };
+
+        // Highlight while dragging, then hand the colours back to the stylesheet. Setting
+        // a literal white here left the zone white in the dark theme after every drop.
+        const resetZone = () => {
+            dropZone.style.borderColor = '';
+            dropZone.style.backgroundColor = '';
         };
 
         dropZone.ondragover = (e) => {
@@ -818,14 +752,12 @@ function setupFileUpload() {
 
         dropZone.ondragleave = (e) => {
             e.preventDefault();
-            dropZone.style.borderColor = 'var(--border)';
-            dropZone.style.backgroundColor = '#ffffff';
+            resetZone();
         };
 
         dropZone.ondrop = (e) => {
             e.preventDefault();
-            dropZone.style.borderColor = 'var(--border)';
-            dropZone.style.backgroundColor = '#ffffff';
+            resetZone();
             if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                 handleUploadedFile(e.dataTransfer.files[0]);
             }
@@ -864,7 +796,7 @@ function setupFileUpload() {
                 console.error("Bulk spreadsheet ingest failed:", err);
                 window.showCustomAlert("Ingest Error", "Failed to ingest organization: " + err.message, "error");
                 btnConfirmIngest.disabled = false;
-                btnConfirmIngest.innerHTML = '<i data-lucide="lock"></i> Ingest 21 Attributes & Set orgConfigured: true';
+                btnConfirmIngest.innerHTML = '<i data-lucide="lock"></i> Save Organization';
                 if (window.lucide) lucide.createIcons();
             } finally {
                 state.isProcessing = false;
@@ -1482,9 +1414,126 @@ function handleUploadedFile(file) {
             const workbook = XLSX.read(data, { type: 'array' });
             let parsedAny = false;
 
+            /*
+             * Each section below looks for its sheet by name. Two things went wrong with a
+             * plain SheetNames.find:
+             *  - the names were compared with only spaces, "_" and "-" removed, so
+             *    "Shifts & Week-offs" became "shifts&weekoffs" and never matched. Shifts
+             *    filled into the template's own Shifts sheet were silently not imported;
+             *  - the template carries several spellings of one sheet ("Cost Center" and
+             *    "Cost Centre"), and find returns the first even when it is the empty one,
+             *    so the copy somebody actually filled in was ignored.
+             * pickSheet also tries the name with symbols removed, prefers a matching sheet
+             * that has rows, and records what it used so unread sheets can be reported.
+             */
+            const usedSheets = new Set();
+            // Sheets that were read but every row of which was rejected. They used to show
+            // no preview and no message - the rows simply did not appear.
+            const rejectedSheets = [];
+            const rowCounts = new Map();
+            const hasRows = (name) => {
+                if (!rowCounts.has(name)) rowCounts.set(name, XLSX.utils.sheet_to_json(workbook.Sheets[name], { defval: '' }).length);
+                return rowCounts.get(name) > 0;
+            };
+            const pickSheet = (predicate) => {
+                const hits = workbook.SheetNames.filter(name =>
+                    predicate(name) ||
+                    predicate(name.replace(/&/g, ' and ')) ||
+                    predicate(name.replace(/[^A-Za-z0-9]+/g, ' ')));
+                const chosen = hits.find(hasRows) || hits[0];
+                if (chosen) usedSheets.add(chosen);
+                return chosen;
+            };
+
+            /*
+             * Every sheet is looked up by name before any section runs. A lone sheet whose
+             * name is not recognised (a CSV, or "Sheet1") is then identified by its headers.
+             * The header check used to run section by section, before later sections had
+             * looked for their names, so a file holding only "PF Details" was also claimed
+             * by Employee Finance - whose check accepted any sheet with an Employee ID - and
+             * PF rows were offered for import as bank details.
+             */
+            let orgSheetName = pickSheet(s => s.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'organization');
+            let buSheetName = pickSheet(s => s.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'businessunit');
+            let ccSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'costcenter' || norm === 'costcentre';
+            });
+            let subDeptSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'subdepartments' || norm === 'subdepartment' || norm === 'subdepts';
+            });
+            let shiftSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'shiftsweekoffs' || norm === 'shiftsandweekoffs' || norm === 'shifts' || norm === 'shiftroster' || norm === 'shift_roster' || norm === 'shiftspolicies';
+            });
+            let policySheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'attendancerules' || norm === 'attendancepolicies' || norm === 'attendancepolicy' || norm === 'attendance_rules' || norm === 'attendance_policies' || norm === 'attendance';
+            });
+            let empTypeSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'employeetype' || norm === 'employeetypes';
+            }) || pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'employmenttype' || norm === 'employmenttypes' || norm === 'categories';
+            });
+            let empFinanceSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'employeefinancedeatils' || norm === 'employeefinancedetails' || norm === 'employeefinance' || norm === 'financedetails' || norm === 'finance_details' || norm === 'finance';
+            });
+            let pfMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'pfdetails' || norm === 'epfomaster' || norm === 'pfmaster' || norm === 'epfodetails' || norm === 'epfo' || norm === 'pf';
+            });
+            let esicMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'esicdetails' || norm === 'esicmaster' || norm === 'esidetails' || norm === 'esimaster' || norm === 'esic' || norm === 'esi';
+            });
+            let ptMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'ptdetails' || norm === 'ptmaster' || norm === 'professionaltax' || norm === 'professionaltaxdetails' || norm === 'pt';
+            });
+            let lwfMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'lwfdetails' || norm === 'lwfmaster' || norm === 'labourwelfarefund' || norm === 'labourwelfarefunddetails' || norm === 'lwf';
+            });
+            let npsMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'npsdetails' || norm === 'npsmaster' || norm === 'nationalpensionsystem' || norm === 'nationalpensionsystemdetails' || norm === 'nps';
+            });
+            let gratuityMasterSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'gratuitydetails' || norm === 'gratuitymaster' || norm === 'gratuity' || norm === 'paymentofgratuity' || norm === 'paymentofgratuitydetails';
+            });
+            let salaryStructureSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'salarystcruture' || norm === 'salarystructure' || norm === 'salary_structure' || norm === 'salary' || norm === 'salaries';
+            });
+            let holidaySheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'holidaycalendar' || norm === 'holidays' || norm === 'holiday_calendar' || norm === 'holiday';
+            });
+            let statutorySheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
+                return norm === 'statuatorycompliance' || norm === 'statutorycompliance' || norm === 'compliance' || norm === 'statutory' || norm === 'compliancerules';
+            });
+            let rolePermSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
+                return norm === 'rolecodeemployeecod' || norm === 'rolecodeemployeecode' || norm === 'rolespermissions' || norm === 'rolepermissions' || norm === 'permissions' || norm === 'rbac';
+            });
+            let workflowSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
+                return norm === 'workflowrules' || norm === 'workflowchain' || norm === 'workflows' || norm === 'workflow' || norm === 'approvalrules' || norm === 'multistep';
+            });
+            let payrollCompSheetName = pickSheet(s => {
+                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
+                return norm === 'payrollcomponents' || norm === 'payrollcomponent' || norm === 'salarycomponents' || norm === 'salarycomponent' || norm === 'components';
+            });
+            const singleUnnamedSheet = workbook.SheetNames.length === 1 && usedSheets.size === 0;
+
             // ── 1. Target the 'Organization' sheet ──────────────────────────────────
-            let orgSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'organization');
-            if (!orgSheetName && workbook.SheetNames.length === 1) {
+            if (!orgSheetName && singleUnnamedSheet) {
                 // If single sheet, probe headers to check if it's organization
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                 const probeRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
@@ -1507,8 +1556,7 @@ function handleUploadedFile(file) {
             }
 
             // ── 2. Target the 'Business Unit' sheet (PRD Section 1 & Section 10) ────
-            let buSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().replace(/[\s_-]+/g, '') === 'businessunit');
-            if (!buSheetName && workbook.SheetNames.length === 1 && !orgSheetName) {
+            if (!buSheetName && singleUnnamedSheet && !orgSheetName) {
                 // Single-sheet CSV or workbook that wasn't Organization
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
@@ -1528,16 +1576,14 @@ function handleUploadedFile(file) {
                         state.parsedBuDocs = buParsed.firestoreDocs;
                         renderParsedBuPreview(file.name, buSheetName, buParsed.records, buParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: buSheetName, errors: buParsed.errors || [] });
                     }
                 }
             }
 
             // ── 3. Target the 'Cost Center' / 'Cost Centre' sheet (PRD Sections 1 & 13) ──
-            let ccSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'costcenter' || norm === 'costcentre';
-            });
-            if (!ccSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName) {
+            if (!ccSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1556,16 +1602,14 @@ function handleUploadedFile(file) {
                         state.parsedCcDocs = ccParsed.firestoreDocs;
                         renderParsedCcPreview(file.name, ccSheetName, ccParsed.records, ccParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: ccSheetName, errors: ccParsed.errors || [] });
                     }
                 }
             }
 
             // ── 4. Target the 'Sub-Departments' sheet (PRD Sections 1, 10 & 13) ────
-            let subDeptSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'subdepartments' || norm === 'subdepartment' || norm === 'subdepts';
-            });
-            if (!subDeptSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName) {
+            if (!subDeptSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1584,16 +1628,14 @@ function handleUploadedFile(file) {
                         state.parsedSubDeptDocs = subDeptParsed.firestoreDocs;
                         renderParsedSubDeptPreview(file.name, subDeptSheetName, subDeptParsed.records, subDeptParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: subDeptSheetName, errors: subDeptParsed.errors || [] });
                     }
                 }
             }
 
             // ── 5. Target the 'Shifts & Week-offs' sheet (PRD Sections 1, 13 & 16) ────
-            let shiftSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'shiftsweekoffs' || norm === 'shiftsandweekoffs' || norm === 'shifts' || norm === 'shiftroster' || norm === 'shift_roster' || norm === 'shiftspolicies';
-            });
-            if (!shiftSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName) {
+            if (!shiftSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1612,16 +1654,14 @@ function handleUploadedFile(file) {
                         state.parsedShiftDocs = shiftParsed.firestoreDocs;
                         renderParsedShiftPreview(file.name, shiftSheetName, shiftParsed.records, shiftParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: shiftSheetName, errors: shiftParsed.errors || [] });
                     }
                 }
             }
 
             // ── 6. Target the 'Attendance Rules' sheet (PRD Sections 1, 15 & 16) ────
-            let policySheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'attendancerules' || norm === 'attendancepolicies' || norm === 'attendancepolicy' || norm === 'attendance_rules' || norm === 'attendance_policies' || norm === 'attendance';
-            });
-            if (!policySheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName) {
+            if (!policySheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1640,19 +1680,14 @@ function handleUploadedFile(file) {
                         state.parsedPolicyDocs = policyParsed.firestoreDocs;
                         renderParsedPolicyPreview(file.name, policySheetName, policyParsed.records, policyParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: policySheetName, errors: policyParsed.errors || [] });
                     }
                 }
             }
 
             // ── 7. Target the 'Employee Type' sheet (PRD Sections 1, 10 & 13) ──────
-            let empTypeSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'employeetype' || norm === 'employeetypes';
-            }) || workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'employmenttype' || norm === 'employmenttypes' || norm === 'categories';
-            });
-            if (!empTypeSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName) {
+            if (!empTypeSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1671,20 +1706,18 @@ function handleUploadedFile(file) {
                         state.parsedEmployeeTypeDocs = typeParsed.firestoreDocs;
                         renderParsedEmployeeTypePreview(file.name, empTypeSheetName, typeParsed.records, typeParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: empTypeSheetName, errors: typeParsed.errors || [] });
                     }
                 }
             }
 
             // ── 8. Target the 'Employee Finance Deatils' sheet (PRD Sections 1, 4 & 13) ────
-            let empFinanceSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'employeefinancedeatils' || norm === 'employeefinancedetails' || norm === 'employeefinance' || norm === 'financedetails' || norm === 'finance_details' || norm === 'finance';
-            });
-            if (!empFinanceSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName) {
+            if (!empFinanceSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
-                    if (firstKeys.includes('accountholdername') || firstKeys.includes('accountnumber') || firstKeys.includes('ifsc') || firstKeys.includes('uanno') || firstKeys.includes('employeeid')) {
+                    if (firstKeys.includes('accountholdername') || firstKeys.includes('accountnumber') || firstKeys.includes('ifsc') || firstKeys.includes('uanno')) {
                         empFinanceSheetName = workbook.SheetNames[0];
                     }
                 }
@@ -1699,16 +1732,14 @@ function handleUploadedFile(file) {
                         state.parsedFinanceDocs = financeParsed.firestoreDocs;
                         renderParsedEmployeeFinancePreview(file.name, empFinanceSheetName, financeParsed.records, financeParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: empFinanceSheetName, errors: financeParsed.errors || [] });
                     }
                 }
             }
 
             // ── 8.5. Target the 'PF Details' / 'EPFO Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let pfMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'pfdetails' || norm === 'epfomaster' || norm === 'pfmaster' || norm === 'epfodetails' || norm === 'epfo' || norm === 'pf';
-            });
-            if (!pfMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName) {
+            if (!pfMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1727,16 +1758,14 @@ function handleUploadedFile(file) {
                         state.parsedEpfoDocs = epfoParsed.firestoreDocs;
                         renderParsedEpfoMasterPreview(file.name, pfMasterSheetName, epfoParsed.records, epfoParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: pfMasterSheetName, errors: epfoParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'ESIC Details' / 'ESIC Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let esicMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'esicdetails' || norm === 'esicmaster' || norm === 'esidetails' || norm === 'esimaster' || norm === 'esic' || norm === 'esi';
-            });
-            if (!esicMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName) {
+            if (!esicMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1755,16 +1784,14 @@ function handleUploadedFile(file) {
                         state.parsedEsicDocs = esicParsed.firestoreDocs;
                         renderParsedEsicMasterPreview(file.name, esicMasterSheetName, esicParsed.records, esicParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: esicMasterSheetName, errors: esicParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'PT Details' / 'PT Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let ptMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'ptdetails' || norm === 'ptmaster' || norm === 'professionaltax' || norm === 'professionaltaxdetails' || norm === 'pt';
-            });
-            if (!ptMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName) {
+            if (!ptMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1783,16 +1810,14 @@ function handleUploadedFile(file) {
                         state.parsedPtDocs = ptParsed.firestoreDocs;
                         renderParsedPtMasterPreview(file.name, ptMasterSheetName, ptParsed.records, ptParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: ptMasterSheetName, errors: ptParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'LWF Details' / 'LWF Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let lwfMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'lwfdetails' || norm === 'lwfmaster' || norm === 'labourwelfarefund' || norm === 'labourwelfarefunddetails' || norm === 'lwf';
-            });
-            if (!lwfMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName) {
+            if (!lwfMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1811,16 +1836,14 @@ function handleUploadedFile(file) {
                         state.parsedLwfDocs = lwfParsed.firestoreDocs;
                         renderParsedLwfMasterPreview(file.name, lwfMasterSheetName, lwfParsed.records, lwfParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: lwfMasterSheetName, errors: lwfParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'NPS Details' / 'NPS Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let npsMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'npsdetails' || norm === 'npsmaster' || norm === 'nationalpensionsystem' || norm === 'nationalpensionsystemdetails' || norm === 'nps';
-            });
-            if (!npsMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName && !lwfMasterSheetName) {
+            if (!npsMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName && !lwfMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1839,16 +1862,14 @@ function handleUploadedFile(file) {
                         state.parsedNpsDocs = npsParsed.firestoreDocs;
                         renderParsedNpsMasterPreview(file.name, npsMasterSheetName, npsParsed.records, npsParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: npsMasterSheetName, errors: npsParsed.errors || [] });
                     }
                 }
             }
 
             // ── Target the 'Gratuity Details' / 'Gratuity Master' sheet (PRD Sections 1, 4, 11 & 13) ────
-            let gratuityMasterSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'gratuitydetails' || norm === 'gratuitymaster' || norm === 'gratuity' || norm === 'paymentofgratuity' || norm === 'paymentofgratuitydetails';
-            });
-            if (!gratuityMasterSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName && !lwfMasterSheetName && !npsMasterSheetName) {
+            if (!gratuityMasterSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !pfMasterSheetName && !esicMasterSheetName && !ptMasterSheetName && !lwfMasterSheetName && !npsMasterSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1867,20 +1888,18 @@ function handleUploadedFile(file) {
                         state.parsedGratuityDocs = gratuityParsed.firestoreDocs;
                         renderParsedGratuityMasterPreview(file.name, gratuityMasterSheetName, gratuityParsed.records, gratuityParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: gratuityMasterSheetName, errors: gratuityParsed.errors || [] });
                     }
                 }
             }
 
             // ── 9. Target the 'Salary Stcruture' sheet (PRD Sections 1 & 4) ────
-            let salaryStructureSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'salarystcruture' || norm === 'salarystructure' || norm === 'salary_structure' || norm === 'salary' || norm === 'salaries';
-            });
-            if (!salaryStructureSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName) {
+            if (!salaryStructureSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
-                    if (firstKeys.includes('salarystructurecode') || firstKeys.includes('componentcode') || firstKeys.includes('calculationbasis')) {
+                    if (firstKeys.includes('salarystructurecode') || firstKeys.includes('calculationbasis')) {
                         salaryStructureSheetName = workbook.SheetNames[0];
                     }
                 }
@@ -1895,16 +1914,14 @@ function handleUploadedFile(file) {
                         state.parsedSalaryStructureDocs = salaryParsed.firestoreDocs;
                         renderParsedSalaryStructurePreview(file.name, salaryStructureSheetName, salaryParsed.records, salaryParsed.firestoreDocs, salaryParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: salaryStructureSheetName, errors: salaryParsed.errors || [] });
                     }
                 }
             }
 
             // ── 10. Target the 'Holiday Calendar' sheet (PRD Sections 1, 4, 15, & 16) ────
-            let holidaySheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'holidaycalendar' || norm === 'holidays' || norm === 'holiday_calendar' || norm === 'holiday';
-            });
-            if (!holidaySheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName) {
+            if (!holidaySheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1923,16 +1940,14 @@ function handleUploadedFile(file) {
                         state.parsedHolidayDocs = holidayParsed.firestoreDocs;
                         renderParsedHolidayCalendarPreview(file.name, holidaySheetName, holidayParsed.records, holidayParsed.firestoreDocs, holidayParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: holidaySheetName, errors: holidayParsed.errors || [] });
                     }
                 }
             }
 
             // ── 11. Target the 'Statuatory Compliance' / 'Statutory Compliance' sheet (PRD Sections 1, 4, 11, & 13) ────
-            let statutorySheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s_-]+/g, '');
-                return norm === 'statuatorycompliance' || norm === 'statutorycompliance' || norm === 'compliance' || norm === 'statutory' || norm === 'compliancerules';
-            });
-            if (!statutorySheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName) {
+            if (!statutorySheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s_-]+/g, ''));
@@ -1951,16 +1966,14 @@ function handleUploadedFile(file) {
                         state.parsedStatutoryDocs = statutoryParsed.firestoreDocs;
                         renderParsedStatutoryCompliancePreview(file.name, statutorySheetName, statutoryParsed.records, statutoryParsed.firestoreDocs, statutoryParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: statutorySheetName, errors: statutoryParsed.errors || [] });
                     }
                 }
             }
 
             // ── 12. Target the 'Role_Code/Employee Cod' / 'Role_Code_Employee_Code' sheet (PRD Sections 1, 14, 17, & 18) ────
-            let rolePermSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
-                return norm === 'rolecodeemployeecod' || norm === 'rolecodeemployeecode' || norm === 'rolespermissions' || norm === 'rolepermissions' || norm === 'permissions' || norm === 'rbac';
-            });
-            if (!rolePermSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName) {
+            if (!rolePermSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s/_-]+/g, ''));
@@ -1979,16 +1992,14 @@ function handleUploadedFile(file) {
                         state.parsedRoleDocs = roleParsed.firestoreDocs;
                         renderParsedRolePermissionPreview(file.name, rolePermSheetName, roleParsed.records, roleParsed.firestoreDocs, roleParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: rolePermSheetName, errors: roleParsed.errors || [] });
                     }
                 }
             }
 
             // ── 13. Target the 'Workflow Rules' / 'Workflow_Rules' sheet (PRD Sections 1, 9, 12, 14, & 18) ────
-            let workflowSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
-                return norm === 'workflowrules' || norm === 'workflowchain' || norm === 'workflows' || norm === 'workflow' || norm === 'approvalrules' || norm === 'multistep';
-            });
-            if (!workflowSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName && !rolePermSheetName) {
+            if (!workflowSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName && !rolePermSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s/_-]+/g, ''));
@@ -2007,16 +2018,14 @@ function handleUploadedFile(file) {
                         state.parsedWorkflowDocs = wfParsed.workflowDocuments;
                         renderParsedWorkflowRulesPreview(file.name, workflowSheetName, wfParsed.records, wfParsed.workflowDocuments, wfParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: workflowSheetName, errors: wfParsed.errors || [] });
                     }
                 }
             }
 
             // ── 14. Target the 'Payroll Components' / 'Payroll_Components' sheet (PRD Sections 1 & 4) ────
-            let payrollCompSheetName = workbook.SheetNames.find(s => {
-                const norm = s.trim().toLowerCase().replace(/[\s/_-]+/g, '');
-                return norm === 'payrollcomponents' || norm === 'payrollcomponent' || norm === 'salarycomponents' || norm === 'salarycomponent' || norm === 'components';
-            });
-            if (!payrollCompSheetName && workbook.SheetNames.length === 1 && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName && !rolePermSheetName && !workflowSheetName) {
+            if (!payrollCompSheetName && singleUnnamedSheet && !orgSheetName && !buSheetName && !ccSheetName && !subDeptSheetName && !shiftSheetName && !policySheetName && !empTypeSheetName && !empFinanceSheetName && !salaryStructureSheetName && !holidaySheetName && !statutorySheetName && !rolePermSheetName && !workflowSheetName) {
                 const probeRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
                 if (probeRows.length > 0) {
                     const firstKeys = Object.keys(probeRows[0]).map(k => k.toLowerCase().replace(/[\s/_-]+/g, ''));
@@ -2035,16 +2044,66 @@ function handleUploadedFile(file) {
                         state.parsedPayrollComponentDocs = compParsed.firestoreDocs;
                         renderParsedPayrollComponentPreview(file.name, payrollCompSheetName, compParsed.records, compParsed.firestoreDocs, compParsed.errors);
                         parsedAny = true;
+                    } else {
+                        rejectedSheets.push({ sheet: payrollCompSheetName, errors: compParsed.errors || [] });
                     }
                 }
             }
 
+            /*
+             * What the person is told once the file has been read. Everything goes into one
+             * message, because a second alert replaces the first one on screen.
+             */
+            const errorText = (e) => (typeof e === 'string' ? e : (e && (e.message || e.error)) || JSON.stringify(e));
+            const rejectedLines = rejectedSheets.map(r => {
+                const first = r.errors.slice(0, 3).map(e => '   - ' + errorText(e)).join('\n');
+                const more = r.errors.length > 3 ? '\n   - and ' + (r.errors.length - 3) + ' more' : '';
+                return '"' + r.sheet + '": no row could be used.' + (first ? '\n' + first + more : '');
+            });
+            // Rows somebody typed into a sheet that was not read must not vanish quietly.
+            const unread = workbook.SheetNames.length > 1
+                ? workbook.SheetNames.filter(n => !usedSheets.has(n) && hasRows(n) && !/^read\s*me$/i.test(n.trim()))
+                : [];
+
             if (!parsedAny) {
-                throw new Error("Could not find 'Organization', 'Business Unit', 'Cost Center', 'Sub-Departments', 'Shifts & Week-offs', 'Attendance Rules', 'Employee Type', 'Employee Finance Deatils', 'Salary Stcruture', 'Holiday Calendar', 'Statuatory Compliance', 'Role_Code/Employee Cod', 'Workflow Rules', or 'Payroll Components' sheets with data in the uploaded file.");
+                if (rejectedLines.length) {
+                    window.showCustomAlert(
+                        "Nothing Could Be Imported",
+                        "Every row was rejected, so nothing is ready to save.\n\n" + rejectedLines.join('\n\n') +
+                        "\n\nCorrect the rows and choose the file again.",
+                        "error"
+                    );
+                    return;
+                }
+                // Sheets are recognised by name. Saying which names the file had is what
+                // lets someone see a renamed or misspelt tab, instead of a list of fourteen.
+                const found = workbook.SheetNames.slice(0, 8).join(', ') + (workbook.SheetNames.length > 8 ? ', ...' : '');
+                window.showCustomAlert(
+                    "Nothing To Import",
+                    "None of the sheets in this file are ones this page imports, so nothing was read.\n\n" +
+                    "Start from Download Template and keep its sheet names. Empty sheets are skipped.\n\n" +
+                    "Sheets in your file: " + (found || 'none'),
+                    "error"
+                );
+                return;
+            }
+
+            const notes = [];
+            if (rejectedLines.length) notes.push(rejectedLines.join('\n\n'));
+            if (unread.length) {
+                notes.push('These sheets have rows but were not read: ' + unread.join(', ') + '. Either this page ' +
+                    'does not import that kind of record, or another sheet of the same kind in this file was used instead.');
+            }
+            if (notes.length) {
+                window.showCustomAlert(
+                    "Some Rows Were Not Imported",
+                    notes.join('\n\n') + '\n\nThe rest is shown below for review. Nothing is saved until you press Ingest.',
+                    "warning"
+                );
             }
         } catch (err) {
             console.error("File parsing error:", err);
-            window.showCustomAlert("Parsing Error", "Failed to parse spreadsheet: " + err.message, "error");
+            window.showCustomAlert("Could Not Read File", "This file could not be read as a spreadsheet: " + err.message, "error");
         }
     };
     reader.readAsArrayBuffer(file);
@@ -2240,7 +2299,9 @@ async function executeBusinessUnitIngest(buDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${buDocs.length} Business Units.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -2252,7 +2313,7 @@ async function executeBusinessUnitIngest(buDocs) {
 
     if (btnConfirmBuIngest) {
         btnConfirmBuIngest.disabled = false;
-        btnConfirmBuIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmBuIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -2467,7 +2528,9 @@ async function executeCostCenterIngest(ccDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${ccDocs.length} Cost Centers.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -2479,7 +2542,7 @@ async function executeCostCenterIngest(ccDocs) {
 
     if (btnConfirmCcIngest) {
         btnConfirmCcIngest.disabled = false;
-        btnConfirmCcIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmCcIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -2768,7 +2831,9 @@ async function executeSubDepartmentIngest(subDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${subDocs.length} Sub-Departments.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -2780,7 +2845,7 @@ async function executeSubDepartmentIngest(subDocs) {
 
     if (btnConfirmSubDeptIngest) {
         btnConfirmSubDeptIngest.disabled = false;
-        btnConfirmSubDeptIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmSubDeptIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3071,7 +3136,9 @@ async function executeShiftIngest(shiftDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${shiftDocs.length} Shifts.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -3083,7 +3150,7 @@ async function executeShiftIngest(shiftDocs) {
 
     if (btnConfirmShiftIngest) {
         btnConfirmShiftIngest.disabled = false;
-        btnConfirmShiftIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmShiftIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3493,7 +3560,9 @@ async function executeEmployeeTypeIngest(typeDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${typeDocs.length} Employee Types.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -3505,7 +3574,7 @@ async function executeEmployeeTypeIngest(typeDocs) {
 
     if (btnConfirmEmployeeTypeIngest) {
         btnConfirmEmployeeTypeIngest.disabled = false;
-        btnConfirmEmployeeTypeIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmEmployeeTypeIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3658,7 +3727,9 @@ async function executeEmployeeFinanceIngest(financeDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${financeDocs.length} Finance records.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -3670,7 +3741,7 @@ async function executeEmployeeFinanceIngest(financeDocs) {
 
     if (btnConfirmLegacyEmpFinanceIngest) {
         btnConfirmLegacyEmpFinanceIngest.disabled = false;
-        btnConfirmLegacyEmpFinanceIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmLegacyEmpFinanceIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3815,7 +3886,9 @@ async function executeEpfoMasterIngest(epfoDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${epfoDocs.length} EPFO profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -3827,7 +3900,7 @@ async function executeEpfoMasterIngest(epfoDocs) {
 
     if (btnConfirmEpfoMasterIngest) {
         btnConfirmEpfoMasterIngest.disabled = false;
-        btnConfirmEpfoMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmEpfoMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -3853,7 +3926,7 @@ async function renderOnboardingEpfoMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border-radius: 20px; padding: 2rem; border: 1px solid var(--border); box-shadow: var(--shadow);">
+        <div style="background: var(--k-surface); border-radius: 20px; padding: 2rem; border: 1px solid var(--border); box-shadow: var(--shadow);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center;">
@@ -4052,7 +4125,9 @@ async function executeEsicMasterIngest(esicDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${esicDocs.length} ESIC profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -4064,7 +4139,7 @@ async function executeEsicMasterIngest(esicDocs) {
 
     if (btnConfirmEsicMasterIngest) {
         btnConfirmEsicMasterIngest.disabled = false;
-        btnConfirmEsicMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmEsicMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -4090,7 +4165,7 @@ async function renderOnboardingEsicMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
@@ -4295,7 +4370,9 @@ async function executePtMasterIngest(ptDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${ptDocs.length} PT profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -4307,7 +4384,7 @@ async function executePtMasterIngest(ptDocs) {
 
     if (btnConfirmPtMasterIngest) {
         btnConfirmPtMasterIngest.disabled = false;
-        btnConfirmPtMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmPtMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -4333,7 +4410,7 @@ async function renderOnboardingPtMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center;">
@@ -4519,7 +4596,9 @@ async function executeLwfMasterIngest(lwfDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${lwfDocs.length} LWF profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -4531,7 +4610,7 @@ async function executeLwfMasterIngest(lwfDocs) {
 
     if (btnConfirmLwfMasterIngest) {
         btnConfirmLwfMasterIngest.disabled = false;
-        btnConfirmLwfMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmLwfMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -4557,7 +4636,7 @@ async function renderOnboardingLwfMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
@@ -4755,7 +4834,9 @@ async function executeNpsMasterIngest(npsDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${npsDocs.length} NPS profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -4767,7 +4848,7 @@ async function executeNpsMasterIngest(npsDocs) {
 
     if (btnConfirmNpsMasterIngest) {
         btnConfirmNpsMasterIngest.disabled = false;
-        btnConfirmNpsMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmNpsMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -4793,7 +4874,7 @@ async function renderOnboardingNpsMasterTable() {
     }
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-success-soft); color: var(--k-success-text); display: flex; align-items: center; justify-content: center;">
@@ -5031,7 +5112,9 @@ async function executeGratuityMasterIngest(gratuityDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${gratuityDocs.length} Gratuity profiles.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -5043,7 +5126,7 @@ async function executeGratuityMasterIngest(gratuityDocs) {
 
     if (btnConfirmGratuityMasterIngest) {
         btnConfirmGratuityMasterIngest.disabled = false;
-        btnConfirmGratuityMasterIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmGratuityMasterIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5073,7 +5156,7 @@ async function renderOnboardingGratuityMasterTable() {
     const totalLiability = records.reduce((acc, r) => acc + Number(r.accruedGratuityAmount || 0), 0);
 
     container.innerHTML = `
-        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center;">
@@ -5343,7 +5426,9 @@ async function executeSalaryStructureIngest(salaryDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${salaryDocs.length} Salary Structures.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -5355,7 +5440,7 @@ async function executeSalaryStructureIngest(salaryDocs) {
 
     if (btnConfirmSalaryStructureIngest) {
         btnConfirmSalaryStructureIngest.disabled = false;
-        btnConfirmSalaryStructureIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmSalaryStructureIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5407,7 +5492,9 @@ async function executePolicyIngest(policyDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${policyDocs.length} Policies.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -5419,7 +5506,7 @@ async function executePolicyIngest(policyDocs) {
 
     if (btnConfirmPolicyIngest) {
         btnConfirmPolicyIngest.disabled = false;
-        btnConfirmPolicyIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmPolicyIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5640,7 +5727,7 @@ async function executeOrganizationSetup(attributes21, sourceMethod) {
 
     if (statusBadge) {
         statusBadge.className = 'badge-verified';
-        statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization Configured (orgConfigured: true)';
+        statusBadge.innerHTML = '<i data-lucide="check-circle" style="width: 14px;"></i> Organization configured';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -5894,7 +5981,9 @@ async function executeHolidayCalendarIngest(holidayDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${holidayDocs.length} Holidays.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -5906,7 +5995,7 @@ async function executeHolidayCalendarIngest(holidayDocs) {
 
     if (btnConfirmHolidayCalendarIngest) {
         btnConfirmHolidayCalendarIngest.disabled = false;
-        btnConfirmHolidayCalendarIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmHolidayCalendarIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -6027,7 +6116,9 @@ async function executeStatutoryComplianceIngest(statutoryDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} of ${statutoryDocs.length} Statutory Rules.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -6039,7 +6130,7 @@ async function executeStatutoryComplianceIngest(statutoryDocs) {
 
     if (btnConfirmStatutoryComplianceIngest) {
         btnConfirmStatutoryComplianceIngest.disabled = false;
-        btnConfirmStatutoryComplianceIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmStatutoryComplianceIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 
@@ -6251,7 +6342,9 @@ async function executeRolePermissionIngest(roleDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && (rolesIngested + overridesIngested) === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${rolesIngested} Base Roles and ${overridesIngested} Employee Overrides.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -6263,7 +6356,7 @@ async function executeRolePermissionIngest(roleDocs) {
 
     if (btnConfirmRolePermissionIngest) {
         btnConfirmRolePermissionIngest.disabled = false;
-        btnConfirmRolePermissionIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmRolePermissionIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 }
@@ -6468,7 +6561,9 @@ async function executeWorkflowRulesIngest(workflowDocs) {
         }
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} Workflows.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -6480,7 +6575,7 @@ async function executeWorkflowRulesIngest(workflowDocs) {
 
     if (btnConfirmWorkflowRulesIngest) {
         btnConfirmWorkflowRulesIngest.disabled = false;
-        btnConfirmWorkflowRulesIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmWorkflowRulesIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 }
@@ -6728,7 +6823,9 @@ async function executePayrollComponentIngest(componentDocs) {
         svc.ingestComponentRecords(componentDocs, orgId);
     }
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && ingestedCount === 0) {
+        window.showCustomAlert("Nothing Was Saved", `None of the rows could be saved.\nErrors:\n${errors.join('\n')}`, "error");
+    } else if (errors.length > 0) {
         window.showCustomAlert("Partial Ingest", `Ingested ${ingestedCount} Components.\nErrors:\n${errors.join('\n')}`, "warning");
     } else {
         window.showCustomAlert(
@@ -6740,7 +6837,7 @@ async function executePayrollComponentIngest(componentDocs) {
 
     if (btnConfirmPayrollComponentsIngest) {
         btnConfirmPayrollComponentsIngest.disabled = false;
-        btnConfirmPayrollComponentsIngest.innerHTML = '<i data-lucide="check-circle-2"></i> Ingestion Complete';
+        btnConfirmPayrollComponentsIngest.innerHTML = errors.length === 0 ? '<i data-lucide="check-circle-2"></i> Ingestion Complete' : '<i data-lucide="rotate-ccw"></i> Try Again';
         if (window.lucide) lucide.createIcons();
     }
 }

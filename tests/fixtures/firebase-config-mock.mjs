@@ -24,3 +24,11 @@ export async function addDoc(ref, data) {
   ctl().writes.push({ op: 'addDoc', path: ref.path, data });
   return { id: 'mock_' + ctl().writes.length };
 }
+
+// Used by the onboarding page tests.
+export const auth = { currentUser: null };
+export const getActiveOrgId = () => ctl().orgId || 'org_test';
+export const serverTimestamp = () => ({ __serverTimestamp: true });
+export async function getDoc() { return { exists: () => false, data: () => ({}) }; }
+export async function getDocs() { return { empty: true, docs: [], forEach() {} }; }
+export const tenantReady = Promise.resolve();

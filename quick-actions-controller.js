@@ -1270,8 +1270,8 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
         if (!container) return;
 
         container.innerHTML = `
-            <div style="background: white; border-radius: 16px; border: 1px solid var(--qa-border); padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem;">
-                <div style="width: 58px; height: 58px; border-radius: 16px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
+            <div style="background: var(--k-surface); border-radius: 16px; border: 1px solid var(--qa-border); padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem;">
+                <div style="width: 58px; height: 58px; border-radius: 16px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: var(--k-on-accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.4rem; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
                     NB
                 </div>
                 <div style="flex: 1;">
@@ -1514,7 +1514,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
 
         if (tasksContainer) {
             tasksContainer.innerHTML = this.tasksState.tasks.map((task, idx) => `
-                <div style="background: white; border: 1px solid var(--qa-border); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div style="background: var(--k-surface); border: 1px solid var(--qa-border); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                     <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                         <input type="checkbox" ${task.done ? 'checked' : ''} onchange="window.QuickActionsController.toggleTaskDone(${idx})" 
                             style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--qa-primary);">
@@ -1673,7 +1673,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
             <div style="padding: 1rem 1.75rem 0.5rem 1.75rem; background: #fafbff;">
                 <div style="position: relative;">
                     <input type="text" id="qaDocSearchInput" placeholder="Search policies, letters, tax slips, or certificates..." 
-                        style="width: 100%; padding: 9px 12px 9px 34px; border-radius: 10px; border: 1px solid var(--qa-border); font-size: 0.8rem; outline: none; background: white;">
+                        style="width: 100%; padding: 9px 12px 9px 34px; border-radius: 10px; border: 1px solid var(--qa-border); font-size: 0.8rem; outline: none; background: var(--k-surface);">
                     <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--qa-text-muted);"></i>
                 </div>
             </div>
@@ -1764,7 +1764,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                     </div>
 
                     <!-- Punch Controls -->
-                    <div style="background: white; border: 1px solid var(--qa-border); border-radius: 16px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div style="background: var(--k-surface); border: 1px solid var(--qa-border); border-radius: 16px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <div style="font-size: 0.72rem; font-weight: 800; color: var(--qa-text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Shift Controls</div>
                             <div style="font-size: 0.88rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">Standard Hours: 09:00 AM – 06:00 PM</div>

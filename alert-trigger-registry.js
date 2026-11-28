@@ -349,7 +349,7 @@
 
         if (filtered.length === 0) {
             container.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: white; border-radius: 16px; border: 1px dashed var(--k-border);">
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: var(--k-surface); border-radius: 16px; border: 1px dashed var(--k-border);">
                     <i data-lucide="inbox" style="width: 40px; height: 40px; color: var(--k-muted); margin-bottom: 8px;"></i>
                     <p style="color: var(--k-muted); font-weight: 600;">No alert triggers match your current filter.</p>
                 </div>
@@ -512,7 +512,7 @@ await eventBus.emit('${trigger.eventKey}', {<br/>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none';" style="padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--k-border); background: white; cursor: pointer;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none';" style="padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--k-border); background: var(--k-surface); cursor: pointer;">
                             Close Guide
                         </button>
                         <button type="button" class="btn btn-primary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none'; window.KylrxAlertRegistry.openAiSimulation('${trigger.eventKey}');" style="padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; background: var(--k-accent); color: white; border: none; cursor: pointer;">

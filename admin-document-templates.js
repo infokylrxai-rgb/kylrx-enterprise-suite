@@ -1233,7 +1233,7 @@ function renderAdminCustomTemplates(templates) {
 
     if (!templates.length) {
         grid.innerHTML = `
-            <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; background: white; border: 1px dashed var(--border); border-radius: var(--radius);">
+            <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; background: var(--k-surface); border: 1px dashed var(--border); border-radius: var(--radius);">
                 <i data-lucide="layout-template" style="width: 32px; height: 32px; color: var(--text-muted); margin: 0 auto 10px;"></i>
                 <h4 style="margin: 0 0 6px 0; color: var(--text-primary); font-size: 1.1rem; font-weight: 800;">No Module Templates Found</h4>
                 <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">No custom templates found for the selected module filter.</p>
@@ -1465,14 +1465,14 @@ function openAdminCustomizeTemplateModal(id) {
                     ${(tpl.permittedFields || []).map(f => {
                         const isLocked = !f.isPermittedToEdit || (tpl.lockedFields || []).includes(f.fieldKey);
                         return `
-                            <div style="background: ${isLocked ? 'var(--k-subtle)' : 'white'}; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;">
+                            <div style="background: ${isLocked ? 'var(--k-subtle)' : 'var(--k-surface)'}; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                     <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-text);">${escapeHtmlTpl(f.label || f.fieldKey)}</span>
                                     <span style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${isLocked ? 'var(--k-danger-soft)' : 'var(--k-success-soft)'}; color: ${isLocked ? 'var(--k-danger-text)' : 'var(--k-success-text)'};">
                                         ${isLocked ? 'LOCKED' : 'PERMITTED'}
                                     </span>
                                 </div>
-                                <input type="text" class="admin-cust-val" data-key="${escapeHtmlTpl(f.fieldKey)}" value="${escapeHtmlTpl(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? 'var(--k-subtle)' : 'white'}; outline: none;" />
+                                <input type="text" class="admin-cust-val" data-key="${escapeHtmlTpl(f.fieldKey)}" value="${escapeHtmlTpl(String(f.defaultValue || ''))}" ${isLocked ? 'disabled' : ''} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; background: ${isLocked ? 'var(--k-subtle)' : 'var(--k-surface)'}; outline: none;" />
                             </div>
                         `;
                     }).join('')}

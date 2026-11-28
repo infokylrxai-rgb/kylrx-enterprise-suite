@@ -475,7 +475,7 @@
 
         if (state.filteredGoals.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 3.5rem 1rem; color: var(--text-muted); grid-column: 1 / -1; background: white; border-radius: 20px; border: 1.5px dashed var(--border);">
+                <div style="text-align: center; padding: 3.5rem 1rem; color: var(--text-muted); grid-column: 1 / -1; background: var(--k-surface); border-radius: 20px; border: 1.5px dashed var(--border);">
                     <div style="width: 56px; height: 56px; border-radius: 18px; background: var(--primary-light, #fdf2f8); color: var(--primary, #ec4899); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
                         <i data-lucide="target" style="width: 28px; height: 28px;"></i>
                     </div>
@@ -487,7 +487,7 @@
                         <button onclick="window.openCreateEmployeeGoalModal()" style="background: var(--primary, #ec4899); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
                             + Create My Goal
                         </button>
-                        <button onclick="window.openEmployeeTemplatePickerModal()" style="background: white; border: 1.5px solid var(--border); color: var(--text-main); padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+                        <button onclick="window.openEmployeeTemplatePickerModal()" style="background: var(--k-surface); border: 1.5px solid var(--border); color: var(--text-main); padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
                             Browse Templates
                         </button>
                     </div>
@@ -552,7 +552,7 @@
         }
 
         return `
-            <div class="employee-goal-card" style="background: white; border-radius: 20px; border: 1.5px solid var(--border, #fce7f3); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.05); transition: 0.25s ease;">
+            <div class="employee-goal-card" style="background: var(--k-surface); border-radius: 20px; border: 1.5px solid var(--border, #fce7f3); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.05); transition: 0.25s ease;">
                 <div>
                     <!-- Top Category & Status Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
@@ -618,7 +618,7 @@
                         <span>Check-in</span>
                     </button>
                     
-                    <button onclick="window.openEditEmployeeGoalModal('${goal.id}')" title="Edit Goal" style="background: white; border: 1.5px solid var(--border, #fce7f3); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button onclick="window.openEditEmployeeGoalModal('${goal.id}')" title="Edit Goal" style="background: var(--k-surface); border: 1.5px solid var(--border, #fce7f3); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="edit-3" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
                     </button>
 
@@ -638,12 +638,12 @@
                         </button>
                     ` : ''}
 
-                    <button onclick="window.openEmployeeGoalHistoryModal('${goal.id}')" title="Audit History" style="background: white; border: 1.5px solid var(--border, #fce7f3); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                    <button onclick="window.openEmployeeGoalHistoryModal('${goal.id}')" title="Audit History" style="background: var(--k-surface); border: 1.5px solid var(--border, #fce7f3); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
                         <i data-lucide="history" style="width: 14px; height: 14px; color: var(--k-muted);"></i>
                     </button>
 
                     ${goal.status !== 'archived' ? `
-                        <button onclick="window.archiveEmployeeGoal('${goal.id}')" title="Archive Goal" style="background: white; border: 1px solid var(--k-border); color: var(--k-muted); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                        <button onclick="window.archiveEmployeeGoal('${goal.id}')" title="Archive Goal" style="background: var(--k-surface); border: 1px solid var(--k-border); color: var(--k-muted); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
                             <i data-lucide="archive" style="width: 14px; height: 14px;"></i>
                         </button>
                     ` : ''}
@@ -1148,7 +1148,7 @@
                             </p>
 
                             ${item.notes ? `
-                                <div style="font-size: 0.75rem; color: var(--text-muted, #9d6e87); background: white; padding: 6px 10px; border-radius: 8px; border: 1px solid #fce7f3; margin-top: 4px; font-style: italic;">
+                                <div style="font-size: 0.75rem; color: var(--text-muted, #9d6e87); background: var(--k-surface); padding: 6px 10px; border-radius: 8px; border: 1px solid #fce7f3; margin-top: 4px; font-style: italic;">
                                     "${escapeHtml(item.notes)}"
                                 </div>
                             ` : ''}
@@ -1177,7 +1177,7 @@
         if (!container) return;
 
         container.innerHTML = STANDARD_EMPLOYEE_TEMPLATES.map(tpl => `
-            <div style="background: white; border: 1.5px solid var(--border, #fce7f3); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="background: var(--k-surface); border: 1.5px solid var(--border, #fce7f3); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                         <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 2px 8px; border-radius: 6px; text-transform: uppercase;">${escapeHtml(tpl.category)}</span>
