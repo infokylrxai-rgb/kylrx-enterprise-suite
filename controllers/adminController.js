@@ -150,7 +150,18 @@ exports.createEmployee = async (req, res, next) => {
             // Set Claims with timeout
             try {
                 await Promise.race([
-                    admin.auth().setCustomUserClaims(userRecord.uid, { role: role || 'employee', departmentId }),
+                    // orgId belongs in the claims, not only on the Firestore document. Both the server
+                    // (authMiddleware) and the rules read the claim first and fall back to
+                    // users/<uid>.orgId, which tenant scoping stamps on write - so omitting it here
+                    // happened to work, through the fallback rather than the primary path. One failed
+                    // profile write away, that is an employee who signs in belonging to no
+                    // organisation. provisionEmployeeLogins already sets all three; this makes the two
+                    // creation paths agree.
+                    admin.auth().setCustomUserClaims(userRecord.uid, {
+                        role: role || 'employee',
+                        orgId: (req.user && req.user.orgId) || null,
+                        departmentId
+                    }),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Claims timeout')), 1500))
                 ]);
             } catch (claimErr) {

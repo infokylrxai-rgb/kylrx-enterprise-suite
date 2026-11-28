@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roles &amp; Access | Kylrx AI Admin</title>
+<style>
+  :root {
+    --bg:#f8fafc; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --brand:#2563eb; --ok:#15803d; --okbg:#f0fdf4; --warn:#b45309; --warnbg:#fffbeb;
+    --bad:#b91c1c; --badbg:#fef2f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 16px;background:var(--bg);color:var(--ink);
+       font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:24px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 22px}
+  .status{padding:12px 15px;border-radius:10px;font-size:14px;margin-bottom:16px}
+  .status.ok{background:var(--okbg);color:var(--ok);border:1px solid #bbf7d0}
+  .status.warn{background:var(--warnbg);color:var(--warn);border:1px solid #fde68a}
+  .status.bad{background:var(--badbg);color:var(--bad);border:1px solid #fecaca}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+  th{background:#f1f5f9;font-weight:600;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  tr:last-child td{border-bottom:none}
+  .nm{font-weight:600}
+  .em{color:var(--muted);font-size:13px}
+  select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:14px;
+         font-family:inherit;background:#fff;color:var(--ink);min-width:170px}
+  select:disabled{background:#f1f5f9;color:var(--muted);cursor:not-allowed}
+  .tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
+  .tag.no{background:#fef2f2;color:var(--bad)}
+  .tag.you{background:#eff6ff;color:var(--brand)}
+  .search{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
+          font-size:15px;font-family:inherit;margin-bottom:14px}
+  .muted{color:var(--muted);font-size:13px;margin-top:14px}
+  .empty{padding:36px 16px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Roles &amp; access</h1>
+  <p class="sub">Who can do what in your organisation. Changing a role takes effect the next time that person signs in.</p>
+
+  <div id="banner" class="status warn">Loading…</div>
+  <input id="search" class="search" placeholder="Search by name or email…" autocomplete="off">
+
+  <div class="card">
+    <table>
+      <thead><tr><th>Person</th><th>Role</th><th>Login</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <p class="muted" id="footnote"></p>
+</div>
+
+<script type="module">
+async function authHeader() {
+  let token = null;
+  try { token = localStorage.getItem('hr_access_token'); } catch (_) {}
+  if (!token) {
+    try {
+      const { auth } = await import('./firebase-config.js');
+      if (auth && auth.currentUser) token = await auth.currentUser.getIdToken();
+    } catch (_) {}
+  }
+  return token ? { Authorization: 'Bearer ' + token } : {};
+}
+async function api(path, options = {}) {
+  const res = await fetch(path, {
+    ...options,
+    headers: Object.assign({ 'Content-Type': 'application/json' }, await authHeader(), options.headers || {})
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || ('Request failed (HTTP ' + res.status + ')'));
+  return body;
+}
+
+const $ = (id) => document.getElementById(id);
+const show = (kind, text) => { $('banner').className = 'status ' + kind; $('banner').textContent = text; };
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+  ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+let STATE = { members: [], roles: [], you: null, superAdminCount: 0 };
+
+function render(filter = '') {
+  const q = filter.trim().toLowerCase();
+  const list = STATE.members.filter(m =>
+    !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+
+  if (!list.length) {
+    $('rows').innerHTML = '<tr><td colspan="3" class="empty">' +
+      (STATE.members.length ? 'Nobody matches that search.' : 'No people in this organisation yet.') + '</td></tr>';
+    return;
+  }
+
+  $('rows').innerHTML = list.map(m => {
+    const isYou = m.uid && m.uid === STATE.you;
+    const lastSuper = m.role === 'super_admin' && STATE.superAdminCount <= 1;
+    // Reasons a role cannot be changed here, each explained rather than silently disabled.
+    const why = isYou ? 'You cannot change your own role'
+              : !m.hasLogin ? 'No login yet - issue their login first'
+              : lastSuper ? 'The only super admin - promote someone else first'
+              : '';
+    const opts = STATE.roles.map(r =>
+      `<option value="${esc(r.value)}"${r.value === m.role ? ' selected' : ''}>${esc(r.label)}</option>`).join('');
+    return `<tr>
+      <td><div class="nm">${esc(m.name)}${isYou ? ' <span class="tag you">you</span>' : ''}</div>
+          <div class="em">${esc(m.email)}</div></td>
+      <td><select data-uid="${esc(m.uid || '')}" data-prev="${esc(m.role)}"
+            ${why ? 'disabled title="' + esc(why) + '"' : ''}>${opts}</select></td>
+      <td>${m.hasLogin ? '<span class="em">active</span>' : '<span class="tag no">no login</span>'}</td>
+    </tr>`;
+  }).join('');
+
+  for (const sel of $('rows').querySelectorAll('select[data-uid]')) {
+    sel.addEventListener('change', onRoleChange);
+  }
+}
+
+async function onRoleChange(ev) {
+  const sel = ev.target;
+  const uid = sel.dataset.uid;
+  const prev = sel.dataset.prev;
+  const next = sel.value;
+  const name = sel.closest('tr').querySelector('.nm').textContent.trim();
+
+  if (next === prev) return;
+  if (next === 'super_admin' &&
+      !confirm(`Make ${name} a Super Admin?\n\nThey will have full access to this organisation, including payroll and the payment account.`)) {
+    sel.value = prev; return;
+  }
+
+  sel.disabled = true;
+  try {
+    const out = await api(`/api/admin/org-members/${encodeURIComponent(uid)}/role`,
+      { method: 'PATCH', body: JSON.stringify({ role: next }) });
+    sel.dataset.prev = next;
+    show('ok', out.message);
+    await load(false);              // counts change, so re-read rather than guess
+  } catch (err) {
+    sel.value = prev;               // the server refused, so the row must not look changed
+    show('bad', err.message);
+  } finally {
+    sel.disabled = false;
+  }
+}
+
+async function load(showLoading = true) {
+  if (showLoading) show('warn', 'Loading…');
+  try {
+    const out = await api('/api/admin/org-members');
+    STATE = { members: out.members || [], roles: out.assignableRoles || [],
+              you: out.you, superAdminCount: out.superAdminCount || 0 };
+    const withLogin = STATE.members.filter(m => m.hasLogin).length;
+    if (showLoading) {
+      show('ok', `${STATE.members.length} people in your organisation, ${withLogin} with a login.`);
+    }
+    $('footnote').textContent =
+      'A role change applies when that person next signs in. Anyone without a login has no role yet - ' +
+      'use Issue Logins & Invites on the onboarding page first.';
+    render($('search').value);
+  } catch (err) {
+    show('bad', err.message);
+    $('rows').innerHTML = '<tr><td colspan="3" class="empty">Could not load your organisation\'s people.</td></tr>';
+  }
+}
+
+$('search').addEventListener('input', (e) => render(e.target.value));
+load();
+</script>
+</body>
+</html>
