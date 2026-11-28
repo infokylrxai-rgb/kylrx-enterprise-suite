@@ -160,28 +160,44 @@ onAuthStateChanged(auth, async (user) => {
 
         if (!data) {
             data = {
-                name: localStorage.getItem('userName') || localStorage.getItem('user_name') || 'Nandan',
+                name: localStorage.getItem('userName') || localStorage.getItem('user_name') || '',
                 role: localStorage.getItem('userRole') || 'SUPER_ADMIN'
             };
         }
 
         // Determine user display name (avoid literal "Super Admin" / "Username" placeholder)
         let resolvedName = data.name || data.displayName || user.displayName || localStorage.getItem('userName') || localStorage.getItem('user_name');
-        if (!resolvedName || resolvedName === 'Super Admin' || resolvedName === 'superadmin' || resolvedName === 'Username' || resolvedName === 'jame' || resolvedName.includes('@')) {
-            if (user?.email?.toLowerCase().includes('nandan') || user?.email === 'superadmin@kylrx.ai' || (data.role || '').toUpperCase().includes('ADMIN') || (localStorage.getItem('userRole') || '').toUpperCase().includes('ADMIN')) {
-                resolvedName = 'Nandan';
-            } else if (resolvedName && resolvedName.includes('@')) {
-                const prefix = resolvedName.split('@')[0].replace(/[._-]/g, ' ');
-                resolvedName = prefix.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'Nandan';
-            } else {
-                resolvedName = 'Nandan';
-            }
-        }
+        // Names that are placeholders rather than a person, so they are not shown as one.
+        const PLACEHOLDER_NAMES = ['super admin', 'superadmin', 'username', 'jame', 'admin', 'user'];
+        const looksLikePlaceholder = (n) => !n || PLACEHOLDER_NAMES.includes(String(n).trim().toLowerCase());
 
+        // Derive something human from an email rather than inventing a name:
+        // asha.menon@acme.com -> Asha Menon
+        const fromEmail = (email) => {
+            const prefix = String(email || '').split('@')[0].replace(/[._-]+/g, ' ').trim();
+            if (!prefix) return '';
+            return prefix.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        };
+
+        // There used to be a hardcoded fallback here: anyone whose role contained ADMIN was
+        // displayed as a specific developer's name, and that name was then persisted to
+        // localStorage - so a customer's administrator was greeted by a stranger's name, and
+        // it alternated with their real one depending on which value was written last.
+        // A name is now either the person's own or absent; it is never invented.
+        if (looksLikePlaceholder(resolvedName) || String(resolvedName).includes('@')) {
+            resolvedName = String(resolvedName || '').includes('@')
+                ? fromEmail(resolvedName)
+                : fromEmail(user && user.email);
+        }
+        if (looksLikePlaceholder(resolvedName)) resolvedName = '';
         // Persist resolved name
         try {
-            localStorage.setItem('userName', resolvedName);
-            localStorage.setItem('user_name', resolvedName);
+            // Only a real name is cached. Writing an empty or invented one back is how the
+            // wrong name became sticky across sessions.
+            if (resolvedName) {
+                localStorage.setItem('userName', resolvedName);
+                localStorage.setItem('user_name', resolvedName);
+            }
         } catch (_) {}
 
         // Update UI
@@ -192,7 +208,7 @@ onAuthStateChanged(auth, async (user) => {
         }
         const welcomeText = document.querySelector('.welcome-text h1');
         if (welcomeText) {
-            welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋`;
+            welcomeText.innerHTML = (firstName ? `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋` : `Welcome back 👋`);
         }
         
         // Update Profile Trigger (Top Right)
@@ -204,7 +220,7 @@ onAuthStateChanged(auth, async (user) => {
         if (profileRole) profileRole.textContent = (data.role || 'SUPER ADMIN').toUpperCase();
         if (profileAvatar) {
             const initials = resolvedName.split(/[\s.]+/).filter(Boolean).map(n => n[0]).join('').toUpperCase();
-            profileAvatar.textContent = initials.substring(0, 2) || 'NB';
+            profileAvatar.textContent = initials.substring(0, 2) || '';
         }
         
         loadDepartments();
@@ -214,9 +230,11 @@ onAuthStateChanged(auth, async (user) => {
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         if (isLoggedIn) {
             const storedName = localStorage.getItem('userName') || localStorage.getItem('user_name');
-            let resolvedName = (storedName && storedName !== 'Super Admin' && storedName !== 'superadmin' && storedName !== 'Username' && storedName !== 'jame' && !storedName.includes('@'))
-                ? storedName
-                : 'Nandan';
+            // Same rule as the signed-in path: a real stored name, or nothing. Never a
+            // hardcoded one.
+            const PLACEHOLDERS = ['super admin', 'superadmin', 'username', 'jame', 'admin', 'user'];
+            const usable = storedName && !PLACEHOLDERS.includes(String(storedName).trim().toLowerCase()) && !storedName.includes('@');
+            let resolvedName = usable ? storedName : '';
 
             const firstName = resolvedName.split(' ')[0] || resolvedName;
             const welcomeUserNameEl = document.getElementById('welcomeUserName');
@@ -225,12 +243,12 @@ onAuthStateChanged(auth, async (user) => {
             }
             const welcomeText = document.querySelector('.welcome-text h1');
             if (welcomeText) {
-                welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋`;
+                welcomeText.innerHTML = (firstName ? `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋` : `Welcome back 👋`);
             }
             const profileAvatar = document.querySelector('.p-avatar');
             if (profileAvatar) {
                 const initials = resolvedName.split(/[\s.]+/).filter(Boolean).map(n => n[0]).join('').toUpperCase();
-                profileAvatar.textContent = initials.substring(0, 2) || 'NB';
+                profileAvatar.textContent = initials.substring(0, 2) || '';
             }
 
             loadDepartments();
@@ -394,7 +412,7 @@ function populateWidgetContent(id) {
                     growthEl.textContent = `Based on current hiring trends, workforce is projected to grow by ${proj}% in Q3.`;
                 }
                 if (effEl && state.departments.length > 0) {
-                    const topDept = state.departments[0]?.name || 'Engineering';
+                    const topDept = state.departments[0]?.name || '';
                     effEl.textContent = `Productivity in ${topDept} is expected to peak next month due to optimal shift scheduling.`;
                 }
             }, 2000);
@@ -772,7 +790,10 @@ function startAIInsightsStream() {
                 if (state.departments && state.departments.length > 0) {
                     insights.push({
                         title: "Focus Anomaly Detected",
-                        message: `Telemetry indicators show peak productivity in the ${state.departments[0]?.name || 'Engineering'} unit.`,
+                        // Only claim a leading unit when there is one to name.
+                        message: state.departments[0]?.name
+                            ? `Telemetry indicators show peak productivity in the ${state.departments[0].name} unit.`
+                            : 'Not enough department data yet to compare productivity.',
                         type: "info"
                     });
                 }
@@ -921,17 +942,13 @@ async function loadDepartments() {
             state.departments = commandCenters;
         }
 
-        // Standard enterprise departments fallback if Firestore returned empty or permission-denied
-        if (!state.departments || state.departments.length === 0) {
-            state.departments = [
-                { departmentId: 'engineering', name: 'Engineering', departmentName: 'Engineering', icon: 'cpu' },
-                { departmentId: 'cybersecurity', name: 'Cybersecurity', departmentName: 'Cybersecurity', icon: 'shield' },
-                { departmentId: 'operations', name: 'Operations', departmentName: 'Operations', icon: 'activity' },
-                { departmentId: 'human-resources', name: 'Human Resources', departmentName: 'Human Resources', icon: 'users' },
-                { departmentId: 'finance', name: 'Finance', departmentName: 'Finance', icon: 'dollar-sign' },
-                { departmentId: 'executive', name: 'Executive', departmentName: 'Executive', icon: 'briefcase' }
-            ];
-        }
+            // There used to be a fallback here that invented six departments - Engineering,
+            // Cybersecurity, Operations, Human Resources, Finance, Executive - whenever
+            // Firestore returned nothing. A brand-new organisation was shown six departments
+            // it had never created, and assigning somebody to one would have referenced a
+            // department that does not exist in the database. An empty organisation now
+            // reads as empty, and the UI says so.
+            if (!state.departments) state.departments = [];
         
         updateDeptSelects();
         updateStats();
@@ -1223,13 +1240,11 @@ async function populateManagerDropdowns() {
         });
     }
 
-    // Fallback managers if list is empty
-    if (candidateList.length === 0) {
-        candidateList = [
-            { id: 'EMP0001', employeeId: 'EMP0001', name: 'Super Admin', role: 'Executive Leadership', designation: 'Executive Director', status: 'Active' },
-            { id: 'EMP0002', employeeId: 'EMP0002', name: 'John Doe', role: 'Manager', designation: 'Engineering Manager', status: 'Active' }
-        ];
-    }
+    // There used to be two invented managers here - 'Super Admin' and 'John Doe' with
+    // employee ids EMP0001 and EMP0002 - whenever the real list came back empty. Picking
+    // one assigned a reporting line to somebody who does not exist. An organisation with
+    // no managers yet now gets an empty list and a message saying so.
+
 
     // Filter active and sort
     const activeManagers = candidateList.filter(c => c.status !== 'Terminated' && c.status !== 'Inactive');
@@ -1242,13 +1257,17 @@ async function populateManagerDropdowns() {
 
     if (l1Select) {
         const curVal = l1Select.value;
-        l1Select.innerHTML = '<option value="">Select L1 Manager</option>' + optionsHtml;
+        l1Select.innerHTML = (activeManagers.length
+            ? '<option value="">Select L1 Manager</option>'
+            : '<option value="">No managers yet - add an employee with a manager role first</option>') + optionsHtml;
         if (curVal) l1Select.value = curVal;
     }
 
     if (l2Select) {
         const curVal = l2Select.value;
-        l2Select.innerHTML = '<option value="">None / Not Assigned</option>' + optionsHtml;
+        l2Select.innerHTML = (activeManagers.length
+            ? '<option value="">None / Not Assigned</option>'
+            : '<option value="">No managers yet</option>') + optionsHtml;
         if (curVal) l2Select.value = curVal;
     }
 }
@@ -1469,12 +1488,10 @@ function renderEmployeeTableRows(employees) {
                     ` : ''}
                 </div>
             </td>
-            <td>
-                <div class="password-cell" onclick="const m = this.querySelector('.masked-pwd'); const r = this.querySelector('.real-pwd'); if(m.style.display==='none'){m.style.display='inline';r.style.display='none';}else{m.style.display='none';r.style.display='inline';}" style="font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; position: relative; overflow: hidden; width: fit-content; min-width: 80px; text-align: center;">
-                    <span class="masked-pwd">••••••••</span>
-                    <span class="real-pwd" style="display:none;">${escapeHtml(emp.password || emp.tempPassword || '---')}</span>
-                </div>
-            </td>
+              <!-- The password column was a click-to-reveal of emp.password / emp.tempPassword.
+                   Plaintext passwords are no longer stored, so it could only show '---', but it
+                   would still have revealed any legacy value to everyone who can see the employee
+                   list - which now includes the read-only Auditor role. Removed outright. -->
             <td style="font-weight: 700; color: var(--text-main);">₹${Number(emp.salary || 0).toLocaleString()}</td>
             <td style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
                 <i data-lucide="phone" size="12" style="vertical-align: middle; margin-right: 4px;"></i>
@@ -2283,7 +2300,11 @@ function setupEventListeners() {
         if (btnRegen) {
             btnRegen.addEventListener('click', () => {
                 generatePassword();
-                const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+                // crypto, not Math.random: a password built from Math.random is predictable from a
+                // couple of earlier samples, which is the weakness the server-side generator
+                // was rewritten to remove.
+                const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+                    .map(b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
                 const currentVal = passInput.value.split('@')[0];
                 passInput.value = `${currentVal}-${randomPart}@2026!`;
                 const displayPass = document.getElementById('displayPassword');
@@ -2315,7 +2336,11 @@ function setupEventListeners() {
             if (passInput && !passInput.value.trim()) {
                 if (window.generatePassword) window.generatePassword();
                 if (!passInput.value.trim()) {
-                    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    // crypto, not Math.random: a password built from Math.random is predictable from a
+                // couple of earlier samples, which is the weakness the server-side generator
+                // was rewritten to remove.
+                const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+                    .map(b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
                     passInput.value = `EMP-${randomPart}@2026!`;
                     const displayPass = document.getElementById('displayPassword');
                     if (displayPass) displayPass.value = passInput.value;
@@ -3340,7 +3365,8 @@ function renderProductivityChart(canvasId) {
                 data.push(Math.round(stats.total / stats.count));
             });
 
-            if (labels.length === 0) { labels.push('Engineering', 'Marketing'); data.push(92, 85); }
+            // An empty chart is honest; two invented departments scoring 92 and 85 are not.
+            if (labels.length === 0) { /* leave empty - the chart renders its own empty state */ }
 
             if (window[`chart_${canvasId}`]) window[`chart_${canvasId}`].destroy();
             window[`chart_${canvasId}`] = new Chart(ctx, {
@@ -3376,7 +3402,9 @@ function renderPerformanceTrendsChart(canvasId) {
                 data = docs.map(d => Number(d.data().score) || 0);
                 labels = docs.map((d, i) => `W${i+1}`);
             }
-            while (data.length < 6) data.push(80 + Math.floor(Math.random() * 15));
+            // This padded the chart with random scores between 80 and 95 so it always looked
+            // full. A customer with three weeks of data saw six bars, three of them invented,
+            // and could not tell which. Short history now renders short.
 
             if (window[`chart_${canvasId}`]) window[`chart_${canvasId}`].destroy();
             window[`chart_${canvasId}`] = new Chart(ctx, {

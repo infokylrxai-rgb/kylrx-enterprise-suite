@@ -169,7 +169,7 @@
 
         // Known default heads fallback
         const KNOWN_HEADS = {
-            'EMP0001': 'Nandan Kumar',
+            'EMP0001': 'Sample Employee',
             'EMP0002': 'Rajesh Sharma',
             'EMP0003': 'Ananya Roy',
             'EMP0004': 'Vikram Malhotra',

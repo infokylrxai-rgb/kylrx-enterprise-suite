@@ -1526,7 +1526,7 @@
             <!-- ── WELCOME TITLE ROW ── -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <div class="welcome-text">
-                    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Welcome back, <span id="welcomeUserName">Nandan</span> 💳</h1>
+                    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px;">Welcome back, <span id="welcomeUserName">there</span> 💳</h1>
                     <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Live workforce overview, disbursement gate, and administrative controls</p>
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
@@ -2191,7 +2191,7 @@
 
             <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.82rem;">
                 <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 1rem; color: #991b1b; line-height: 1.45;">
-                    <strong>Self-Approval Blocked:</strong> The requesting checker <strong id="conflictCheckerId">Nandan.B</strong> matches the batch creator (<strong id="conflictMakerId">Nandan.B</strong>). Under statutory compliance rules, batch approval requires independent secondary review.
+                    <strong>Self-Approval Blocked:</strong> The requesting checker <strong id="conflictCheckerId">—</strong> matches the batch creator (<strong id="conflictMakerId">—</strong>). Under statutory compliance rules, batch approval requires independent secondary review.
                 </div>
 
                 <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem; font-size: 0.76rem; color: #475569;">
@@ -2229,7 +2229,7 @@
         let isMakerCheckerBypassChecked = true;
         let isUnmaskPiiChecked = false;
         let cachedEmployeeRecords = [];
-        const BATCH_CREATOR_MAKER_ID = 'Nandan.B'; // Simulated batch creator for 4-Eyes Maker-Checker validation
+        const BATCH_CREATOR_MAKER_ID = ''; // Simulated batch creator for 4-Eyes Maker-Checker validation
 
         // Resilient Lucide Icon Renderer with Polling & Retries
         function renderLucideIcons() {
@@ -2277,8 +2277,8 @@
             // Welcome Name Update
             const welcomeUserEl = document.getElementById('welcomeUserName');
             if (welcomeUserEl) {
-                let name = user?.displayName || localStorage.getItem('userName') || 'Nandan';
-                if (!name || name === 'Username' || name === 'Super Admin' || name.includes('@')) name = 'Nandan';
+                let name = user?.displayName || localStorage.getItem('userName') || '';
+                if (!name || name === 'Username' || name === 'Super Admin' || name.includes('@')) name = '';
                 welcomeUserEl.textContent = name.split(' ')[0] || name;
             }
 
@@ -2565,7 +2565,7 @@
                 const cChecker = document.getElementById('conflictCheckerId');
                 const cMaker = document.getElementById('conflictMakerId');
                 if (cBatch) cBatch.textContent = batch.name;
-                if (cChecker) cChecker.textContent = 'Nandan.B';
+                if (cChecker) cChecker.textContent = '—';
                 if (cMaker) cMaker.textContent = BATCH_CREATOR_MAKER_ID;
 
                 const modal = document.getElementById('makerCheckerModal');
@@ -3201,7 +3201,7 @@
                     batch.set(issueRef, {
                         resolved: true,
                         resolved_at: serverTimestamp(),
-                        resolved_by: 'Nandan.B',
+                        resolved_by: '—',
                         resolution_value: newVal
                     }, { merge: true });
 
@@ -3298,7 +3298,7 @@
                     await addDoc(collection(db, "disbursement_logs"), {
                         batch_id: batchMetadata.batch_id,
                         batch_name: batchMetadata.batch_name,
-                        generated_by: 'Nandan.B',
+                        generated_by: '—',
                         record_count: batchMetadata.record_count,
                         total_amount: batchMetadata.total_amount,
                         checksum: checksum,

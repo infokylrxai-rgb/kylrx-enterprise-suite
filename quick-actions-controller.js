@@ -949,7 +949,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
 
             const { doc, setDoc, serverTimestamp } = this.fbUtils;
             const empId = this.currentEmployeeId || (this.auth?.currentUser?.uid) || localStorage.getItem('employeeId') || localStorage.getItem('userId') || 'EMP0001';
-            const empName = localStorage.getItem('userName') || (this.auth?.currentUser?.displayName) || 'Nandan';
+            const empName = localStorage.getItem('userName') || (this.auth?.currentUser?.displayName) || '';
             const dept = localStorage.getItem('userDepartment') || 'Executive Management';
             const todayStr = new Date().toISOString().split('T')[0];
             const docId = `${empId}_${todayStr}`;
@@ -1276,7 +1276,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                 </div>
                 <div style="flex: 1;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                        <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">Nandan B</h3>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #0f172a;">${this.escapeHtml ? this.escapeHtml(empName || "") : (empName || "")}</h3>
                         <span style="background: #ecfdf5; color: #059669; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 20px; border: 1px solid #a7f3d0;">Active &amp; Confirmed</span>
                     </div>
                     <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-weight: 600;">Super Administrator / Head of Enterprise Technology • ID: ${empId}</p>

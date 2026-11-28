@@ -821,7 +821,7 @@ class CustomTemplateEngine {
                 instructions: 'Statutory filing checklist governed directly by legal and chief compliance officer. Modifications prohibited.',
                 permittedFields: [
                     { fieldKey: 'filingMonth', label: 'Filing Period', type: 'text', isPermittedToEdit: true, isRequired: true, defaultValue: 'October 2026', instructions: 'Statutory month' },
-                    { fieldKey: 'complianceOfficerSignoff', label: 'Compliance Officer Full Name', type: 'text', isPermittedToEdit: true, isRequired: true, defaultValue: 'Nandan Rao', instructions: 'Signing officer' },
+                    { fieldKey: 'complianceOfficerSignoff', label: 'Compliance Officer Full Name', type: 'text', isPermittedToEdit: true, isRequired: true, defaultValue: '', instructions: 'Signing officer' },
                     { fieldKey: 'statutoryDueDateEPFO', label: 'EPFO Filing Due Date', type: 'text', isPermittedToEdit: false, isRequired: true, defaultValue: '15th of Subsequent Month', instructions: 'Strict statutory legal requirement.' }
                 ],
                 lockedFields: ['statutoryDueDateEPFO', 'module'],

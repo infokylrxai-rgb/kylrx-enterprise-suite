@@ -806,101 +806,99 @@
                 </div>
             </div>
 
-            <div class="bu-rules-table-wrapper" style="overflow-x: auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                    <thead>
-                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569;">
-                            <th style="padding: 14px 16px; font-weight: 800; width: 130px;">BU Code</th>
-                            <th style="padding: 14px 16px; font-weight: 800; min-width: 170px;">Business Unit Name</th>
-                            <th style="padding: 14px 16px; font-weight: 800; min-width: 150px;">BU Head</th>
-                            <th style="padding: 14px 16px; font-weight: 800;">Allowed Employee Types (PRD §10)</th>
-                            <th style="padding: 14px 16px; font-weight: 800; width: 100px; text-align: center;">Active</th>
-                            <th style="padding: 14px 16px; font-weight: 800; width: 110px; text-align: center;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div class="bu-rules-list" style="display: flex; flex-direction: column; gap: 12px;">
         `;
+
+        // Two naming schemes exist for the same concepts (FULL_TIME and CAT_FT_REG are both
+        // "Full-Time Regular"), so rendering every code showed the same label two or three
+        // times. Collapse them by label: one chip, which is on when ANY of its codes is
+        // allowed, and which writes the first code when toggled.
+        const byLabel = new Map();
+        types.forEach(t => {
+            const key = String(t.name).trim().toLowerCase();
+            if (byLabel.has(key)) byLabel.get(key).aliases.push(t.code);
+            else byLabel.set(key, { code: t.code, name: t.name, aliases: [t.code] });
+        });
+        const uniqueTypes = [...byLabel.values()];
 
         rules.forEach(rule => {
             const allowed = (rule.allowedEmployeeTypes || []).map(t => String(t).toUpperCase());
             const headName = rule.headEmployeeName || resolveEmployeeName(rule.headEmployeeId);
 
-            const pillsHtml = types.map(t => {
-                const isChecked = allowed.includes(t.code) || (t.code === 'CONTRACT' && allowed.includes('CONTRACTOR'));
+            const pillsHtml = uniqueTypes.map(t => {
+                const isChecked = t.aliases.some(code => allowed.includes(code))
+                    || (t.aliases.includes("CONTRACT") && allowed.includes("CONTRACTOR"));
                 return `
                     <label class="bu-type-pill ${isChecked ? 'active' : ''}" style="
-                        display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; cursor: pointer; user-select: none; transition: all 0.15s ease;
-                        background: ${isChecked ? '#dbeafe' : '#f1f5f9'};
-                        color: ${isChecked ? '#1d4ed8' : '#64748b'};
-                        border: 1px solid ${isChecked ? '#93c5fd' : '#cbd5e1'};
+                        display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 9999px;
+                        font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .15s;
+                        background: ${isChecked ? '#2563eb' : '#ffffff'};
+                        color: ${isChecked ? '#ffffff' : '#475569'};
+                        border: 1px solid ${isChecked ? '#2563eb' : '#cbd5e1'};
                     ">
-                        <input type="checkbox" style="display:none;" 
-                            data-bu="${rule.businessUnitCode}" 
-                            data-type="${t.code}" 
-                            ${isChecked ? 'checked' : ''} 
+                        <input type="checkbox" style="display:none;"
+                            data-bu="${rule.businessUnitCode}"
+                            data-type="${t.code}"
+                            ${isChecked ? 'checked' : ''}
                             onchange="window.KylrxBuRules.handleTypeToggle('${rule.businessUnitCode}', '${t.code}', this.checked)"
                         />
+                        <span>${isChecked ? '&#10003;' : '&#43;'}</span>
                         <span>${t.name}</span>
-                        <i class="fas ${isChecked ? 'fa-check-circle' : 'fa-circle'}" style="font-size: 9px;"></i>
                     </label>
                 `;
-            }).join(' ');
+            }).join('');
 
+            // One card per business unit. The old six-column table squeezed ten chips into a
+            // narrow cell, so each wrapped onto its own line and the row became a column of
+            // stacked pills. A card gives the chips the full width.
             tableHtml += `
-                <tr id="row_bu_${rule.businessUnitCode}" style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s; opacity: ${rule.isActive ? '1' : '0.65'};">
-                    <td style="padding: 12px 16px; font-family: monospace; font-weight: 800; color: #2563eb;">
-                        ${rule.businessUnitCode}
-                    </td>
-                    <td style="padding: 12px 16px; font-weight: 600; color: #0f172a;">
-                        ${rule.businessUnitName}
-                    </td>
-                    <td style="padding: 12px 16px;">
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="font-family: monospace; font-weight: 700; font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px;">
-                                ${rule.headEmployeeId || 'N/A'}
-                            </span>
-                            <span style="font-size: 0.8rem; font-weight: 600; color: #334155;">
-                                ${headName || 'Unassigned'}
-                            </span>
+                <div id="row_bu_${rule.businessUnitCode}" style="
+                    border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; padding: 16px 18px;
+                    opacity: ${rule.isActive ? '1' : '0.55'};
+                ">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                        <div style="min-width: 220px;">
+                            <div style="font-size: 1rem; font-weight: 700; color: #0f172a;">
+                                ${rule.businessUnitName}
+                            </div>
+                            <div style="font-size: 0.78rem; color: #64748b; margin-top: 3px;">
+                                <span style="font-family: monospace; font-weight: 700; color: #2563eb;">${rule.businessUnitCode}</span>
+                                &nbsp;&middot;&nbsp; Head: ${headName || 'Unassigned'}
+                            </div>
                         </div>
-                    </td>
-                    <td style="padding: 12px 16px;">
-                        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button type="button"
+                                onclick="window.KylrxBuRules.toggleActiveStatus('${rule.businessUnitCode}')"
+                                title="Click to turn this business unit on or off"
+                                style="cursor: pointer; border: 1px solid ${rule.isActive ? '#bbf7d0' : '#e2e8f0'};
+                                       background: ${rule.isActive ? '#f0fdf4' : '#f8fafc'};
+                                       color: ${rule.isActive ? '#15803d' : '#64748b'};
+                                       border-radius: 9999px; padding: 5px 12px; font-size: 0.76rem; font-weight: 700;">
+                                ${rule.isActive ? 'Active' : 'Inactive'}
+                            </button>
+                            <button type="button" class="btn btn-outline" title="Edit this business unit"
+                                onclick="window.KylrxBuRules.openBuModal('${rule.businessUnitCode}')"
+                                style="padding: 5px 11px; font-size: 0.76rem; border-radius: 8px; border: 1px solid #cbd5e1; background:#fff; color:#475569; cursor:pointer;">
+                                Edit
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 14px;">
+                        <div style="font-size: 0.74rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px;">
+                            Employee types this unit may hire
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
                             ${pillsHtml}
                         </div>
-                    </td>
-                    <td style="padding: 12px 16px; text-align: center;">
-                        <button type="button" 
-                            onclick="window.KylrxBuRules.toggleActiveStatus('${rule.businessUnitCode}')"
-                            style="cursor: pointer; border: none; background: none; padding: 0;"
-                            title="Click to toggle Active status"
-                        >
-                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; background: ${rule.isActive ? '#dcfce7' : '#fee2e2'}; color: ${rule.isActive ? '#166534' : '#991b1b'}; border: 1px solid ${rule.isActive ? '#bbf7d0' : '#fecaca'};">
-                                <i class="fas ${rule.isActive ? 'fa-check' : 'fa-times'}"></i>
-                                ${rule.isActive ? 'Active' : 'Inactive'}
-                            </span>
-                        </button>
-                    </td>
-                    <td style="padding: 12px 16px; text-align: center;">
-                        <div style="display: flex; gap: 6px; justify-content: center;">
-                            <button type="button" class="btn btn-outline" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; border: 1px solid #cbd5e1; background: white; cursor: pointer;" onclick="window.KylrxBuRules.openBuModal('${rule.businessUnitCode}')" title="Edit BU">
-                                <i class="fas fa-edit" style="color: #475569;"></i>
-                            </button>
-                            <button type="button" class="btn btn-primary" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; background: #2563eb; color: white; border: none; cursor: pointer;" onclick="window.KylrxBuRules.saveSingleRule('${rule.businessUnitCode}')" title="Save Rule">
-                                <i class="fas fa-save"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                    </div>
+                </div>
             `;
         });
 
         tableHtml += `
-                    </tbody>
-                </table>
             </div>
         `;
-
         container.innerHTML = tableHtml;
         ensureBuModalInDom();
     }

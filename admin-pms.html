@@ -609,7 +609,7 @@
 
             <!-- Page Title -->
             <div style="margin-bottom: 1.5rem;">
-                <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 6px 0;">Welcome back, <span id="welcomeUserName">Nandan</span> 🎯</h1>
+                <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 6px 0;">Welcome back, <span id="welcomeUserName">there</span> 🎯</h1>
                 <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">Super Admin Cycle Engine, Document Attachments, Manager Deliverable Evaluation, and Employee Real-Time Progress Oversight.</p>
             </div>
 
@@ -1419,7 +1419,7 @@
                     startDate,
                     endDate,
                     status: targetStatus === 'active' ? 'scheduled' : 'scheduled',
-                    createdBy: 'Nandan',
+                    createdBy: (localStorage.getItem('userName') || localStorage.getItem('user_name') || 'Unknown'),
                     attachments: attachedFiles
                 });
 
@@ -1726,7 +1726,7 @@
                 await assignManagerDeliverable({
                     cycleId,
                     employeeId,
-                    assignedBy: 'Nandan',
+                    assignedBy: (localStorage.getItem('userName') || localStorage.getItem('user_name') || 'Unknown'),
                     title,
                     description,
                     weightage,
@@ -2334,7 +2334,7 @@
                             <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">${f.sourceId || ''}</div>
                         </td>
                         <td style="padding: 12px 14px; font-size: 0.82rem; color: #475569;">
-                            ${f.uploadedBy || 'Nandan'}
+                            ${f.uploadedBy || 'Unknown'}
                         </td>
                         <td style="padding: 12px 14px; font-weight: 700; color: #0f172a; font-size: 0.82rem;">
                             ${f.sizeFormatted || '—'}
@@ -2467,7 +2467,7 @@
                     category,
                     description,
                     fileObj: state.stagedDirectDoc,
-                    uploadedBy: 'Nandan'
+                    uploadedBy: (localStorage.getItem('userName') || localStorage.getItem('user_name') || 'Unknown')
                 });
 
                 showToast(`"${title}" uploaded to PMS Repository!`);
