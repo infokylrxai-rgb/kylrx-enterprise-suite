@@ -30,6 +30,21 @@
   // Before paint: the stored choice, or dark.
   apply(stored() || 'dark');
 
+  /*
+   * Which portal this page belongs to, from its file name, so the four portals can be
+   * told apart at a glance (kylrx-theme.css gives each its own marker colour). Set
+   * before paint like the theme, so it never flickers.
+   */
+  function portalOf(pathname) {
+    var file = String(pathname || '').split('/').pop().toLowerCase();
+    if (/^(login|signup|index|employee-login|manager-login|hrms-login|forgot|reset)/.test(file) || file === '') return 'public';
+    if (/^manager-/.test(file)) return 'manager';
+    if (/^employee-/.test(file)) return 'employee';
+    if (/^hrms-/.test(file)) return 'hr';
+    return 'admin';
+  }
+  try { document.documentElement.setAttribute('data-portal', portalOf(location.pathname)); } catch (_) {}
+
   function set(theme) {
     if (theme !== 'light' && theme !== 'dark') return;
     try { localStorage.setItem(KEY, theme); } catch (_) {}
@@ -103,7 +118,58 @@
   }
   window.addEventListener('kylrx-theme-change', themeCharts);
 
-  function start() { build(); themeCharts(); }
+  /*
+   * Accessibility the pages share, applied once the page is parsed:
+   *  - a "Skip to main content" link, so keyboard users need not tab through the
+   *    whole sidebar on every page;
+   *  - the sidebar named as navigation;
+   *  - icon-only buttons and links named from their title or icon, so a screen reader
+   *    says "Delete" rather than "button".
+   */
+  var PORTAL_NAMES = { admin: 'Admin portal', manager: 'Manager portal', employee: 'Employee portal', hr: 'HR portal' };
+  function enhance() {
+    var main = document.querySelector('main, .main-content, [role="main"]');
+    if (main) {
+      if (!main.id) main.id = 'kylrxMain';
+      if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1');
+      if (!document.getElementById('kylrxSkipLink') && document.body) {
+        var skip = document.createElement('a');
+        skip.id = 'kylrxSkipLink';
+        skip.className = 'kylrx-skip-link';
+        skip.href = '#' + main.id;
+        skip.textContent = 'Skip to main content';
+        document.body.insertBefore(skip, document.body.firstChild);
+      }
+    }
+    var side = document.querySelector('aside, .sidebar');
+    if (side && !side.getAttribute('aria-label')) {
+      side.setAttribute('aria-label', 'Main navigation');
+      if (side.tagName && side.tagName.toLowerCase() !== 'nav' && !side.getAttribute('role')) side.setAttribute('role', 'navigation');
+    }
+    nameIconOnlyControls(document);
+    var portal = document.documentElement.getAttribute('data-portal');
+    if (side && side.querySelector && PORTAL_NAMES[portal] && !side.querySelector('.kylrx-portal-tag')) {
+      var tag = document.createElement('div');
+      tag.className = 'kylrx-portal-tag';
+      tag.textContent = PORTAL_NAMES[portal];
+      side.insertBefore(tag, side.firstChild);
+    }
+  }
+  function nameIconOnlyControls(root) {
+    var list = root.querySelectorAll ? root.querySelectorAll('button, a[href], [role="button"]') : [];
+    for (var i = 0; i < list.length; i++) {
+      var el = list[i];
+      if (el.getAttribute('aria-label') || el.getAttribute('aria-labelledby')) continue;
+      if (String(el.textContent || '').trim()) continue;
+      var icon = el.querySelector && el.querySelector('[data-lucide]');
+      var label = el.getAttribute('title') ||
+        (icon ? String(icon.getAttribute('data-lucide')).replace(/-/g, ' ') : '');
+      if (label) el.setAttribute('aria-label', label.charAt(0).toUpperCase() + label.slice(1));
+    }
+  }
+  window.KylrxA11y = { nameIconOnlyControls: nameIconOnlyControls, portalOf: portalOf };
+
+  function start() { build(); themeCharts(); try { enhance(); } catch (err) { console.error('[Theme] accessibility pass failed:', err); } }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
   // Chart.js is often loaded late; catch it once the page has finished loading too.

@@ -199,3 +199,62 @@ hr { border-color: var(--k-border); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* ── Portals ─────────────────────────────────────────────────────────────────────
+ * Each portal carries its own marker colour (set as data-portal by kylrx-theme-init.js
+ * from the page's file name), so an HR admin switching between the admin and manager
+ * views can tell at a glance which one they are in. */
+:root { --k-portal: var(--k-accent); }
+[data-portal="manager"]  { --k-portal: var(--k-info); }
+[data-portal="employee"] { --k-portal: var(--k-success); }
+[data-portal="hr"]       { --k-portal: var(--k-warning); }
+[data-portal] aside, [data-portal] .sidebar { border-top: 3px solid var(--k-portal); }
+.kylrx-portal-tag {
+  margin: 10px 14px 4px; padding: 3px 10px; border-radius: 999px; width: fit-content;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--k-text); background: var(--k-subtle); border: 1px solid var(--k-portal);
+}
+
+/* ── Keyboard ────────────────────────────────────────────────────────────────── */
+.kylrx-skip-link {
+  position: absolute; left: 12px; top: -48px; z-index: 10000;
+  padding: 10px 16px; border-radius: 10px; font-weight: 700;
+  background: var(--k-accent); color: var(--k-on-accent); text-decoration: none;
+  transition: top .15s ease;
+}
+.kylrx-skip-link:focus { top: 12px; }
+main:focus, #kylrxMain:focus { outline: none; }
+
+/* ── Tables ──────────────────────────────────────────────────────────────────────
+ * One look for data tables: muted, small header; quiet row separators; a subtle hover. */
+table { border-collapse: collapse; }
+th { color: var(--k-muted); font-weight: 700; font-size: 0.75rem; letter-spacing: .02em; text-align: left; }
+th, td { border-bottom: 1px solid var(--k-border); }
+tbody tr:hover > td { background: var(--k-subtle); }
+caption { caption-side: top; text-align: left; color: var(--k-muted); font-size: .8rem; padding-bottom: 6px; }
+
+/* ── Forms ───────────────────────────────────────────────────────────────────── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+select, textarea {
+  min-height: 40px;
+  border-radius: 10px;
+  border-width: 1px;
+  border-style: solid;
+  font: inherit;
+}
+input:disabled, select:disabled, textarea:disabled, button:disabled { opacity: .55; cursor: not-allowed; }
+[aria-invalid="true"], input:user-invalid, select:user-invalid, textarea:user-invalid { border-color: var(--k-danger) !important; }
+label { color: var(--k-text-2); }
+
+/* ── Small screens ───────────────────────────────────────────────────────────────
+ * Wide tables scroll inside themselves instead of pushing the whole page sideways,
+ * media never overflows, and touch targets are at least 44px on a touch screen. */
+img, video, canvas, svg { max-width: 100%; }
+@media (max-width: 760px) {
+  table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .modal { max-width: calc(100vw - 24px) !important; }
+}
+@media (pointer: coarse) {
+  button, .btn, [role="button"], a.btn, select { min-height: 44px; }
+  input[type="checkbox"], input[type="radio"] { min-width: 20px; min-height: 20px; }
+}
