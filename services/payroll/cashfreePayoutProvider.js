@@ -56,10 +56,15 @@ class CashfreePayoutProvider {
     this.environment = String(options.environment || process.env.CASHFREE_ENV || 'sandbox').toLowerCase();
     this.baseUrl = options.baseUrl || process.env.CASHFREE_BASE_URL ||
       BASE_URLS[this.apiVersion][this.environment === 'production' ? 'production' : 'sandbox'];
-    this.clientId = options.clientId || process.env.CASHFREE_CLIENT_ID || '';
-    this.clientSecret = options.clientSecret || process.env.CASHFREE_CLIENT_SECRET || '';
-    // Cashfree signs webhooks with the client secret unless a dedicated secret is configured.
-    this.webhookSecret = options.webhookSecret || process.env.CASHFREE_WEBHOOK_SECRET || this.clientSecret;
+    // Credentials are supplied by the caller and never read from the environment. Each
+    // organisation pays from its own gateway, so a server-wide key is not a sensible
+    // default - it is a way for one tenant's payroll to be charged to another's balance
+    // when their own credentials are missing. getServiceForOrg refuses instead.
+    this.clientId = options.clientId || '';
+    this.clientSecret = options.clientSecret || '';
+    // Cashfree signs callbacks with the client secret unless the organisation configured
+    // a separate webhook secret, so that is the only fallback.
+    this.webhookSecret = options.webhookSecret || this.clientSecret;
     this.xApiVersion = options.xApiVersion || process.env.CASHFREE_X_API_VERSION || '2024-01-01';
     this.timeoutMs = Number(options.timeoutMs || process.env.CASHFREE_TIMEOUT_MS || 20000);
     // Cashfree v2 scopes balance to a fund source. There is no API to list them, so the id

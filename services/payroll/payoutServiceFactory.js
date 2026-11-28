@@ -12,14 +12,13 @@
  * credentials and constructs a service around them.
  *
  * It refuses rather than falling back. An organisation with no account connected gets a
- * clear error, never the platform's own keys: a silent fallback is precisely how a
- * payroll run would be charged to the wrong company. KYLRX_ALLOW_SHARED_PAYOUT_ACCOUNT
- * exists only as a deliberate, logged escape hatch while tenants are being migrated.
+ * clear error, and there is no longer any server-wide credential it could be served
+ * instead: a silent fallback is precisely how a payroll run would be charged to the
+ * wrong company.
  */
 
 const { PayrollDisbursementService } = require('./payrollDisbursementService');
 const { loadCredentials } = require('./orgPayoutCredentials');
-const logger = require('../../utils/logger');
 
 class PayoutAccountNotConnectedError extends Error {
   constructor(orgId) {
@@ -36,18 +35,14 @@ class PayoutAccountNotConnectedError extends Error {
  * on every call. Short-lived on purpose: credentials changed in the settings page take
  * effect within the TTL without a restart.
  */
-const CACHE_TTL_MS = Number(process.env.PAYOUT_SERVICE_CACHE_MS || 60_000);
+const CACHE_TTL_MS = Number(process.env.PAYOUT_SERVICE_CACHE_MS || 60000);
 const cache = new Map();   // orgId -> { service, clientId, expiresAt }
-
-function sharedAccountAllowed() {
-  return String(process.env.KYLRX_ALLOW_SHARED_PAYOUT_ACCOUNT || '').toLowerCase() === 'true';
-}
 
 /**
  * @param {string} orgId
  * @param {object} [overrides] passed through to the service (tests inject a fake provider)
  * @returns {Promise<PayrollDisbursementService>} bound to that organisation's gateway
- * @throws {PayoutAccountNotConnectedError} when nothing is connected and no escape hatch
+ * @throws {PayoutAccountNotConnectedError} when that organisation has connected nothing
  */
 async function getServiceForOrg(orgId, overrides = {}) {
   if (!orgId) {
@@ -60,14 +55,7 @@ async function getServiceForOrg(orgId, overrides = {}) {
   if (hit && hit.expiresAt > Date.now() && !Object.keys(overrides).length) return hit.service;
 
   const creds = await loadCredentials(orgId);
-
-  if (!creds) {
-    if (!sharedAccountAllowed()) throw new PayoutAccountNotConnectedError(orgId);
-    // Loud on purpose: this line is the audit trail for money leaving the platform's
-    // own account on behalf of a tenant that has not connected one.
-    logger.warn(`[PAYOUT] ${orgId} has no payment account; falling back to the SHARED platform account because KYLRX_ALLOW_SHARED_PAYOUT_ACCOUNT is set.`);
-    return new PayrollDisbursementService(overrides);
-  }
+  if (!creds) throw new PayoutAccountNotConnectedError(orgId);
 
   const service = new PayrollDisbursementService({
     clientId: creds.clientId,
@@ -88,4 +76,4 @@ function invalidate(orgId) {
   if (orgId) cache.delete(orgId); else cache.clear();
 }
 
-module.exports = { getServiceForOrg, invalidate, PayoutAccountNotConnectedError, sharedAccountAllowed };
+module.exports = { getServiceForOrg, invalidate, PayoutAccountNotConnectedError };

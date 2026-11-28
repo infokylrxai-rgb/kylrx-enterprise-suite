@@ -74,12 +74,12 @@ async function safeDbGet(promise, timeoutMs = 800) {
 
 class PayrollDisbursementService {
   constructor(options = {}) {
-    // Production must never run on blank secrets (they would validate forged callbacks)
-    if (process.env.NODE_ENV === 'production') {
-      const missing = [['clientId', 'CASHFREE_CLIENT_ID'], ['clientSecret', 'CASHFREE_CLIENT_SECRET']]
-        .filter(([opt, env]) => !options[opt] && !process.env[env]).map(([, env]) => env);
-      if (missing.length) throw new Error(`Missing required environment variable(s) in production: ${missing.join(', ')}`);
-    }
+    // Credentials are no longer a server-wide setting, so there is nothing to require at
+    // startup: they belong to an organisation and arrive through getServiceForOrg. The
+    // property this check protected - never dispatching or verifying on a blank secret -
+    // still holds, enforced where it belongs: getServiceForOrg refuses an organisation
+    // with no account connected, and the provider refuses to issue a request without
+    // credentials (assertConfigured).
     this.db = options.db !== undefined ? options.db : (process.env.NODE_ENV === 'test' ? null : db);
 
     // Cashfree Payouts adapter (injectable so tests can supply a fake gateway)
