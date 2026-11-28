@@ -22,8 +22,21 @@ const tabIds = [...html.matchAll(/<button class="tab-btn[^"]*" id="(tab[A-Za-z0-
 const registry = js.slice(js.indexOf('const TABS = {'), js.indexOf('function showTab'));
 
 describe('every onboarding tab opens something', () => {
-  it('finds all the tabs', () => {
-    assert.ok(tabIds.length >= 22, 'expected at least 22 tabs, found ' + tabIds.length);
+  /**
+   * 22 undifferentiated chips, each ending in "(PRD §1, §4, §11 & §13)", could not be
+   * scanned. They are now four labelled groups, and the six statutory masters - which
+   * differed from one another by a few letters - sit behind one tab.
+   */
+  it('is grouped rather than one long row', () => {
+    assert.ok(tabIds.length <= 18, 'the bar has grown back to ' + tabIds.length + ' tabs');
+    for (const group of ['Add data', 'Organisation', 'Time off & attendance', 'Pay & compliance']) {
+      assert.ok(html.includes('>' + group + '<'), 'missing the ' + group + ' group');
+    }
+  });
+
+  it('drops the repeated PRD reference from every chip', () => {
+    const bar = html.slice(html.indexOf('id="setupMethodTabs"'), html.indexOf('id="setupMethodTabs"') + 6000);
+    assert.ok(!/PRD §/.test(bar), 'the same citation on 22 chips is what made the bar unreadable');
   });
 
   it('every tab button is looked up in script', () => {
@@ -63,5 +76,41 @@ describe('a panel that is not built says so', () => {
     for (const label of ['Job & Rosters', 'Finance & Statutory IDs', 'Org Statutory Registrations']) {
       assert.ok(js.includes(label), 'no notice for ' + label);
     }
+  });
+});
+
+describe('the statutory masters share one tab', () => {
+  it('the six old tabs are gone from the bar', () => {
+    for (const id of ['tabEpfoMaster','tabEsicMaster','tabPtMaster','tabLwfMaster','tabNpsMaster','tabGratuityMaster']) {
+      assert.ok(!html.includes('id="' + id + '"'), id + ' is still a top-level tab');
+    }
+  });
+
+  it('one tab replaces them, with a chooser inside', () => {
+    assert.ok(html.includes('id="tabStatutoryMasters"'));
+    assert.ok(html.includes('id="statutoryMastersView"'));
+    assert.equal((html.match(/class="statutory-master-btn"/g) || []).length, 6, 'expected six choices');
+  });
+
+  it('each choice still renders its own table', () => {
+    for (const fn of ['renderOnboardingEpfoMasterTable', 'renderOnboardingEsicMasterTable',
+                      'renderOnboardingPtMasterTable', 'renderOnboardingLwfMasterTable',
+                      'renderOnboardingNpsMasterTable', 'renderOnboardingGratuityMasterTable']) {
+      assert.ok(js.includes(fn), fn + ' is no longer called');
+    }
+  });
+
+  /**
+   * The six panels are no longer entries in TABS, so the loop that hides every panel on
+   * a tab change does not reach them. Without an explicit sweep, opening EPFO and then
+   * switching tabs leaves the EPFO table on screen underneath the new one.
+   */
+  it('hides the master panels when another tab is opened', () => {
+    const body = js.slice(js.indexOf('function showTab(key)'), js.indexOf('function showTab(key)') + 900);
+    assert.match(body, /STATUTORY_MASTERS/, 'switching away would leave a master panel visible');
+  });
+
+  it('a master that fails to render does not break the tab', () => {
+    assert.ok(js.includes("console.warn('[ONBOARDING] '"), 'a failing master should be caught, not thrown');
   });
 });

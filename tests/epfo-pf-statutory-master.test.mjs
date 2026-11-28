@@ -512,7 +512,10 @@ test('PRD Sections 1, 4, 11 & 13: EPFO / PF & UAN Statutory Master Module', asyn
         const onboardingHtmlPath = path.join(rootDir, 'admin-onboarding-upload.html');
         const onboardingHtml = fs.readFileSync(onboardingHtmlPath, 'utf8');
 
-        assert.ok(onboardingHtml.includes('id="tabEpfoMaster"'), 'Must have tabEpfoMaster');
+        // The six statutory masters were six near-identical top-level tabs; they now share
+        // one tab and are chosen inside it. Still reachable, by a different route.
+        assert.ok(onboardingHtml.includes('id="tabStatutoryMasters"'), 'Must have the Statutory Masters tab');
+        assert.ok(onboardingHtml.includes('data-master="epfo"'), 'Must offer the epfo master inside it');
         assert.ok(onboardingHtml.includes('id="epfoMasterManagementView"'), 'Must have epfoMasterManagementView');
         assert.ok(onboardingHtml.includes('id="epfoMasterParseResultsContainer"'), 'Must have epfoMasterParseResultsContainer');
         assert.ok(onboardingHtml.includes('id="parsedEpfoMasterTableBody"'), 'Must have parsedEpfoMasterTableBody');

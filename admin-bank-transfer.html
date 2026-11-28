@@ -531,6 +531,30 @@
 
   <script type="module">
     import { db, auth, onSnapshot, registerListener } from "./firebase-config.js";
+
+      /*
+       * The organisation's own name, for anything an employee will read.
+       *
+       * These notices used to be signed with the vendor's name and sent from a vendor
+       * gateway. Kylrx is the software; the employer is the customer. An
+       * employee of another company receiving a payout notice signed by a vendor they
+       * have never heard of looks like a phishing attempt, which is the worst possible
+       * impression for a message about their salary.
+       */
+      let orgDisplayName = '';
+      async function loadOrgDisplayName() {
+        try {
+          const { getActiveOrgId } = await import('./firebase-config.js');
+          const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js');
+          const orgId = getActiveOrgId && getActiveOrgId();
+          if (!orgId) return;
+          const snap = await getDoc(doc(db, 'organizations', orgId));
+          if (snap.exists()) orgDisplayName = (snap.data() || {}).name || '';
+        } catch (_) { /* the fallback below is deliberately neutral */ }
+      }
+      // Never falls back to the vendor's name: "your organisation" is vague but honest.
+      const signerName = () => orgDisplayName || 'your organisation';
+      loadOrgDisplayName();
     import { collection, getDocs, setDoc, doc, serverTimestamp, addDoc } from "./firebase-config.js";
     import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
@@ -637,15 +661,15 @@
       
       if (transferType === 'salary') {
         if (!amountInput.value || amountInput.value === '0') amountInput.value = salary;
-        emailMessageTextarea.value = `Dear ${name},\n\nA secure bank transfer of ₹${amountInput.value || salary} has been initiated for your monthly salary payout to your registered bank account.\n\nPlease allow 1-2 business days for verification and final processing by the Kylrx AI finance gateway.\n\nBest regards,\nPayroll Operations\nKylrx AI Team`;
+        emailMessageTextarea.value = `Dear ${name},\n\nA secure bank transfer of ₹${amountInput.value || salary} has been initiated for your monthly salary payout to your registered bank account.\n\nPlease allow 1-2 business days for verification and final processing by the ${signerName()} finance team.\n\nBest regards,\nPayroll Operations\n${signerName()}`;
       } else if (transferType === 'bonus') {
-        emailMessageTextarea.value = `Dear ${name},\n\nA performance incentive payout of ₹${amountInput.value || '0'} has been initiated to your registered bank account.\n\nBest regards,\nHR Operations\nKylrx AI Team`;
+        emailMessageTextarea.value = `Dear ${name},\n\nA performance incentive payout of ₹${amountInput.value || '0'} has been initiated to your registered bank account.\n\nBest regards,\nHR Operations\n${signerName()}`;
       } else if (transferType === 'reimbursement') {
-        emailMessageTextarea.value = `Dear ${name},\n\nYour approved expense reimbursement of ₹${amountInput.value || '0'} has been queued for bank transfer disbursement.\n\nBest regards,\nFinance Team\nKylrx AI Team`;
+        emailMessageTextarea.value = `Dear ${name},\n\nYour approved expense reimbursement of ₹${amountInput.value || '0'} has been queued for bank transfer disbursement.\n\nBest regards,\nFinance Team\n${signerName()}`;
       } else if (transferType === 'advance') {
-        emailMessageTextarea.value = `Dear ${name},\n\nYour salary advance request of ₹${amountInput.value || '0'} has been processed for direct bank remittance.\n\nBest regards,\nPayroll Team\nKylrx AI Team`;
+        emailMessageTextarea.value = `Dear ${name},\n\nYour salary advance request of ₹${amountInput.value || '0'} has been processed for direct bank remittance.\n\nBest regards,\nPayroll Team\n${signerName()}`;
       } else {
-        emailMessageTextarea.value = `Dear ${name},\n\nA bank transfer remittance of ₹${amountInput.value || '0'} has been scheduled for your bank account.\n\nBest regards,\nKylrx AI Team`;
+        emailMessageTextarea.value = `Dear ${name},\n\nA bank transfer remittance of ₹${amountInput.value || '0'} has been scheduled for your bank account.\n\nBest regards,\n${signerName()}`;
       }
     }
 
@@ -787,7 +811,7 @@
               headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
               body: JSON.stringify({
                 to: employeeEmail,
-                subject: "Kylrx AI - Payout Process Initiated",
+                subject: signerName() + " - Payout Process Initiated",
                 text: `Dear ${recipientSelect.options[recipientSelect.selectedIndex].text},
 
 We are pleased to inform you that a bank transfer payout has been initiated successfully.
@@ -1089,6 +1113,7 @@ ${payload.emailMessage}`
 
 </script>
 <script type="module" src="./admin-sidebar-sync.js"></script>
+    <script src="kylrx-icons.js"></script>
 </body>
 
 

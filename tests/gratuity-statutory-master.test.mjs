@@ -455,7 +455,10 @@ test('PRD Sections 1, 4, 11 & 13: Gratuity Statutory Master Module (Payment of G
 
         await st.test('admin-onboarding-upload.html has Gratuity console tabs, preview and table container', () => {
             const html = fs.readFileSync(path.join(rootDir, 'admin-onboarding-upload.html'), 'utf8');
-            assert.ok(html.includes('id="tabGratuityMaster"'), 'Must have #tabGratuityMaster');
+            // The six statutory masters were six near-identical top-level tabs; they now share
+            // one tab and are chosen inside it. Still reachable, by a different route.
+            assert.ok(html.includes('id="tabStatutoryMasters"'), 'Must have the Statutory Masters tab');
+            assert.ok(html.includes('data-master="gratuity"'), 'Must offer the gratuity master inside it');
             assert.ok(html.includes('id="gratuityMasterParseResultsContainer"'), 'Must have #gratuityMasterParseResultsContainer');
             assert.ok(html.includes('id="parsedGratuityMasterTableBody"'), 'Must have #parsedGratuityMasterTableBody');
             assert.ok(html.includes('id="onboardingGratuityMasterTableContainer"'), 'Must have #onboardingGratuityMasterTableContainer');
