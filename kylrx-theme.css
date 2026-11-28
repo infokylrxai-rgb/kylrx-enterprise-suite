@@ -1,0 +1,235 @@
+/*
+ * Kylrx theme layer.
+ *
+ * Loaded after the page stylesheets so it wins on the tokens they already use - about
+ * 2,500 var(--...) references across the admin pages, which is why a theme is possible
+ * without rewriting their markup.
+ *
+ * Three jobs:
+ *   1. a calmer, more considered palette than the default blue;
+ *   2. a dark theme, chosen by the user and remembered;
+ *   3. a hint of glass on the surfaces that frame the page - sidebar, top bar, modals -
+ *      and nowhere else, because glass behind body text costs legibility for nothing.
+ *
+ * The last section deals with colours written inline in the markup. Those beat any
+ * stylesheet, so in dark mode the common ones are overridden by matching the declaration
+ * itself. It is blunt, and it is far cheaper than editing 1,171 sites by hand.
+ */
+
+:root,
+[data-theme="light"] {
+  /* Indigo reads as considered where a saturated blue reads as default. */
+  --primary:        #4f46e5;
+  --primary-dark:   #3730a3;
+  --primary-light:  #eef2ff;
+  --primary-soft:   #e0e7ff;
+  --secondary:      #6366f1;
+  --accent:         #0891b2;
+  --danger:         #dc2626;
+  --success:        #059669;
+  --warning:        #d97706;
+
+  /* Warm-leaning neutrals: pure grey next to indigo looks cold. */
+  --bg:             #f7f7fb;
+  --bg-soft:        #fbfbfe;
+  --card:           #ffffff;
+  --sidebar:        #ffffff;
+  --text-main:      #16162b;
+  --text-muted:     #6b7093;
+  --border:         #e6e6f0;
+  --border-card:    #ececf4;
+
+  --shadow-sm: 0 1px 2px 0 rgb(22 22 43 / 0.04);
+  --shadow:    0 8px 24px -8px rgb(22 22 43 / 0.12), 0 2px 6px -2px rgb(22 22 43 / 0.06);
+  --radius:    18px;
+
+  /* Glass, used only on framing surfaces. */
+  --glass-bg:     rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.60);
+  --glass-blur:   14px;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --primary:        #818cf8;
+  --primary-dark:   #a5b4fc;
+  --primary-light:  #1e1b4b;
+  --primary-soft:   #272362;
+  --secondary:      #a5b4fc;
+  --accent:         #22d3ee;
+  --danger:         #f87171;
+  --success:        #34d399;
+  --warning:        #fbbf24;
+
+  --bg:             #0d0f1a;
+  --bg-soft:        #141726;
+  --card:           #171a2b;
+  --sidebar:        #12141f;
+  --text-main:      #e8e9f3;
+  --text-muted:     #9aa0bd;
+  --border:         #272a3d;
+  --border-card:    #2d3047;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.40);
+  --shadow:    0 8px 28px -8px rgb(0 0 0 / 0.65), 0 2px 8px -2px rgb(0 0 0 / 0.40);
+
+  --glass-bg:     rgba(23, 26, 43, 0.68);
+  --glass-border: rgba(255, 255, 255, 0.07);
+
+  color-scheme: dark;
+}
+
+/* ── The page itself ───────────────────────────────────────────────────────────── */
+
+body {
+  background: var(--bg) !important;
+  color: var(--text-main);
+  transition: background-color .18s ease, color .18s ease;
+}
+
+/* ── Glass, on framing surfaces only ───────────────────────────────────────────── */
+
+.sidebar,
+.topbar,
+.modal {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border-color: var(--glass-border) !important;
+}
+
+.modal-overlay {
+  background: rgba(13, 15, 26, 0.45) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Cards stay solid: text sits on them, and text on glass is harder to read for no gain. */
+.card, .stat-card, .widget, .panel {
+  background: var(--card) !important;
+  border: 1px solid var(--border-card) !important;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Navigation: quieter, with a clear current item ────────────────────────────── */
+
+.nav-link {
+  border-radius: 10px;
+  transition: background-color .15s ease, color .15s ease;
+}
+.nav-link:hover { background: var(--primary-light); color: var(--primary); }
+.nav-link.active {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+/* Collapsible groups, so forty items are not all shouting at once. */
+.nav-label {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-label::after {
+  content: '';
+  width: 6px; height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: .5;
+  transition: transform .18s ease;
+  margin-right: 14px;
+}
+.nav-label.collapsed::after { transform: rotate(-45deg); }
+
+/* ── The theme switch ──────────────────────────────────────────────────────────── */
+
+.kylrx-theme-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  border-radius: 9999px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+}
+.kylrx-theme-toggle button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.kylrx-theme-toggle button[aria-pressed="true"] {
+  background: var(--primary);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ── Inline colours, dark theme only ───────────────────────────────────────────── *
+ * An inline style beats a stylesheet, so these match the declaration as written in
+ * the markup. Only the values that actually appear often are covered; anything rarer
+ * keeps its light colour until that markup is converted to tokens.
+ */
+
+[data-theme="dark"] [style*="#0f172a"],
+[data-theme="dark"] [style*="#1e293b"],
+[data-theme="dark"] [style*="#334155"],
+[data-theme="dark"] [style*="#475569"] { color: var(--text-main) !important; }
+
+[data-theme="dark"] [style*="#64748b"],
+[data-theme="dark"] [style*="#94a3b8"] { color: var(--text-muted) !important; }
+
+[data-theme="dark"] [style*="background: #ffffff"],
+[data-theme="dark"] [style*="background: #fff"],
+[data-theme="dark"] [style*="background:#ffffff"],
+[data-theme="dark"] [style*="background: #f8fafc"],
+[data-theme="dark"] [style*="background: #f1f5f9"],
+[data-theme="dark"] [style*="background-color: #ffffff"],
+[data-theme="dark"] [style*="background-color: #f8fafc"] {
+  background: var(--card) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] [style*="#e2e8f0"],
+[data-theme="dark"] [style*="#cbd5e1"] { border-color: var(--border) !important; }
+
+/* Tinted status chips: keep the meaning, lose the glare. */
+[data-theme="dark"] [style*="#eff6ff"],
+[data-theme="dark"] [style*="#dbeafe"] { background: var(--primary-light) !important; color: var(--primary) !important; }
+[data-theme="dark"] [style*="#ecfdf5"],
+[data-theme="dark"] [style*="#dcfce7"],
+[data-theme="dark"] [style*="#f0fdf4"] { background: #0c2e22 !important; color: var(--success) !important; }
+[data-theme="dark"] [style*="#fef2f2"],
+[data-theme="dark"] [style*="#fee2e2"] { background: #351619 !important; color: var(--danger) !important; }
+[data-theme="dark"] [style*="#fffbeb"],
+[data-theme="dark"] [style*="#fef3c7"] { background: #35280c !important; color: var(--warning) !important; }
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--bg-soft) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border) !important;
+}
+[data-theme="dark"] table thead tr { background: var(--bg-soft) !important; }
