@@ -317,7 +317,7 @@ function injectStyles() {
         }
         @keyframes hrmsOverlayIn { from{opacity:0} to{opacity:1} }
         .hrms-warn-box {
-            background:#ffffff;padding:2.5rem;border-radius:24px;width:90%;max-width:480px;
+            background:var(--k-surface);padding:2.5rem;border-radius:24px;width:90%;max-width:480px;
             text-align:center;box-shadow:0 25px 60px rgba(0,0,0,0.25);
             border-top:6px solid #f59e0b;
             animation:hrmsBoxIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
@@ -325,8 +325,8 @@ function injectStyles() {
         @keyframes hrmsBoxIn { from{transform:scale(0.85);opacity:0} to{transform:scale(1);opacity:1} }
         .hrms-warn-icon { font-size:3rem;margin-bottom:1rem; }
         .hrms-warn-box h2 { font-size:1.5rem;font-weight:800;margin-bottom:0.75rem; }
-        .hrms-warn-box p { color:#64748b;font-size:1rem;line-height:1.6;margin-bottom:1rem; }
-        .hrms-warn-meta { font-family:'Roboto Mono',monospace;font-size:0.75rem;color:#94a3b8;margin-bottom:1.5rem;background:#f8fafc;padding:8px 16px;border-radius:8px; }
+        .hrms-warn-box p { color:var(--k-muted);font-size:1rem;line-height:1.6;margin-bottom:1rem; }
+        .hrms-warn-meta { font-family:'Roboto Mono',monospace;font-size:0.75rem;color:var(--k-muted);margin-bottom:1.5rem;background:var(--k-subtle);padding:8px 16px;border-radius:8px; }
         #hrmsWarnDismiss {
             background:#0f172a;color:#fff;border:none;padding:0.85rem 2.5rem;
             border-radius:14px;font-weight:700;font-size:0.95rem;cursor:pointer;

@@ -148,18 +148,18 @@ class AdminPayrollConsole {
     }
 
     modal.innerHTML = `
-      <div style="background: white; border-radius: 20px; padding: 2rem; width: 90%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+      <div style="background: var(--k-surface); border-radius: 20px; padding: 2rem; width: 90%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 1rem;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-weight: 800;">
             4E
           </div>
           <div>
-            <h3 style="font-size: 1.15rem; font-weight: 800; color: #1e293b; margin: 0;">4-Eyes Disbursement Approval</h3>
-            <p style="font-size: 0.8rem; color: #64748b; margin: 0;">Decentro Fabric Gateway Staging</p>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--k-text); margin: 0;">4-Eyes Disbursement Approval</h3>
+            <p style="font-size: 0.8rem; color: var(--k-muted); margin: 0;">Decentro Fabric Gateway Staging</p>
           </div>
         </div>
 
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem; font-size: 0.85rem;">
+        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem; font-size: 0.85rem;">
           <div><strong>Batch ID:</strong> ${batch.batchId}</div>
           <div><strong>Maker ID:</strong> ${batch.maker?.makerId} (Initiator)</div>
           <div><strong>Total Records:</strong> ${batch.summary?.totalRecords || 0}</div>
@@ -168,15 +168,15 @@ class AdminPayrollConsole {
         </div>
 
         <div style="margin-bottom: 1.25rem;">
-          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: #475569;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--k-text-2);">
             Checker Admin ID (Must differ from Maker: ${batch.maker?.makerId})
           </label>
-          <input type="text" id="checkerIdInput" value="ADM_CHECKER_002" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;" />
+          <input type="text" id="checkerIdInput" value="ADM_CHECKER_002" style="width: 100%; padding: 10px; border: 1px solid var(--k-border); border-radius: 8px; font-size: 0.9rem;" />
         </div>
 
         <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button id="btnCancelApproval" style="padding: 10px 18px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; font-weight: 600; cursor: pointer;">Cancel</button>
-          <button id="btnApproveAndExecute" style="padding: 10px 18px; border-radius: 8px; border: none; background: #10b981; color: white; font-weight: 700; cursor: pointer;">Approve & Disburse</button>
+          <button id="btnCancelApproval" style="padding: 10px 18px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 600; cursor: pointer;">Cancel</button>
+          <button id="btnApproveAndExecute" style="padding: 10px 18px; border-radius: 8px; border: none; background: var(--k-success); color: var(--k-on-success); font-weight: 700; cursor: pointer;">Approve & Disburse</button>
         </div>
       </div>
     `;

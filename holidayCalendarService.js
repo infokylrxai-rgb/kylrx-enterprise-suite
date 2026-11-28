@@ -907,10 +907,10 @@
                     </div>
 
                     <div style="display: flex; gap: 6px; background: var(--k-subtle); padding: 4px; border-radius: 12px;">
-                        <button type="button" id="btnViewList" style="padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; ${activeTab === 'list' ? 'background: white; color: var(--k-text); box-shadow: 0 1px 2px rgba(0,0,0,0.1);' : 'background: transparent; color: var(--k-muted);'}">
+                        <button type="button" id="btnViewList" style="padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; ${activeTab === 'list' ? 'background: var(--k-surface); color: var(--k-text); box-shadow: 0 1px 2px rgba(0,0,0,0.1);' : 'background: transparent; color: var(--k-muted);'}">
                             📋 List View
                         </button>
-                        <button type="button" id="btnViewCalendar" style="padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; ${activeTab === 'calendar' ? 'background: white; color: var(--k-text); box-shadow: 0 1px 2px rgba(0,0,0,0.1);' : 'background: transparent; color: var(--k-muted);'}">
+                        <button type="button" id="btnViewCalendar" style="padding: 6px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; ${activeTab === 'calendar' ? 'background: var(--k-surface); color: var(--k-text); box-shadow: 0 1px 2px rgba(0,0,0,0.1);' : 'background: transparent; color: var(--k-muted);'}">
                             🗓️ Annual Calendar View
                         </button>
                     </div>

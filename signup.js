@@ -54,7 +54,6 @@ const btnBack4 = document.getElementById('btnBack4');
 const signupBtn = document.getElementById('signupBtn');
 const signupForm = document.getElementById('signupForm');
 const errorMessage = document.getElementById('errorMessage');
-const btnFillDemoSignup = document.getElementById('btnFillDemoSignup');
 
 // Step 1: Account Elements
 const nameInput = document.getElementById('name');
@@ -111,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPasswordVisibilityToggles();
     setupAddressSync();
     setupLogoUpload();
-    setupDemoDataAutofill();
     setupFormSubmission();
     updateProgressUI();
 });
@@ -559,55 +557,6 @@ function setupLogoUpload() {
             pendingLogoFile = file;
             if (logoUploadStatus) logoUploadStatus.textContent = `✓ ${file.name} will be uploaded when your account is created.`;
         });
-    }
-}
-
-// ============================================================================
-// 4. DEMO DATA 1-CLICK POPULATION
-// ============================================================================
-
-function setupDemoDataAutofill() {
-    if (btnFillDemoSignup) {
-        btnFillDemoSignup.onclick = () => {
-            // Section A: CEO Account
-            nameInput.value = "John Doe";
-            emailInput.value = `ceo@kylrx.ai`;
-            passwordInput.value = "Kylrx@Enterprise2026!";
-            confirmPasswordInput.value = "Kylrx@Enterprise2026!";
-            termsInput.checked = true;
-
-            // Section B: Company Profile
-            legalNameInput.value = "Kylrx Technologies Private Limited";
-            displayNameInput.value = "Kylrx AI";
-            orgTypeSelect.value = "Private Limited";
-            industryInput.value = "Technology & Enterprise SaaS";
-            websiteInput.value = "https://kylrx.ai";
-            officialPhoneInput.value = "+91 80 4123 4567";
-            logoUrlInput.value = "https://kylrx.ai/logo.jpg";
-
-            // Section C: Address & Regional
-            countryInput.value = "India";
-            stateInput.value = "Karnataka";
-            cityInput.value = "Bengaluru";
-            pinCodeInput.value = "560103";
-            registeredAddressInput.value = "Plot 42, Outer Ring Road, Bellandur, Bengaluru, Karnataka 560103";
-            corporateAddressInput.value = "Floor 9, Tower C, Global Tech Park, Bellandur, Bengaluru, Karnataka 560103";
-            timeZoneSelect.value = "Asia/Kolkata";
-            currencySelect.value = "INR";
-            fyStartSelect.value = "04-01";
-
-            // Section D: Statutory Identifiers
-            panInput.value = "AAACK1234F";
-            tanInput.value = "BLRK12345D";
-            cinInput.value = "U72200KA2026PTC123456";
-            gstinInput.value = "29AAACK1234F1Z5";
-
-            // Trigger real-time checklist events
-            evaluatePasswordStrength();
-            if (window.showAlert) {
-                window.showAlert("Demo Data Populated", "All CEO credentials and 21 organization fields have been populated with Kylrx Enterprise defaults.", "check");
-            }
-        };
     }
 }
 

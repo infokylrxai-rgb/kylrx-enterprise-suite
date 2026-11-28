@@ -317,3 +317,22 @@ describe('business units show only this organisation\'s data', () => {
       'an organisation with nobody would fall back to the sample people');
   });
 });
+
+describe('the public signup page fills nothing in for you', () => {
+  /*
+   * Signup had a "Fill Kylrx Demo Setup" button that filled the form with Kylrx's own
+   * company, an invented PAN/TAN/GSTIN/CIN and a fixed password, on the page anyone
+   * can reach. One click and Submit created an organisation with someone else's
+   * identity and a password published in the page source.
+   */
+  const html = fs.readFileSync(path.join(ROOT, 'signup.html'), 'utf8');
+  const js = fs.readFileSync(path.join(ROOT, 'signup.js'), 'utf8');
+  it('has no demo-fill button or handler', () => {
+    assert.ok(!html.includes('btnFillDemoSignup'));
+    assert.ok(!/setupDemoDataAutofill/.test(js));
+  });
+  it('carries no fixed password', () => {
+    assert.ok(!/passwordInput\.value = "/.test(js));
+    assert.ok(!js.includes('Kylrx@Enterprise2026'));
+  });
+});

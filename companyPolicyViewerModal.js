@@ -94,7 +94,7 @@
                 opacity: 1;
             }
             .kpm-modal {
-                background: #ffffff;
+                background: var(--k-surface);
                 width: 92%;
                 max-width: 820px;
                 height: 88vh;
@@ -104,7 +104,7 @@
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
-                border: 1px solid #e2e8f0;
+                border: 1px solid var(--k-border);
                 animation: kpmSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             }
             @keyframes kpmSlideUp {
@@ -113,8 +113,8 @@
             }
             .kpm-header {
                 padding: 1.5rem 2rem;
-                background: #f8fafc;
-                border-bottom: 1px solid #e2e8f0;
+                background: var(--k-subtle);
+                border-bottom: 1px solid var(--k-border);
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -138,20 +138,20 @@
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
             }
-            .kpm-badge-statutory { background: #fee2e2; color: #991b1b; }
+            .kpm-badge-statutory { background: var(--k-danger-soft); color: var(--k-danger-text); }
             .kpm-badge-operational { background: #e0e7ff; color: #3730a3; }
-            .kpm-badge-conduct { background: #fef3c7; color: #92400e; }
-            .kpm-badge-security { background: #dcfce7; color: #166534; }
-            .kpm-badge-version { background: #f1f5f9; color: #475569; }
+            .kpm-badge-conduct { background: var(--k-warning-soft); color: var(--k-warning-text); }
+            .kpm-badge-security { background: var(--k-success-soft); color: var(--k-success-text); }
+            .kpm-badge-version { background: var(--k-subtle); color: var(--k-text-2); }
             .kpm-title {
                 font-size: 1.35rem;
                 font-weight: 800;
-                color: #0f172a;
+                color: var(--k-text);
                 margin: 0;
             }
             .kpm-meta {
                 font-size: 0.8rem;
-                color: #64748b;
+                color: var(--k-muted);
                 display: flex;
                 gap: 16px;
                 align-items: center;
@@ -159,7 +159,7 @@
             .kpm-close-btn {
                 background: none;
                 border: none;
-                color: #94a3b8;
+                color: var(--k-muted);
                 cursor: pointer;
                 padding: 6px;
                 border-radius: 10px;
@@ -169,23 +169,23 @@
                 transition: all 0.15s ease;
             }
             .kpm-close-btn:hover {
-                background: #e2e8f0;
-                color: #0f172a;
+                background: var(--k-border);
+                color: var(--k-text);
             }
             .kpm-body {
                 flex: 1;
                 overflow-y: auto;
                 padding: 2rem;
-                background: #ffffff;
+                background: var(--k-surface);
                 line-height: 1.7;
-                color: #334155;
+                color: var(--k-text-2);
                 font-size: 0.95rem;
-                border-bottom: 1px solid #e2e8f0;
+                border-bottom: 1px solid var(--k-border);
             }
             .kpm-body h3 {
                 font-size: 1.15rem;
                 font-weight: 800;
-                color: #0f172a;
+                color: var(--k-text);
                 margin: 1.5rem 0 0.5rem 0;
             }
             .kpm-body h3:first-child {
@@ -197,14 +197,14 @@
             .kpm-body iframe {
                 width: 100%;
                 height: 520px;
-                border: 1px solid #cbd5e1;
+                border: 1px solid var(--k-border);
                 border-radius: 12px;
                 margin-bottom: 1rem;
             }
             .kpm-scroll-indicator {
-                background: #eff6ff;
-                border: 1px dashed #3b82f6;
-                color: #1d4ed8;
+                background: var(--k-accent-soft);
+                border: 1px dashed var(--k-accent);
+                color: var(--k-accent-text);
                 padding: 10px 16px;
                 border-radius: 12px;
                 font-size: 0.85rem;
@@ -216,7 +216,7 @@
             }
             .kpm-footer {
                 padding: 1.25rem 2rem;
-                background: #f8fafc;
+                background: var(--k-subtle);
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -225,7 +225,7 @@
             }
             .kpm-footer-audit {
                 font-size: 0.75rem;
-                color: #64748b;
+                color: var(--k-muted);
                 display: flex;
                 flex-direction: column;
                 gap: 2px;
@@ -243,12 +243,12 @@
                 gap: 8px;
             }
             .kpm-sign-btn:not(:disabled) {
-                background: #2563eb;
-                color: #ffffff;
+                background: var(--k-accent);
+                color: var(--k-on-accent);
                 box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
             }
             .kpm-sign-btn:not(:disabled):hover {
-                background: #1d4ed8;
+                background: var(--k-accent);
                 transform: translateY(-1px);
             }
             .kpm-sign-btn:disabled {
@@ -258,8 +258,8 @@
                 opacity: 0.7;
             }
             .kpm-sign-btn.signed {
-                background: #10b981 !important;
-                color: white !important;
+                background: var(--k-success) !important;
+                color: var(--k-on-success) !important;
                 cursor: default;
             }
         `;

@@ -3203,7 +3203,7 @@
             container.innerHTML = '';
             validDocs.forEach(({ id, data }) => {
                 const approvalDiv = document.createElement('div');
-                approvalDiv.style = "background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;";
+                approvalDiv.style = "background: var(--k-surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;";
                 approvalDiv.id = `bankApproval-${id}`;
 
                 const initials = data.initials || (data.name ? data.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'BK');
@@ -4034,7 +4034,7 @@
                 totalEl.textContent = `Total Net: \u20b9${totalNet.toLocaleString('en-IN')}`;
 
                 tbody.innerHTML = payslipData.map((e, i) => `
-                    <tr style="border-bottom:1px solid var(--k-border); ${i % 2 === 0 ? 'background:white;' : 'background:#fafafa;'}">
+                    <tr style="border-bottom:1px solid var(--k-border); ${i % 2 === 0 ? 'background:var(--k-surface);' : 'background:var(--k-subtle);'}">
                         <td style="padding:12px 16px; font-weight:600;">
                             ${e.name || e.email || 'Unknown'}
                             ${!e.bankComplete ? '<span style="margin-left:6px;background:var(--k-danger-soft);color:var(--k-danger-text);font-size: 0.7rem;font-weight:800;padding:2px 6px;border-radius:100px;">No Bank</span>' : ''}

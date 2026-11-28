@@ -170,6 +170,44 @@ describe('the hard-coded colours are gone', () => {
   });
 });
 
+describe('no white panel is left in the dark theme', () => {
+  /*
+   * The first tokeniser pass converted hex colours in the top-level folder only. Named
+   * "white", the consoles in services/ and public/js/, and style strings built in script
+   * were all missed - and next to theme text, a white panel in the dark theme is light
+   * text on white. What may stay white is listed here, each for a reason.
+   */
+  const ALLOWED = {
+    'admin-app.js': 'welcome email',
+    'controllers/adminController.js': 'emails',
+    'routes/email.js': 'emails',
+    'pms-service.js': 'email',
+    'recruitment-service.js': 'email',
+    'onboarding-invite.html': 'invite email',
+    'send_live_test.js': 'test mailer',
+    'test_email_nandan.js': 'test mailer',
+    'trigger_manager_email.js': 'test mailer',
+    'gratuityDetailsService.js': 'printable Form I',
+    'employee-dashboard.html': 'chat bubble with its own dark text',
+    'firebase-config.js': 'Retry button on the amber notice, with its own dark text'
+  };
+  it('only emails, documents and self-coloured elements keep a literal white background', () => {
+    const dirs = ['.', 'services', 'public/js', 'controllers', 'routes'];
+    const found = new Set();
+    for (const d of dirs) {
+      for (const f of fs.readdirSync(path.join(ROOT, d)).filter(x => /\.(js|html|css)$/.test(x) && !/^lucide|style-landing/.test(x))) {
+        const rel = d === '.' ? f : d + '/' + f;
+        const s = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+        for (const m of s.matchAll(/background(-color)?\s*:\s*(white|#fff\b|#ffffff\b)[^;"'`]*/g)) {
+          if (!/gradient/.test(m[0])) found.add(rel);
+        }
+      }
+    }
+    const unexpected = [...found].filter(f => !ALLOWED[f]);
+    assert.deepEqual(unexpected, [], 'white panels that will be unreadable in the dark theme');
+  });
+});
+
 describe('emails are never themed', () => {
   /** Gmail and Outlook never receive our stylesheet; a token there means no colour. */
   it('no email template contains a theme token', () => {
@@ -177,10 +215,20 @@ describe('emails are never themed', () => {
       /\bhtml\s*[:=]\s*(`[\s\S]*?`|'[^'\n]*'|"[^"\n]*")/g,
       /(emailHtml|htmlBody|mailHtml|emailBody|bodyHtml|htmlContent)\s*=\s*(`[\s\S]*?`)/g
     ];
+    // A string called html is an email only when it is sent: a subject, a recipient or a
+    // send call close by. In-app markup built as `let html = ...` is themed on purpose.
+    const EMAILISH = /\bsubject\s*:|\bto\s*:\s*[\w.'"`]|sendEmail|sendMail|\/api\/(send-)?email|nodemailer|resend\.|mail(er)?\.send|emailPayload|mailOptions/i;
     const bad = [];
-    for (const f of fs.readdirSync(ROOT).filter(x => /\.(js|html)$/.test(x))) {
-      const s = fs.readFileSync(path.join(ROOT, f), 'utf8');
-      for (const re of RES) for (const m of s.matchAll(re)) if (m[0].includes('var(--k-')) bad.push(f);
+    for (const d of ['.', 'services', 'public/js', 'controllers', 'routes']) {
+      for (const f of fs.readdirSync(path.join(ROOT, d)).filter(x => /\.(js|html)$/.test(x))) {
+        const rel = d === '.' ? f : d + '/' + f;
+        const s = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+        for (const re of RES) for (const m of s.matchAll(re)) {
+          const around = s.slice(Math.max(0, m.index - 700), m.index + m[0].length + 300);
+          const isEmail = re === RES[1] || EMAILISH.test(around);
+          if (isEmail && m[0].includes('var(--k-')) bad.push(rel);
+        }
+      }
     }
     assert.deepEqual([...new Set(bad)], []);
   });

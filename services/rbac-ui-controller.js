@@ -94,15 +94,15 @@
         const overrides = rbac ? rbac.getAllOverrides() : [];
 
         container.innerHTML = `
-            <div style="background: white; border: 1.5px solid #3b82f6; border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+            <div style="background: var(--k-surface); border: 1.5px solid var(--k-accent); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                 <!-- Header with Title and Global Stats -->
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 48px; height: 48px; border-radius: 14px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                        <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
                             <i data-lucide="shield-check" style="width: 26px; height: 26px;"></i>
                         </div>
                         <div>
-                            <h2 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 0;">RBAC &amp; Permission Overrides Console</h2>
+                            <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin: 0;">RBAC &amp; Permission Overrides Console</h2>
                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0 0;">
                                 Hybrid Role-Based Access Control and Employee Privilege Overrides (PRD §§ 1, 14, 17, &amp; 18)
                             </p>
@@ -117,17 +117,17 @@
 
                 <!-- Summary Cards -->
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                    <div style="background: #eff6ff; border: 1px solid #dbeafe; border-radius: 14px; padding: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #1e40af; text-transform: uppercase;">Standard Roles</span>
-                        <p style="font-size: 1.4rem; font-weight: 800; color: #2563eb; margin: 4px 0 0 0;" id="statTotalRoles">${roles.length}</p>
+                    <div style="background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); border-radius: 14px; padding: 1rem;">
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">Standard Roles</span>
+                        <p style="font-size: 1.4rem; font-weight: 800; color: var(--k-accent-text); margin: 4px 0 0 0;" id="statTotalRoles">${roles.length}</p>
                     </div>
                     <div style="background: #fdf2f8; border: 1px solid #fce7f3; border-radius: 14px; padding: 1rem;">
                         <span style="font-size: 0.7rem; font-weight: 800; color: #9d174d; text-transform: uppercase;">Active Overrides</span>
                         <p style="font-size: 1.4rem; font-weight: 800; color: #be185d; margin: 4px 0 0 0;" id="statTotalOverrides">${overrides.length}</p>
                     </div>
-                    <div style="background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">Super Admin Lock</span>
-                        <p style="font-size: 1.4rem; font-weight: 800; color: #15803d; margin: 4px 0 0 0;">Active (Immutable)</p>
+                    <div style="background: var(--k-success-soft); border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Super Admin Lock</span>
+                        <p style="font-size: 1.4rem; font-weight: 800; color: var(--k-success-text); margin: 4px 0 0 0;">Active (Immutable)</p>
                     </div>
                     <div style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 14px; padding: 1rem;">
                         <span style="font-size: 0.7rem; font-weight: 800; color: #7e22ce; text-transform: uppercase;">Governed Modules</span>
@@ -137,7 +137,7 @@
 
                 <!-- 2-Tab Navigation Switcher -->
                 <div style="display: flex; gap: 8px; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; padding-bottom: 0.25rem;">
-                    <button type="button" class="tab-btn active" id="tabBtnSystemRoles" style="padding: 10px 20px; font-weight: 700; border: none; background: none; border-bottom: 3px solid #3b82f6; color: #2563eb; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <button type="button" class="tab-btn active" id="tabBtnSystemRoles" style="padding: 10px 20px; font-weight: 700; border: none; background: none; border-bottom: 3px solid var(--k-accent); color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="shield" style="width: 16px; height: 16px;"></i> Tab 1: System Roles
                     </button>
                     <button type="button" class="tab-btn" id="tabBtnUserOverrides" style="padding: 10px 20px; font-weight: 700; border: none; background: none; border-bottom: 3px solid transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 8px;">
@@ -149,7 +149,7 @@
                 <div id="viewSystemRoles" style="display: block;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
                         <div>
-                            <h3 style="font-size: 1rem; font-weight: 800; margin: 0; color: #0f172a;">Standard System Roles</h3>
+                            <h3 style="font-size: 1rem; font-weight: 800; margin: 0; color: var(--k-text);">Standard System Roles</h3>
                             <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">Default base profiles defining organizational scope and core module entitlements.</p>
                         </div>
                         <button type="button" class="btn btn-primary" id="btnAddNewRole" style="padding: 8px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
@@ -160,7 +160,7 @@
                     <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 16px;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
                             <thead>
-                                <tr style="background: #f8fafc; border-bottom: 1px solid var(--border);">
+                                <tr style="background: var(--k-subtle); border-bottom: 1px solid var(--border);">
                                     <th style="padding: 12px 14px; font-weight: 800;">Role Code</th>
                                     <th style="padding: 12px 14px; font-weight: 800;">Role Title</th>
                                     <th style="padding: 12px 14px; font-weight: 800;">Scope</th>
@@ -180,7 +180,7 @@
                 <div id="viewUserOverrides" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
                         <div>
-                            <h3 style="font-size: 1rem; font-weight: 800; margin: 0; color: #0f172a;">Employee-Specific Permission Overrides</h3>
+                            <h3 style="font-size: 1rem; font-weight: 800; margin: 0; color: var(--k-text);">Employee-Specific Permission Overrides</h3>
                             <p style="font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0 0;">
                                 Direct grant of elevated privileges to specific employees without changing their formal job title.
                             </p>
@@ -200,14 +200,14 @@
                             </div>
                         </div>
                         <!-- Autocomplete Suggestions Dropdown -->
-                        <div id="employeeAutocompleteDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 50; max-height: 220px; overflow-y: auto; margin-top: 4px;">
+                        <div id="employeeAutocompleteDropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--k-surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 50; max-height: 220px; overflow-y: auto; margin-top: 4px;">
                         </div>
                     </div>
 
                     <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 16px;">
                         <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
                             <thead>
-                                <tr style="background: #f8fafc; border-bottom: 1px solid var(--border);">
+                                <tr style="background: var(--k-subtle); border-bottom: 1px solid var(--border);">
                                     <th style="padding: 12px 14px; font-weight: 800;">Employee ID</th>
                                     <th style="padding: 12px 14px; font-weight: 800;">Target Name / Title</th>
                                     <th style="padding: 12px 14px; font-weight: 800;">Scope</th>
@@ -226,11 +226,11 @@
 
             <!-- Modal for Add/Edit Role or Override -->
             <div id="rbacModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 1.5rem;">
-                <div style="background: white; border-radius: 20px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: var(--shadow-lg); position: relative;">
+                <div style="background: var(--k-surface); border-radius: 20px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: var(--shadow-lg); position: relative;">
                     <button type="button" id="btnRbacModalClose" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">
                         <i data-lucide="x"></i>
                     </button>
-                    <h3 id="rbacModalTitle" style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; color: #0f172a;">Configure Permission Profile</h3>
+                    <h3 id="rbacModalTitle" style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--k-text);">Configure Permission Profile</h3>
                     <p id="rbacModalSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">Set modular authorizations and access boundary.</p>
 
                     <form id="rbacModalForm">
@@ -238,18 +238,18 @@
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                             <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;" id="modalCodeLabel">Role Code *</label>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: block; margin-bottom: 4px;" id="modalCodeLabel">Role Code *</label>
                                 <input type="text" id="modalCodeInput" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.85rem; font-family: monospace; text-transform: uppercase;">
                             </div>
                             <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Display Title *</label>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: block; margin-bottom: 4px;">Display Title *</label>
                                 <input type="text" id="modalTitleInput" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.85rem;">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                             <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Scope Level *</label>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: block; margin-bottom: 4px;">Scope Level *</label>
                                 <select id="modalScopeSelect" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.85rem;">
                                     <option value="Global">Global (All Tenancy)</option>
                                     <option value="Business_Unit">Business Unit</option>
@@ -259,7 +259,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label style="font-size: 0.78rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Active Status</label>
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: block; margin-bottom: 4px;">Active Status</label>
                                 <select id="modalActiveSelect" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.85rem;">
                                     <option value="true">Active (Enabled)</option>
                                     <option value="false">Inactive (Disabled)</option>
@@ -268,19 +268,19 @@
                         </div>
 
                         <div style="margin-bottom: 1.5rem;">
-                            <label style="font-size: 0.78rem; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">Description / Scope Notes</label>
+                            <label style="font-size: 0.78rem; font-weight: 700; color: var(--k-text-2); display: block; margin-bottom: 4px;">Description / Scope Notes</label>
                             <textarea id="modalDescInput" rows="2" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.85rem;" placeholder="Scope and authorization notes..."></textarea>
                         </div>
 
-                        <h4 style="font-size: 0.85rem; font-weight: 800; color: #0f172a; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <h4 style="font-size: 0.85rem; font-weight: 800; color: var(--k-text); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">
                             Module Capabilities Matrix
                         </h4>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
                             ${MODULE_COLUMNS.map(col => `
-                                <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border);">
-                                    <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">${col.label}</span>
-                                    <select class="modal-module-select" data-module="${col.key}" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.78rem; background: white;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--k-subtle); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border);">
+                                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--k-text-2);">${col.label}</span>
+                                    <select class="modal-module-select" data-module="${col.key}" style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); font-size: 0.78rem; background: var(--k-surface);">
                                         <option value="Full">Full</option>
                                         <option value="Edit">Edit</option>
                                         <option value="Approve">Approve</option>
@@ -322,11 +322,11 @@
                 <tr style="border-bottom: 1px solid var(--border);">
                     <td style="padding: 10px 14px; font-weight: 800; font-family: monospace;">
                         ${role.roleCode}
-                        ${isSuper ? '<span style="font-size: 0.65rem; background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 6px; margin-left: 6px; font-weight: 800;">LOCKED</span>' : ''}
+                        ${isSuper ? '<span style="font-size: 0.65rem; background: var(--k-danger-soft); color: var(--k-danger-text); padding: 2px 6px; border-radius: 6px; margin-left: 6px; font-weight: 800;">LOCKED</span>' : ''}
                     </td>
                     <td style="padding: 10px 14px; font-weight: 600;">${role.roleName}</td>
                     <td style="padding: 10px 14px;">
-                        <span style="font-size: 0.72rem; padding: 3px 8px; border-radius: 8px; background: #f1f5f9; color: #475569; font-weight: 700;">
+                        <span style="font-size: 0.72rem; padding: 3px 8px; border-radius: 8px; background: var(--k-subtle); color: var(--k-text-2); font-weight: 700;">
                             ${role.scopeLevel}
                         </span>
                     </td>
@@ -339,14 +339,14 @@
                         </td>`;
                     }).join('')}
                     <td style="padding: 10px 14px; text-align: center;">
-                        <span style="font-size: 0.72rem; padding: 3px 8px; border-radius: 8px; font-weight: 700; ${role.isActive ? 'background: #dcfce7; color: #15803d;' : 'background: #fee2e2; color: #b91c1c;'}">
+                        <span style="font-size: 0.72rem; padding: 3px 8px; border-radius: 8px; font-weight: 700; ${role.isActive ? 'background: #dcfce7; color: var(--k-success-text);' : 'background: #fee2e2; color: var(--k-danger-text);'}">
                             ${role.isActive ? 'Active' : 'Inactive'}
                         </span>
                     </td>
                     <td style="padding: 10px 14px; text-align: right;">
                         ${isSuper 
                             ? '<span style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">Immutable</span>' 
-                            : `<button type="button" class="btn-edit-role" data-code="${role.roleCode}" style="background: none; border: none; color: #2563eb; cursor: pointer; font-weight: 700; font-size: 0.78rem;">Edit</button>`
+                            : `<button type="button" class="btn-edit-role" data-code="${role.roleCode}" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; font-weight: 700; font-size: 0.78rem;">Edit</button>`
                         }
                     </td>
                 </tr>
@@ -383,13 +383,13 @@
                         </td>`;
                     }).join('')}
                     <td style="padding: 10px 14px; text-align: center;">
-                        <span style="font-size: 0.72rem; padding: 3px 8px; border-radius: 8px; font-weight: 700; ${ov.isActive !== false ? 'background: #dcfce7; color: #15803d;' : 'background: #fee2e2; color: #b91c1c;'}">
+                        <span style="font-size: 0.72rem; padding: 3px 8px; border-radius: 8px; font-weight: 700; ${ov.isActive !== false ? 'background: #dcfce7; color: var(--k-success-text);' : 'background: #fee2e2; color: var(--k-danger-text);'}">
                             ${ov.isActive !== false ? 'Active' : 'Inactive'}
                         </span>
                     </td>
                     <td style="padding: 10px 14px; text-align: right; white-space: nowrap;">
-                        <button type="button" class="btn-edit-override" data-empid="${empId}" style="background: none; border: none; color: #2563eb; cursor: pointer; font-weight: 700; font-size: 0.78rem; margin-right: 8px;">Edit</button>
-                        <button type="button" class="btn-delete-override" data-empid="${empId}" style="background: none; border: none; color: #ef4444; cursor: pointer; font-weight: 700; font-size: 0.78rem;">Revoke</button>
+                        <button type="button" class="btn-edit-override" data-empid="${empId}" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; font-weight: 700; font-size: 0.78rem; margin-right: 8px;">Edit</button>
+                        <button type="button" class="btn-delete-override" data-empid="${empId}" style="background: none; border: none; color: var(--k-danger-text); cursor: pointer; font-weight: 700; font-size: 0.78rem;">Revoke</button>
                     </td>
                 </tr>
             `;
@@ -459,11 +459,11 @@
             } else {
                 dropdown.innerHTML = matches.map(emp => `
                     <div class="emp-autocomplete-item" data-empid="${emp.employeeId}" data-name="${emp.name}" data-dept="${emp.department}"
-                        style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                        style="padding: 10px 14px; border-bottom: 1px solid var(--k-border); cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="color: #0f172a; font-size: 0.82rem;">${emp.name}</strong>
+                            <strong style="color: var(--k-text); font-size: 0.82rem;">${emp.name}</strong>
                             <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 6px;">(${emp.employeeId})</span>
-                            <div style="font-size: 0.72rem; color: #64748b;">${emp.department} • ${emp.designation}</div>
+                            <div style="font-size: 0.72rem; color: var(--k-muted);">${emp.department} • ${emp.designation}</div>
                         </div>
                         <button type="button" style="padding: 4px 10px; font-size: 0.72rem; border-radius: 6px; background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; font-weight: 700;">Select</button>
                     </div>

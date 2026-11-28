@@ -429,17 +429,17 @@
         const structures = Array.from(_localLedger.values()).filter((v, idx, arr) => arr.findIndex(t => t.id === v.id) === idx);
 
         container.innerHTML = `
-            <div style="background: white; border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
+            <div style="background: var(--k-surface); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; box-shadow: var(--shadow); margin-bottom: 2rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 40px; height: 40px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--k-accent-soft); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center;">
                                 <i data-lucide="layers" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div>
-                                <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">Salary Structure &amp; Compensation Console</h2>
+                                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--k-text); margin: 0;">Salary Structure &amp; Compensation Console</h2>
                                 <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                                    Cloud Firestore: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #2563eb; font-weight: 700;">organizations/{orgId}/salary_structures/{employeeId}_v_{effectiveDate}</code>
+                                    Cloud Firestore: <code style="background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; color: var(--k-accent-text); font-weight: 700;">organizations/{orgId}/salary_structures/{employeeId}_v_{effectiveDate}</code>
                                 </p>
                             </div>
                         </div>
@@ -447,38 +447,38 @@
                 </div>
 
                 <!-- Compensation Architecture Banner -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">PRD §1 &amp; §4 Specs</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #0f172a; margin-top: 2px;">9 Strict Attributes</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">PRD §1 &amp; §4 Specs</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-text); margin-top: 2px;">9 Strict Attributes</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Formula Evaluation</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #059669; margin-top: 2px;">FLAT &amp; Referenced (e.g. BASIC)</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Formula Evaluation</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-success-text); margin-top: 2px;">FLAT &amp; Referenced (e.g. BASIC)</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Revision Versioning</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Revision Versioning</span>
                         <p style="font-size: 0.82rem; font-weight: 700; color: #7c3aed; margin-top: 2px;">Timeline: {emp}_v_{date}</p>
                     </div>
                     <div>
-                        <span style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase;">Payroll Linkage</span>
-                        <p style="font-size: 0.82rem; font-weight: 700; color: #2563eb; margin-top: 2px;">Decoupled Payout Dispatch</p>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Payroll Linkage</span>
+                        <p style="font-size: 0.82rem; font-weight: 700; color: var(--k-accent-text); margin-top: 2px;">Decoupled Payout Dispatch</p>
                     </div>
                 </div>
 
                 <!-- Structures Table -->
                 <div style="max-height: 480px; overflow-y: auto; border: 1px solid var(--border); border-radius: 14px;">
                     <table class="preview-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem;">
-                        <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 2;">
+                        <thead style="background: var(--k-subtle); position: sticky; top: 0; z-index: 2;">
                             <tr style="border-bottom: 1px solid var(--border);">
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Revision ID</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Employee</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Effective Date</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Structure Code</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Components</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Monthly Gross</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569;">Annual CTC</th>
-                                <th style="padding: 12px 14px; font-weight: 800; color: #475569; text-align: center;">Status</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Revision ID</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Employee</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Effective Date</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Structure Code</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Components</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Monthly Gross</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2);">Annual CTC</th>
+                                <th style="padding: 12px 14px; font-weight: 800; color: var(--k-text-2); text-align: center;">Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -488,18 +488,18 @@
                                     const valText = c.calculationBasis === 'FLAT' 
                                         ? `₹${(c.amount || 0).toLocaleString('en-IN')}` 
                                         : `${c.percentage}% of ${c.calculationBasis}`;
-                                    return `<span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; background: #f1f5f9; color: #334155; margin-right: 4px; margin-bottom: 2px;">${c.componentCode}: ${valText}</span>`;
+                                    return `<span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; background: var(--k-subtle); color: var(--k-text-2); margin-right: 4px; margin-bottom: 2px;">${c.componentCode}: ${valText}</span>`;
                                 }).join('');
 
                                 return `
-                                    <tr style="border-bottom: 1px solid #f1f5f9;">
-                                        <td style="padding: 12px 14px; font-family: monospace; font-weight: 700; color: #2563eb;">
+                                    <tr style="border-bottom: 1px solid var(--k-border);">
+                                        <td style="padding: 12px 14px; font-family: monospace; font-weight: 700; color: var(--k-accent-text);">
                                             ${s.id}
                                         </td>
-                                        <td style="padding: 12px 14px; font-weight: 800; color: #0f172a;">
+                                        <td style="padding: 12px 14px; font-weight: 800; color: var(--k-text);">
                                             ${s.employeeId}
                                         </td>
-                                        <td style="padding: 12px 14px; font-size: 0.78rem; color: #475569;">
+                                        <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--k-text-2);">
                                             ${s.effectiveFrom}
                                         </td>
                                         <td style="padding: 12px 14px;">
@@ -510,16 +510,16 @@
                                         <td style="padding: 12px 14px; max-width: 280px;">
                                             ${compBadges}
                                         </td>
-                                        <td style="padding: 12px 14px; font-weight: 800; color: #166534; font-size: 0.85rem;">
+                                        <td style="padding: 12px 14px; font-weight: 800; color: var(--k-success-text); font-size: 0.85rem;">
                                             ₹${(s.grossMonthly || 0).toLocaleString('en-IN')}
                                         </td>
-                                        <td style="padding: 12px 14px; font-weight: 800; color: #0f172a; font-size: 0.85rem;">
+                                        <td style="padding: 12px 14px; font-weight: 800; color: var(--k-text); font-size: 0.85rem;">
                                             ₹${(s.annualCTC || 0).toLocaleString('en-IN')}
                                         </td>
                                         <td style="padding: 12px 14px; text-align: center;">
                                             ${s.isActive
-                                                ? `<span style="color: #166534; background: #dcfce7; font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid #bbf7d0;">Active</span>`
-                                                : `<span style="color: #64748b; background: #f1f5f9; font-weight: 600; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem;">Archived</span>`
+                                                ? `<span style="color: var(--k-success-text); background: var(--k-success-soft); font-weight: 800; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; border: 1px solid var(--k-success-border);">Active</span>`
+                                                : `<span style="color: var(--k-muted); background: var(--k-subtle); font-weight: 600; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem;">Archived</span>`
                                             }
                                         </td>
                                     </tr>
