@@ -162,8 +162,8 @@
                 if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             }
         } catch (e) {}
-        saveLocalGoals(SEED_GOALS);
-        return [...SEED_GOALS];
+        // Nothing saved means no goals yet, not someone else's goals.
+        return [];
     }
 
     function saveLocalGoals(goals) {

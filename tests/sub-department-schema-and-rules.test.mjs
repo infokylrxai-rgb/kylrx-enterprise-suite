@@ -44,6 +44,17 @@ const SubDeptParser = subDeptParserModule.default || subDeptParserModule;
 const subDeptServiceModule = await import('../subDepartmentService.js');
 const SubDeptService = subDeptServiceModule.default || subDeptServiceModule;
 
+/*
+ * A sub-department's parent - and, for "same as department head", its head - comes
+ * only from the organisation's own departments. These tests used to rely on the
+ * service guessing from sample departments (a code containing "ENG" got head EMP0002
+ * "Vikram Malhotra"), which in a real organisation handed a random employee the role.
+ * The samples are now supplied explicitly, as the organisation's departments would be.
+ */
+const ORG_DEPARTMENTS = SubDeptService.DEFAULT_DEPARTMENTS;
+SubDeptService.setOrgDepartments(ORG_DEPARTMENTS);
+SubDeptService.loadSamplesForTesting();
+
 test('1. Exact Schema & Field Mapping (Strict 5 Attributes)', async (t) => {
     await t.test('Parse raw rows with exact 5 attributes: Sub-Department_Code, Sub-Department_Name, Sub-Department_Head_Employee_ID, Cost_Center_Code, Active', () => {
         const rawRows = [
@@ -524,7 +535,8 @@ test('6. "Same as Department Head" Fallback Rule & Department Head Propagation',
         ];
 
         const result = SubDeptParser.parseSubDepartmentRows(rows, {
-            validCostCenterCodes: ['CC_ENG_01', 'CC-HR-201', 'CC-ENG-101']
+            validCostCenterCodes: ['CC_ENG_01', 'CC-HR-201', 'CC-ENG-101'],
+            departmentLookup: ORG_DEPARTMENTS
         });
 
         assert.strictEqual(result.errors.length, 0);
@@ -567,7 +579,7 @@ test('6. "Same as Department Head" Fallback Rule & Department Head Propagation',
             'Active': 'Yes'
         };
 
-        const result = SubDeptParser.parseSubDepartmentRow(row, 0);
+        const result = SubDeptParser.parseSubDepartmentRow(row, 0, null, null, new Set(), ORG_DEPARTMENTS);
         assert.strictEqual(result.valid, true);
 
         const doc = result.firestoreDoc;
@@ -698,5 +710,44 @@ test('6. "Same as Department Head" Fallback Rule & Department Head Propagation',
         assert.match(functionsIndex, /exports\.onDepartmentHeadUpdated/, 'Must export onDepartmentHeadUpdated Firestore trigger');
         assert.match(functionsIndex, /exports\.onOrgDepartmentHeadUpdated/, 'Must export onOrgDepartmentHeadUpdated Firestore trigger');
         assert.match(functionsIndex, /inheritedFromDeptHead/, 'Must filter by inheritedFromDeptHead in trigger');
+    });
+});
+
+test('7. No department head is invented', async (t) => {
+    await t.test('without the organisation\'s departments, an inherited head is left blank', () => {
+        const result = SubDeptParser.parseSubDepartmentRows([{
+            'Sub-Department_Code': 'ENG-QA',
+            'Sub-Department_Name': 'QA',
+            'Sub-Department_Head_Employee_ID': 'Same as Department Head',
+            'Cost_Center_Code': 'CC_ENG_01',
+            'Active': 'Yes'
+        }], { validCostCenterCodes: ['CC_ENG_01'] });
+        const rec = result.validRecords[0];
+        assert.strictEqual(rec.headEmployeeId, '', 'EMP0002 was handed out to whoever holds that ID');
+        assert.strictEqual(rec.headEmployeeName, '');
+        assert.strictEqual(rec.departmentCode, '');
+    });
+
+    await t.test('an explicit head is named from the directory or shown as its ID, never an invented name', () => {
+        const result = SubDeptParser.parseSubDepartmentRows([{
+            'Sub-Department_Code': 'OPS-X', 'Sub-Department_Name': 'X',
+            'Sub-Department_Head_Employee_ID': 'EMP0002', 'Cost_Center_Code': 'CC_ENG_01', 'Active': 'Yes'
+        }], { validCostCenterCodes: ['CC_ENG_01'] });
+        assert.strictEqual(result.validRecords[0].headEmployeeName, 'EMP0002');
+    });
+
+    await t.test('the service resolves only against departments it was given', () => {
+        const unknown = SubDeptService.resolveDepartmentForSubDept('ENG-ANYTHING', 'CC-NOT-THERE');
+        assert.strictEqual(unknown.departmentHeadEmployeeId, '');
+        assert.strictEqual(unknown.unresolved, true);
+    });
+
+    await t.test('no code path guesses a department from the sample registry', () => {
+        const parser = fs.readFileSync(path.join(rootDir, 'services', 'sub-department-parser.js'), 'utf8');
+        const tps = fs.readFileSync(path.join(rootDir, 'services', 'template-parser-service.js'), 'utf8');
+        const code = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/[^\n]*/gm, '');
+        for (const [name, src] of [['sub-department-parser', parser], ['template-parser-service', tps]]) {
+            assert.ok(!/Vikram Malhotra|Devendra Sharma|knownLeaders|CANONICAL_DEPARTMENTS/.test(code(src)), name + ' still invents heads');
+        }
     });
 });

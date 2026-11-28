@@ -322,8 +322,8 @@
         } catch (e) {
             console.warn('[EmployeeGoals] Could not read localStorage goals:', e);
         }
-        saveLocalEmployeeGoals(SEED_EMPLOYEE_GOALS);
-        return JSON.parse(JSON.stringify(SEED_EMPLOYEE_GOALS));
+        // Nothing saved means no goals yet, not someone else's goals.
+        return [];
     }
 
     function saveLocalEmployeeGoals(goals) {

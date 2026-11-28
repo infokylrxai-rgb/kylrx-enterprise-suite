@@ -193,14 +193,9 @@ async function fetchSampleEmployees() {
         // Backend offline - use resilient fallback employees
     }
     
-    // Fallback catalog
-    const fallbackEmployees = [
-        { id: 'emp_01', name: 'Aarav Sharma', role: 'Senior Full Stack Engineer', department: 'Engineering' },
-        { id: 'emp_02', name: 'Priya Nair', role: 'Product Operations Lead', department: 'Product' },
-        { id: 'emp_03', name: 'Rohan Gupta', role: 'DevOps & Cloud Specialist', department: 'Infrastructure' }
-    ];
-    state.sampleEmployees = fallbackEmployees;
-    populateEmployeeSelector(fallbackEmployees);
+    // No invented people: if the directory could not be read, the picker is empty.
+    state.sampleEmployees = [];
+    populateEmployeeSelector([]);
 }
 
 function populateEmployeeSelector(employees) {

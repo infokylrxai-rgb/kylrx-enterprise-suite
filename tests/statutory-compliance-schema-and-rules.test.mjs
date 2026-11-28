@@ -39,6 +39,8 @@ const serviceModule = { exports: {} };
 const serviceFn = new Function('module', 'exports', 'require', serviceContent);
 serviceFn(serviceModule, serviceModule.exports, () => ({}));
 const StatutoryService = serviceModule.exports;
+// A new organisation no longer starts with the six sample policies; load them as fixtures.
+StatutoryService.loadSamplesForTesting('test_org');
 
 // Load AlertTriggerRegistryService
 import alertRegistryService from '../services/alert-trigger-registry-service.js';
@@ -185,7 +187,7 @@ test('PRD Sections 1, 4, 11, & 13: Statutory Compliance Engine Suite', async (t)
     });
 
     await t.test('3. CRUD Operations and In-Memory / Firestore Ledger Persistence', async (st) => {
-        StatutoryService._resetLedger();
+        StatutoryService._resetLedger(); StatutoryService.loadSamplesForTesting('test_org');
         const initialRules = StatutoryService.getAllComplianceRules('test_org');
         assert.equal(initialRules.length, 6, 'Should load 6 default policies (PF, ESI, PT KA, PT MH, LWF KA, Gratuity)');
 
@@ -230,7 +232,7 @@ test('PRD Sections 1, 4, 11, & 13: Statutory Compliance Engine Suite', async (t)
     });
 
     await t.test('4. Dynamic Payroll Calculation Integration (PRD Section 4)', async (st) => {
-        StatutoryService._resetLedger();
+        StatutoryService._resetLedger(); StatutoryService.loadSamplesForTesting('test_org');
 
         // Case A: High Earner (Executive in Karnataka)
         // Gross = 100,000, Basic = 50,000 (PF wage ceiling 15,000 applies)
@@ -305,7 +307,7 @@ test('PRD Sections 1, 4, 11, & 13: Statutory Compliance Engine Suite', async (t)
     });
 
     await t.test('5. Alert Monitor & Compliance Deadlines (PRD Section 11)', async (st) => {
-        StatutoryService._resetLedger();
+        StatutoryService._resetLedger(); StatutoryService.loadSamplesForTesting('test_org');
 
         // Test 5-day warning (Evaluated on 10th for 15th due date)
         const date10th = new Date('2026-10-10T12:00:00.000Z');

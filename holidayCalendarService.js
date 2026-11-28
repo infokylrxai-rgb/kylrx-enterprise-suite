@@ -100,10 +100,7 @@
     function _initLedger(orgId = 'default') {
         if (!_localLedger.has(orgId)) {
             const orgMap = new Map();
-            DEFAULT_SEED_CALENDARS.forEach(cal => {
-                const calCopy = JSON.parse(JSON.stringify(cal));
-                orgMap.set(calCopy.calendarCode, calCopy);
-            });
+            // Starts empty: the samples used to be put here, as this organisation's own.
             _localLedger.set(orgId, orgMap);
         }
         return _localLedger.get(orgId);
@@ -1241,6 +1238,12 @@
     }
 
     return {
+        // Tests only: put the samples into one organisation's ledger.
+        loadSamplesForTesting: (orgId) => {
+            const orgMap = _initLedger(orgId);
+            DEFAULT_SEED_CALENDARS.forEach(cal => { const c = JSON.parse(JSON.stringify(cal)); orgMap.set(c.calendarCode, c); });
+            return orgMap;
+        },
         DEFAULT_SEED_CALENDARS,
         createOrUpdateCalendar,
         getCalendar,

@@ -349,51 +349,44 @@
     /**
      * Resolves the parent Department and its designated Department Head
      */
+    /*
+     * The organisation's own departments, supplied by the page that has them
+     * (setOrgDepartments). Nothing else is used to decide a sub-department's parent.
+     */
+    let orgDepartments = [];
+    function setOrgDepartments(list) {
+        orgDepartments = (Array.isArray(list) ? list : []).map(d => ({
+            departmentCode: String(d.departmentCode || d.unitId || d.code || d.Department_Code || '').toUpperCase(),
+            departmentName: d.departmentName || d.name || d.Department_Name || '',
+            departmentHeadEmployeeId: d.departmentHeadEmployeeId || d.headEmployeeId || '',
+            departmentHeadName: d.departmentHeadName || d.headEmployeeName || '',
+            costCenterCode: String(d.costCenterCode || d.Cost_Center_Code || '').toUpperCase()
+        }));
+    }
+
+    /**
+     * Resolves the parent Department and its Department Head.
+     *
+     * It used to guess: a code containing "ENG" became the sample Engineering department,
+     * and any department it did not know got head EMP0002 "Vikram Malhotra". In a real
+     * organisation EMP0002 is an actual person, so a sub-department set to "same as
+     * department head" was quietly given a random employee as its head. Now a
+     * department is found among the organisation's own or the head is left blank.
+     */
     function resolveDepartmentForSubDept(subDeptCode, costCenterCode, explicitDeptCode = null) {
-        const cleanSubCode = String(subDeptCode || '').trim().toUpperCase();
         const cleanCc = String(costCenterCode || '').trim().toUpperCase();
         const cleanExplicit = explicitDeptCode ? String(explicitDeptCode).trim().toUpperCase() : '';
-
-        if (cleanExplicit) {
-            const found = DEFAULT_DEPARTMENTS.find(d => d.departmentCode === cleanExplicit);
-            if (found) return found;
-            return {
-                departmentCode: cleanExplicit,
-                departmentName: `${cleanExplicit} Department`,
-                departmentHeadEmployeeId: 'EMP0002',
-                departmentHeadName: 'Vikram Malhotra',
-                costCenterCode: cleanCc || 'CC_ENG_01'
-            };
-        }
-
-        if (cleanCc) {
-            const byCc = DEFAULT_DEPARTMENTS.find(d => d.costCenterCode === cleanCc);
-            if (byCc) return byCc;
-            if (cleanCc === 'CC_ENG_DEV') {
-                return {
-                    departmentCode: 'ENG',
-                    departmentName: 'Platform & Software Engineering',
-                    departmentHeadEmployeeId: 'EMP0002',
-                    departmentHeadName: 'Vikram Malhotra',
-                    costCenterCode: cleanCc
-                };
-            }
-        }
-
-        if (cleanSubCode.startsWith('ENG') || cleanSubCode.includes('ENG')) {
-            return DEFAULT_DEPARTMENTS.find(d => d.departmentCode === 'ENG');
-        }
-        if (cleanSubCode.startsWith('HR')) {
-            return DEFAULT_DEPARTMENTS.find(d => d.departmentCode === 'HR');
-        }
-        if (cleanSubCode.startsWith('FIN')) {
-            return DEFAULT_DEPARTMENTS.find(d => d.departmentCode === 'FIN');
-        }
-        if (cleanSubCode.startsWith('AI')) {
-            return DEFAULT_DEPARTMENTS.find(d => d.departmentCode === 'AI-LABS');
-        }
-
-        return DEFAULT_DEPARTMENTS[0];
+        const found = (cleanExplicit && orgDepartments.find(d => d.departmentCode === cleanExplicit)) ||
+                      (!cleanExplicit && cleanCc && orgDepartments.find(d => d.costCenterCode === cleanCc)) || null;
+        if (found) return { ...found, costCenterCode: found.costCenterCode || cleanCc };
+        return {
+            departmentCode: cleanExplicit,
+            departmentName: '',
+            departmentHeadEmployeeId: '',
+            departmentHeadName: '',
+            costCenterCode: cleanCc,
+            unresolved: true
+        };
     }
 
     // In-memory store
@@ -411,7 +404,23 @@
             activeEmployeesMap.set(emp.employeeId.toUpperCase(), { ...emp });
         });
     }
-    initDefaults();
+    // Not run on load: the samples were shown as every organisation's own sub-departments.
+    // loadSamplesForTesting() puts them in on request.
+
+    /** Loads organizations/{orgId}/sub_departments, replacing whatever is held. */
+    async function loadSubDepartmentsFromFirestore(orgId = getDefaultOrgId()) {
+        const fb = await import('./firebase-config.js').catch(() => null) ||
+                   (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+        if (!fb || !fb.db || !fb.collection || !fb.getDocs) throw new Error('The database is not available. Reload the page and try again.');
+        const snap = await fb.getDocs(fb.collection(fb.db, 'organizations', orgId, 'sub_departments'));
+        subDepartmentsMap.clear();
+        snap.forEach(d => {
+            const data = d.data() || {};
+            const code = String(data.subDepartmentCode || data['Sub-Department_Code'] || d.id).toUpperCase();
+            subDepartmentsMap.set(code, { ...data, subDepartmentCode: code, isActive: data.isActive !== false });
+        });
+        return Array.from(subDepartmentsMap.values());
+    }
 
     /**
      * Resolves default organization ID
@@ -802,10 +811,10 @@
         const cleanDept = String(departmentCode || '').trim().toUpperCase();
         const cleanHeadId = String(newHeadEmployeeId || '').trim().toUpperCase();
         const headDetails = getHeadDetailsById(cleanHeadId);
-        const cleanHeadName = newHeadEmployeeName || headDetails.name || `${cleanHeadId} Lead`;
+        const cleanHeadName = newHeadEmployeeName || headDetails.name || cleanHeadId;
 
-        // Update in canonical DEFAULT_DEPARTMENTS if present
-        const deptInMaster = DEFAULT_DEPARTMENTS.find(d => d.departmentCode === cleanDept);
+        // Update the organisation's department as held here
+        const deptInMaster = orgDepartments.find(d => d.departmentCode === cleanDept);
         if (deptInMaster) {
             deptInMaster.departmentHeadEmployeeId = cleanHeadId;
             deptInMaster.departmentHeadName = cleanHeadName;
@@ -1114,9 +1123,9 @@
                             <div id="resolvedDeptHeadDisplay" style="margin-top: 10px; background: var(--k-surface); border: 1px dashed var(--k-border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 8px;">
                                 <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--k-success-soft); color: var(--k-success-text); font-size: 0.75rem; font-weight: 800;">✓</span>
                                 <div style="font-size: 0.8rem; color: var(--k-text-2);">
-                                    Inherited Head: <strong id="resolvedHeadNameText">Vikram Malhotra</strong>
-                                    <span style="font-family: monospace; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; margin-left: 4px;" id="resolvedHeadIdText">EMP0002</span>
-                                    <span style="color: var(--k-muted); font-size: 0.75rem; display: block;" id="resolvedDeptNameText">Parent Dept: QA & Engineering (DEPT_ENG)</span>
+                                    Inherited Head: <strong id="resolvedHeadNameText"></strong>
+                                    <span style="font-family: monospace; background: var(--k-subtle); padding: 2px 6px; border-radius: 4px; margin-left: 4px;" id="resolvedHeadIdText"></span>
+                                    <span style="color: var(--k-muted); font-size: 0.75rem; display: block;" id="resolvedDeptNameText"></span>
                                 </div>
                             </div>
                         </div>
@@ -1270,16 +1279,16 @@
             codeInput.value = '';
             codeInput.disabled = false;
             nameInput.value = '';
-            populateCostCenterSelect(ccSelect, 'CC_ENG_01');
+            populateCostCenterSelect(ccSelect, '');
             populateHeadDropdown(headSelect);
             sameCheck.checked = true;
             headSelect.disabled = true;
             activeCheck.checked = true;
 
-            const resolved = resolveDepartmentForSubDept('', 'CC_ENG_01');
-            document.getElementById('resolvedHeadNameText').textContent = resolved.departmentHeadName;
-            document.getElementById('resolvedHeadIdText').textContent = resolved.departmentHeadEmployeeId;
-            document.getElementById('resolvedDeptNameText').textContent = `Parent Dept: ${resolved.departmentName} (${resolved.departmentCode})`;
+            const resolved = resolveDepartmentForSubDept('', '');
+            document.getElementById('resolvedHeadNameText').textContent = resolved.departmentHeadName || 'No department head found';
+            document.getElementById('resolvedHeadIdText').textContent = resolved.departmentHeadEmployeeId || '';
+            document.getElementById('resolvedDeptNameText').textContent = resolved.unresolved ? 'Choose a cost centre linked to one of your departments, or pick a head yourself' : `Parent Dept: ${resolved.departmentName} (${resolved.departmentCode})`;
             displayBox.style.display = 'flex';
         }
 
@@ -1290,10 +1299,19 @@
     /**
      * ADMIN CONSOLE: Renders Sub-Departments console table in administration dashboard
      */
-    function renderAdminConsole(containerId = 'onboardingSubDeptTableContainer') {
+    function renderAdminConsole(containerId = 'onboardingSubDeptTableContainer', options = {}) {
         if (typeof document === 'undefined') return;
         const container = document.getElementById(containerId);
         if (!container) return;
+        if (!options.loaded) {
+            loadSubDepartmentsFromFirestore()
+                .then(() => renderAdminConsole(containerId, { loaded: true }))
+                .catch(err => {
+                    console.error('[SubDepartmentService] sub-departments could not be loaded:', err);
+                    container.innerHTML = '<div role="alert" style="padding:1rem;border-radius:12px;background:var(--k-danger-soft);color:var(--k-danger-text);border:1px solid var(--k-danger-border);">Sub-departments could not be loaded: ' + String(err.message || err).replace(/</g, '&lt;') + '</div>';
+                });
+            return;
+        }
 
         const subDepts = getAllSubDepartments();
         const activeCount = subDepts.filter(s => s.isActive).length;
@@ -1410,6 +1428,9 @@
     }
 
     return {
+        loadSamplesForTesting: initDefaults,
+        loadSubDepartmentsFromFirestore,
+        setOrgDepartments,
         DEFAULT_SUB_DEPARTMENTS,
         DEFAULT_DEPARTMENTS,
         isSameAsDeptHeadValue,

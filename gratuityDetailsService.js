@@ -169,7 +169,9 @@
     }
 
     // Auto-seed default ledger
-    seedDefaultRecords();
+    // Not run on load. Sample employees (EMP0001...) seeded here answered lookups as
+
+    // if they were real records; seedDefaultRecords() stays exported for tests.
 
     /**
      * Computes service duration and completed years per Payment of Gratuity Act, 1972:

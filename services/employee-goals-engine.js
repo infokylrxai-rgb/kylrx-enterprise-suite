@@ -18,7 +18,8 @@ const logger = require('../utils/logger');
 class EmployeeGoalsEngine {
     constructor() {
         this.goals = new Map();
-        this.initializeDefaultGoals();
+        // Sample goals are not loaded on start: the API served them as everyone's.
+        // initializeDefaultGoals() loads them on request (tests).
     }
 
     /**

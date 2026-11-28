@@ -302,6 +302,9 @@ class ControlsAcceptanceService {
         const otp = new otpVerificationService.constructor({ persist: false });
         const aiBuilder = new aiAssistedBuilderService.constructor({ sync: false });
         const payroll = new payrollEmailAccountService.constructor();
+        // A private instance for this self-check only; it gets the sample people to test
+        // against. The shared service no longer holds them (its API served them as real).
+        payroll._seedSampleEmployees();
 
         // 1. Goals: Manager can create, update and track goals
         try {

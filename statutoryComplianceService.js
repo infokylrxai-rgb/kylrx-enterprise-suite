@@ -160,9 +160,7 @@
     function _initializeLedger(orgId = missingOrg()) {
         if (!_localLedger.has(orgId)) {
             const orgMap = new Map();
-            DEFAULT_STATUTORY_POLICIES.forEach(p => {
-                orgMap.set(p.complianceCode, { ...p, orgId });
-            });
+            // Starts empty: the samples used to be put here, as this organisation's own.
             _localLedger.set(orgId, orgMap);
         }
         return _localLedger.get(orgId);
@@ -703,6 +701,12 @@
     }
 
     return {
+        // Tests only: put the samples into one organisation's ledger.
+        loadSamplesForTesting: (orgId) => {
+            const orgMap = _initializeLedger(orgId);
+            DEFAULT_STATUTORY_POLICIES.forEach(p => orgMap.set(p.complianceCode, { ...p, orgId }));
+            return orgMap;
+        },
         DEFAULT_STATUTORY_POLICIES: DEFAULT_STATUTORY_POLICIES,
         getAllComplianceRules: getAllComplianceRules,
         getComplianceRuleByCode: getComplianceRuleByCode,

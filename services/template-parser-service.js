@@ -243,18 +243,6 @@ export function parseCostCentreSheet(rows) {
 }
 export const parseCostCenterSheet = parseCostCentreSheet;
 
-/**
- * Canonical Department Registry for parent resolution
- */
-const CANONICAL_DEPARTMENTS = [
-    { departmentCode: 'DEPT_ENG', departmentName: 'QA & Engineering', departmentHeadEmployeeId: 'EMP0002', departmentHeadName: 'Vikram Malhotra', costCenterCode: 'CC_ENG_01' },
-    { departmentCode: 'ENG', departmentName: 'Engineering & Architecture', departmentHeadEmployeeId: 'EMP0001', departmentHeadName: 'Devendra Sharma', costCenterCode: 'CC-ENG-101' },
-    { departmentCode: 'AI-LABS', departmentName: 'AI Research & Model Engineering', departmentHeadEmployeeId: 'EMP0007', departmentHeadName: 'Dr. Kumar Mangalam', costCenterCode: 'CC-AI-102' },
-    { departmentCode: 'HR', departmentName: 'Human Resources & Payroll', departmentHeadEmployeeId: 'EMP0003', departmentHeadName: 'Ananya Roy', costCenterCode: 'CC-HR-201' },
-    { departmentCode: 'FIN', departmentName: 'Finance & Accounts', departmentHeadEmployeeId: 'EMP0004', departmentHeadName: 'Rajesh Raman', costCenterCode: 'CC-FIN-301' },
-    { departmentCode: 'OPS', departmentName: 'Global Operations', departmentHeadEmployeeId: 'EMP0005', departmentHeadName: 'Sneha Sen', costCenterCode: 'CC-OPS-401' },
-    { departmentCode: 'CYBER', departmentName: 'Cybersecurity & Defense', departmentHeadEmployeeId: 'EMP0001', departmentHeadName: 'Devendra Sharma', costCenterCode: 'CC-ENG-101' }
-];
 
 export function isSameAsDeptHeadValue(val) {
     if (val === undefined || val === null) return true;
@@ -277,34 +265,13 @@ export function isSameAsDeptHeadValue(val) {
 export function resolveDepartmentForSubDept(subDeptCode, costCenterCode, departmentLookup = null) {
     const cleanSubCode = String(subDeptCode || '').trim().toUpperCase();
     const cleanCc = String(costCenterCode || '').trim().toUpperCase();
-
     if (departmentLookup && typeof departmentLookup.get === 'function') {
         const found = departmentLookup.get(cleanCc) || departmentLookup.get(cleanSubCode);
         if (found) return found;
     }
-
-    if (cleanCc === 'CC_ENG_01') {
-        return CANONICAL_DEPARTMENTS[0]; // DEPT_ENG, EMP0002 Vikram Malhotra
-    }
-    if (cleanCc) {
-        const byCc = CANONICAL_DEPARTMENTS.find(d => d.costCenterCode === cleanCc);
-        if (byCc) return byCc;
-    }
-
-    if (cleanSubCode.startsWith('ENG') || cleanSubCode.includes('ENG')) {
-        return CANONICAL_DEPARTMENTS.find(d => d.departmentCode === 'ENG');
-    }
-    if (cleanSubCode.startsWith('HR')) {
-        return CANONICAL_DEPARTMENTS.find(d => d.departmentCode === 'HR');
-    }
-    if (cleanSubCode.startsWith('FIN')) {
-        return CANONICAL_DEPARTMENTS.find(d => d.departmentCode === 'FIN');
-    }
-    if (cleanSubCode.startsWith('AI')) {
-        return CANONICAL_DEPARTMENTS.find(d => d.departmentCode === 'AI-LABS');
-    }
-
-    return CANONICAL_DEPARTMENTS[0];
+    // Not one of this organisation's departments: no guess from the sample registry,
+    // which used to hand out heads such as EMP0002 "Vikram Malhotra" to real staff IDs.
+    return { departmentCode: '', departmentName: '', departmentHeadEmployeeId: '', departmentHeadName: '', costCenterCode: cleanCc, unresolved: true };
 }
 
 /**

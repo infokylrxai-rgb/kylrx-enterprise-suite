@@ -120,11 +120,12 @@
         }
     ];
 
-    // Initialize local ledger with defaults
-    DEFAULT_SALARY_STRUCTURES.forEach(s => {
-        _localLedger.set(`org_kylrx:${s.id}`, { ...s });
-        _localLedger.set(`default:${s.id}`, { ...s });
-    });
+    // Samples are not loaded on start: they answered real lookups (see loadSamplesForTesting).
+    function loadSamplesForTesting(orgId) {
+        DEFAULT_SALARY_STRUCTURES.forEach(s => _localLedger.set(`${orgId}:${s.id}`, { ...s }));
+    }
+    // No organisation for the caller: refuse rather than use another organisation's data.
+    function missingOrg() { throw new Error("No organization found for the signed-in user. Sign in again."); }
 
     /**
      * Helper to load Parser module if available
@@ -143,8 +144,8 @@
     /**
      * Returns canonical Cloud Firestore document path
      */
-    function getFirestorePath(orgId = 'org_kylrx', documentId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+    function getFirestorePath(orgId, documentId) {
+        const cleanOrgId = orgId || missingOrg();
         return `organizations/${cleanOrgId}/salary_structures/${documentId}`;
     }
 
@@ -227,9 +228,9 @@
         } else if (typeof orgId === 'object' && orgId !== null && (orgId.employeeId || orgId.Employee_ID)) {
             options = structureData || {};
             structureData = orgId;
-            orgId = 'org_kylrx';
+            orgId = null;
         }
-        const cleanOrgId = (typeof orgId === 'string' && orgId) ? orgId : 'org_kylrx';
+        const cleanOrgId = (typeof orgId === 'string' && orgId) ? orgId : missingOrg();
         const empId = String(structureData.employeeId || structureData.Employee_ID || '').trim().toUpperCase();
 
         if (!empId) {
@@ -283,7 +284,6 @@
 
         // Save to local cache
         _localLedger.set(`${cleanOrgId}:${docId}`, firestoreDoc);
-        _localLedger.set(`default:${docId}`, firestoreDoc);
 
         // Persist to Cloud Firestore if connected
         try {
@@ -323,7 +323,7 @@
      * Retrieves a salary structure revision by ID or latest active revision for an employee
      */
     async function getSalaryStructure(orgId, employeeId, versionOrDate = null) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const empId = String(employeeId || '').trim().toUpperCase();
         if (!empId) return null;
 
@@ -353,7 +353,7 @@
      * Retrieves the revision timeline for an employee ordered by effectiveFrom DESC
      */
     async function getRevisionTimeline(orgId, employeeId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const empId = String(employeeId || '').trim().toUpperCase();
         if (!empId) return [];
 
@@ -361,7 +361,7 @@
 
         // Check local ledger
         for (const [key, val] of _localLedger.entries()) {
-            if ((key.startsWith(`${cleanOrgId}:`) || key.startsWith('default:')) && val.employeeId === empId) {
+            if ((key.startsWith(`${cleanOrgId}:`)) && val.employeeId === empId) {
                 if (!revisions.some(r => r.id === val.id)) {
                     revisions.push(JSON.parse(JSON.stringify(val)));
                 }
@@ -377,11 +377,11 @@
      * Lists all Salary Structures across an organization
      */
     async function listSalaryStructures(orgId, activeOnly = false) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const list = [];
 
         for (const [key, val] of _localLedger.entries()) {
-            if (key.startsWith(`${cleanOrgId}:`) || key.startsWith('default:')) {
+            if (key.startsWith(`${cleanOrgId}:`)) {
                 if (!list.some(r => r.id === val.id)) {
                     if (!activeOnly || val.isActive) {
                         list.push(JSON.parse(JSON.stringify(val)));
@@ -398,9 +398,8 @@
      * Deletes a Salary Structure revision
      */
     async function deleteSalaryStructure(orgId, structureId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         _localLedger.delete(`${cleanOrgId}:${structureId}`);
-        _localLedger.delete(`default:${structureId}`);
 
         try {
             if (typeof window !== 'undefined' && window.db) {
@@ -535,6 +534,7 @@
     }
 
     return {
+        loadSamplesForTesting,
         saveSalaryStructure,
         getSalaryStructure,
         getRevisionTimeline,

@@ -154,11 +154,12 @@
         }
     ];
 
-    // Initialize local ledger with defaults
-    DEFAULT_FINANCE_RECORDS.forEach(rec => {
-        _localLedger.set(`org_kylrx:${rec.employeeId}`, { ...rec });
-        _localLedger.set(`default:${rec.employeeId}`, { ...rec });
-    });
+    // Samples are not loaded on start: they answered real lookups (see loadSamplesForTesting).
+    function loadSamplesForTesting(orgId) {
+        DEFAULT_FINANCE_RECORDS.forEach(rec => _localLedger.set(`${orgId}:${rec.employeeId}`, { ...rec }));
+    }
+    // No organisation for the caller: refuse rather than use another organisation's data.
+    function missingOrg() { throw new Error("No organization found for the signed-in user. Sign in again."); }
 
     /**
      * Masks account number for standard UI views (e.g. ••••••••••7890)
@@ -194,8 +195,8 @@
     /**
      * Returns canonical Cloud Firestore document path
      */
-    function getFirestorePath(orgId = 'org_kylrx', employeeId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+    function getFirestorePath(orgId, employeeId) {
+        const cleanOrgId = orgId || missingOrg();
         const cleanEmpId = String(employeeId || '').trim().toUpperCase();
         return `organizations/${cleanOrgId}/employee_finance/${cleanEmpId}`;
     }
@@ -304,7 +305,7 @@
      * Saves or updates an Employee Finance & Statutory Record in Cloud Firestore
      */
     async function saveEmployeeFinance(orgId, employeeId, financeData = {}, options = {}) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const cleanEmpId = String(employeeId || financeData.employeeId || '').trim().toUpperCase();
 
         if (!cleanEmpId) {
@@ -458,7 +459,6 @@
 
         // Save to local cache / ledger
         _localLedger.set(`${cleanOrgId}:${cleanEmpId}`, firestoreDoc);
-        _localLedger.set(`default:${cleanEmpId}`, firestoreDoc);
 
         // Persist to Cloud Firestore if available
         try {
@@ -500,7 +500,7 @@
      * Retrieves an Employee Finance & Statutory Record
      */
     async function getEmployeeFinance(orgId, employeeId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const cleanEmpId = String(employeeId || '').trim().toUpperCase();
         if (!cleanEmpId) return null;
 
@@ -528,7 +528,7 @@
         } catch (_) {}
 
         // Fallback to local ledger
-        const cached = _localLedger.get(`${cleanOrgId}:${cleanEmpId}`) || _localLedger.get(`default:${cleanEmpId}`);
+        const cached = _localLedger.get(`${cleanOrgId}:${cleanEmpId}`);
         return cached ? JSON.parse(JSON.stringify(cached)) : null;
     }
 
@@ -536,12 +536,12 @@
      * Lists all Employee Finance Records for an organization
      */
     async function getAllEmployeeFinances(orgId, activeOnly = false) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const list = [];
 
         // Collect from local ledger
         for (const [key, val] of _localLedger.entries()) {
-            if (key.startsWith(`${cleanOrgId}:`) || key.startsWith('default:')) {
+            if (key.startsWith(`${cleanOrgId}:`)) {
                 if (!list.some(item => item.employeeId === val.employeeId)) {
                     list.push(JSON.parse(JSON.stringify(val)));
                 }
@@ -555,11 +555,10 @@
      * Deletes an Employee Finance Record
      */
     async function deleteEmployeeFinance(orgId, employeeId) {
-        const cleanOrgId = orgId || 'org_kylrx';
+        const cleanOrgId = orgId || missingOrg();
         const cleanEmpId = String(employeeId || '').trim().toUpperCase();
 
         _localLedger.delete(`${cleanOrgId}:${cleanEmpId}`);
-        _localLedger.delete(`default:${cleanEmpId}`);
 
         try {
             if (typeof window !== 'undefined' && window.db) {
@@ -819,6 +818,7 @@
     }
 
     return {
+        loadSamplesForTesting,
         saveEmployeeFinance,
         getEmployeeFinance,
         getAllEmployeeFinances,

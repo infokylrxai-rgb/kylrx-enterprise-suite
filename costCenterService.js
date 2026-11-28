@@ -157,7 +157,32 @@
             subDeptMap.set(sub.toUpperCase(), cc.toUpperCase());
         });
     }
-    initDefaults();
+    // Not run on load: the samples were shown as every organisation's own cost centres.
+    // loadSamplesForTesting() puts them in on request.
+
+    /**
+     * Loads this organisation's cost centres - organizations/{orgId}/cost_centers -
+     * replacing whatever is held, so nothing from another session or a sample survives.
+     */
+    async function loadCostCentersFromFirestore(orgId = getDefaultOrgId()) {
+        const fb = await import('./firebase-config.js').catch(() => null) ||
+                   (typeof window !== 'undefined' && window.KylrxFirebase) || null;
+        if (!fb || !fb.db || !fb.collection || !fb.getDocs) throw new Error('The database is not available. Reload the page and try again.');
+        const snap = await fb.getDocs(fb.collection(fb.db, 'organizations', orgId, 'cost_centers'));
+        costCentersMap.clear();
+        snap.forEach(d => {
+            const data = d.data() || {};
+            const code = String(data.costCenterCode || d.id).toUpperCase();
+            costCentersMap.set(code, {
+                ...data,
+                costCenterCode: code,
+                costCenterName: data.costCenterName || data.Cost_Center_Name || code,
+                isActive: data.isActive !== false
+            });
+        });
+        dispatchUpdateEvents();
+        return Array.from(costCentersMap.values());
+    }
 
     /**
      * Resolves default organization ID
@@ -479,7 +504,9 @@
                 const snapshot = await fb.getDocs(fb.collection(fb.db, 'users')).catch(() => null) ||
                                  await fb.getDocs(fb.collection(fb.db, 'employees')).catch(() => null);
 
-                if (snapshot && !snapshot.empty) {
+                if (snapshot) {
+                    // Replace, not add to: sample people used to stay listed beside real ones.
+                    activeEmployeesMap.clear();
                     snapshot.forEach(docSnap => {
                         const data = docSnap.data();
                         const empId = data.employeeId || data.id || docSnap.id;
@@ -620,10 +647,20 @@
     /**
      * Renders high-density Super Admin Management Console HTML into a container
      */
-    function renderAdminConsole(containerId) {
+    function renderAdminConsole(containerId, options = {}) {
         if (typeof document === 'undefined') return;
         const container = document.getElementById(containerId);
         if (!container) return;
+        if (!options.loaded) {
+            // Draw once the organisation's own cost centres are in; say so if they could not be read.
+            loadCostCentersFromFirestore()
+                .then(() => renderAdminConsole(containerId, { loaded: true }))
+                .catch(err => {
+                    console.error('[CostCenterService] cost centres could not be loaded:', err);
+                    container.innerHTML = '<div role="alert" style="padding:1rem;border-radius:12px;background:var(--k-danger-soft);color:var(--k-danger-text);border:1px solid var(--k-danger-border);">Cost centres could not be loaded: ' + String(err.message || err).replace(/</g, '&lt;') + '</div>';
+                });
+            return;
+        }
 
         const costCenters = getAllCostCenters();
         const activeCount = costCenters.filter(c => c.isActive).length;
@@ -880,6 +917,8 @@
     }
 
     return {
+        loadSamplesForTesting: initDefaults,
+        loadCostCentersFromFirestore,
         DEFAULT_COST_CENTERS,
         ACTIVE_EMPLOYEES_MASTER,
         SUB_DEPARTMENT_COST_CENTERS,
