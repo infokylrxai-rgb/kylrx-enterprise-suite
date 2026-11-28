@@ -515,7 +515,7 @@ await eventBus.emit('${trigger.eventKey}', {<br/>
                         <button type="button" class="btn btn-secondary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none';" style="padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--k-border); background: var(--k-surface); cursor: pointer;">
                             Close Guide
                         </button>
-                        <button type="button" class="btn btn-primary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none'; window.KylrxAlertRegistry.openAiSimulation('${trigger.eventKey}');" style="padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; background: var(--k-accent); color: white; border: none; cursor: pointer;">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('alertSetupGuideDrawer').style.display='none'; window.KylrxAlertRegistry.openAiSimulation('${trigger.eventKey}');" style="padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; background: var(--k-accent); color: var(--k-on-accent); border: none; cursor: pointer;">
                             Launch Simulation Sandbox
                         </button>
                     </div>

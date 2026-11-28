@@ -807,7 +807,7 @@
                     <button type="button" class="btn btn-outline" onclick="window.KylrxBuRules.openBuModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; border: 1.5px solid var(--k-border); background: var(--k-surface); cursor: pointer;">
                         <i class="fas fa-plus-circle" style="color: var(--k-accent-text);"></i> Add Business Unit
                     </button>
-                    <button type="button" class="btn btn-primary" onclick="window.KylrxBuRules.saveAllRules()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; background: var(--k-accent); color: white; border: none; cursor: pointer;">
+                    <button type="button" class="btn btn-primary" onclick="window.KylrxBuRules.saveAllRules()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.82rem; border-radius: 10px; font-weight: 700; background: var(--k-accent); color: var(--k-on-accent); border: none; cursor: pointer;">
                         <i class="fas fa-save"></i> Save All
                     </button>
                 </div>
@@ -1002,7 +1002,7 @@
                         <button type="button" onclick="window.KylrxBuRules.closeBuModal()" class="btn btn-outline" style="padding: 10px 18px; border-radius: 10px; font-weight: 600; border: 1px solid var(--k-border); background: var(--k-subtle); cursor: pointer;">
                             Cancel
                         </button>
-                        <button type="submit" id="btnBuModalSave" class="btn btn-primary" style="padding: 10px 22px; border-radius: 10px; font-weight: 700; background: var(--k-accent); color: white; border: none; cursor: pointer;">
+                        <button type="submit" id="btnBuModalSave" class="btn btn-primary" style="padding: 10px 22px; border-radius: 10px; font-weight: 700; background: var(--k-accent); color: var(--k-on-accent); border: none; cursor: pointer;">
                             Save Business Unit
                         </button>
                     </div>

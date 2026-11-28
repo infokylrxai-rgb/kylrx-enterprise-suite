@@ -75,9 +75,9 @@
         }
 
         .heatmap-day:hover { transform: scale(1.1); box-shadow: var(--shadow-sm); }
-        .day-low { background: var(--k-accent-soft); color: var(--primary); }
+        .day-low { background: var(--k-accent-soft); color: var(--k-accent-text); }
         .day-med { background: #93c5fd; color: white; }
-        .day-high { background: var(--primary); color: white; }
+        .day-high { background: var(--primary); color: var(--k-on-accent); }
 
         .policy-card {
             background: var(--k-subtle);
@@ -100,7 +100,7 @@
             font-size: 0.7rem;
             font-weight: 800;
             background: var(--primary-light);
-            color: var(--primary);
+            color: var(--k-accent-text);
         }
 
         .approval-queue-item {
@@ -149,7 +149,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -201,7 +201,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -247,12 +247,12 @@
                 <div class="stat-box">
                     <p>On Leave Today</p>
                     <h3>–</h3>
-                    <p style="color: var(--primary);">Loading...</p>
+                    <p style="color: var(--k-accent-text);">Loading...</p>
                 </div>
                 <div class="stat-box">
                     <p>Pending Approvals</p>
                     <h3>–</h3>
-                    <p style="color: var(--primary);">Loading...</p>
+                    <p style="color: var(--k-accent-text);">Loading...</p>
                 </div>
                 <div class="stat-box">
                     <p>Work From Home</p>
@@ -329,8 +329,8 @@
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                             <!-- Holiday Upload -->
-                            <div style="border: 1.5px dashed var(--border); padding: 1.5rem; border-radius: 16px; text-align: center; background: #f8fbff;">
-                                <i data-lucide="calendar" style="width: 32px; height: 32px; color: var(--primary); margin: 0 auto 0.75rem;"></i>
+                            <div style="border: 1.5px dashed var(--border); padding: 1.5rem; border-radius: 16px; text-align: center; background: var(--k-surface);">
+                                <i data-lucide="calendar" style="width: 32px; height: 32px; color: var(--k-accent-text); margin: 0 auto 0.75rem;"></i>
                                 <h4 style="font-size: 0.875rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main);">National Holidays</h4>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">Columns: Name, Date, Type (.xlsx / .csv)</p>
                                 <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap;">
@@ -338,14 +338,14 @@
                                     <button type="button" class="btn btn-outline" onclick="window.downloadHolidayExcelTemplate()" style="padding: 5px 10px; font-size: 0.7rem; border: 1px solid var(--k-accent-border); background: var(--k-accent-soft); color: var(--k-accent-text); cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;" title="Download Excel (.xlsx) Template"><i data-lucide="file-spreadsheet" style="width: 12px; height: 12px;"></i> Excel (.xlsx)</button>
                                 </div>
                                 <div style="position: relative; margin-top: 8px;">
-                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('csvHolidayInput').click()" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 9px; border: none; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="upload-cloud" style="width: 15px; height: 15px;"></i> Upload CSV / Excel</button>
+                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('csvHolidayInput').click()" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 9px; border: none; background: var(--primary); color: var(--k-on-accent); border-radius: 8px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="upload-cloud" style="width: 15px; height: 15px;"></i> Upload CSV / Excel</button>
                                     <input type="file" id="csvHolidayInput" accept=".csv, .xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv" style="display: none;" onchange="window.handleCSVHolidayUpload(event)">
                                 </div>
                             </div>
                             
                             <!-- Leave Type Upload -->
-                            <div style="border: 1.5px dashed var(--border); padding: 1.5rem; border-radius: 16px; text-align: center; background: #f8fbff;">
-                                <i data-lucide="file-spreadsheet" style="width: 32px; height: 32px; color: var(--primary); margin: 0 auto 0.75rem;"></i>
+                            <div style="border: 1.5px dashed var(--border); padding: 1.5rem; border-radius: 16px; text-align: center; background: var(--k-surface);">
+                                <i data-lucide="file-spreadsheet" style="width: 32px; height: 32px; color: var(--k-accent-text); margin: 0 auto 0.75rem;"></i>
                                 <h4 style="font-size: 0.875rem; font-weight: 800; margin-bottom: 4px; color: var(--text-main);">Leave Types</h4>
                                 <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem;">Columns: Name, Description, Accrual Rate</p>
                                 <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap;">
@@ -353,7 +353,7 @@
                                     <button type="button" class="btn btn-outline" onclick="window.downloadLeaveExcelTemplate()" style="padding: 5px 10px; font-size: 0.7rem; border: 1px solid var(--k-accent-border); background: var(--k-accent-soft); color: var(--k-accent-text); cursor: pointer; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;" title="Download Excel (.xlsx) Template"><i data-lucide="file-spreadsheet" style="width: 12px; height: 12px;"></i> Excel (.xlsx)</button>
                                 </div>
                                 <div style="position: relative; margin-top: 8px;">
-                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('csvLeaveInput').click()" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 9px; border: none; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="upload-cloud" style="width: 15px; height: 15px;"></i> Upload CSV / Excel</button>
+                                    <button type="button" class="btn btn-primary" onclick="document.getElementById('csvLeaveInput').click()" style="width: 100%; justify-content: center; font-size: 0.75rem; padding: 9px; border: none; background: var(--primary); color: var(--k-on-accent); border-radius: 8px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"><i data-lucide="upload-cloud" style="width: 15px; height: 15px;"></i> Upload CSV / Excel</button>
                                     <input type="file" id="csvLeaveInput" accept=".csv, .xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, text/csv" style="display: none;" onchange="window.handleCSVLeaveUpload(event)">
                                 </div>
                             </div>
@@ -361,7 +361,7 @@
 
                         <!-- Status and error panel for CSV import -->
                         <div id="csvUploadStatus" style="margin-top: 1rem; text-align: center; font-size: 0.8rem; font-weight: 700; display: none;"></div>
-                        <div id="csvUploadErrorPanel" style="margin-top: 1.5rem; background: #fff5f5; border: 1px solid #fee2e2; border-radius: 16px; padding: 1.5rem; display: none; text-align: left;">
+                        <div id="csvUploadErrorPanel" style="margin-top: 1.5rem; background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 16px; padding: 1.5rem; display: none; text-align: left;">
                             <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 1rem;">
                                 <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--k-danger-soft); color: var(--k-danger-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                     <i data-lucide="alert-octagon" style="width: 18px; height: 18px;"></i>
@@ -371,7 +371,7 @@
                                     <p style="font-size: 0.75rem; color: var(--k-danger-text); margin: 0;" id="csvErrorDesc">The following issues prevented the file from being processed. Please fix them and try again.</p>
                                 </div>
                             </div>
-                            <div id="csvErrorDetailsList" style="max-height: 180px; overflow-y: auto; background: var(--k-surface); border: 1px solid #fee2e2; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                            <div id="csvErrorDetailsList" style="max-height: 180px; overflow-y: auto; background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
                                 <!-- Error items will be injected here -->
                             </div>
                         </div>
@@ -408,7 +408,7 @@
                                 <input type="text" id="newLeaveTypeDesc" class="input-box" placeholder="Description" style="padding: 8px 12px; font-size: 0.8rem;">
                                 <div style="display: flex; gap: 8px; align-items: center;">
                                     <input type="number" id="newLeaveTypeAccrual" class="input-box" placeholder="Accrual rate" value="1.0" step="0.1" style="padding: 8px 12px; font-size: 0.8rem; flex: 1; min-width: 0;">
-                                    <button type="button" class="btn btn-primary" onclick="window.handleAddLeaveType()" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 10px; border: none; font-weight: 700; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--primary); color: white; cursor: pointer;">Add</button>
+                                    <button type="button" class="btn btn-primary" onclick="window.handleAddLeaveType()" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 10px; border: none; font-weight: 700; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--primary); color: var(--k-on-accent); cursor: pointer;">Add</button>
                                 </div>
                             </div>
                         </div>
@@ -715,7 +715,7 @@
                     leaveTypesContainer.innerHTML = types.map(type => `
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--k-subtle); border: 1px solid var(--border); border-radius: 12px; font-size: 0.875rem;">
                             <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
-                                <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
+                                <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--primary-light); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
                                     ${esc((type.name || 'L').charAt(0))}
                                 </div>
                                 <div style="min-width: 0; flex: 1;">
@@ -775,7 +775,7 @@
                 holidayContainer.innerHTML = holidays.map(h => `
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-subtle); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                            <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--k-subtle); display: flex; align-items: center; justify-content: center; color: var(--k-accent-text);">
                                 <i data-lucide="calendar" size="18"></i>
                             </div>
                             <div>
@@ -1191,7 +1191,7 @@
             errorDesc.textContent = "The following issues prevented the file from being processed. Please fix them and try again.";
             
             detailsList.innerHTML = errors.map(err => `
-                <div style="font-size: 0.8rem; color: #991b1b; padding: 6px 10px; background: #fff5f5; border-radius: 6px; border-left: 3px solid #ef4444; font-weight: 600;">
+                <div style="font-size: 0.8rem; color: var(--k-danger-text); padding: 6px 10px; background: var(--k-subtle); border-radius: 6px; border-left: 3px solid #ef4444; font-weight: 600;">
                     ${esc(err)}
                 </div>
             `).join('');
@@ -1841,7 +1841,7 @@
             }
             #customAppsModal .modal button.map-btn {
                 background: var(--k-accent);
-                color: white !important;
+                color: var(--k-on-accent) !important;
                 border: none;
                 border-radius: 12px;
                 padding: 14px;

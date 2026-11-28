@@ -121,15 +121,15 @@
                         <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase;">Standard Roles</span>
                         <p style="font-size: 1.4rem; font-weight: 800; color: var(--k-accent-text); margin: 4px 0 0 0;" id="statTotalRoles">${roles.length}</p>
                     </div>
-                    <div style="background: #fdf2f8; border: 1px solid #fce7f3; border-radius: 14px; padding: 1rem;">
+                    <div style="background: #fdf2f8; border: 1px solid var(--k-border); border-radius: 14px; padding: 1rem;">
                         <span style="font-size: 0.7rem; font-weight: 800; color: #9d174d; text-transform: uppercase;">Active Overrides</span>
                         <p style="font-size: 1.4rem; font-weight: 800; color: #be185d; margin: 4px 0 0 0;" id="statTotalOverrides">${overrides.length}</p>
                     </div>
-                    <div style="background: var(--k-success-soft); border: 1px solid #dcfce7; border-radius: 14px; padding: 1rem;">
+                    <div style="background: var(--k-success-soft); border: 1px solid var(--k-border); border-radius: 14px; padding: 1rem;">
                         <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-success-text); text-transform: uppercase;">Super Admin Lock</span>
                         <p style="font-size: 1.4rem; font-weight: 800; color: var(--k-success-text); margin: 4px 0 0 0;">Active (Immutable)</p>
                     </div>
-                    <div style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 14px; padding: 1rem;">
+                    <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 14px; padding: 1rem;">
                         <span style="font-size: 0.7rem; font-weight: 800; color: #7e22ce; text-transform: uppercase;">Governed Modules</span>
                         <p style="font-size: 1.4rem; font-weight: 800; color: #9333ea; margin: 4px 0 0 0;">8 Modules</p>
                     </div>

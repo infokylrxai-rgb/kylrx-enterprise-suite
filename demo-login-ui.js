@@ -28,7 +28,7 @@ export const DEMO_BAR_HTML = `          <!-- One-Click Role Credentials Bar -->
 `;
 
 export const DEMO_ROLES_BUTTON_HTML = `            <button type="button" id="credentialsBtn" class="btn-social" title="Quick Role Login">
-              <i data-lucide="key" style="color: var(--primary);"></i>
+              <i data-lucide="key" style="color: var(--k-accent-text);"></i>
               <span>Demo Roles</span>
             </button>`;
 

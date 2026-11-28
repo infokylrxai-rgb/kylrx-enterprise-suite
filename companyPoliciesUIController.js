@@ -86,7 +86,7 @@
                         </p>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn" onclick="window.KylrxCompanyPoliciesUIController.openPolicyEditorModal()" style="background: var(--k-accent); color: white; padding: 9px 16px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.25);">
+                        <button type="button" class="btn" onclick="window.KylrxCompanyPoliciesUIController.openPolicyEditorModal()" style="background: var(--k-accent); color: var(--k-on-accent); padding: 9px 16px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.25);">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Add New Policy
                         </button>
@@ -251,7 +251,7 @@
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; border-top: 1px solid var(--k-border); padding-top: 1rem;">
                             <button type="button" onclick="window.KylrxCompanyPoliciesUIController.closePolicyEditorModal()" style="padding: 8px 16px; border-radius: 10px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; font-size: 0.82rem; cursor: pointer;">Cancel</button>
-                            <button type="submit" style="padding: 8px 20px; border-radius: 10px; border: none; background: var(--k-accent); color: white; font-weight: 700; font-size: 0.82rem; cursor: pointer;">Save Policy</button>
+                            <button type="submit" style="padding: 8px 20px; border-radius: 10px; border: none; background: var(--k-accent); color: var(--k-on-accent); font-weight: 700; font-size: 0.82rem; cursor: pointer;">Save Policy</button>
                         </div>
                     </form>
                 </div>

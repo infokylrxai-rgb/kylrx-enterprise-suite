@@ -151,7 +151,7 @@ function renderInactivityList(list) {
                 ${!suspended && p.inviteDelivered ? `<p><strong>Auto-suspend:</strong> ${untilSuspend > 0 ? `in ${esc(fmtWait(untilSuspend))}` : 'at next sync'}</p>` : ''}
                 ${p.joiningDate ? `<p><strong>Joining:</strong> ${esc(p.joiningDate)}</p>` : ''}
             </div>
-            <div style="margin-top: 10px; border: 1px solid #ddd6fe; background: #faf5ff; border-radius: 12px; padding: 8px 10px; font-size: 0.74rem; color: #4c1d95;">
+            <div style="margin-top: 10px; border: 1px solid var(--k-border); background: var(--k-subtle); border-radius: 12px; padding: 8px 10px; font-size: 0.74rem; color: #4c1d95;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <strong>✨ AI risk</strong>
                     <span class="timer-badge" style="${riskStyle[p.risk.level]}; font-size: 0.68rem;">${esc(p.risk.score)} · ${esc(p.risk.level)}</span>
@@ -183,7 +183,7 @@ function renderTrashTable(list) {
             <td style="padding: 1rem 0; font-weight: 700;">${esc(p.name)}<div style="font-size:0.72rem;color:var(--text-muted);font-weight:500;">${esc(p.email)}</div></td>
             <td style="padding: 1rem 0;">No sign-in ${esc(fmtWait(p.hoursSinceInvite))} after invite</td>
             <td style="padding: 1rem 0; color: var(--danger);">${esc(daysLeft)} day(s)</td>
-            <td style="padding: 1rem 0; text-align: right;"><span class="recover-btn" style="color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline;" data-act="restore" data-id="${esc(p.id)}">Restore</span></td>
+            <td style="padding: 1rem 0; text-align: right;"><span class="recover-btn" style="color: var(--k-accent-text); font-weight: 700; cursor: pointer; text-decoration: underline;" data-act="restore" data-id="${esc(p.id)}">Restore</span></td>
         </tr>`;
     }).join('');
 }

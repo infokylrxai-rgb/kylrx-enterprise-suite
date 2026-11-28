@@ -23,14 +23,14 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
     const fallbackUI = document.createElement('div');
     fallbackUI.id = 'system-fallback-ui';
     fallbackUI.innerHTML = `
-        <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 99999; display: flex; align-items: center; justify-content: center; color: white; font-family: 'Inter', sans-serif;">
+        <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #0f172a; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 99999; display: flex; align-items: center; justify-content: center; color: white; font-family: 'Inter', sans-serif;">
             <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 500px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
                 <div style="font-size: 3rem; color: var(--k-danger-text); margin-bottom: 20px;">⚠️</div>
                 <h2 style="margin: 0 0 10px 0; font-size: 1.5rem; font-weight: 600;">System Recovering</h2>
                 <p style="color: var(--k-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px;">
                     HRFlow encountered an unexpected issue but our Zero-Crash architecture protected your data. We are resetting the current view.
                 </p>
-                <button onclick="window.location.reload()" style="background: var(--k-accent); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background 0.2s;">
+                <button onclick="window.location.reload()" style="background: var(--k-accent); color: var(--k-on-accent); border: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background 0.2s;">
                     Reload Dashboard
                 </button>
             </div>
@@ -401,7 +401,7 @@ function renderTeamList(employees) {
 
   teamList.innerHTML = employees.map(emp => `
     <div class="activity-item">
-      <div class="act-avatar" style="background: var(--primary); color: white;">${escapeHtml(emp.name ? emp.name.charAt(0) : '?')}</div>
+      <div class="act-avatar" style="background: var(--primary); color: var(--k-on-accent);">${escapeHtml(emp.name ? emp.name.charAt(0) : '?')}</div>
       <div class="act-body">
         <div class="act-text"><b>${escapeHtml(emp.name)}</b></div>
         <div class="act-time">${escapeHtml(emp.role || emp.dept || 'Employee')}</div>
@@ -732,7 +732,7 @@ async function loadLeaveRequests() {
         <td>
           ${req.status === 'pending' ? `
             <div style="display:flex; gap:0.5rem;">
-              <button class="btn-approve" onclick="handleLeaveAction('${req.id}', 'approved')" style="padding:0.25rem 0.5rem; background:var(--success); color:white; border:none; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-check"></i></button>
+              <button class="btn-approve" onclick="handleLeaveAction('${req.id}', 'approved')" style="padding:0.25rem 0.5rem; background:var(--success); color:var(--k-on-success); border:none; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-check"></i></button>
               <button class="btn-reject" onclick="handleLeaveAction('${req.id}', 'rejected')" style="padding:0.25rem 0.5rem; background:var(--red); color:white; border:none; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-times"></i></button>
             </div>
           ` : '--'}
@@ -832,7 +832,7 @@ if (btnRunPayrollMain) {
         <div style="width: 100%; height: 8px; background: var(--bg); border-radius: 10px; overflow: hidden; margin-bottom: 1rem;">
           <div id="payrollProgress" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
         </div>
-        <p id="payrollStatusText" style="font-size: .85rem; font-weight: 600; color: var(--primary);">Initializing...</p>
+        <p id="payrollStatusText" style="font-size: .85rem; font-weight: 600; color: var(--k-accent-text);">Initializing...</p>
       </div>
     `, null); // null confirm because we'll handle it automatically
 
@@ -1287,7 +1287,7 @@ document.addEventListener('click', (e) => {
         </div>
         <div class="form-row">
           <label>Employee ID (Auto)</label>
-          <input type="text" id="newEmpId" value="${autoId}" class="form-input" readonly style="background:var(--bg); color:var(--primary); font-weight:700;"/>
+          <input type="text" id="newEmpId" value="${autoId}" class="form-input" readonly style="background:var(--bg); color:var(--k-accent-text); font-weight:700;"/>
         </div>
         <div class="form-row">
           <label>Full Name</label>
@@ -1343,7 +1343,7 @@ document.addEventListener('click', (e) => {
   } else if (btn.textContent.includes('Run Payroll')) {
     openModal('Process Payroll', `
       <div style="text-align:center; padding:1rem 0;">
-        <i class="fa-solid fa-money-check-dollar" style="font-size:3rem; color:var(--primary); margin-bottom:1rem;"></i>
+        <i class="fa-solid fa-money-check-dollar" style="font-size:3rem; color:var(--k-accent-text); margin-bottom:1rem;"></i>
         <h3>Confirm Payroll Run</h3>
         <p>This will process salaries for all employees for <b>${new Date().toLocaleString('default', { month: 'long' })} ${new Date().getFullYear()}</b>.</p>
         <div style="margin-top:1.5rem; background:var(--bg); padding:1rem; border-radius:12px; text-align:left;">
@@ -1419,7 +1419,7 @@ document.addEventListener('click', (e) => {
       <div class="settings-form">
         <div class="form-row">
           <label>Bank Record ID (Primary Key)</label>
-          <input type="text" id="bankPrimaryKey" value="${primaryKey}" class="form-input" readonly style="background:var(--bg); color:var(--primary); font-weight:700;"/>
+          <input type="text" id="bankPrimaryKey" value="${primaryKey}" class="form-input" readonly style="background:var(--bg); color:var(--k-accent-text); font-weight:700;"/>
         </div>
         <div class="form-row">
           <label>HR Manager ID</label>
@@ -1541,7 +1541,7 @@ notifList?.addEventListener('click', (e) => {
     
     openModal('Notification Details', `
       <div style="text-align:center; padding:1.5rem 0;">
-        <div class="notif-icon" style="width:60px; height:60px; font-size:1.5rem; margin:0 auto 1.5rem; background:var(--primary-light); color:var(--primary);">
+        <div class="notif-icon" style="width:60px; height:60px; font-size:1.5rem; margin:0 auto 1.5rem; background:var(--primary-light); color:var(--k-accent-text);">
           <i class="fa-solid fa-bell"></i>
         </div>
         <h3 style="margin-bottom:.5rem;">${notif.name}</h3>
@@ -1837,7 +1837,7 @@ document.querySelector('#page-integration .stats-grid')?.addEventListener('click
       <div style="font-size:.9rem; color:var(--text-2);">
         <p style="margin-bottom:1rem;">Welcome to the HRFlow REST API docs. Use these endpoints to automate your workforce management.</p>
         <div style="background:var(--bg); padding:1rem; border-radius:8px; font-family:monospace; margin-bottom:1rem;">
-          <div style="margin-bottom:.5rem; color:var(--primary);">GET /api/v1/employees</div>
+          <div style="margin-bottom:.5rem; color:var(--k-accent-text);">GET /api/v1/employees</div>
           <div style="color:var(--text-muted); font-size:.8rem;">Returns a list of all active employees.</div>
         </div>
         <div style="background:var(--bg); padding:1rem; border-radius:8px; font-family:monospace;">

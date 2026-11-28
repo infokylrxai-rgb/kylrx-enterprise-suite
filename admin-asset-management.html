@@ -65,7 +65,7 @@
             color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;
         }
         .qr-placeholder:hover {
-            border-color: var(--primary); color: var(--primary); background: var(--k-accent-soft);
+            border-color: var(--primary); color: var(--k-accent-text); background: var(--k-accent-soft);
             transform: scale(1.05);
         }
     </style>
@@ -80,7 +80,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -132,7 +132,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -195,7 +195,7 @@
             <div class="asset-grid" id="assetGrid">
                 <!-- Asset Cards Dynamically Injected -->
                 <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
-                    <i data-lucide="loader" class="animate-spin" size="32" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <i data-lucide="loader" class="animate-spin" size="32" style="margin-bottom: 1rem; color: var(--k-accent-text);"></i>
                     <p style="color: var(--text-muted);">Syncing organizational inventory...</p>
                 </div>
             </div>
@@ -239,7 +239,7 @@
                         <label class="nav-label">ASSET TAG</label>
                         <div style="position: relative; margin-top: 8px;">
                             <input type="text" id="assetTag" class="input-box" placeholder="HRF-LP-2026-XXX" style="width: 100%; padding-right: 40px;">
-                            <button id="btnGenTag" class="action-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; color: var(--primary);" title="Auto-generate Tag">
+                            <button id="btnGenTag" class="action-icon" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; color: var(--k-accent-text);" title="Auto-generate Tag">
                                 <i data-lucide="refresh-cw" size="14"></i>
                             </button>
                         </div>
@@ -265,12 +265,12 @@
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;" id="labelPreviewGrid">
                 <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center;">
-                    <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--k-accent-text);"></i>
                     <p style="font-weight: 800; font-size: 0.875rem;">HRF-LP-084</p>
                     <p style="font-size: 0.7rem; color: var(--text-muted);">MacBook Pro M2</p>
                 </div>
                 <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center;">
-                    <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                    <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--k-accent-text);"></i>
                     <p style="font-weight: 800; font-size: 0.875rem;">HRF-MB-112</p>
                     <p style="font-size: 0.7rem; color: var(--text-muted);">iPhone 15 Pro</p>
                 </div>
@@ -386,8 +386,8 @@
             transition: 0.2s ease;
         }
         .status-modal-icon.warning { background: var(--k-warning-soft); color: var(--k-warning-text); border: 1px solid #fef3c7; }
-        .status-modal-icon.error { background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid #fee2e2; }
-        .status-modal-icon.success { background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid #dcfce7; }
+        .status-modal-icon.error { background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid var(--k-border); }
+        .status-modal-icon.success { background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-border); }
         .status-modal-icon.info { background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); }
         .status-modal-title {
             font-size: 1.25rem; font-weight: 800; color: var(--k-text); margin-bottom: 0.5rem; letter-spacing: -0.02em;
@@ -663,7 +663,7 @@
 
         async function renderPrintLabels() {
             const grid = document.getElementById('labelPreviewGrid');
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;"><i data-lucide="loader" class="animate-spin" size="24" style="color: var(--primary);"></i><p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">Loading labels...</p></div>';
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;"><i data-lucide="loader" class="animate-spin" size="24" style="color: var(--k-accent-text);"></i><p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">Loading labels...</p></div>';
             if (window.lucide) lucide.createIcons();
 
             try {
@@ -675,7 +675,7 @@
 
                 grid.innerHTML = assets.slice(0, 8).map(a => `
                     <div style="border: 2px dashed var(--border); border-radius: 16px; padding: 1.5rem; text-align: center; background: var(--k-subtle);">
-                        <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--primary);"></i>
+                        <i data-lucide="qr-code" size="48" style="margin-bottom: 1rem; color: var(--k-accent-text);"></i>
                         <p style="font-weight: 800; font-size: 0.875rem;">${esc(a.tag || 'NO-TAG')}</p>
                         <p style="font-size: 0.7rem; color: var(--text-muted);">${esc(a.name || a.type)}</p>
                     </div>
@@ -962,7 +962,7 @@
             }
             #customAppsModal .modal button.map-btn {
                 background: var(--k-accent);
-                color: white !important;
+                color: var(--k-on-accent) !important;
                 border: none;
                 border-radius: 12px;
                 padding: 14px;

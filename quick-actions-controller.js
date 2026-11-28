@@ -1670,7 +1670,7 @@ Status:             AUTHENTICATED & DIGITALLY SEALED
                 </button>
             </div>
 
-            <div style="padding: 1rem 1.75rem 0.5rem 1.75rem; background: #fafbff;">
+            <div style="padding: 1rem 1.75rem 0.5rem 1.75rem; background: var(--k-surface);">
                 <div style="position: relative;">
                     <input type="text" id="qaDocSearchInput" placeholder="Search policies, letters, tax slips, or certificates..." 
                         style="width: 100%; padding: 9px 12px 9px 34px; border-radius: 10px; border: 1px solid var(--qa-border); font-size: 0.8rem; outline: none; background: var(--k-surface);">

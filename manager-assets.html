@@ -63,7 +63,7 @@
         .status-allocated { background: var(--k-success-soft); color: var(--k-success-text); }
         .status-repair    { background: var(--k-warning-soft); color: var(--k-warning-text); }
         .status-missing   { background: var(--k-danger-soft); color: var(--k-danger-text); }
-        .status-pending   { background: var(--primary-light); color: var(--primary); }
+        .status-pending   { background: var(--primary-light); color: var(--k-accent-text); }
 
         .asset-name { font-size: 1.125rem; font-weight: 800; margin-bottom: 4px; }
         .asset-id   { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; font-family: monospace; margin-bottom: 1.25rem; }
@@ -104,7 +104,7 @@
             gap: 6px;
             transition: 0.2s;
         }
-        .btn-report:hover { border-color: var(--danger); color: var(--danger); background: #fff5f5; }
+        .btn-report:hover { border-color: var(--danger); color: var(--danger); background: var(--k-subtle); }
 
         /* Empty */
         .empty-state { text-align: center; padding: 2rem 2rem; color: var(--text-muted); background: var(--card); border: 1px solid var(--border); border-radius: 24px; }
@@ -124,13 +124,13 @@
         .modal-actions { display: flex; gap: 1rem; margin-top: 0.5rem; }
         .btn-cancel { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: transparent; font-family: inherit; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-cancel:hover { background: var(--bg); }
-        .btn-submit { flex: 2; padding: 12px; border-radius: 12px; border: none; background: var(--danger); color: white; font-family: inherit; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-submit { flex: 2; padding: 12px; border-radius: 12px; border: none; background: var(--danger); color: var(--k-on-danger); font-family: inherit; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-submit:hover { filter: brightness(1.05); }
 
         /* Success modal */
         .success-modal { text-align: center; }
         .success-icon { width: 64px; height: 64px; background: var(--k-success-soft); color: var(--success); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
-        .btn-done { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--primary); color: white; font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 1.5rem; }
+        .btn-done { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--primary); color: var(--k-on-accent); font-family: inherit; font-weight: 700; cursor: pointer; margin-top: 1.5rem; }
     
         .layout { display: grid; grid-template-columns: var(--sidebar-width, 280px) 1fr; height: 100vh; overflow: hidden; }
         .sidebar {
@@ -185,10 +185,10 @@
             color: inherit;
         }
         .nav-link span { white-space: nowrap; }
-        .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateX(3px); }
+        .nav-link:hover { background: var(--primary-light); color: var(--k-accent-text); transform: translateX(3px); }
         .nav-link.active {
             background: var(--primary) !important;
-            color: #ffffff !important;
+            color: var(--k-on-accent) !important;
             box-shadow: 0 6px 12px -3px rgba(37, 99, 235, 0.3) !important;
         }
         .nav-link.active svg,
@@ -207,7 +207,7 @@
             gap: 8px;
             border: 1px solid var(--border);
         }
-        .avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: white; flex-shrink: 0; }
+        .avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: var(--k-on-accent); flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
         .profile-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, var(--k-text)); }
         /* Dual Tab Navigation */
@@ -228,13 +228,13 @@
         }
         .assets-main-tab:hover {
             border-color: var(--primary);
-            color: var(--primary);
+            color: var(--k-accent-text);
             background: var(--primary-light, var(--k-accent-soft));
         }
         .assets-main-tab.active {
             background: var(--primary) !important;
             border-color: var(--primary) !important;
-            color: white !important;
+            color: var(--k-on-accent) !important;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
         }
         .assets-main-tab.active #tabGoalsCountBadge {
@@ -276,12 +276,12 @@
         }
         .goal-filter-tab:hover {
             border-color: var(--primary);
-            color: var(--primary);
+            color: var(--k-accent-text);
         }
         .goal-filter-tab.active {
             background: var(--primary);
             border-color: var(--primary);
-            color: white;
+            color: var(--k-on-accent);
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
         .custom-alert-overlay {
@@ -469,7 +469,7 @@
                 <p class="page-subtitle" id="pageSubHeading">Assigned company equipment and departmental strategic goals</p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <button id="btnHeaderCreateGoal" onclick="switchAssetsTab('goals'); window.openCreateGoalModal();" style="background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                <button id="btnHeaderCreateGoal" onclick="switchAssetsTab('goals'); window.openCreateGoalModal();" style="background: var(--primary); color: var(--k-on-accent); border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
                     <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
                     <span>+ Create Manager Goal</span>
                 </button>
@@ -494,7 +494,7 @@
             <!-- Summary -->
             <div class="summary-grid" id="summaryGrid" style="display:none;">
                 <div class="summary-card">
-                    <div class="summary-value" id="totalAssets" style="color:var(--primary);">0</div>
+                    <div class="summary-value" id="totalAssets" style="color:var(--k-accent-text);">0</div>
                     <div class="summary-label">Total Assigned</div>
                 </div>
                 <div class="summary-card">
@@ -534,10 +534,10 @@
 
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <button onclick="window.openTemplatePickerModal('goals')" style="background: var(--k-surface); color: var(--text-main); border: 1.5px solid var(--border); padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="layout-template" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                            <i data-lucide="layout-template" style="width: 16px; height: 16px; color: var(--k-accent-text);"></i>
                             <span>Browse Goal Templates</span>
                         </button>
-                        <button onclick="window.openCreateGoalModal()" style="background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                        <button onclick="window.openCreateGoalModal()" style="background: var(--primary); color: var(--k-on-accent); border: none; padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
                             <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
                             <span>+ Create Manager Goal</span>
                         </button>
@@ -622,7 +622,7 @@
                 <!-- Manager Goals Grid Container -->
                 <div id="managerGoalsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem;">
                     <div style="text-align: center; padding: 2rem 0; color: var(--text-muted); grid-column: 1 / -1;">
-                        <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; color: var(--primary); margin: 0 auto 8px;"></i>
+                        <i data-lucide="loader" class="spin" style="width: 24px; height: 24px; color: var(--k-accent-text); margin: 0 auto 8px;"></i>
                         <p style="margin: 0; font-size: 0.875rem;">Hydrating manager strategic goals and milestones...</p>
                     </div>
                 </div>
@@ -759,7 +759,7 @@
 
                 <div style="display: flex; gap: 10px;">
                     <button type="button" class="alert-btn" style="background: var(--k-subtle); color: var(--k-text-2); margin: 0; flex: 1;" onclick="closeManagerGoalModal()">Cancel</button>
-                    <button type="submit" id="goalModalSubmitBtn" class="alert-btn" style="background: var(--k-accent); color: white; margin: 0; flex: 2;">Create Goal</button>
+                    <button type="submit" id="goalModalSubmitBtn" class="alert-btn" style="background: var(--k-accent); color: var(--k-on-accent); margin: 0; flex: 2;">Create Goal</button>
                 </div>
             </form>
         </div>
@@ -803,7 +803,7 @@
 
             <div style="display: flex; gap: 10px;">
                 <button class="alert-btn" style="background: var(--k-subtle); color: var(--k-text-2); margin: 0; flex: 1;" onclick="closeUpdateProgressModal()">Cancel</button>
-                <button class="alert-btn" style="background: var(--k-accent); color: white; margin: 0; flex: 2;" onclick="submitGoalProgressUpdate()">Record Progress</button>
+                <button class="alert-btn" style="background: var(--k-accent); color: var(--k-on-accent); margin: 0; flex: 2;" onclick="submitGoalProgressUpdate()">Record Progress</button>
             </div>
         </div>
     </div>
@@ -1070,7 +1070,7 @@
             const apps = JSON.parse(localStorage.getItem('managerCustomApps') || '[]');
             customList.innerHTML = apps.map(app => `
                 <div class="nav-item">
-                    <a href="${app.url.startsWith('http') ? app.url : 'https://' + app.url}" target="_blank" class="nav-link" style="color: var(--primary);">
+                    <a href="${app.url.startsWith('http') ? app.url : 'https://' + app.url}" target="_blank" class="nav-link" style="color: var(--k-accent-text);">
                         <i data-lucide="external-link"></i><span>${app.name}</span>
                     </a>
                 </div>

@@ -73,7 +73,7 @@
             max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.875rem; line-height: 1.4;
         }
 
-        .bubble-ai { background: var(--primary); color: white; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .bubble-ai { background: var(--primary); color: var(--k-on-accent); align-self: flex-start; border-bottom-left-radius: 4px; }
         .bubble-user { background: var(--bg-soft); color: var(--text-main); align-self: flex-end; border-bottom-right-radius: 4px; }
 
         .chat-input-area {
@@ -93,7 +93,7 @@
             background: var(--k-subtle);
         }
 
-        .insight-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--k-surface); display: flex; align-items: center; justify-content: center; color: var(--primary); }
+        .insight-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--k-surface); display: flex; align-items: center; justify-content: center; color: var(--k-accent-text); }
 
         .sentiment-meter {
             height: 8px; background: var(--k-border); border-radius: 4px; overflow: hidden; margin: 10px 0;
@@ -110,12 +110,12 @@
         /* Chart Placeholder */
         .chart-placeholder {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8); backdrop-filter: blur(4px);
+            background: var(--k-surface); backdrop-filter: blur(4px);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             z-index: 10; border-radius: 20px; transition: 0.5s ease;
             color: var(--text-muted); gap: 1rem;
         }
-        .chart-placeholder i { width: 32px; height: 32px; color: var(--primary); animation: aiPulse 2s infinite; }
+        .chart-placeholder i { width: 32px; height: 32px; color: var(--k-accent-text); animation: aiPulse 2s infinite; }
         .chart-placeholder p { font-size: 0.875rem; font-weight: 600; }
         @keyframes aiPulse { 0% { opacity: 0.4; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.4; transform: scale(0.9); } }
 
@@ -138,7 +138,7 @@
         }
 
         .confirm-modal {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--k-surface);
             border: 1px solid rgba(255, 255, 255, 0.4);
             border-radius: 24px;
             padding: 2rem;
@@ -190,7 +190,7 @@
         .confirm-modal-btn-cancel:hover { background: var(--k-border); }
 
         .confirm-modal-btn-confirm {
-            background: var(--k-danger); color: white;
+            background: var(--k-danger); color: var(--k-on-danger);
         }
         .confirm-modal-btn-confirm:hover { background: var(--k-danger); }
 
@@ -241,8 +241,8 @@
             content: '';
             width: 5px;
             height: 10px;
-            border-right: 2px solid #fff;
-            border-bottom: 2px solid #fff;
+            border-right: 2px solid var(--k-border);
+            border-bottom: 2px solid var(--k-border);
             transform: rotate(45deg);
             margin-bottom: 2px;
         }
@@ -304,7 +304,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -356,7 +356,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -467,7 +467,7 @@
                                 <button class="action-icon" id="clearChatBtn" title="Clear Chat History" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: 0.2s;">
                                     <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                                 </button>
-                                <span class="badge" style="background: var(--primary-light); color: var(--primary);">Your data</span>
+                                <span class="badge" style="background: var(--primary-light); color: var(--k-accent-text);">Your data</span>
                             </div>
                         </div>
                         <div class="chat-display" id="chatDisplay">
@@ -475,7 +475,7 @@
                         </div>
                         <div class="chat-input-area">
                             <input type="text" id="chatInput" class="input-box" placeholder="Ask Kylrx AI about onboarding..." style="flex:1">
-                            <button class="btn" id="spellCheckBtn" title="Fix common spelling (whole words)" style="padding: 10px; background: var(--bg-soft); color: var(--primary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s;"><i data-lucide="wand-2"></i></button>
+                            <button class="btn" id="spellCheckBtn" title="Fix common spelling (whole words)" style="padding: 10px; background: var(--bg-soft); color: var(--k-accent-text); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: 0.2s;"><i data-lucide="wand-2"></i></button>
                             <button class="btn btn-primary" id="sendChat" style="padding: 10px;"><i data-lucide="send"></i></button>
                         </div>
                     </div>
@@ -843,7 +843,7 @@
     <!-- Insight Detail Modal -->
     <div class="confirm-modal-overlay" id="insightDetailModal">
         <div class="confirm-modal" style="max-width: 500px; width: 95%;">
-            <div class="confirm-modal-icon" id="insightModalIcon" style="background: var(--k-accent-soft); color: var(--primary);">
+            <div class="confirm-modal-icon" id="insightModalIcon" style="background: var(--k-accent-soft); color: var(--k-accent-text);">
                 <i data-lucide="info" style="width: 28px; height: 28px;"></i>
             </div>
             <h4 class="confirm-modal-title" id="insightModalTitle">Insight Details</h4>
@@ -982,7 +982,7 @@
             }
             #customAppsModal .modal button.map-btn {
                 background: var(--k-accent);
-                color: white !important;
+                color: var(--k-on-accent) !important;
                 border: none;
                 border-radius: 12px;
                 padding: 14px;

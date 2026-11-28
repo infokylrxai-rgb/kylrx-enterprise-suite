@@ -70,7 +70,7 @@
             gap: 10px;
             margin-bottom: 1.25rem;
             text-decoration: none;
-            color: var(--primary);
+            color: var(--k-accent-text);
             padding-left: 0.25rem;
             flex-shrink: 0;
         }
@@ -138,11 +138,11 @@
         }
         .nav-link:hover {
             background: var(--primary-glow);
-            color: var(--primary);
+            color: var(--k-accent-text);
         }
         .nav-link.active {
             background: var(--primary-glow);
-            color: var(--primary);
+            color: var(--k-accent-text);
             font-weight: 700;
         }
         .nav-link.active::before {
@@ -168,7 +168,7 @@
         .sidebar .nav-link:hover svg,
         .sidebar .nav-link.active i,
         .sidebar .nav-link.active svg {
-            color: var(--primary);
+            color: var(--k-accent-text);
             stroke: var(--primary);
         }
 
@@ -205,13 +205,13 @@
             background: var(--bg-base); font-size: 0.75rem; font-weight: 700; cursor: pointer;
             transition: 0.2s; text-align: center;
         }
-        .theme-btn.active { border-color: var(--primary); color: var(--primary); background: var(--primary-glow); }
+        .theme-btn.active { border-color: var(--primary); color: var(--k-accent-text); background: var(--primary-glow); }
 
         /* Range Slider */
         .range-container { margin-bottom: 1.5rem; }
         .range-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .range-header span { font-size: 0.8rem; font-weight: 700; }
-        .range-val { color: var(--primary); }
+        .range-val { color: var(--k-accent-text); }
         input[type="range"] { width: 100%; accent-color: var(--primary); }
 
         /* Toggle Item */
@@ -256,7 +256,7 @@
             gap: 8px;
         }
         .tvc-tab-btn.active {
-            color: var(--primary);
+            color: var(--k-accent-text);
             border-bottom-color: var(--primary);
         }
         .tvc-tab-btn i { width: 16px; height: 16px; }
@@ -314,7 +314,7 @@
         }
         .tele-name { font-weight: 800; font-size: 0.875rem; }
         .tele-status { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; }
-        .tele-metrics { font-size: 0.7rem; font-weight: 800; color: var(--primary); }
+        .tele-metrics { font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); }
 
         /* Bonus Badge */
         .bonus-badge {
@@ -328,7 +328,7 @@
             align-items: center;
             gap: 4px;
             margin-top: 8px;
-            border: 1px solid #dcfce7;
+            border: 1px solid var(--k-border);
             animation: bounceIn 0.5s ease;
         }
         @keyframes bounceIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -371,7 +371,7 @@
         }
         .download-dropdown a:hover {
             background-color: var(--primary-glow) !important;
-            color: var(--primary) !important;
+            color: var(--k-accent-text) !important;
         }
     </style>
     <link rel="stylesheet" href="sidebar-lock.css">
@@ -383,7 +383,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -433,7 +433,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -479,17 +479,17 @@
                 <div id="tvcStatus" style="display: flex; align-items: center; gap: 8px; padding: 4px 12px; background: var(--bg-base); border-radius: 100px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); border: 1px solid var(--surface-border);">
                     <span style="width: 8px; height: 8px; background: #cbd5e1; border-radius: 50%;" id="tvcDot"></span>
                     <span id="tvcStatusText">SECURE: IDLE</span>
-                    <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid var(--k-border); color: var(--primary); display: none;">00:00:00</span>
+                    <span id="adminSessionTimer" style="margin-left: 8px; padding-left: 8px; border-left: 1px solid var(--k-border); color: var(--k-accent-text); display: none;">00:00:00</span>
                 </div>
 
                 <div class="btn-group" style="display: flex; gap: 8px;">
-                    <button class="punch-btn-mini" id="btnPunchIn" onclick="adminPunchIn()" style="background: var(--success); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <button class="punch-btn-mini" id="btnPunchIn" onclick="adminPunchIn()" style="background: var(--success); color: var(--k-on-success); border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                         <i data-lucide="play" size="12"></i> Punch In
                     </button>
-                    <button class="punch-btn-mini" id="btnBreak" onclick="adminBreak()" style="display: none; background: var(--warning); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <button class="punch-btn-mini" id="btnBreak" onclick="adminBreak()" style="display: none; background: var(--warning); color: var(--k-on-warning); border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                         <i data-lucide="coffee" size="12"></i> Break
                     </button>
-                    <button class="punch-btn-mini" id="btnPunchOut" onclick="adminPunchOut()" style="display: none; background: var(--danger); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <button class="punch-btn-mini" id="btnPunchOut" onclick="adminPunchOut()" style="display: none; background: var(--danger); color: var(--k-on-danger); border: none; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                         <i data-lucide="square" size="12"></i> Punch Out
                     </button>
                 </div>
@@ -537,7 +537,7 @@
 
                             <!-- View Toggle -->
                             <div class="view-toggle-btns" style="display: flex; background: var(--bg-base); border: 1px solid var(--surface-border); border-radius: 8px; padding: 2px;">
-                                <button id="btnGridView" onclick="setTeleView('grid')" class="active" style="border: none; background: transparent; padding: 4px 8px; border-radius: 6px; cursor: pointer; color: var(--primary); display: flex; align-items: center;"><i data-lucide="grid" size="14"></i></button>
+                                <button id="btnGridView" onclick="setTeleView('grid')" class="active" style="border: none; background: transparent; padding: 4px 8px; border-radius: 6px; cursor: pointer; color: var(--k-accent-text); display: flex; align-items: center;"><i data-lucide="grid" size="14"></i></button>
                                 <button id="btnTableView" onclick="setTeleView('table')" style="border: none; background: transparent; padding: 4px 8px; border-radius: 6px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center;"><i data-lucide="list" size="14"></i></button>
                             </div>
 
@@ -555,7 +555,7 @@
                             </div>
                         </div>
 
-                        <i data-lucide="cpu" style="color: var(--primary); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
+                        <i data-lucide="cpu" style="color: var(--k-accent-text); cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'"></i>
                     </div>
                     <div id="telemetryScrollContainer" style="flex: 1; overflow-y: auto; padding-right: 4px;">
                         <div class="tele-grid" id="telemetryGrid">
@@ -1155,7 +1155,7 @@
                     <td style="padding: 12px 10px;"><span class="compliance-tag" style="background:${complianceBg};color:${complianceColor};padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin: 0;">${complianceStatus}</span></td>
                     <td style="padding: 12px 10px; font-family: 'Roboto Mono', monospace; font-size: 0.75rem; color: var(--text-muted);">${config.punchInTime || '-'}</td>
                     <td style="padding: 12px 10px; font-family: 'Roboto Mono', monospace; font-size: 0.75rem; color: var(--text-muted);">${config.punchOutTime || '-'}</td>
-                    <td style="padding: 12px 10px; font-weight: 700; color: var(--primary);">${eff}%</td>
+                    <td style="padding: 12px 10px; font-weight: 700; color: var(--k-accent-text);">${eff}%</td>
                 </tr>
             `;
         }
@@ -1914,7 +1914,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; background: var(--k-subtle); padding: 1rem 1.5rem; border-radius: 16px; border: 1px solid var(--surface-border); font-size: 0.8rem; font-weight: 700;">
                 <div>
                     <span style="color: var(--text-muted); display: block; font-size: 0.7rem; text-transform: uppercase;">Average Weekly Efficiency</span>
-                    <span id="avgWeeklyEff" style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">78%</span>
+                    <span id="avgWeeklyEff" style="font-size: 1.25rem; font-weight: 800; color: var(--k-accent-text);">78%</span>
                 </div>
                 <div>
                     <span style="color: var(--text-muted); display: block; font-size: 0.7rem; text-transform: uppercase;">Total Hours Logged</span>
@@ -1949,7 +1949,7 @@
                     <label style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">External Link (URL)</label>
                     <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com" style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--surface-border); outline: none; margin-top: 4px; font-family: inherit; font-size: 0.875rem;">
                 </div>
-                <button onclick="addCustomApp()" style="background: var(--primary); color: white; border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; width: 100%;">Map Tool Link</button>
+                <button onclick="addCustomApp()" style="background: var(--primary); color: var(--k-on-accent); border: none; border-radius: 12px; padding: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; text-align: center; width: 100%;">Map Tool Link</button>
             </div>
 
             <div style="border-top: 1px solid var(--surface-border); padding-top: 1.25rem;">

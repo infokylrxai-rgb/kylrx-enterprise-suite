@@ -54,7 +54,7 @@
         @keyframes alertPop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
         .alert-btn {
             margin-top: 2rem; width: 100%; padding: 14px;
-            background: var(--primary); color: white; border: none;
+            background: var(--primary); color: var(--k-on-accent); border: none;
             border-radius: 14px; font-weight: 700; cursor: pointer;
             transition: 0.2s;
         }
@@ -109,7 +109,7 @@
         }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .chart-title { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
-        .chart-icon { color: var(--primary); width: 20px; height: 20px; }
+        .chart-icon { color: var(--k-accent-text); width: 20px; height: 20px; }
 
         .action-icon {
             width: 42px;
@@ -124,10 +124,10 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        .action-icon:hover { color: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
+        .action-icon:hover { color: var(--k-accent-text); border-color: var(--primary); transform: translateY(-2px); }
         .sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
         .profile-mini { margin-top: auto; background: var(--primary-light, var(--k-accent-soft)); padding: 0.75rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, var(--k-border)); }
-        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, var(--k-accent)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, var(--k-accent)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--k-on-accent); flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
         .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, var(--k-text)); }
         .profile-role { font-size: 0.7rem; color: var(--text-muted, var(--k-muted)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -296,7 +296,7 @@
                     <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: var(--k-subtle); border-radius: 16px; border: 1px dashed var(--border);">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                             <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Prediction Horizon</span>
-                            <span id="sliderVal" style="font-size: 0.875rem; font-weight: 800; color: var(--primary);">3 Months</span>
+                            <span id="sliderVal" style="font-size: 0.875rem; font-weight: 800; color: var(--k-accent-text);">3 Months</span>
                         </div>
                         <input type="range" id="horizonSlider" min="1" max="12" value="3" style="width: 100%; cursor: pointer; accent-color: var(--primary);">
                     </div>
@@ -308,7 +308,7 @@
     <!-- Info Modal Overlay -->
     <div id="moduleAlertOverlay" class="custom-alert-overlay" style="display: none;">
         <div class="custom-alert-card" style="max-width: 400px; text-align: center; border-radius: 28px; padding: 2rem; background: var(--k-surface); border: 1px solid var(--border);">
-            <div style="width: 64px; height: 64px; background: var(--primary-light); color: var(--primary); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+            <div style="width: 64px; height: 64px; background: var(--primary-light); color: var(--k-accent-text); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i data-lucide="info" style="width: 32px; height: 32px;"></i>
             </div>
             <h2 id="alertTitle" style="font-weight: 800; margin-bottom: 12px;">Information</h2>
@@ -608,7 +608,7 @@
             const apps = JSON.parse(localStorage.getItem('managerCustomApps') || '[]');
             customList.innerHTML = apps.map(app => `
                 <div class="nav-item">
-                    <a href="${app.url.startsWith('http') ? app.url : 'https://' + app.url}" target="_blank" class="nav-link" style="color: var(--primary);">
+                    <a href="${app.url.startsWith('http') ? app.url : 'https://' + app.url}" target="_blank" class="nav-link" style="color: var(--k-accent-text);">
                         <i data-lucide="external-link"></i><span>${app.name}</span>
                     </a>
                 </div>

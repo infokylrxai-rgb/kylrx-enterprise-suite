@@ -137,7 +137,7 @@
                     <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 0.72rem; font-weight: 800; color: #7c3aed; text-transform: uppercase;">Statutory Linked</span>
-                            <span style="background: #faf5ff; color: #7c3aed; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="shield-check"></i></span>
+                            <span style="background: var(--k-subtle); color: #7c3aed; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;"><i data-lucide="shield-check"></i></span>
                         </div>
                         <h3 style="font-size: 1.75rem; font-weight: 800; color: #7c3aed; margin: 8px 0 0 0;">${statutoryCount}</h3>
                         <p style="font-size: 0.75rem; color: var(--k-muted); margin: 4px 0 0 0;">Affects PF/ESI/PT/TDS Bases</p>

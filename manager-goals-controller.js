@@ -316,7 +316,7 @@
                         No goals match the selected filter criteria. You can create your own goal or choose an existing template to get started.
                     </p>
                     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="window.openCreateGoalModal()" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: white; width: auto; padding: 10px 20px; margin: 0;">
+                        <button onclick="window.openCreateGoalModal()" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: var(--k-on-accent); width: auto; padding: 10px 20px; margin: 0;">
                             + Create First Goal
                         </button>
                         <button onclick="window.openTemplatePickerModal('goals')" class="alert-btn" style="background: var(--k-subtle); color: var(--k-text-2); width: auto; padding: 10px 20px; margin: 0;">
@@ -544,7 +544,7 @@
                     <p style="font-size: 0.85rem; color: var(--k-muted); max-width: 440px; margin: 0 auto 1.5rem;">
                         No templates match the selected module, scope, or status criteria. Shared templates can be provided by administrators, and managers can create personal copies anytime.
                     </p>
-                    <button onclick="window.openCreateTemplateModal()" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: white; width: auto; padding: 10px 20px; margin: 0 auto;">
+                    <button onclick="window.openCreateTemplateModal()" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: var(--k-on-accent); width: auto; padding: 10px 20px; margin: 0 auto;">
                         + Create New Template
                     </button>
                 </div>
@@ -638,7 +638,7 @@
                             </div>
                         ` : `
                             <div style="display: flex; gap: 6px;">
-                                <button onclick="window.useTemplateToCreateGoal('${tpl.id}')" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: white; margin: 0; padding: 8px 12px; font-size: 0.78rem; flex: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                <button onclick="window.useTemplateToCreateGoal('${tpl.id}')" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: var(--k-on-accent); margin: 0; padding: 8px 12px; font-size: 0.78rem; flex: 2; display: flex; align-items: center; justify-content: center; gap: 6px;">
                                     <i data-lucide="play" style="width: 14px; height: 14px;"></i>
                                     <span>Use Template</span>
                                 </button>
@@ -654,7 +654,7 @@
 
                             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                                 ${allowsCopy ? `
-                                    <button onclick="window.openPersonalCopyModal('${tpl.id}')" class="btn-ghost" title="Make Personal Copy for Your Team" style="flex: 1.2; border: 1px solid #e9d5ff; background: #faf5ff; padding: 6px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: #9333ea; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    <button onclick="window.openPersonalCopyModal('${tpl.id}')" class="btn-ghost" title="Make Personal Copy for Your Team" style="flex: 1.2; border: 1px solid #e9d5ff; background: var(--k-subtle); padding: 6px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: #9333ea; display: flex; align-items: center; justify-content: center; gap: 4px;">
                                         <i data-lucide="copy" style="width: 12px; height: 12px;"></i>
                                         <span>Personal Copy</span>
                                     </button>
@@ -1260,7 +1260,7 @@
                     <p style="font-size: 0.78rem; color: var(--k-muted); margin: 0; line-height: 1.4;">${escapeHtml(t.description)}</p>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                    <button onclick="window.useTemplateToCreateGoal('${t.id}')" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: white; margin: 0; padding: 8px 14px; font-size: 0.75rem; white-space: nowrap;">
+                    <button onclick="window.useTemplateToCreateGoal('${t.id}')" class="alert-btn" style="background: var(--primary, var(--k-accent)); color: var(--k-on-accent); margin: 0; padding: 8px 14px; font-size: 0.75rem; white-space: nowrap;">
                         Choose Template
                     </button>
                     <button onclick="window.openTemplatePreviewModal('${t.id}')" class="btn-ghost" style="border: 1px solid var(--border); background: var(--k-subtle); padding: 8px 10px; border-radius: 8px; font-size: 0.75rem;">
@@ -1761,7 +1761,7 @@
                                 <span style="font-size: 0.85rem; font-weight: 800; color: var(--k-accent-text); background: var(--k-surface); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--k-accent-border);">
                                     ${escapeHtml(ver.version)}
                                 </span>
-                                ${isCurrent ? '<span style="font-size: 0.65rem; font-weight: 800; background: var(--k-accent); color: white; padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Active Current</span>' : ''}
+                                ${isCurrent ? '<span style="font-size: 0.65rem; font-weight: 800; background: var(--k-accent); color: var(--k-on-accent); padding: 2px 6px; border-radius: 4px; text-transform: uppercase;">Active Current</span>' : ''}
                             </div>
                             <span style="font-size: 0.72rem; color: var(--k-muted);">${dateStr}</span>
                         </div>

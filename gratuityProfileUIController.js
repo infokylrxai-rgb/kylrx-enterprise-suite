@@ -135,7 +135,7 @@
                             <h4 style="margin: 0; font-size: 1.02rem; font-weight: 800; letter-spacing: -0.01em; color: #ffffff;">Gratuity &amp; Long-Term Benefits</h4>
                             <span style="font-size: 0.65rem; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: 700;">18 Attributes Validated</span>
                         </div>
-                        <p style="margin: 2px 0 0 0; font-size: 0.73rem; color: rgba(255, 255, 255, 0.85);">Payment of Gratuity Act, 1972 • Section 10(10) Statutory Vesting &amp; Decentro Fabric Settlement</p>
+                        <p style="margin: 2px 0 0 0; font-size: 0.73rem; color: #ffffff;">Payment of Gratuity Act, 1972 • Section 10(10) Statutory Vesting &amp; Decentro Fabric Settlement</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -230,13 +230,13 @@
                         </div>
 
                         <!-- Tax Relief Box (Section 10(10)) -->
-                        <div style="background: var(--k-subtle); border: 1px solid #e5e5e5; border-radius: 12px; padding: 12px;">
+                        <div style="background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 12px; padding: 12px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.7rem; font-weight: 800; color: #525252; text-transform: uppercase;">Section 10(10) Tax Exemption</span>
-                                <span style="font-size: 0.65rem; color: #737373; font-weight: 700;">Cap: ₹20,00,000</span>
+                                <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-text-2); text-transform: uppercase;">Section 10(10) Tax Exemption</span>
+                                <span style="font-size: 0.65rem; color: var(--k-muted); font-weight: 700;">Cap: ₹20,00,000</span>
                             </div>
-                            <div style="font-size: 1.15rem; font-weight: 800; color: #171717; margin-top: 4px;" id="gratuityTaxExemptDisplay">${formatCurrency(taxExempt)}</div>
-                            <div style="font-size: 0.68rem; color: ${taxable > 0 ? 'var(--k-danger-text)' : '#525252'}; margin-top: 4px;">
+                            <div style="font-size: 1.15rem; font-weight: 800; color: var(--k-text); margin-top: 4px;" id="gratuityTaxExemptDisplay">${formatCurrency(taxExempt)}</div>
+                            <div style="font-size: 0.68rem; color: ${taxable > 0 ? 'var(--k-danger-text)' : 'var(--k-text-2)'}; margin-top: 4px;">
                                 ${taxable > 0 ? `Taxable Excess: <strong>${formatCurrency(taxable)}</strong>` : 'Nil Taxable Excess (Under ₹20L Limit)'}
                             </div>
                         </div>

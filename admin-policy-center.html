@@ -54,7 +54,7 @@
         .type-icon {
             width: 32px; height: 32px; border-radius: 8px; background: var(--k-surface);
             display: flex; align-items: center; justify-content: center;
-            color: var(--primary); border: 1px solid var(--border);
+            color: var(--k-accent-text); border: 1px solid var(--border);
         }
 
         .audit-list {
@@ -84,7 +84,7 @@
         /* Toast Notification */
         .toast-notification {
             position: fixed; top: 2rem; left: 50%; transform: translateX(-50%) translateY(-20px);
-            background: var(--k-success); color: white; padding: 1rem 2rem; border-radius: 100px;
+            background: var(--k-success); color: var(--k-on-success); padding: 1rem 2rem; border-radius: 100px;
             font-weight: 700; font-size: 0.875rem; display: flex; align-items: center; gap: 12px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             z-index: 4000; opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -102,7 +102,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -154,7 +154,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -223,7 +223,7 @@
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
                             <div class="assignment-card active" id="btnAutoAssign" style="padding: 1.25rem; background: var(--k-accent-soft); border-radius: 16px; cursor: pointer; border: 2px solid var(--primary-soft); transition: 0.2s;">
                                 <p class="nav-label" style="margin:0">Newly Joined</p>
-                                <h4 style="font-weight: 800; color: var(--primary); margin-top: 4px;">Auto-Assign</h4>
+                                <h4 style="font-weight: 800; color: var(--k-accent-text); margin-top: 4px;">Auto-Assign</h4>
                             </div>
                             <div class="assignment-card" id="btnSelective" style="padding: 1.25rem; background: var(--k-subtle); border-radius: 16px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;">
                                 <p class="nav-label" style="margin:0">Dept Wise</p>
@@ -366,7 +366,7 @@
                     <!-- Logic rows injected here -->
                 </div>
                 <div id="btnAddLogic" style="padding: 1.25rem; background: var(--k-subtle); border-radius: 16px; border: 1px dashed var(--border); text-align: center; cursor: pointer; transition: 0.2s;">
-                    <i data-lucide="plus-circle" style="color: var(--primary); margin-bottom: 8px;"></i>
+                    <i data-lucide="plus-circle" style="color: var(--k-accent-text); margin-bottom: 8px;"></i>
                     <p style="font-size: 0.75rem; font-weight: 600;">Add Requirement Logic</p>
                 </div>
                 <button class="btn btn-primary" id="btnSaveCustomPlan" style="width: 100%; justify-content: center; padding: 1rem;">
@@ -556,7 +556,7 @@
                                 <p style="font-size: 0.75rem; color: var(--text-muted);">v${data.version || '1.0'} • ${data.category || 'General'}</p>
                             </div>
                             <div style="text-align: right;">
-                                <p style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">${date}</p>
+                                <p style="font-size: 0.75rem; font-weight: 700; color: var(--k-accent-text);">${date}</p>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Archived</p>
                             </div>
                         </div>
@@ -874,7 +874,7 @@
                         <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${color};"></div></div>
                     </div>
                     <span class="assignment-badge">${escapeText(policy.scope || 'Global')}</span>
-                    <button class="action-icon" style="color: #ef4444; border: 1px solid var(--k-danger-border); background: #fff5f5; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;" data-policy-id="${escapeText(policy.id)}" title="Delete Policy"><i data-lucide="trash-2" size="14"></i></button>
+                    <button class="action-icon" style="color: var(--k-danger-text); border: 1px solid var(--k-danger-border); background: var(--k-subtle); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;" data-policy-id="${escapeText(policy.id)}" title="Delete Policy"><i data-lucide="trash-2" size="14"></i></button>
                 `;
                 item.querySelector('[data-policy-id]').addEventListener('click', () => deletePolicyConfirm(policy.id, policy.title || ''));
                 list.appendChild(item);
@@ -1186,7 +1186,7 @@
             }
             #customAppsModal .modal button.map-btn {
                 background: var(--k-accent);
-                color: white !important;
+                color: var(--k-on-accent) !important;
                 border: none;
                 border-radius: 12px;
                 padding: 14px;

@@ -961,7 +961,7 @@
                                                 </button>
                                             </td>
                                             <td style="padding: 14px 16px; text-align: right;">
-                                                <button type="button" class="delete-holiday-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" style="background: none; border: 1px solid #fee2e2; color: var(--k-danger-text); border-radius: 8px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
+                                                <button type="button" class="delete-holiday-btn" data-cal="${activeCal.calendarCode}" data-id="${h.id}" style="background: none; border: 1px solid var(--k-border); color: var(--k-danger-text); border-radius: 8px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">
                                                     Delete
                                                 </button>
                                             </td>
@@ -982,7 +982,7 @@
                                     return parseInt(parts[1], 10) === (m + 1);
                                 });
                                 return `
-                                    <div style="border: 1px solid var(--k-border); border-radius: 14px; padding: 1rem; background: #fafbfc;">
+                                    <div style="border: 1px solid var(--k-border); border-radius: 14px; padding: 1rem; background: var(--k-surface);">
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid var(--k-border); padding-bottom: 6px;">
                                             <strong style="color: var(--k-text); font-size: 0.95rem;">${monthName} 2026</strong>
                                             <span style="font-size: 0.75rem; font-weight: 800; color: ${mHolidays.length ? '#4f46e5' : 'var(--k-muted)'};">
@@ -993,7 +993,7 @@
                                             ${mHolidays.length === 0 ? `
                                                 <div style="font-size: 0.75rem; color: var(--k-muted); font-style: italic; padding: 4px 0;">No closures</div>
                                             ` : mHolidays.map(h => `
-                                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; padding: 6px 8px; border-radius: 8px; background: ${h.isOptional ? 'var(--k-warning-soft)' : 'var(--k-success-soft)'}; border: 1px solid ${h.isOptional ? '#fef3c7' : '#dcfce7'};">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; padding: 6px 8px; border-radius: 8px; background: ${h.isOptional ? 'var(--k-warning-soft)' : 'var(--k-success-soft)'}; border: 1px solid ${h.isOptional ? '#fef3c7' : 'var(--k-border)'};">
                                                     <div>
                                                         <strong style="color: var(--k-text);">${h.holidayDate.split('-')[2]}</strong>: ${h.holidayName}
                                                     </div>

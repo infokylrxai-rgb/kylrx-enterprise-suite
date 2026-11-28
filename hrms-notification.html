@@ -40,7 +40,7 @@
         .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
         .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
         .notif-item:last-child { border-bottom: none; }
-        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .notif-content { flex: 1; }
         .notif-title { font-weight: 600; margin-bottom: 4px; }
         .notif-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; }
@@ -70,7 +70,7 @@
 
         .action-icon:hover {
             background: var(--k-surface);
-            color: var(--primary);
+            color: var(--k-accent-text);
             border-color: var(--border);
             transform: translateY(-2px);
             box-shadow: var(--shadow-sm);
@@ -85,7 +85,7 @@
         /* Customization Sidebar */
         .config-sidebar {
             position: fixed; right: -360px; top: 0; bottom: 0; width: 100%; max-width: 360px;
-            background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border);
+            background: var(--k-surface); border-left: 1px solid var(--border);
             z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
             display: flex; flex-direction: column;
@@ -94,7 +94,7 @@
         .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
-        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
+        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--k-accent-text); margin-bottom: 1.25rem; font-weight: 800; }
         .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border); }
         .config-option span { font-size: 0.875rem; font-weight: 600; }
 
@@ -107,7 +107,7 @@
         input:checked + .slider:before { transform: translateX(20px); }
 
         .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
-        .btn-theme.active { border-color: var(--primary); background: var(--k-accent-soft); color: var(--primary); }
+        .btn-theme.active { border-color: var(--primary); background: var(--k-accent-soft); color: var(--k-accent-text); }
 
         /* Density Modes */
         .tight .notif-item { padding: 1rem; }
@@ -368,7 +368,7 @@
                 </div>
             </div>
 
-            <button class="btn" style="background: var(--primary); color: white; margin-top: auto; width: 100%; justify-content: center;" onclick="toggleConfig(false)">
+            <button class="btn" style="background: var(--primary); color: var(--k-on-accent); margin-top: auto; width: 100%; justify-content: center;" onclick="toggleConfig(false)">
                 Save Preferences
             </button>
         </aside>
@@ -613,7 +613,7 @@
                     <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this notification?</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
                         <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
-                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear</button>
+                        <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:var(--k-on-danger);">Clear</button>
                     </div>
                 </div>
             `;
@@ -627,7 +627,7 @@
                     <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
                         <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
-                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear All</button>
+                        <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:var(--k-on-danger);">Clear All</button>
                     </div>
                 </div>
             `;

@@ -543,7 +543,7 @@ function setupLogoUpload() {
             if (!file) return;
 
             if (logoUploadStatus) {
-                logoUploadStatus.innerHTML = '<span style="color: var(--primary);"><i data-lucide="loader" class="animate-spin"></i> Uploading brand logo to Firebase Storage...</span>';
+                logoUploadStatus.innerHTML = '<span style="color: var(--k-accent-text);"><i data-lucide="loader" class="animate-spin"></i> Uploading brand logo to Firebase Storage...</span>';
                 if (window.lucide) lucide.createIcons();
             }
 

@@ -17,12 +17,14 @@
 
 const API = `${typeof API_BASE !== 'undefined' ? API_BASE : (typeof window !== 'undefined' && window.API_BASE ? window.API_BASE : (typeof window !== 'undefined' && window.location ? window.location.origin : ''))}/api`;
 
+// Translucent tints: pastel on a light card, a dark tint on a dark one - solid pastels
+// were bright white tiles in the dark theme.
 const CATEGORY_STYLES = {
-    'Onboarding':           { lucide: 'user-plus',   icon: 'fa-user-plus',         bg: '#eff6ff', color: '#2563eb', tag: 'tag-blue' },
-    'Employee Lifecycle':   { lucide: 'repeat',      icon: 'fa-arrows-rotate',     bg: '#f5f3ff', color: '#7c3aed', tag: 'tag-purple' },
-    'Compensation':         { lucide: 'coins',       icon: 'fa-indian-rupee-sign', bg: '#fffbeb', color: '#d97706', tag: 'tag-gold' },
-    'Payroll':              { lucide: 'banknote',    icon: 'fa-money-bill-wave',   bg: '#f0fdfa', color: '#0d9488', tag: 'tag-teal' },
-    'Exit':                 { lucide: 'log-out',     icon: 'fa-door-open',         bg: '#fef2f2', color: '#ef4444', tag: 'tag-red' },
+    'Onboarding':           { lucide: 'user-plus',   icon: 'fa-user-plus',         bg: 'rgba(37, 99, 235, 0.14)', color: '#3b82f6', tag: 'tag-blue' },
+    'Employee Lifecycle':   { lucide: 'repeat',      icon: 'fa-arrows-rotate',     bg: 'rgba(139, 92, 246, 0.16)', color: '#8b5cf6', tag: 'tag-purple' },
+    'Compensation':         { lucide: 'coins',       icon: 'fa-indian-rupee-sign', bg: 'rgba(217, 119, 6, 0.15)', color: '#d97706', tag: 'tag-gold' },
+    'Payroll':              { lucide: 'banknote',    icon: 'fa-money-bill-wave',   bg: 'rgba(13, 148, 136, 0.15)', color: '#0d9488', tag: 'tag-teal' },
+    'Exit':                 { lucide: 'log-out',     icon: 'fa-door-open',         bg: 'rgba(239, 68, 68, 0.14)', color: '#ef4444', tag: 'tag-red' },
 };
 
 const MODULE_LABELS = {
@@ -54,7 +56,30 @@ document.addEventListener('DOMContentLoaded', () => {
  * Backend call: JSON body in/out, the server's message on failure, 25 s timeout. Saves are not
  * sent while Firebase refuses writes (the server would only answer 503).
  */
-async function apiCall(path, { method = 'GET', body } = {}) {
+/*
+ * A read that fails for a passing reason is tried again before anything is shown.
+ * The first request after the server has been idle can take longer than the time
+ * allowed while the host wakes it, and the very first one can go out before the
+ * sign-in token is ready (401). The page then said "Could not load templates" and the
+ * Try again button always worked. Reads now retry on their own; saves never do, so
+ * nothing can be written twice.
+ */
+const TRANSIENT_STATUS = new Set([401, 408, 425, 429, 500, 502, 503, 504]);
+async function apiCall(path, { method = 'GET', body, onRetry } = {}) {
+    if (method !== 'GET') return apiCallOnce(path, { method, body });
+    const delays = [1500, 4000];
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await apiCallOnce(path, { method, body });
+        } catch (err) {
+            if (!err.transient || attempt >= delays.length) throw err;
+            if (typeof onRetry === 'function') onRetry(attempt + 1);
+            await new Promise(r => setTimeout(r, delays[attempt]));
+        }
+    }
+}
+
+async function apiCallOnce(path, { method = 'GET', body } = {}) {
     if (method !== 'GET' && !(await getWriteStatus()).accepting) {
         throw new Error('Saving is paused: Firebase is not accepting changes right now (the daily Firestore write quota is used up). Nothing was saved. Please try again after the quota resets.');
     }
@@ -68,10 +93,15 @@ async function apiCall(path, { method = 'GET', body } = {}) {
             signal: controller.signal
         });
         const json = await res.json().catch(() => ({}));
-        if (!res.ok || json.success === false) throw new Error(json.message || json.error || `Request failed (HTTP ${res.status})`);
+        if (!res.ok || json.success === false) {
+            const e = new Error(json.message || json.error || `Request failed (HTTP ${res.status})`);
+            e.transient = TRANSIENT_STATUS.has(res.status);
+            throw e;
+        }
         return json;
     } catch (err) {
-        if (err.name === 'AbortError') throw new Error('The server did not respond in time. Please try again.');
+        if (err.name === 'AbortError') throw Object.assign(new Error('The server did not respond in time. Please try again.'), { transient: true });
+        if (err instanceof TypeError) err.transient = true;             // network failure
         throw err;
     } finally {
         clearTimeout(timer);
@@ -126,7 +156,12 @@ async function loadTemplates() {
         grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="spinner" style="margin:0 auto 8px;"></div><p style="font-size:0.85rem;color:var(--k-muted);">Loading templates from Firebase…</p></div>';
     }
     try {
-        const json = await apiCall('/document-templates');
+        const json = await apiCall('/document-templates', {
+            onRetry: () => {
+                const msg = grid && grid.querySelector('.empty-state p');
+                if (msg && !allTemplates.length) msg.textContent = 'Still loading - the server is waking up, this can take a few seconds…';
+            }
+        });
         allTemplates = Array.isArray(json.data) ? json.data : [];
         renderStats(allTemplates);
         filterTemplates();
@@ -191,11 +226,14 @@ async function fetchGeneratedDocCount() {
         const res = await fetch(`${API}/document-templates/generated`);
         const json = await res.json();
         if (json.success) {
-            statGen.textContent = json.total;
             if (Array.isArray(json.data)) generatedDocsList = json.data;
+            // A reply without a total left the card blank; the list length is the count.
+            statGen.textContent = String(Number.isFinite(json.total) ? json.total : generatedDocsList.length);
             return;
         }
-    } catch (_) {}
+    } catch (err) {
+        console.error('[DOCS] generated-document count could not be loaded:', err);
+    }
 
     statGen.textContent = generatedDocsList.length || '0';
 }
@@ -411,7 +449,7 @@ function renderSidePanel(template) {
                 }).join('')}
             </div>
             <p style="font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.6;">
-                <i data-lucide="info" style="width:13px;height:13px;color:var(--primary);margin-right:4px;"></i>
+                <i data-lucide="info" style="width:13px;height:13px;color:var(--k-accent-text);margin-right:4px;"></i>
                 Only explicitly permitted modules may invoke <code style="font-size:11px;background:var(--k-accent-soft);color:var(--k-accent-text);padding:2px 6px;border-radius:4px;font-family:monospace;">generateDocument()</code>.
             </p>
         </div>
@@ -650,7 +688,7 @@ function quickGenerate(templateKey) {
                 <!-- Form Fields -->
                 <div style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;" id="gen-modal-fields-container">
                     <!-- AI Fill -->
-                    <div style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid #ddd6fe;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;">
+                    <div style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid var(--k-border);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;">
                         <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;font-weight:800;color:#5b21b6;">
                             <i data-lucide="sparkles" style="width:16px;height:16px;"></i> AI Fill from employee record
                         </div>
@@ -825,7 +863,7 @@ function renderGeneratedDocsTable(docs) {
 
     tbody.innerHTML = docs.map(doc => `
         <tr>
-            <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--primary);">${escapeHtmlTpl(doc.docId)}</td>
+            <td style="font-family:monospace;font-size:12px;font-weight:700;color:var(--k-accent-text);">${escapeHtmlTpl(doc.docId)}</td>
             <td style="font-weight:700;color:var(--k-text);">${escapeHtmlTpl(doc.templateName || doc.templateKey)}</td>
             <td style="font-weight:600;color:var(--k-text-2);">${escapeHtmlTpl(doc.recipientName || '—')}</td>
             <td><span class="tag tag-blue" style="font-size:10px;">${escapeHtmlTpl(doc.versionNumber || 'v1.0')}</span></td>
@@ -925,7 +963,7 @@ async function openNewVersionModal(templateKey) {
                 </div>
                 <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;">
                     <!-- AI Draft -->
-                    <div style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid #ddd6fe;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;">
+                    <div style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid var(--k-border);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;">
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                             <span style="display:flex;align-items:center;gap:8px;font-size:0.8rem;font-weight:800;color:#5b21b6;"><i data-lucide="sparkles" style="width:16px;height:16px;"></i> AI Draft</span>
                             <span id="draft-ai-mode" style="font-size:0.68rem;font-weight:700;color:#6d28d9;"></span>
@@ -1637,7 +1675,7 @@ function openAdminTemplatePermissionsModal(id) {
 
             <div style="display: flex; gap: 10px;">
                 <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('admin-permissions-modal').remove()">Cancel</button>
-                <button type="button" class="btn btn-danger" style="flex: 2; background: var(--k-danger); color: white;" onclick="saveAdminTemplatePermissions('${tpl.id}')">Save Permissions</button>
+                <button type="button" class="btn btn-danger" style="flex: 2; background: var(--k-danger); color: var(--k-on-danger);" onclick="saveAdminTemplatePermissions('${tpl.id}')">Save Permissions</button>
             </div>
         </div>
     `;

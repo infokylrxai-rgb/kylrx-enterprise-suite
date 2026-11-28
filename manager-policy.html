@@ -36,7 +36,7 @@
         
         .policy-nav { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; height: fit-content; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .policy-nav .nav-item { padding: 12px 1rem; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 0.875rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
-        .policy-nav .nav-item:hover, .policy-nav .nav-item.active { background: var(--bg); color: var(--primary); }
+        .policy-nav .nav-item:hover, .policy-nav .nav-item.active { background: var(--bg); color: var(--k-accent-text); }
         .sidebar .nav-item { padding: 0; margin: 0; }
 
         .policy-content { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; line-height: 1.7; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
@@ -72,7 +72,7 @@
         
         .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; }
         .modal-desc { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6; }
-        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: white; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 14px; border: none; background: var(--primary); color: var(--k-on-accent); font-weight: 700; cursor: pointer; transition: 0.2s; }
         .modal-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
         @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -130,10 +130,10 @@
             color: inherit;
         }
         .nav-link span { white-space: nowrap; }
-        .nav-link:hover { background: var(--primary-light); color: var(--primary); transform: translateX(3px); }
+        .nav-link:hover { background: var(--primary-light); color: var(--k-accent-text); transform: translateX(3px); }
         .nav-link.active {
             background: var(--primary) !important;
-            color: #ffffff !important;
+            color: var(--k-on-accent) !important;
             box-shadow: 0 6px 12px -3px rgba(37, 99, 235, 0.3) !important;
         }
         .nav-link.active svg,
@@ -152,7 +152,7 @@
             gap: 8px;
             border: 1px solid var(--border);
         }
-        .avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: white; flex-shrink: 0; }
+        .avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: var(--k-on-accent); flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
         .profile-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, var(--k-text)); }
         .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -318,7 +318,7 @@
                         <div style="font-size: 0.875rem; font-weight: 800; color: var(--text);">Acknowledge Policy</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">By clicking, you confirm you've read the <span id="policyTitleConfirm">Code of Conduct</span>.</div>
                     </div>
-                    <button id="confirmBtn" style="padding: 12px 28px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 800; cursor: pointer; transition: 0.3s;" onclick="acknowledgePolicy()">Confirm Receipt</button>
+                    <button id="confirmBtn" style="padding: 12px 28px; border-radius: 12px; background: var(--primary); color: var(--k-on-accent); border: none; font-weight: 800; cursor: pointer; transition: 0.3s;" onclick="acknowledgePolicy()">Confirm Receipt</button>
                 </div>
             </div>
         </div>
@@ -491,7 +491,7 @@
             const apps = JSON.parse(localStorage.getItem('managerCustomApps') || '[]');
             customList.innerHTML = apps.map(app => `
                 <div class="nav-item">
-                    <a href="${app.url.startsWith('http') ? app.url : 'https://' + app.url}" target="_blank" class="nav-link" style="color: var(--primary);">
+                    <a href="${app.url.startsWith('http') ? app.url : 'https://' + app.url}" target="_blank" class="nav-link" style="color: var(--k-accent-text);">
                         <i data-lucide="external-link"></i><span>${app.name}</span>
                     </a>
                 </div>
