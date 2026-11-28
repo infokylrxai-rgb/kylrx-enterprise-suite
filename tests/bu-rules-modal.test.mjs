@@ -147,3 +147,30 @@ describe('BU rules modal: loading', () => {
     assert.ok(ctx.rec.reads.includes('users'));
   });
 });
+
+/**
+ * The rules screen rendered a six-column table and squeezed ten employee-type chips into
+ * one narrow cell, so each wrapped onto its own line and a row became a column of stacked
+ * pills. It also listed the same type two or three times, because two code schemes name
+ * the same concepts: FULL_TIME and CAT_FT_REG are both "Full-Time Regular".
+ */
+describe('the rules screen is readable', () => {
+  const src = source;   // already read at the top of this file
+
+  it('lays the business units out as cards, not a cramped table', () => {
+    assert.match(src, /bu-rules-list/, 'expected the card list container');
+    assert.ok(!/<th style="padding: 14px 16px; font-weight: 800;">Allowed Employee Types/.test(src),
+      'the narrow Allowed Employee Types column should be gone');
+  });
+
+  it('collapses the duplicate labels into one chip each', () => {
+    assert.match(src, /const byLabel = new Map\(\)/, 'types must be de-duplicated by label');
+    assert.match(src, /uniqueTypes/, 'the render must use the de-duplicated list');
+  });
+
+  it('keeps a chip switched on when any of its alias codes is allowed', () => {
+    // FULL_TIME and CAT_FT_REG are the same thing; a rule naming either must light the
+    // single chip, or turning it off would silently leave the other code allowed.
+    assert.match(src, /t\.aliases\.some\(code => allowed\.includes\(code\)\)/);
+  });
+});

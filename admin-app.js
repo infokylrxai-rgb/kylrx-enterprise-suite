@@ -160,28 +160,44 @@ onAuthStateChanged(auth, async (user) => {
 
         if (!data) {
             data = {
-                name: localStorage.getItem('userName') || localStorage.getItem('user_name') || 'Nandan',
+                name: localStorage.getItem('userName') || localStorage.getItem('user_name') || '',
                 role: localStorage.getItem('userRole') || 'SUPER_ADMIN'
             };
         }
 
         // Determine user display name (avoid literal "Super Admin" / "Username" placeholder)
         let resolvedName = data.name || data.displayName || user.displayName || localStorage.getItem('userName') || localStorage.getItem('user_name');
-        if (!resolvedName || resolvedName === 'Super Admin' || resolvedName === 'superadmin' || resolvedName === 'Username' || resolvedName === 'jame' || resolvedName.includes('@')) {
-            if (user?.email?.toLowerCase().includes('nandan') || user?.email === 'superadmin@kylrx.ai' || (data.role || '').toUpperCase().includes('ADMIN') || (localStorage.getItem('userRole') || '').toUpperCase().includes('ADMIN')) {
-                resolvedName = 'Nandan';
-            } else if (resolvedName && resolvedName.includes('@')) {
-                const prefix = resolvedName.split('@')[0].replace(/[._-]/g, ' ');
-                resolvedName = prefix.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'Nandan';
-            } else {
-                resolvedName = 'Nandan';
-            }
-        }
+        // Names that are placeholders rather than a person, so they are not shown as one.
+        const PLACEHOLDER_NAMES = ['super admin', 'superadmin', 'username', 'jame', 'admin', 'user'];
+        const looksLikePlaceholder = (n) => !n || PLACEHOLDER_NAMES.includes(String(n).trim().toLowerCase());
 
+        // Derive something human from an email rather than inventing a name:
+        // asha.menon@acme.com -> Asha Menon
+        const fromEmail = (email) => {
+            const prefix = String(email || '').split('@')[0].replace(/[._-]+/g, ' ').trim();
+            if (!prefix) return '';
+            return prefix.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        };
+
+        // There used to be a hardcoded fallback here: anyone whose role contained ADMIN was
+        // displayed as a specific developer's name, and that name was then persisted to
+        // localStorage - so a customer's administrator was greeted by a stranger's name, and
+        // it alternated with their real one depending on which value was written last.
+        // A name is now either the person's own or absent; it is never invented.
+        if (looksLikePlaceholder(resolvedName) || String(resolvedName).includes('@')) {
+            resolvedName = String(resolvedName || '').includes('@')
+                ? fromEmail(resolvedName)
+                : fromEmail(user && user.email);
+        }
+        if (looksLikePlaceholder(resolvedName)) resolvedName = '';
         // Persist resolved name
         try {
-            localStorage.setItem('userName', resolvedName);
-            localStorage.setItem('user_name', resolvedName);
+            // Only a real name is cached. Writing an empty or invented one back is how the
+            // wrong name became sticky across sessions.
+            if (resolvedName) {
+                localStorage.setItem('userName', resolvedName);
+                localStorage.setItem('user_name', resolvedName);
+            }
         } catch (_) {}
 
         // Update UI
@@ -192,7 +208,7 @@ onAuthStateChanged(auth, async (user) => {
         }
         const welcomeText = document.querySelector('.welcome-text h1');
         if (welcomeText) {
-            welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋`;
+            welcomeText.innerHTML = (firstName ? `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋` : `Welcome back 👋`);
         }
         
         // Update Profile Trigger (Top Right)
@@ -204,7 +220,7 @@ onAuthStateChanged(auth, async (user) => {
         if (profileRole) profileRole.textContent = (data.role || 'SUPER ADMIN').toUpperCase();
         if (profileAvatar) {
             const initials = resolvedName.split(/[\s.]+/).filter(Boolean).map(n => n[0]).join('').toUpperCase();
-            profileAvatar.textContent = initials.substring(0, 2) || 'NB';
+            profileAvatar.textContent = initials.substring(0, 2) || '';
         }
         
         loadDepartments();
@@ -214,9 +230,11 @@ onAuthStateChanged(auth, async (user) => {
         const isLoggedIn = localStorage.getItem('hr_logged_in') === 'true';
         if (isLoggedIn) {
             const storedName = localStorage.getItem('userName') || localStorage.getItem('user_name');
-            let resolvedName = (storedName && storedName !== 'Super Admin' && storedName !== 'superadmin' && storedName !== 'Username' && storedName !== 'jame' && !storedName.includes('@'))
-                ? storedName
-                : 'Nandan';
+            // Same rule as the signed-in path: a real stored name, or nothing. Never a
+            // hardcoded one.
+            const PLACEHOLDERS = ['super admin', 'superadmin', 'username', 'jame', 'admin', 'user'];
+            const usable = storedName && !PLACEHOLDERS.includes(String(storedName).trim().toLowerCase()) && !storedName.includes('@');
+            let resolvedName = usable ? storedName : '';
 
             const firstName = resolvedName.split(' ')[0] || resolvedName;
             const welcomeUserNameEl = document.getElementById('welcomeUserName');
@@ -225,12 +243,12 @@ onAuthStateChanged(auth, async (user) => {
             }
             const welcomeText = document.querySelector('.welcome-text h1');
             if (welcomeText) {
-                welcomeText.innerHTML = `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋`;
+                welcomeText.innerHTML = (firstName ? `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋` : `Welcome back 👋`);
             }
             const profileAvatar = document.querySelector('.p-avatar');
             if (profileAvatar) {
                 const initials = resolvedName.split(/[\s.]+/).filter(Boolean).map(n => n[0]).join('').toUpperCase();
-                profileAvatar.textContent = initials.substring(0, 2) || 'NB';
+                profileAvatar.textContent = initials.substring(0, 2) || '';
             }
 
             loadDepartments();

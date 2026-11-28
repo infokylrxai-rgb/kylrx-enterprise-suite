@@ -411,7 +411,7 @@ export async function seedSampleRegularizationsIfEmpty() {
                 {
                     id: 'REG-PENDING-03',
                     employeeId: 'w2XWBkvIgkS9xonTqVM5wPNckav2',
-                    employeeName: 'jame',
+                    employeeName: 'Sample Employee',
                     department: 'Cybersecurity',
                     date: '2026-09-17',
                     type: 'Short Hours Correction',
@@ -492,7 +492,7 @@ export async function seedSampleAttendanceIfEmpty() {
                 },
                 {
                     userId: 'w2XWBkvIgkS9xonTqVM5wPNckav2',
-                    userName: 'jame',
+                    userName: 'Sample Employee',
                     department: 'Cybersecurity',
                     date: todayStr,
                     punchIn: new Date(`${todayStr}T08:55:00`),
