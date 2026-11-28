@@ -1149,7 +1149,7 @@
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px;">
                             <button type="button" id="btnCancelSubDeptModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; cursor: pointer;">Cancel</button>
-                            <button type="submit" id="btnSaveSubDeptModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: var(--k-accent); color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                            <button type="submit" id="btnSaveSubDeptModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: var(--k-accent); color: var(--k-on-accent); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                 <i data-lucide="check"></i> Save Sub-Department
                             </button>
                         </div>

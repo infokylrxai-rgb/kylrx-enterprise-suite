@@ -479,7 +479,7 @@
                     <div style="width: 56px; height: 56px; border-radius: 18px; background: var(--primary-light, #fdf2f8); color: var(--primary, #ec4899); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
                         <i data-lucide="target" style="width: 28px; height: 28px;"></i>
                     </div>
-                    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main, #1e0a14); margin-bottom: 6px;">No Goals Found</h3>
+                    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-main, var(--k-text)); margin-bottom: 6px;">No Goals Found</h3>
                     <p style="font-size: 0.85rem; max-width: 440px; margin: 0 auto 1.5rem; line-height: 1.5;">
                         No goals match your active filters. You can create a personal goal with custom milestones or pick from standardized engineering templates.
                     </p>
@@ -517,14 +517,14 @@
         let milestonesHtml = '';
         if (goal.measurement?.milestones && goal.measurement.milestones.length > 0) {
             milestonesHtml = `
-                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border, #fce7f3);">
+                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border, var(--k-border));">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted, #9d6e87); text-transform: uppercase; letter-spacing: 0.05em;">Milestones Checklist</span>
                         <span style="font-size: 0.72rem; font-weight: 700; color: var(--primary, #ec4899);">${goal.measurement.milestones.filter(m => m.completed).length}/${goal.measurement.milestones.length} Done</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         ${goal.measurement.milestones.map(m => `
-                            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; cursor: pointer; color: ${m.completed ? '#9d6e87' : 'var(--text-main, #1e0a14)'}; text-decoration: ${m.completed ? 'line-through' : 'none'};">
+                            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; cursor: pointer; color: ${m.completed ? '#9d6e87' : 'var(--text-main, var(--k-text))'}; text-decoration: ${m.completed ? 'line-through' : 'none'};">
                                 <input type="checkbox" ${m.completed ? 'checked' : ''} onchange="window.toggleEmployeeMilestone('${goal.id}', '${m.id}')" style="margin-top: 2px; accent-color: var(--primary, #ec4899); cursor: pointer;">
                                 <span style="line-height: 1.35;">${escapeHtml(m.title)}</span>
                             </label>
@@ -552,7 +552,7 @@
         }
 
         return `
-            <div class="employee-goal-card" style="background: var(--k-surface); border-radius: 20px; border: 1.5px solid var(--border, #fce7f3); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.05); transition: 0.25s ease;">
+            <div class="employee-goal-card" style="background: var(--k-surface); border-radius: 20px; border: 1.5px solid var(--border, var(--k-border)); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(236, 72, 153, 0.05); transition: 0.25s ease;">
                 <div>
                     <!-- Top Category & Status Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
@@ -568,16 +568,16 @@
                     </div>
 
                     <!-- Title -->
-                    <h3 style="font-size: 1.12rem; font-weight: 800; color: var(--text-main, #1e0a14); margin-bottom: 8px; line-height: 1.35;">
+                    <h3 style="font-size: 1.12rem; font-weight: 800; color: var(--text-main, var(--k-text)); margin-bottom: 8px; line-height: 1.35;">
                         ${escapeHtml(goal.title)}
                     </h3>
 
                     <!-- Outcome Statement (PRD §1.1 Outcome) -->
-                    <div style="background: #fffbfe; border-left: 3.5px solid var(--primary, #ec4899); padding: 8px 12px; border-radius: 0 10px 10px 0; margin-bottom: 12px;">
+                    <div style="background: var(--k-surface); border-left: 3.5px solid var(--primary, #ec4899); padding: 8px 12px; border-radius: 0 10px 10px 0; margin-bottom: 12px;">
                         <div style="font-size: 0.68rem; font-weight: 800; color: var(--primary-dark, #be185d); text-transform: uppercase; margin-bottom: 2px;">
                             🎯 Desired Outcome
                         </div>
-                        <p style="font-size: 0.83rem; color: var(--text-main, #1e0a14); margin: 0; line-height: 1.4; font-weight: 500;">
+                        <p style="font-size: 0.83rem; color: var(--text-main, var(--k-text)); margin: 0; line-height: 1.4; font-weight: 500;">
                             ${escapeHtml(goal.outcome || goal.description || 'Deliver target objective.')}
                         </p>
                     </div>
@@ -597,13 +597,13 @@
                             </span>
                             <span style="font-size: 0.85rem; font-weight: 800; color: var(--primary-dark, #be185d);">${progress}%</span>
                         </div>
-                        <div style="width: 100%; height: 8px; background: #fdf2f8; border-radius: 999px; overflow: hidden; border: 1px solid var(--border, #fce7f3);">
+                        <div style="width: 100%; height: 8px; background: #fdf2f8; border-radius: 999px; overflow: hidden; border: 1px solid var(--border, var(--k-border));">
                             <div style="width: ${progress}%; height: 100%; background: linear-gradient(90deg, #ec4899, #be185d); border-radius: 999px; transition: width 0.4s ease;"></div>
                         </div>
                     </div>
 
                     <!-- Schedule & Owner Info (PRD §1.1 Schedule & Owner) -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-muted, #9d6e87); background: #fbfbfc; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--k-border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-muted, #9d6e87); background: var(--k-surface); padding: 6px 10px; border-radius: 10px; border: 1px solid var(--k-border);">
                         <span><strong style="color: var(--k-text-2);">Owner:</strong> ${escapeHtml(goal.owner?.name || 'Marry Doe')}</span>
                         <span><strong style="color: var(--k-text-2);">Target:</strong> ${goal.schedule?.targetCompletionDate || 'Not set'}</span>
                     </div>
@@ -612,13 +612,13 @@
                 </div>
 
                 <!-- Footer Action Toolbar (PRD §1.1 Manage & History) -->
-                <div style="display: flex; gap: 8px; margin-top: 16px; pt-3; border-top: 1px solid var(--border, #fce7f3); padding-top: 12px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 8px; margin-top: 16px; pt-3; border-top: 1px solid var(--border, var(--k-border)); padding-top: 12px; flex-wrap: wrap;">
                     <button onclick="window.openUpdateEmployeeProgressModal('${goal.id}')" style="flex: 1.5; background: var(--primary, #ec4899); color: white; border: none; padding: 8px 12px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
                         <span>Check-in</span>
                     </button>
                     
-                    <button onclick="window.openEditEmployeeGoalModal('${goal.id}')" title="Edit Goal" style="background: var(--k-surface); border: 1.5px solid var(--border, #fce7f3); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <button onclick="window.openEditEmployeeGoalModal('${goal.id}')" title="Edit Goal" style="background: var(--k-surface); border: 1.5px solid var(--border, var(--k-border)); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="edit-3" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
                     </button>
 
@@ -638,7 +638,7 @@
                         </button>
                     ` : ''}
 
-                    <button onclick="window.openEmployeeGoalHistoryModal('${goal.id}')" title="Audit History" style="background: var(--k-surface); border: 1.5px solid var(--border, #fce7f3); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                    <button onclick="window.openEmployeeGoalHistoryModal('${goal.id}')" title="Audit History" style="background: var(--k-surface); border: 1.5px solid var(--border, var(--k-border)); color: var(--text-main); padding: 8px 10px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
                         <i data-lucide="history" style="width: 14px; height: 14px; color: var(--k-muted);"></i>
                     </button>
 
@@ -801,7 +801,7 @@
         container.innerHTML = milestones.map((m, idx) => `
             <div class="milestone-row" style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); width: 20px;">#${idx + 1}</span>
-                <input type="text" class="milestone-input" value="${escapeHtml(m.title || '')}" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.82rem; outline: none; background: #fffbfe;">
+                <input type="text" class="milestone-input" value="${escapeHtml(m.title || '')}" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.82rem; outline: none; background: var(--k-surface);">
                 <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--k-danger-text); cursor: pointer; padding: 4px;">
                     <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                 </button>
@@ -819,7 +819,7 @@
         row.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-bottom: 6px;';
         row.innerHTML = `
             <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); width: 20px;">#${count}</span>
-            <input type="text" class="milestone-input" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.82rem; outline: none; background: #fffbfe;">
+            <input type="text" class="milestone-input" placeholder="Milestone outcome or deliverable..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 0.82rem; outline: none; background: var(--k-surface);">
             <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: var(--k-danger-text); cursor: pointer; padding: 4px;">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
             </button>
@@ -1137,18 +1137,18 @@
                             <i data-lucide="${conf.icon}" style="width: 18px; height: 18px;"></i>
                         </div>
 
-                        <div style="flex: 1; background: #fffbfe; border: 1px solid var(--border, #fce7f3); border-radius: 12px; padding: 12px;">
+                        <div style="flex: 1; background: var(--k-surface); border: 1px solid var(--border, var(--k-border)); border-radius: 12px; padding: 12px;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
-                                <span style="font-size: 0.82rem; font-weight: 800; color: var(--text-main, #1e0a14);">${conf.title}</span>
+                                <span style="font-size: 0.82rem; font-weight: 800; color: var(--text-main, var(--k-text));">${conf.title}</span>
                                 <span style="font-size: 0.72rem; color: var(--text-muted, #9d6e87); font-weight: 600;">${formattedDate}</span>
                             </div>
                             
-                            <p style="font-size: 0.8rem; color: var(--text-main, #1e0a14); margin: 0 0 6px; line-height: 1.4;">
+                            <p style="font-size: 0.8rem; color: var(--text-main, var(--k-text)); margin: 0 0 6px; line-height: 1.4;">
                                 ${escapeHtml(item.summary || '')}
                             </p>
 
                             ${item.notes ? `
-                                <div style="font-size: 0.75rem; color: var(--text-muted, #9d6e87); background: var(--k-surface); padding: 6px 10px; border-radius: 8px; border: 1px solid #fce7f3; margin-top: 4px; font-style: italic;">
+                                <div style="font-size: 0.75rem; color: var(--text-muted, #9d6e87); background: var(--k-surface); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--k-border); margin-top: 4px; font-style: italic;">
                                     "${escapeHtml(item.notes)}"
                                 </div>
                             ` : ''}
@@ -1177,10 +1177,10 @@
         if (!container) return;
 
         container.innerHTML = STANDARD_EMPLOYEE_TEMPLATES.map(tpl => `
-            <div style="background: var(--k-surface); border: 1.5px solid var(--border, #fce7f3); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="background: var(--k-surface); border: 1.5px solid var(--border, var(--k-border)); border-radius: 14px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 2px 8px; border-radius: 6px; text-transform: uppercase;">${escapeHtml(tpl.category)}</span>
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); background: var(--primary-light); padding: 2px 8px; border-radius: 6px; text-transform: uppercase;">${escapeHtml(tpl.category)}</span>
                         <h4 style="font-size: 0.95rem; font-weight: 800; margin: 0; color: var(--text-main);">${escapeHtml(tpl.name)}</h4>
                     </div>
                     <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 4px; line-height: 1.35;">${escapeHtml(tpl.description)}</p>

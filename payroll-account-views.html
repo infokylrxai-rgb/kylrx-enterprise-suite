@@ -95,7 +95,7 @@
         }
         .tab-btn:hover {
             color: var(--k-text);
-            background: rgba(255, 255, 255, 0.6);
+            background: var(--k-surface);
         }
         .tab-btn.active {
             background: var(--k-surface);
@@ -126,13 +126,13 @@
 
         .badge-blue { background: var(--k-accent-soft); color: var(--k-accent-text); border: 1px solid var(--k-accent-border); }
         .badge-green { background: var(--k-success-soft); color: var(--k-success-text); border: 1px solid var(--k-success-border); }
-        .badge-purple { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+        .badge-purple { background: var(--k-subtle); color: #7e22ce; border: 1px solid #e9d5ff; }
         .badge-amber { background: var(--k-warning-soft); color: var(--k-warning-text); border: 1px solid var(--k-warning-border); }
         .badge-red { background: var(--k-danger-soft); color: var(--k-danger-text); border: 1px solid #fecdd3; }
 
         .btn-action-primary {
             background: var(--k-accent);
-            color: white;
+            color: var(--k-on-accent);
             border: none;
             padding: 10px 18px;
             border-radius: 10px;
@@ -197,7 +197,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -250,7 +250,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -490,7 +490,7 @@
             <!-- TAB 3: 3.3 ACCOUNT VIEW & MASKING                                 -->
             <!-- ================================================================= -->
             <div id="pane_account" class="tab-pane" style="display: none;">
-                <div class="card-surface" style="background: #faf5ff; border-color: #e9d5ff;">
+                <div class="card-surface" style="background: var(--k-subtle); border-color: #e9d5ff;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                         <div>
                             <h3 style="font-size: 1.125rem; font-weight: 800; color: #581c87; margin: 0 0 4px 0;">3.3 Account View & Sensitive Data Masking</h3>
@@ -585,7 +585,7 @@
                         <h4 style="font-size: 1rem; font-weight: 800; color: var(--k-text); margin: 0 0 10px 0;">Test AI Financial Restriction Guard</h4>
                         <p style="font-size: 0.8rem; color: var(--k-muted); margin: 0 0 14px 0;">Simulate an attempt by an autonomous AI agent to set deduction amounts:</p>
 
-                        <button onclick="testAiAutonomousBlock()" style="background: var(--k-danger); color: white; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; cursor: pointer;">
+                        <button onclick="testAiAutonomousBlock()" style="background: var(--k-danger); color: var(--k-on-danger); border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; cursor: pointer;">
                             Simulate Blocked AI Financial Decision
                         </button>
 
@@ -793,7 +793,7 @@
                             </div>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span class="badge-pill ${isPending ? 'badge-amber' : 'badge-green'}">${r.status}</span>
-                                ${isPending ? `<button onclick="approveRule('${r.id}')" style="background:var(--k-accent); color:white; border:none; padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; cursor:pointer;">Approve</button>` : ''}
+                                ${isPending ? `<button onclick="approveRule('${r.id}')" style="background:var(--k-accent); color:var(--k-on-accent); border:none; padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; cursor:pointer;">Approve</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -999,7 +999,7 @@
                     <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">External Link (URL)</label>
                     <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com" style="padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 10px; font-size: 0.875rem; outline: none;">
                 </div>
-                <button onclick="window.addCustomApp && window.addCustomApp()" style="background: var(--k-accent); color: white; border: none; border-radius: 10px; padding: 10px 16px; font-size: 0.875rem; font-weight: 700; cursor: pointer;">Map Tool Link</button>
+                <button onclick="window.addCustomApp && window.addCustomApp()" style="background: var(--k-accent); color: var(--k-on-accent); border: none; border-radius: 10px; padding: 10px 16px; font-size: 0.875rem; font-weight: 700; cursor: pointer;">Map Tool Link</button>
             </div>
 
             <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">

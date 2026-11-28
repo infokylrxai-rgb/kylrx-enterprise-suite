@@ -366,7 +366,7 @@ function renderPreviewResults(data) {
 
     // Header updates
     document.getElementById('chartPreviewTitle').innerHTML = `
-        <i data-lucide="activity" style="color: var(--primary);"></i>
+        <i data-lucide="activity" style="color: var(--k-accent-text);"></i>
         ${query.dataSourceName}: ${query.metricName} by ${query.grouping.toUpperCase()}
     `;
 
@@ -489,7 +489,7 @@ function renderTablePreview(chartData, summary, query) {
         return `
             <tr>
                 <td style="font-weight:700; color:var(--text-main);">${label}</td>
-                <td style="font-weight:800; color:var(--primary);">${val.toLocaleString()}</td>
+                <td style="font-weight:800; color:var(--k-accent-text);">${val.toLocaleString()}</td>
                 <td><span style="background:var(--k-subtle); padding:2px 6px; border-radius:4px; font-weight:600;">${pct}%</span></td>
             </tr>
         `;

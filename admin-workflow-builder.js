@@ -1229,7 +1229,7 @@ function renderConfigPanel() {
     const qCount = stageQConfig?.questions?.length || 0;
 
     formHtml += `
-        <div class="stage-question-customizer-box" style="margin-top: 16px; padding: 14px; background: #f0f7ff; border: 1.5px dashed var(--k-accent-border); border-radius: 12px;">
+        <div class="stage-question-customizer-box" style="margin-top: 16px; padding: 14px; background: var(--k-subtle); border: 1.5px dashed var(--k-accent-border); border-radius: 12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
                 <span style="font-size: 11px; font-weight: 800; color: var(--k-accent-text); text-transform: uppercase; letter-spacing: 0.5px;">
                     <i class="fas fa-clipboard-question" style="margin-right: 4px;"></i> Question Customization (PRD §9)

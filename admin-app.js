@@ -125,7 +125,7 @@ function renderWidgets() {
                 </div>
                 <div class="widget-content" id="widget-${widget.id}">
                     <div class="notif-empty" style="padding:2rem; text-align:center;">
-                        <div class="stat-icon" style="margin: 0 auto 1rem; background: var(--primary-light); color: var(--primary);"><i data-lucide="loader"></i></div>
+                        <div class="stat-icon" style="margin: 0 auto 1rem; background: var(--primary-light); color: var(--k-accent-text);"><i data-lucide="loader"></i></div>
                         <p style="color:var(--text-muted); font-size:0.85rem;">Connecting to real-time stream...</p>
                     </div>
                 </div>
@@ -394,7 +394,7 @@ function populateWidgetContent(id) {
                         <div id="ai-pred-growth" class="ai-insight-desc">Calculating dynamic growth projection...</div>
                     </div>
                     <div class="ai-insight-item" style="border-left-color: var(--primary);">
-                        <div class="ai-insight-title" style="color:var(--primary);"><i data-lucide="zap" size="14"></i> Efficiency Forecast</div>
+                        <div class="ai-insight-title" style="color:var(--k-accent-text);"><i data-lucide="zap" size="14"></i> Efficiency Forecast</div>
                         <div id="ai-pred-eff" class="ai-insight-desc">Aggregating productivity milestones...</div>
                     </div>
                 </div>
@@ -461,7 +461,7 @@ function populateWidgetContent(id) {
                         return `
                         <div style="background: var(--bg-soft); padding: 1.5rem; border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1rem; transition: 0.3s; cursor: pointer;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
                             <div style="display: flex; align-items: center; gap: 15px;">
-                                <div style="width: 44px; height: 44px; background: var(--k-surface); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--primary); border: 1px solid var(--border);">
+                                <div style="width: 44px; height: 44px; background: var(--k-surface); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--k-accent-text); border: 1px solid var(--border);">
                                     <i data-lucide="${icon}"></i>
                                 </div>
                                 <div>
@@ -473,7 +473,7 @@ function populateWidgetContent(id) {
                                 <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 10px; font-size: 0.75rem; font-weight: 700;" onclick="window.open('manager-dashboard.html?id=${id}', '_blank')">
                                     <i data-lucide="external-link" size="14"></i> View
                                 </button>
-                                <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 10px; font-size: 0.75rem; font-weight: 700; border-color: var(--primary); color: var(--primary);" onclick="window.location.href='admin-dashboard-builder.html?id=${id}'">
+                                <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 10px; font-size: 0.75rem; font-weight: 700; border-color: var(--primary); color: var(--k-accent-text);" onclick="window.location.href='admin-dashboard-builder.html?id=${id}'">
                                     <i data-lucide="settings" size="14"></i> Edit
                                 </button>
                             </div>
@@ -623,7 +623,7 @@ function startActivityStream() {
                 const color = status === 'Punched In' ? 'var(--secondary)' : (status === 'Punched Out' ? 'var(--danger)' : 'var(--primary)');
                 return `
                     <div class="notif-item">
-                        <div class="stat-icon" style="width:32px; height:32px; background:var(--primary-light); color:var(--primary); font-size: 0.7rem;">${data.name ? data.name[0] : 'U'}</div>
+                        <div class="stat-icon" style="width:32px; height:32px; background:var(--primary-light); color:var(--k-accent-text); font-size: 0.7rem;">${data.name ? data.name[0] : 'U'}</div>
                         <div class="notif-body">
                             <div class="notif-text"><b>${data.name || 'Unknown'}</b> - ${data.aiBehaviorLabel || status}</div>
                             <div class="notif-msg" style="color: ${color}; font-weight: 700; font-size: 0.65rem;">${status.toUpperCase()} // ${data.departmentId || 'GENERAL'}</div>
@@ -1444,7 +1444,7 @@ function renderEmployeeTableRows(employees) {
                     </div>
                     ${l2Id ? `
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <span class="badge-manager-l2" style="font-weight: 800; font-size: 0.65rem; background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L2</span>
+                        <span class="badge-manager-l2" style="font-weight: 800; font-size: 0.65rem; background: #f5f3ff; color: #6d28d9; border: 1px solid var(--k-border); padding: 1px 6px; border-radius: 4px; white-space: nowrap;">L2</span>
                         <span style="font-size: 0.74rem; font-weight: 600; color: var(--k-muted); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(l2Display)}">${escapeHtml(l2Display)}</span>
                     </div>
                     ` : ''}

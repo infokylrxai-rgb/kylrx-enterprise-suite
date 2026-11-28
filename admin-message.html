@@ -154,7 +154,7 @@
         }
         .contacts-list {
             border-right: 1px solid var(--border);
-            background: #fcfdfe;
+            background: var(--k-surface);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -184,7 +184,7 @@
             height: 42px;
             border-radius: 12px;
             background: var(--primary);
-            color: white;
+            color: var(--k-on-accent);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -288,7 +288,7 @@
 
         .send-btn {
             background: var(--k-accent);
-            color: white;
+            color: var(--k-on-accent);
             border: none;
             padding: 0 20px;
             border-radius: 12px;
@@ -372,7 +372,7 @@
             height: 26px;
             border-radius: 8px;
             background: var(--primary);
-            color: white;
+            color: var(--k-on-accent);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -471,7 +471,7 @@
         .badge.manager { background: var(--k-danger-soft); color: var(--k-danger-text); }
         .badge.employee { background: var(--k-success-soft); color: var(--k-success-text); }
         .badge.admin { background: var(--k-accent-soft); color: var(--k-accent-text); }
-        .badge.hrms { background: #faf5ff; color: #9333ea; }
+        .badge.hrms { background: var(--k-subtle); color: #9333ea; }
         .badge.team { background: var(--k-warning-soft); color: var(--k-warning-text); }
 
         /* Action Icon Badges */
@@ -490,7 +490,7 @@
             transition: all 0.2s;
         }
         .action-icon:hover {
-            color: var(--primary);
+            color: var(--k-accent-text);
             border-color: var(--primary);
             transform: translateY(-1px);
             box-shadow: var(--shadow-sm);
@@ -500,7 +500,7 @@
             top: -3px;
             right: -3px;
             background: var(--k-danger);
-            color: white;
+            color: var(--k-on-danger);
             font-size: 0.7rem;
             font-weight: 800;
             min-width: 16px;
@@ -516,7 +516,7 @@
         /* Config Sidebar */
         .config-sidebar {
             position: fixed; right: -360px; top: 0; bottom: 0; width: 100%; max-width: 360px;
-            background: rgba(255, 255, 255, 0.98); border-left: 1px solid var(--border);
+            background: var(--k-surface); border-left: 1px solid var(--border);
             z-index: 2000; padding: 2rem; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
             display: flex; flex-direction: column;
@@ -542,7 +542,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -594,7 +594,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -633,7 +633,7 @@
                     <span>/</span>
                     <a href="admin-dashboard.html" style="color: inherit; text-decoration: none;">Super Admin</a>
                     <span>/</span>
-                    <span style="color: var(--primary); font-weight: 700;">Communications Hub</span>
+                    <span style="color: var(--k-accent-text); font-weight: 700;">Communications Hub</span>
                 </div>
 
                 <!-- Controls & Profile on Right -->
@@ -655,7 +655,7 @@
                     </div>
 
                     <!-- Avatar -->
-                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.875rem; cursor: pointer;">NB</div>
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-light); color: var(--k-accent-text); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.875rem; cursor: pointer;">NB</div>
                 </div>
             </header>
 
@@ -807,7 +807,7 @@
                 <button style="background:transparent; border:none; cursor:pointer;" onclick="window.toggleConfig(false)"><i data-lucide="x"></i></button>
             </div>
             <div style="margin-bottom: 2rem;">
-                <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1rem; font-weight: 800;">Visual Theme</h3>
+                <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--k-accent-text); margin-bottom: 1rem; font-weight: 800;">Visual Theme</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div class="btn-theme active" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; cursor: pointer; font-weight: 700; font-size: 0.8rem;" onclick="setTheme('light', this)">Modern Light</div>
                     <div class="btn-theme" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; cursor: pointer; font-weight: 700; font-size: 0.8rem;" onclick="setTheme('glass', this)">Enterprise Glass</div>
@@ -1134,7 +1134,7 @@
                                 <div style="font-size: 0.75rem; color:var(--k-success-text); font-weight:700;">${entity.type === 'team' ? 'Team Broadcast Stream' : 'Direct Conversation'}</div>
                             </div>
                         </div>
-                        <button onclick="window.clearAllChatHistory()" title="Clear Chat History" style="background:none; border:1px solid #fee2e2; color:var(--k-danger-text); padding:6px 12px; border-radius:8px; font-size: 0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                        <button onclick="window.clearAllChatHistory()" title="Clear Chat History" style="background:none; border:1px solid var(--k-border); color:var(--k-danger-text); padding:6px 12px; border-radius:8px; font-size: 0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
                             <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Clear Chat
                         </button>
                     `;
@@ -1228,7 +1228,7 @@
 
             if (msg.attachments && msg.attachments.length > 0) {
                 const attHtml = msg.attachments.map(att => `
-                    <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); margin-top:8px; font-size: 0.8rem; font-weight:600;">
+                    <div style="display:flex; align-items:center; gap:8px; background:var(--k-surface); padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); margin-top:8px; font-size: 0.8rem; font-weight:600;">
                         <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📎 ${escapeHtml(att.name)}</span>
                         <div style="display:flex; gap:6px;">
                             <a href="#" onclick="window.openAttachment(this); return false;" data-url="${escapeHtml(att.dataUrl)}" style="background:var(--k-accent-soft); color:var(--k-accent-text); border:1px solid var(--k-accent-border); padding:4px 8px; border-radius:6px; font-size: 0.7rem; font-weight:700; text-decoration:none;">Open</a>

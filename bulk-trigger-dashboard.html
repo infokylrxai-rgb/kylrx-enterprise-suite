@@ -226,7 +226,7 @@
         }
 
         /* AI assist (compose, audience, pre-send check) */
-        .ai-assist-box { background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid #ddd6fe; border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
+        .ai-assist-box { background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid var(--k-border); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
         .ai-assist-title { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 800; color: #5b21b6; text-transform: uppercase; letter-spacing: 0.3px; }
         .ai-assist-mode { margin-left: auto; font-size: 0.7rem; font-weight: 700; color: #7c3aed; text-transform: none; letter-spacing: 0; }
         .ai-assist-box textarea, .ai-assist-box input, .ai-assist-box select { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #c4b5fd; font-size: 0.8rem; font-family: inherit; background: var(--k-surface); outline: none; box-sizing: border-box; }
@@ -247,7 +247,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -300,7 +300,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -360,7 +360,7 @@
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px;">
                             <input type="number" id="cfgBatchSizeInput" value="20" min="1" max="100" style="width: 60px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.8rem; font-weight: 700; text-align: center;">
-                            <button onclick="saveBatchConfig()" style="background: var(--k-accent); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Save</button>
+                            <button onclick="saveBatchConfig()" style="background: var(--k-accent); color: var(--k-on-accent); border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">Save</button>
                         </div>
                     </div>
                 </div>
@@ -705,7 +705,7 @@
                             Generate 6-Digit OTP
                         </button>
 
-                        <div id="otpResultBox" style="display: none; background: #faf5ff; border: 1.5px dashed #d8b4fe; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center;">
+                        <div id="otpResultBox" style="display: none; background: var(--k-subtle); border: 1.5px dashed #d8b4fe; border-radius: 12px; padding: 14px; margin-top: 14px; text-align: center;">
                             <div style="font-size: 0.7rem; font-weight: 800; color: #6b21a8; text-transform: uppercase;">Generated Passcode (Dev Preview)</div>
                             <div id="otpGeneratedCode" style="font-size: 1.875rem; font-weight: 800; color: #7e22ce; letter-spacing: 4px; margin: 4px 0;">849201</div>
                             <div style="font-size: 0.7rem; color: #6b21a8;">ID: <span id="otpGeneratedId">OTP-12345</span></div>
@@ -723,7 +723,7 @@
                             <input type="text" id="otpVerifyInput" placeholder="e.g. 123456" maxlength="6" style="width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid var(--border); outline: none; margin-top: 4px; font-size: 1.25rem; font-weight: 800; text-align: center; letter-spacing: 3px; background: var(--k-subtle);">
                         </div>
 
-                        <button onclick="verifySingleOtpTest()" style="background: var(--k-accent); color: white; border: none; padding: 12px 18px; border-radius: 10px; font-weight: 800; font-size: 0.875rem; cursor: pointer; width: 100%;">
+                        <button onclick="verifySingleOtpTest()" style="background: var(--k-accent); color: var(--k-on-accent); border: none; padding: 12px 18px; border-radius: 10px; font-weight: 800; font-size: 0.875rem; cursor: pointer; width: 100%;">
                             Submit Verification
                         </button>
 
@@ -1020,7 +1020,7 @@
                     <label style="font-size: 0.75rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">External Link (URL)</label>
                     <input type="text" id="appUrlInput" placeholder="e.g. console.aws.amazon.com" style="padding: 10px 14px; border: 1.5px solid var(--k-border); border-radius: 10px; font-size: 0.875rem; outline: none;">
                 </div>
-                <button onclick="window.addCustomApp && window.addCustomApp()" style="background: var(--k-accent); color: white; border: none; border-radius: 10px; padding: 10px 16px; font-size: 0.875rem; font-weight: 700; cursor: pointer;">Map Tool Link</button>
+                <button onclick="window.addCustomApp && window.addCustomApp()" style="background: var(--k-accent); color: var(--k-on-accent); border: none; border-radius: 10px; padding: 10px 16px; font-size: 0.875rem; font-weight: 700; cursor: pointer;">Map Tool Link</button>
             </div>
 
             <div style="border-top: 1px solid var(--k-border); padding-top: 1.25rem;">

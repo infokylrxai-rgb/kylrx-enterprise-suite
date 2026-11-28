@@ -914,7 +914,7 @@
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px;">
                             <button type="button" id="btnCancelPolicyModal" style="padding: 10px 18px; border-radius: 12px; border: 1px solid var(--k-border); background: var(--k-surface); font-weight: 700; cursor: pointer;">Cancel</button>
-                            <button type="submit" id="btnSavePolicyModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: var(--k-accent); color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                            <button type="submit" id="btnSavePolicyModal" style="padding: 10px 22px; border-radius: 12px; border: none; background: var(--k-accent); color: var(--k-on-accent); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
                                 <i data-lucide="check"></i> Save Attendance Policy
                             </button>
                         </div>
@@ -1115,7 +1115,7 @@
                                     ? '<span style="background: var(--k-accent-soft); color: var(--k-accent-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700;">Geo</span>'
                                     : '';
                                 const ipBadge = p.ipRestricted
-                                    ? '<span style="background: #faf5ff; color: #7e22ce; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">IP</span>'
+                                    ? '<span style="background: var(--k-subtle); color: #7e22ce; padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">IP</span>'
                                     : '';
                                 const wfhBadge = p.wfhAllowed
                                     ? '<span style="background: var(--k-success-soft); color: var(--k-success-text); padding: 2px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 2px;">WFH</span>'

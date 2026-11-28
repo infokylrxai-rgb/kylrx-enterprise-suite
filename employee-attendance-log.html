@@ -143,7 +143,7 @@
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: #fcfdfe;
+            background: var(--k-surface);
             border-bottom: 1px solid var(--border);
         }
 
@@ -155,7 +155,7 @@
             color: var(--k-text-2);
         }
         tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover { background: #fafbfc; }
+        tbody tr:hover { background: var(--k-surface); }
 
         .status-badge {
             display: inline-flex;
@@ -171,7 +171,7 @@
         .status-present { background: var(--k-success-soft); color: var(--k-success-text); }
         .status-short { background: var(--k-warning-soft); color: var(--k-warning-text); }
         .status-absent { background: var(--k-danger-soft); color: var(--k-danger-text); }
-        .status-holiday { background: var(--primary-light); color: var(--primary); }
+        .status-holiday { background: var(--primary-light); color: var(--k-accent-text); }
         .status-leave { background: #f3e8ff; color: #6b21a8; }
 
         .duration-pill {
@@ -193,7 +193,7 @@
             background: var(--bg);
             font-size: 0.7rem;
             font-weight: 800;
-            color: var(--primary);
+            color: var(--k-accent-text);
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 0.75rem 1.5rem;
@@ -212,13 +212,13 @@
         .sidebar::-webkit-scrollbar-track { background: transparent; }
         .sidebar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.1); border-radius: 10px; }
         .sidebar:hover::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); }
-        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; text-decoration: none; color: var(--primary); }
+        .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; text-decoration: none; color: var(--k-accent-text); }
         .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text); letter-spacing: -1px; }
         .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 1.5rem 0 0.75rem 0.5rem; }
         .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 1rem; color: var(--text-muted); text-decoration: none; font-weight: 600; font-size: 0.875rem; border-radius: 14px; transition: 0.2s; margin-bottom: 4px; }
-        .nav-link:hover, .nav-link.active { background: var(--k-accent-soft); color: var(--primary); }
+        .nav-link:hover, .nav-link.active { background: var(--k-accent-soft); color: var(--k-accent-text); }
         .profile-mini { margin-top: auto; background: var(--k-accent-soft); padding: 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--k-on-accent); }
         .profile-info { flex: 1; min-width: 0; }
         .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
         .profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; }
@@ -295,7 +295,7 @@
         <!-- Summary Cards -->
         <div class="summary-grid">
             <div class="summary-card">
-                <div class="summary-value" id="totalDays" style="color:var(--primary);">—</div>
+                <div class="summary-value" id="totalDays" style="color:var(--k-accent-text);">—</div>
                 <div class="summary-label">Total Days</div>
             </div>
             <div class="summary-card">
@@ -392,7 +392,7 @@
                         <label style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Reason / Explanation</label>
                         <textarea id="empRegReason" rows="3" required placeholder="Explain why the punch was missed or delayed..." style="width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size: 0.875rem; font-family:inherit; resize:none;"></textarea>
                     </div>
-                    <button type="submit" style="background:var(--primary); color:white; border:none; padding:12px; border-radius:12px; font-weight:700; cursor:pointer; margin-top:4px; font-size: 0.875rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <button type="submit" style="background:var(--primary); color:var(--k-on-accent); border:none; padding:12px; border-radius:12px; font-weight:700; cursor:pointer; margin-top:4px; font-size: 0.875rem; display:flex; align-items:center; justify-content:center; gap:8px;">
                         <i data-lucide="send" style="width:16px; height:16px;"></i> Send Request to HR
                     </button>
                 </form>
@@ -512,7 +512,7 @@
                 if (r.regularized) {
                     actionHtml = `<span style="font-size: 0.7rem; font-weight:800; color:var(--k-success-text); background:var(--k-success-soft); padding:3px 8px; border-radius:6px; border:1px solid var(--k-success-border);">Regularized</span>`;
                 } else if (r.status !== 'Present') {
-                    actionHtml = `<button class="btn-regularize" data-date="${r.date}" data-status="${r.status}" style="background:var(--primary); color:white; border:none; padding:5px 12px; border-radius:8px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;">Regularize</button>`;
+                    actionHtml = `<button class="btn-regularize" data-date="${r.date}" data-status="${r.status}" style="background:var(--primary); color:var(--k-on-accent); border:none; padding:5px 12px; border-radius:8px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;">Regularize</button>`;
                 }
 
                 html += `<tr>

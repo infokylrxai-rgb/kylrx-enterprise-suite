@@ -794,7 +794,7 @@ function renderInformationList(container) {
                     <div style="display:flex; align-items:center; gap: 8px;">
                         <span class="badge badge-category">${(notice.category || 'NOTICE').toUpperCase()}</span>
                         ${notice.severity === 'critical' ? `<span class="badge badge-critical">CRITICAL</span>` : ''}
-                        ${!notice.isRead ? `<span class="badge" style="background:#e0e7ff; color:var(--primary);">NEW</span>` : ''}
+                        ${!notice.isRead ? `<span class="badge" style="background:#e0e7ff; color:var(--k-accent-text);">NEW</span>` : ''}
                     </div>
                     <h4 style="margin: 4px 0 2px 0; font-size: 0.95rem; font-weight: 800; color: var(--text-main);">${escapeHtml(notice.title)}</h4>
                     <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">${escapeHtml(notice.description)}</p>

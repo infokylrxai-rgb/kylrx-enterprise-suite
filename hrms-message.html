@@ -38,25 +38,25 @@
         .header { margin-bottom: 2rem; }
         .header h1 { font-size: 1.875rem; font-weight: 700; }
         .chat-container { flex: 1; background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: grid; grid-template-columns: 320px 1fr; overflow: hidden; }
-        .contacts-list { border-right: 1px solid var(--border); background: #fcfdfe; overflow-y: auto; }
+        .contacts-list { border-right: 1px solid var(--border); background: var(--k-surface); overflow-y: auto; }
         .contact-item { padding: 1.25rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; display: flex; gap: 12px; align-items: center; }
         .contact-item:hover { background: var(--k-subtle); }
         .contact-item.active { background: var(--k-accent-soft); border-left: 4px solid var(--primary); }
-        .contact-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .contact-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--primary); color: var(--k-on-accent); display: flex; align-items: center; justify-content: center; font-weight: 600; }
         .contact-info { flex: 1; overflow: hidden; }
         .contact-name { font-weight: 600; font-size: 1rem; margin-bottom: 2px; }
         .contact-last { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-window { display: flex; flex-direction: column; background: var(--k-surface); }
         .chat-header { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .chat-messages { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: #efeae2; }
-        .message { max-width: 70%; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; line-height: 1.4; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); color: #111b21; position: relative; }
+        .message { max-width: 70%; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; line-height: 1.4; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); color: var(--k-text); position: relative; }
         .message.received { background: var(--k-surface); align-self: flex-start; border-top-left-radius: 0; }
         .message.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; }
         .chat-input { padding: 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; position: relative; }
         .input-box { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); outline: none; font-family: inherit; }
         .ai-btn { background: #fdf2f8; color: #db2777; border: 1px solid #fbcfe8; padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.875rem; }
         .ai-btn:hover { background: #fce7f3; transform: scale(1.05); }
-        .send-btn { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .send-btn { background: var(--primary); color: var(--k-on-accent); border: none; padding: 0 20px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
         .send-btn:hover { background: var(--primary-dark); }
         .attach-btn { background: var(--k-subtle); color: var(--text-muted); border: 1px solid var(--border); padding: 0 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; height: 100%; }
         .attach-btn:hover { background: var(--k-border); color: var(--k-text); }
@@ -74,14 +74,14 @@
         .mentions-dropdown.active { display: flex; }
         .mention-item { padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
         .mention-item:hover { background: var(--k-subtle); }
-        .mention-avatar { width: 24px; height: 24px; border-radius: 6px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
+        .mention-avatar { width: 24px; height: 24px; border-radius: 6px; background: var(--primary); color: var(--k-on-accent); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
 
         /* New Filter & Selection Styles */
         .contacts-header { padding: 1.5rem; border-bottom: 1px solid var(--border); background: var(--k-surface); }
         .bulk-options { display: flex; gap: 8px; margin-bottom: 1rem; }
         .bulk-btn { flex: 1; padding: 10px 4px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-subtle); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.2s; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .bulk-btn i { width: 16px; height: 16px; }
-        .bulk-btn:hover, .bulk-btn.active { background: var(--k-accent-soft); color: var(--primary); border-color: var(--primary); }
+        .bulk-btn:hover, .bulk-btn.active { background: var(--k-accent-soft); color: var(--k-accent-text); border-color: var(--primary); }
         
         .search-filter { position: relative; margin-top: 1rem; }
         .search-filter input { width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border); font-size: 0.875rem; outline: none; transition: 0.2s; }
@@ -94,12 +94,12 @@
             padding: 6px; cursor: pointer; color: var(--text-muted); transition: 0.2s;
             display: flex; align-items: center; justify-content: center;
         }
-        .filter-btn:hover { color: var(--primary); border-color: var(--primary); background: var(--k-accent-soft); }
+        .filter-btn:hover { color: var(--k-accent-text); border-color: var(--primary); background: var(--k-accent-soft); }
         .filter-btn i { width: 16px; height: 16px; }
         
         .selection-info { padding: 10px 1.5rem; background: var(--k-accent-soft); border-bottom: 1px solid var(--border); display: none; align-items: center; justify-content: space-between; font-size: 0.875rem; animation: slideDown 0.3s ease; }
         .selection-info.active { display: flex; }
-        .clear-selection { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
+        .clear-selection { color: var(--k-accent-text); font-weight: 700; cursor: pointer; text-decoration: underline; }
         
         .contact-item.selected { background: var(--k-accent-soft); border-left: 4px solid var(--primary); }
         
@@ -107,7 +107,7 @@
         .badge.manager { background: var(--k-danger-soft); color: var(--k-danger-text); }
         .badge.employee { background: var(--k-success-soft); color: var(--k-success-text); }
         .badge.admin { background: var(--k-accent-soft); color: var(--k-accent-text); }
-        .badge.hrms { background: #faf5ff; color: #a855f7; }
+        .badge.hrms { background: var(--k-subtle); color: #a855f7; }
 
         .icon-btn { 
             background: var(--k-accent-soft); border: 1px solid var(--k-accent-border); width: 44px; height: 44px; 
@@ -133,7 +133,7 @@
 
         .action-icon:hover {
             background: var(--k-surface);
-            color: var(--primary);
+            color: var(--k-accent-text);
             border-color: var(--border);
             transform: translateY(-2px);
             box-shadow: var(--shadow-sm);
@@ -148,7 +148,7 @@
         /* Customization Sidebar */
         .config-sidebar {
             position: fixed; right: -360px; top: 0; bottom: 0; width: 100%; max-width: 360px;
-            background: rgba(255, 255, 255, 0.98); border-left: 1px solid var(--border);
+            background: var(--k-surface); border-left: 1px solid var(--border);
             z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(25px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
             display: flex; flex-direction: column;
@@ -157,7 +157,7 @@
         .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
-        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
+        .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--k-accent-text); margin-bottom: 1.25rem; font-weight: 800; }
         .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: var(--k-subtle); border-radius: 12px; border: 1px solid var(--border); }
         .config-option span { font-size: 0.875rem; font-weight: 600; }
 
@@ -170,7 +170,7 @@
         input:checked + .slider:before { transform: translateX(20px); }
 
         .btn-theme { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--k-surface); cursor: pointer; font-size: 0.8rem; font-weight: 700; transition: 0.3s; text-align: center; }
-        .btn-theme.active { border-color: var(--primary); background: var(--k-accent-soft); color: var(--primary); }
+        .btn-theme.active { border-color: var(--primary); background: var(--k-accent-soft); color: var(--k-accent-text); }
 
         /* Chat Modern Style */
         .modern-bubbles .message { border-radius: 20px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
@@ -202,8 +202,8 @@
         .dept-dropdown.active { display: flex; }
         .dept-item { padding: 12px 16px; cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--text-main); transition: 0.2s; border-bottom: 1px solid var(--k-border); }
         .dept-item:last-child { border-bottom: none; }
-        .dept-item:hover { background: var(--k-accent-soft); color: var(--primary); }
-        .dept-item.active { background: var(--k-accent-soft); color: var(--primary); border-left: 3px solid var(--primary); }
+        .dept-item:hover { background: var(--k-accent-soft); color: var(--k-accent-text); }
+        .dept-item.active { background: var(--k-accent-soft); color: var(--k-accent-text); border-left: 3px solid var(--primary); }
 
         /* iframe overrides */
         body.in-iframe .sidebar { display: none !important; }
@@ -507,7 +507,7 @@
                 </div>
             </div>
 
-            <button class="btn" style="background: var(--primary); color: white; margin-top: auto; width: 100%; justify-content: center; padding:12px; border:none; border-radius: 12px; cursor: pointer;" onclick="toggleConfig(false)">
+            <button class="btn" style="background: var(--primary); color: var(--k-on-accent); margin-top: auto; width: 100%; justify-content: center; padding:12px; border:none; border-radius: 12px; cursor: pointer;" onclick="toggleConfig(false)">
                 Save Interface
             </button>
         </aside>
@@ -780,7 +780,7 @@
                     msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
 
                     const esc = (typeof escapeHtml === 'function') ? escapeHtml : (window.escapeHtml || ((s) => String(s || '')));
-                    const formatMsgText = (txt) => esc(txt || '').replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">$1</a>');
+                    const formatMsgText = (txt) => esc(txt || '').replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: var(--k-accent-text); text-decoration: underline;">$1</a>');
 
                     // Timestamp label
                     const ts = msg.timestamp?.toDate
@@ -794,7 +794,7 @@
 
                     if (msg.attachments && msg.attachments.length > 0) {
                         const attHtml = msg.attachments.map(att => `
-                            <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.85); padding:10px 14px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:8px; font-size: 0.8rem; font-weight:600; color:var(--k-text); flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:10px; background:var(--k-surface); padding:10px 14px; border-radius:10px; border:1px solid rgba(0,0,0,0.1); margin-top:8px; font-size: 0.8rem; font-weight:600; color:var(--k-text); flex-wrap:wrap;">
                                 <span style="display:flex; align-items:center; gap:6px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                                     📎 <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(att.name || 'Attachment')}</span>
                                 </span>
@@ -815,7 +815,7 @@
                     if (isSent) {
                         const safeMsgId = esc(msg.id || '');
                         htmlContent += `<div style="display:flex; gap:12px; margin-top:8px; font-size: 0.7rem; opacity:0.8; justify-content:center;">
-                            <span style="cursor:pointer; color: var(--primary); text-decoration: underline;" onclick="window.editMessage('${safeMsgId}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
+                            <span style="cursor:pointer; color: var(--k-accent-text); text-decoration: underline;" onclick="window.editMessage('${safeMsgId}', \`${(msg.text || '').replace(/`/g, '\\`').replace(/"/g, '&quot;')}\`)">Edit</span>
                             <span style="cursor:pointer; color: var(--k-danger-text); text-decoration: underline;" onclick="window.clearMessage('${safeMsgId}')">Clear</span>
                         </div>`;
                     }
@@ -1209,7 +1209,7 @@
                     </button>
                     <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
                         <button id="customEditCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
-                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, var(--k-accent)); color:white;">Save Changes</button>
+                        <button id="customEditSave" style="${btnStyle} border:none; background:var(--primary, var(--k-accent)); color:var(--k-on-accent);">Save Changes</button>
                     </div>
                 </div>
             `;
@@ -1224,7 +1224,7 @@
                     <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this message? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
                         <button id="customDelCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
-                        <button id="customDelConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear Message</button>
+                        <button id="customDelConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:var(--k-on-danger);">Clear Message</button>
                     </div>
                 </div>
             `;
@@ -1277,7 +1277,7 @@
                     <p style="color:var(--k-text-2); margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear the entire conversation? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
                         <button id="customClearAllCancel" style="${btnStyle} border:1px solid #cbd5e1; background:var(--k-surface); color:var(--k-text-2);">Cancel</button>
-                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:white;">Clear Chat</button>
+                        <button id="customClearAllConfirm" style="${btnStyle} border:none; background:var(--k-danger); color:var(--k-on-danger);">Clear Chat</button>
                     </div>
                 </div>
             `;

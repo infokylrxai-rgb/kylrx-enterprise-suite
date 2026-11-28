@@ -379,7 +379,7 @@ function renderWorkforceWidget(wf) {
                 zeroBox.style.cssText = 'display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; min-height:165px; text-align:center; padding:1rem;';
                 zeroBox.innerHTML = `
                     <div style="width:36px; height:36px; border-radius:50%; background:rgba(99, 102, 241, 0.12); display:flex; align-items:center; justify-content:center; margin-bottom:8px;">
-                        <i data-lucide="users" style="color:var(--primary); width:18px; height:18px;"></i>
+                        <i data-lucide="users" style="color:var(--k-accent-text); width:18px; height:18px;"></i>
                     </div>
                     <div style="font-weight:800; font-size:0.85rem; color:var(--k-text); margin-bottom:2px;">0 Active Personnel</div>
                     <div style="font-size:0.72rem; color:var(--k-muted); max-width:240px; line-height:1.35;">

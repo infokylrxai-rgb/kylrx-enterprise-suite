@@ -93,7 +93,7 @@
                     </div>
                     <div>
                         <h4 style="margin: 0; font-size: 0.98rem; font-weight: 800; letter-spacing: -0.01em; color: #ffffff;">National Pension System (NPS) Statutory Profile</h4>
-                        <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: rgba(255, 255, 255, 0.85);">PRD §§ 1, 4, 11 &amp; 13 • Section 80CCD Tax Relief &amp; CRA Subscriber Reporting Engine</p>
+                        <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: #ffffff;">PRD §§ 1, 4, 11 &amp; 13 • Section 80CCD Tax Relief &amp; CRA Subscriber Reporting Engine</p>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -158,7 +158,7 @@
                 </div>
 
                 <!-- KYC Verification Status Strip -->
-                <div style="margin-bottom: 1.25rem; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 10px 14px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;">
+                <div style="margin-bottom: 1.25rem; background: var(--k-surface); border: 1px solid #bae6fd; border-radius: 12px; padding: 10px 14px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #0369a1; text-transform: uppercase;">
                         <i data-lucide="check-check" style="width: 14px; height: 14px; color: #0284c7;"></i>
                         KYC Seeding &amp; CRA Verification:

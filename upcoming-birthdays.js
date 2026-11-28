@@ -1025,7 +1025,7 @@ class UpcomingBirthdaysController {
             if (parsed.birthMonth !== currentMonth) {
                 currentMonth = parsed.birthMonth;
                 html += `
-                    <div style="position:sticky; top:0; background:var(--k-subtle); padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.85rem; color:#4338ca; border:1px solid #e0e7ff; margin-top:6px;">
+                    <div style="position:sticky; top:0; background:var(--k-subtle); padding:6px 12px; border-radius:8px; font-weight:800; font-size:0.85rem; color:#4338ca; border:1px solid var(--k-border); margin-top:6px;">
                         ${MONTH_NAMES[currentMonth]}
                     </div>
                 `;

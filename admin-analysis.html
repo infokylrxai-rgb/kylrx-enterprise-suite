@@ -47,7 +47,7 @@
         }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .chart-title { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
-        .chart-icon { color: var(--primary); width: 20px; height: 20px; }
+        .chart-icon { color: var(--k-accent-text); width: 20px; height: 20px; }
 
         @media print {
             body { background: var(--k-surface) !important; color: black !important; }
@@ -55,7 +55,7 @@
             .main-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
             .stat-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 1rem !important; }
             .chart-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
-            .chart-card { page-break-inside: avoid !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+            .chart-card { page-break-inside: avoid !important; border: 1px solid var(--k-border) !important; box-shadow: none !important; }
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -69,7 +69,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -121,7 +121,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -231,7 +231,7 @@
                     <div class="slider-container" style="margin-top: 2rem; padding: 1.5rem; background: var(--k-subtle); border-radius: 16px; border: 1px dashed var(--border);">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                             <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Prediction Horizon</span>
-                            <span id="sliderVal" style="font-size: 0.875rem; font-weight: 800; color: var(--primary);">3 Months</span>
+                            <span id="sliderVal" style="font-size: 0.875rem; font-weight: 800; color: var(--k-accent-text);">3 Months</span>
                         </div>
                         <input type="range" id="horizonSlider" min="1" max="12" value="3" style="width: 100%; cursor: pointer; accent-color: var(--primary);">
                     </div>
@@ -242,10 +242,10 @@
             <div class="card" style="margin-top: 2rem; padding: 2rem; background: var(--k-surface); border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-md);">
                 <div class="chart-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <div class="chart-title" style="font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
-                        <i data-lucide="history" class="chart-icon" style="color: var(--primary);"></i> 
+                        <i data-lucide="history" class="chart-icon" style="color: var(--k-accent-text);"></i> 
                         <span>Manager Governance Audit Trail</span>
                     </div>
-                    <span style="font-size: 0.7rem; font-weight: 800; color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 100px;">Latest 15 changes</span>
+                    <span style="font-size: 0.7rem; font-weight: 800; color: var(--k-accent-text); background: var(--primary-light); padding: 4px 10px; border-radius: 100px;">Latest 15 changes</span>
                 </div>
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -272,13 +272,13 @@
     </div>
 
     <!-- Success Toast -->
-    <div id="successToast" style="display:none; position:fixed; bottom:24px; right:24px; background:var(--k-success); color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
+    <div id="successToast" style="display:none; position:fixed; bottom:24px; right:24px; background:var(--k-success); color:var(--k-on-success); padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
         <i data-lucide="check-circle" style="width:18px; height:18px;"></i>
         <span>Action completed successfully</span>
     </div>
 
     <!-- Error Toast -->
-    <div id="errorToast" style="display:none; position:fixed; bottom:24px; right:24px; background:var(--k-danger); color:white; padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
+    <div id="errorToast" style="display:none; position:fixed; bottom:24px; right:24px; background:var(--k-danger); color:var(--k-on-danger); padding:12px 24px; border-radius:12px; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); font-weight:700; z-index:99999; align-items:center; gap:8px;">
         <i data-lucide="alert-triangle" style="width:18px; height:18px;"></i>
         <span>An error occurred</span>
     </div>
@@ -288,7 +288,7 @@
         <div style="background:var(--k-surface); padding: 2rem; border-radius:24px; width: 100%; max-width: min(480px, 90%); box-shadow:0 25px 50px -12px rgba(0,0,0,0.15); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="background: var(--primary-glow); color: var(--primary); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <div style="background: var(--primary-glow); color: var(--k-accent-text); padding: 8px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="megaphone" style="width: 20px; height: 20px;"></i>
                     </div>
                     <h3 style="font-weight:800; font-size: 1.25rem; margin: 0; color: var(--k-text);">Analytics Broadcast</h3>
@@ -687,7 +687,7 @@
             }
             #customAppsModal .modal button.map-btn {
                 background: var(--k-accent);
-                color: white !important;
+                color: var(--k-on-accent) !important;
                 border: none;
                 border-radius: 12px;
                 padding: 14px;

@@ -92,7 +92,7 @@
         <aside class="sidebar">
             <a href="admin-dashboard.html" class="logo">
                 <img src="logo.jpg" alt="Logo" style="height: 36px; object-fit: contain; border-radius: 8px;">
-                <span class="logo-text">Kylrx <span style="color: var(--primary);">AI</span></span>
+                <span class="logo-text">Kylrx <span style="color: var(--k-accent-text);">AI</span></span>
             </a>
             
             <nav class="nav-menu">
@@ -144,7 +144,7 @@
                 <div id="sidebar-active-commands" style="display: flex; flex-direction: column; gap: 4px;"></div>
                 <div class="nav-label" style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <span>CUSTOM APPS</span>
-                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
+                    <button onclick="openAppRegistryModal()" style="background: none; border: none; color: var(--k-accent-text); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;" title="App Registry Control Panel">
                         <i data-lucide="settings" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
@@ -244,7 +244,7 @@
                         </div>
                     </div>
 
-                    <div class="ai-glass-card" style="background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid #ddd6fe; padding: 1.25rem; margin-top: 2rem;">
+                    <div class="ai-glass-card" style="background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid var(--k-border); padding: 1.25rem; margin-top: 2rem;">
                         <h3 style="font-weight: 800; font-size: 1rem; color: #5b21b6; display: flex; align-items: center; gap: 6px; margin-bottom: 0.75rem;"><i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> AI Pipeline Insights</h3>
                         <div id="pipelineInsights" style="font-size: 0.8rem; color: #4c1d95; line-height: 1.5;">Loading…</div>
                     </div>
@@ -332,7 +332,7 @@
             }
             #customAppsModal .modal button.map-btn {
                 background: var(--k-accent);
-                color: white !important;
+                color: var(--k-on-accent) !important;
                 border: none;
                 border-radius: 12px;
                 padding: 14px;
@@ -513,7 +513,7 @@
                                     <div>
                                         <div style="font-weight: 700; font-size: 0.875rem; color: var(--text-main);">${esc(c.name)}</div>
                                         <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 2px;">
-                                            <span style="font-weight: 700; color: var(--primary); text-transform: uppercase;">${esc(c.department || 'General')}</span><span>•</span><span>${esc(c.role || 'Role not set')}</span>${c.source ? `<span>•</span><span>${esc(c.source)}</span>` : ''}
+                                            <span style="font-weight: 700; color: var(--k-accent-text); text-transform: uppercase;">${esc(c.department || 'General')}</span><span>•</span><span>${esc(c.role || 'Role not set')}</span>${c.source ? `<span>•</span><span>${esc(c.source)}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
@@ -522,7 +522,7 @@
                                     ${a.level !== 'done' ? `<span class="stage-badge" style="${PRIORITY_STYLE[a.level]};" title="AI priority">✨ ${esc(a.priority)}</span>` : ''}
                                 </div>
                             </div>
-                            <div style="font-size: 0.75rem; color: #4c1d95; background: #faf5ff; border: 1px solid #ede9fe; border-radius: 10px; padding: 6px 10px;">
+                            <div style="font-size: 0.75rem; color: #4c1d95; background: var(--k-subtle); border: 1px solid var(--k-border); border-radius: 10px; padding: 6px 10px;">
                                 <strong>Next:</strong> ${esc(a.next)}${a.avgRating !== null ? ` · rating ${esc(a.avgRating)}/5 (${esc(c.interviewCount)} round(s))` : ''}${a.reasons.length ? ` — <span style="color:#6b21a8;">${a.reasons.map(esc).join(' ')}</span>` : ''}
                             </div>
                         </div>`;

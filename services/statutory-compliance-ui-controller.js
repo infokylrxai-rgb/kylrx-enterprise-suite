@@ -126,7 +126,7 @@
                     <div style="background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 18px; padding: 1.25rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <span style="font-size: 0.72rem; font-weight: 800; color: var(--k-muted); text-transform: uppercase;">Jurisdictions</span>
-                            <span style="background: #faf5ff; color: #9333ea; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;"><i data-lucide="map-pin" style="width: 16px;"></i></span>
+                            <span style="background: var(--k-subtle); color: #9333ea; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center;"><i data-lucide="map-pin" style="width: 16px;"></i></span>
                         </div>
                         <h3 style="font-size: 1.8rem; font-weight: 800; color: #9333ea; margin: 8px 0 0 0;">${states.length}</h3>
                         <p style="font-size: 0.75rem; color: var(--k-muted); margin: 4px 0 0 0;">States &amp; Central Coverage</p>
@@ -272,7 +272,7 @@
                         <button type="button" onclick="window.KylrxStatutoryComplianceUIController.openEditRuleModal('${rule.complianceCode}')" class="icon-btn" title="Edit Scheme" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--k-border); background: var(--k-surface); color: var(--k-text-2); cursor: pointer; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
                         </button>
-                        <button type="button" onclick="window.KylrxStatutoryComplianceUIController.deleteRule('${rule.complianceCode}')" class="icon-btn" title="Delete Scheme" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid #fee2e2; background: #fff1f2; color: #e11d48; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <button type="button" onclick="window.KylrxStatutoryComplianceUIController.deleteRule('${rule.complianceCode}')" class="icon-btn" title="Delete Scheme" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--k-border); background: #fff1f2; color: #e11d48; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                         </button>
                     </div>
