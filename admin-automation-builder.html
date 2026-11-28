@@ -66,11 +66,11 @@
         }
 
         .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; color: var(--primary); text-decoration: none; }
-        .logo-text { font-size: 1.4rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+        .logo-text { font-size: 1.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
         .nav-menu { flex: 1; list-style: none; overflow-y: auto; scrollbar-width: thin; padding-right: 4px; margin-bottom: 1rem; }
         .nav-item { margin-bottom: 0.25rem; }
         .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin: 1.25rem 0 0.5rem 0.5rem; opacity: 0.6; }
-        .nav-link { display: flex; align-items: center; gap: 12px; padding: 10px 0.85rem; color: #475569; text-decoration: none; font-weight: 500; font-size: 0.85rem; border-radius: 10px; transition: all 0.2s ease; margin-bottom: 2px; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 10px 0.75rem; color: #475569; text-decoration: none; font-weight: 500; font-size: 0.875rem; border-radius: 10px; transition: all 0.2s ease; margin-bottom: 2px; }
         .nav-link:hover { background: #eff6ff; color: #2563eb; }
         .nav-link.active { background: #eff6ff; color: #2563eb; font-weight: 700; position: relative; }
         .nav-link.active::before { content: ''; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3.5px; background: #2563eb; border-radius: 0 4px 4px 0; }
@@ -143,7 +143,7 @@
             gap: 8px;
             padding: 9px 16px;
             border-radius: 12px;
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             font-weight: 700;
             font-family: inherit;
             cursor: pointer;
@@ -172,7 +172,7 @@
         .canvas-scrollable {
             flex: 1;
             overflow-y: auto;
-            padding: 3rem 2rem 6rem;
+            padding: 2rem 2rem 2rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -242,7 +242,7 @@
         .badge-end { background: #ccfbf1; color: #0f766e; }
 
         .node-question {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: #94a3b8;
             text-transform: uppercase;
@@ -257,7 +257,7 @@
         }
 
         .node-summary {
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             color: var(--text-muted);
             line-height: 1.4;
         }
@@ -275,7 +275,7 @@
             border: 1px solid #e2e8f0;
             padding: 3px 8px;
             border-radius: 6px;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: #475569;
             display: inline-flex;
@@ -359,7 +359,7 @@
 
         /* Slide-over Node Inspector Drawer */
         .inspector-drawer {
-            width: 440px;
+            width: 100%; max-width: 440px;
             background: #ffffff;
             border-left: 1px solid var(--border);
             display: flex;
@@ -396,7 +396,7 @@
             border: 1px solid #cbd5e1;
             border-radius: 10px;
             font-family: inherit;
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             outline: none;
             transition: border-color 0.2s;
             background: #ffffff;
@@ -441,7 +441,7 @@
             border-radius: 24px;
             width: 90%;
             max-width: 440px;
-            padding: 2.25rem 2rem;
+            padding: 2rem 2rem;
             text-align: center;
             box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
             border: 1px solid var(--border);
@@ -465,9 +465,9 @@
         }
         .center-modal-desc {
             color: var(--text-muted);
-            font-size: 0.92rem;
+            font-size: 0.875rem;
             line-height: 1.6;
-            margin-bottom: 1.75rem;
+            margin-bottom: 1.5rem;
         }
         .center-modal-actions {
             display: flex;
@@ -622,7 +622,7 @@
                     <div class="drawer-header">
                         <div>
                             <span id="drawerBadge" class="node-type-badge badge-trigger">Trigger</span>
-                            <h3 id="drawerTitle" style="font-size: 1.1rem; font-weight: 800; margin-top: 4px;">Element Inspector</h3>
+                            <h3 id="drawerTitle" style="font-size: 1.125rem; font-weight: 800; margin-top: 4px;">Element Inspector</h3>
                         </div>
                         <button onclick="closeInspector()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px;">
                             <i data-lucide="x" size="20"></i>
@@ -656,28 +656,28 @@
                 <button onclick="closeTemplateModal()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px;"><i data-lucide="x"></i></button>
             </div>
             <div style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto;">
-                <div onclick="loadTemplate('exit')" style="padding: 1.2rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                <div onclick="loadTemplate('exit')" style="padding: 1.25rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 800; color: var(--text-main);">1. Employee Exit Automation (Standard Flow)</span>
                         <span class="node-type-badge badge-exit" style="background:#fee2e2; color:#dc2626;">13 STEPS (FULL FLOW)</span>
                     </div>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Resignation trigger ➔ Full-Time check ➔ Start Exit Workflow ➔ Manager approval ➔ Asset clearance ➔ IT+Admin+Finance clearances ➔ 2 days wait ➔ Notify HR if overdue ➔ Start F&F ➔ Relieving + Experience Letters ➔ Update Employee status ➔ Vault archive ➔ Exit completed</p>
                 </div>
-                <div onclick="loadTemplate('onboarding')" style="padding: 1.2rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                <div onclick="loadTemplate('onboarding')" style="padding: 1.25rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 800; color: var(--text-main);">2. New Hire Onboarding & Provisioning</span>
                         <span class="node-type-badge" style="background:#e0e7ff; color:#4338ca;">6 STEPS</span>
                     </div>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Candidate invited ➔ Documents verification ➔ HR approval ➔ Google/Slack provisioning ➔ Welcome notification ➔ Completed</p>
                 </div>
-                <div onclick="loadTemplate('leave')" style="padding: 1.2rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                <div onclick="loadTemplate('leave')" style="padding: 1.25rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 800; color: var(--text-main);">3. Leave Policy & SLA Escalation Flow</span>
                         <span class="node-type-badge" style="background:#e0f2fe; color:#0284c7;">8 STEPS</span>
                     </div>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">Leave applied ➔ Balance check ➔ Consecutive days branch ➔ Manager approval ➔ 24h escalation ➔ Balance debit ➔ Notification</p>
                 </div>
-                <div onclick="loadTemplate('payroll')" style="padding: 1.2rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+                <div onclick="loadTemplate('payroll')" style="padding: 1.25rem; border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 800; color: var(--text-main);">4. Monthly Payroll Disbursement & Statutory Run</span>
                         <span class="node-type-badge" style="background:#dcfce7; color:#15803d;">7 STEPS</span>
@@ -705,7 +705,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-trigger"><i data-lucide="zap" size="14"></i> Trigger</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">When does it start?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">When does it start?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Employee created, resignation submitted, payroll started</div>
                 </div>
 
@@ -714,7 +714,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-condition"><i data-lucide="filter" size="14"></i> Condition</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">When should it continue?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">When should it continue?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Employee Type = Full Time AND BU = Technology</div>
                 </div>
 
@@ -723,7 +723,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-branch"><i data-lucide="git-branch" size="14"></i> Branch</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">What if different cases exist?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">What if different cases exist?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Has assets? Yes / No condition fork</div>
                 </div>
 
@@ -732,7 +732,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-approval"><i data-lucide="user-check" size="14"></i> Approval</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">Who must approve?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">Who must approve?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Manager ➔ HR Operations ➔ Finance Controller</div>
                 </div>
 
@@ -741,7 +741,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-wait"><i data-lucide="clock" size="14"></i> Wait</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">How long should Kylrx wait?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">How long should Kylrx wait?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Pause execution for 2 business days / 48 hours</div>
                 </div>
 
@@ -750,7 +750,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-escalation"><i data-lucide="alert-triangle" size="14"></i> Escalation</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">What happens if nobody acts?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">What happens if nobody acts?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Reminder ➔ Skip-level ➔ Escalation to HR Head</div>
                 </div>
 
@@ -759,7 +759,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-action"><i data-lucide="play-circle" size="14"></i> Action</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">What should Kylrx do?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">What should Kylrx do?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Assign policy, calculate F&F, generate letter, debit ledger</div>
                 </div>
 
@@ -768,7 +768,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-notification"><i data-lucide="bell" size="14"></i> Notification</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">Who should be informed?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">Who should be informed?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Multi-channel alerts to Employee, Manager, HR, IT</div>
                 </div>
 
@@ -777,7 +777,7 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span class="node-type-badge badge-end"><i data-lucide="check-circle-2" size="14"></i> End</span>
                     </div>
-                    <div style="font-weight: 800; font-size: 0.9rem; margin-top: 6px;">When is it complete?</div>
+                    <div style="font-weight: 800; font-size: 0.875rem; margin-top: 6px;">When is it complete?</div>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Workflow terminal reached, record archived, immutable audit ledger sealed</div>
                 </div>
             </div>
@@ -793,8 +793,8 @@
             <h2 id="builderConfirmTitle" class="center-modal-title">Remove Step</h2>
             <div id="builderConfirmMessage" class="center-modal-desc">Remove step 1: "Employee submits resignation"?</div>
             <div class="center-modal-actions">
-                <button type="button" id="builderConfirmCancelBtn" class="btn-builder" style="flex: 1; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: #f8fafc; color: #475569; transition: all 0.2s;">Cancel</button>
-                <button type="button" id="builderConfirmOkBtn" class="btn-builder" style="flex: 1; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.9rem; font-weight: 700; cursor: pointer; border: none; background: #dc2626; color: white; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3); transition: all 0.2s;">Remove</button>
+                <button type="button" id="builderConfirmCancelBtn" class="btn-builder" style="flex: 1; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: #f8fafc; color: #475569; transition: all 0.2s;">Cancel</button>
+                <button type="button" id="builderConfirmOkBtn" class="btn-builder" style="flex: 1; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.875rem; font-weight: 700; cursor: pointer; border: none; background: #dc2626; color: white; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3); transition: all 0.2s;">Remove</button>
             </div>
         </div>
     </div>
@@ -808,13 +808,13 @@
             <h2 id="builderAlertTitle" class="center-modal-title">Notice</h2>
             <div id="builderAlertMessage" class="center-modal-desc">Message content</div>
             <div class="center-modal-actions">
-                <button type="button" id="builderAlertOkBtn" class="btn-builder btn-builder-primary" style="width: 100%; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.9rem; font-weight: 700; cursor: pointer;">OK</button>
+                <button type="button" id="builderAlertOkBtn" class="btn-builder btn-builder-primary" style="width: 100%; padding: 12px 18px; border-radius: 12px; justify-content: center; font-size: 0.875rem; font-weight: 700; cursor: pointer;">OK</button>
             </div>
         </div>
     </div>
 
     <!-- Toast Feedback Indicator -->
-    <div id="builderToast" style="display: none; position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); z-index: 9000; font-size: 0.85rem; align-items: center; gap: 10px; animation: modalScaleIn 0.25s ease;">
+    <div id="builderToast" style="display: none; position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); z-index: 9000; font-size: 0.875rem; align-items: center; gap: 10px; animation: modalScaleIn 0.25s ease;">
         <i id="builderToastIcon" data-lucide="check-circle-2" size="18" style="color: #4ade80;"></i>
         <span id="builderToastText">Step deleted & synced to Backend Firebase</span>
     </div>
@@ -850,7 +850,7 @@
             #customAppsModal .modal {
                 background: #ffffff !important;
                 color: #0f172a !important;
-                padding: 2.5rem;
+                padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
@@ -895,7 +895,7 @@
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
-                font-size: 0.85rem;
+                font-size: 0.875rem;
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
@@ -917,7 +917,7 @@
                 transition: 0.2s;
                 text-align: center;
                 width: 100%;
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {

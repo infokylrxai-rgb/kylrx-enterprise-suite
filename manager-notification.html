@@ -39,7 +39,7 @@
         }
         .custom-alert-card {
             background: white;
-            padding: 2.5rem;
+            padding: 2rem;
             border-radius: 28px;
             width: 90%;
             max-width: 420px;
@@ -68,16 +68,16 @@
         .sidebar::-webkit-scrollbar-thumb { background: var(--primary-soft); border-radius: 10px; }
         .sidebar:hover::-webkit-scrollbar-thumb { background: var(--primary); }
 
-        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
-        .header { margin-bottom: 2.5rem; }
-        .header h1 { font-size: 2rem; font-weight: 700; }
+        .main-content { margin-left: 280px; flex: 1; padding: 2rem; }
+        .header { margin-bottom: 2rem; }
+        .header h1 { font-size: 1.875rem; font-weight: 700; }
         .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
         .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
         .notif-item:last-child { border-bottom: none; }
         .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .notif-content { flex: 1; }
         .notif-title { font-weight: 600; margin-bottom: 4px; }
-        .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+        .notif-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; }
         .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
 
         .icon-btn { 
@@ -118,19 +118,19 @@
 
         /* Customization Sidebar */
         .config-sidebar {
-            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 100%; max-width: 360px;
             background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border);
             z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
             display: flex; flex-direction: column;
         }
         .config-sidebar.active { right: 0; }
-        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
         .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
         .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
-        .config-option span { font-size: 0.9rem; font-weight: 600; }
+        .config-option span { font-size: 0.875rem; font-weight: 600; }
 
         /* Switches */
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
@@ -148,10 +148,10 @@
         .tight .notif-desc { display: none; }
 
         .sidebar-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-        .profile-mini { margin-top: auto; background: var(--primary-light, #eff6ff); padding: 0.85rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, #e2e8f0); }
+        .profile-mini { margin-top: auto; background: var(--primary-light, #eff6ff); padding: 0.75rem 1rem; border-radius: 16px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border, #e2e8f0); }
         .avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; flex-shrink: 0; }
         .profile-info { flex: 1; min-width: 0; }
-        .profile-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
+        .profile-name { font-size: 0.875rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main, #0f172a); }
         .profile-role { font-size: 0.7rem; color: var(--text-muted, #64748b); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
 </head>
@@ -241,7 +241,7 @@
             </div>
         </aside>
         <main class="main-content">
-            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
+            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; width: 100%;">
                 <div style="flex: 1;">
                     <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">Manager Notifications</h1>
                     <p style="color: var(--text-muted); font-weight: 500;">Manage and view all system alerts for this unit</p>
@@ -366,7 +366,7 @@
             if (!el) {
                 el = document.createElement('div');
                 el.id = 'managerToast';
-                el.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:10px 18px; border-radius:10px; color:#fff; font-weight:600; font-size:0.85rem; z-index:10000; box-shadow:0 8px 24px rgba(0,0,0,0.2); max-width:90%;';
+                el.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:10px 18px; border-radius:10px; color:#fff; font-weight:600; font-size: 0.875rem; z-index:10000; box-shadow:0 8px 24px rgba(0,0,0,0.2); max-width:90%;';
                 document.body.appendChild(el);
             }
             el.textContent = message;
@@ -379,7 +379,7 @@
         function showManagerError(message) {
             console.warn('[Manager notifications] Could not load:', message);
             const box = document.querySelector('.card');
-            if (box) box.innerHTML = `<div style="text-align:center; padding:4rem 2rem; color:#991b1b;"><strong>Could not load notifications</strong><p style="font-size:0.85rem; margin-top:6px;">${esc(message)}</p></div>`;
+            if (box) box.innerHTML = `<div style="text-align:center; padding: 2rem 2rem; color:#991b1b;"><strong>Could not load notifications</strong><p style="font-size: 0.875rem; margin-top:6px;">${esc(message)}</p></div>`;
             showManagerToast('Could not load notifications: ' + message, true);
         }
 
@@ -548,7 +548,7 @@
             window.visibleNotifIds = allDocs.map(d => d.id);
 
             if (allDocs.length === 0) {
-                notifContainer.innerHTML = '<div style="text-align: center; padding: 5rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
+                notifContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
                 if (window.lucide) lucide.createIcons();
                 return;
             }
@@ -578,16 +578,16 @@
                 const actionButtons = isHelpRequest && helpStatus === 'pending' ? `
                     <div style="display:flex; gap:8px; margin-top:10px;">
                         <button onclick="handleHelpRequest('${esc(docId)}','allow')"
-                            style="flex:1; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; border-radius:8px; padding:7px 12px; font-size:0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
+                            style="flex:1; background:#dcfce7; color:#166534; border:1px solid #bbf7d0; border-radius:8px; padding:7px 12px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
                             onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'">
                             ✅ Allow Access
                         </button>
                         <button onclick="handleHelpRequest('${esc(docId)}','decline')"
-                            style="flex:1; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:8px; padding:7px 12px; font-size:0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
+                            style="flex:1; background:#fee2e2; color:#991b1b; border:1px solid #fecaca; border-radius:8px; padding:7px 12px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
                             onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
                             ❌ Decline
                         </button>
-                    </div>` : (isHelpRequest ? `<div style="margin-top:8px; padding:5px 10px; border-radius:6px; font-size:0.75rem; font-weight:700; display:inline-block; background:${bg}; color:${color};">${helpStatus === 'allowed' ? '✅ Access Allowed' : '❌ Declined'}</div>` : '');
+                    </div>` : (isHelpRequest ? `<div style="margin-top:8px; padding:5px 10px; border-radius:6px; font-size: 0.75rem; font-weight:700; display:inline-block; background:${bg}; color:${color};">${helpStatus === 'allowed' ? '✅ Access Allowed' : '❌ Declined'}</div>` : '');
 
                 return `
                     <div class="notif-item" id="notif-${esc(docId)}">
@@ -601,7 +601,7 @@
                                 </span>
                             </div>
                             <div class="notif-desc">${esc(data.message || 'No details provided.')}</div>
-                            ${isHelpRequest && data.empEmail ? `<div style="margin-top:4px; font-size:0.75rem; color:var(--primary); font-weight:700;">📧 Employee Email: ${esc(data.empEmail)}</div>` : ''}
+                            ${isHelpRequest && data.empEmail ? `<div style="margin-top:4px; font-size: 0.75rem; color:var(--primary); font-weight:700;">📧 Employee Email: ${esc(data.empEmail)}</div>` : ''}
                             <div class="notif-time">${esc(date)}</div>
                             ${actionButtons}
                         </div>
@@ -703,7 +703,7 @@
                 const ensureNotifModals = () => {
             if (document.getElementById('customDelNotifModal')) return;
             const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
-            const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const contentStyle = 'background:white; padding:24px; border-radius:12px; width: 100%; max-width: min(400px, 90%); box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
             const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
             
             const delModal = document.createElement('div');
@@ -711,8 +711,8 @@
             delModal.style.cssText = modalStyle;
             delModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear Notification</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear this notification?</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear Notification</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this notification?</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
                         <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
                         <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear</button>
@@ -725,8 +725,8 @@
             clearAllModal.style.cssText = modalStyle;
             clearAllModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear All Notifications</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear All Notifications</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
                         <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
                         <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear All</button>

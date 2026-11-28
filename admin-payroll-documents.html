@@ -70,11 +70,11 @@
         }
 
         .doc-table th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .doc-table td { padding: 1.25rem 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+        .doc-table td { padding: 1.25rem 1rem; border-top: 1px solid var(--border); font-size: 0.875rem; }
 
         .security-badge {
             background: #ecfdf5; color: #059669; padding: 4px 10px; border-radius: 100px;
-            font-size: 0.65rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
         }
 
         .archive-list {
@@ -89,26 +89,26 @@
         /* Toasts */
         .toast-notification {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: white; border-radius: 20px; padding: 1.5rem 2.5rem;
+            background: white; border-radius: 20px; padding: 1.5rem 2rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
             display: none; align-items: center; gap: 12px; z-index: 5000;
             border: 1px solid var(--border); animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .toast-notification.active { display: flex; }
         .toast-notification i { color: #10b981; width: 24px; height: 24px; }
-        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+        .toast-notification span { font-weight: 700; color: #1e293b; font-size: 1rem; }
         @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
     </style>
 </head>
 <body class="admin-dashboard">
     <!-- Confirm Modal -->
     <div id="disburseModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+        <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
             <div style="width: 64px; height: 64px; background: #eff6ff; color: #3b82f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i data-lucide="send" size="32"></i>
             </div>
             <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;" id="disburseModalTitle">Confirm Disbursement</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="disburseModalDesc">...</p>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6;" id="disburseModalDesc">...</p>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('disburseModal').style.display='none'">Cancel</button>
                 <button class="btn btn-primary" style="flex: 1; background: #10b981; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="confirmDisburseBtn">Confirm</button>
@@ -118,12 +118,12 @@
 
     <!-- Export Confirm Modal -->
     <div id="exportConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+        <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
             <div style="width: 64px; height: 64px; background: #fef2f2; color: #ef4444; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
                 <i data-lucide="alert-triangle" size="32"></i>
             </div>
             <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem; color: #1e293b;">Missing Bank Details</h2>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; line-height: 1.6;" id="exportConfirmModalDesc">...</p>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; line-height: 1.6;" id="exportConfirmModalDesc">...</p>
             <div style="display: flex; gap: 12px;">
                 <button class="btn btn-outline" style="flex: 1; padding: 14px; border-radius: 12px; justify-content: center;" onclick="document.getElementById('exportConfirmModal').style.display='none'">Cancel</button>
                 <button class="btn btn-primary" style="flex: 1; background: #ef4444; border: none; padding: 14px; border-radius: 12px; justify-content: center;" id="btnConfirmExportAnyway">Export Anyway</button>
@@ -133,17 +133,17 @@
 
     <!-- Vault Modal -->
     <div id="vaultModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2.5rem; border-radius: 24px; width: 90%; max-width: 600px; height: 80vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
+        <div style="background: white; padding: 2rem; border-radius: 24px; width: 90%; max-width: 600px; height: 80vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); border: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-shrink: 0;">
                 <div>
                     <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b;" id="vaultModalTitle">Secure Document Vault</h2>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;" id="vaultModalSubtitle">Viewing archived records</p>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;" id="vaultModalSubtitle">Viewing archived records</p>
                 </div>
                 <button onclick="document.getElementById('vaultModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted);"><i data-lucide="x" size="24"></i></button>
             </div>
             
             <div style="margin-bottom: 1.5rem; position: relative; flex-shrink: 0;">
-                <input type="text" id="vaultSearchInput" placeholder="Search by employee name..." style="width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 0.9rem;">
+                <input type="text" id="vaultSearchInput" placeholder="Search by employee name..." style="width: 100%; padding: 12px 12px 12px 40px; border-radius: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 0.875rem;">
                 <i data-lucide="search" size="18" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
             </div>
             
@@ -282,22 +282,22 @@
                         <div class="doc-category-grid">
                             <div class="category-item" onclick="filterDocsByType('Payslip')">
                                 <i data-lucide="file-spreadsheet" size="32"></i>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">Monthly Payslips</h4>
+                                <h4 style="font-size: 0.875rem; font-weight: 800;">Monthly Payslips</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Full-Time Employees</p>
                             </div>
                             <div class="category-item" onclick="filterDocsByType('Invoice')">
                                 <i data-lucide="receipt" size="32"></i>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">Service Invoices</h4>
+                                <h4 style="font-size: 0.875rem; font-weight: 800;">Service Invoices</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Interns & Consultants</p>
                             </div>
                             <div class="category-item" onclick="filterDocsByType('F&F Settlement')">
                                 <i data-lucide="award" size="32"></i>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">Experience Letters</h4>
+                                <h4 style="font-size: 0.875rem; font-weight: 800;">Experience Letters</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">F&amp;F &amp; Settlements</p>
                             </div>
                             <div class="category-item" onclick="switchPayrollTab('disbursement')">
                                 <i data-lucide="trending-up" size="32"></i>
-                                <h4 style="font-size: 0.9rem; font-weight: 800;">Payroll Disbursement Hub</h4>
+                                <h4 style="font-size: 0.875rem; font-weight: 800;">Payroll Disbursement Hub</h4>
                                 <p style="font-size: 0.7rem; color: var(--text-muted);">Generate &amp; Export</p>
                             </div>
                         </div>
@@ -309,14 +309,14 @@
                             <div class="security-badge" style="background: #eff6ff; color: #3b82f6;"><i data-lucide="lock" size="12"></i> Admin Controlled</div>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                            <label style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; font-weight: 700;">
+                            <label style="display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem; font-weight: 700;">
                                 Payment Authority
                                 <select id="paymentAuthority" style="padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit;" onchange="document.getElementById('disbursementTargetContainer').style.display = this.value === 'Admin' ? 'flex' : 'none'">
                                     <option value="HRMS">HRMS (Automated Gateway)</option>
                                     <option value="Admin">Admin (Direct Bank Transfer)</option>
                                 </select>
                             </label>
-                            <label id="disbursementTargetContainer" style="display: none; flex-direction: column; gap: 8px; font-size: 0.85rem; font-weight: 700;">
+                            <label id="disbursementTargetContainer" style="display: none; flex-direction: column; gap: 8px; font-size: 0.875rem; font-weight: 700;">
                                 Disbursement Target
                                 <select style="padding: 10px; border-radius: 10px; border: 1px solid var(--border); font-family: inherit;">
                                     <option>All Employees & Managers</option>
@@ -326,7 +326,7 @@
                         <button class="btn btn-primary" style="width: 100%; justify-content: center; background: #10b981; border: none; font-size: 1rem; padding: 14px;" onclick="triggerDisbursement()">
                             <i data-lucide="send"></i> Pay Salaries Now (1-Click)
                         </button>
-                        <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 12px; font-size: 0.9rem; padding: 12px;" onclick="exportBankFileFromDocs()">
+                        <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-top: 12px; font-size: 0.875rem; padding: 12px;" onclick="exportBankFileFromDocs()">
                             <i data-lucide="landmark"></i> Export Bank Transfer CSV
                         </button>
                     </div>
@@ -348,21 +348,21 @@
                                     <td style="font-weight: 700;">Arjun Mehta</td>
                                     <td>Payslip (Oct 2026)</td>
                                     <td>PS-2026-1042</td>
-                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">Generated</span></td>
+                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.7rem;">Generated</span></td>
                                     <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
                                 </tr>
                                 <tr>
                                     <td style="font-weight: 700;">Sarah Jenkins</td>
                                     <td>Invoice (Oct 2026)</td>
                                     <td>INV-2026-882</td>
-                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">Generated</span></td>
+                                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.7rem;">Generated</span></td>
                                     <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);"></i></td>
                                 </tr>
                                 <tr>
                                     <td style="font-weight: 700;">Michael Scott</td>
                                     <td>F&F Settlement</td>
                                     <td>FF-2026-012</td>
-                                    <td><span class="badge" style="background: #fff7ed; color: #f97316; font-size: 0.65rem;">Draft</span></td>
+                                    <td><span class="badge" style="background: #fff7ed; color: #f97316; font-size: 0.7rem;">Draft</span></td>
                                     <td><i data-lucide="edit" size="16" style="cursor: pointer; color: var(--text-muted);"></i></td>
                                 </tr>
                             </tbody>
@@ -375,11 +375,11 @@
                         <h3 style="font-weight: 800; margin-bottom: 1.5rem;">Payroll Distribution</h3>
                         <canvas id="payrollChart" height="250"></canvas>
                         <div style="margin-top: 1.5rem; display: grid; gap: 10px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
                                 <span style="color: var(--text-muted);">Total Disbursed</span>
                                 <span id="totalDisbursed" style="font-weight: 800;">₹0.00</span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
                                 <span style="color: var(--text-muted);">Tax Deductions (TDS)</span>
                                 <span id="totalTDS" style="font-weight: 800; color: #ef4444;">₹0.00</span>
                             </div>
@@ -421,10 +421,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Monthly Outflow</div>
-                                <div id="kpiTotalOutflow" style="font-size: 1.35rem; font-weight: 800; color: var(--text-main);">₹0.00</div>
+                                <div id="kpiTotalOutflow" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">₹0.00</div>
                             </div>
                         </div>
-                        <div id="kpiTotalOutflowSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
+                        <div id="kpiTotalOutflowSub" style="margin-top: 8px; font-size: 0.7rem; color: #10b981; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -433,10 +433,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Disbursed (Settled)</div>
-                                <div id="kpiDisbursed" style="font-size: 1.35rem; font-weight: 800; color: #10b981;">₹0.00</div>
+                                <div id="kpiDisbursed" style="font-size: 1.25rem; font-weight: 800; color: #10b981;">₹0.00</div>
                             </div>
                         </div>
-                        <div id="kpiDisbursedSub" style="margin-top: 8px; font-size: 0.72rem; color: #10b981; font-weight: 700;">Loading...</div>
+                        <div id="kpiDisbursedSub" style="margin-top: 8px; font-size: 0.7rem; color: #10b981; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -445,10 +445,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pending Authorization</div>
-                                <div id="kpiPending" style="font-size: 1.35rem; font-weight: 800; color: #d97706;">₹0.00</div>
+                                <div id="kpiPending" style="font-size: 1.25rem; font-weight: 800; color: #d97706;">₹0.00</div>
                             </div>
                         </div>
-                        <div id="kpiPendingSub" style="margin-top: 8px; font-size: 0.72rem; color: #d97706; font-weight: 700;">Loading...</div>
+                        <div id="kpiPendingSub" style="margin-top: 8px; font-size: 0.7rem; color: #d97706; font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -457,10 +457,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Statutory Remittances</div>
-                                <div id="kpiStatutory" style="font-size: 1.35rem; font-weight: 800; color: #0284c7;">₹0.00</div>
+                                <div id="kpiStatutory" style="font-size: 1.25rem; font-weight: 800; color: #0284c7;">₹0.00</div>
                             </div>
                         </div>
-                        <div id="kpiStatutorySub" style="margin-top: 8px; font-size: 0.72rem; color: #0284c7; font-weight: 700;">Loading...</div>
+                        <div id="kpiStatutorySub" style="margin-top: 8px; font-size: 0.7rem; color: #0284c7; font-weight: 700;">Loading...</div>
                     </div>
                 </div>
 
@@ -469,7 +469,7 @@
                     <div class="doc-card" style="border-color: #10b981;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                             <div>
-                                <h3 style="font-weight: 800; color: #059669; font-size: 1.1rem;">Super Admin 1-Click Salary Disbursement Hub</h3>
+                                <h3 style="font-weight: 800; color: #059669; font-size: 1.125rem;">Super Admin 1-Click Salary Disbursement Hub</h3>
                                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">Direct automated bank transfer execution without third-party redirects.</p>
                             </div>
                             <span class="badge" style="background: #ecfdf5; color: #059669; font-weight: 700; padding: 6px 12px; border-radius: 8px;">
@@ -479,58 +479,58 @@
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
                             <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
                                 <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">PAYMENT GATEWAY</div>
-                                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">HDFC Direct Host-to-Host</div>
+                                <div style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">HDFC Direct Host-to-Host</div>
                                 <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">API Ping: 18ms (Online)</div>
                             </div>
                             <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
                                 <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">TRANSFER RAILS</div>
-                                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">NEFT / RTGS / IMPS</div>
+                                <div style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">NEFT / RTGS / IMPS</div>
                                 <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">Bank Format: RBI-Standard</div>
                             </div>
                             <div style="padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
                                 <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">AUDIT &amp; ENCRYPTION</div>
-                                <div style="font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">AES-256 + HMAC-SHA</div>
+                                <div style="font-size: 1rem; font-weight: 800; color: var(--text-main); margin-top: 4px;">AES-256 + HMAC-SHA</div>
                                 <div style="font-size: 0.7rem; color: #10b981; font-weight: 600;">Multi-Sig Verified</div>
                             </div>
                         </div>
                         <div style="display: flex; gap: 12px;">
-                            <button class="btn btn-primary" style="flex: 2; justify-content: center; background: #10b981; border: none; font-size: 0.95rem; padding: 12px;" onclick="triggerDisbursement()">
+                            <button class="btn btn-primary" style="flex: 2; justify-content: center; background: #10b981; border: none; font-size: 1rem; padding: 12px;" onclick="triggerDisbursement()">
                                 <i data-lucide="send"></i> Execute Salary Disbursement Now (1-Click)
                             </button>
-                            <button class="btn btn-outline" style="flex: 1; justify-content: center; font-size: 0.9rem;" onclick="exportBankFileFromDocs()">
+                            <button class="btn btn-outline" style="flex: 1; justify-content: center; font-size: 0.875rem;" onclick="exportBankFileFromDocs()">
                                 <i data-lucide="download"></i> Export Bank CSV
                             </button>
                         </div>
                     </div>
 
                     <div class="doc-card">
-                        <h3 style="font-weight: 800; margin-bottom: 1rem; font-size: 1.05rem;">Batch Stepper &amp; Signoff</h3>
+                        <h3 style="font-weight: 800; margin-bottom: 1rem; font-size: 1rem;">Batch Stepper &amp; Signoff</h3>
                         <div style="display: flex; flex-direction: column; gap: 12px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">✓</div>
                                 <div>
-                                    <div style="font-size: 0.85rem; font-weight: 700;">1. Biometric Attendance Sync</div>
+                                    <div style="font-size: 0.875rem; font-weight: 700;">1. Biometric Attendance Sync</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">92 of 92 Timesheets Approved</div>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 28px; height: 28px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">✓</div>
                                 <div>
-                                    <div style="font-size: 0.85rem; font-weight: 700;">2. Bank Verification Check</div>
+                                    <div style="font-size: 0.875rem; font-weight: 700;">2. Bank Verification Check</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">Penny Drop &amp; IFSC Validated</div>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">3</div>
                                 <div>
-                                    <div style="font-size: 0.85rem; font-weight: 700; color: #2563eb;">3. Super Admin Signoff</div>
+                                    <div style="font-size: 0.875rem; font-weight: 700; color: #2563eb;">3. Super Admin Signoff</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">Ready for Batch Trigger</div>
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">4</div>
                                 <div>
-                                    <div style="font-size: 0.85rem; font-weight: 700; color: #64748b;">4. Gateway Dispatch &amp; UTR</div>
+                                    <div style="font-size: 0.875rem; font-weight: 700; color: #64748b;">4. Gateway Dispatch &amp; UTR</div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">Instant UTR Settlement</div>
                                 </div>
                             </div>
@@ -542,7 +542,7 @@
                 <div class="doc-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 1.1rem;">Disbursement Register &amp; Employee Ledger</h3>
+                            <h3 style="font-weight: 800; font-size: 1.125rem;">Disbursement Register &amp; Employee Ledger</h3>
                             <p style="font-size: 0.8rem; color: var(--text-muted);">Cycle: October 2026 • Verified Banking Channels</p>
                         </div>
                         <div style="display: flex; gap: 8px;">
@@ -583,10 +583,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PF &amp; ECR Challan</div>
-                                <div id="kpiPF" style="font-size: 1.35rem; font-weight: 800; color: #2563eb;">—</div>
+                                <div id="kpiPF" style="font-size: 1.25rem; font-weight: 800; color: #2563eb;">—</div>
                             </div>
                         </div>
-                        <div id="kpiPFSub" style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
+                        <div id="kpiPFSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -595,10 +595,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">ESIC Contribution</div>
-                                <div id="kpiESIC" style="font-size: 1.35rem; font-weight: 800; color: #059669;">—</div>
+                                <div id="kpiESIC" style="font-size: 1.25rem; font-weight: 800; color: #059669;">—</div>
                             </div>
                         </div>
-                        <div id="kpiESICSub" style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
+                        <div id="kpiESICSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -607,10 +607,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PT &amp; TDS (24Q)</div>
-                                <div id="kpiPT" style="font-size: 1.35rem; font-weight: 800; color: #d97706;">—</div>
+                                <div id="kpiPT" style="font-size: 1.25rem; font-weight: 800; color: #d97706;">—</div>
                             </div>
                         </div>
-                        <div id="kpiPTSub" style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
+                        <div id="kpiPTSub" style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
                     <div class="ai-glass-card" style="background: white; border: 1px solid var(--border); padding: 1.25rem; border-radius: 16px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -619,10 +619,10 @@
                             </div>
                             <div>
                                 <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Gratuity &amp; NPS</div>
-                                <div id="kpiGratuity" style="font-size: 1.35rem; font-weight: 800; color: #9333ea;">—</div>
+                                <div id="kpiGratuity" style="font-size: 1.25rem; font-weight: 800; color: #9333ea;">—</div>
                             </div>
                         </div>
-                        <div id="kpiGratuitySub" style="margin-top: 8px; font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
+                        <div id="kpiGratuitySub" style="margin-top: 8px; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">Loading...</div>
                     </div>
                 </div>
 
@@ -630,7 +630,7 @@
                 <div class="doc-card" style="margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; gap: 12px; flex-wrap: wrap;">
                         <div>
-                            <h3 style="font-weight: 800; font-size: 1.1rem;">Statutory Remittance &amp; Filing Hub</h3>
+                            <h3 style="font-weight: 800; font-size: 1.125rem;">Statutory Remittance &amp; Filing Hub</h3>
                             <p id="complianceRunInfo" style="font-size: 0.8rem; color: var(--text-muted);">From your statutory engine batches and finalized payroll runs.</p>
                         </div>
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -666,7 +666,7 @@
                 <!-- Statutory identifiers check -->
                 <div class="doc-card" id="identifierCheckCard" style="margin-bottom: 2rem; display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h3 style="font-weight: 800; font-size: 1.05rem;">Statutory Identifiers on Record</h3>
+                        <h3 style="font-weight: 800; font-size: 1rem;">Statutory Identifiers on Record</h3>
                         <span id="identifierCheckedAt" style="font-size: 0.75rem; color: var(--text-muted);"></span>
                     </div>
                     <div id="identifierCheckBody"></div>
@@ -850,7 +850,7 @@
                     <td style="font-weight: 700;">${data.employeeName || 'Unknown'}</td>
                     <td>${data.docType} (${data.period || 'N/A'})</td>
                     <td>${data.docId || data.id}</td>
-                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.65rem;">${data.status}</span></td>
+                    <td><span class="badge" style="background: #ecfdf5; color: #059669; font-size: 0.7rem;">${data.status}</span></td>
                     <td><i data-lucide="download" size="16" style="cursor: pointer; color: var(--primary);" onclick="downloadPayrollDoc('${data.id}')"></i></td>
                 `;
                 tbody.appendChild(row);
@@ -958,14 +958,14 @@
             const renderVaultList = (filterText = '') => {
                 const filtered = periodDocs.filter(d => (d.employeeName || '').toLowerCase().includes(filterText.toLowerCase()));
                 if (filtered.length === 0) {
-                    container.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem;">No archived records found.</div>`;
+                    container.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.875rem;">No archived records found.</div>`;
                     return;
                 }
                 
                 container.innerHTML = filtered.map(d => `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin-bottom: 8px; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
                         <div>
-                            <p style="font-weight: 700; font-size: 0.9rem; color: #1e293b;">${d.employeeName || 'Unknown'}</p>
+                            <p style="font-weight: 700; font-size: 0.875rem; color: #1e293b;">${d.employeeName || 'Unknown'}</p>
                             <p style="font-size: 0.75rem; color: var(--text-muted);">${d.docType} • ${d.docId || d.id}</p>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -1177,15 +1177,15 @@
             const good = /PROCESSED|COMPLETED|VALIDATED|DEDUCTED|APPROVED|FILED/.test(s);
             const bad = h.blocking > 0 || /BLOCK|FAIL|REJECT/.test(s);
             const style = bad ? 'background:#fef2f2;color:#b91c1c' : good ? 'background:#ecfdf5;color:#059669' : 'background:#fef3c7;color:#b45309';
-            return `<span class="badge" style="${style};">${escC(s)}</span>${h.blocking ? `<div style="font-size:0.68rem;color:#b91c1c;margin-top:3px;">${h.blocking} blocking exception(s)</div>` : ''}`;
+            return `<span class="badge" style="${style};">${escC(s)}</span>${h.blocking ? `<div style="font-size: 0.7rem;color:#b91c1c;margin-top:3px;">${h.blocking} blocking exception(s)</div>` : ''}`;
         }
 
         function reconciliationCell(h) {
-            if (!h.reconciliation) return '<span style="font-size:0.75rem;color:var(--text-muted);">—</span>';
+            if (!h.reconciliation) return '<span style="font-size: 0.75rem;color:var(--text-muted);">—</span>';
             const r = h.reconciliation;
             return r.matches
-                ? `<span style="font-size:0.75rem;color:#059669;font-weight:700;">✓ Matches payroll run</span>`
-                : `<span style="font-size:0.75rem;color:#b91c1c;font-weight:700;" title="Payroll run total ${inrExact(r.payrollRunTotal)}">Differs by ${inrExact(Math.abs(r.difference))}</span>`;
+                ? `<span style="font-size: 0.75rem;color:#059669;font-weight:700;">✓ Matches payroll run</span>`
+                : `<span style="font-size: 0.75rem;color:#b91c1c;font-weight:700;" title="Payroll run total ${inrExact(r.payrollRunTotal)}">Differs by ${inrExact(Math.abs(r.difference))}</span>`;
         }
 
         window.loadComplianceStats = async function (period) {
@@ -1230,7 +1230,7 @@
                         <td>
                             <div style="font-weight: 700; color: var(--text-main);">${escC(x.name)}</div>
                             <div style="font-size: 0.7rem; color: var(--text-muted);">${escC(x.act)}</div>
-                            ${x.notes.length ? `<div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">${x.notes.map(escC).join(' ')}</div>` : ''}
+                            ${x.notes.length ? `<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">${x.notes.map(escC).join(' ')}</div>` : ''}
                         </td>
                         <td>${escC(x.body)}</td>
                         <td>${escC(x.members)}</td>
@@ -1238,8 +1238,8 @@
                         <td style="font-weight: 600;">${inrExact(x.employeeShare)}</td>
                         <td style="font-weight: 800; color: #2563eb;">${inrExact(x.total)}</td>
                         <td>${x.file || x.reference
-                            ? `<code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">${escC(x.reference || x.file)}</code>${x.batchId ? `<div style="font-size:0.66rem;color:var(--text-muted);margin-top:2px;">${escC(x.batchId)}</div>` : ''}`
-                            : `<span style="font-size:0.75rem;color:var(--text-muted);">${x.batchId ? escC(x.batchId) : 'Not generated'}</span>`}</td>
+                            ? `<code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">${escC(x.reference || x.file)}</code>${x.batchId ? `<div style="font-size: 0.7rem;color:var(--text-muted);margin-top:2px;">${escC(x.batchId)}</div>` : ''}`
+                            : `<span style="font-size: 0.75rem;color:var(--text-muted);">${x.batchId ? escC(x.batchId) : 'Not generated'}</span>`}</td>
                         <td>${statusBadge(x)}</td>
                         <td>${reconciliationCell(x)}</td>
                     </tr>`).join('');
@@ -1259,7 +1259,7 @@
             const body = document.getElementById('identifierCheckBody');
             btn.disabled = true;
             card.style.display = 'block';
-            body.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">Checking identifiers…</p>';
+            body.innerHTML = '<p style="color: var(--text-muted); font-size: 0.875rem;">Checking identifiers…</p>';
             try {
                 const d = await complianceApi('/identifiers');
                 const color = { ok: '#059669', missing: '#b91c1c', 'invalid format': '#b91c1c', 'not set': '#b45309' };
@@ -1268,8 +1268,8 @@
                     <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Company (${d.summary.companyOk}/${d.summary.companyChecked} in order)</div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 1rem;">
                         ${d.company.map(c => `<div style="border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px;">
-                            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">${escC(c.label)}</div>
-                            <div style="font-size: 0.82rem; font-weight: 800; color: ${color[c.status]};">${c.status === 'ok' ? '✓ ' + escC(c.value) : escC(c.status)}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">${escC(c.label)}</div>
+                            <div style="font-size: 0.8rem; font-weight: 800; color: ${color[c.status]};">${c.status === 'ok' ? '✓ ' + escC(c.value) : escC(c.status)}</div>
                         </div>`).join('')}
                     </div>
                     <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">Employees (${d.summary.employeesChecked - d.summary.employeesWithIssues}/${d.summary.employeesChecked} complete)</div>
@@ -1278,10 +1278,10 @@
                             ? e.issues.map(i => `<span class="badge" style="background:#fef2f2;color:#b91c1c;margin:0 4px 4px 0;display:inline-block;">${escC(i)}</span>`).join('')
                             : '<span class="badge" style="background:#ecfdf5;color:#059669;">✓ PAN & UAN on record</span>'}</td></tr>`).join('')}
                     </tbody></table>
-                    <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 8px;">PF ECR needs each member's UAN; TDS (24Q) needs PAN. Add missing values in the employee records before filing.</p>`;
+                    <p style="font-size: 0.7rem; color: var(--text-muted); margin-top: 8px;">PF ECR needs each member's UAN; TDS (24Q) needs PAN. Add missing values in the employee records before filing.</p>`;
                 showToast(`Identifiers checked: ${d.summary.employeesWithIssues} employee(s) need attention.`);
             } catch (err) {
-                body.innerHTML = `<p style="color: #b91c1c; font-size: 0.85rem;">Re-scan failed: ${escC(err.message)}</p>`;
+                body.innerHTML = `<p style="color: #b91c1c; font-size: 0.875rem;">Re-scan failed: ${escC(err.message)}</p>`;
             } finally {
                 btn.disabled = false;
             }
@@ -1369,7 +1369,7 @@
             #customAppsModal .modal {
                 background: #ffffff !important;
                 color: #0f172a !important;
-                padding: 2.5rem;
+                padding: 2rem;
                 border-radius: 24px;
                 width: 90%;
                 max-width: 500px;
@@ -1414,7 +1414,7 @@
                 outline: none;
                 margin-top: 4px;
                 font-family: inherit;
-                font-size: 0.85rem;
+                font-size: 0.875rem;
                 transition: border-color 0.2s, box-shadow 0.2s;
             }
             #customAppsModal .modal input:focus {
@@ -1436,7 +1436,7 @@
                 transition: 0.2s;
                 text-align: center;
                 width: 100%;
-                font-size: 0.9rem;
+                font-size: 0.875rem;
                 margin-top: 0.5rem;
             }
             #customAppsModal .modal button.map-btn:hover {

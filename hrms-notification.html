@@ -33,16 +33,16 @@
         .nav-menu:hover::-webkit-scrollbar-thumb, .nav-menu::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .nav-menu::-webkit-scrollbar-button { display: none !important; width: 0 !important; height: 0 !important; }
 
-        .main-content { margin-left: 280px; flex: 1; padding: 2.5rem; }
-        .header { margin-bottom: 2.5rem; }
-        .header h1 { font-size: 2rem; font-weight: 700; }
+        .main-content { margin-left: 280px; flex: 1; padding: 2rem; }
+        .header { margin-bottom: 2rem; }
+        .header h1 { font-size: 1.875rem; font-weight: 700; }
         .card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 2rem; }
         .notif-item { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; gap: 1rem; align-items: flex-start; }
         .notif-item:last-child { border-bottom: none; }
         .notif-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .notif-content { flex: 1; }
         .notif-title { font-weight: 600; margin-bottom: 4px; }
-        .notif-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+        .notif-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; }
         .notif-time { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
 
         .icon-btn { 
@@ -83,19 +83,19 @@
 
         /* Customization Sidebar */
         .config-sidebar {
-            position: fixed; right: -360px; top: 0; bottom: 0; width: 360px;
+            position: fixed; right: -360px; top: 0; bottom: 0; width: 100%; max-width: 360px;
             background: rgba(255, 255, 255, 0.95); border-left: 1px solid var(--border);
             z-index: 2000; padding: 2rem; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(20px); box-shadow: -15px 0 45px rgba(0,0,0,0.1);
             display: flex; flex-direction: column;
         }
         .config-sidebar.active { right: 0; }
-        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
+        .config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .config-header h2 { font-weight: 800; font-size: 1.25rem; }
         .config-section { margin-bottom: 2rem; }
         .config-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--primary); margin-bottom: 1.25rem; font-weight: 800; }
         .config-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border); }
-        .config-option span { font-size: 0.9rem; font-weight: 600; }
+        .config-option span { font-size: 0.875rem; font-weight: 600; }
 
         /* Switches */
         .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
@@ -263,7 +263,7 @@
             </div>
         </aside>
         <main class="main-content">
-            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; width: 100%;">
+            <header class="header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; width: 100%;">
                 <div style="flex: 1;">
                     <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1px;">System Notifications</h1>
                     <p style="color: var(--text-muted); font-weight: 500;">Manage and view all administrative alerts</p>
@@ -381,7 +381,7 @@
             if (!el) {
                 el = document.createElement('div');
                 el.id = 'hrmsToast';
-                el.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:10px 18px; border-radius:10px; color:#fff; font-weight:600; font-size:0.85rem; z-index:10000; box-shadow:0 8px 24px rgba(0,0,0,0.2); max-width:90%;';
+                el.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:10px 18px; border-radius:10px; color:#fff; font-weight:600; font-size: 0.875rem; z-index:10000; box-shadow:0 8px 24px rgba(0,0,0,0.2); max-width:90%;';
                 document.body.appendChild(el);
             }
             el.textContent = message;
@@ -394,7 +394,7 @@
         function showHrmsError(message) {
             console.warn('[HRMS notifications] Could not load:', message);
             const box = document.querySelector('.card');
-            if (box) box.innerHTML = `<div style="text-align:center; padding:4rem 2rem; color:#991b1b;"><strong>Could not load notifications</strong><p style="font-size:0.85rem; margin-top:6px;">${String(message).replace(/[<>&]/g, '')}</p></div>`;
+            if (box) box.innerHTML = `<div style="text-align:center; padding: 2rem 2rem; color:#991b1b;"><strong>Could not load notifications</strong><p style="font-size: 0.875rem; margin-top:6px;">${String(message).replace(/[<>&]/g, '')}</p></div>`;
             showHrmsToast('Could not load notifications: ' + message, true);
         }
 
@@ -468,7 +468,7 @@
             window.visibleNotifIds = hrmsDocs.map(d => d.id);
 
             if (hrmsDocs.length === 0) {
-                notifContainer.innerHTML = '<div style="text-align: center; padding: 5rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
+                notifContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);"><i data-lucide="bell-off" size="48" style="margin-bottom: 1rem; opacity: 0.5;"></i><p>No notifications available.</p></div>';
                 if (window.lucide) lucide.createIcons();
                 return;
             }
@@ -498,10 +498,10 @@
                 const safeDocId = esc(docId);
                 const resolveBtn = isHelpReq && helpStatus !== 'resolved' ? `
                     <button onclick="resolveHelpRequest('${safeDocId}')"
-                        style="margin-top:8px; background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; border-radius:8px; padding:6px 14px; font-size:0.74rem; font-weight:700; cursor:pointer; transition:0.2s;"
+                        style="margin-top:8px; background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; border-radius:8px; padding:6px 14px; font-size: 0.75rem; font-weight:700; cursor:pointer; transition:0.2s;"
                         onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                         ✓ Mark Resolved
-                    </button>` : (isHelpReq ? `<div style="margin-top:6px; font-size:0.72rem; font-weight:700; color:#64748b;">✔ Resolved</div>` : '');
+                    </button>` : (isHelpReq ? `<div style="margin-top:6px; font-size: 0.7rem; font-weight:700; color:#64748b;">✔ Resolved</div>` : '');
 
                 return `
                     <div class="notif-item" id="hrms-notif-${safeDocId}">
@@ -517,8 +517,8 @@
                             <div class="notif-desc">${esc(data.message || 'No details provided.')}</div>
                             ${isHelpReq && data.empEmail ? `
                                 <div style="margin-top:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                    <span style="background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; border-radius:6px; padding:3px 10px; font-size:0.73rem; font-weight:700;">📧 ${esc(data.empEmail)}</span>
-                                    <button onclick="navigator.clipboard.writeText('${esc(data.empEmail)}').then(()=>this.textContent='Copied!')" style="background:none; border:none; color:#2563eb; font-size:0.7rem; cursor:pointer; font-weight:700; text-decoration:underline;">Copy Email</button>
+                                    <span style="background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; border-radius:6px; padding:3px 10px; font-size: 0.75rem; font-weight:700;">📧 ${esc(data.empEmail)}</span>
+                                    <button onclick="navigator.clipboard.writeText('${esc(data.empEmail)}').then(()=>this.textContent='Copied!')" style="background:none; border:none; color:#2563eb; font-size: 0.7rem; cursor:pointer; font-weight:700; text-decoration:underline;">Copy Email</button>
                                 </div>` : ''}
                             <div class="notif-time">${esc(date)}</div>
                             ${resolveBtn}
@@ -596,7 +596,7 @@
                 const ensureNotifModals = () => {
             if (document.getElementById('customDelNotifModal')) return;
             const modalStyle = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(2px);';
-            const contentStyle = 'background:white; padding:24px; border-radius:12px; width:400px; max-width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
+            const contentStyle = 'background:white; padding:24px; border-radius:12px; width: 100%; max-width: min(400px, 90%); box-shadow:0 10px 25px rgba(0,0,0,0.1); font-family:inherit; text-align:left;';
             const btnStyle = 'padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:500; font-family:inherit;';
             
             const delModal = document.createElement('div');
@@ -604,8 +604,8 @@
             delModal.style.cssText = modalStyle;
             delModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear Notification</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear this notification?</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear Notification</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear this notification?</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
                         <button id="customDelNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
                         <button id="customDelNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear</button>
@@ -618,8 +618,8 @@
             clearAllModal.style.cssText = modalStyle;
             clearAllModal.innerHTML = `
                 <div style="${contentStyle}">
-                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:1.1rem; font-weight:700;">Clear All Notifications</h3>
-                    <p style="color:#475569; margin-bottom:20px; font-size:0.9rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
+                    <h3 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size: 1.125rem; font-weight:700;">Clear All Notifications</h3>
+                    <p style="color:#475569; margin-bottom:20px; font-size: 0.875rem;">Are you sure you want to permanently clear all notifications? This action cannot be undone.</p>
                     <div style="display:flex; justify-content:flex-end; gap:12px;">
                         <button id="customClearAllNotifCancel" style="${btnStyle} border:1px solid #cbd5e1; background:white; color:#475569;">Cancel</button>
                         <button id="customClearAllNotifConfirm" style="${btnStyle} border:none; background:#ef4444; color:white;">Clear All</button>
