@@ -412,7 +412,7 @@ function populateWidgetContent(id) {
                     growthEl.textContent = `Based on current hiring trends, workforce is projected to grow by ${proj}% in Q3.`;
                 }
                 if (effEl && state.departments.length > 0) {
-                    const topDept = state.departments[0]?.name || 'Engineering';
+                    const topDept = state.departments[0]?.name || '';
                     effEl.textContent = `Productivity in ${topDept} is expected to peak next month due to optimal shift scheduling.`;
                 }
             }, 2000);
@@ -790,7 +790,10 @@ function startAIInsightsStream() {
                 if (state.departments && state.departments.length > 0) {
                     insights.push({
                         title: "Focus Anomaly Detected",
-                        message: `Telemetry indicators show peak productivity in the ${state.departments[0]?.name || 'Engineering'} unit.`,
+                        // Only claim a leading unit when there is one to name.
+                        message: state.departments[0]?.name
+                            ? `Telemetry indicators show peak productivity in the ${state.departments[0].name} unit.`
+                            : 'Not enough department data yet to compare productivity.',
                         type: "info"
                     });
                 }
@@ -939,17 +942,13 @@ async function loadDepartments() {
             state.departments = commandCenters;
         }
 
-        // Standard enterprise departments fallback if Firestore returned empty or permission-denied
-        if (!state.departments || state.departments.length === 0) {
-            state.departments = [
-                { departmentId: 'engineering', name: 'Engineering', departmentName: 'Engineering', icon: 'cpu' },
-                { departmentId: 'cybersecurity', name: 'Cybersecurity', departmentName: 'Cybersecurity', icon: 'shield' },
-                { departmentId: 'operations', name: 'Operations', departmentName: 'Operations', icon: 'activity' },
-                { departmentId: 'human-resources', name: 'Human Resources', departmentName: 'Human Resources', icon: 'users' },
-                { departmentId: 'finance', name: 'Finance', departmentName: 'Finance', icon: 'dollar-sign' },
-                { departmentId: 'executive', name: 'Executive', departmentName: 'Executive', icon: 'briefcase' }
-            ];
-        }
+            // There used to be a fallback here that invented six departments - Engineering,
+            // Cybersecurity, Operations, Human Resources, Finance, Executive - whenever
+            // Firestore returned nothing. A brand-new organisation was shown six departments
+            // it had never created, and assigning somebody to one would have referenced a
+            // department that does not exist in the database. An empty organisation now
+            // reads as empty, and the UI says so.
+            if (!state.departments) state.departments = [];
         
         updateDeptSelects();
         updateStats();
@@ -1241,13 +1240,11 @@ async function populateManagerDropdowns() {
         });
     }
 
-    // Fallback managers if list is empty
-    if (candidateList.length === 0) {
-        candidateList = [
-            { id: 'EMP0001', employeeId: 'EMP0001', name: 'Super Admin', role: 'Executive Leadership', designation: 'Executive Director', status: 'Active' },
-            { id: 'EMP0002', employeeId: 'EMP0002', name: 'John Doe', role: 'Manager', designation: 'Engineering Manager', status: 'Active' }
-        ];
-    }
+    // There used to be two invented managers here - 'Super Admin' and 'John Doe' with
+    // employee ids EMP0001 and EMP0002 - whenever the real list came back empty. Picking
+    // one assigned a reporting line to somebody who does not exist. An organisation with
+    // no managers yet now gets an empty list and a message saying so.
+
 
     // Filter active and sort
     const activeManagers = candidateList.filter(c => c.status !== 'Terminated' && c.status !== 'Inactive');
@@ -1260,13 +1257,17 @@ async function populateManagerDropdowns() {
 
     if (l1Select) {
         const curVal = l1Select.value;
-        l1Select.innerHTML = '<option value="">Select L1 Manager</option>' + optionsHtml;
+        l1Select.innerHTML = (activeManagers.length
+            ? '<option value="">Select L1 Manager</option>'
+            : '<option value="">No managers yet - add an employee with a manager role first</option>') + optionsHtml;
         if (curVal) l1Select.value = curVal;
     }
 
     if (l2Select) {
         const curVal = l2Select.value;
-        l2Select.innerHTML = '<option value="">None / Not Assigned</option>' + optionsHtml;
+        l2Select.innerHTML = (activeManagers.length
+            ? '<option value="">None / Not Assigned</option>'
+            : '<option value="">No managers yet</option>') + optionsHtml;
         if (curVal) l2Select.value = curVal;
     }
 }
@@ -1487,12 +1488,10 @@ function renderEmployeeTableRows(employees) {
                     ` : ''}
                 </div>
             </td>
-            <td>
-                <div class="password-cell" onclick="const m = this.querySelector('.masked-pwd'); const r = this.querySelector('.real-pwd'); if(m.style.display==='none'){m.style.display='inline';r.style.display='none';}else{m.style.display='none';r.style.display='inline';}" style="font-family: monospace; font-weight: 700; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; position: relative; overflow: hidden; width: fit-content; min-width: 80px; text-align: center;">
-                    <span class="masked-pwd">••••••••</span>
-                    <span class="real-pwd" style="display:none;">${escapeHtml(emp.password || emp.tempPassword || '---')}</span>
-                </div>
-            </td>
+              <!-- The password column was a click-to-reveal of emp.password / emp.tempPassword.
+                   Plaintext passwords are no longer stored, so it could only show '---', but it
+                   would still have revealed any legacy value to everyone who can see the employee
+                   list - which now includes the read-only Auditor role. Removed outright. -->
             <td style="font-weight: 700; color: var(--text-main);">₹${Number(emp.salary || 0).toLocaleString()}</td>
             <td style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
                 <i data-lucide="phone" size="12" style="vertical-align: middle; margin-right: 4px;"></i>
@@ -2301,7 +2300,11 @@ function setupEventListeners() {
         if (btnRegen) {
             btnRegen.addEventListener('click', () => {
                 generatePassword();
-                const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+                // crypto, not Math.random: a password built from Math.random is predictable from a
+                // couple of earlier samples, which is the weakness the server-side generator
+                // was rewritten to remove.
+                const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+                    .map(b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
                 const currentVal = passInput.value.split('@')[0];
                 passInput.value = `${currentVal}-${randomPart}@2026!`;
                 const displayPass = document.getElementById('displayPassword');
@@ -2333,7 +2336,11 @@ function setupEventListeners() {
             if (passInput && !passInput.value.trim()) {
                 if (window.generatePassword) window.generatePassword();
                 if (!passInput.value.trim()) {
-                    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+                    // crypto, not Math.random: a password built from Math.random is predictable from a
+                // couple of earlier samples, which is the weakness the server-side generator
+                // was rewritten to remove.
+                const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+                    .map(b => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 32]).join('');
                     passInput.value = `EMP-${randomPart}@2026!`;
                     const displayPass = document.getElementById('displayPassword');
                     if (displayPass) displayPass.value = passInput.value;
@@ -3358,7 +3365,8 @@ function renderProductivityChart(canvasId) {
                 data.push(Math.round(stats.total / stats.count));
             });
 
-            if (labels.length === 0) { labels.push('Engineering', 'Marketing'); data.push(92, 85); }
+            // An empty chart is honest; two invented departments scoring 92 and 85 are not.
+            if (labels.length === 0) { /* leave empty - the chart renders its own empty state */ }
 
             if (window[`chart_${canvasId}`]) window[`chart_${canvasId}`].destroy();
             window[`chart_${canvasId}`] = new Chart(ctx, {
@@ -3394,7 +3402,9 @@ function renderPerformanceTrendsChart(canvasId) {
                 data = docs.map(d => Number(d.data().score) || 0);
                 labels = docs.map((d, i) => `W${i+1}`);
             }
-            while (data.length < 6) data.push(80 + Math.floor(Math.random() * 15));
+            // This padded the chart with random scores between 80 and 95 so it always looked
+            // full. A customer with three weeks of data saw six bars, three of them invented,
+            // and could not tell which. Short history now renders short.
 
             if (window[`chart_${canvasId}`]) window[`chart_${canvasId}`].destroy();
             window[`chart_${canvasId}`] = new Chart(ctx, {
