@@ -204,12 +204,10 @@ onAuthStateChanged(auth, async (user) => {
         const firstName = resolvedName.split(' ')[0] || resolvedName;
         const welcomeUserNameEl = document.getElementById('welcomeUserName');
         if (welcomeUserNameEl) {
-            welcomeUserNameEl.textContent = firstName;
+            welcomeUserNameEl.textContent = firstName ? ', ' + firstName : '';
         }
-        const welcomeText = document.querySelector('.welcome-text h1');
-        if (welcomeText) {
-            welcomeText.innerHTML = (firstName ? `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋` : `Welcome back 👋`);
-        }
+        // The heading is left alone: the span above already carries the name, and replacing
+        // the whole <h1> is what made the greeting flicker.
         
         // Update Profile Trigger (Top Right)
         const profileName = document.querySelector('.p-name');
@@ -239,12 +237,10 @@ onAuthStateChanged(auth, async (user) => {
             const firstName = resolvedName.split(' ')[0] || resolvedName;
             const welcomeUserNameEl = document.getElementById('welcomeUserName');
             if (welcomeUserNameEl) {
-                welcomeUserNameEl.textContent = firstName;
+                welcomeUserNameEl.textContent = firstName ? ', ' + firstName : '';
             }
-            const welcomeText = document.querySelector('.welcome-text h1');
-            if (welcomeText) {
-                welcomeText.innerHTML = (firstName ? `Welcome back, <span id="welcomeUserName">${escapeHtml(firstName)}</span> 👋` : `Welcome back 👋`);
-            }
+            // The heading is left alone: the span above already carries the name, and replacing
+        // the whole <h1> is what made the greeting flicker.
             const profileAvatar = document.querySelector('.p-avatar');
             if (profileAvatar) {
                 const initials = resolvedName.split(/[\s.]+/).filter(Boolean).map(n => n[0]).join('').toUpperCase();

@@ -119,9 +119,29 @@
     });
   }
 
-  function init() { buildToggle(); wireNavGroups(); }
+  /*
+   * The greeting used to render a placeholder and then swap in the real name a moment
+   * later, so every page load visibly changed under the reader. The name is already in
+   * storage from the last session, so it is written before the first paint; admin-app.js
+   * still corrects it once the profile loads, but for a returning person the two agree
+   * and nothing moves.
+   */
+  function paintGreeting() {
+    var el = document.getElementById('welcomeUserName');
+    if (!el || el.textContent.trim()) return;
+    var name = '';
+    try { name = localStorage.getItem('userName') || localStorage.getItem('user_name') || ''; } catch (_) {}
+    if (!name || name.indexOf('@') > -1) return;      // never show an email as a name
+    el.textContent = ', ' + name.split(' ')[0];
+  }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  function init() { buildToggle(); wireNavGroups(); paintGreeting(); }
+
+  // The heading exists well before DOMContentLoaded, so fill it as soon as it appears.
+  if (document.readyState === 'loading') {
+    document.addEventListener('readystatechange', paintGreeting);
+    document.addEventListener('DOMContentLoaded', init);
+  }
   else init();
 
   window.KylrxTheme = { set: setChoice, get: stored, resolved: function () { return resolve(stored()); } };
