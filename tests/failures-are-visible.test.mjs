@@ -124,3 +124,19 @@ describe('a data or network call never fails silently', () => {
     assert.deepEqual(offenders, [], 'these failures would vanish without trace:\n  ' + offenders.join('\n  '));
   });
 });
+
+describe('an account with no organisation is told so', () => {
+  /*
+   * With no organisation, every tenant query went out unfiltered, the rules refused all
+   * of them, and the page said only "Some information couldn't be loaded". Such queries
+   * are not sent now, and the person is told the actual problem.
+   */
+  it('reads and listeners skip tenant queries without an organisation and say why', () => {
+    assert.match(config, /function isOrglessTenantQuery\(target\)/);
+    const getDocsBody = config.slice(config.indexOf('const getDocs = async'), config.indexOf('const getDoc = async'));
+    assert.match(getDocsBody, /if \(isOrglessTenantQuery\(rawTarget\)\)/);
+    const listener = config.slice(config.indexOf('const onSnapshot = '));
+    assert.match(listener, /isOrglessTenantQuery\(target\)/);
+    assert.match(config, /Your account isn't linked to an organization yet/);
+  });
+});
